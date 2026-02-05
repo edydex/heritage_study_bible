@@ -15,15 +15,20 @@ function CommentarySidebar({
   onBookmarkVerse,
   isCommentaryBookmarked,
   onBookmarkCommentary,
-  onShowToast
+  onShowToast,
+  onSaveNote,
+  notes = []
 }) {
   const [expandedVerses, setExpandedVerses] = useState({})
   const [showAuthorSearch, setShowAuthorSearch] = useState(false)
   const [showWorkDropdown, setShowWorkDropdown] = useState(false)
+  const [showWorkLinksDropdown, setShowWorkLinksDropdown] = useState(false)
   const [authorSearchQuery, setAuthorSearchQuery] = useState('')
   const [showCompareModal, setShowCompareModal] = useState(false)
   const [showNotesModal, setShowNotesModal] = useState(false)
   const [noteText, setNoteText] = useState('')
+  const [introductionExpanded, setIntroductionExpanded] = useState(false)
+  const [expandedIntroSections, setExpandedIntroSections] = useState({})
   const sidebarRef = useRef(null)
 
   // Get works for current author on current chapter
@@ -42,6 +47,27 @@ function CommentarySidebar({
   const chapterCommentaries = (isRevelation && currentWorkData?.commentaries.filter(c => 
     c.chapter === chapter && c.verses
   )) || []
+
+  // Get introduction sections (only for Revelation)
+  const introductionSections = (isRevelation && currentWorkData?.introduction) || []
+  const hasIntroduction = introductionSections.length > 0
+
+  // Get work URLs
+  const workOriginalUrl = currentWorkData?.originalUrl
+  const workAudioUrl = currentWorkData?.audioUrl
+  const hasWorkLinks = workOriginalUrl || workAudioUrl
+
+  // Load existing note for selected verse
+  useEffect(() => {
+    if (selectedVerse) {
+      const existingNote = notes.find(n => 
+        n.book === bookName && 
+        n.chapter === selectedVerse.chapter && 
+        n.verse === selectedVerse.verse
+      )
+      setNoteText(existingNote?.text || '')
+    }
+  }, [selectedVerse, notes, bookName])
 
   // Filter authors based on search
   const filteredAuthors = authors.filter(a => 
@@ -65,6 +91,13 @@ function CommentarySidebar({
     setExpandedVerses(prev => ({
       ...prev,
       [verseKey]: !prev[verseKey]
+    }))
+  }
+
+  const toggleIntroSection = (sectionId) => {
+    setExpandedIntroSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
     }))
   }
 
@@ -115,6 +148,7 @@ function CommentarySidebar({
       if (sidebarRef.current && !sidebarRef.current.contains(e.target)) {
         setShowAuthorSearch(false)
         setShowWorkDropdown(false)
+        setShowWorkLinksDropdown(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -129,12 +163,13 @@ function CommentarySidebar({
         else if (showNotesModal) setShowNotesModal(false)
         else if (showAuthorSearch) setShowAuthorSearch(false)
         else if (showWorkDropdown) setShowWorkDropdown(false)
+        else if (showWorkLinksDropdown) setShowWorkLinksDropdown(false)
         else onClose()
       }
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [showCompareModal, showNotesModal, showAuthorSearch, showWorkDropdown, onClose])
+  }, [showCompareModal, showNotesModal, showAuthorSearch, showWorkDropdown, showWorkLinksDropdown, onClose])
 
   const verseIsBookmarked = selectedVerse && isBookmarked?.(selectedVerse.chapter, selectedVerse.verse)
 
@@ -279,9 +314,64 @@ function CommentarySidebar({
               <div className="flex items-center gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-500 uppercase tracking-wide">From:</p>
-                  <p className="font-medium text-gray-800 truncate text-sm" title={currentWorkData.title}>
-                    {currentWorkData.title}
-                  </p>
+                  {/* Work Title - Clickable if has links */}
+                  {hasWorkLinks ? (
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setShowWorkLinksDropdown(!showWorkLinksDropdown)
+                          setShowWorkDropdown(false)
+                          setShowAuthorSearch(false)
+                        }}
+                        className="font-medium text-primary hover:text-blue-700 underline decoration-dotted truncate text-sm text-left flex items-center gap-1"
+                        title="Click for source links"
+                      >
+                        {currentWorkData.title}
+                        <span className="text-xs">▼</span>
+                      </button>
+                      
+                      {/* Work Links Dropdown */}
+                      {showWorkLinksDropdown && (
+                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-[200px]">
+                          <div className="p-2 border-b bg-gray-50">
+                            <p className="text-xs text-gray-600 font-medium">Source Links</p>
+                          </div>
+                          <div className="py-1">
+                            {workOriginalUrl && (
+                              <a
+                                href={workOriginalUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors text-sm"
+                                onClick={() => setShowWorkLinksDropdown(false)}
+                              >
+                                <span>🎬</span>
+                                <span>Go To Original</span>
+                                <span className="text-gray-400 ml-auto">↗</span>
+                              </a>
+                            )}
+                            {workAudioUrl && (
+                              <a
+                                href={workAudioUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors text-sm"
+                                onClick={() => setShowWorkLinksDropdown(false)}
+                              >
+                                <span>🎧</span>
+                                <span>Listen to Audio</span>
+                                <span className="text-gray-400 ml-auto">↗</span>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="font-medium text-gray-800 truncate text-sm" title={currentWorkData.title}>
+                      {currentWorkData.title}
+                    </p>
+                  )}
                   {currentWorkData.type && (
                     <p className="text-xs text-gray-500 flex items-center gap-1">
                       <span>📚</span> {currentWorkData.type}
@@ -338,6 +428,86 @@ function CommentarySidebar({
 
         {/* Commentary Content - Scrollable */}
         <div className="flex-1 overflow-y-auto p-3">
+          {/* Introduction Section - Only for Revelation with introduction data */}
+          {hasIntroduction && (
+            <div className="mb-4">
+              <button
+                onClick={() => setIntroductionExpanded(!introductionExpanded)}
+                className={`w-full border-l-4 transition-all duration-200 rounded-r-lg ${
+                  introductionExpanded 
+                    ? 'border-accent bg-teal-50' 
+                    : 'border-accent bg-teal-50/50 hover:bg-teal-100'
+                }`}
+              >
+                <div className="flex items-center justify-between p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📖</span>
+                    <span className="font-semibold text-accent">Introduction</span>
+                    <span className="text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">
+                      {introductionSections.length} section{introductionSections.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <span className="text-gray-400 text-xs transform transition-transform duration-200" style={{ transform: introductionExpanded ? 'rotate(90deg)' : '' }}>
+                    ▶
+                  </span>
+                </div>
+              </button>
+              
+              {/* Expanded Introduction Sections */}
+              {introductionExpanded && (
+                <div className="ml-2 mt-2 space-y-2 border-l-2 border-teal-200 pl-3">
+                  {introductionSections.map((section) => {
+                    const isExpanded = expandedIntroSections[section.id]
+                    return (
+                      <div
+                        key={section.id}
+                        className={`rounded-lg transition-all duration-200 ${
+                          isExpanded ? 'bg-white shadow-sm border border-teal-200' : 'bg-teal-50/50 hover:bg-teal-50'
+                        }`}
+                      >
+                        <button
+                          onClick={() => toggleIntroSection(section.id)}
+                          className="w-full text-left p-2"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm text-gray-800">
+                              {section.title?.replace(/^#\s*\**/, '').replace(/\*+$/, '') || 'Introduction'}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {section.timestamp && (
+                                <span className="text-xs text-gray-400">{section.timestamp}</span>
+                              )}
+                              <span className="text-gray-400 text-xs transform transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : '' }}>
+                                ▶
+                              </span>
+                            </div>
+                          </div>
+                          {!isExpanded && (
+                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                              {section.text.substring(0, 100)}...
+                            </p>
+                          )}
+                        </button>
+                        
+                        {isExpanded && (
+                          <div className="px-2 pb-2">
+                            <div className="border-t border-teal-100 pt-2">
+                              {section.text.split('\n\n').map((paragraph, pIndex) => (
+                                <p key={pIndex} className="text-gray-700 text-sm leading-relaxed mb-2 last:mb-0">
+                                  {paragraph}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
           {chapterCommentaries.length === 0 ? (
             <div className="p-6 text-center text-gray-500">
               <p className="text-4xl mb-3">📖</p>
@@ -472,31 +642,53 @@ function CommentarySidebar({
               ✕
             </button>
             <h3 className="text-lg font-bold text-gray-800 mb-3">
-              {selectedVerse ? `Notes for Rev ${selectedVerse.chapter}:${selectedVerse.verse}` : 'Notes'}
+              {selectedVerse ? `Notes for ${bookName} ${selectedVerse.chapter}:${selectedVerse.verse}` : 'Notes'}
             </h3>
-            <textarea
-              value={noteText}
-              onChange={(e) => setNoteText(e.target.value)}
-              placeholder="Write your notes here..."
-              className="w-full h-32 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-            />
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => setShowNotesModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  onShowToast?.('Note saved!')
-                  setShowNotesModal(false)
-                }}
-                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Save Note
-              </button>
-            </div>
+            {!selectedVerse ? (
+              <p className="text-gray-500 text-sm">Please select a verse to add notes.</p>
+            ) : (
+              <>
+                <textarea
+                  value={noteText}
+                  onChange={(e) => setNoteText(e.target.value)}
+                  placeholder="Write your notes here..."
+                  className="w-full h-32 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                />
+                <p className="text-xs text-gray-400 mt-1 mb-3">
+                  Notes are automatically saved to your bookmarks
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowNotesModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (selectedVerse && onSaveNote) {
+                        onSaveNote(
+                          bookName,
+                          selectedVerse.chapter,
+                          selectedVerse.verse,
+                          noteText,
+                          selectedVerse.text || ''
+                        )
+                        if (noteText.trim()) {
+                          onShowToast?.('Note saved!')
+                        } else {
+                          onShowToast?.('Note deleted')
+                        }
+                      }
+                      setShowNotesModal(false)
+                    }}
+                    className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {noteText.trim() ? 'Save Note' : 'Delete Note'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

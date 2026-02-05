@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-function BookmarkManager({ bookmarks, commentaryBookmarks = [], onClose, onNavigate, onDelete, onUpdateNote, onDeleteCommentary, onNavigateToCommentary }) {
+function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onClose, onNavigate, onDelete, onUpdateNote, onDeleteCommentary, onNavigateToCommentary, onDeleteNote }) {
   const [viewMode, setViewMode] = useState('date') // 'date' or 'books'
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedItems, setExpandedItems] = useState({})
@@ -34,8 +34,14 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], onClose, onNavig
     type: 'verse'
   }))
 
+  // Normalize notes to be displayed like bookmarks
+  const normalizedNotes = notes.map(n => ({
+    ...n,
+    type: 'note'
+  }))
+
   // Combine all bookmarks
-  const allBookmarks = [...normalizedVerseBookmarks, ...normalizedCommentaryBookmarks]
+  const allBookmarks = [...normalizedVerseBookmarks, ...normalizedCommentaryBookmarks, ...normalizedNotes]
 
   // Filter bookmarks by search
   const filteredBookmarks = allBookmarks.filter(b => {
@@ -47,6 +53,13 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], onClose, onNavig
         b.authorName?.toLowerCase().includes(query) ||
         b.textSnippet?.toLowerCase().includes(query) ||
         b.workTitle?.toLowerCase().includes(query)
+      )
+    }
+    if (b.type === 'note') {
+      return (
+        b.text?.toLowerCase().includes(query) ||
+        b.verseText?.toLowerCase().includes(query) ||
+        `${b.book} ${b.chapter}:${b.verse}`.toLowerCase().includes(query)
       )
     }
     return (
@@ -89,12 +102,13 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], onClose, onNavig
       }
       groups[bookmark.book].chapters[bookmark.chapter].push(bookmark)
     })
-    // Sort bookmarks within each chapter (verses first, then commentary)
+    // Sort bookmarks within each chapter (verses first, then notes, then commentary)
     Object.values(groups).forEach(book => {
       Object.keys(book.chapters).forEach(chapter => {
         book.chapters[chapter].sort((a, b) => {
-          // Verses before commentary
-          if (a.type !== b.type) return a.type === 'verse' ? -1 : 1
+          // Verses before notes before commentary
+          const typeOrder = { verse: 0, note: 1, commentary: 2 }
+          if (a.type !== b.type) return typeOrder[a.type] - typeOrder[b.type]
           // Then by verse number
           return (a.verse || 0) - (b.verse || 0)
         })
@@ -152,7 +166,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], onClose, onNavig
           <div className="flex items-center justify-between mb-4">
             <h3 className="heading-text text-xl font-bold flex items-center gap-2">
               <span>⭐</span>
-              Bookmarks ({bookmarks.length + commentaryBookmarks.length})
+              Bookmarks ({bookmarks.length + commentaryBookmarks.length + notes.length})
             </h3>
             <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
               ✕
@@ -218,6 +232,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], onClose, onNavig
                           onNavigate={onNavigate}
                           onDelete={onDelete}
                           onDeleteCommentary={onDeleteCommentary}
+                          onDeleteNote={onDeleteNote}
                           onNavigateToCommentary={onNavigateToCommentary}
                           onEditNote={handleEditNote}
                           editingNote={editingNote}
@@ -269,6 +284,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], onClose, onNavig
                                     onNavigate={onNavigate}
                                     onDelete={onDelete}
                                     onDeleteCommentary={onDeleteCommentary}
+                                    onDeleteNote={onDeleteNote}
                                     onNavigateToCommentary={onNavigateToCommentary}
                                     onEditNote={handleEditNote}
                                     editingNote={editingNote}
@@ -295,7 +311,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], onClose, onNavig
         <div className="border-t px-6 py-3 bg-gray-50 flex justify-between items-center">
           <button
             onClick={handleExport}
-            disabled={bookmarks.length === 0 && commentaryBookmarks.length === 0}
+            disabled={bookmarks.length === 0 && commentaryBookmarks.length === 0 && notes.length === 0}
             className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Export
@@ -309,7 +325,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], onClose, onNavig
   )
 }
 
-function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onNavigateToCommentary, onEditNote, editingNote, noteText, setNoteText, onSaveNote, compact }) {
+function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onDeleteNote, onNavigateToCommentary, onEditNote, editingNote, noteText, setNoteText, onSaveNote, compact }) {
   const formatDate = (dateStr) => {
     const date = new Date(dateStr)
     const day = String(date.getDate()).padStart(2, '0')
@@ -319,6 +335,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onNa
   }
 
   const isCommentary = bookmark.type === 'commentary'
+  const isNote = bookmark.type === 'note'
 
   const handleClick = () => {
     if (isCommentary) {
@@ -331,13 +348,15 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onNa
   const handleDelete = () => {
     if (isCommentary) {
       onDeleteCommentary?.(bookmark.commentaryId)
+    } else if (isNote) {
+      onDeleteNote?.(bookmark.book, bookmark.chapter, bookmark.verse)
     } else {
       onDelete(bookmark.id)
     }
   }
 
   return (
-    <div className={`${compact ? 'px-3 py-2' : 'px-4 py-3'} ${isCommentary ? 'hover:bg-blue-50' : 'hover:bg-amber-50'} transition-colors`}>
+    <div className={`${compact ? 'px-3 py-2' : 'px-4 py-3'} ${isCommentary ? 'hover:bg-blue-50' : isNote ? 'hover:bg-green-50' : 'hover:bg-amber-50'} transition-colors`}>
       <div className="flex items-start justify-between gap-2">
         <div 
           className="flex-1 cursor-pointer"
@@ -355,6 +374,22 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onNa
               </div>
               <p className="text-xs text-gray-500 mt-0.5">by {bookmark.authorName} • {bookmark.workTitle}</p>
               <p className="text-sm text-gray-600 truncate mt-1">{bookmark.textSnippet}...</p>
+            </>
+          ) : isNote ? (
+            /* Note Display */
+            <>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-green-500">📝</span>
+                <span className="font-medium text-green-700">
+                  {compact ? `Note on v${bookmark.verse}` : `${bookmark.book} ${bookmark.chapter}:${bookmark.verse}`}
+                </span>
+                <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Note</span>
+                <span className="text-xs text-gray-400">({formatDate(bookmark.dateCreated)})</span>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">{bookmark.text}</p>
+              {bookmark.verseText && (
+                <p className="text-xs text-gray-400 mt-1 italic truncate">"{bookmark.verseText.substring(0, 80)}..."</p>
+              )}
             </>
           ) : (
             /* Verse Bookmark Display */
@@ -376,7 +411,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onNa
           )}
         </div>
         <div className="flex items-center gap-1">
-          {!isCommentary && editingNote === bookmark.id ? (
+          {!isCommentary && !isNote && editingNote === bookmark.id ? (
             <div className="flex items-center gap-1">
               <input
                 type="text"
@@ -390,7 +425,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onNa
             </div>
           ) : (
             <>
-              {!isCommentary && (
+              {!isCommentary && !isNote && (
                 <button 
                   onClick={() => onEditNote(bookmark)} 
                   className="p-1 text-gray-400 hover:text-accent transition-colors"
@@ -402,7 +437,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onNa
               <button 
                 onClick={handleDelete} 
                 className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                title="Delete bookmark"
+                title="Delete"
               >
                 🗑️
               </button>

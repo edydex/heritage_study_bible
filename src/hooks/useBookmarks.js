@@ -3,10 +3,12 @@ import { v4 as uuidv4 } from 'uuid'
 
 const STORAGE_KEY = 'bible-study-bookmarks'
 const COMMENTARY_STORAGE_KEY = 'bible-study-commentary-bookmarks'
+const NOTES_STORAGE_KEY = 'bible-study-notes'
 
 export function useBookmarks() {
   const [bookmarks, setBookmarks] = useState([])
   const [commentaryBookmarks, setCommentaryBookmarks] = useState([])
+  const [notes, setNotes] = useState([])
 
   // Load bookmarks from localStorage on mount
   useEffect(() => {
@@ -18,6 +20,10 @@ export function useBookmarks() {
       const storedCommentary = localStorage.getItem(COMMENTARY_STORAGE_KEY)
       if (storedCommentary) {
         setCommentaryBookmarks(JSON.parse(storedCommentary))
+      }
+      const storedNotes = localStorage.getItem(NOTES_STORAGE_KEY)
+      if (storedNotes) {
+        setNotes(JSON.parse(storedNotes))
       }
     } catch (e) {
       console.error('Error loading bookmarks:', e)
@@ -41,6 +47,15 @@ export function useBookmarks() {
       console.error('Error saving commentary bookmarks:', e)
     }
   }, [commentaryBookmarks])
+
+  // Save notes
+  useEffect(() => {
+    try {
+      localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes))
+    } catch (e) {
+      console.error('Error saving notes:', e)
+    }
+  }, [notes])
 
   const addBookmark = (bookmark) => {
     const newBookmark = {
@@ -116,6 +131,62 @@ export function useBookmarks() {
     }
   }
 
+  // Note functions - Notes are linked to specific verses
+  const saveNote = (book, chapter, verse, text, verseText = '') => {
+    const existing = notes.find(n => 
+      n.book === book && n.chapter === chapter && n.verse === verse
+    )
+    
+    if (existing) {
+      // Update existing note
+      if (text.trim() === '') {
+        // Remove note if text is empty
+        setNotes(prev => prev.filter(n => n.id !== existing.id))
+        return null
+      }
+      setNotes(prev => prev.map(n => 
+        n.id === existing.id 
+          ? { ...n, text, dateModified: new Date().toISOString() }
+          : n
+      ))
+      return existing
+    } else if (text.trim() !== '') {
+      // Create new note
+      const newNote = {
+        id: uuidv4(),
+        type: 'note',
+        book,
+        chapter,
+        verse,
+        text,
+        verseText,
+        dateCreated: new Date().toISOString(),
+        dateModified: new Date().toISOString()
+      }
+      setNotes(prev => [...prev, newNote])
+      return newNote
+    }
+    return null
+  }
+
+  const deleteNote = (book, chapter, verse) => {
+    setNotes(prev => prev.filter(n => 
+      !(n.book === book && n.chapter === chapter && n.verse === verse)
+    ))
+  }
+
+  const getNote = (book, chapter, verse) => {
+    return notes.find(n => 
+      n.book === book && n.chapter === chapter && n.verse === verse
+    )
+  }
+
+  const hasNote = (book, chapter, verse) => {
+    return notes.some(n => 
+      n.book === book && n.chapter === chapter && n.verse === verse
+    )
+  }
+
   return {
     bookmarks,
     addBookmark,
@@ -127,6 +198,11 @@ export function useBookmarks() {
     addCommentaryBookmark,
     removeCommentaryBookmark,
     isCommentaryBookmarked,
-    toggleCommentaryBookmark
+    toggleCommentaryBookmark,
+    notes,
+    saveNote,
+    deleteNote,
+    getNote,
+    hasNote
   }
 }

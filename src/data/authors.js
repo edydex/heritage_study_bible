@@ -10,9 +10,12 @@ export const authors = [
       {
         id: 'ortlund-every-chapter',
         title: 'Explaining Every Chapter of Revelation',
-        type: 'Video Teaching',
+        type: 'Video Commentary',
         timestamp: '3:45:00',
         year: 2024,
+        originalUrl: null, // Will be populated from JSON metadata
+        audioUrl: null, // Will be populated from JSON metadata
+        introduction: [], // Will be populated from JSON
         commentaries: [] // Will be populated from JSON
       }
     ]
@@ -197,7 +200,15 @@ export const authors = [
 export function loadOrtlundCommentaries(commentaryData) {
   const ortlund = authors.find(a => a.id === 'gavin-ortlund')
   if (ortlund && ortlund.works[0]) {
-    ortlund.works[0].commentaries = commentaryData.commentaries
+    // Load metadata
+    if (commentaryData.metadata) {
+      ortlund.works[0].originalUrl = commentaryData.metadata.originalUrl
+      ortlund.works[0].audioUrl = commentaryData.metadata.audioUrl
+    }
+    // Load introduction sections
+    ortlund.works[0].introduction = commentaryData.introduction || []
+    // Load chapter commentaries
+    ortlund.works[0].commentaries = commentaryData.commentaries || []
   }
   return authors
 }

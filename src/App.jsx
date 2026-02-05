@@ -32,7 +32,8 @@ function App() {
   
   const { 
     bookmarks, addBookmark, removeBookmark, updateBookmark, isBookmarked,
-    commentaryBookmarks, isCommentaryBookmarked, toggleCommentaryBookmark
+    commentaryBookmarks, isCommentaryBookmarked, toggleCommentaryBookmark,
+    notes, saveNote, deleteNote, hasNote
   } = useBookmarks()
 
   // Check screen size for responsive behavior
@@ -413,6 +414,8 @@ function App() {
                 const added = toggleCommentaryBookmark(commentary, author?.name, work?.title)
                 showToast(added ? 'Commentary bookmarked!' : 'Bookmark removed')
               }}
+              notes={notes}
+              onSaveNote={saveNote}
               onShowToast={showToast}
               onClose={() => {
                 setIsSidebarOpen(false)
@@ -427,6 +430,7 @@ function App() {
           <BookmarkManager 
             bookmarks={bookmarks}
             commentaryBookmarks={commentaryBookmarks}
+            notes={notes}
             onClose={() => setShowBookmarkManager(false)}
             onNavigate={(book, chapter, verse) => navigateToVerse(book, chapter, verse)}
             onDelete={(id) => {
@@ -440,6 +444,10 @@ function App() {
             onDeleteCommentary={(commentaryId) => {
               toggleCommentaryBookmark({ id: commentaryId })
               showToast('Commentary bookmark removed')
+            }}
+            onDeleteNote={(book, chapter, verse) => {
+              deleteNote(book, chapter, verse)
+              showToast('Note deleted')
             }}
             onNavigateToCommentary={(chapter, commentaryId) => {
               setCurrentBook('Revelation')
