@@ -51,6 +51,15 @@ function BibleStudyApp() {
   const [selectedAuthor, setSelectedAuthor] = useState('gavin-ortlund')
   const [selectedWork, setSelectedWork] = useState('ortlund-every-chapter')
   
+  // Text size setting (persisted in localStorage)
+  const [textSize, setTextSize] = useState(() => {
+    try { return localStorage.getItem('heritage-text-size') || 'medium' } catch { return 'medium' }
+  })
+  
+  useEffect(() => {
+    try { localStorage.setItem('heritage-text-size', textSize) } catch {}
+  }, [textSize])
+  
   const { 
     bookmarks, addBookmark, removeBookmark, updateBookmark, isBookmarked,
     commentaryBookmarks, isCommentaryBookmarked, toggleCommentaryBookmark,
@@ -302,11 +311,13 @@ function BibleStudyApp() {
           onBookmarkClick={() => setShowBookmarkManager(true)}
           bookmarkCount={bookmarks.length}
           isSidebarOpen={isLargeScreen && isSidebarOpen}
+          textSize={textSize}
+          onTextSizeChange={setTextSize}
         />
         
         <div className="flex">
           {/* Main Content */}
-          <main className={`flex-1 px-3 sm:px-4 py-4 sm:py-6 pb-20 transition-all duration-300 ${
+          <main className={`flex-1 px-0 sm:px-4 py-2 sm:py-6 pb-20 transition-all duration-300 ${
             isLargeScreen && isSidebarOpen ? 'lg:mr-[420px] xl:mr-[560px] 2xl:mr-[672px]' : ''
           }`}>
             <div className="container mx-auto max-w-3xl" ref={bibleContainerRef}>
@@ -348,6 +359,7 @@ function BibleStudyApp() {
                       isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
                       onBookmarkToggle={handleBookmarkToggle}
                       onVersePosition={updateVersePosition}
+                      textSize={textSize}
                     />
                   )}
 

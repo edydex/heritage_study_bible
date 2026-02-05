@@ -91,13 +91,8 @@ html {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
-/* Mobile-specific text scaling */
+/* Mobile-specific base scaling */
 @media (max-width: 640px) {
-  .verse-text {
-    font-size: 1rem;
-    line-height: 1.6;
-  }
-  
   html {
     font-size: 15px;
   }

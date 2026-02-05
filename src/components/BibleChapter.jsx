@@ -1,8 +1,15 @@
 import { useEffect, useRef, useCallback } from 'react'
 
-function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerseClick, isBookmarked, onBookmarkToggle, onVersePosition }) {
+function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerseClick, isBookmarked, onBookmarkToggle, onVersePosition, textSize = 'medium' }) {
   const containerRef = useRef(null)
   const verseRefs = useRef({})
+
+  // Text size classes
+  const textSizeClasses = {
+    small: 'text-[15px] sm:text-base leading-6 sm:leading-relaxed',
+    medium: 'text-[17px] sm:text-lg leading-7 sm:leading-relaxed',
+    large: 'text-[20px] sm:text-xl leading-8 sm:leading-relaxed',
+  }
 
   // Track verse positions for sidebar alignment
   useEffect(() => {
@@ -43,14 +50,10 @@ function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerse
   }, [])
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 md:p-8" ref={containerRef}>
-      {/* Chapter Title - Desktop only (mobile has it in App) */}
-      <h2 className="hidden lg:block heading-text text-3xl font-bold text-primary mb-6 text-center">
-        {bookName} {chapter.number}
-      </h2>
+    <div className="bg-white rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8" ref={containerRef}>
 
       {/* Verses */}
-      <div className="space-y-0.5 sm:space-y-1">
+      <div className="space-y-0 sm:space-y-1">
         {chapter.verses.map((verse) => {
           const hasComment = hasCommentary(chapter.number, verse.number)
           const bookmarked = isBookmarked(verse.number)
@@ -60,18 +63,18 @@ function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerse
               key={verse.number}
               id={`verse-${chapter.number}-${verse.number}`}
               ref={(el) => setVerseRef(verse.number, el)}
-              className={`group flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg transition-all duration-300 hover:bg-gray-50 active:bg-gray-100 ${
+              className={`group flex items-start gap-0.5 sm:gap-2 py-1 px-0 sm:p-2 rounded-lg transition-all duration-300 hover:bg-gray-50 active:bg-gray-100 ${
                 hasComment ? 'hover:bg-amber-50 active:bg-amber-100' : ''
               }`}
             >
               {/* Verse Number */}
-              <span className="text-xs sm:text-sm text-gray-400 font-medium min-w-[1.5rem] sm:min-w-[2rem] pt-0.5 sm:pt-1 select-none">
+              <span className="text-[10px] sm:text-sm text-gray-400 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-1 select-none text-right">
                 {verse.number}
               </span>
 
               {/* Verse Text */}
               <p 
-                className={`verse-text text-base sm:text-lg leading-relaxed flex-1 cursor-pointer hover:text-gray-900 ${
+                className={`verse-text ${textSizeClasses[textSize]} flex-1 cursor-pointer hover:text-gray-900 ${
                   hasComment ? 'text-gray-800' : 'text-gray-700'
                 }`}
                 onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}

@@ -1,12 +1,31 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
-function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, bookmarkCount, isSidebarOpen = false }) {
+function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, bookmarkCount, isSidebarOpen = false, textSize = 'medium', onTextSizeChange }) {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const settingsRef = useRef(null)
 
   const handleSubmit = (e) => {
     e.preventDefault()
     onSearch(searchQuery)
   }
+
+  // Close settings dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target)) {
+        setShowSettings(false)
+      }
+    }
+    if (showSettings) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showSettings])
+
+  const textSizes = [
+    { id: 'small', label: 'Small', icon: 'A' },
+    { id: 'medium', label: 'Medium', icon: 'A' },
+    { id: 'large', label: 'Large', icon: 'A' },
+  ]
 
   return (
     <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
@@ -54,6 +73,45 @@ function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, bookma
               </span>
             )}
           </button>
+
+          {/* Settings Button */}
+          <div className="relative flex-shrink-0" ref={settingsRef}>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="flex items-center px-2 sm:px-3 py-1.5 sm:py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+              title="Text size settings"
+            >
+              <span className="text-sm sm:text-base">⚙️</span>
+            </button>
+
+            {/* Settings Dropdown */}
+            {showSettings && (
+              <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 py-3 px-4 w-48 z-50">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Text Size</h4>
+                <div className="flex gap-1">
+                  {textSizes.map((size) => (
+                    <button
+                      key={size.id}
+                      onClick={() => {
+                        onTextSizeChange(size.id)
+                        setShowSettings(false)
+                      }}
+                      className={`flex-1 flex flex-col items-center py-2 rounded-lg transition-all ${
+                        textSize === size.id
+                          ? 'bg-primary text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <span className={`font-serif ${
+                        size.id === 'small' ? 'text-sm' : size.id === 'medium' ? 'text-base' : 'text-xl'
+                      }`}>{size.icon}</span>
+                      <span className="text-[10px] mt-0.5">{size.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
