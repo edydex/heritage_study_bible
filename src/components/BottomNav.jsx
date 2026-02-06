@@ -9,7 +9,8 @@ function BottomNav({
   onNext,
   hasPrevious,
   hasNext,
-  isSidebarOpen = false
+  isSidebarOpen = false,
+  sidebarWidth = 540
 }) {
   const [showPicker, setShowPicker] = useState(false)
   const [pickerView, setPickerView] = useState('book') // 'book' or 'chapter'
@@ -37,9 +38,9 @@ function BottomNav({
   // Set to false to make the picker full-width again.
   const PICKER_RESPECTS_SIDEBAR = true
 
-  const pickerRightClass = PICKER_RESPECTS_SIDEBAR && isSidebarOpen
-    ? 'right-0 lg:right-[420px] xl:right-[560px] 2xl:right-[672px]'
-    : 'right-0'
+  const pickerRightStyle = PICKER_RESPECTS_SIDEBAR && isSidebarOpen
+    ? { right: `${sidebarWidth}px` }
+    : { right: 0 }
 
   // Group books by testament
   const oldTestament = books.filter((_, i) => i < 39)
@@ -48,9 +49,10 @@ function BottomNav({
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <nav className={`fixed bottom-0 left-0 bg-white border-t border-gray-200 shadow-lg z-40 safe-area-bottom transition-all duration-300 ${
-        isSidebarOpen ? 'right-0 lg:right-[420px] xl:right-[560px] 2xl:right-[672px]' : 'right-0'
-      }`}>
+      <nav
+        className="fixed bottom-0 left-0 bg-white border-t border-gray-200 shadow-lg z-40 safe-area-bottom transition-all duration-300"
+        style={{ right: isSidebarOpen ? `${sidebarWidth}px` : 0 }}
+      >
         <div className="flex items-center justify-between h-14 px-2">
           {/* Previous Button */}
           <button
@@ -93,7 +95,7 @@ function BottomNav({
 
       {/* Book/Chapter Picker Modal */}
       {showPicker && (
-        <div className={`fixed inset-0 ${pickerRightClass} z-50 transition-all duration-300`}>
+        <div className="fixed inset-0 z-50 transition-all duration-300" style={pickerRightStyle}>
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50"

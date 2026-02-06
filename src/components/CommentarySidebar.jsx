@@ -1,15 +1,89 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import CompareModal from './CompareModal'
 
-// Detect the leading verse-quote in Calvin's commentary text and return [quote, rest]
-// Calvin typically starts with "1. In the beginning." then commentary follows.
+// Regex fallback for entries without <vq> markup (older data or books CCEL didn't tag)
 const CALVIN_QUOTE_RE1 = /^(\s*\d+\.?\s+\S+(?:\s+\S+){0,12}?(?:\betc\b\.?\s*(?:[\u2014-]\s*)?|[.]))\s+/
 const CALVIN_QUOTE_RE2 = /^(\s*\d+\.?\s+\S+(?:\s+\S+){1,8}?)\s+(?=[A-Z][a-z])/
-function splitCalvinQuote(text) {
+function regexSplitQuote(text) {
   const m1 = text.match(CALVIN_QUOTE_RE1)
   if (m1) return [m1[1].trim(), text.substring(m1[0].length)]
   const m2 = text.match(CALVIN_QUOTE_RE2)
   if (m2) return [m2[1].trim(), text.substring(m2[0].length)]
   return [null, text]
+}
+
+/**
+ * Render a Calvin commentary paragraph with structural markup:
+ *   <vq>...</vq>  → bold verse quote
+ *   <sq>...</sq>  → indented scripture block quote
+ *   plain text    → normal paragraph (regex fallback for verse-quote detection)
+ */
+function renderCalvinParagraph(paragraph, pIndex) {
+  // Scripture block quote
+  const sqMatch = paragraph.match(/^<sq>([\s\S]*)<\/sq>$/)
+  if (sqMatch) {
+    return (
+      <blockquote key={pIndex} className="text-gray-600 leading-relaxed mb-2 last:mb-0 border-l-2 border-blue-300 pl-3 italic">
+        {sqMatch[1]}
+      </blockquote>
+    )
+  }
+
+  // Paragraph with <vq> verse-quote marker(s)
+  if (paragraph.includes('<vq>')) {
+    const parts = paragraph.split(/(<vq>[\s\S]*?<\/vq>)/g)
+    return (
+      <p key={pIndex} className="text-gray-700 leading-relaxed mb-2 last:mb-0">
+        {parts.map((part, i) => {
+          const vqMatch = part.match(/^<vq>([\s\S]*)<\/vq>$/)
+          if (vqMatch) {
+            return <strong key={i} className="text-gray-900">{vqMatch[1]}</strong>
+          }
+          return part ? <span key={i}>{part}</span> : null
+        })}
+      </p>
+    )
+  }
+
+  // No markup — try regex fallback for first paragraph
+  if (pIndex === 0) {
+    const [quote, rest] = regexSplitQuote(paragraph)
+    if (quote) {
+      return (
+        <p key={pIndex} className="text-gray-700 leading-relaxed mb-2 last:mb-0">
+          <strong className="text-gray-900">{quote}</strong>{' '}{rest}
+        </p>
+      )
+    }
+  }
+
+  return (
+    <p key={pIndex} className="text-gray-700 leading-relaxed mb-2 last:mb-0">
+      {paragraph}
+    </p>
+  )
+}
+
+/**
+ * Get a plain-text preview of Calvin commentary for collapsed view.
+ * Strips <vq>/<sq> markers and bolds the verse quote portion.
+ */
+function calvinPreview(text, maxLen = 120) {
+  // Check for <vq> marker in the text
+  const vqMatch = text.match(/<vq>([\s\S]*?)<\/vq>/)
+  if (vqMatch) {
+    const quote = vqMatch[1]
+    const afterVq = text.substring(text.indexOf('</vq>') + 5).replace(/<\/?[vs]q>/g, '').trim()
+    const preview = afterVq.substring(0, maxLen - quote.length)
+    return <><strong className="text-gray-800">{quote}</strong>{' '}{preview}...</>
+  }
+  // Regex fallback
+  const [quote, rest] = regexSplitQuote(text)
+  if (quote) {
+    const preview = rest.substring(0, maxLen - quote.length)
+    return <><strong className="text-gray-800">{quote}</strong>{' '}{preview}...</>
+  }
+  return <>{text.replace(/<\/?[vs]q>/g, '').substring(0, maxLen)}...</>
 }
 
 function CommentarySidebar({ 
@@ -24,6 +98,11 @@ function CommentarySidebar({
   onClose,
   loading = false,
   selectedVerse,
+  translationId,
+  bibleData,
+  commentaryTextSize = 14,
+  sidebarWidth = 540,
+  onSidebarWidthChange,
   isBookmarked,
   onBookmarkVerse,
   isCommentaryBookmarked,
@@ -43,6 +122,35 @@ function CommentarySidebar({
   const [introductionExpanded, setIntroductionExpanded] = useState(false)
   const [expandedIntroSections, setExpandedIntroSections] = useState({})
   const sidebarRef = useRef(null)
+  const isDragging = useRef(false)
+  const dragStartX = useRef(0)
+  const dragStartWidth = useRef(0)
+
+  // Drag-to-resize handler
+  const handleDragStart = useCallback((e) => {
+    e.preventDefault()
+    isDragging.current = true
+    dragStartX.current = e.clientX
+    dragStartWidth.current = sidebarWidth
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+
+    const handleDragMove = (ev) => {
+      if (!isDragging.current) return
+      const delta = dragStartX.current - ev.clientX
+      const newWidth = Math.max(320, Math.min(window.innerWidth * 0.7, dragStartWidth.current + delta))
+      onSidebarWidthChange?.(Math.round(newWidth))
+    }
+    const handleDragEnd = () => {
+      isDragging.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      document.removeEventListener('mousemove', handleDragMove)
+      document.removeEventListener('mouseup', handleDragEnd)
+    }
+    document.addEventListener('mousemove', handleDragMove)
+    document.addEventListener('mouseup', handleDragEnd)
+  }, [sidebarWidth, onSidebarWidthChange])
 
   // Get works for current author on current chapter
   const currentAuthorData = authors.find(a => a.id === selectedAuthor)
@@ -132,6 +240,10 @@ function CommentarySidebar({
 
   // Toolbar actions
   const handleCompare = () => {
+    if (!selectedVerse) {
+      onShowToast?.('Select a verse first')
+      return
+    }
     setShowCompareModal(true)
   }
 
@@ -200,11 +312,20 @@ function CommentarySidebar({
         onClick={onClose}
       />
 
-      {/* Sidebar - full screen on mobile, wider on larger screens */}
+      {/* Sidebar - full screen on mobile, dynamic width on desktop */}
       <aside 
-        className="fixed top-0 right-0 bottom-0 w-full lg:w-[420px] xl:w-[560px] 2xl:w-[672px] flex flex-col bg-white border-l border-gray-200 shadow-lg z-50 lg:z-40 transform transition-transform duration-300 ease-out animate-slide-in-right"
+        className="fixed top-0 right-0 bottom-0 w-full lg:w-auto flex flex-col bg-white border-l border-gray-200 shadow-lg z-50 lg:z-40 transform transition-[width] duration-100 ease-out animate-slide-in-right"
+        style={{ width: window.innerWidth >= 1024 ? `${sidebarWidth}px` : undefined }}
         ref={sidebarRef}
       >
+        {/* Drag handle - desktop only */}
+        <div
+          onMouseDown={handleDragStart}
+          className="hidden lg:flex absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize items-center z-10 group hover:bg-primary/20 active:bg-primary/30 transition-colors"
+          title="Drag to resize"
+        >
+          <div className="w-0.5 h-8 bg-gray-300 group-hover:bg-primary rounded-full mx-auto transition-colors" />
+        </div>
         {/* Top Bar with Close - height matches Header */}
         <div className="flex items-center justify-between px-4 h-14 bg-primary text-white">
           <h2 className="font-semibold text-lg leading-tight">Commentary</h2>
@@ -218,40 +339,40 @@ function CommentarySidebar({
         </div>
 
         {/* Toolbar Strip */}
-        <div className="flex items-center justify-around px-1 py-1.5 bg-gray-100 border-b border-gray-200">
+        <div className="grid grid-cols-4 bg-gray-100 border-b border-gray-200">
           <button
             onClick={handleCompare}
-            className="flex flex-col items-center p-1.5 hover:bg-gray-200 rounded-lg transition-colors group min-w-[60px]"
+            className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 transition-colors group border-r border-gray-300"
             title="Compare translations"
           >
-            <span className="text-lg">🔄</span>
-            <span className="text-[10px] text-gray-600 group-hover:text-gray-800">Compare</span>
+            <span className="text-xl">🔄</span>
+            <span className="text-[11px] text-gray-600 group-hover:text-gray-800 mt-0.5">Compare</span>
           </button>
           <button
             onClick={handleBookmarkVerse}
-            className={`flex flex-col items-center p-1.5 hover:bg-gray-200 rounded-lg transition-colors group min-w-[60px] ${
+            className={`flex flex-col items-center justify-center py-3 hover:bg-gray-200 transition-colors group border-r border-gray-300 ${
               verseIsBookmarked ? 'text-secondary' : ''
             }`}
             title={verseIsBookmarked ? 'Remove bookmark' : 'Bookmark verse'}
           >
-            <span className="text-lg">{verseIsBookmarked ? '★' : '☆'}</span>
-            <span className="text-[10px] text-gray-600 group-hover:text-gray-800">Bookmark</span>
+            <span className="text-xl">{verseIsBookmarked ? '★' : '☆'}</span>
+            <span className="text-[11px] text-gray-600 group-hover:text-gray-800 mt-0.5">Bookmark</span>
           </button>
           <button
             onClick={handleNotes}
-            className="flex flex-col items-center p-1.5 hover:bg-gray-200 rounded-lg transition-colors group min-w-[60px]"
+            className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 transition-colors group border-r border-gray-300"
             title="Add notes"
           >
-            <span className="text-lg">📝</span>
-            <span className="text-[10px] text-gray-600 group-hover:text-gray-800">Notes</span>
+            <span className="text-xl">📝</span>
+            <span className="text-[11px] text-gray-600 group-hover:text-gray-800 mt-0.5">Notes</span>
           </button>
           <button
             onClick={handleCopy}
-            className="flex flex-col items-center p-1.5 hover:bg-gray-200 rounded-lg transition-colors group min-w-[60px]"
+            className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 transition-colors group"
             title="Copy verse"
           >
-            <span className="text-lg">📋</span>
-            <span className="text-[10px] text-gray-600 group-hover:text-gray-800">Copy</span>
+            <span className="text-xl">📋</span>
+            <span className="text-[11px] text-gray-600 group-hover:text-gray-800 mt-0.5">Copy</span>
           </button>
         </div>
 
@@ -507,7 +628,7 @@ function CommentarySidebar({
                           className="w-full text-left p-2"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-medium text-sm text-gray-800">
+                            <span className="font-medium text-gray-800" style={{ fontSize: `${Math.max(12, commentaryTextSize)}px` }}>
                               {section.title?.replace(/^#\s*\**/, '').replace(/\*+$/, '') || 'Introduction'}
                             </span>
                             <div className="flex items-center gap-2">
@@ -520,7 +641,7 @@ function CommentarySidebar({
                             </div>
                           </div>
                           {!isExpanded && (
-                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                            <p className="text-gray-600 mt-1 line-clamp-2" style={{ fontSize: `${Math.max(11, commentaryTextSize - 1)}px` }}>
                               {section.text.substring(0, 100)}...
                             </p>
                           )}
@@ -528,9 +649,9 @@ function CommentarySidebar({
                         
                         {isExpanded && (
                           <div className="px-2 pb-2">
-                            <div className="border-t border-teal-100 pt-2">
+                            <div className="border-t border-teal-100 pt-2" style={{ fontSize: `${commentaryTextSize}px` }}>
                               {section.text.split('\n\n').map((paragraph, pIndex) => (
-                                <p key={pIndex} className="text-gray-700 text-sm leading-relaxed mb-2 last:mb-0">
+                                <p key={pIndex} className="text-gray-700 leading-relaxed mb-2 last:mb-0">
                                   {paragraph}
                                 </p>
                               ))}
@@ -586,7 +707,7 @@ function CommentarySidebar({
                         className="flex-1 text-left p-3"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-primary text-sm">
+                          <span className="font-medium text-primary" style={{ fontSize: `${Math.max(12, commentaryTextSize)}px` }}>
                             {commentary.reference?.replace(`${bookName} `, '') || verseKey}
                           </span>
                           <span className="text-gray-400 text-xs transform transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : '' }}>
@@ -594,15 +715,10 @@ function CommentarySidebar({
                           </span>
                         </div>
                         {!isExpanded && (
-                          <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                            {selectedAuthor === 'john-calvin' ? (() => {
-                              const [quote, rest] = splitCalvinQuote(commentary.text)
-                              if (quote) {
-                                const preview = rest.substring(0, 120 - quote.length)
-                                return <><strong className="text-gray-800">{quote}</strong>{' '}{preview}...</>
-                              }
-                              return <>{commentary.text.substring(0, 120)}...</>
-                            })() : <>{commentary.text.substring(0, 120)}...</>}
+                          <p className="text-gray-600 mt-1 line-clamp-2" style={{ fontSize: `${Math.max(11, commentaryTextSize - 1)}px` }}>
+                            {selectedAuthor === 'john-calvin'
+                              ? calvinPreview(commentary.text)
+                              : <>{commentary.text.substring(0, 120)}...</>}
                           </p>
                         )}
                       </button>
@@ -627,21 +743,13 @@ function CommentarySidebar({
                     {/* Expanded Content */}
                     {isExpanded && (
                       <div className="px-3 pb-3">
-                        <div className="border-t border-blue-200 pt-3">
+                        <div className="border-t border-blue-200 pt-3" style={{ fontSize: `${commentaryTextSize}px` }}>
                           {commentary.text.split('\n\n').map((paragraph, pIndex) => {
-                            // For Calvin, bold the leading verse quote in the first paragraph
-                            if (pIndex === 0 && selectedAuthor === 'john-calvin') {
-                              const [quote, rest] = splitCalvinQuote(paragraph)
-                              if (quote) {
-                                return (
-                                  <p key={pIndex} className="text-gray-700 text-sm leading-relaxed mb-2 last:mb-0">
-                                    <strong className="text-gray-900">{quote}</strong>{' '}{rest}
-                                  </p>
-                                )
-                              }
+                            if (selectedAuthor === 'john-calvin') {
+                              return renderCalvinParagraph(paragraph, pIndex)
                             }
                             return (
-                              <p key={pIndex} className="text-gray-700 text-sm leading-relaxed mb-2 last:mb-0">
+                              <p key={pIndex} className="text-gray-700 leading-relaxed mb-2 last:mb-0">
                                 {paragraph}
                               </p>
                             )
@@ -665,33 +773,20 @@ function CommentarySidebar({
       </aside>
 
       {/* Compare Modal */}
-      {showCompareModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowCompareModal(false)} />
-          <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-fade-in">
-            <button 
-              onClick={() => setShowCompareModal(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-            <div className="text-center">
-              <span className="text-5xl mb-4 block">🔧</span>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Coming Soon!</h3>
-              <p className="text-gray-600">
-                Translation comparison feature is currently in development. 
-                Soon you'll be able to compare verses across multiple Bible translations!
-              </p>
-              <button
-                onClick={() => setShowCompareModal(false)}
-                className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Got it!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {showCompareModal && selectedVerse && (() => {
+        const chData = bibleData?.books?.find(b => b.name === bookName)?.chapters?.find(c => c.number === selectedVerse.chapter)
+        const vText = chData?.verses?.find(v => v.number === selectedVerse.verse)?.text || selectedVerse.text || ''
+        return (
+          <CompareModal
+            bookName={bookName}
+            chapter={selectedVerse.chapter}
+            verse={selectedVerse.verse}
+            verseText={vText}
+            translationId={translationId}
+            onClose={() => setShowCompareModal(false)}
+          />
+        )
+      })()}
 
       {/* Notes Modal */}
       {showNotesModal && (

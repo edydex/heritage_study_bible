@@ -164,7 +164,8 @@ function downloadFile(url, filepath) {
 }
 
 /**
- * Strip HTML/XML tags and clean text
+ * Strip HTML/XML tags and decode entities, but preserve nothing structural.
+ * Used for inner content after we've already extracted structural markers.
  */
 function stripTags(html) {
   if (!html) return ''
@@ -189,6 +190,60 @@ function stripTags(html) {
     .replace(/â€"/g, '\u2013')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+/**
+ * Process a paragraph from a Commentary div, preserving structural markup:
+ * 
+ * 1. Leading "<b>N.</b> <i>quote text</i>" → wrapped in <vq>...</vq>
+ * 2. Leading "<i>quote text</i>" (subsequent paragraphs) → wrapped in <vq>...</vq>
+ * 3. <p class="SCRIPTURE"> → entire content wrapped in <sq>...</sq>
+ * 
+ * Everything else is stripped to plain text.
+ */
+function processCommentaryParagraph(pTag, pContent, isScripture) {
+  // Step 1: Remove footnotes first (they contain nested <p> and confuse things)
+  let html = pContent.replace(/<note[^>]*>[\s\S]*?<\/note>/gi, '')
+
+  // Step 2: If this is a SCRIPTURE paragraph, wrap the whole thing
+  if (isScripture) {
+    return '<sq>' + stripTags(html) + '</sq>'
+  }
+
+  // Step 3: Detect leading verse-quote pattern
+  // Pattern A: <b>N.</b> <i>quote text</i> (first paragraph of an entry)
+  // Pattern B: <i>quote text</i> at the very start (subsequent paragraphs)
+  // Note: some entries have <a id="..."/> anchor tags before <b>, so we skip those
+  
+  // Try Pattern A: bold verse number + italic quote
+  const patternA = /^(\s*(?:<a[^>]*\/?>)?\s*<b>([\d,.\s-]+\.?)<\/b>\s*<i>([\s\S]*?)<\/i>)/i
+  const matchA = html.match(patternA)
+  if (matchA) {
+    const verseNum = stripTags(matchA[2]).trim()
+    const quoteText = stripTags(matchA[3]).trim()
+    const remainder = html.substring(matchA[0].length)
+    const cleanRemainder = stripTags(remainder).trim()
+    const vqPart = '<vq>' + verseNum + ' ' + quoteText + '</vq>'
+    return cleanRemainder ? vqPart + ' ' + cleanRemainder : vqPart
+  }
+
+  // Try Pattern B: italic quote at the start (no bold number)
+  const patternB = /^(\s*(?:<a[^>]*\/?>)?\s*<i>([\s\S]*?)<\/i>)/i
+  const matchB = html.match(patternB)
+  if (matchB) {
+    const quoteText = stripTags(matchB[2]).trim()
+    // Only treat it as a verse quote if it's short-ish and looks like a quote
+    // (avoid marking long italic passages that are emphasis, not verse quotes)
+    if (quoteText.length > 0 && quoteText.length < 200) {
+      const remainder = html.substring(matchB[0].length)
+      const cleanRemainder = stripTags(remainder).trim()
+      const vqPart = '<vq>' + quoteText + '</vq>'
+      return cleanRemainder ? vqPart + ' ' + cleanRemainder : vqPart
+    }
+  }
+
+  // No structural pattern detected — just strip tags
+  return stripTags(html)
 }
 
 function parsePassage(passage, parsedAttr) {
@@ -246,11 +301,16 @@ function parseForBook(xmlContent, targetAbbrev, bookName) {
     if (!divMatch) continue
 
     const paragraphs = []
-    const pPattern = /<p[^>]*>([\s\S]*?)<\/p>/g
+    const pPattern = /<p([^>]*)>([\s\S]*?)<\/p>/g
     let pMatch
     while ((pMatch = pPattern.exec(divMatch[1])) !== null) {
-      const text = stripTags(pMatch[1])
-      if (text && text.length > 5) paragraphs.push(text)
+      const pAttrs = pMatch[1]
+      const pContent = pMatch[2]
+      const isScripture = /class="SCRIPTURE"/i.test(pAttrs)
+      // Skip footnote-only paragraphs (class="Footnote" or class="Super")
+      if (/class="Footnote"|class="Super"/i.test(pAttrs)) continue
+      const text = processCommentaryParagraph(pAttrs, pContent, isScripture)
+      if (text && text.replace(/<\/?[vs]q>/g, '').trim().length > 5) paragraphs.push(text)
     }
     if (paragraphs.length === 0) continue
 

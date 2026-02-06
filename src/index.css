@@ -91,6 +91,16 @@ html {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
+/* Hide number input spinners */
+.no-spinners::-webkit-outer-spin-button,
+.no-spinners::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinners {
+  -moz-appearance: textfield;
+}
+
 /* Mobile-specific base scaling */
 @media (max-width: 640px) {
   html {

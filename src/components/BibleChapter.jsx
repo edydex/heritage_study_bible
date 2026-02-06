@@ -1,26 +1,39 @@
 import { useEffect, useRef, useCallback, useMemo } from 'react'
 
-// Render verse text, converting <b>...</b> tags to bold spans (used in Psalms headers etc.)
+// Render verse text, converting:
+//   <b>...</b> tags to bold spans (used in Psalms headers etc.)
+//   || to poetic line breaks (used in LSV for poetry)
 function renderVerseText(text) {
-  if (!text.includes('<b>')) return text
-  const parts = text.split(/(<b>.*?<\/b>)/g)
-  return parts.map((part, i) => {
-    const m = part.match(/^<b>(.*?)<\/b>$/)
-    if (m) return <strong key={i} className="font-bold">{m[1]}</strong>
-    return part
+  // Split on || for poetic line breaks, then handle <b> tags within each segment
+  const lines = text.split(' || ')
+  if (lines.length === 1 && !text.includes('<b>')) return text
+
+  return lines.map((line, li) => {
+    // Handle <b> tags within each line segment
+    let rendered
+    if (line.includes('<b>')) {
+      const parts = line.split(/(<b>.*?<\/b>)/g)
+      rendered = parts.map((part, i) => {
+        const m = part.match(/^<b>(.*?)<\/b>$/)
+        if (m) return <strong key={`b${i}`} className="font-bold">{m[1]}</strong>
+        return part
+      })
+    } else {
+      rendered = line
+    }
+
+    if (li === 0) return <span key={li}>{rendered}</span>
+    // Each subsequent || segment starts on a new indented line
+    return <span key={li}><br /><span className="inline-block w-4" />{rendered}</span>
   })
 }
 
-function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerseClick, isBookmarked, onBookmarkToggle, onVersePosition, textSize = 'medium' }) {
+function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerseClick, isBookmarked, onBookmarkToggle, onVersePosition, textSize = 18 }) {
   const containerRef = useRef(null)
   const verseRefs = useRef({})
 
-  // Text size classes
-  const textSizeClasses = {
-    small: 'text-[15px] sm:text-base leading-6 sm:leading-relaxed',
-    medium: 'text-[17px] sm:text-lg leading-7 sm:leading-relaxed',
-    large: 'text-[20px] sm:text-xl leading-8 sm:leading-relaxed',
-  }
+  // Dynamic text style from numeric textSize (px)
+  const verseStyle = { fontSize: `${textSize}px`, lineHeight: 1.6 }
 
   // Track verse positions for sidebar alignment
   useEffect(() => {
@@ -64,7 +77,7 @@ function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerse
     <div className="bg-white rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8" ref={containerRef}>
 
       {/* Verses */}
-      <div className="space-y-0 sm:space-y-1">
+      <div>
         {chapter.verses.map((verse) => {
           const hasComment = hasCommentary(chapter.number, verse.number)
           const bookmarked = isBookmarked(verse.number)
@@ -74,20 +87,21 @@ function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerse
               key={verse.number}
               id={`verse-${chapter.number}-${verse.number}`}
               ref={(el) => setVerseRef(verse.number, el)}
-              className={`group flex items-start gap-0.5 sm:gap-2 py-1 px-0 sm:p-2 rounded-lg transition-all duration-300 hover:bg-gray-50 active:bg-gray-100 ${
+              className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 hover:bg-gray-50 active:bg-gray-100 ${
                 hasComment ? 'hover:bg-amber-50 active:bg-amber-100' : ''
               }`}
             >
               {/* Verse Number */}
-              <span className="text-[10px] sm:text-sm text-gray-400 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-1 select-none text-right">
+              <span className="text-[10px] sm:text-sm text-gray-400 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-0.5 select-none text-right">
                 {verse.number}
               </span>
 
               {/* Verse Text */}
               <p 
-                className={`verse-text ${textSizeClasses[textSize]} flex-1 cursor-pointer hover:text-gray-900 ${
+                className={`verse-text flex-1 cursor-pointer hover:text-gray-900 ${
                   hasComment ? 'text-gray-800' : 'text-gray-700'
                 }`}
+                style={verseStyle}
                 onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
               >
                 {renderVerseText(verse.text)}

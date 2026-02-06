@@ -10,9 +10,14 @@ import TranscriptViewer from './components/TranscriptViewer'
 import ResourcesModal from './components/ResourcesModal'
 import ResourcePage from './components/ResourcePage'
 import { useBookmarks } from './hooks/useBookmarks'
-import bibleData from './data/bible-web.json'
+import fallbackBibleData from './data/bible-web.json'
 import { bibleBooks } from './data/bible-books.js'
+import { translations, DEFAULT_TRANSLATION, loadTranslation, seedTranslationCache } from './data/translations'
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, getCommentaryForVerse as getCommentaryFromAuthor, hasAnyCommentary } from './data/authors'
+import { parseBibleReference } from './utils/parseBibleReference'
+
+// Seed the WEB translation into the cache since it's bundled
+seedTranslationCache('WEB', fallbackBibleData)
 
 // Helper to convert book name to URL slug
 function bookToSlug(bookName) {
@@ -48,20 +53,70 @@ function BibleStudyApp() {
   const [selectedVerse, setSelectedVerse] = useState(null) // Track selected verse
   const bibleContainerRef = useRef(null)
   
+  // Translation state
+  const [translationId, setTranslationId] = useState(() => {
+    try { return localStorage.getItem('heritage-translation') || DEFAULT_TRANSLATION } catch { return DEFAULT_TRANSLATION }
+  })
+  const [bibleData, setBibleData] = useState(fallbackBibleData) // Start with bundled WEB
+  const [translationLoading, setTranslationLoading] = useState(false)
+
+  // Load translation data when translationId changes
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      setTranslationLoading(true)
+      try {
+        const data = await loadTranslation(translationId)
+        if (!cancelled) {
+          setBibleData(data)
+        }
+      } catch (err) {
+        console.error('Failed to load translation:', err)
+        // Fall back to WEB
+        if (!cancelled) {
+          setBibleData(fallbackBibleData)
+        }
+      } finally {
+        if (!cancelled) setTranslationLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [translationId])
+
+  // Persist translation choice
+  useEffect(() => {
+    try { localStorage.setItem('heritage-translation', translationId) } catch {}
+  }, [translationId])
+
   // Author/Work state
   const [authorsData, setAuthorsData] = useState(initialAuthors)
   const [selectedAuthor, setSelectedAuthor] = useState(null)
   const [selectedWork, setSelectedWork] = useState(null)
   const [commentaryLoading, setCommentaryLoading] = useState(false)
   
-  // Text size setting (persisted in localStorage)
+  // Text size settings (persisted in localStorage, in px)
   const [textSize, setTextSize] = useState(() => {
-    try { return localStorage.getItem('heritage-text-size') || 'medium' } catch { return 'medium' }
+    try { const v = parseInt(localStorage.getItem('heritage-text-size')); return v >= 12 && v <= 64 ? v : 18 } catch { return 18 }
+  })
+  const [commentaryTextSize, setCommentaryTextSize] = useState(() => {
+    try { const v = parseInt(localStorage.getItem('heritage-commentary-text-size')); return v >= 12 && v <= 64 ? v : 14 } catch { return 14 }
   })
   
   useEffect(() => {
-    try { localStorage.setItem('heritage-text-size', textSize) } catch {}
+    try { localStorage.setItem('heritage-text-size', String(textSize)) } catch {}
   }, [textSize])
+  useEffect(() => {
+    try { localStorage.setItem('heritage-commentary-text-size', String(commentaryTextSize)) } catch {}
+  }, [commentaryTextSize])
+
+  // Sidebar width state (persisted, px)
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    try { const v = parseInt(localStorage.getItem('heritage-sidebar-width')); return v >= 320 && v <= 1200 ? v : 540 } catch { return 540 }
+  })
+  useEffect(() => {
+    try { localStorage.setItem('heritage-sidebar-width', String(sidebarWidth)) } catch {}
+  }, [sidebarWidth])
 
   // Lazy-load commentary data when book changes
   useEffect(() => {
@@ -178,7 +233,7 @@ function BibleStudyApp() {
   // Get current book data from Bible
   const currentBookData = useMemo(() => {
     return bibleData.books.find(b => b.name === currentBook)
-  }, [currentBook])
+  }, [currentBook, bibleData])
 
   // Get current chapter data
   const currentChapterData = useMemo(() => {
@@ -256,6 +311,19 @@ function BibleStudyApp() {
   const handleSearch = (query) => {
     if (!query.trim()) {
       setSearchResults(null)
+      return
+    }
+
+    // Try to parse as a Bible reference (e.g. "Ps 23", "Rom 8:28")
+    const ref = parseBibleReference(query)
+    if (ref) {
+      setSearchQuery('')
+      setSearchResults(null)
+      if (ref.verse) {
+        navigateToVerse(ref.book, ref.chapter, ref.verse)
+      } else {
+        handleNavigate(ref.book, ref.chapter)
+      }
       return
     }
 
@@ -373,15 +441,22 @@ function BibleStudyApp() {
           onResourcesClick={() => setShowResources(true)}
           bookmarkCount={bookmarks.length}
           isSidebarOpen={isLargeScreen && isSidebarOpen}
+          sidebarWidth={sidebarWidth}
           textSize={textSize}
           onTextSizeChange={setTextSize}
+          commentaryTextSize={commentaryTextSize}
+          onCommentaryTextSizeChange={setCommentaryTextSize}
+          translationId={translationId}
+          onTranslationChange={setTranslationId}
+          translationLoading={translationLoading}
         />
         
         <div className="flex">
           {/* Main Content */}
-          <main className={`flex-1 px-0 sm:px-4 py-2 sm:py-6 pb-20 transition-all duration-300 ${
-            isLargeScreen && isSidebarOpen ? 'lg:mr-[420px] xl:mr-[560px] 2xl:mr-[672px]' : ''
-          }`}>
+          <main
+            className="flex-1 px-0 sm:px-4 py-2 sm:py-6 pb-20 transition-all duration-300"
+            style={{ marginRight: isLargeScreen && isSidebarOpen ? `${sidebarWidth}px` : 0 }}
+          >
             <div className="container mx-auto max-w-3xl" ref={bibleContainerRef}>
               {searchResults ? (
                 <SearchResults 
@@ -411,8 +486,15 @@ function BibleStudyApp() {
                     {currentBook} {currentChapter}
                   </h2>
 
+                  {/* Translation loading overlay */}
+                  {translationLoading && (
+                    <div className="text-center py-8 text-gray-500 animate-pulse">
+                      Loading translation...
+                    </div>
+                  )}
+
                   {/* Bible Chapter Display */}
-                  {currentChapterData && (
+                  {!translationLoading && currentChapterData && (
                     <BibleChapter 
                       chapter={currentChapterData}
                       bookName={currentBook}
@@ -464,6 +546,11 @@ function BibleStudyApp() {
               loading={commentaryLoading}
               versePositions={versePositions}
               selectedVerse={selectedVerse}
+              translationId={translationId}
+              bibleData={bibleData}
+              commentaryTextSize={commentaryTextSize}
+              sidebarWidth={sidebarWidth}
+              onSidebarWidthChange={setSidebarWidth}
               isBookmarked={(ch, v) => isBookmarked(currentBook, ch, v)}
               onBookmarkVerse={(ch, v) => {
                 const verseData = currentChapterData?.verses.find(verse => verse.number === v)
@@ -539,6 +626,7 @@ function BibleStudyApp() {
             hasPrevious={hasPrevious}
             hasNext={hasNext}
             isSidebarOpen={isLargeScreen && isSidebarOpen}
+            sidebarWidth={sidebarWidth}
           />
         )}
 
