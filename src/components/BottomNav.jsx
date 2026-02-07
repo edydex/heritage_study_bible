@@ -50,7 +50,7 @@ function BottomNav({
     <>
       {/* Bottom Navigation Bar */}
       <nav
-        className="fixed bottom-0 left-0 bg-white border-t border-gray-200 shadow-lg z-40 safe-area-bottom transition-all duration-300"
+        className="fixed bottom-0 left-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg z-40 safe-area-bottom transition-all duration-300"
         style={{ right: isSidebarOpen ? `${sidebarWidth}px` : 0 }}
       >
         <div className="flex items-center justify-between h-14 px-2">
@@ -58,7 +58,7 @@ function BottomNav({
           <button
             onClick={onPrevious}
             disabled={!hasPrevious}
-            className="flex items-center justify-center w-14 h-full text-primary disabled:text-gray-300 disabled:cursor-not-allowed active:bg-gray-100 transition-colors"
+            className="flex items-center justify-center w-14 h-full text-primary dark:text-blue-400 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
             aria-label="Previous chapter"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,12 +69,12 @@ function BottomNav({
           {/* Chapter Selector Button */}
           <button
             onClick={() => setShowPicker(true)}
-            className="flex-1 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
           >
-            <span className="text-base font-semibold text-gray-800 truncate max-w-[200px]">
+            <span className="text-base font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[200px]">
               {currentBook} {currentChapter}
             </span>
-            <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -83,7 +83,7 @@ function BottomNav({
           <button
             onClick={onNext}
             disabled={!hasNext}
-            className="flex items-center justify-center w-14 h-full text-primary disabled:text-gray-300 disabled:cursor-not-allowed active:bg-gray-100 transition-colors"
+            className="flex items-center justify-center w-14 h-full text-primary dark:text-blue-400 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
             aria-label="Next chapter"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,28 +103,28 @@ function BottomNav({
           />
 
           {/* Picker Panel */}
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl animate-slide-up safe-area-bottom max-h-[80vh] flex flex-col">
+          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl shadow-2xl animate-slide-up safe-area-bottom max-h-[80vh] flex flex-col">
             {/* Handle */}
             <div className="flex justify-center py-3 flex-shrink-0">
-              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+              <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
             </div>
 
             {/* Header */}
-            <div className="px-4 pb-3 border-b border-gray-100 flex-shrink-0">
+            <div className="px-4 pb-3 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
               {pickerView === 'chapter' ? (
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={() => setPickerView('book')}
-                    className="p-1 -ml-1 text-primary"
+                    className="p-1 -ml-1 text-primary dark:text-blue-400"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
-                  <h3 className="text-lg font-semibold text-gray-800">{selectedBook?.name}</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{selectedBook?.name}</h3>
                 </div>
               ) : (
-                <h3 className="text-lg font-semibold text-center text-gray-800">Select Book</h3>
+                <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-200">Select Book</h3>
               )}
             </div>
 
@@ -133,7 +133,7 @@ function BottomNav({
               {pickerView === 'book' ? (
                 <div className="p-4">
                   {/* Old Testament */}
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Old Testament</h4>
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Old Testament</h4>
                   <div className="grid grid-cols-3 gap-1.5 mb-4">
                     {oldTestament.map(book => (
                       <button
@@ -142,7 +142,7 @@ function BottomNav({
                         className={`px-2 py-2 text-sm rounded-lg text-left transition-all truncate ${
                           book.name === currentBook
                             ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-gray-600'
                         }`}
                       >
                         {book.name}
@@ -151,7 +151,7 @@ function BottomNav({
                   </div>
                   
                   {/* New Testament */}
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">New Testament</h4>
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">New Testament</h4>
                   <div className="grid grid-cols-3 gap-1.5">
                     {newTestament.map(book => (
                       <button
@@ -160,7 +160,7 @@ function BottomNav({
                         className={`px-2 py-2 text-sm rounded-lg text-left transition-all truncate ${
                           book.name === currentBook
                             ? 'bg-primary text-white'
-                            : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-gray-600'
                         }`}
                       >
                         {book.name}
@@ -178,7 +178,7 @@ function BottomNav({
                         className={`aspect-square flex items-center justify-center rounded-xl lg:rounded-lg text-lg lg:text-sm font-medium transition-all ${
                           num === currentChapter && selectedBook?.name === currentBook
                             ? 'bg-primary text-white shadow-md'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-200'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 active:bg-gray-200'
                         }`}
                       >
                         {num}
@@ -190,10 +190,10 @@ function BottomNav({
             </div>
 
             {/* Cancel Button */}
-            <div className="p-4 border-t border-gray-100 flex-shrink-0">
+            <div className="p-4 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
               <button
                 onClick={handleClose}
-                className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-medium active:bg-gray-200 transition-colors"
+                className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium active:bg-gray-200 dark:active:bg-gray-600 transition-colors"
               >
                 Cancel
               </button>

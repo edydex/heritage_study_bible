@@ -13,6 +13,22 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
+.dark body,
+html.dark body {
+  background-color: #111827;
+  color: #e5e7eb;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
 .verse-text {
   font-family: 'Crimson Text', Georgia, serif;
 }

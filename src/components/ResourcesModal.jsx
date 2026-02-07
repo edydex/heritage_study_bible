@@ -15,13 +15,13 @@ function ResourcesModal({ onClose }) {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative mt-16 sm:mt-20 mx-3 w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative mt-16 sm:mt-20 mx-3 w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/80">
-          <h2 className="text-lg font-bold text-gray-800">Resources</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-700/80">
+          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">Resources</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors text-gray-500"
+            className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-500 dark:text-gray-400"
           >
             {'\u2715'}
           </button>

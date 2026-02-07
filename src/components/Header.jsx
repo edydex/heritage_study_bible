@@ -1,12 +1,19 @@
 import { useState, useRef, useEffect } from 'react'
 import { translations } from '../data/translations'
 
-function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, onResourcesClick, bookmarkCount, isSidebarOpen = false, sidebarWidth = 540, textSize = 18, onTextSizeChange, commentaryTextSize = 14, onCommentaryTextSizeChange, translationId, onTranslationChange, translationLoading }) {
+function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, onResourcesClick, bookmarkCount, isSidebarOpen = false, sidebarWidth = 540, textSize = 18, onTextSizeChange, commentaryTextSize = 14, onCommentaryTextSizeChange, translationId, onTranslationChange, translationLoading, darkMode = false, onDarkModeChange }) {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showTranslations, setShowTranslations] = useState(false)
   const settingsRef = useRef(null)
   const translationsRef = useRef(null)
+  // Temporary input values allow typing any number; clamped on blur
+  const [bibleInput, setBibleInput] = useState(String(textSize))
+  const [commentaryInput, setCommentaryInput] = useState(String(commentaryTextSize))
+
+  // Sync inputs when props change externally (e.g. from +/- buttons)
+  useEffect(() => { setBibleInput(String(textSize)) }, [textSize])
+  useEffect(() => { setCommentaryInput(String(commentaryTextSize)) }, [commentaryTextSize])
 
   const [isSmallScreen, setIsSmallScreen] = useState(false)
 
@@ -36,8 +43,6 @@ function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, onReso
     if (showSettings || showTranslations) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showSettings, showTranslations])
-
-  const clamp = (v) => Math.max(12, Math.min(64, parseInt(v) || 18))
 
   return (
     <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
@@ -89,8 +94,8 @@ function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, onReso
 
             {/* Translations Dropdown */}
             {showTranslations && (
-              <div className="absolute right-0 sm:left-0 top-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 w-64 z-50">
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 px-4">Translation</h4>
+              <div className="absolute right-0 sm:left-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-2 w-64 z-50">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 px-4">Translation</h4>
                 {translations.map((t) => (
                   <button
                     key={t.id}
@@ -100,14 +105,14 @@ function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, onReso
                     }}
                     className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors ${
                       translationId === t.id
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-primary/10 text-primary dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
-                    <span className={`font-bold text-sm w-10 ${translationId === t.id ? 'text-primary' : 'text-gray-900'}`}>{t.abbr}</span>
+                    <span className={`font-bold text-sm w-10 ${translationId === t.id ? 'text-primary dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>{t.abbr}</span>
                     <div className="flex-1 min-w-0">
-                      <div className={`text-sm font-medium truncate ${translationId === t.id ? 'text-primary' : ''}`}>{t.name}</div>
-                      <div className="text-xs text-gray-400">{t.description}</div>
+                      <div className={`text-sm font-medium truncate ${translationId === t.id ? 'text-primary dark:text-blue-400' : 'dark:text-gray-200'}`}>{t.name}</div>
+                      <div className="text-xs text-gray-400 dark:text-gray-500">{t.description}</div>
                     </div>
                     {translationId === t.id && <span className="text-primary text-sm">✓</span>}
                   </button>
@@ -116,8 +121,8 @@ function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, onReso
                 {(() => {
                   const selected = translations.find(t => t.id === translationId)
                   return selected?.attribution ? (
-                    <div className="px-4 pt-2 mt-1 border-t border-gray-100">
-                      <p className="text-[10px] text-gray-400 leading-tight">{selected.attribution}</p>
+                    <div className="px-4 pt-2 mt-1 border-t border-gray-100 dark:border-gray-700">
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight">{selected.attribution}</p>
                     </div>
                   ) : null
                 })()}
@@ -160,51 +165,75 @@ function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, onReso
 
             {/* Settings Dropdown */}
             {showSettings && (
-              <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 py-3 px-4 w-56 z-50">
+              <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-3 px-4 w-64 z-50">
                 {/* Bible Text Size */}
-                <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Bible Text</h4>
+                <h4 className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Bible Text</h4>
                 <div className="flex items-center gap-1.5 mb-3">
-                  <span className="text-gray-400 text-[10px]">A</span>
+                  <button
+                    type="button"
+                    onClick={() => onTextSizeChange(Math.max(12, textSize - 1))}
+                    className="flex-1 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold text-xl transition-colors"
+                  >−</button>
                   <input
-                    type="range"
-                    min={12}
-                    max={64}
-                    value={textSize}
-                    onChange={(e) => onTextSizeChange(clamp(e.target.value))}
-                    className="flex-1 h-1.5 accent-primary cursor-pointer"
+                    type="text"
+                    inputMode="numeric"
+                    value={bibleInput}
+                    onChange={(e) => setBibleInput(e.target.value.replace(/[^0-9]/g, ''))}
+                    onBlur={() => {
+                      const v = parseInt(bibleInput) || 18
+                      const clamped = Math.max(12, Math.min(64, v))
+                      onTextSizeChange(clamped)
+                      setBibleInput(String(clamped))
+                    }}
+                    className="w-14 flex-shrink-0 text-center text-sm border border-gray-300 dark:border-gray-600 rounded-lg py-1.5 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary no-spinners"
                   />
-                  <span className="text-gray-400 text-xs font-bold">A</span>
-                  <input
-                    type="number"
-                    min={12}
-                    max={64}
-                    value={textSize}
-                    onChange={(e) => onTextSizeChange(clamp(e.target.value))}
-                    className="w-10 text-center text-xs border border-gray-300 rounded py-0.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary no-spinners"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => onTextSizeChange(Math.min(64, textSize + 1))}
+                    className="flex-1 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold text-xl transition-colors"
+                  >+</button>
                 </div>
 
                 {/* Commentary Text Size */}
-                <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Commentary</h4>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-gray-400 text-[10px]">A</span>
+                <h4 className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Commentary</h4>
+                <div className="flex items-center gap-1.5 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => onCommentaryTextSizeChange(Math.max(12, commentaryTextSize - 1))}
+                    className="flex-1 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold text-xl transition-colors"
+                  >−</button>
                   <input
-                    type="range"
-                    min={12}
-                    max={64}
-                    value={commentaryTextSize}
-                    onChange={(e) => onCommentaryTextSizeChange(clamp(e.target.value))}
-                    className="flex-1 h-1.5 accent-primary cursor-pointer"
+                    type="text"
+                    inputMode="numeric"
+                    value={commentaryInput}
+                    onChange={(e) => setCommentaryInput(e.target.value.replace(/[^0-9]/g, ''))}
+                    onBlur={() => {
+                      const v = parseInt(commentaryInput) || 14
+                      const clamped = Math.max(12, Math.min(64, v))
+                      onCommentaryTextSizeChange(clamped)
+                      setCommentaryInput(String(clamped))
+                    }}
+                    className="w-14 flex-shrink-0 text-center text-sm border border-gray-300 dark:border-gray-600 rounded-lg py-1.5 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary no-spinners"
                   />
-                  <span className="text-gray-400 text-xs font-bold">A</span>
-                  <input
-                    type="number"
-                    min={12}
-                    max={64}
-                    value={commentaryTextSize}
-                    onChange={(e) => onCommentaryTextSizeChange(clamp(e.target.value))}
-                    className="w-10 text-center text-xs border border-gray-300 rounded py-0.5 text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary no-spinners"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => onCommentaryTextSizeChange(Math.min(64, commentaryTextSize + 1))}
+                    className="flex-1 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold text-xl transition-colors"
+                  >+</button>
+                </div>
+
+                {/* Dark Mode */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); if (onDarkModeChange) onDarkModeChange(!darkMode); }}
+                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <span className="text-sm text-gray-700 dark:text-gray-200 font-medium flex items-center gap-1.5">{darkMode ? '🌙' : '☀️'} {darkMode ? 'Dark Mode' : 'Light Mode'}</span>
+                    <div className={`w-11 h-6 rounded-full transition-colors relative ${darkMode ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                      <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${darkMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </div>
+                  </button>
                 </div>
               </div>
             )}

@@ -74,7 +74,7 @@ function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerse
   }, [])
 
   return (
-    <div className="bg-white rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8" ref={containerRef}>
+    <div className="bg-white dark:bg-gray-800 rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8" ref={containerRef}>
 
       {/* Verses */}
       <div>
@@ -87,19 +87,19 @@ function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerse
               key={verse.number}
               id={`verse-${chapter.number}-${verse.number}`}
               ref={(el) => setVerseRef(verse.number, el)}
-              className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 hover:bg-gray-50 active:bg-gray-100 ${
-                hasComment ? 'hover:bg-amber-50 active:bg-amber-100' : ''
+              className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 ${
+                hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50' : ''
               }`}
             >
               {/* Verse Number */}
-              <span className="text-[10px] sm:text-sm text-gray-400 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-0.5 select-none text-right">
+              <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-0.5 select-none text-right">
                 {verse.number}
               </span>
 
               {/* Verse Text */}
               <p 
-                className={`verse-text flex-1 cursor-pointer hover:text-gray-900 ${
-                  hasComment ? 'text-gray-800' : 'text-gray-700'
+                className={`verse-text flex-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 ${
+                  hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
                 }`}
                 style={verseStyle}
                 onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
@@ -116,7 +116,7 @@ function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerse
                 className={`p-1 rounded transition-all ${
                   bookmarked 
                     ? 'text-secondary' 
-                    : 'text-gray-300 hover:text-secondary opacity-0 group-hover:opacity-100'
+                    : 'text-gray-300 dark:text-gray-600 hover:text-secondary opacity-0 group-hover:opacity-100'
                 }`}
                 title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
               >

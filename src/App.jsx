@@ -102,6 +102,15 @@ function BibleStudyApp() {
   const [commentaryTextSize, setCommentaryTextSize] = useState(() => {
     try { const v = parseInt(localStorage.getItem('heritage-commentary-text-size')); return v >= 12 && v <= 64 ? v : 14 } catch { return 14 }
   })
+
+  // Dark mode state (persisted)
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return localStorage.getItem('heritage-dark-mode') === 'true' } catch { return false }
+  })
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode)
+    try { localStorage.setItem('heritage-dark-mode', String(darkMode)) } catch {}
+  }, [darkMode])
   
   useEffect(() => {
     try { localStorage.setItem('heritage-text-size', String(textSize)) } catch {}
@@ -432,7 +441,7 @@ function BibleStudyApp() {
 
   return (
     <>
-      <div className="min-h-screen bg-background">
+      <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-background'}`}>
         <Header 
           onSearch={handleSearch}
           searchQuery={searchQuery}
@@ -449,6 +458,8 @@ function BibleStudyApp() {
           translationId={translationId}
           onTranslationChange={setTranslationId}
           translationLoading={translationLoading}
+          darkMode={darkMode}
+          onDarkModeChange={setDarkMode}
         />
         
         <div className="flex">
@@ -482,13 +493,13 @@ function BibleStudyApp() {
               ) : (
                 <>
                   {/* Chapter Title */}
-                  <h2 className="text-center text-xl font-bold text-primary mb-4 heading-text">
+                  <h2 className="text-center text-xl font-bold text-primary dark:text-blue-400 mb-4 heading-text">
                     {currentBook} {currentChapter}
                   </h2>
 
                   {/* Translation loading overlay */}
                   {translationLoading && (
-                    <div className="text-center py-8 text-gray-500 animate-pulse">
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400 animate-pulse">
                       Loading translation...
                     </div>
                   )}
@@ -632,7 +643,7 @@ function BibleStudyApp() {
 
         {/* Toast Notification */}
         {toast && (
-          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
             {toast}
           </div>
         )}

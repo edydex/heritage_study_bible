@@ -160,7 +160,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-primary text-white px-6 py-4">
           <div className="flex items-center justify-between mb-4">
@@ -202,7 +202,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
           {filteredBookmarks.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <p className="text-4xl mb-4">⭐</p>
               <p>{allBookmarks.length === 0 ? 'No bookmarks yet. Click the star on any verse or commentary to bookmark it!' : 'No bookmarks match your search.'}</p>
             </div>
@@ -210,21 +210,21 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
             /* Date View */
             <div className="space-y-3">
               {dateGroups.map((group) => (
-                <div key={group.date} className="border rounded-lg overflow-hidden">
+                <div key={group.date} className="border dark:border-gray-700 rounded-lg overflow-hidden">
                   <button
                     onClick={() => toggleExpand(group.date)}
-                    className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center justify-between transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <span>📅</span>
                       <span className="font-medium">{group.date}</span>
                       <span className="text-secondary">*{Array.from(group.books).join(', ')}*</span>
-                      <span className="text-gray-500">{group.bookmarks.length}</span>
+                      <span className="text-gray-500 dark:text-gray-400">{group.bookmarks.length}</span>
                     </div>
                     <span>{expandedItems[group.date] ? '▼' : '▶'}</span>
                   </button>
                   {expandedItems[group.date] && (
-                    <div className="divide-y">
+                    <div className="divide-y dark:divide-gray-700">
                       {group.bookmarks.map((bookmark) => (
                         <BookmarkItem 
                           key={bookmark.id}
@@ -252,15 +252,15 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
               {Object.entries(bookGroups).map(([book, data]) => {
                 const totalBookmarks = Object.values(data.chapters).flat().length
                 return (
-                  <div key={book} className="border rounded-lg overflow-hidden">
+                  <div key={book} className="border dark:border-gray-700 rounded-lg overflow-hidden">
                     <button
                       onClick={() => toggleExpand(book)}
-                      className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors"
+                      className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center justify-between transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <span>📖</span>
                         <span className="font-medium">{book}</span>
-                        <span className="text-gray-500">({totalBookmarks} bookmarks)</span>
+                        <span className="text-gray-500 dark:text-gray-400">({totalBookmarks} bookmarks)</span>
                       </div>
                       <span>{expandedItems[book] ? '▼' : '▶'}</span>
                     </button>
@@ -270,13 +270,13 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
                           <div key={chapter}>
                             <button
                               onClick={() => toggleExpand(`${book}-${chapter}`)}
-                              className="w-full px-4 py-2 hover:bg-gray-50 flex items-center justify-between transition-colors text-sm"
+                              className="w-full px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between transition-colors text-sm"
                             >
                               <span>Chapter {chapter} ({chapterBookmarks.length})</span>
                               <span>{expandedItems[`${book}-${chapter}`] ? '▼' : '▶'}</span>
                             </button>
                             {expandedItems[`${book}-${chapter}`] && (
-                              <div className="divide-y border-l ml-4">
+                              <div className="divide-y dark:divide-gray-700 border-l dark:border-gray-700 ml-4">
                                 {chapterBookmarks.map((bookmark) => (
                                   <BookmarkItem 
                                     key={bookmark.id}
@@ -308,7 +308,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
         </div>
 
         {/* Footer */}
-        <div className="border-t px-6 py-3 bg-gray-50 flex justify-between items-center">
+        <div className="border-t dark:border-gray-700 px-6 py-3 bg-gray-50 dark:bg-gray-700/50 flex justify-between items-center">
           <button
             onClick={handleExport}
             disabled={bookmarks.length === 0 && commentaryBookmarks.length === 0 && notes.length === 0}
@@ -356,7 +356,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onDe
   }
 
   return (
-    <div className={`${compact ? 'px-3 py-2' : 'px-4 py-3'} ${isCommentary ? 'hover:bg-blue-50' : isNote ? 'hover:bg-green-50' : 'hover:bg-amber-50'} transition-colors`}>
+    <div className={`${compact ? 'px-3 py-2' : 'px-4 py-3'} ${isCommentary ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20' : isNote ? 'hover:bg-green-50 dark:hover:bg-green-900/20' : 'hover:bg-amber-50 dark:hover:bg-amber-900/20'} transition-colors`}>
       <div className="flex items-start justify-between gap-2">
         <div 
           className="flex-1 cursor-pointer"
@@ -371,8 +371,8 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onDe
                 </span>
                 <span className="text-xs text-gray-400">({formatDate(bookmark.dateCreated)})</span>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">by {bookmark.authorName} • {bookmark.workTitle}</p>
-              <p className="text-sm text-gray-600 truncate mt-1">{bookmark.textSnippet}...</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">by {bookmark.authorName} • {bookmark.workTitle}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 truncate mt-1">{bookmark.textSnippet}...</p>
             </>
           ) : isNote ? (
             /* Note Display */
@@ -385,7 +385,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onDe
                 <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Note</span>
                 <span className="text-xs text-gray-400">({formatDate(bookmark.dateCreated)})</span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">{bookmark.text}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{bookmark.text}</p>
               {bookmark.verseText && (
                 <p className="text-xs text-gray-400 mt-1 italic truncate">"{bookmark.verseText.substring(0, 80)}..."</p>
               )}
@@ -402,7 +402,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onDe
                   <span className="text-xs bg-secondary/20 text-amber-700 px-1.5 py-0.5 rounded">Has commentary</span>
                 )}
               </div>
-              <p className="text-sm text-gray-600 truncate">{bookmark.verseText}...</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{bookmark.verseText}...</p>
               {bookmark.userNote && (
                 <p className="text-xs text-accent mt-1 italic">📝 {bookmark.userNote}</p>
               )}

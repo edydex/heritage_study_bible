@@ -136,17 +136,17 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col animate-fade-in">
+      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col animate-fade-in">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
           <div>
-            <h3 className="text-lg font-bold text-gray-800">Compare Translations</h3>
-            <p className="text-sm text-gray-500">{bookName} {chapter}:{verse}</p>
+            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">Compare Translations</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{bookName} {chapter}:{verse}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             ✕
           </button>
@@ -156,13 +156,13 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
           {/* Main translation (current reading) */}
-          <div className="rounded-lg bg-primary/5 border border-primary/20 p-4">
+          <div className="rounded-lg bg-primary/5 dark:bg-blue-900/20 border border-primary/20 dark:border-blue-700/40 p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-primary uppercase tracking-wider">
+              <span className="text-xs font-bold text-primary dark:text-blue-400 uppercase tracking-wider">
                 {translationId} — Reading
               </span>
             </div>
-            <p className="text-gray-800 text-sm leading-relaxed">{cleanText(verseText)}</p>
+            <p className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed">{cleanText(verseText)}</p>
           </div>
 
           {/* Comparison translations */}
@@ -171,14 +171,14 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
             const text = loadedTexts[tId]
             const isLoading = loadingIds.has(tId)
             return (
-              <div key={tId} className="rounded-lg bg-gray-50 border border-gray-200 p-4">
+              <div key={tId} className="rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     {tInfo?.abbr || tId}
                   </span>
                   <button
                     onClick={() => removeTranslation(tId)}
-                    className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                    className="p-1 text-gray-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
                     title={`Remove ${tInfo?.abbr || tId}`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -187,9 +187,9 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
                   </button>
                 </div>
                 {isLoading ? (
-                  <p className="text-gray-400 text-sm italic animate-pulse">Loading...</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm italic animate-pulse">Loading...</p>
                 ) : (
-                  <p className="text-gray-700 text-sm leading-relaxed">{cleanText(text)}</p>
+                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{cleanText(text)}</p>
                 )}
               </div>
             )
@@ -199,26 +199,26 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
           {availableTranslations.length > 0 && (
             <div className="relative">
               {showPicker ? (
-                <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-3">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Add Translation</p>
+                <div className="rounded-lg border-2 border-dashed border-primary/30 dark:border-blue-700/40 bg-primary/5 dark:bg-blue-900/20 p-3">
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Add Translation</p>
                   <div className="space-y-1">
                     {availableTranslations.map(t => (
                       <button
                         key={t.id}
                         onClick={() => addTranslation(t.id)}
-                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-white transition-colors flex items-center gap-3"
+                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
                       >
-                        <span className="font-bold text-sm text-gray-800 w-10">{t.abbr}</span>
+                        <span className="font-bold text-sm text-gray-800 dark:text-gray-200 w-10">{t.abbr}</span>
                         <div className="min-w-0">
-                          <span className="text-sm text-gray-700">{t.name}</span>
-                          <span className="text-xs text-gray-400 ml-2">{t.description}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{t.name}</span>
+                          <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">{t.description}</span>
                         </div>
                       </button>
                     ))}
                   </div>
                   <button
                     onClick={() => setShowPicker(false)}
-                    className="mt-2 text-xs text-gray-400 hover:text-gray-600"
+                    className="mt-2 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     Cancel
                   </button>
@@ -226,7 +226,7 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
               ) : (
                 <button
                   onClick={() => setShowPicker(true)}
-                  className="w-full py-3 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                  className="w-full py-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 hover:border-primary/40 hover:text-primary dark:hover:text-blue-400 hover:bg-primary/5 dark:hover:bg-blue-900/20 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
                 >
                   <span className="text-lg leading-none">+</span>
                   Add Translation
@@ -238,7 +238,7 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
 
         {/* Footer — BibleHub link */}
         {bibleHubUrl && (
-          <div className="px-5 py-3 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+          <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-b-xl">
             <a
               href={bibleHubUrl}
               target="_blank"

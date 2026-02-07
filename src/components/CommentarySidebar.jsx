@@ -23,7 +23,7 @@ function renderCalvinParagraph(paragraph, pIndex) {
   const sqMatch = paragraph.match(/^<sq>([\s\S]*)<\/sq>$/)
   if (sqMatch) {
     return (
-      <blockquote key={pIndex} className="text-gray-600 leading-relaxed mb-2 last:mb-0 border-l-2 border-blue-300 pl-3 italic">
+      <blockquote key={pIndex} className="text-gray-600 dark:text-gray-400 leading-relaxed mb-2 last:mb-0 border-l-2 border-blue-300 dark:border-blue-600 pl-3 italic">
         {sqMatch[1]}
       </blockquote>
     )
@@ -33,11 +33,11 @@ function renderCalvinParagraph(paragraph, pIndex) {
   if (paragraph.includes('<vq>')) {
     const parts = paragraph.split(/(<vq>[\s\S]*?<\/vq>)/g)
     return (
-      <p key={pIndex} className="text-gray-700 leading-relaxed mb-2 last:mb-0">
+      <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
         {parts.map((part, i) => {
           const vqMatch = part.match(/^<vq>([\s\S]*)<\/vq>$/)
           if (vqMatch) {
-            return <strong key={i} className="text-gray-900">{vqMatch[1]}</strong>
+            return <strong key={i} className="text-gray-900 dark:text-white">{vqMatch[1]}</strong>
           }
           return part ? <span key={i}>{part}</span> : null
         })}
@@ -50,15 +50,15 @@ function renderCalvinParagraph(paragraph, pIndex) {
     const [quote, rest] = regexSplitQuote(paragraph)
     if (quote) {
       return (
-        <p key={pIndex} className="text-gray-700 leading-relaxed mb-2 last:mb-0">
-          <strong className="text-gray-900">{quote}</strong>{' '}{rest}
+        <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
+          <strong className="text-gray-900 dark:text-white">{quote}</strong>{' '}{rest}
         </p>
       )
     }
   }
 
   return (
-    <p key={pIndex} className="text-gray-700 leading-relaxed mb-2 last:mb-0">
+    <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
       {paragraph}
     </p>
   )
@@ -75,13 +75,13 @@ function calvinPreview(text, maxLen = 120) {
     const quote = vqMatch[1]
     const afterVq = text.substring(text.indexOf('</vq>') + 5).replace(/<\/?[vs]q>/g, '').trim()
     const preview = afterVq.substring(0, maxLen - quote.length)
-    return <><strong className="text-gray-800">{quote}</strong>{' '}{preview}...</>
+    return <><strong className="text-gray-800 dark:text-gray-200">{quote}</strong>{' '}{preview}...</>
   }
   // Regex fallback
   const [quote, rest] = regexSplitQuote(text)
   if (quote) {
     const preview = rest.substring(0, maxLen - quote.length)
-    return <><strong className="text-gray-800">{quote}</strong>{' '}{preview}...</>
+    return <><strong className="text-gray-800 dark:text-gray-200">{quote}</strong>{' '}{preview}...</>
   }
   return <>{text.replace(/<\/?[vs]q>/g, '').substring(0, maxLen)}...</>
 }
@@ -125,6 +125,14 @@ function CommentarySidebar({
   const isDragging = useRef(false)
   const dragStartX = useRef(0)
   const dragStartWidth = useRef(0)
+
+  // Track which verse keys user has manually collapsed (so auto-expand won't reopen)
+  const userCollapsed = useRef(new Set())
+  // Ref to the scrollable content div and to each commentary tile
+  const contentRef = useRef(null)
+  const commentaryRefs = useRef({})
+  // Track previous selectedVerse so we only auto-scroll on *change*
+  const prevSelectedVerse = useRef(null)
 
   // Drag-to-resize handler
   const handleDragStart = useCallback((e) => {
@@ -198,24 +206,54 @@ function CommentarySidebar({
       return aHasBook - bHasBook
     })
 
-  // Auto-expand commentary for selected verse
+  // Auto-expand commentary for selected verse (respects user collapse) + scroll
   useEffect(() => {
-    if (selectedVerse) {
-      const commentary = chapterCommentaries.find(c => 
-        c.verses?.some(v => v.chapter === selectedVerse.chapter && v.verse === selectedVerse.verse)
-      )
-      if (commentary) {
-        const verseKey = getVerseKey(commentary.verses, commentary.reference)
+    if (!selectedVerse) return
+    const prev = prevSelectedVerse.current
+    const isNewClick =
+      !prev ||
+      prev.chapter !== selectedVerse.chapter ||
+      prev.verse !== selectedVerse.verse
+    prevSelectedVerse.current = selectedVerse
+
+    const commentary = chapterCommentaries.find(c =>
+      c.verses?.some(v => v.chapter === selectedVerse.chapter && v.verse === selectedVerse.verse)
+    )
+    if (!commentary) return
+    const verseKey = getVerseKey(commentary.verses, commentary.reference)
+
+    if (isNewClick) {
+      // New verse click — clear collapsed flag and expand
+      userCollapsed.current.delete(verseKey)
+      setExpandedVerses(prev => ({ ...prev, [verseKey]: true }))
+
+      // Scroll the commentary tile into view
+      requestAnimationFrame(() => {
+        const el = commentaryRefs.current[verseKey]
+        const container = contentRef.current
+        if (el && container) {
+          const elTop = el.offsetTop - container.offsetTop
+          container.scrollTo({ top: elTop, behavior: 'smooth' })
+        }
+      })
+    } else {
+      // Same verse re-selected — only expand if user hasn't collapsed it
+      if (!userCollapsed.current.has(verseKey)) {
         setExpandedVerses(prev => ({ ...prev, [verseKey]: true }))
       }
     }
   }, [selectedVerse, chapterCommentaries])
 
   const toggleExpand = (verseKey) => {
-    setExpandedVerses(prev => ({
-      ...prev,
-      [verseKey]: !prev[verseKey]
-    }))
+    setExpandedVerses(prev => {
+      const willCollapse = prev[verseKey]
+      if (willCollapse) {
+        userCollapsed.current.add(verseKey)
+      } else {
+        userCollapsed.current.delete(verseKey)
+      }
+      return { ...prev, [verseKey]: !prev[verseKey] }
+    })
   }
 
   const toggleIntroSection = (sectionId) => {
@@ -314,7 +352,7 @@ function CommentarySidebar({
 
       {/* Sidebar - full screen on mobile, dynamic width on desktop */}
       <aside 
-        className="fixed top-0 right-0 bottom-0 w-full lg:w-auto flex flex-col bg-white border-l border-gray-200 shadow-lg z-50 lg:z-40 transform transition-[width] duration-100 ease-out animate-slide-in-right"
+        className="fixed top-0 right-0 bottom-0 w-full lg:w-auto flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 lg:z-40 transform transition-[width] duration-100 ease-out animate-slide-in-right"
         style={{ width: window.innerWidth >= 1024 ? `${sidebarWidth}px` : undefined }}
         ref={sidebarRef}
       >
@@ -324,7 +362,7 @@ function CommentarySidebar({
           className="hidden lg:flex absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize items-center z-10 group hover:bg-primary/20 active:bg-primary/30 transition-colors"
           title="Drag to resize"
         >
-          <div className="w-0.5 h-8 bg-gray-300 group-hover:bg-primary rounded-full mx-auto transition-colors" />
+          <div className="w-0.5 h-8 bg-gray-300 dark:bg-gray-600 group-hover:bg-primary rounded-full mx-auto transition-colors" />
         </div>
         {/* Top Bar with Close - height matches Header */}
         <div className="flex items-center justify-between px-4 h-14 bg-primary text-white">
@@ -339,52 +377,52 @@ function CommentarySidebar({
         </div>
 
         {/* Toolbar Strip */}
-        <div className="grid grid-cols-4 bg-gray-100 border-b border-gray-200">
+        <div className="grid grid-cols-4 bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
           <button
             onClick={handleCompare}
-            className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 transition-colors group border-r border-gray-300"
+            className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-r border-gray-300 dark:border-gray-600"
             title="Compare translations"
           >
             <span className="text-xl">🔄</span>
-            <span className="text-[11px] text-gray-600 group-hover:text-gray-800 mt-0.5">Compare</span>
+            <span className="text-[11px] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 mt-0.5">Compare</span>
           </button>
           <button
             onClick={handleBookmarkVerse}
-            className={`flex flex-col items-center justify-center py-3 hover:bg-gray-200 transition-colors group border-r border-gray-300 ${
+            className={`flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-r border-gray-300 dark:border-gray-600 ${
               verseIsBookmarked ? 'text-secondary' : ''
             }`}
             title={verseIsBookmarked ? 'Remove bookmark' : 'Bookmark verse'}
           >
             <span className="text-xl">{verseIsBookmarked ? '★' : '☆'}</span>
-            <span className="text-[11px] text-gray-600 group-hover:text-gray-800 mt-0.5">Bookmark</span>
+            <span className="text-[11px] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 mt-0.5">Bookmark</span>
           </button>
           <button
             onClick={handleNotes}
-            className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 transition-colors group border-r border-gray-300"
+            className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-r border-gray-300 dark:border-gray-600"
             title="Add notes"
           >
             <span className="text-xl">📝</span>
-            <span className="text-[11px] text-gray-600 group-hover:text-gray-800 mt-0.5">Notes</span>
+            <span className="text-[11px] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 mt-0.5">Notes</span>
           </button>
           <button
             onClick={handleCopy}
-            className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 transition-colors group"
+            className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group"
             title="Copy verse"
           >
             <span className="text-xl">📋</span>
-            <span className="text-[11px] text-gray-600 group-hover:text-gray-800 mt-0.5">Copy</span>
+            <span className="text-[11px] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 mt-0.5">Copy</span>
           </button>
         </div>
 
         {/* Selected Verse Indicator */}
         {selectedVerse && (
-          <div className="px-3 py-2 bg-blue-50 border-b border-blue-100">
-            <p className="text-xs text-primary font-medium mb-1">
+          <div className="px-3 py-2 bg-blue-50 dark:bg-blue-900/30 border-b border-blue-100 dark:border-blue-800">
+            <p className="text-primary dark:text-blue-400 font-medium mb-1" style={{ fontSize: `${Math.max(12, commentaryTextSize)}px` }}>
               📖 {bookName} {selectedVerse.chapter}:{selectedVerse.verse}
             </p>
             {/* Show full verse text on mobile */}
             {selectedVerse.text && (
-              <p className="text-sm text-gray-700 lg:hidden leading-relaxed">
+              <p className="text-sm text-gray-700 dark:text-gray-300 lg:hidden leading-relaxed">
                 {selectedVerse.text}
               </p>
             )}
@@ -392,7 +430,7 @@ function CommentarySidebar({
         )}
 
         {/* Author Selection */}
-        <div className="p-3 border-b border-gray-200 bg-gray-50">
+        <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
           {/* Author Button */}
           <div className="relative">
             <button
@@ -410,14 +448,14 @@ function CommentarySidebar({
             
             {/* Author Search Dropdown */}
             {showAuthorSearch && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                <div className="p-2 border-b">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
+                <div className="p-2 border-b dark:border-gray-700">
                   <input
                     type="text"
                     placeholder="Search authors..."
                     value={authorSearchQuery}
                     onChange={(e) => setAuthorSearchQuery(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                     autoFocus
                   />
                 </div>
@@ -430,12 +468,12 @@ function CommentarySidebar({
                         setShowAuthorSearch(false)
                         setAuthorSearchQuery('')
                       }}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        author.id === selectedAuthor ? 'bg-blue-50 text-primary' : ''
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                        author.id === selectedAuthor ? 'bg-blue-50 dark:bg-blue-900/30 text-primary dark:text-blue-400' : 'dark:text-gray-200'
                       }`}
                     >
                       <div className="font-medium text-sm">{author.name}</div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         {author.works.some(w => w.book === bookName)
                           ? `${author.works.filter(w => w.book === bookName).length} work(s) on ${bookName}`
                           : <span className="text-gray-400 italic">No {bookName} commentary</span>
@@ -444,7 +482,7 @@ function CommentarySidebar({
                     </button>
                   ))}
                   {filteredAuthors.length === 0 && (
-                    <div className="p-4 text-center text-gray-500 text-sm">
+                    <div className="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
                       No authors found
                     </div>
                   )}
@@ -458,7 +496,7 @@ function CommentarySidebar({
             <div className="mt-3 relative">
               <div className="flex items-center gap-2">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">From:</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">From:</p>
                   {/* Work Title - Clickable if has links */}
                   {hasWorkLinks ? (
                     <div className="relative">
@@ -477,9 +515,9 @@ function CommentarySidebar({
                       
                       {/* Work Links Dropdown */}
                       {showWorkLinksDropdown && (
-                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-[200px]">
-                          <div className="p-2 border-b bg-gray-50">
-                            <p className="text-xs text-gray-600 font-medium">Source Links</p>
+                        <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20 min-w-[200px]">
+                          <div className="p-2 border-b bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Source Links</p>
                           </div>
                           <div className="py-1">
                             {workOriginalUrl && (
@@ -487,12 +525,12 @@ function CommentarySidebar({
                                 href={workOriginalUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors text-sm"
+                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm dark:text-gray-200"
                                 onClick={() => setShowWorkLinksDropdown(false)}
                               >
                                 <span>🎬</span>
                                 <span>Go To Original</span>
-                                <span className="text-gray-400 ml-auto">↗</span>
+                                <span className="text-gray-400 dark:text-gray-500 ml-auto">↗</span>
                               </a>
                             )}
                             {workAudioUrl && (
@@ -500,12 +538,12 @@ function CommentarySidebar({
                                 href={workAudioUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors text-sm"
+                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm dark:text-gray-200"
                                 onClick={() => setShowWorkLinksDropdown(false)}
                               >
                                 <span>🎧</span>
                                 <span>Listen to Audio</span>
-                                <span className="text-gray-400 ml-auto">↗</span>
+                                <span className="text-gray-400 dark:text-gray-500 ml-auto">↗</span>
                               </a>
                             )}
                             {workTranscriptUrl && (
@@ -513,12 +551,12 @@ function CommentarySidebar({
                                 href={workTranscriptUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 transition-colors text-sm"
+                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm dark:text-gray-200"
                                 onClick={() => setShowWorkLinksDropdown(false)}
                               >
                                 <span>📝</span>
                                 <span>View Transcript</span>
-                                <span className="text-gray-400 ml-auto">↗</span>
+                                <span className="text-gray-400 dark:text-gray-500 ml-auto">↗</span>
                               </a>
                             )}
                           </div>
@@ -526,12 +564,12 @@ function CommentarySidebar({
                       )}
                     </div>
                   ) : (
-                    <p className="font-medium text-gray-800 truncate text-sm" title={currentWorkData.title}>
+                    <p className="font-medium text-gray-800 dark:text-gray-200 truncate text-sm" title={currentWorkData.title}>
                       {currentWorkData.title}
                     </p>
                   )}
                   {currentWorkData.type && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                       <span>📚</span> {currentWorkData.type}
                       {currentWorkData.year && ` (${currentWorkData.year})`}
                     </p>
@@ -554,9 +592,9 @@ function CommentarySidebar({
                     
                     {/* Works Dropdown */}
                     {showWorkDropdown && (
-                      <div className="absolute top-full right-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                        <div className="p-2 border-b bg-gray-50">
-                          <p className="text-xs text-gray-600 font-medium">Other works on chapter {chapter}:</p>
+                      <div className="absolute top-full right-0 mt-1 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
+                        <div className="p-2 border-b bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Other works on chapter {chapter}:</p>
                         </div>
                         <div className="max-h-48 overflow-y-auto">
                           {worksWithCommentary.map(work => (
@@ -566,12 +604,12 @@ function CommentarySidebar({
                                 onWorkChange(work.id)
                                 setShowWorkDropdown(false)
                               }}
-                              className={`w-full text-left px-3 py-2 hover:bg-gray-100 transition-colors ${
-                                work.id === selectedWork ? 'bg-blue-50 border-l-2 border-primary' : ''
+                              className={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                                work.id === selectedWork ? 'bg-blue-50 dark:bg-blue-900/30 border-l-2 border-primary' : 'dark:text-gray-200'
                               }`}
                             >
                               <p className="font-medium text-sm truncate">{work.title}</p>
-                              <p className="text-xs text-gray-500">{work.type}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{work.type}</p>
                             </button>
                           ))}
                         </div>
@@ -585,7 +623,7 @@ function CommentarySidebar({
         </div>
 
         {/* Commentary Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-3">
+        <div className="flex-1 overflow-y-auto p-3" ref={contentRef}>
           {/* Introduction Section - Only for Revelation with introduction data */}
           {hasIntroduction && (
             <div className="mb-4">
@@ -593,15 +631,15 @@ function CommentarySidebar({
                 onClick={() => setIntroductionExpanded(!introductionExpanded)}
                 className={`w-full border-l-4 transition-all duration-200 rounded-r-lg ${
                   introductionExpanded 
-                    ? 'border-accent bg-teal-50' 
-                    : 'border-accent bg-teal-50/50 hover:bg-teal-100'
+                    ? 'border-accent bg-teal-50 dark:bg-teal-900/30' 
+                    : 'border-accent bg-teal-50/50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/40'
                 }`}
               >
                 <div className="flex items-center justify-between p-3">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">📖</span>
                     <span className="font-semibold text-accent">Introduction</span>
-                    <span className="text-xs text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">
                       {introductionSections.length} section{introductionSections.length !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -613,14 +651,14 @@ function CommentarySidebar({
               
               {/* Expanded Introduction Sections */}
               {introductionExpanded && (
-                <div className="ml-2 mt-2 space-y-2 border-l-2 border-teal-200 pl-3">
+                <div className="ml-2 mt-2 space-y-2 border-l-2 border-teal-200 dark:border-teal-700 pl-3">
                   {introductionSections.map((section) => {
                     const isExpanded = expandedIntroSections[section.id]
                     return (
                       <div
                         key={section.id}
                         className={`rounded-lg transition-all duration-200 ${
-                          isExpanded ? 'bg-white shadow-sm border border-teal-200' : 'bg-teal-50/50 hover:bg-teal-50'
+                          isExpanded ? 'bg-white dark:bg-gray-700 shadow-sm border border-teal-200 dark:border-teal-700' : 'bg-teal-50/50 dark:bg-teal-900/20 hover:bg-teal-50 dark:hover:bg-teal-900/30'
                         }`}
                       >
                         <button
@@ -628,7 +666,7 @@ function CommentarySidebar({
                           className="w-full text-left p-2"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-medium text-gray-800" style={{ fontSize: `${Math.max(12, commentaryTextSize)}px` }}>
+                            <span className="font-medium text-gray-800 dark:text-gray-200" style={{ fontSize: `${Math.max(12, commentaryTextSize)}px` }}>
                               {section.title?.replace(/^#\s*\**/, '').replace(/\*+$/, '') || 'Introduction'}
                             </span>
                             <div className="flex items-center gap-2">
@@ -641,7 +679,7 @@ function CommentarySidebar({
                             </div>
                           </div>
                           {!isExpanded && (
-                            <p className="text-gray-600 mt-1 line-clamp-2" style={{ fontSize: `${Math.max(11, commentaryTextSize - 1)}px` }}>
+                            <p className="text-gray-600 dark:text-gray-400 mt-1 line-clamp-2" style={{ fontSize: `${Math.max(11, commentaryTextSize - 1)}px` }}>
                               {section.text.substring(0, 100)}...
                             </p>
                           )}
@@ -649,9 +687,9 @@ function CommentarySidebar({
                         
                         {isExpanded && (
                           <div className="px-2 pb-2">
-                            <div className="border-t border-teal-100 pt-2" style={{ fontSize: `${commentaryTextSize}px` }}>
+                            <div className="border-t border-teal-100 dark:border-teal-700 pt-2" style={{ fontSize: `${commentaryTextSize}px` }}>
                               {section.text.split('\n\n').map((paragraph, pIndex) => (
-                                <p key={pIndex} className="text-gray-700 leading-relaxed mb-2 last:mb-0">
+                                <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
                                   {paragraph}
                                 </p>
                               ))}
@@ -667,12 +705,12 @@ function CommentarySidebar({
           )}
 
           {loading ? (
-            <div className="p-6 text-center text-gray-500">
+            <div className="p-6 text-center text-gray-500 dark:text-gray-400">
               <p className="text-4xl mb-3 animate-pulse">📖</p>
               <p className="text-sm">Loading commentary for <strong>{bookName}</strong>...</p>
             </div>
           ) : chapterCommentaries.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
+            <div className="p-6 text-center text-gray-500 dark:text-gray-400">
               <p className="text-4xl mb-3">📖</p>
               <p className="text-sm">No commentary available for <strong>{bookName} {chapter}</strong>{currentAuthorData ? <> from <strong>{currentAuthorData.name}</strong></> : null}.</p>
               {authors.some(a => a.works.some(w => w.book === bookName && w.id !== selectedWork)) && (
@@ -694,10 +732,11 @@ function CommentarySidebar({
                 return (
                   <div
                     key={commentary.id}
+                    ref={(el) => { commentaryRefs.current[verseKey] = el }}
                     className={`border-l-4 transition-all duration-200 rounded-r-lg ${
                       isExpanded 
-                        ? 'border-primary bg-blue-50' 
-                        : 'border-secondary bg-amber-50 hover:bg-amber-100'
+                        ? 'border-primary bg-blue-50 dark:bg-blue-900/20' 
+                        : 'border-secondary bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30'
                     }`}
                   >
                     {/* Header */}
@@ -707,7 +746,7 @@ function CommentarySidebar({
                         className="flex-1 text-left p-3"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-primary" style={{ fontSize: `${Math.max(12, commentaryTextSize)}px` }}>
+                          <span className="font-medium text-primary dark:text-blue-400" style={{ fontSize: `${Math.max(12, commentaryTextSize)}px` }}>
                             {commentary.reference?.replace(`${bookName} `, '') || verseKey}
                           </span>
                           <span className="text-gray-400 text-xs transform transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : '' }}>
@@ -715,7 +754,7 @@ function CommentarySidebar({
                           </span>
                         </div>
                         {!isExpanded && (
-                          <p className="text-gray-600 mt-1 line-clamp-2" style={{ fontSize: `${Math.max(11, commentaryTextSize - 1)}px` }}>
+                          <p className="text-gray-600 dark:text-gray-200 mt-1 line-clamp-2" style={{ fontSize: `${Math.max(11, commentaryTextSize - 1)}px` }}>
                             {selectedAuthor === 'john-calvin'
                               ? calvinPreview(commentary.text)
                               : <>{commentary.text.substring(0, 120)}...</>}
@@ -743,13 +782,13 @@ function CommentarySidebar({
                     {/* Expanded Content */}
                     {isExpanded && (
                       <div className="px-3 pb-3">
-                        <div className="border-t border-blue-200 pt-3" style={{ fontSize: `${commentaryTextSize}px` }}>
+                        <div className="border-t border-blue-200 dark:border-blue-800 pt-3" style={{ fontSize: `${commentaryTextSize}px` }}>
                           {commentary.text.split('\n\n').map((paragraph, pIndex) => {
                             if (selectedAuthor === 'john-calvin') {
                               return renderCalvinParagraph(paragraph, pIndex)
                             }
                             return (
-                              <p key={pIndex} className="text-gray-700 leading-relaxed mb-2 last:mb-0">
+                              <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
                                 {paragraph}
                               </p>
                             )
@@ -765,8 +804,8 @@ function CommentarySidebar({
         </div>
 
         {/* Footer */}
-        <div className="p-2 border-t bg-gray-50 text-center">
-          <p className="text-xs text-gray-500">
+        <div className="p-2 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {chapterCommentaries.length} section{chapterCommentaries.length !== 1 ? 's' : ''} • Click to expand
           </p>
         </div>
@@ -792,33 +831,33 @@ function CommentarySidebar({
       {showNotesModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowNotesModal(false)} />
-          <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-fade-in">
+          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 animate-fade-in">
             <button 
               onClick={() => setShowNotesModal(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             >
               ✕
             </button>
-            <h3 className="text-lg font-bold text-gray-800 mb-3">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
               {selectedVerse ? `Notes for ${bookName} ${selectedVerse.chapter}:${selectedVerse.verse}` : 'Notes'}
             </h3>
             {!selectedVerse ? (
-              <p className="text-gray-500 text-sm">Please select a verse to add notes.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Please select a verse to add notes.</p>
             ) : (
               <>
                 <textarea
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
                   placeholder="Write your notes here..."
-                  className="w-full h-32 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                  className="w-full h-32 px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                 />
-                <p className="text-xs text-gray-400 mt-1 mb-3">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 mb-3">
                   Notes are automatically saved to your bookmarks
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowNotesModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
                   >
                     Cancel
                   </button>
