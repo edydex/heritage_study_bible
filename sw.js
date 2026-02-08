@@ -1,4 +1,4 @@
-const CACHE_NAME = 'heritage-v1'
+const CACHE_NAME = 'heritage-v2'
 
 // App shell files to cache immediately on install
 const APP_SHELL = [
