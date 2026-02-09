@@ -9,6 +9,9 @@ import BottomNav from './components/BottomNav'
 import TranscriptViewer from './components/TranscriptViewer'
 import ResourcesModal from './components/ResourcesModal'
 import ResourcePage from './components/ResourcePage'
+import ConfessionViewer from './components/ConfessionViewer'
+import BookViewer from './components/BookViewer'
+import ReadingPlanViewer from './components/ReadingPlanViewer'
 import { useBookmarks } from './hooks/useBookmarks'
 import fallbackBibleData from './data/bible-lsv.json'
 import { bibleBooks } from './data/bible-books.js'
@@ -322,8 +325,6 @@ function BibleStudyApp() {
       setSearchResults(null)
       return
     }
-
-    console.log('[Search] query received:', JSON.stringify(query), 'hasDigit:', /\d/.test(query))
 
     // Only try to parse as a Bible reference if the query contains a number
     // (e.g. "Ps 23", "Rom 8:28"). Plain words like "husband" always do text search.
@@ -672,6 +673,9 @@ function App() {
     <Router>
       <Routes>
         <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />
+        <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />
+        <Route path="/resources/books/:itemId" element={<BookViewer />} />
+        <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
         <Route path="/resources/:categoryId" element={<ResourcePage />} />
         <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp />} />
         <Route path="/:bookSlug" element={<BibleStudyApp />} />

@@ -35,8 +35,9 @@ function ResourcesModal({ onClose }) {
               onClick={() => handleCategoryClick(cat.id)}
               className={`flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-all duration-200 ${cat.color}`}
             >
-              <span className="font-semibold text-gray-800 text-sm text-center">{cat.title}</span>
-              <span className="text-xs text-gray-500">{cat.items.length} items</span>
+              {cat.icon && <span className="text-2xl">{cat.icon}</span>}
+              <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm text-center">{cat.title}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{cat.items.length} items</span>
             </button>
           ))}
         </div>
