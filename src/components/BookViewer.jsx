@@ -427,9 +427,9 @@ function BookViewer() {
         </div>
       </header>
 
-      <main className="container mx-auto max-w-2xl px-4 sm:px-6 py-6 pb-28">
+      <main className={`container mx-auto ${isSearchMode ? 'max-w-3xl' : 'max-w-2xl'} px-4 sm:px-6 py-6 pb-28`}>
         {isSearchMode && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+          <section className="space-y-3">
             <div className="flex items-center justify-between gap-3 mb-6">
               <div>
                 <h2 className="heading-text text-2xl font-bold text-primary dark:text-blue-400">
@@ -462,7 +462,7 @@ function BookViewer() {
             )}
 
             {totalSearchResults > 0 ? (
-              <div className="max-h-[70vh] overflow-y-auto space-y-2 pr-1">
+              <div className="space-y-2">
                 {searchResults.length > 0 && (
                   <>
                     <div className="flex items-center justify-between mt-1 mb-1">
@@ -582,7 +582,7 @@ function BookViewer() {
                 <p>No results found. Try a different search term.</p>
               </div>
             )}
-          </div>
+          </section>
         )}
 
         {!isSearchMode && (
@@ -679,162 +679,6 @@ function BookViewer() {
 
           {!textLoading && !textError && chapters.length > 0 && (
             <>
-              {searchQuery.trim() && (
-                <div className="mb-4 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40">
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <div>
-                      <h4 className="heading-text text-xl font-bold text-primary dark:text-blue-400">
-                        Search Results
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {totalSearchResults === 0
-                          ? <>No results found for "{searchQuery}"</>
-                          : <>
-                              Found {totalSearchResults} result{totalSearchResults === 1 ? '' : 's'} for "{searchQuery}"
-                              {(searchCapped || crossSearchCapped.books || crossSearchCapped.bible || crossSearchCapped.commentary) && (
-                                <span className="text-xs text-amber-600 dark:text-amber-400"> (results limited — try a more specific search)</span>
-                              )}
-                            </>
-                        }
-                      </p>
-                    </div>
-                    <button
-                      onClick={clearSearch}
-                      className="px-3 py-1.5 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors text-sm border border-gray-200 dark:border-gray-600"
-                    >
-                      Clear Search
-                    </button>
-                  </div>
-
-                  {crossSearchLoading && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 animate-pulse">
-                      Searching other books, Bible, and commentary...
-                    </p>
-                  )}
-
-                  {totalSearchResults > 0 ? (
-                    <>
-                      <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
-                        {searchResults.length > 0 && (
-                          <>
-                            <div className="flex items-center justify-between mt-1 mb-1">
-                              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                This Book ({searchResults.length})
-                              </p>
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={() => moveSearchCursor(-1)}
-                                  disabled={!searchResults.length}
-                                  className="px-2 py-1 text-xs rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-gray-800"
-                                >
-                                  ↑
-                                </button>
-                                <button
-                                  onClick={() => moveSearchCursor(1)}
-                                  disabled={!searchResults.length}
-                                  className="px-2 py-1 text-xs rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-gray-800"
-                                >
-                                  ↓
-                                </button>
-                              </div>
-                            </div>
-                            {searchResults.map((result, index) => (
-                              <button
-                                key={`${result.chapterIndex}-${result.paragraphIndex}-${index}`}
-                                onClick={() => jumpToSearchResult(index)}
-                                className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                                  index === activeSearchResultIndex
-                                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700'
-                                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20'
-                                }`}
-                              >
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                  {result.groupKey !== 'Front Matter' ? `${result.groupKey} · ` : ''}{result.chapterLabel}
-                                </p>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                                  {highlightText(result.snippet, searchQuery)}
-                                </p>
-                              </button>
-                            ))}
-                          </>
-                        )}
-
-                        {otherBookResults.length > 0 && (
-                          <>
-                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-3 mb-1">
-                              Other Books ({otherBookResults.length})
-                            </p>
-                            {otherBookResults.map((result, index) => (
-                              <button
-                                key={`other-book-${result.bookId}-${result.chapterIndex}-${result.paragraphIndex}-${index}`}
-                                onClick={() => openOtherBookResult(result)}
-                                className="w-full text-left p-3 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
-                              >
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                  {result.bookTitle} · {result.groupKey !== 'Front Matter' ? `${result.groupKey} · ` : ''}{result.chapterLabel}
-                                </p>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                                  {highlightText(result.snippet, searchQuery)}
-                                </p>
-                              </button>
-                            ))}
-                          </>
-                        )}
-
-                        {bibleResults.length > 0 && (
-                          <>
-                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-3 mb-1">
-                              Bible ({bibleResults.length})
-                            </p>
-                            {bibleResults.map((result, index) => (
-                              <button
-                                key={`bible-${result.book}-${result.chapter}-${result.verse}-${index}`}
-                                onClick={() => openBibleResult(result)}
-                                className="w-full text-left p-3 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
-                              >
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                  {result.book} {result.chapter}:{result.verse}
-                                </p>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                                  {highlightText(result.text, searchQuery)}
-                                </p>
-                              </button>
-                            ))}
-                          </>
-                        )}
-
-                        {commentaryResults.length > 0 && (
-                          <>
-                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-3 mb-1">
-                              Commentary ({commentaryResults.length})
-                            </p>
-                            {commentaryResults.map((result, index) => (
-                              <button
-                                key={`commentary-${result.id || index}`}
-                                onClick={() => openCommentaryResult(result)}
-                                className="w-full text-left p-3 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                              >
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                  {result.authorName ? `${result.authorName} · ` : ''}{result.reference}
-                                </p>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                                  {highlightText(result.snippet, searchQuery)}
-                                </p>
-                              </button>
-                            ))}
-                          </>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      <p className="text-3xl mb-2">🔍</p>
-                      <p className="text-sm">Try a different word or a shorter phrase.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
               {selectedChapter && (
                 <div className="mb-4">
                   <div className="flex items-center gap-2 flex-wrap">

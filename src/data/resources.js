@@ -292,12 +292,17 @@ export const RESOURCE_CATEGORIES = [
       },
       {
         id: 'maximus-cosmic-mystery',
-        title: 'Maximus the Confessor on the Cosmic Mystery of Christ',
+        title: 'Abbot Maximus and His Disputation with Pyrrhus',
         author: 'Maximus the Confessor',
-        year: 650,
+        year: 645,
         tag: 'Church Fathers',
-        description: 'Requested title added to the catalog; full in-app text pending a clearly public-domain English edition.',
-        textUrl: 'https://ccel.org/ccel/maximus',
+        description: 'Public-domain source text and LibriVox track are available for this Maximus dialogue on Christology. The modern "Cosmic Mystery of Christ" edition remains under modern copyright.',
+        textUrl: 'https://archive.org/details/ahistoryofthecou05hefeuoft/page/n92/mode/1up',
+        librivox: {
+          title: 'Abbot Maximus and His Disputation with Pyrrhus (Early Church Collection, Vol. 5, Track 09)',
+          url: 'https://librivox.org/the-early-church-collection-volume-5-by-various/',
+          archiveId: 'earlychurchcollection5_2502_librivox',
+        },
       },
     ]
   },
