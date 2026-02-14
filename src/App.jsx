@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { HashRouter as Router, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom'
+import { HashRouter as Router, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import Header from './components/Header'
 import BibleChapter from './components/BibleChapter'
 import CommentarySidebar from './components/CommentarySidebar'
@@ -39,6 +39,7 @@ function slugToBook(slug) {
 function BibleStudyApp() {
   const { bookSlug, chapterNum } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   
   // Parse URL params into book and chapter
   const urlBook = slugToBook(bookSlug)
@@ -52,6 +53,7 @@ function BibleStudyApp() {
   const [searchResults, setSearchResults] = useState(null)
   const [toast, setToast] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false) // Start closed
+  const [showGoToPassageButton, setShowGoToPassageButton] = useState(false)
   const [isLargeScreen, setIsLargeScreen] = useState(false)
   const [versePositions, setVersePositions] = useState({})
   const [selectedVerse, setSelectedVerse] = useState(null) // Track selected verse
@@ -195,6 +197,30 @@ function BibleStudyApp() {
     }
   }, [urlBook, urlChapter])
 
+  // Handle external deep links that should open commentary at a specific verse
+  useEffect(() => {
+    const incoming = location.state?.openCommentaryVerse
+    if (!incoming?.book || !incoming?.chapter || !incoming?.verse) return
+
+    const incomingBook = incoming.book
+    const incomingChapter = Number(incoming.chapter)
+    const incomingVerse = Number(incoming.verse)
+
+    if (!incomingBook || !incomingChapter || !incomingVerse) return
+
+    const verseText = bibleData?.books
+      ?.find(b => b.name === incomingBook)
+      ?.chapters?.find(c => c.number === incomingChapter)
+      ?.verses?.find(v => v.number === incomingVerse)
+      ?.text || ''
+
+    setCurrentBook(incomingBook)
+    setCurrentChapter(incomingChapter)
+    setSelectedVerse({ chapter: incomingChapter, verse: incomingVerse, text: verseText })
+    setIsSidebarOpen(true)
+    setShowGoToPassageButton(true)
+  }, [location.key, bibleData])
+
   // Update URL when book/chapter changes (but avoid loops)
   useEffect(() => {
     const expectedSlug = bookToSlug(currentBook)
@@ -295,6 +321,7 @@ function BibleStudyApp() {
   const handleVerseClick = (chapter, verse, verseText) => {
     setSelectedVerse({ chapter, verse, text: verseText })
     setIsSidebarOpen(true)
+    setShowGoToPassageButton(false)
   }
 
   // Handle bookmark toggle
@@ -388,6 +415,7 @@ function BibleStudyApp() {
     setCurrentChapter(chapter)
     setSearchResults(null)
     setShowBookmarkManager(false)
+    setShowGoToPassageButton(false)
     // Scroll to verse after render
     setTimeout(() => {
       const element = document.getElementById(`verse-${chapter}-${verse}`)
@@ -583,6 +611,12 @@ function BibleStudyApp() {
               onClose={() => {
                 setIsSidebarOpen(false)
                 setSelectedVerse(null)
+                setShowGoToPassageButton(false)
+              }}
+              showGoToButton={showGoToPassageButton}
+              onGoToVerse={() => {
+                if (!selectedVerse) return
+                navigateToVerse(currentBook, selectedVerse.chapter, selectedVerse.verse)
               }}
             />
           )}

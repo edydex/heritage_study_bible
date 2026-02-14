@@ -109,7 +109,9 @@ function CommentarySidebar({
   onBookmarkCommentary,
   onShowToast,
   onSaveNote,
-  notes = []
+  notes = [],
+  showGoToButton = false,
+  onGoToVerse
 }) {
   const [expandedVerses, setExpandedVerses] = useState({})
   const [showAuthorSearch, setShowAuthorSearch] = useState(false)
@@ -377,7 +379,7 @@ function CommentarySidebar({
         </div>
 
         {/* Toolbar Strip */}
-        <div className="grid grid-cols-4 bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+        <div className={`grid ${showGoToButton ? 'grid-cols-5' : 'grid-cols-4'} bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600`}>
           <button
             onClick={handleCompare}
             className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-r border-gray-300 dark:border-gray-600"
@@ -406,12 +408,22 @@ function CommentarySidebar({
           </button>
           <button
             onClick={handleCopy}
-            className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group"
+            className={`flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group ${showGoToButton ? 'border-r border-gray-300 dark:border-gray-600' : ''}`}
             title="Copy verse"
           >
             <span className="text-xl">📋</span>
             <span className="text-[11px] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 mt-0.5">Copy</span>
           </button>
+          {showGoToButton && (
+            <button
+              onClick={onGoToVerse}
+              className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group"
+              title="Go to passage in Bible"
+            >
+              <span className="text-xl">↗</span>
+              <span className="text-[11px] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 mt-0.5">Go To</span>
+            </button>
+          )}
         </div>
 
         {/* Selected Verse Indicator */}

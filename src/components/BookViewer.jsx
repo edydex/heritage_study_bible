@@ -1,18 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
+import CommentarySidebar from './CommentarySidebar'
 import { parseBookChapters, extractChapterNumber } from '../utils/bookChapters'
 import fallbackBibleData from '../data/bible-lsv.json'
 import { makeSearchSnippet, searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from '../utils/librarySearch'
+import { extractBookFootnotes, parseBibleRefFromFootnote } from '../utils/bookFootnotes'
+import { authors as initialAuthors, getAuthorsForBook, loadCommentaryForBook } from '../data/authors'
 
 function splitChapterTitle(title) {
-  const match = title.match(/^(.+?)\s+-\s+(chapter\s+.+)$/i)
-  if (!match) {
+  const normalizedTitle = String(title || '').trim()
+  const dividerIndex = normalizedTitle.indexOf(' - ')
+  if (dividerIndex < 0) {
     return { bookLabel: null, chapterLabel: title }
   }
   return {
-    bookLabel: match[1].trim(),
-    chapterLabel: match[2].trim(),
+    bookLabel: normalizedTitle.slice(0, dividerIndex).trim(),
+    chapterLabel: normalizedTitle.slice(dividerIndex + 3).trim(),
   }
 }
 
@@ -33,10 +37,38 @@ function romanToNumber(value) {
 
 function parseInternalBookNumber(groupLabel) {
   if (!groupLabel) return null
-  const match = String(groupLabel).match(/^book\s+([ivxlcdm]+|\d+)\b/i)
+  const match = String(groupLabel).match(/^book\s+([ivxlcdm]+|\d+|[a-z-]+)\b/i)
   if (!match) return null
   if (/^\d+$/.test(match[1])) return Number(match[1])
-  return romanToNumber(match[1])
+  const roman = romanToNumber(match[1])
+  if (roman != null) return roman
+
+  const normalizedOrdinal = match[1].toUpperCase()
+  const ordinalMap = {
+    FIRST: 1,
+    SECOND: 2,
+    THIRD: 3,
+    FOURTH: 4,
+    FIFTH: 5,
+    SIXTH: 6,
+    SEVENTH: 7,
+    EIGHTH: 8,
+    NINTH: 9,
+    TENTH: 10,
+    ELEVENTH: 11,
+    TWELFTH: 12,
+    THIRTEENTH: 13,
+    FOURTEENTH: 14,
+    FIFTEENTH: 15,
+    SIXTEENTH: 16,
+    SEVENTEENTH: 17,
+    EIGHTEENTH: 18,
+    NINETEENTH: 19,
+    TWENTIETH: 20,
+    'TWENTY-FIRST': 21,
+    'TWENTY-SECOND': 22,
+  }
+  return ordinalMap[normalizedOrdinal] ?? null
 }
 
 function bookToSlug(bookName) {
@@ -63,6 +95,53 @@ function highlightText(text, query) {
   }
 }
 
+function renderTextWithHighlight(text, query) {
+  return highlightText(text, query)
+}
+
+function renderParagraphWithFootnotes(paragraph, query, footnotesById, onFootnoteOpen) {
+  const parts = String(paragraph || '').split(/(\[\d+\])/g)
+  if (parts.length <= 1) return renderTextWithHighlight(paragraph, query)
+
+  return parts.map((part, index) => {
+    const marker = part.match(/^\[(\d+)\]$/)
+    if (!marker) {
+      return <span key={`text-${index}`}>{renderTextWithHighlight(part, query)}</span>
+    }
+
+    const id = marker[1]
+    const noteText = footnotesById[id]
+    const title = noteText || `Footnote [${id}]`
+    return (
+      <button
+        key={`fn-${id}-${index}`}
+        type="button"
+        title={title}
+        onClick={() => onFootnoteOpen(id)}
+        className="align-super text-[11px] leading-none ml-0.5 px-1 rounded border border-blue-200 dark:border-blue-700 text-primary dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors"
+      >
+        [{id}]
+      </button>
+    )
+  })
+}
+
+function pickCommentarySelection(authorsData, bookName, chapter, preferredAuthorId = null) {
+  const bookAuthors = getAuthorsForBook(bookName, authorsData)
+  if (!bookAuthors.length) return { authorId: null, workId: null }
+
+  const author = bookAuthors.find(a => a.id === preferredAuthorId) || bookAuthors[0]
+  const worksForBook = author.works.filter(w => w.book === bookName)
+  const preferredWork = worksForBook.find(
+    work => Array.isArray(work.commentaries) && work.commentaries.some(c => c.chapter === chapter)
+  ) || worksForBook[0] || null
+
+  return {
+    authorId: author.id,
+    workId: preferredWork?.id || null,
+  }
+}
+
 function BookViewer() {
   const { itemId } = useParams()
   const location = useLocation()
@@ -79,6 +158,13 @@ function BookViewer() {
   const [otherBookResults, setOtherBookResults] = useState([])
   const [bibleResults, setBibleResults] = useState([])
   const [commentaryResults, setCommentaryResults] = useState([])
+  const [activeFootnote, setActiveFootnote] = useState(null)
+  const [previewCommentary, setPreviewCommentary] = useState(null)
+  const [previewAuthorsData, setPreviewAuthorsData] = useState(initialAuthors)
+  const [previewSelectedAuthor, setPreviewSelectedAuthor] = useState(null)
+  const [previewSelectedWork, setPreviewSelectedWork] = useState(null)
+  const [previewCommentaryLoading, setPreviewCommentaryLoading] = useState(false)
+  const [previewSidebarWidth, setPreviewSidebarWidth] = useState(540)
   const [crossSearchLoading, setCrossSearchLoading] = useState(false)
   const [crossSearchCapped, setCrossSearchCapped] = useState({
     books: false,
@@ -101,6 +187,8 @@ function BookViewer() {
     setActiveSearchResultIndex(0)
     setBookText('')
     setTextError(null)
+    setActiveFootnote(null)
+    setPreviewCommentary(null)
 
     if (!book?.textPath) return () => { cancelled = true }
 
@@ -135,6 +223,7 @@ function BookViewer() {
   }, [itemId, location.key])
 
   const chapters = useMemo(() => parseBookChapters(bookText), [bookText])
+  const footnotesById = useMemo(() => extractBookFootnotes(bookText), [bookText])
   const selectedChapter = chapters[selectedChapterIndex] || null
   const selectedChapterNumber = extractChapterNumber(selectedChapter?.title || '')
 
@@ -379,6 +468,77 @@ function BookViewer() {
   const totalSearchResults = searchResults.length + otherBookResults.length + bibleResults.length + commentaryResults.length
   const isSearchMode = Boolean(searchQuery.trim())
   const hasLimitedResults = searchCapped || crossSearchCapped.books || crossSearchCapped.bible || crossSearchCapped.commentary
+  const activeFootnoteText = activeFootnote ? footnotesById[activeFootnote.id] || null : null
+  const activeFootnoteBibleRef = activeFootnoteText ? parseBibleRefFromFootnote(activeFootnoteText) : null
+
+  const openFootnote = (id) => {
+    setActiveFootnote({ id })
+  }
+
+  const getVerseText = (bookName, chapter, verse) =>
+    fallbackBibleData?.books
+      ?.find(b => b.name === bookName)
+      ?.chapters?.find(c => c.number === chapter)
+      ?.verses?.find(v => v.number === verse)
+      ?.text || ''
+
+  const openFootnoteCommentary = () => {
+    if (!activeFootnoteBibleRef) return
+    const verseText = getVerseText(
+      activeFootnoteBibleRef.book,
+      activeFootnoteBibleRef.chapter,
+      activeFootnoteBibleRef.verse
+    )
+    setPreviewCommentary({
+      ...activeFootnoteBibleRef,
+      text: verseText,
+    })
+    setActiveFootnote(null)
+  }
+
+  useEffect(() => {
+    if (!previewCommentary) return
+    let cancelled = false
+
+    const loadPreviewCommentary = async () => {
+      setPreviewCommentaryLoading(true)
+      try {
+        const updatedAuthors = await loadCommentaryForBook(previewCommentary.book, previewAuthorsData)
+        if (cancelled) return
+        setPreviewAuthorsData(updatedAuthors)
+        const selection = pickCommentarySelection(
+          updatedAuthors,
+          previewCommentary.book,
+          previewCommentary.chapter,
+          previewSelectedAuthor
+        )
+        setPreviewSelectedAuthor(selection.authorId)
+        setPreviewSelectedWork(selection.workId)
+      } catch (error) {
+        console.warn('Failed to load preview commentary', error)
+      } finally {
+        if (!cancelled) setPreviewCommentaryLoading(false)
+      }
+    }
+
+    loadPreviewCommentary()
+    return () => { cancelled = true }
+  }, [previewCommentary?.book, previewCommentary?.chapter])
+
+  const handlePreviewAuthorChange = (authorId) => {
+    setPreviewSelectedAuthor(authorId)
+    if (!previewCommentary) return
+    const author = previewAuthorsData.find(a => a.id === authorId)
+    if (!author) {
+      setPreviewSelectedWork(null)
+      return
+    }
+    const worksForBook = author.works.filter(w => w.book === previewCommentary.book)
+    const preferredWork = worksForBook.find(
+      work => Array.isArray(work.commentaries) && work.commentaries.some(c => c.chapter === previewCommentary.chapter)
+    ) || worksForBook[0] || null
+    setPreviewSelectedWork(preferredWork?.id || null)
+  }
 
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900">
@@ -705,7 +865,7 @@ function BookViewer() {
               <div className="space-y-4">
                 {(selectedChapter?.paragraphs || []).map((paragraph, index) => (
                   <p key={index} className="text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
-                    {highlightText(paragraph, searchQuery)}
+                    {renderParagraphWithFootnotes(paragraph, searchQuery, footnotesById, openFootnote)}
                   </p>
                 ))}
               </div>
@@ -722,6 +882,34 @@ function BookViewer() {
             {'\u2190'} Back to Books
           </button>
         </div>
+
+        {activeFootnote && (
+          <div className="fixed bottom-20 right-4 sm:right-6 z-50 w-[min(92vw,420px)] rounded-xl border border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-800 shadow-xl p-4">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <h4 className="text-sm font-semibold text-primary dark:text-blue-300">
+                Footnote [{activeFootnote.id}]
+              </h4>
+              <button
+                onClick={() => setActiveFootnote(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm"
+                aria-label="Close footnote"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">
+              {activeFootnoteText || 'Footnote text not found in this source.'}
+            </p>
+            {activeFootnoteBibleRef && (
+              <button
+                onClick={openFootnoteCommentary}
+                className="mt-3 inline-flex items-center gap-1 text-sm text-primary dark:text-blue-300 hover:underline"
+              >
+                📖 Preview Commentary: {activeFootnoteBibleRef.book} {activeFootnoteBibleRef.chapter}:{activeFootnoteBibleRef.verse}
+              </button>
+            )}
+          </div>
+        )}
           </>
         )}
       </main>
@@ -832,6 +1020,48 @@ function BookViewer() {
             </div>
           )}
         </>
+      )}
+
+      {previewCommentary && (
+        <CommentarySidebar
+          chapter={previewCommentary.chapter}
+          bookName={previewCommentary.book}
+          authors={previewAuthorsData}
+          selectedAuthor={previewSelectedAuthor}
+          selectedWork={previewSelectedWork}
+          onAuthorChange={handlePreviewAuthorChange}
+          onWorkChange={setPreviewSelectedWork}
+          onClose={() => setPreviewCommentary(null)}
+          loading={previewCommentaryLoading}
+          selectedVerse={{
+            chapter: previewCommentary.chapter,
+            verse: previewCommentary.verse,
+            text: previewCommentary.text,
+          }}
+          translationId="LSV"
+          bibleData={fallbackBibleData}
+          commentaryTextSize={14}
+          sidebarWidth={previewSidebarWidth}
+          onSidebarWidthChange={setPreviewSidebarWidth}
+          isBookmarked={() => false}
+          onBookmarkVerse={() => {}}
+          isCommentaryBookmarked={() => false}
+          onBookmarkCommentary={() => {}}
+          notes={[]}
+          showGoToButton
+          onGoToVerse={() => {
+            navigate(`/${bookToSlug(previewCommentary.book)}/${previewCommentary.chapter}`, {
+              state: {
+                openCommentaryVerse: {
+                  book: previewCommentary.book,
+                  chapter: previewCommentary.chapter,
+                  verse: previewCommentary.verse,
+                  source: 'book-footnote',
+                },
+              },
+            })
+          }}
+        />
       )}
     </div>
   )

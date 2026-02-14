@@ -43,14 +43,18 @@ function toBlocks(text) {
 }
 
 function isLikelyTocHeading(block) {
-  return /^contents?$/i.test(block.trim())
+  return /^contents?[\.:]?$/i.test(block.trim())
 }
 
 function isLikelyTocEntry(block) {
   const text = block.trim()
+  if (!text) return false
+  if (/^page$/i.test(text)) return true
   if (/^(preface|introduction|prologue|appendix)\b/i.test(text)) return true
   if (/^footnotes?:?$/i.test(text)) return true
-  return /^(book|part|chapter|section)\s+([ivxlcdm]+|\d+)\b/i.test(text)
+  if (/^(book|part|chapter|section)\s+([ivxlcdm]+|\d+|[a-z-]+)\.?$/i.test(text)) return true
+  if (/^\d+\.\s+_[^_]+_\.?$/i.test(text)) return true
+  return /,\s*\d+\s*$/i.test(text)
 }
 
 function stripLeadingTableOfContents(blocks) {
@@ -62,11 +66,30 @@ function stripLeadingTableOfContents(blocks) {
   if (tocIndex < 0) return blocks
 
   let cursor = tocIndex + 1
-  while (cursor < blocks.length && isLikelyTocEntry(blocks[cursor])) {
-    cursor += 1
+  let tocEntryCount = 0
+  let toleratedNoise = 0
+  const maxScan = Math.min(blocks.length, tocIndex + 500)
+
+  while (cursor < maxScan) {
+    const block = blocks[cursor]
+
+    if (isLikelyTocEntry(block)) {
+      tocEntryCount += 1
+      toleratedNoise = 0
+      cursor += 1
+      continue
+    }
+
+    // Some TOCs contain a couple of unstructured lines mixed in with entries.
+    if (tocEntryCount >= 8 && toleratedNoise < 2 && block.length <= 220) {
+      toleratedNoise += 1
+      cursor += 1
+      continue
+    }
+
+    break
   }
 
-  const tocEntryCount = cursor - tocIndex - 1
   if (tocEntryCount < 8) return blocks
 
   return [...blocks.slice(0, tocIndex), ...blocks.slice(cursor)]
@@ -76,13 +99,34 @@ function makeChapter(title) {
   return { title, paragraphs: [] }
 }
 
+function parseMajorBookHeading(block) {
+  const match = block.match(/^book\s+([ivxlcdm]+|\d+|[a-z-]+)\.?(?:\[\d+\])?$/i)
+  if (!match) return null
+  return `BOOK ${match[1].toUpperCase()}`
+}
+
 function hasChapterMarkers(blocks) {
   return blocks.some(block => /^chapter\s+([ivxlcdm]+|\d+)\b/i.test(block))
+}
+
+function hasNumberedSectionMarkers(blocks) {
+  let count = 0
+  for (const block of blocks) {
+    if (/^\d+\.\s+['"_\(\[]*[A-Za-z]/.test(block)) {
+      count += 1
+      if (count >= 10) return true
+    }
+  }
+  return false
 }
 
 function getChapterTitle(block, currentMajorHeading) {
   if (!currentMajorHeading) return block
   return `${currentMajorHeading} - ${block}`
+}
+
+function hasBookLikeMajorHeadings(blocks) {
+  return blocks.some(block => parseMajorBookHeading(block))
 }
 
 function parseUsingChapterMarkers(blocks) {
@@ -112,10 +156,50 @@ function parseUsingChapterMarkers(blocks) {
   return chapters
 }
 
+function parseUsingNumberedSections(blocks, requireMajorHeading = false) {
+  const chapters = []
+  let currentMajorHeading = null
+  let currentChapter = null
+
+  for (const block of blocks) {
+    const majorHeading = parseMajorBookHeading(block)
+    if (majorHeading) {
+      currentMajorHeading = majorHeading
+      currentChapter = null
+      continue
+    }
+
+    if (/^\d+\.\s+['"_\(\[]*[A-Za-z]/.test(block)) {
+      if (requireMajorHeading && !currentMajorHeading) {
+        if (!currentChapter) {
+          currentChapter = makeChapter('Introduction')
+          chapters.push(currentChapter)
+        }
+        currentChapter.paragraphs.push(block)
+        continue
+      }
+      const title = currentMajorHeading ? `${currentMajorHeading} - ${block}` : block
+      currentChapter = makeChapter(title)
+      chapters.push(currentChapter)
+      continue
+    }
+
+    if (!currentChapter) {
+      const introTitle = currentMajorHeading ? `${currentMajorHeading} - Introduction` : 'Introduction'
+      currentChapter = makeChapter(introTitle)
+      chapters.push(currentChapter)
+    }
+    currentChapter.paragraphs.push(block)
+  }
+
+  return chapters
+}
+
 function isLikelyHeading(block) {
+  if (/^\d+[\.\)]\s+['"_\(\[]*[A-Z]/.test(block)) return true
   if (block.length < 4 || block.length > 110) return false
   if (/^(book|part|section|chapter|letter)\s+/i.test(block)) return true
-  if (/^\d+[\.\)]\s+[A-Z]/.test(block)) return true
+  if (/^(argument|preface|introduction|prologue|epilogue)\.?$/i.test(block)) return true
 
   const letters = block.replace(/[^A-Za-z]/g, '')
   if (letters.length < 5) return false
@@ -151,9 +235,13 @@ export function parseBookChapters(rawText) {
   const blocks = stripLeadingTableOfContents(toBlocks(stripped))
   if (!blocks.length) return []
 
+  const hasMajorHeadings = hasBookLikeMajorHeadings(blocks)
+
   const chapters = hasChapterMarkers(blocks)
     ? parseUsingChapterMarkers(blocks)
-    : parseUsingHeuristicHeadings(blocks)
+    : hasNumberedSectionMarkers(blocks)
+      ? parseUsingNumberedSections(blocks, hasMajorHeadings)
+      : parseUsingHeuristicHeadings(blocks)
 
   return chapters.filter(chapter => chapter.paragraphs.length > 0)
 }
@@ -161,6 +249,10 @@ export function parseBookChapters(rawText) {
 export function extractChapterNumber(title) {
   if (!title) return null
   const match = title.match(/\bchapter\s+(\d+)\b/i)
-  if (!match) return null
-  return Number(match[1])
+  if (match) return Number(match[1])
+
+  const numberedMatch = title.match(/(?:^|\s-\s)(\d+)\./)
+  if (numberedMatch) return Number(numberedMatch[1])
+
+  return null
 }

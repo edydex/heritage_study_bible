@@ -10,13 +10,14 @@ function normalizeQuery(query) {
 }
 
 function splitChapterTitle(title) {
-  const match = title.match(/^(.+?)\s+-\s+(chapter\s+.+)$/i)
-  if (!match) {
+  const normalizedTitle = String(title || '').trim()
+  const dividerIndex = normalizedTitle.indexOf(' - ')
+  if (dividerIndex < 0) {
     return { groupKey: 'Front Matter', chapterLabel: title }
   }
   return {
-    groupKey: match[1].trim(),
-    chapterLabel: match[2].trim(),
+    groupKey: normalizedTitle.slice(0, dividerIndex).trim(),
+    chapterLabel: normalizedTitle.slice(dividerIndex + 3).trim(),
   }
 }
 
