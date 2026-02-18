@@ -1,11 +1,11 @@
-import { useEffect, useRef, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 
 // Render verse text, converting:
 //   <b>...</b> tags to bold spans (used in Psalms headers etc.)
 //   || to poetic line breaks (used in LSV for poetry)
 function renderVerseText(text) {
-  // Split on || for poetic line breaks, then handle <b> tags within each segment
-  const lines = text.split(' || ')
+  // Preserve explicit line breaks and LSV poetry markers (||)
+  const lines = String(text).replace(/\s*\|\|\s*/g, '\n').split('\n')
   if (lines.length === 1 && !text.includes('<b>')) return text
 
   return lines.map((line, li) => {
@@ -28,7 +28,17 @@ function renderVerseText(text) {
   })
 }
 
-function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerseClick, isBookmarked, onBookmarkToggle, onVersePosition, textSize = 18 }) {
+function BibleChapter({
+  chapter,
+  bookName = 'Revelation',
+  hasCommentary,
+  onVerseClick,
+  isBookmarked,
+  onBookmarkToggle,
+  onVersePosition,
+  textSize = 18,
+  verseStacking = false,
+}) {
   const containerRef = useRef(null)
   const verseRefs = useRef({})
 
@@ -77,55 +87,102 @@ function BibleChapter({ chapter, bookName = 'Revelation', hasCommentary, onVerse
     <div className="bg-white dark:bg-gray-800 rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8" ref={containerRef}>
 
       {/* Verses */}
-      <div>
-        {chapter.verses.map((verse) => {
-          const hasComment = hasCommentary(chapter.number, verse.number)
-          const bookmarked = isBookmarked(verse.number)
-          
-          return (
-            <div 
-              key={verse.number}
-              id={`verse-${chapter.number}-${verse.number}`}
-              ref={(el) => setVerseRef(verse.number, el)}
-              className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 ${
-                hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50' : ''
-              }`}
-            >
-              {/* Verse Number */}
-              <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-0.5 select-none text-right">
-                {verse.number}
+      {!verseStacking ? (
+        <div>
+          {chapter.verses.map((verse) => {
+            const hasComment = hasCommentary(chapter.number, verse.number)
+            const bookmarked = isBookmarked(verse.number)
+
+            return (
+              <div
+                key={verse.number}
+                id={`verse-${chapter.number}-${verse.number}`}
+                ref={(el) => setVerseRef(verse.number, el)}
+                className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 ${
+                  hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50' : ''
+                }`}
+              >
+                {/* Verse Number */}
+                <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-0.5 select-none text-right">
+                  {verse.number}
+                </span>
+
+                {/* Verse Text */}
+                <p
+                  className={`verse-text flex-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 ${
+                    hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                  style={verseStyle}
+                  onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
+                >
+                  {renderVerseText(verse.text)}
+                </p>
+
+                {/* Bookmark Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onBookmarkToggle(chapter.number, verse.number, verse.text)
+                  }}
+                  className={`p-1 rounded transition-all ${
+                    bookmarked
+                      ? 'text-secondary'
+                      : 'text-gray-300 dark:text-gray-600 hover:text-secondary opacity-0 group-hover:opacity-100'
+                  }`}
+                  title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                >
+                  {bookmarked ? '★' : '☆'}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="verse-text px-0 sm:px-2" style={verseStyle}>
+          {chapter.verses.map((verse, verseIndex) => {
+            const hasComment = hasCommentary(chapter.number, verse.number)
+            const bookmarked = isBookmarked(verse.number)
+
+            return (
+              <span
+                key={verse.number}
+                id={`verse-${chapter.number}-${verse.number}`}
+                ref={(el) => setVerseRef(verse.number, el)}
+                className={`group/stack inline rounded-md px-0.5 sm:px-1 py-0.5 ${
+                  hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium select-none mr-1">
+                  {verse.number}
+                </span>
+                <span
+                  className={`cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 ${
+                    hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                  onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
+                >
+                  {renderVerseText(verse.text)}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onBookmarkToggle(chapter.number, verse.number, verse.text)
+                  }}
+                  className={`ml-1 align-baseline rounded transition-all ${
+                    bookmarked
+                      ? 'text-secondary'
+                      : 'text-gray-300 dark:text-gray-600 hover:text-secondary opacity-0 group-hover/stack:opacity-100'
+                  }`}
+                  title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                >
+                  {bookmarked ? '★' : '☆'}
+                </button>
+                {verseIndex < chapter.verses.length - 1 && ' '}
               </span>
-
-              {/* Verse Text */}
-              <p 
-                className={`verse-text flex-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 ${
-                  hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
-                }`}
-                style={verseStyle}
-                onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
-              >
-                {renderVerseText(verse.text)}
-              </p>
-
-              {/* Bookmark Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onBookmarkToggle(chapter.number, verse.number, verse.text)
-                }}
-                className={`p-1 rounded transition-all ${
-                  bookmarked 
-                    ? 'text-secondary' 
-                    : 'text-gray-300 dark:text-gray-600 hover:text-secondary opacity-0 group-hover:opacity-100'
-                }`}
-                title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
-              >
-                {bookmarked ? '★' : '☆'}
-              </button>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

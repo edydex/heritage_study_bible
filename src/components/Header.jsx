@@ -1,7 +1,27 @@
 import { useState, useRef, useEffect } from 'react'
 import { translations } from '../data/translations'
 
-function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, onResourcesClick, bookmarkCount, isSidebarOpen = false, sidebarWidth = 540, textSize = 18, onTextSizeChange, commentaryTextSize = 14, onCommentaryTextSizeChange, translationId, onTranslationChange, translationLoading, darkMode = false, onDarkModeChange }) {
+function Header({
+  onSearch,
+  searchQuery,
+  setSearchQuery,
+  onBookmarkClick,
+  onResourcesClick,
+  bookmarkCount,
+  isSidebarOpen = false,
+  sidebarWidth = 540,
+  textSize = 18,
+  onTextSizeChange,
+  commentaryTextSize = 14,
+  onCommentaryTextSizeChange,
+  verseStacking = false,
+  onVerseStackingChange,
+  translationId,
+  onTranslationChange,
+  translationLoading,
+  darkMode = false,
+  onDarkModeChange,
+}) {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showTranslations, setShowTranslations] = useState(false)
@@ -228,6 +248,25 @@ function Header({ onSearch, searchQuery, setSearchQuery, onBookmarkClick, onReso
                     onClick={() => onCommentaryTextSizeChange(Math.min(64, commentaryTextSize + 1))}
                     className="flex-1 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold text-xl transition-colors"
                   >+</button>
+                </div>
+
+                {/* Verse Layout */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onVerseStackingChange?.(!verseStacking) }}
+                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <span className="text-sm text-gray-700 dark:text-gray-200 font-medium flex items-center gap-1.5">
+                      📜 Verse Stacking
+                    </span>
+                    <div className={`w-11 h-6 rounded-full transition-colors relative ${verseStacking ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                      <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${verseStacking ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </div>
+                  </button>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 px-1 mt-1">
+                    {verseStacking ? '1 text 2 text' : '1 text\\n2 text'}
+                  </p>
                 </div>
 
                 {/* Dark Mode */}

@@ -109,6 +109,9 @@ function BibleStudyApp() {
   const [commentaryTextSize, setCommentaryTextSize] = useState(() => {
     try { const v = parseInt(localStorage.getItem('heritage-commentary-text-size')); return v >= 12 && v <= 64 ? v : 14 } catch { return 14 }
   })
+  const [verseStacking, setVerseStacking] = useState(() => {
+    try { return localStorage.getItem('heritage-verse-stacking') === 'true' } catch { return false }
+  })
 
   // Dark mode state (persisted)
   const [darkMode, setDarkMode] = useState(() => {
@@ -125,6 +128,9 @@ function BibleStudyApp() {
   useEffect(() => {
     try { localStorage.setItem('heritage-commentary-text-size', String(commentaryTextSize)) } catch {}
   }, [commentaryTextSize])
+  useEffect(() => {
+    try { localStorage.setItem('heritage-verse-stacking', String(verseStacking)) } catch {}
+  }, [verseStacking])
 
   // Sidebar width state (persisted, px)
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -477,6 +483,8 @@ function BibleStudyApp() {
           onTextSizeChange={setTextSize}
           commentaryTextSize={commentaryTextSize}
           onCommentaryTextSizeChange={setCommentaryTextSize}
+          verseStacking={verseStacking}
+          onVerseStackingChange={setVerseStacking}
           translationId={translationId}
           onTranslationChange={setTranslationId}
           translationLoading={translationLoading}
@@ -546,6 +554,7 @@ function BibleStudyApp() {
                       onBookmarkToggle={handleBookmarkToggle}
                       onVersePosition={updateVersePosition}
                       textSize={textSize}
+                      verseStacking={verseStacking}
                     />
                   )}
 
