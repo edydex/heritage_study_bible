@@ -2,6 +2,7 @@ import { bibleBooks } from '../data/bible-books.js'
 
 /**
  * Parse a Bible reference string like "Ps 23", "Psalm 23:1", "1 Cor 13", "Genesis 1 1", etc.
+ * If `defaultBook` is provided, bare numeric input like "10:4" maps to that book.
  * Returns { book, chapter, verse } or null if input doesn't look like a reference.
  */
 
@@ -151,7 +152,24 @@ bibleBooks.forEach(b => {
 // Pre-sort aliases by length (longest first) for greedy matching
 const sortedAliasKeys = Object.keys(allAliases).sort((a, b) => b.length - a.length)
 
-export function parseBibleReference(input) {
+function parseChapterVersePart(refPart, bookMeta) {
+  if (!refPart) return null
+
+  // Supports: "23", "23:1", "23 1", "23.1"
+  // Keep this permissive at the start to preserve existing behavior.
+  const match = refPart.match(/^(\d+)(?:[\s:.](\d+))?/)
+  if (!match) return null
+
+  const chapter = parseInt(match[1], 10)
+  const verse = match[2] ? parseInt(match[2], 10) : null
+
+  // Validate chapter is within range
+  if (chapter < 1 || chapter > bookMeta.chapters) return null
+
+  return { chapter, verse }
+}
+
+export function parseBibleReference(input, defaultBook = null) {
   const trimmed = input.trim().toLowerCase()
   if (!trimmed) return null
 
@@ -176,18 +194,18 @@ export function parseBibleReference(input) {
       return null
     }
 
-    // Parse chapter and optional verse
-    // Supports: "23", "23:1", "23 1", "23.1"
-    const match = refPart.match(/^(\d+)(?:[\s:.](\d+))?/)
-    if (!match) continue
+    const parsed = parseChapterVersePart(refPart, bookMeta)
+    if (!parsed) continue
+    return { book: bookName, chapter: parsed.chapter, verse: parsed.verse }
+  }
 
-    const chapter = parseInt(match[1], 10)
-    const verse = match[2] ? parseInt(match[2], 10) : null
-
-    // Validate chapter is within range
-    if (chapter < 1 || chapter > bookMeta.chapters) continue
-
-    return { book: bookName, chapter, verse }
+  // Fallback: use current/default book when user enters only chapter/verse (e.g. "10:4")
+  if (defaultBook) {
+    const bookMeta = bibleBooks.find(b => b.name === defaultBook)
+    if (bookMeta) {
+      const parsed = parseChapterVersePart(trimmed, bookMeta)
+      if (parsed) return { book: defaultBook, chapter: parsed.chapter, verse: parsed.verse }
+    }
   }
 
   return null

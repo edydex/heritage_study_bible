@@ -367,7 +367,7 @@ function BibleStudyApp() {
     // Only try to parse as a Bible reference if the query contains a number
     // (e.g. "Ps 23", "Rom 8:28"). Plain words like "husband" always do text search.
     if (/\d/.test(trimmedQuery)) {
-      const ref = parseBibleReference(trimmedQuery)
+      const ref = parseBibleReference(trimmedQuery, currentBook)
       if (ref) {
         setSearchQuery('')
         setSearchResults(null)
