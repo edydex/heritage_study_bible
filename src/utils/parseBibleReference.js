@@ -29,13 +29,13 @@ const extraAliases = {
   // 2 Samuel
   '2 samuel': '2 Samuel', '2samuel': '2 Samuel', '2 sam': '2 Samuel', '2sam': '2 Samuel', '2 sa': '2 Samuel', '2sa': '2 Samuel',
   // 1 Kings
-  '1 kings': '1 Kings', '1kings': '1 Kings', '1 kgs': '1 Kings', '1kgs': '1 Kings', '1 ki': '1 Kings', '1ki': '1 Kings',
+  '1 kings': '1 Kings', '1 king': '1 Kings', '1kings': '1 Kings', '1 kin': '1 Kings', '1kin': '1 Kings', '1 kgs': '1 Kings', '1kgs': '1 Kings', '1 ki': '1 Kings', '1ki': '1 Kings',
   // 2 Kings
-  '2 kings': '2 Kings', '2kings': '2 Kings', '2 kgs': '2 Kings', '2kgs': '2 Kings', '2 ki': '2 Kings', '2ki': '2 Kings',
+  '2 kings': '2 Kings', '2 king': '2 Kings', '2kings': '2 Kings', '2 kin': '2 Kings', '2kin': '2 Kings', '2 kgs': '2 Kings', '2kgs': '2 Kings', '2 ki': '2 Kings', '2ki': '2 Kings',
   // 1 Chronicles
-  '1 chronicles': '1 Chronicles', '1chronicles': '1 Chronicles', '1 chron': '1 Chronicles', '1chron': '1 Chronicles', '1 chr': '1 Chronicles', '1chr': '1 Chronicles', '1 ch': '1 Chronicles',
+  '1 chronicles': '1 Chronicles', '1 chronicle': '1 Chronicles', '1chronicles': '1 Chronicles', '1 chron': '1 Chronicles', '1chro': '1 Chronicles', '1 chro': '1 Chronicles', '1chron': '1 Chronicles', '1 chr': '1 Chronicles', '1chr': '1 Chronicles', '1 ch': '1 Chronicles',
   // 2 Chronicles
-  '2 chronicles': '2 Chronicles', '2chronicles': '2 Chronicles', '2 chron': '2 Chronicles', '2chron': '2 Chronicles', '2 chr': '2 Chronicles', '2chr': '2 Chronicles', '2 ch': '2 Chronicles',
+  '2 chronicles': '2 Chronicles', '2 chronicle': '2 Chronicles', '2chronicles': '2 Chronicles', '2 chron': '2 Chronicles', '2chro': '2 Chronicles', '2 chro': '2 Chronicles', '2chron': '2 Chronicles', '2 chr': '2 Chronicles', '2chr': '2 Chronicles', '2 ch': '2 Chronicles',
   // Ezra
   'ezra': 'Ezra', 'ezr': 'Ezra',
   // Nehemiah
@@ -152,12 +152,16 @@ bibleBooks.forEach(b => {
 // Pre-sort aliases by length (longest first) for greedy matching
 const sortedAliasKeys = Object.keys(allAliases).sort((a, b) => b.length - a.length)
 
-function parseChapterVersePart(refPart, bookMeta) {
+function parseChapterVersePart(refPart, bookMeta, options = {}) {
+  const { requireWhole = false } = options
   if (!refPart) return null
 
   // Supports: "23", "23:1", "23 1", "23.1"
   // Keep this permissive at the start to preserve existing behavior.
-  const match = refPart.match(/^(\d+)(?:[\s:.](\d+))?/)
+  const pattern = requireWhole
+    ? /^(\d+)(?:[\s:.](\d+))?$/
+    : /^(\d+)(?:[\s:.](\d+))?/
+  const match = refPart.match(pattern)
   if (!match) return null
 
   const chapter = parseInt(match[1], 10)
@@ -203,7 +207,10 @@ export function parseBibleReference(input, defaultBook = null) {
   if (defaultBook) {
     const bookMeta = bibleBooks.find(b => b.name === defaultBook)
     if (bookMeta) {
-      const parsed = parseChapterVersePart(trimmed, bookMeta)
+      // Only apply fallback for fully numeric references like "10" or "10:4".
+      // This prevents swallowing inputs such as "2 Chro 7:14" when the alias
+      // is not recognized exactly as typed.
+      const parsed = parseChapterVersePart(trimmed, bookMeta, { requireWhole: true })
       if (parsed) return { book: defaultBook, chapter: parsed.chapter, verse: parsed.verse }
     }
   }
