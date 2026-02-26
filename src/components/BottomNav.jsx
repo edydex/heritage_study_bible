@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function BottomNav({ 
   currentBook, 
@@ -15,6 +15,29 @@ function BottomNav({
   const [showPicker, setShowPicker] = useState(false)
   const [pickerView, setPickerView] = useState('book') // 'book' or 'chapter'
   const [selectedBook, setSelectedBook] = useState(null)
+  const [dragOffsetY, setDragOffsetY] = useState(0)
+  const [isDraggingPanel, setIsDraggingPanel] = useState(false)
+  const dragCleanupRef = useRef(null)
+  const dragStateRef = useRef({
+    active: false,
+    startY: 0,
+    startTime: 0,
+  })
+
+  const getClientY = (event) => {
+    if (!event) return 0
+    if (typeof event.clientY === 'number') return event.clientY
+    if (event.touches?.[0]?.clientY) return event.touches[0].clientY
+    if (event.changedTouches?.[0]?.clientY) return event.changedTouches[0].clientY
+    return 0
+  }
+
+  const clearDragListeners = () => {
+    if (dragCleanupRef.current) {
+      dragCleanupRef.current()
+      dragCleanupRef.current = null
+    }
+  }
 
   const handleBookSelect = (book) => {
     setSelectedBook(book)
@@ -29,10 +52,73 @@ function BottomNav({
   }
 
   const handleClose = () => {
+    clearDragListeners()
     setShowPicker(false)
     setPickerView('book')
     setSelectedBook(null)
+    setDragOffsetY(0)
+    setIsDraggingPanel(false)
+    dragStateRef.current.active = false
   }
+
+  const beginPanelDrag = (clientY) => {
+    clearDragListeners()
+    dragStateRef.current.active = true
+    dragStateRef.current.startY = clientY
+    dragStateRef.current.startTime = Date.now()
+    setIsDraggingPanel(true)
+
+    const handleMove = (event) => {
+      if (!dragStateRef.current.active) return
+      movePanelDrag(getClientY(event))
+      if (event.cancelable) event.preventDefault()
+    }
+
+    const handleEnd = (event) => {
+      endPanelDrag(getClientY(event))
+      clearDragListeners()
+    }
+
+    window.addEventListener('mousemove', handleMove)
+    window.addEventListener('mouseup', handleEnd)
+    window.addEventListener('touchmove', handleMove, { passive: false })
+    window.addEventListener('touchend', handleEnd)
+    window.addEventListener('touchcancel', handleEnd)
+
+    dragCleanupRef.current = () => {
+      window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('mouseup', handleEnd)
+      window.removeEventListener('touchmove', handleMove)
+      window.removeEventListener('touchend', handleEnd)
+      window.removeEventListener('touchcancel', handleEnd)
+    }
+  }
+
+  const movePanelDrag = (clientY) => {
+    if (!dragStateRef.current.active) return
+    const delta = Math.max(0, clientY - dragStateRef.current.startY)
+    setDragOffsetY(delta)
+  }
+
+  const endPanelDrag = (clientY) => {
+    if (!dragStateRef.current.active) return
+    const delta = Math.max(0, clientY - dragStateRef.current.startY)
+    const elapsed = Math.max(1, Date.now() - dragStateRef.current.startTime)
+    const velocity = delta / elapsed
+
+    dragStateRef.current.active = false
+    setIsDraggingPanel(false)
+
+    // Close on pull distance or quick downward flick.
+    if (delta > 90 || (delta > 20 && velocity > 0.5)) {
+      handleClose()
+      return
+    }
+
+    setDragOffsetY(0)
+  }
+
+  useEffect(() => () => clearDragListeners(), [])
 
   // Toggle: should the book/chapter picker avoid overlapping the commentary sidebar?
   // Set to false to make the picker full-width again.
@@ -95,7 +181,10 @@ function BottomNav({
 
       {/* Book/Chapter Picker Modal */}
       {showPicker && (
-        <div className="fixed inset-0 z-50 transition-all duration-300" style={pickerRightStyle}>
+        <div
+          className="fixed inset-0 z-50 transition-all duration-300"
+          style={pickerRightStyle}
+        >
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50"
@@ -103,9 +192,19 @@ function BottomNav({
           />
 
           {/* Picker Panel */}
-          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl shadow-2xl animate-slide-up safe-area-bottom max-h-[80vh] flex flex-col">
+          <div
+            className={`absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl shadow-2xl safe-area-bottom max-h-[80vh] flex flex-col ${isDraggingPanel ? '' : 'animate-slide-up'}`}
+            style={{
+              transform: `translateY(${dragOffsetY}px)`,
+              transition: isDraggingPanel ? 'none' : 'transform 180ms ease-out',
+            }}
+          >
             {/* Handle */}
-            <div className="flex justify-center py-3 flex-shrink-0">
+            <div
+              className="flex justify-center py-3 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none"
+              onMouseDown={(e) => beginPanelDrag(e.clientY)}
+              onTouchStart={(e) => beginPanelDrag(e.touches[0]?.clientY || 0)}
+            >
               <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
             </div>
 

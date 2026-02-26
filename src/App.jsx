@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import Header from './components/Header'
 import BibleChapter from './components/BibleChapter'
@@ -36,6 +36,51 @@ function slugToBook(slug) {
   return book?.name || null
 }
 
+function forceScrollTop() {
+  const docEl = document.documentElement
+  const body = document.body
+  const root = document.getElementById('root')
+
+  const prevHtmlBehavior = docEl.style.scrollBehavior
+  const prevBodyBehavior = body.style.scrollBehavior
+  docEl.style.scrollBehavior = 'auto'
+  body.style.scrollBehavior = 'auto'
+
+  window.scrollTo(0, 0)
+  docEl.scrollTop = 0
+  body.scrollTop = 0
+  if (root) root.scrollTop = 0
+
+  docEl.style.scrollBehavior = prevHtmlBehavior
+  body.style.scrollBehavior = prevBodyBehavior
+}
+
+function ScrollToTopOnRouteChange() {
+  const location = useLocation()
+
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    forceScrollTop()
+    const raf1 = window.requestAnimationFrame(() => forceScrollTop())
+    const raf2 = window.requestAnimationFrame(() => window.requestAnimationFrame(() => forceScrollTop()))
+    const timeout1 = window.setTimeout(() => forceScrollTop(), 0)
+    const timeout2 = window.setTimeout(() => forceScrollTop(), 80)
+    return () => {
+      window.cancelAnimationFrame(raf1)
+      window.cancelAnimationFrame(raf2)
+      window.clearTimeout(timeout1)
+      window.clearTimeout(timeout2)
+    }
+  }, [location.key])
+
+  return null
+}
+
 function BibleStudyApp() {
   const { bookSlug, chapterNum } = useParams()
   const navigate = useNavigate()
@@ -57,6 +102,8 @@ function BibleStudyApp() {
   const [isLargeScreen, setIsLargeScreen] = useState(false)
   const [versePositions, setVersePositions] = useState({})
   const [selectedVerse, setSelectedVerse] = useState(null) // Track selected verse
+  const [selectedVerses, setSelectedVerses] = useState([])
+  const [multiSelectMode, setMultiSelectMode] = useState(false)
   const bibleContainerRef = useRef(null)
   const searchRequestRef = useRef(0)
   
@@ -220,12 +267,32 @@ function BibleStudyApp() {
       ?.verses?.find(v => v.number === incomingVerse)
       ?.text || ''
 
+    const incomingSelection = { book: incomingBook, chapter: incomingChapter, verse: incomingVerse, text: verseText }
     setCurrentBook(incomingBook)
     setCurrentChapter(incomingChapter)
-    setSelectedVerse({ chapter: incomingChapter, verse: incomingVerse, text: verseText })
+    setSelectedVerse(incomingSelection)
+    setSelectedVerses([incomingSelection])
+    setMultiSelectMode(false)
     setIsSidebarOpen(true)
     setShowGoToPassageButton(true)
   }, [location.key, bibleData])
+
+  useEffect(() => {
+    setSelectedVerses(prev =>
+      prev.filter(v => (v.book || currentBook) === currentBook && v.chapter === currentChapter)
+    )
+    setSelectedVerse(prev => {
+      if (!prev) return null
+      if ((prev.book || currentBook) === currentBook && prev.chapter === currentChapter) return prev
+      return null
+    })
+  }, [currentBook, currentChapter])
+
+  useEffect(() => {
+    if (multiSelectMode && selectedVerses.length === 0) {
+      setMultiSelectMode(false)
+    }
+  }, [multiSelectMode, selectedVerses.length])
 
   // Update URL when book/chapter changes (but avoid loops)
   useEffect(() => {
@@ -301,6 +368,7 @@ function BibleStudyApp() {
     const hasNxt = !(bookIndex === bibleBooks.length - 1 && currentChapter === chapterCount)
     
     const goPrev = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
       if (currentChapter > 1) {
         setCurrentChapter(currentChapter - 1)
       } else if (bookIndex > 0) {
@@ -311,6 +379,7 @@ function BibleStudyApp() {
     }
     
     const goNxt = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
       if (currentChapter < chapterCount) {
         setCurrentChapter(currentChapter + 1)
       } else if (bookIndex < bibleBooks.length - 1) {
@@ -325,9 +394,49 @@ function BibleStudyApp() {
 
   // Handle verse click - opens sidebar panel
   const handleVerseClick = (chapter, verse, verseText) => {
-    setSelectedVerse({ chapter, verse, text: verseText })
+    const clickedVerse = { book: currentBook, chapter, verse, text: verseText }
+
+    if (multiSelectMode) {
+      setSelectedVerses(prev => {
+        const exists = prev.some(v => v.book === currentBook && v.chapter === chapter && v.verse === verse)
+        if (exists) {
+          const next = prev.filter(v => !(v.book === currentBook && v.chapter === chapter && v.verse === verse))
+          setSelectedVerse(next[next.length - 1] || null)
+          return next
+        }
+        const next = [...prev, clickedVerse]
+        setSelectedVerse(clickedVerse)
+        return next
+      })
+    } else {
+      setSelectedVerse(clickedVerse)
+      setSelectedVerses([clickedVerse])
+    }
+
     setIsSidebarOpen(true)
     setShowGoToPassageButton(false)
+  }
+
+  const toggleMultiSelectMode = () => {
+    const nextMode = !multiSelectMode
+    setMultiSelectMode(nextMode)
+
+    if (nextMode) {
+      if (selectedVerses.length === 0 && selectedVerse) {
+        setSelectedVerses([selectedVerse])
+      }
+      return
+    }
+
+    if (selectedVerse) {
+      setSelectedVerses([selectedVerse])
+    } else if (selectedVerses.length > 0) {
+      const last = selectedVerses[selectedVerses.length - 1]
+      setSelectedVerse(last)
+      setSelectedVerses([last])
+    } else {
+      setSelectedVerses([])
+    }
   }
 
   // Handle bookmark toggle
@@ -345,6 +454,71 @@ function BibleStudyApp() {
         userNote: ''
       })
       showToast('Verse bookmarked!')
+    }
+  }
+
+  const handleBookmarkMultiple = (verses) => {
+    if (!Array.isArray(verses) || verses.length === 0) {
+      showToast('Select at least one verse first')
+      return
+    }
+
+    const normalized = verses.map(v => ({
+      book: v.book || currentBook,
+      chapter: v.chapter,
+      verse: v.verse,
+      text: v.text || '',
+    }))
+
+    const allBookmarked = normalized.every(v => isBookmarked(v.book, v.chapter, v.verse))
+
+    if (allBookmarked) {
+      normalized.forEach(v => removeBookmark(v.book, v.chapter, v.verse))
+      showToast(`Removed ${normalized.length} bookmark${normalized.length === 1 ? '' : 's'}`)
+      return
+    }
+
+    let addedCount = 0
+    normalized.forEach(v => {
+      if (isBookmarked(v.book, v.chapter, v.verse)) return
+      const verseText = v.text || bibleData?.books
+        ?.find(b => b.name === v.book)
+        ?.chapters?.find(c => c.number === v.chapter)
+        ?.verses?.find(row => row.number === v.verse)
+        ?.text || ''
+      addBookmark({
+        book: v.book,
+        chapter: v.chapter,
+        verse: v.verse,
+        verseText: verseText.substring(0, 100),
+        hasCommentary: hasAnyCommentary(v.book, v.chapter, v.verse, authorsData),
+        userNote: ''
+      })
+      addedCount += 1
+    })
+    showToast(`Bookmarked ${addedCount} verse${addedCount === 1 ? '' : 's'}`)
+  }
+
+  const handleSaveNotesForVerses = (verses, text) => {
+    if (!Array.isArray(verses) || verses.length === 0) {
+      showToast('Select at least one verse first')
+      return
+    }
+
+    verses.forEach(v => {
+      const verseBook = v.book || currentBook
+      const verseText = v.text || bibleData?.books
+        ?.find(b => b.name === verseBook)
+        ?.chapters?.find(c => c.number === v.chapter)
+        ?.verses?.find(row => row.number === v.verse)
+        ?.text || ''
+      saveNote(verseBook, v.chapter, v.verse, text, verseText)
+    })
+
+    if (text.trim()) {
+      showToast(`Saved note to ${verses.length} verse${verses.length === 1 ? '' : 's'}`)
+    } else {
+      showToast(`Deleted note from ${verses.length} verse${verses.length === 1 ? '' : 's'}`)
     }
   }
 
@@ -437,7 +611,7 @@ function BibleStudyApp() {
   const handleNavigate = (bookName, chapter) => {
     setCurrentBook(bookName)
     setCurrentChapter(chapter)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   }
   
   // Get current author's works count for the current chapter
@@ -518,11 +692,15 @@ function BibleStudyApp() {
                       const firstVerse = commentary.verses[0]
                       if (commentary.book) setCurrentBook(commentary.book)
                       setCurrentChapter(firstVerse.chapter)
-                      setSelectedVerse({ 
+                      const selected = {
+                        book: commentary.book || currentBook,
                         chapter: firstVerse.chapter, 
                         verse: firstVerse.verse,
                         text: ''
-                      })
+                      }
+                      setSelectedVerse(selected)
+                      setSelectedVerses([selected])
+                      setMultiSelectMode(false)
                       setSearchResults(null)
                       setIsSidebarOpen(true)
                     }
@@ -550,6 +728,9 @@ function BibleStudyApp() {
                       bookName={currentBook}
                       hasCommentary={hasCommentary}
                       onVerseClick={(ch, v, text) => handleVerseClick(ch, v, text)}
+                      isVerseSelected={(ch, v) =>
+                        selectedVerses.some(row => row.book === currentBook && row.chapter === ch && row.verse === v)
+                      }
                       isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
                       onBookmarkToggle={handleBookmarkToggle}
                       onVersePosition={updateVersePosition}
@@ -597,6 +778,9 @@ function BibleStudyApp() {
               loading={commentaryLoading}
               versePositions={versePositions}
               selectedVerse={selectedVerse}
+              selectedVerses={selectedVerses}
+              multiSelectMode={multiSelectMode}
+              onToggleMultiSelect={toggleMultiSelectMode}
               translationId={translationId}
               bibleData={bibleData}
               commentaryTextSize={commentaryTextSize}
@@ -607,6 +791,7 @@ function BibleStudyApp() {
                 const verseData = currentChapterData?.verses.find(verse => verse.number === v)
                 handleBookmarkToggle(ch, v, verseData?.text || '')
               }}
+              onBookmarkVerses={handleBookmarkMultiple}
               isCommentaryBookmarked={isCommentaryBookmarked}
               onBookmarkCommentary={(commentary) => {
                 const author = authorsData.find(a => a.id === selectedAuthor)
@@ -616,16 +801,19 @@ function BibleStudyApp() {
               }}
               notes={notes}
               onSaveNote={saveNote}
+              onSaveNotes={handleSaveNotesForVerses}
               onShowToast={showToast}
               onClose={() => {
                 setIsSidebarOpen(false)
                 setSelectedVerse(null)
+                setSelectedVerses([])
+                setMultiSelectMode(false)
                 setShowGoToPassageButton(false)
               }}
               showGoToButton={showGoToPassageButton}
               onGoToVerse={() => {
                 if (!selectedVerse) return
-                navigateToVerse(currentBook, selectedVerse.chapter, selectedVerse.verse)
+                navigateToVerse(selectedVerse.book || currentBook, selectedVerse.chapter, selectedVerse.verse)
               }}
             />
           )}
@@ -702,6 +890,7 @@ function BibleStudyApp() {
 function App() {
   return (
     <Router>
+      <ScrollToTopOnRouteChange />
       <Routes>
         <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />
         <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />

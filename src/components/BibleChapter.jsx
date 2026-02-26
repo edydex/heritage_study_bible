@@ -36,6 +36,7 @@ function BibleChapter({
   isBookmarked,
   onBookmarkToggle,
   onVersePosition,
+  isVerseSelected,
   textSize = 18,
   verseStacking = false,
 }) {
@@ -92,6 +93,7 @@ function BibleChapter({
           {chapter.verses.map((verse) => {
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
+            const selected = isVerseSelected?.(chapter.number, verse.number)
 
             return (
               <div
@@ -100,6 +102,8 @@ function BibleChapter({
                 ref={(el) => setVerseRef(verse.number, el)}
                 className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 ${
                   hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50' : ''
+                } ${
+                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : ''
                 }`}
               >
                 {/* Verse Number */}
@@ -142,6 +146,7 @@ function BibleChapter({
           {chapter.verses.map((verse, verseIndex) => {
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
+            const selected = isVerseSelected?.(chapter.number, verse.number)
 
             return (
               <span
@@ -150,6 +155,8 @@ function BibleChapter({
                 ref={(el) => setVerseRef(verse.number, el)}
                 className={`group/stack inline rounded-md px-0.5 sm:px-1 py-0.5 ${
                   hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                } ${
+                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : ''
                 }`}
               >
                 <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium select-none mr-1">

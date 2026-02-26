@@ -12,6 +12,57 @@ function regexSplitQuote(text) {
   return [null, text]
 }
 
+function buildContiguousRanges(verses) {
+  if (!Array.isArray(verses) || verses.length === 0) return []
+  const sorted = [...verses].sort((a, b) => a.verse - b.verse)
+  const ranges = []
+  let current = [sorted[0]]
+
+  for (let i = 1; i < sorted.length; i += 1) {
+    const item = sorted[i]
+    const prev = current[current.length - 1]
+    if (item.verse === prev.verse + 1) {
+      current.push(item)
+    } else {
+      ranges.push(current)
+      current = [item]
+    }
+  }
+  ranges.push(current)
+  return ranges
+}
+
+function formatVersesForCopy(verses, fallbackBookName) {
+  if (!Array.isArray(verses) || verses.length === 0) return ''
+
+  const byKey = new Map()
+  verses.forEach(item => {
+    const book = item.book || fallbackBookName
+    const key = `${book}|||${item.chapter}`
+    if (!byKey.has(key)) byKey.set(key, [])
+    byKey.get(key).push(item)
+  })
+
+  const sections = []
+  for (const [key, group] of byKey.entries()) {
+    const [book, chapterRaw] = key.split('|||')
+    const chapter = Number(chapterRaw)
+    const ranges = buildContiguousRanges(group)
+
+    for (const range of ranges) {
+      const startVerse = range[0].verse
+      const endVerse = range[range.length - 1].verse
+      const ref = startVerse === endVerse
+        ? `${book} ${chapter}:${startVerse}`
+        : `${book} ${chapter}:${startVerse}-${endVerse}`
+      const lines = range.map(v => `(${v.verse}) ${v.text || ''}`)
+      sections.push(`${ref} - ${lines.join('\n')}`)
+    }
+  }
+
+  return sections.join('\n\n')
+}
+
 /**
  * Render a Calvin commentary paragraph with structural markup:
  *   <vq>...</vq>  → bold verse quote
@@ -98,17 +149,22 @@ function CommentarySidebar({
   onClose,
   loading = false,
   selectedVerse,
+  selectedVerses = [],
+  multiSelectMode = false,
   translationId,
   bibleData,
   commentaryTextSize = 14,
   sidebarWidth = 540,
   onSidebarWidthChange,
+  onToggleMultiSelect,
   isBookmarked,
   onBookmarkVerse,
+  onBookmarkVerses,
   isCommentaryBookmarked,
   onBookmarkCommentary,
   onShowToast,
   onSaveNote,
+  onSaveNotes,
   notes = [],
   showGoToButton = false,
   onGoToVerse
@@ -189,6 +245,10 @@ function CommentarySidebar({
 
   // Load existing note for selected verse
   useEffect(() => {
+    if (selectedVerses.length > 1) {
+      setNoteText('')
+      return
+    }
     if (selectedVerse) {
       const existingNote = notes.find(n => 
         n.book === bookName && 
@@ -197,7 +257,7 @@ function CommentarySidebar({
       )
       setNoteText(existingNote?.text || '')
     }
-  }, [selectedVerse, notes, bookName])
+  }, [selectedVerse, selectedVerses.length, notes, bookName])
 
   // Filter authors based on search, prioritize those with content for this book
   const filteredAuthors = authors
@@ -280,7 +340,7 @@ function CommentarySidebar({
 
   // Toolbar actions
   const handleCompare = () => {
-    if (!selectedVerse) {
+    if (activeVerses.length === 0) {
       onShowToast?.('Select a verse first')
       return
     }
@@ -288,8 +348,22 @@ function CommentarySidebar({
   }
 
   const handleBookmarkVerse = () => {
-    if (selectedVerse && onBookmarkVerse) {
-      onBookmarkVerse(selectedVerse.chapter, selectedVerse.verse)
+    if (activeVerses.length === 0) {
+      onShowToast?.('Select a verse first')
+      return
+    }
+
+    if (activeVerses.length > 1) {
+      if (onBookmarkVerses) {
+        onBookmarkVerses(activeVerses)
+      } else if (onBookmarkVerse) {
+        activeVerses.forEach(v => onBookmarkVerse(v.chapter, v.verse))
+      }
+      return
+    }
+
+    if (primaryVerse && onBookmarkVerse) {
+      onBookmarkVerse(primaryVerse.chapter, primaryVerse.verse)
     } else {
       onShowToast?.('Select a verse first')
     }
@@ -300,16 +374,21 @@ function CommentarySidebar({
   }
 
   const handleCopy = async () => {
-    if (selectedVerse) {
-      try {
-        const text = `${bookName} ${selectedVerse.chapter}:${selectedVerse.verse} - ${selectedVerse.text || ''}`
-        await navigator.clipboard.writeText(text)
-        onShowToast?.('Copied to clipboard!')
-      } catch (e) {
-        onShowToast?.('Failed to copy')
-      }
-    } else {
+    if (activeVerses.length === 0) {
       onShowToast?.('Select a verse first')
+      return
+    }
+
+    try {
+      const text = formatVersesForCopy(activeVerses, bookName)
+      await navigator.clipboard.writeText(text)
+      onShowToast?.(
+        activeVerses.length > 1
+          ? `Copied ${activeVerses.length} verses`
+          : 'Copied to clipboard!'
+      )
+    } catch (e) {
+      onShowToast?.('Failed to copy')
     }
   }
 
@@ -342,14 +421,21 @@ function CommentarySidebar({
     return () => document.removeEventListener('keydown', handleEscape)
   }, [showCompareModal, showNotesModal, showAuthorSearch, showWorkDropdown, showWorkLinksDropdown, onClose])
 
-  const verseIsBookmarked = selectedVerse && isBookmarked?.(selectedVerse.chapter, selectedVerse.verse)
-  const selectedVerseDisplayText = selectedVerse
+  const activeVerses = selectedVerses.length > 0 ? selectedVerses : (selectedVerse ? [selectedVerse] : [])
+  const isMultiSelection = activeVerses.length > 1
+  const primaryVerse = selectedVerse || activeVerses[activeVerses.length - 1] || null
+  const hasSelectMore = typeof onToggleMultiSelect === 'function'
+  const toolbarCols = showGoToButton
+    ? (hasSelectMore ? 'grid-cols-6' : 'grid-cols-5')
+    : (hasSelectMore ? 'grid-cols-5' : 'grid-cols-4')
+  const verseIsBookmarked = activeVerses.length > 0 && activeVerses.every(v => isBookmarked?.(v.chapter, v.verse))
+  const selectedVerseDisplayText = primaryVerse
     ? (
-        selectedVerse.text ||
+        primaryVerse.text ||
         bibleData?.books
           ?.find(b => b.name === bookName)
-          ?.chapters?.find(c => c.number === selectedVerse.chapter)
-          ?.verses?.find(v => v.number === selectedVerse.verse)
+          ?.chapters?.find(c => c.number === primaryVerse.chapter)
+          ?.verses?.find(v => v.number === primaryVerse.verse)
           ?.text ||
         ''
       )
@@ -390,7 +476,7 @@ function CommentarySidebar({
         </div>
 
         {/* Toolbar Strip */}
-        <div className={`grid ${showGoToButton ? 'grid-cols-5' : 'grid-cols-4'} bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600`}>
+        <div className={`grid ${toolbarCols} bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600`}>
           <button
             onClick={handleCompare}
             className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-r border-gray-300 dark:border-gray-600"
@@ -417,6 +503,18 @@ function CommentarySidebar({
             <span className="text-xl">📝</span>
             <span className="text-[11px] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 mt-0.5">Notes</span>
           </button>
+          {hasSelectMore && (
+            <button
+              onClick={onToggleMultiSelect}
+              className={`flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-r border-gray-300 dark:border-gray-600 ${
+                multiSelectMode ? 'bg-blue-100 dark:bg-blue-900/40' : ''
+              }`}
+              title={multiSelectMode ? 'Stop selecting multiple verses' : 'Select multiple verses'}
+            >
+              <span className="text-xl">{multiSelectMode ? '✅' : '☑️'}</span>
+              <span className="text-[11px] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 mt-0.5">Select More</span>
+            </button>
+          )}
           <button
             onClick={handleCopy}
             className={`flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group ${showGoToButton ? 'border-r border-gray-300 dark:border-gray-600' : ''}`}
@@ -438,15 +536,22 @@ function CommentarySidebar({
         </div>
 
         {/* Selected Verse Indicator */}
-        {selectedVerse && (
+        {primaryVerse && (
           <div className="px-3 py-2 bg-blue-50 dark:bg-blue-900/30 border-b border-blue-100 dark:border-blue-800">
             <p className="text-primary dark:text-blue-400 font-medium mb-1" style={{ fontSize: `${Math.max(12, commentaryTextSize)}px` }}>
-              📖 {bookName} {selectedVerse.chapter}:{selectedVerse.verse}
+              {isMultiSelection
+                ? `📖 ${activeVerses.length} verses selected`
+                : `📖 ${bookName} ${primaryVerse.chapter}:${primaryVerse.verse}`}
             </p>
             {/* Show full verse text on mobile */}
             {selectedVerseDisplayText && (
               <p className={`text-sm text-gray-700 dark:text-gray-300 leading-relaxed ${showGoToButton ? '' : 'lg:hidden'}`}>
                 {selectedVerseDisplayText}
+              </p>
+            )}
+            {isMultiSelection && (
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                Tap verses in the chapter to add or remove them.
               </p>
             )}
           </div>
@@ -835,15 +940,16 @@ function CommentarySidebar({
       </aside>
 
       {/* Compare Modal */}
-      {showCompareModal && selectedVerse && (() => {
-        const chData = bibleData?.books?.find(b => b.name === bookName)?.chapters?.find(c => c.number === selectedVerse.chapter)
-        const vText = chData?.verses?.find(v => v.number === selectedVerse.verse)?.text || selectedVerse.text || ''
+      {showCompareModal && primaryVerse && (() => {
+        const chData = bibleData?.books?.find(b => b.name === bookName)?.chapters?.find(c => c.number === primaryVerse.chapter)
+        const vText = chData?.verses?.find(v => v.number === primaryVerse.verse)?.text || primaryVerse.text || ''
         return (
           <CompareModal
             bookName={bookName}
-            chapter={selectedVerse.chapter}
-            verse={selectedVerse.verse}
+            chapter={primaryVerse.chapter}
+            verse={primaryVerse.verse}
             verseText={vText}
+            verses={activeVerses}
             translationId={translationId}
             onClose={() => setShowCompareModal(false)}
           />
@@ -862,9 +968,13 @@ function CommentarySidebar({
               ✕
             </button>
             <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
-              {selectedVerse ? `Notes for ${bookName} ${selectedVerse.chapter}:${selectedVerse.verse}` : 'Notes'}
+              {isMultiSelection
+                ? `Notes for ${activeVerses.length} selected verses`
+                : primaryVerse
+                  ? `Notes for ${bookName} ${primaryVerse.chapter}:${primaryVerse.verse}`
+                  : 'Notes'}
             </h3>
-            {!selectedVerse ? (
+            {activeVerses.length === 0 ? (
               <p className="text-gray-500 dark:text-gray-400 text-sm">Please select a verse to add notes.</p>
             ) : (
               <>
@@ -875,7 +985,9 @@ function CommentarySidebar({
                   className="w-full h-32 px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                 />
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 mb-3">
-                  Notes are automatically saved to your bookmarks
+                  {isMultiSelection
+                    ? 'This note will be applied to every selected verse'
+                    : 'Notes are automatically saved to your bookmarks'}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -886,25 +998,25 @@ function CommentarySidebar({
                   </button>
                   <button
                     onClick={() => {
-                      if (selectedVerse && onSaveNote) {
+                      if (isMultiSelection && onSaveNotes) {
+                        onSaveNotes(activeVerses, noteText)
+                      } else if (primaryVerse && onSaveNote) {
                         onSaveNote(
                           bookName,
-                          selectedVerse.chapter,
-                          selectedVerse.verse,
+                          primaryVerse.chapter,
+                          primaryVerse.verse,
                           noteText,
-                          selectedVerse.text || ''
+                          primaryVerse.text || ''
                         )
-                        if (noteText.trim()) {
-                          onShowToast?.('Note saved!')
-                        } else {
-                          onShowToast?.('Note deleted')
-                        }
+                        onShowToast?.(noteText.trim() ? 'Note saved!' : 'Note deleted')
                       }
                       setShowNotesModal(false)
                     }}
                     className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    {noteText.trim() ? 'Save Note' : 'Delete Note'}
+                    {noteText.trim()
+                      ? (isMultiSelection ? `Save to ${activeVerses.length} verses` : 'Save Note')
+                      : (isMultiSelection ? `Delete from ${activeVerses.length} verses` : 'Delete Note')}
                   </button>
                 </div>
               </>

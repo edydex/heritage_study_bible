@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { translations, loadTranslation } from '../data/translations'
 import { bibleBooks } from '../data/bible-books.js'
 
@@ -48,7 +48,7 @@ function getBibleHubUrl(bookName, chapter, verse) {
   return `https://biblehub.com/text/${slug}/${chapter}-${verse}.htm`
 }
 
-function CompareModal({ bookName, chapter, verse, verseText, translationId, onClose }) {
+function CompareModal({ bookName, chapter, verse, verseText, verses = [], translationId, onClose }) {
   // Persisted comparison translation IDs
   const [compareIds, setCompareIds] = useState(() => {
     try {
@@ -65,6 +65,15 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
   const [showPicker, setShowPicker] = useState(false)
   const [loadedTexts, setLoadedTexts] = useState({}) // { translationId: verseText }
   const [loadingIds, setLoadingIds] = useState(new Set())
+  const selectedPassages = useMemo(
+    () => (Array.isArray(verses) && verses.length > 0
+      ? verses.map(item => ({
+          ...item,
+          text: item.text || (item.chapter === chapter && item.verse === verse ? verseText : ''),
+        }))
+      : [{ chapter, verse, text: verseText }]),
+    [verses, chapter, verse, verseText]
+  )
 
   // Persist comparison choices
   useEffect(() => {
@@ -80,9 +89,14 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
     try {
       const data = await loadTranslation(tId)
       const bookData = data.books.find(b => b.name === bookName)
-      const chapterData = bookData?.chapters.find(c => c.number === chapter)
-      const verseData = chapterData?.verses.find(v => v.number === verse)
-      setLoadedTexts(prev => ({ ...prev, [tId]: verseData?.text || '(verse not found)' }))
+      const combinedText = selectedPassages
+        .map(item => {
+          const chapterData = bookData?.chapters.find(c => c.number === item.chapter)
+          const verseData = chapterData?.verses.find(v => v.number === item.verse)
+          return `${bookName} ${item.chapter}:${item.verse} ${verseData?.text || '(verse not found)'}`
+        })
+        .join('\n\n')
+      setLoadedTexts(prev => ({ ...prev, [tId]: combinedText }))
     } catch {
       setLoadedTexts(prev => ({ ...prev, [tId]: '(failed to load)' }))
     } finally {
@@ -92,7 +106,7 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
         return next
       })
     }
-  }, [bookName, chapter, verse, loadedTexts])
+  }, [bookName, loadedTexts, selectedPassages])
 
   // Load all comparison translations on mount / when compareIds change
   useEffect(() => {
@@ -126,12 +140,18 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
 
   const originalLang = getOriginalLanguage(bookName)
   const bibleHubUrl = getBibleHubUrl(bookName, chapter, verse)
+  const selectionLabel = selectedPassages.length === 1
+    ? `${bookName} ${chapter}:${verse}`
+    : `${bookName} (${selectedPassages.length} verses selected)`
 
   // Clean verse text for display (strip || markers)
   const cleanText = (text) => {
     if (!text) return text
     return text.replace(/ \|\| /g, ' ')
   }
+  const readingText = selectedPassages
+    .map(item => `${bookName} ${item.chapter}:${item.verse} ${item.text || '(verse not found)'}`)
+    .join('\n\n')
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -142,7 +162,7 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
           <div>
             <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">Compare Translations</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{bookName} {chapter}:{verse}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{selectionLabel}</p>
           </div>
           <button
             onClick={onClose}
@@ -162,7 +182,7 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
                 {translationId} — Reading
               </span>
             </div>
-            <p className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed">{cleanText(verseText)}</p>
+            <p className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-line">{cleanText(readingText)}</p>
           </div>
 
           {/* Comparison translations */}
@@ -189,7 +209,7 @@ function CompareModal({ bookName, chapter, verse, verseText, translationId, onCl
                 {isLoading ? (
                   <p className="text-gray-400 dark:text-gray-500 text-sm italic animate-pulse">Loading...</p>
                 ) : (
-                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{cleanText(text)}</p>
+                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line">{cleanText(text)}</p>
                 )}
               </div>
             )

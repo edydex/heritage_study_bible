@@ -264,6 +264,10 @@ function BookViewer() {
   }, [chapters.length, selectedChapterIndex])
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [itemId, selectedChapterIndex])
+
+  useEffect(() => {
     if (pendingChapterRef.current == null || chapters.length === 0) return
     const clamped = Math.max(0, Math.min(pendingChapterRef.current, chapters.length - 1))
     setSelectedChapterIndex(clamped)
@@ -975,12 +979,12 @@ function BookViewer() {
                   {shouldShowBookSelector && (
                     <div>
                       <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Book Section</p>
-                      <div className="flex gap-2 overflow-x-auto pb-1">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                         {bookGroups.map(group => (
                           <button
                             key={group}
                             onClick={() => setNavigatorGroup(group)}
-                            className={`px-3 py-1.5 rounded-lg text-sm whitespace-nowrap border ${group === (navigatorGroup || selectedBookGroup) ? 'bg-primary text-white border-primary' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                            className={`px-3 py-2 rounded-lg text-sm border text-left ${group === (navigatorGroup || selectedBookGroup) ? 'bg-primary text-white border-primary' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                           >
                             {group}
                           </button>
