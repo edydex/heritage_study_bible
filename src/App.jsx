@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } fr
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import Header from './components/Header'
 import BibleChapter from './components/BibleChapter'
+import ParallelBibleChapter from './components/ParallelBibleChapter'
 import CommentarySidebar from './components/CommentarySidebar'
 import BookmarkManager from './components/BookmarkManager'
 import SearchResults from './components/SearchResults'
@@ -12,6 +13,7 @@ import ResourcePage from './components/ResourcePage'
 import ConfessionViewer from './components/ConfessionViewer'
 import BookViewer from './components/BookViewer'
 import ReadingPlanViewer from './components/ReadingPlanViewer'
+import ToolViewer from './components/ToolViewer'
 import { useBookmarks } from './hooks/useBookmarks'
 import fallbackBibleData from './data/bible-lsv.json'
 import { bibleBooks } from './data/bible-books.js'
@@ -113,6 +115,16 @@ function BibleStudyApp() {
   })
   const [bibleData, setBibleData] = useState(fallbackBibleData) // Start with bundled LSV
   const [translationLoading, setTranslationLoading] = useState(false)
+  const [parallelMode, setParallelMode] = useState(false)
+  const [parallelTranslationId, setParallelTranslationId] = useState(() => {
+    try {
+      const saved = localStorage.getItem('heritage-parallel-translation')
+      if (saved && translations.some(t => t.id === saved)) return saved
+    } catch {}
+    return translations.find(t => t.id !== DEFAULT_TRANSLATION)?.id || null
+  })
+  const [parallelBibleData, setParallelBibleData] = useState(null)
+  const [parallelLoading, setParallelLoading] = useState(false)
 
   // Load translation data when translationId changes
   useEffect(() => {
@@ -142,6 +154,54 @@ function BibleStudyApp() {
   useEffect(() => {
     try { localStorage.setItem('heritage-translation', translationId) } catch {}
   }, [translationId])
+
+  // Keep secondary translation distinct from primary.
+  useEffect(() => {
+    if (!parallelTranslationId) return
+    if (parallelTranslationId !== translationId) return
+
+    const fallbackSecondary = translations.find(t => t.id !== translationId)?.id || null
+    setParallelTranslationId(fallbackSecondary)
+    setParallelMode(false)
+  }, [translationId, parallelTranslationId])
+
+  // Persist selected secondary translation (mode intentionally defaults OFF on fresh load).
+  useEffect(() => {
+    if (!parallelTranslationId) return
+    try { localStorage.setItem('heritage-parallel-translation', parallelTranslationId) } catch {}
+  }, [parallelTranslationId])
+
+  // Lazy-load secondary translation only when parallel mode is enabled.
+  useEffect(() => {
+    let cancelled = false
+
+    const loadParallel = async () => {
+      if (!parallelMode || !parallelTranslationId) {
+        setParallelBibleData(null)
+        setParallelLoading(false)
+        return
+      }
+
+      setParallelLoading(true)
+      try {
+        const data = await loadTranslation(parallelTranslationId)
+        if (!cancelled) {
+          setParallelBibleData(data)
+        }
+      } catch (error) {
+        console.error('Failed to load parallel translation:', error)
+        if (!cancelled) {
+          setParallelMode(false)
+          setParallelBibleData(null)
+        }
+      } finally {
+        if (!cancelled) setParallelLoading(false)
+      }
+    }
+
+    loadParallel()
+    return () => { cancelled = true }
+  }, [parallelMode, parallelTranslationId])
 
   // Author/Work state
   const [authorsData, setAuthorsData] = useState(initialAuthors)
@@ -353,6 +413,13 @@ function BibleStudyApp() {
     if (!currentBookData) return null
     return currentBookData.chapters.find(c => c.number === currentChapter)
   }, [currentBookData, currentChapter])
+
+  const secondaryChapterData = useMemo(() => {
+    if (!parallelBibleData || !parallelMode) return null
+    const bookData = parallelBibleData.books.find(b => b.name === currentBook)
+    if (!bookData) return null
+    return bookData.chapters.find(c => c.number === currentChapter) || null
+  }, [parallelBibleData, parallelMode, currentBook, currentChapter])
 
   // Get book metadata (chapters count, etc.)
   const currentBookMeta = useMemo(() => {
@@ -662,6 +729,15 @@ function BibleStudyApp() {
           translationId={translationId}
           onTranslationChange={setTranslationId}
           translationLoading={translationLoading}
+          parallelMode={parallelMode}
+          parallelLoading={parallelLoading}
+          parallelSecondaryId={parallelTranslationId}
+          onParallelEnable={(secondaryId) => {
+            if (!secondaryId || secondaryId === translationId) return
+            setParallelTranslationId(secondaryId)
+            setParallelMode(true)
+          }}
+          onParallelDisable={() => setParallelMode(false)}
           darkMode={darkMode}
           onDarkModeChange={setDarkMode}
         />
@@ -715,28 +791,46 @@ function BibleStudyApp() {
                   </h2>
 
                   {/* Translation loading overlay */}
-                  {translationLoading && (
+                  {(translationLoading || (parallelMode && parallelLoading)) && (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400 animate-pulse">
                       Loading translation...
                     </div>
                   )}
 
                   {/* Bible Chapter Display */}
-                  {!translationLoading && currentChapterData && (
-                    <BibleChapter 
-                      chapter={currentChapterData}
-                      bookName={currentBook}
-                      hasCommentary={hasCommentary}
-                      onVerseClick={(ch, v, text) => handleVerseClick(ch, v, text)}
-                      isVerseSelected={(ch, v) =>
-                        selectedVerses.some(row => row.book === currentBook && row.chapter === ch && row.verse === v)
-                      }
-                      isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
-                      onBookmarkToggle={handleBookmarkToggle}
-                      onVersePosition={updateVersePosition}
-                      textSize={textSize}
-                      verseStacking={verseStacking}
-                    />
+                  {!translationLoading && (!parallelMode || !parallelLoading) && currentChapterData && (
+                    parallelMode ? (
+                      <ParallelBibleChapter
+                        primaryChapter={currentChapterData}
+                        secondaryChapter={secondaryChapterData}
+                        primaryTranslationId={translationId}
+                        secondaryTranslationId={parallelTranslationId}
+                        hasCommentary={hasCommentary}
+                        onVerseClick={(ch, v, text) => handleVerseClick(ch, v, text)}
+                        isVerseSelected={(ch, v) =>
+                          selectedVerses.some(row => row.book === currentBook && row.chapter === ch && row.verse === v)
+                        }
+                        isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
+                        onBookmarkToggle={handleBookmarkToggle}
+                        onVersePosition={updateVersePosition}
+                        textSize={textSize}
+                      />
+                    ) : (
+                      <BibleChapter 
+                        chapter={currentChapterData}
+                        bookName={currentBook}
+                        hasCommentary={hasCommentary}
+                        onVerseClick={(ch, v, text) => handleVerseClick(ch, v, text)}
+                        isVerseSelected={(ch, v) =>
+                          selectedVerses.some(row => row.book === currentBook && row.chapter === ch && row.verse === v)
+                        }
+                        isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
+                        onBookmarkToggle={handleBookmarkToggle}
+                        onVersePosition={updateVersePosition}
+                        textSize={textSize}
+                        verseStacking={verseStacking}
+                      />
+                    )
                   )}
 
                   {/* Toggle Sidebar Button (desktop only — phones use verse tap) */}
@@ -783,6 +877,9 @@ function BibleStudyApp() {
               onToggleMultiSelect={toggleMultiSelectMode}
               translationId={translationId}
               bibleData={bibleData}
+              parallelMode={parallelMode}
+              parallelTranslationId={parallelTranslationId}
+              parallelBibleData={parallelBibleData}
               commentaryTextSize={commentaryTextSize}
               sidebarWidth={sidebarWidth}
               onSidebarWidthChange={setSidebarWidth}
@@ -896,6 +993,7 @@ function App() {
         <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />
         <Route path="/resources/books/:itemId" element={<BookViewer />} />
         <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
+        <Route path="/resources/tools/:itemId" element={<ToolViewer />} />
         <Route path="/resources/:categoryId" element={<ResourcePage />} />
         <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp />} />
         <Route path="/:bookSlug" element={<BibleStudyApp />} />

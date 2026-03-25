@@ -152,6 +152,24 @@ bibleBooks.forEach(b => {
 // Pre-sort aliases by length (longest first) for greedy matching
 const sortedAliasKeys = Object.keys(allAliases).sort((a, b) => b.length - a.length)
 
+export function resolveBookAliasPrefix(input) {
+  const trimmed = String(input || '').trim().toLowerCase()
+  if (!trimmed) return null
+
+  for (const alias of sortedAliasKeys) {
+    if (!trimmed.startsWith(alias)) continue
+    const rest = trimmed.slice(alias.length)
+    if (rest && !/^[\s\d:.-]/.test(rest)) continue
+    return {
+      alias,
+      book: allAliases[alias],
+      rest: rest.trim(),
+    }
+  }
+
+  return null
+}
+
 function parseChapterVersePart(refPart, bookMeta, options = {}) {
   const { requireWhole = false } = options
   if (!refPart) return null
@@ -177,20 +195,14 @@ export function parseBibleReference(input, defaultBook = null) {
   const trimmed = input.trim().toLowerCase()
   if (!trimmed) return null
 
-  for (const alias of sortedAliasKeys) {
-    if (!trimmed.startsWith(alias)) continue
-
-    const rest = trimmed.slice(alias.length)
-
-    // After the alias, must be: end of string, whitespace, digit, colon, or period
-    if (rest && !/^[\s\d:.]/.test(rest)) continue
-
-    const bookName = allAliases[alias]
-    const refPart = rest.trim()
+  const aliasMatch = resolveBookAliasPrefix(trimmed)
+  if (aliasMatch) {
+    const bookName = aliasMatch.book
+    const refPart = aliasMatch.rest
 
     // Look up book metadata for validation
     const bookMeta = bibleBooks.find(b => b.name === bookName)
-    if (!bookMeta) continue
+    if (!bookMeta) return null
 
     if (!refPart) {
       // Just a book name with no chapter number → not a navigation reference
@@ -199,7 +211,7 @@ export function parseBibleReference(input, defaultBook = null) {
     }
 
     const parsed = parseChapterVersePart(refPart, bookMeta)
-    if (!parsed) continue
+    if (!parsed) return null
     return { book: bookName, chapter: parsed.chapter, verse: parsed.verse }
   }
 

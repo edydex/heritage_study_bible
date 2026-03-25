@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { translations } from '../data/translations'
 
 function Header({
@@ -19,12 +19,19 @@ function Header({
   translationId,
   onTranslationChange,
   translationLoading,
+  parallelMode = false,
+  parallelLoading = false,
+  parallelSecondaryId = null,
+  onParallelEnable,
+  onParallelDisable,
   darkMode = false,
   onDarkModeChange,
 }) {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showTranslations, setShowTranslations] = useState(false)
+  const [showParallelModal, setShowParallelModal] = useState(false)
+  const [selectedParallelLanguage, setSelectedParallelLanguage] = useState('')
   const settingsRef = useRef(null)
   const translationsRef = useRef(null)
   // Temporary input values allow typing any number; clamped on blur
@@ -36,6 +43,22 @@ function Header({
   useEffect(() => { setCommentaryInput(String(commentaryTextSize)) }, [commentaryTextSize])
 
   const [isSmallScreen, setIsSmallScreen] = useState(false)
+  const translationGroups = useMemo(() => {
+    const groups = new Map()
+    for (const translation of translations) {
+      const language = translation.language || 'Other'
+      if (!groups.has(language)) groups.set(language, [])
+      groups.get(language).push(translation)
+    }
+    return [...groups.entries()].map(([language, entries]) => ({
+      language,
+      entries: entries.slice().sort((a, b) => a.name.localeCompare(b.name)),
+    }))
+  }, [])
+
+  const availableParallelTranslations = useMemo(() => {
+    return translations.filter(t => t.id !== translationId)
+  }, [translationId])
 
   // Track screen size for responsive placeholder
   useEffect(() => {
@@ -44,6 +67,13 @@ function Header({
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
+
+  useEffect(() => {
+    if (!showParallelModal) return
+    const preferred = availableParallelTranslations.find(t => t.id === parallelSecondaryId)
+    const fallback = availableParallelTranslations[0]
+    setSelectedParallelLanguage(preferred?.language || fallback?.language || '')
+  }, [showParallelModal, availableParallelTranslations, parallelSecondaryId])
 
   const inputRef = useRef(null)
 
@@ -67,6 +97,20 @@ function Header({
     if (showSettings || showTranslations) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showSettings, showTranslations])
+
+  const handleParallelButtonClick = () => {
+    if (parallelMode) {
+      onParallelDisable?.()
+      return
+    }
+    setShowParallelModal(true)
+  }
+
+  const handleParallelSelect = (translationOptionId) => {
+    if (!translationOptionId || translationOptionId === translationId) return
+    onParallelEnable?.(translationOptionId)
+    setShowParallelModal(false)
+  }
 
   return (
     <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
@@ -157,6 +201,26 @@ function Header({
               </div>
             )}
           </div>
+
+          {/* Parallel Mode Button */}
+          <button
+            onClick={handleParallelButtonClick}
+            className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors flex-shrink-0 ${
+              parallelMode
+                ? 'bg-emerald-500/80 hover:bg-emerald-500'
+                : parallelLoading
+                  ? 'bg-white/20 animate-pulse'
+                  : 'bg-white/10 hover:bg-white/20'
+            }`}
+            title={parallelMode ? 'Disable parallel mode' : 'Enable parallel mode'}
+          >
+            <span className="text-xs sm:text-sm font-bold tracking-wide">∥</span>
+            {parallelMode && (
+              <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">
+                {parallelSecondaryId || 'ON'}
+              </span>
+            )}
+          </button>
 
           {/* Bookmark Button */}
           <button 
@@ -287,6 +351,90 @@ function Header({
           </div>
         </div>
       </div>
+
+      {showParallelModal && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-[1px] flex items-start justify-center p-4 sm:p-6"
+          onClick={() => setShowParallelModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl mt-10 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <div>
+                <h3 className="heading-text text-xl text-gray-900 dark:text-gray-100">Parallel Bible Mode</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Choose a secondary translation</p>
+              </div>
+              <button
+                onClick={() => setShowParallelModal(false)}
+                className="px-2 py-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="px-5 pt-4">
+              <div className="flex flex-wrap gap-2">
+                {translationGroups.map((group) => (
+                  <button
+                    key={group.language}
+                    onClick={() => setSelectedParallelLanguage(group.language)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                      selectedParallelLanguage === group.language
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    {group.language}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-5 max-h-[60vh] overflow-y-auto">
+              <div className="space-y-2">
+                {(translationGroups.find(group => group.language === selectedParallelLanguage)?.entries || [])
+                  .map((translationOption) => {
+                    const isPrimary = translationOption.id === translationId
+                    const isSelected = translationOption.id === parallelSecondaryId
+                    return (
+                      <button
+                        key={translationOption.id}
+                        onClick={() => handleParallelSelect(translationOption.id)}
+                        disabled={isPrimary}
+                        className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                          isPrimary
+                            ? 'bg-gray-100 dark:bg-gray-700/80 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                            : isSelected
+                              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700'
+                              : 'bg-gray-50 dark:bg-gray-700/60 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm text-gray-900 dark:text-gray-100">{translationOption.abbr}</span>
+                              {isPrimary && <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-200">Primary</span>}
+                              {!isPrimary && isSelected && <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900">Selected</span>}
+                            </div>
+                            <div className="text-sm text-gray-700 dark:text-gray-300 truncate">{translationOption.name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{translationOption.description}</div>
+                          </div>
+                          {!isPrimary && <span className="text-primary">→</span>}
+                        </div>
+                      </button>
+                    )
+                  })}
+              </div>
+
+              {availableParallelTranslations.length === 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No secondary translations available.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   )
 }

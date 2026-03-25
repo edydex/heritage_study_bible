@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import CompareModal from './CompareModal'
+import { localizeBookName } from '../utils/localizedBookNames'
 
 // Regex fallback for entries without <vq> markup (older data or books CCEL didn't tag)
 const CALVIN_QUOTE_RE1 = /^(\s*\d+\.?\s+\S+(?:\s+\S+){0,12}?(?:\betc\b\.?\s*(?:[\u2014-]\s*)?|[.]))\s+/
@@ -32,7 +33,24 @@ function buildContiguousRanges(verses) {
   return ranges
 }
 
-function formatVersesForCopy(verses, fallbackBookName) {
+function getVerseTextFromData(data, book, chapter, verse) {
+  if (!data?.books) return ''
+  return data.books
+    .find(b => b.name === book)
+    ?.chapters?.find(c => c.number === chapter)
+    ?.verses?.find(v => v.number === verse)
+    ?.text || ''
+}
+
+function formatVersesForCopy({
+  verses,
+  fallbackBookName,
+  primaryTranslationId,
+  primaryBibleData,
+  secondaryTranslationId,
+  secondaryBibleData,
+  includeParallel = false,
+}) {
   if (!Array.isArray(verses) || verses.length === 0) return ''
 
   const byKey = new Map()
@@ -52,11 +70,30 @@ function formatVersesForCopy(verses, fallbackBookName) {
     for (const range of ranges) {
       const startVerse = range[0].verse
       const endVerse = range[range.length - 1].verse
-      const ref = startVerse === endVerse
-        ? `${book} ${chapter}:${startVerse}`
-        : `${book} ${chapter}:${startVerse}-${endVerse}`
-      const lines = range.map(v => `(${v.verse}) ${v.text || ''}`)
-      sections.push(`${ref} - ${lines.join('\n')}`)
+      const primaryBookName = localizeBookName(book, primaryTranslationId)
+      const primaryRef = startVerse === endVerse
+        ? `${primaryBookName} ${chapter}:${startVerse}`
+        : `${primaryBookName} ${chapter}:${startVerse}-${endVerse}`
+
+      const primaryLines = range.map(v => {
+        const bookName = v.book || fallbackBookName
+        const text = v.text || getVerseTextFromData(primaryBibleData, bookName, v.chapter, v.verse)
+        return `(${v.verse}) ${text || '[Verse unavailable]'}`
+      })
+      sections.push(`${primaryRef} (${primaryTranslationId}) - ${primaryLines.join('\n')}`)
+
+      if (includeParallel && secondaryTranslationId && secondaryBibleData) {
+        const secondaryBookName = localizeBookName(book, secondaryTranslationId)
+        const secondaryRef = startVerse === endVerse
+          ? `${secondaryBookName} ${chapter}:${startVerse}`
+          : `${secondaryBookName} ${chapter}:${startVerse}-${endVerse}`
+        const secondaryLines = range.map(v => {
+          const bookName = v.book || fallbackBookName
+          const text = getVerseTextFromData(secondaryBibleData, bookName, v.chapter, v.verse)
+          return `(${v.verse}) ${text || '[Verse unavailable]'}`
+        })
+        sections.push(`${secondaryRef} (${secondaryTranslationId}) - ${secondaryLines.join('\n')}`)
+      }
     }
   }
 
@@ -153,6 +190,9 @@ function CommentarySidebar({
   multiSelectMode = false,
   translationId,
   bibleData,
+  parallelMode = false,
+  parallelTranslationId = null,
+  parallelBibleData = null,
   commentaryTextSize = 14,
   sidebarWidth = 540,
   onSidebarWidthChange,
@@ -380,7 +420,15 @@ function CommentarySidebar({
     }
 
     try {
-      const text = formatVersesForCopy(activeVerses, bookName)
+      const text = formatVersesForCopy({
+        verses: activeVerses,
+        fallbackBookName: bookName,
+        primaryTranslationId: translationId,
+        primaryBibleData: bibleData,
+        secondaryTranslationId: parallelTranslationId,
+        secondaryBibleData: parallelBibleData,
+        includeParallel: Boolean(parallelMode && parallelTranslationId && parallelBibleData),
+      })
       await navigator.clipboard.writeText(text)
       onShowToast?.(
         activeVerses.length > 1

@@ -69,7 +69,7 @@ function matchesFilters(item, filters) {
   return true
 }
 
-const CLICKABLE_CATEGORIES = ['confessions', 'books', 'reading-plans']
+const CLICKABLE_CATEGORIES = ['confessions', 'books', 'reading-plans', 'tools']
 
 function ResourcePage() {
   const { categoryId } = useParams()
@@ -503,4 +503,3 @@ function ResourcePage() {
 }
 
 export default ResourcePage
-

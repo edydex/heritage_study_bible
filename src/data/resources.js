@@ -308,10 +308,15 @@ export const RESOURCE_CATEGORIES = [
   },
   {
     id: 'tools',
-    title: 'Study Tools',
+    title: 'More Tools',
     icon: '🔧',
     color: 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/50',
     items: [
+      {
+        id: 'mass-verse-export',
+        title: 'Mass Verse Export',
+        description: 'Paste many references and export copyable plain text or Markdown across translations.',
+      },
       {
         id: 'cross-references',
         title: 'Cross References',
