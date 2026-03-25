@@ -214,7 +214,7 @@ function Header({
             }`}
             title={parallelMode ? 'Disable parallel mode' : 'Enable parallel mode'}
           >
-            <span className="text-xs sm:text-sm font-bold tracking-wide">∥</span>
+            <span className="text-xs sm:text-sm font-bold tracking-wide">| |</span>
             {parallelMode && (
               <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">
                 {parallelSecondaryId || 'ON'}

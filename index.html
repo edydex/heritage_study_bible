@@ -15,6 +15,41 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>
+      ;(() => {
+        const BOOTSTRAP_SW_GUARD = 'heritage-sw-bootstrap-clean-v1'
+        try {
+          if (sessionStorage.getItem(BOOTSTRAP_SW_GUARD) === 'done') return
+        } catch {}
+
+        if (!('serviceWorker' in navigator)) return
+
+        window.addEventListener('load', () => {
+          let hadLegacyRegistration = false
+          let hasController = false
+
+          navigator.serviceWorker.getRegistrations()
+            .then((registrations) => {
+              hadLegacyRegistration = registrations.length > 0
+              return Promise.all(registrations.map(registration => registration.unregister().catch(() => false)))
+            })
+            .then(() => {
+              hasController = Boolean(navigator.serviceWorker.controller)
+              if (!('caches' in window)) return
+              return caches.keys().then(cacheNames =>
+                Promise.all(cacheNames.map(cacheName => caches.delete(cacheName).catch(() => false)))
+              )
+            })
+            .catch(() => {})
+            .finally(() => {
+              try { sessionStorage.setItem(BOOTSTRAP_SW_GUARD, 'done') } catch {}
+              if (hadLegacyRegistration || hasController) {
+                window.location.reload()
+              }
+            })
+        })
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
