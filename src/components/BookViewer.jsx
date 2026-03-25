@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
 import CommentarySidebar from './CommentarySidebar'
 import { parseBookChapters, extractChapterNumber } from '../utils/bookChapters'
-import fallbackBibleData from '../data/bible-lsv.json'
+import { DEFAULT_TRANSLATION, loadTranslation } from '../data/translations'
 import { makeSearchSnippet, searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from '../utils/librarySearch'
 import { extractBookFootnotes, parseBibleRefFromFootnote } from '../utils/bookFootnotes'
 import { authors as initialAuthors, getAuthorsForBook, loadCommentaryForBook } from '../data/authors'
@@ -165,6 +165,7 @@ function BookViewer() {
   const [previewSelectedWork, setPreviewSelectedWork] = useState(null)
   const [previewCommentaryLoading, setPreviewCommentaryLoading] = useState(false)
   const [previewSidebarWidth, setPreviewSidebarWidth] = useState(540)
+  const [bibleSearchData, setBibleSearchData] = useState(null)
   const [crossSearchLoading, setCrossSearchLoading] = useState(false)
   const [crossSearchCapped, setCrossSearchCapped] = useState({
     books: false,
@@ -176,6 +177,23 @@ function BookViewer() {
 
   const category = RESOURCE_CATEGORIES.find(c => c.id === 'books')
   const book = category?.items.find(i => i.id === itemId)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadBibleForSearch = async () => {
+      try {
+        const data = await loadTranslation(DEFAULT_TRANSLATION)
+        if (!cancelled) setBibleSearchData(data)
+      } catch (error) {
+        console.warn('Failed to load default translation for book search', error)
+        if (!cancelled) setBibleSearchData(null)
+      }
+    }
+
+    loadBibleForSearch()
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -366,7 +384,7 @@ function BookViewer() {
     const timer = setTimeout(async () => {
       setCrossSearchLoading(true)
       let bookMatches = { otherBooks: [], capped: false }
-      const bibleMatches = searchBibleVerses(fallbackBibleData, trimmedQuery, { maxResults: 200 })
+      const bibleMatches = searchBibleVerses(bibleSearchData, trimmedQuery, { maxResults: 200 })
       let commentaryMatches = { items: [], capped: false }
       try {
         ;[bookMatches, commentaryMatches] = await Promise.all([
@@ -391,7 +409,7 @@ function BookViewer() {
     }, 180)
 
     return () => clearTimeout(timer)
-  }, [book?.id, searchQuery])
+  }, [book?.id, searchQuery, bibleSearchData])
 
   useEffect(() => {
     setActiveSearchResultIndex(0)
@@ -480,7 +498,7 @@ function BookViewer() {
   }
 
   const getVerseText = (bookName, chapter, verse) =>
-    fallbackBibleData?.books
+    bibleSearchData?.books
       ?.find(b => b.name === bookName)
       ?.chapters?.find(c => c.number === chapter)
       ?.verses?.find(v => v.number === verse)
@@ -1042,8 +1060,8 @@ function BookViewer() {
             verse: previewCommentary.verse,
             text: previewCommentary.text,
           }}
-          translationId="LSV"
-          bibleData={fallbackBibleData}
+          translationId={DEFAULT_TRANSLATION}
+          bibleData={bibleSearchData}
           commentaryTextSize={14}
           sidebarWidth={previewSidebarWidth}
           onSidebarWidthChange={setPreviewSidebarWidth}

@@ -1,7 +1,6 @@
 /**
  * Available Bible translations.
- * LSV is bundled statically (seeded from src/data/bible-lsv.json);
- * all others are lazy-fetched from /data/translations/<id>.json.
+ * All translations are lazy-fetched from /data/translations/<id>.json.
  */
 export const translations = [
   {
@@ -83,7 +82,6 @@ export function getTranslationById(translationId) {
 
 /**
  * Load a translation's Bible data. Returns cached version if already loaded.
- * For WEB, uses the bundled static import as a fast path.
  */
 export async function loadTranslation(translationId) {
   // Return cached
@@ -121,11 +119,4 @@ export async function loadVersificationMap(translationId, direction = 'nativeToC
   const data = await resp.json()
   versificationCache.set(cacheKey, data)
   return data
-}
-
-/**
- * Pre-populate cache with statically-imported data (for WEB which is bundled).
- */
-export function seedTranslationCache(translationId, data) {
-  translationCache.set(translationId, data)
 }

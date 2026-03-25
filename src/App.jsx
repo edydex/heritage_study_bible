@@ -15,15 +15,51 @@ import BookViewer from './components/BookViewer'
 import ReadingPlanViewer from './components/ReadingPlanViewer'
 import ToolViewer from './components/ToolViewer'
 import { useBookmarks } from './hooks/useBookmarks'
-import fallbackBibleData from './data/bible-lsv.json'
 import { bibleBooks } from './data/bible-books.js'
-import { translations, DEFAULT_TRANSLATION, loadTranslation, seedTranslationCache } from './data/translations'
-import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, getCommentaryForVerse as getCommentaryFromAuthor, hasAnyCommentary } from './data/authors'
+import { translations, DEFAULT_TRANSLATION, loadTranslation } from './data/translations'
+import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
 import { parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
 
-// Seed the LSV translation into the cache since it's bundled
-seedTranslationCache('LSV', fallbackBibleData)
+const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
+
+function getPendingCommentaryLoadsForBook(bookName, authorsData) {
+  const pending = []
+  for (const author of authorsData) {
+    for (const work of author.works) {
+      if (work.book === bookName && !work.loaded && work.dataPath) {
+        pending.push({
+          authorId: author.id,
+          workId: work.id,
+        })
+      }
+    }
+  }
+  return pending
+}
+
+function hasLoadedCommentaryForBook(bookName, authorsData) {
+  return authorsData.some(author =>
+    author.works.some(work => work.book === bookName && work.loaded)
+  )
+}
+
+function getUnresolvedCommentaryLoads(pendingLoads, authorsData) {
+  if (!pendingLoads.length) return []
+  const loadedKeys = new Set(
+    authorsData.flatMap(author =>
+      author.works
+        .filter(work => work.loaded)
+        .map(work => `${author.id}|||${work.id}`)
+    )
+  )
+
+  return pendingLoads.filter(item => !loadedKeys.has(`${item.authorId}|||${item.workId}`))
+}
+
+async function wait(ms) {
+  await new Promise(resolve => window.setTimeout(resolve, ms))
+}
 
 // Helper to convert book name to URL slug
 function bookToSlug(bookName) {
@@ -113,8 +149,10 @@ function BibleStudyApp() {
   const [translationId, setTranslationId] = useState(() => {
     try { return localStorage.getItem('heritage-translation') || DEFAULT_TRANSLATION } catch { return DEFAULT_TRANSLATION }
   })
-  const [bibleData, setBibleData] = useState(fallbackBibleData) // Start with bundled LSV
+  const [bibleData, setBibleData] = useState(null)
   const [translationLoading, setTranslationLoading] = useState(false)
+  const [translationLoadError, setTranslationLoadError] = useState('')
+  const [translationReloadToken, setTranslationReloadToken] = useState(0)
   const [parallelMode, setParallelMode] = useState(false)
   const [parallelTranslationId, setParallelTranslationId] = useState(() => {
     try {
@@ -131,6 +169,8 @@ function BibleStudyApp() {
     let cancelled = false
     const load = async () => {
       setTranslationLoading(true)
+      setTranslationLoadError('')
+      setBibleData(null)
       try {
         const data = await loadTranslation(translationId)
         if (!cancelled) {
@@ -138,9 +178,9 @@ function BibleStudyApp() {
         }
       } catch (err) {
         console.error('Failed to load translation:', err)
-        // Fall back to LSV
         if (!cancelled) {
-          setBibleData(fallbackBibleData)
+          setBibleData(null)
+          setTranslationLoadError(`Failed to load ${translationId}. Please retry.`)
         }
       } finally {
         if (!cancelled) setTranslationLoading(false)
@@ -148,7 +188,7 @@ function BibleStudyApp() {
     }
     load()
     return () => { cancelled = true }
-  }, [translationId])
+  }, [translationId, translationReloadToken])
 
   // Persist translation choice
   useEffect(() => {
@@ -207,7 +247,9 @@ function BibleStudyApp() {
   const [authorsData, setAuthorsData] = useState(initialAuthors)
   const [selectedAuthor, setSelectedAuthor] = useState(null)
   const [selectedWork, setSelectedWork] = useState(null)
-  const [commentaryLoading, setCommentaryLoading] = useState(false)
+  const [commentaryLoadStatus, setCommentaryLoadStatus] = useState('idle')
+  const [commentaryLoadError, setCommentaryLoadError] = useState('')
+  const [commentaryRetryToken, setCommentaryRetryToken] = useState(0)
   
   // Text size settings (persisted in localStorage, in px)
   const [textSize, setTextSize] = useState(() => {
@@ -247,30 +289,62 @@ function BibleStudyApp() {
     try { localStorage.setItem('heritage-sidebar-width', String(sidebarWidth)) } catch {}
   }, [sidebarWidth])
 
+  const retryCommentaryLoad = useCallback(() => {
+    setCommentaryRetryToken(prev => prev + 1)
+  }, [])
+
+  const retryTranslationLoad = useCallback(() => {
+    setTranslationReloadToken(prev => prev + 1)
+  }, [])
+
   // Lazy-load commentary data when book changes
   useEffect(() => {
     let cancelled = false
+
     const load = async () => {
-      // Check if any works for this book need loading
-      const needsLoad = authorsData.some(a =>
-        a.works.some(w => w.book === currentBook && !w.loaded && w.dataPath)
-      )
-      if (!needsLoad) {
-        // Still auto-select an author for this book
-        autoSelectAuthor(currentBook)
+      const pendingLoads = getPendingCommentaryLoadsForBook(currentBook, authorsData)
+      if (pendingLoads.length === 0) {
+        if (!cancelled) {
+          setCommentaryLoadStatus('ready')
+          setCommentaryLoadError('')
+          autoSelectAuthor(currentBook)
+        }
         return
       }
-      setCommentaryLoading(true)
-      const updated = await loadCommentaryForBook(currentBook, authorsData)
-      if (!cancelled) {
-        setAuthorsData(updated)
-        setCommentaryLoading(false)
-        autoSelectAuthor(currentBook, updated)
+
+      setCommentaryLoadStatus('loading')
+      setCommentaryLoadError('')
+
+      let updated = authorsData
+      let unresolved = pendingLoads
+
+      for (let attempt = 0; attempt <= COMMENTARY_RETRY_DELAYS_MS.length; attempt += 1) {
+        updated = await loadCommentaryForBook(currentBook, updated)
+        unresolved = getUnresolvedCommentaryLoads(pendingLoads, updated)
+        if (!unresolved.length) break
+
+        if (attempt < COMMENTARY_RETRY_DELAYS_MS.length) {
+          await wait(COMMENTARY_RETRY_DELAYS_MS[attempt])
+        }
+      }
+
+      if (cancelled) return
+
+      setAuthorsData(updated)
+      autoSelectAuthor(currentBook, updated)
+
+      if (unresolved.length && !hasLoadedCommentaryForBook(currentBook, updated)) {
+        setCommentaryLoadStatus('failed')
+        setCommentaryLoadError('Failed to load commentary data for this book.')
+      } else {
+        setCommentaryLoadStatus('ready')
+        setCommentaryLoadError('')
       }
     }
+
     load()
     return () => { cancelled = true }
-  }, [currentBook])
+  }, [currentBook, commentaryRetryToken])
 
   // Auto-select the best author/work for the current book
   const autoSelectAuthor = (book, data) => {
@@ -297,7 +371,7 @@ function BibleStudyApp() {
   const { 
     bookmarks, addBookmark, removeBookmark, updateBookmark, isBookmarked,
     commentaryBookmarks, isCommentaryBookmarked, toggleCommentaryBookmark,
-    notes, saveNote, deleteNote, hasNote
+    notes, saveNote, deleteNote
   } = useBookmarks()
 
   // Sync URL to state when URL changes
@@ -405,7 +479,7 @@ function BibleStudyApp() {
 
   // Get current book data from Bible
   const currentBookData = useMemo(() => {
-    return bibleData.books.find(b => b.name === currentBook)
+    return bibleData?.books?.find(b => b.name === currentBook) || null
   }, [currentBook, bibleData])
 
   // Get current chapter data
@@ -416,7 +490,7 @@ function BibleStudyApp() {
 
   const secondaryChapterData = useMemo(() => {
     if (!parallelBibleData || !parallelMode) return null
-    const bookData = parallelBibleData.books.find(b => b.name === currentBook)
+    const bookData = parallelBibleData.books?.find(b => b.name === currentBook)
     if (!bookData) return null
     return bookData.chapters.find(c => c.number === currentChapter) || null
   }, [parallelBibleData, parallelMode, currentBook, currentChapter])
@@ -680,15 +754,6 @@ function BibleStudyApp() {
     setCurrentChapter(chapter)
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   }
-  
-  // Get current author's works count for the current chapter
-  const getCurrentAuthorCommentaryCount = () => {
-    const author = authorsData.find(a => a.id === selectedAuthor)
-    if (!author) return 0
-    return author.works.filter(w => 
-      w.commentaries.some(c => c.chapter === currentChapter)
-    ).length
-  }
 
   // Handle author change
   const handleAuthorChange = (authorId) => {
@@ -707,6 +772,8 @@ function BibleStudyApp() {
   const handleWorkChange = (workId) => {
     setSelectedWork(workId)
   }
+
+  const bibleReady = Boolean(bibleData?.books?.length)
 
   return (
     <>
@@ -749,7 +816,24 @@ function BibleStudyApp() {
             style={{ marginRight: isLargeScreen && isSidebarOpen ? `${sidebarWidth}px` : 0 }}
           >
             <div className="container mx-auto max-w-3xl" ref={bibleContainerRef}>
-              {searchResults ? (
+              {!bibleReady ? (
+                <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center mt-6">
+                  {translationLoadError ? (
+                    <>
+                      <p className="text-gray-700 dark:text-gray-200 font-semibold mb-2">Failed to load Bible text</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{translationLoadError}</p>
+                      <button
+                        onClick={retryTranslationLoad}
+                        className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-blue-700 transition-colors"
+                      >
+                        Retry
+                      </button>
+                    </>
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400 animate-pulse">Loading Bible text...</p>
+                  )}
+                </div>
+              ) : searchResults ? (
                 <SearchResults 
                   results={searchResults}
                   query={searchQuery}
@@ -833,6 +917,12 @@ function BibleStudyApp() {
                     )
                   )}
 
+                  {!translationLoading && currentChapterData == null && (
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                      Unable to find chapter data for <strong>{currentBook} {currentChapter}</strong> in <strong>{translationId}</strong>.
+                    </div>
+                  )}
+
                   {/* Toggle Sidebar Button (desktop only — phones use verse tap) */}
                   {!isSidebarOpen && (
                     <button 
@@ -869,7 +959,10 @@ function BibleStudyApp() {
               onAuthorChange={handleAuthorChange}
               onWorkChange={handleWorkChange}
               chapter={currentChapter}
-              loading={commentaryLoading}
+              loading={commentaryLoadStatus === 'loading'}
+              commentaryLoadStatus={commentaryLoadStatus}
+              commentaryLoadError={commentaryLoadError}
+              onRetryCommentaryLoad={retryCommentaryLoad}
               versePositions={versePositions}
               selectedVerse={selectedVerse}
               selectedVerses={selectedVerses}

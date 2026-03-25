@@ -185,6 +185,9 @@ function CommentarySidebar({
   onWorkChange,
   onClose,
   loading = false,
+  commentaryLoadStatus = 'idle',
+  commentaryLoadError = '',
+  onRetryCommentaryLoad,
   selectedVerse,
   selectedVerses = [],
   multiSelectMode = false,
@@ -488,6 +491,8 @@ function CommentarySidebar({
         ''
       )
     : ''
+  const isCommentaryLoading = loading || commentaryLoadStatus === 'loading'
+  const commentaryLoadFailed = commentaryLoadStatus === 'failed'
 
   return (
     <>
@@ -880,10 +885,28 @@ function CommentarySidebar({
             </div>
           )}
 
-          {loading ? (
+          {isCommentaryLoading ? (
             <div className="p-6 text-center text-gray-500 dark:text-gray-400">
               <p className="text-4xl mb-3 animate-pulse">📖</p>
               <p className="text-sm">Loading commentary for <strong>{bookName}</strong>...</p>
+            </div>
+          ) : commentaryLoadFailed ? (
+            <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+              <p className="text-4xl mb-3">⚠️</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                Failed to load commentary for <strong>{bookName}</strong>.
+              </p>
+              {commentaryLoadError && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{commentaryLoadError}</p>
+              )}
+              {typeof onRetryCommentaryLoad === 'function' && (
+                <button
+                  onClick={onRetryCommentaryLoad}
+                  className="px-3 py-1.5 rounded-lg bg-primary text-white text-sm hover:bg-blue-700 transition-colors"
+                >
+                  Retry
+                </button>
+              )}
             </div>
           ) : chapterCommentaries.length === 0 ? (
             <div className="p-6 text-center text-gray-500 dark:text-gray-400">

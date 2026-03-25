@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
-import fallbackBibleData from '../data/bible-lsv.json'
+import { DEFAULT_TRANSLATION, loadTranslation } from '../data/translations'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from '../utils/librarySearch'
 import SearchResults from './SearchResults'
 
@@ -87,6 +87,24 @@ function ResourcePage() {
 
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchResults, setSearchResults] = useState(null)
+  const [bibleSearchData, setBibleSearchData] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadBibleForSearch = async () => {
+      try {
+        const data = await loadTranslation(DEFAULT_TRANSLATION)
+        if (!cancelled) setBibleSearchData(data)
+      } catch (error) {
+        console.warn('Failed to load default translation for resource search', error)
+        if (!cancelled) setBibleSearchData(null)
+      }
+    }
+
+    loadBibleForSearch()
+    return () => { cancelled = true }
+  }, [])
 
   const category = RESOURCE_CATEGORIES.find(c => c.id === categoryId)
   if (!category) {
@@ -161,7 +179,7 @@ function ResourcePage() {
     const timer = setTimeout(async () => {
       setSearchLoading(true)
 
-      const bibleMatches = searchBibleVerses(fallbackBibleData, trimmedQuery, { maxResults: 200 })
+      const bibleMatches = searchBibleVerses(bibleSearchData, trimmedQuery, { maxResults: 200 })
       let commentaryMatches = { items: [], capped: false }
       let bookMatches = { books: [], capped: false }
 
@@ -202,6 +220,7 @@ function ResourcePage() {
   }, [
     isFullSearchMode,
     trimmedQuery,
+    bibleSearchData,
     items,
     selectedTags,
     selectedAuthor,

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import fallbackBibleData from '../data/bible-lsv.json'
 import { loadTranslation, translations } from '../data/translations'
 import {
   buildMassExportRows,
@@ -134,7 +133,7 @@ function MassVerseExportViewer({ toolMeta }) {
     return () => window.clearTimeout(timer)
   }, [copyStatus])
 
-  const referenceBibleData = translationDataById[selectedTranslationIds[0]] || fallbackBibleData
+  const referenceBibleData = translationDataById[selectedTranslationIds[0]] || Object.values(translationDataById).find(Boolean) || null
   const parseResult = useMemo(
     () => parseMassVerseInput(inputText, { bibleData: referenceBibleData }),
     [inputText, referenceBibleData]
@@ -421,4 +420,3 @@ function MassVerseExportViewer({ toolMeta }) {
 }
 
 export default MassVerseExportViewer
-
