@@ -88,6 +88,53 @@ function stripTags(html) {
     .trim()
 }
 
+function stripTagsForNote(html) {
+  if (!html) return ''
+  return html
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#8220;/g, '\u201C')
+    .replace(/&#8221;/g, '\u201D')
+    .replace(/&#8216;/g, '\u2018')
+    .replace(/&#8217;/g, '\u2019')
+    .replace(/&#8212;/g, '\u2014')
+    .replace(/&#8211;/g, '\u2013')
+    .replace(/â€œ/g, '\u201C')
+    .replace(/â€\u009D/g, '\u201D')
+    .replace(/â€™/g, '\u2019')
+    .replace(/â€˜/g, '\u2018')
+    .replace(/â€"/g, '\u2014')
+    .replace(/â€"/g, '\u2013')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function encodeInlineNoteText(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function applyInlineNotes(text, notesByIndex) {
+  if (!text) return ''
+  return text
+    .replace(/__NOTE_BLOCK_(\d+)__/g, (_, rawIndex) => {
+      const noteIndex = Number(rawIndex)
+      const noteText = notesByIndex[noteIndex]
+      if (!noteText) return ''
+      return ` <fn n='${noteIndex}'>${encodeInlineNoteText(noteText)}</fn> `
+    })
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 /**
  * Parse the passage attribute to extract chapter and verse info.
  * Handles: "Ro 1:1", "Ro 1:1-7", "Romans 1", "Ro 1:1, 2"
@@ -173,7 +220,17 @@ function parseCalvinXML(xmlContent, targetBookAbbrev) {
     const divMatch = segment.match(/<div\s+class="Commentary"[^>]*>([\s\S]*?)<\/div>/)
     if (!divMatch) continue
 
-    const divContent = divMatch[1]
+    // Replace inline note blocks with placeholders before paragraph extraction,
+    // because CCEL note payload can contain nested <p> tags.
+    const notesByIndex = {}
+    let nextNoteIndex = 1
+    const divContent = divMatch[1].replace(/<note\b[^>]*>[\s\S]*?<\/note>/gi, (noteBlock) => {
+      const noteText = stripTagsForNote(noteBlock)
+      if (!noteText) return ' '
+      const noteIndex = nextNoteIndex++
+      notesByIndex[noteIndex] = noteText
+      return ` __NOTE_BLOCK_${noteIndex}__ `
+    })
 
     // Extract paragraphs
     const paragraphs = []
@@ -182,7 +239,7 @@ function parseCalvinXML(xmlContent, targetBookAbbrev) {
     while ((pMatch = pPattern.exec(divContent)) !== null) {
       const text = stripTags(pMatch[1])
       if (text && text.length > 5) {
-        paragraphs.push(text)
+        paragraphs.push(applyInlineNotes(text, notesByIndex))
       }
     }
 

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 import CompareModal from './CompareModal'
 import { localizeBookName } from '../utils/localizedBookNames'
 
@@ -11,6 +12,372 @@ function regexSplitQuote(text) {
   const m2 = text.match(CALVIN_QUOTE_RE2)
   if (m2) return [m2[1].trim(), text.substring(m2[0].length)]
   return [null, text]
+}
+
+function decodeHtmlEntities(value) {
+  return String(value || '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+}
+
+function EditorNoteBadge() {
+  return (
+    <span
+      className="inline-flex items-center ml-1 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 text-[10px] font-semibold text-amber-700 dark:text-amber-200 align-middle"
+      title="Editorial note from the translator/editor, not Calvin's original wording."
+    >
+      Editor note
+    </span>
+  )
+}
+
+function stripCalvinMarkup(text) {
+  return String(text || '')
+    .replace(/<vq>([\s\S]*?)<\/vq>/g, '$1')
+    .replace(/<sq>([\s\S]*?)<\/sq>/g, '$1')
+    .replace(/<fn n=['"]?\d+['"]?>[\s\S]*?<\/fn>/g, '')
+    .replace(/\s*[—-]\s*Ed\.?/g, ' [Editorial note]')
+}
+
+const FOOTNOTE_EDGE_PADDING = 12
+const FOOTNOTE_GAP = 8
+const FOOTNOTE_MIN_WIDTH = 220
+const FOOTNOTE_MAX_WIDTH = 620
+const FOOTNOTE_MIN_HEIGHT = 80
+
+function clamp(value, min, max) {
+  if (Number.isNaN(value)) return min
+  if (max < min) return min
+  return Math.min(Math.max(value, min), max)
+}
+
+function getViewportBounds(edgePadding = FOOTNOTE_EDGE_PADDING) {
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 1024
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 768
+  return {
+    left: edgePadding,
+    top: edgePadding,
+    right: viewportWidth - edgePadding,
+    bottom: viewportHeight - edgePadding,
+    width: Math.max(1, viewportWidth - edgePadding * 2),
+    height: Math.max(1, viewportHeight - edgePadding * 2),
+  }
+}
+
+function getCommentaryPaneBounds(markerEl) {
+  const pane = markerEl?.closest('[data-commentary-scroll-region="true"]')
+  if (!pane) return null
+  const rect = pane.getBoundingClientRect()
+  if (!rect || rect.width <= 0 || rect.height <= 0) return null
+  const inset = 8
+  return {
+    left: rect.left + inset,
+    top: rect.top + inset,
+    right: rect.right - inset,
+    bottom: rect.bottom - inset,
+    width: Math.max(1, rect.width - inset * 2),
+    height: Math.max(1, rect.height - inset * 2),
+  }
+}
+
+function overflowAmount({ left, top, width, height, bounds }) {
+  const right = left + width
+  const bottom = top + height
+  const overflowLeft = Math.max(0, bounds.left - left)
+  const overflowRight = Math.max(0, right - bounds.right)
+  const overflowTop = Math.max(0, bounds.top - top)
+  const overflowBottom = Math.max(0, bottom - bounds.bottom)
+  return {
+    total: overflowLeft + overflowRight + overflowTop + overflowBottom,
+    overflowLeft,
+    overflowRight,
+    overflowTop,
+    overflowBottom,
+  }
+}
+
+function computeFootnotePlacement({ anchorRect, naturalWidth, naturalHeight, bounds }) {
+  const widthCapForBounds = Math.min(FOOTNOTE_MAX_WIDTH, bounds.width)
+  const widthFloorForBounds = Math.min(FOOTNOTE_MIN_WIDTH, widthCapForBounds)
+  const width = clamp(naturalWidth, widthFloorForBounds, widthCapForBounds)
+  const anchorCenterX = anchorRect.left + (anchorRect.width / 2)
+  const anchorMidpoint = (bounds.left + bounds.right) / 2
+  const shiftedLeftPreference = anchorCenterX <= anchorMidpoint
+    ? anchorRect.left - 12
+    : anchorRect.right - width + 12
+  const candidates = [
+    { id: 'below-center', side: 'below', leftPref: anchorCenterX - (width / 2), order: 0 },
+    { id: 'above-center', side: 'above', leftPref: anchorCenterX - (width / 2), order: 1 },
+    { id: 'below-shifted', side: 'below', leftPref: shiftedLeftPreference, order: 2 },
+    { id: 'above-shifted', side: 'above', leftPref: shiftedLeftPreference, order: 3 },
+  ]
+
+  const scored = candidates.map((candidate) => {
+    const availableBelow = Math.max(FOOTNOTE_MIN_HEIGHT, bounds.bottom - (anchorRect.bottom + FOOTNOTE_GAP))
+    const availableAbove = Math.max(FOOTNOTE_MIN_HEIGHT, (anchorRect.top - FOOTNOTE_GAP) - bounds.top)
+    const maxHeight = candidate.side === 'below' ? availableBelow : availableAbove
+    const height = Math.min(naturalHeight, maxHeight)
+    const left = clamp(candidate.leftPref, bounds.left, bounds.right - width)
+    const top = candidate.side === 'below'
+      ? anchorRect.bottom + FOOTNOTE_GAP
+      : anchorRect.top - FOOTNOTE_GAP - height
+
+    const overflow = overflowAmount({ left, top, width, height, bounds })
+    const distance = Math.abs((left + width / 2) - anchorCenterX)
+
+    return {
+      candidateId: candidate.id,
+      order: candidate.order,
+      side: candidate.side,
+      left,
+      top,
+      width,
+      height,
+      maxHeight,
+      overflowTotal: overflow.total,
+      distance,
+    }
+  })
+
+  scored.sort((a, b) => {
+    if (a.overflowTotal !== b.overflowTotal) return a.overflowTotal - b.overflowTotal
+    if (a.distance !== b.distance) return a.distance - b.distance
+    return a.order - b.order
+  })
+
+  return scored[0]
+}
+
+function CalvinFootnoteMarker({ noteNumber, noteText }) {
+  const [pinned, setPinned] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const [popoverStyle, setPopoverStyle] = useState({})
+  const [isMeasuring, setIsMeasuring] = useState(false)
+  const markerRef = useRef(null)
+  const popoverRef = useRef(null)
+  const closeTimerRef = useRef(null)
+  const decodedText = decodeHtmlEntities(noteText)
+  const isOpen = pinned || hovered
+
+  const clearCloseTimer = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+  }, [])
+
+  const scheduleClose = useCallback(() => {
+    clearCloseTimer()
+    closeTimerRef.current = setTimeout(() => {
+      setHovered(false)
+    }, 140)
+  }, [clearCloseTimer])
+
+  useEffect(() => () => clearCloseTimer(), [clearCloseTimer])
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsMeasuring(true)
+    } else {
+      setPopoverStyle({})
+      setIsMeasuring(false)
+    }
+  }, [isOpen])
+
+  useLayoutEffect(() => {
+    if (!isOpen || !isMeasuring || !markerRef.current || !popoverRef.current || typeof window === 'undefined') {
+      return
+    }
+
+    const anchorRect = markerRef.current.getBoundingClientRect()
+    const viewportBounds = getViewportBounds()
+    const primaryBounds = getCommentaryPaneBounds(markerRef.current)
+
+    const measuredRect = popoverRef.current.getBoundingClientRect()
+    const naturalWidth = clamp(
+      Math.ceil(measuredRect.width),
+      FOOTNOTE_MIN_WIDTH,
+      Math.min(FOOTNOTE_MAX_WIDTH, viewportBounds.width)
+    )
+    const naturalHeight = Math.max(FOOTNOTE_MIN_HEIGHT, Math.ceil(popoverRef.current.scrollHeight))
+
+    const viewportPlacement = computeFootnotePlacement({
+      anchorRect,
+      naturalWidth,
+      naturalHeight,
+      bounds: viewportBounds,
+    })
+
+    let chosenPlacement = viewportPlacement
+    if (primaryBounds) {
+      const primaryPlacement = computeFootnotePlacement({
+        anchorRect,
+        naturalWidth,
+        naturalHeight,
+        bounds: primaryBounds,
+      })
+      const shouldFallbackToViewport = (
+        primaryPlacement.overflowTotal > 0 &&
+        viewportPlacement.overflowTotal < primaryPlacement.overflowTotal
+      )
+      chosenPlacement = shouldFallbackToViewport ? viewportPlacement : primaryPlacement
+    }
+
+    setPopoverStyle({
+      left: `${Math.round(chosenPlacement.left)}px`,
+      top: `${Math.round(chosenPlacement.top)}px`,
+      width: `${Math.round(chosenPlacement.width)}px`,
+      maxHeight: `${Math.round(chosenPlacement.maxHeight)}px`,
+      visibility: 'visible',
+      pointerEvents: 'auto',
+    })
+    setIsMeasuring(false)
+  }, [isOpen, isMeasuring, decodedText])
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+    let frame = null
+    const handleViewportChange = (event) => {
+      const scrollTarget = event?.target
+      if (scrollTarget && popoverRef.current && popoverRef.current.contains(scrollTarget)) {
+        return
+      }
+      if (frame) cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => setIsMeasuring(true))
+    }
+    window.addEventListener('resize', handleViewportChange)
+    window.addEventListener('scroll', handleViewportChange, true)
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+      window.removeEventListener('resize', handleViewportChange)
+      window.removeEventListener('scroll', handleViewportChange, true)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!pinned) return undefined
+    const handleOutsideClick = (event) => {
+      const target = event.target
+      if (markerRef.current?.contains(target)) return
+      if (popoverRef.current?.contains(target)) return
+      setPinned(false)
+      setHovered(false)
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [pinned])
+
+  return (
+    <span ref={markerRef} className="relative inline-flex align-super ml-0.5">
+      <button
+        type="button"
+        onMouseEnter={() => {
+          clearCloseTimer()
+          setIsMeasuring(true)
+          setHovered(true)
+        }}
+        onMouseLeave={() => {
+          if (!pinned) scheduleClose()
+        }}
+        onClick={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          clearCloseTimer()
+          setIsMeasuring(true)
+          setPinned(value => !value)
+          setHovered(true)
+        }}
+        onFocus={() => {
+          clearCloseTimer()
+          setIsMeasuring(true)
+          setHovered(true)
+        }}
+        onBlur={() => {
+          if (!pinned) scheduleClose()
+        }}
+        aria-label={`Footnote ${noteNumber}`}
+        className="text-[10px] px-1 rounded border border-blue-200 dark:border-blue-700 text-primary dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors"
+      >
+        [{noteNumber}]
+      </button>
+      {isOpen && typeof document !== 'undefined' && createPortal(
+        <span
+          ref={popoverRef}
+          style={isMeasuring
+            ? {
+                position: 'fixed',
+                left: '-10000px',
+                top: '-10000px',
+                width: 'max-content',
+                minWidth: `${FOOTNOTE_MIN_WIDTH}px`,
+                maxWidth: `${Math.min(FOOTNOTE_MAX_WIDTH, getViewportBounds().width)}px`,
+                maxHeight: 'none',
+                visibility: 'hidden',
+                pointerEvents: 'none',
+              }
+            : popoverStyle}
+          onMouseEnter={() => {
+            clearCloseTimer()
+            setHovered(true)
+          }}
+          onMouseLeave={() => {
+            if (!pinned) scheduleClose()
+          }}
+          className="fixed z-[99999] inline-block whitespace-normal break-words text-[11px] leading-relaxed text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-2 overflow-y-auto"
+        >
+          {decodedText}
+        </span>,
+        document.body
+      )}
+    </span>
+  )
+}
+
+function renderCalvinInline(text, keyPrefix) {
+  const parts = String(text || '').split(/(<vq>[\s\S]*?<\/vq>|<fn n=['"]?\d+['"]?>[\s\S]*?<\/fn>)/g)
+  return parts.map((part, index) => {
+    if (!part) return null
+
+    const quoteMatch = part.match(/^<vq>([\s\S]*?)<\/vq>$/)
+    if (quoteMatch) {
+      return (
+        <strong key={`${keyPrefix}-vq-${index}`} className="text-gray-900 dark:text-white">
+          {quoteMatch[1]}
+        </strong>
+      )
+    }
+
+    const noteMatch = part.match(/^<fn n=['"]?(\d+)['"]?>([\s\S]*?)<\/fn>$/)
+    if (noteMatch) {
+      return (
+        <CalvinFootnoteMarker
+          key={`${keyPrefix}-fn-${index}`}
+          noteNumber={noteMatch[1]}
+          noteText={noteMatch[2]}
+        />
+      )
+    }
+
+    return (
+      <span key={`${keyPrefix}-text-${index}`}>
+        {renderTextWithEditorBadges(part, `${keyPrefix}-ed-${index}`)}
+      </span>
+    )
+  })
+}
+
+function renderTextWithEditorBadges(text, keyPrefix) {
+  const pieces = String(text || '').split(/(\s*[—-]\s*Ed\.?)/g)
+  return pieces.map((piece, index) => {
+    if (!piece) return null
+    if (/^\s*[—-]\s*Ed\.?$/.test(piece)) {
+      return <EditorNoteBadge key={`${keyPrefix}-badge-${index}`} />
+    }
+    return <span key={`${keyPrefix}-text-${index}`}>{piece}</span>
+  })
 }
 
 function buildContiguousRanges(verses) {
@@ -112,23 +479,16 @@ function renderCalvinParagraph(paragraph, pIndex) {
   if (sqMatch) {
     return (
       <blockquote key={pIndex} className="text-gray-600 dark:text-gray-400 leading-relaxed mb-2 last:mb-0 border-l-2 border-blue-300 dark:border-blue-600 pl-3 italic">
-        {sqMatch[1]}
+        {renderCalvinInline(sqMatch[1], `sq-${pIndex}`)}
       </blockquote>
     )
   }
 
-  // Paragraph with <vq> verse-quote marker(s)
-  if (paragraph.includes('<vq>')) {
-    const parts = paragraph.split(/(<vq>[\s\S]*?<\/vq>)/g)
+  // Paragraph with structural markers.
+  if (paragraph.includes('<vq>') || paragraph.includes('<fn n=')) {
     return (
       <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
-        {parts.map((part, i) => {
-          const vqMatch = part.match(/^<vq>([\s\S]*)<\/vq>$/)
-          if (vqMatch) {
-            return <strong key={i} className="text-gray-900 dark:text-white">{vqMatch[1]}</strong>
-          }
-          return part ? <span key={i}>{part}</span> : null
-        })}
+        {renderCalvinInline(paragraph, `p-${pIndex}`)}
       </p>
     )
   }
@@ -139,7 +499,7 @@ function renderCalvinParagraph(paragraph, pIndex) {
     if (quote) {
       return (
         <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
-          <strong className="text-gray-900 dark:text-white">{quote}</strong>{' '}{rest}
+          <strong className="text-gray-900 dark:text-white">{quote}</strong>{' '}{renderTextWithEditorBadges(rest, `fallback-${pIndex}`)}
         </p>
       )
     }
@@ -147,7 +507,7 @@ function renderCalvinParagraph(paragraph, pIndex) {
 
   return (
     <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
-      {paragraph}
+      {renderTextWithEditorBadges(paragraph, `plain-${pIndex}`)}
     </p>
   )
 }
@@ -157,21 +517,23 @@ function renderCalvinParagraph(paragraph, pIndex) {
  * Strips <vq>/<sq> markers and bolds the verse quote portion.
  */
 function calvinPreview(text, maxLen = 120) {
+  const normalizedText = stripCalvinMarkup(text)
+
   // Check for <vq> marker in the text
   const vqMatch = text.match(/<vq>([\s\S]*?)<\/vq>/)
   if (vqMatch) {
     const quote = vqMatch[1]
-    const afterVq = text.substring(text.indexOf('</vq>') + 5).replace(/<\/?[vs]q>/g, '').trim()
+    const afterVq = normalizedText.substring(normalizedText.indexOf(quote) + quote.length).trim()
     const preview = afterVq.substring(0, maxLen - quote.length)
     return <><strong className="text-gray-800 dark:text-gray-200">{quote}</strong>{' '}{preview}...</>
   }
   // Regex fallback
-  const [quote, rest] = regexSplitQuote(text)
+  const [quote, rest] = regexSplitQuote(normalizedText)
   if (quote) {
     const preview = rest.substring(0, maxLen - quote.length)
     return <><strong className="text-gray-800 dark:text-gray-200">{quote}</strong>{' '}{preview}...</>
   }
-  return <>{text.replace(/<\/?[vs]q>/g, '').substring(0, maxLen)}...</>
+  return <>{normalizedText.substring(0, maxLen)}...</>
 }
 
 function CommentarySidebar({ 
@@ -804,7 +1166,7 @@ function CommentarySidebar({
         </div>
 
         {/* Commentary Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-3" ref={contentRef}>
+        <div className="flex-1 overflow-y-auto p-3" ref={contentRef} data-commentary-scroll-region="true">
           {/* Introduction Section - Only for Revelation with introduction data */}
           {hasIntroduction && (
             <div className="mb-4">

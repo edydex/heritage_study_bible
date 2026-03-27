@@ -192,6 +192,51 @@ function stripTags(html) {
     .trim()
 }
 
+function stripTagsForNote(html) {
+  if (!html) return ''
+  return html
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#\d+;/g, (match) => {
+      const code = parseInt(match.slice(2, -1))
+      return String.fromCharCode(code)
+    })
+    .replace(/â€œ/g, '\u201C')
+    .replace(/â€\u009D/g, '\u201D')
+    .replace(/â€™/g, '\u2019')
+    .replace(/â€˜/g, '\u2018')
+    .replace(/â€"/g, '\u2014')
+    .replace(/â€"/g, '\u2013')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function encodeInlineNoteText(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function applyInlineNotes(text, notesByIndex) {
+  if (!text) return ''
+  return text
+    .replace(/__NOTE_BLOCK_(\d+)__/g, (_, rawIndex) => {
+      const noteIndex = Number(rawIndex)
+      const noteText = notesByIndex[noteIndex]
+      if (!noteText) return ''
+      return ` <fn n='${noteIndex}'>${encodeInlineNoteText(noteText)}</fn> `
+    })
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 /**
  * Process a paragraph from a Commentary div, preserving structural markup:
  * 
@@ -201,13 +246,12 @@ function stripTags(html) {
  * 
  * Everything else is stripped to plain text.
  */
-function processCommentaryParagraph(pTag, pContent, isScripture) {
-  // Step 1: Remove footnotes first (they contain nested <p> and confuse things)
-  let html = pContent.replace(/<note[^>]*>[\s\S]*?<\/note>/gi, '')
+function processCommentaryParagraph(pTag, pContent, isScripture, notesByIndex) {
+  let html = pContent
 
   // Step 2: If this is a SCRIPTURE paragraph, wrap the whole thing
   if (isScripture) {
-    return '<sq>' + stripTags(html) + '</sq>'
+    return '<sq>' + applyInlineNotes(stripTags(html), notesByIndex) + '</sq>'
   }
 
   // Step 3: Detect leading verse-quote pattern
@@ -224,7 +268,7 @@ function processCommentaryParagraph(pTag, pContent, isScripture) {
     const remainder = html.substring(matchA[0].length)
     const cleanRemainder = stripTags(remainder).trim()
     const vqPart = '<vq>' + verseNum + ' ' + quoteText + '</vq>'
-    return cleanRemainder ? vqPart + ' ' + cleanRemainder : vqPart
+    return applyInlineNotes(cleanRemainder ? vqPart + ' ' + cleanRemainder : vqPart, notesByIndex)
   }
 
   // Try Pattern B: italic quote at the start (no bold number)
@@ -238,12 +282,12 @@ function processCommentaryParagraph(pTag, pContent, isScripture) {
       const remainder = html.substring(matchB[0].length)
       const cleanRemainder = stripTags(remainder).trim()
       const vqPart = '<vq>' + quoteText + '</vq>'
-      return cleanRemainder ? vqPart + ' ' + cleanRemainder : vqPart
+      return applyInlineNotes(cleanRemainder ? vqPart + ' ' + cleanRemainder : vqPart, notesByIndex)
     }
   }
 
   // No structural pattern detected — just strip tags
-  return stripTags(html)
+  return applyInlineNotes(stripTags(html), notesByIndex)
 }
 
 function parsePassage(passage, parsedAttr) {
@@ -300,16 +344,28 @@ function parseForBook(xmlContent, targetAbbrev, bookName) {
     const divMatch = segment.match(/<div\s+class="Commentary"[^>]*>([\s\S]*?)<\/div>/)
     if (!divMatch) continue
 
+    // Replace inline note blocks with stable placeholders before paragraph
+    // extraction, because notes can contain nested <p> tags.
+    const notesByIndex = {}
+    let nextNoteIndex = 1
+    const divContentWithNotePlaceholders = divMatch[1].replace(/<note\b[^>]*>[\s\S]*?<\/note>/gi, (noteBlock) => {
+      const noteText = stripTagsForNote(noteBlock)
+      if (!noteText) return ' '
+      const noteIndex = nextNoteIndex++
+      notesByIndex[noteIndex] = noteText
+      return ` __NOTE_BLOCK_${noteIndex}__ `
+    })
+
     const paragraphs = []
     const pPattern = /<p([^>]*)>([\s\S]*?)<\/p>/g
     let pMatch
-    while ((pMatch = pPattern.exec(divMatch[1])) !== null) {
+    while ((pMatch = pPattern.exec(divContentWithNotePlaceholders)) !== null) {
       const pAttrs = pMatch[1]
       const pContent = pMatch[2]
       const isScripture = /class="SCRIPTURE"/i.test(pAttrs)
       // Skip footnote-only paragraphs (class="Footnote" or class="Super")
       if (/class="Footnote"|class="Super"/i.test(pAttrs)) continue
-      const text = processCommentaryParagraph(pAttrs, pContent, isScripture)
+      const text = processCommentaryParagraph(pAttrs, pContent, isScripture, notesByIndex)
       if (text && text.replace(/<\/?[vs]q>/g, '').trim().length > 5) paragraphs.push(text)
     }
     if (paragraphs.length === 0) continue
