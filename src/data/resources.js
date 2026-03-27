@@ -308,10 +308,20 @@ export const RESOURCE_CATEGORIES = [
   },
   {
     id: 'tools',
-    title: 'More Tools',
+    title: 'More',
     icon: '🔧',
     color: 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/50',
     items: [
+      {
+        id: 'apocrypha',
+        title: 'Apocrypha',
+        description: 'Read the traditional Deuterocanonical/Apocryphal books in chapter and verse format.',
+      },
+      {
+        id: 'hymns',
+        title: 'Hymns',
+        description: 'Public-domain hymns for reading and reflection.',
+      },
       {
         id: 'mass-verse-export',
         title: 'Mass Verse Export',

@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES } from '../data/resources'
 import MassVerseExportViewer from './MassVerseExportViewer'
+import ApocryphaViewer from './ApocryphaViewer'
+import HymnsViewer from './HymnsViewer'
 
 function ToolViewer() {
   const { itemId } = useParams()
@@ -15,6 +17,12 @@ function ToolViewer() {
 
   if (itemId === 'mass-verse-export') {
     return <MassVerseExportViewer toolMeta={tool} />
+  }
+  if (itemId === 'apocrypha') {
+    return <ApocryphaViewer toolMeta={tool} />
+  }
+  if (itemId === 'hymns') {
+    return <HymnsViewer toolMeta={tool} />
   }
 
   return (
@@ -44,7 +52,7 @@ function ToolViewer() {
             onClick={() => navigate('/resources/tools')}
             className="text-sm text-primary dark:text-blue-400 hover:underline"
           >
-            {'\u2190'} Back to More Tools
+            {'\u2190'} Back to More
           </button>
         </div>
       </main>
@@ -53,4 +61,3 @@ function ToolViewer() {
 }
 
 export default ToolViewer
-
