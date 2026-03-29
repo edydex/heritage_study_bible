@@ -114,11 +114,12 @@ const MULTI_BOOK_VOLUMES = {
   'calcom32': ['Matthew', 'Mark', 'Luke'],
   'calcom33': ['Matthew', 'Mark', 'Luke'],
   'calcom39': ['1 Corinthians'],
-  'calcom40': ['2 Corinthians'],
+  'calcom40': ['1 Corinthians', '2 Corinthians'],
   'calcom41': ['Galatians', 'Ephesians'],
   'calcom42': ['Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonians'],
   'calcom43': ['1 Timothy', '2 Timothy', 'Titus', 'Philemon'],
   'calcom45': ['James', '1 Peter', '2 Peter', '1 John', 'Jude'],
+  'calcom21': ['Jeremiah', 'Lamentations'],
 }
 
 const BOOK_TO_CCEL = {
@@ -342,13 +343,13 @@ function parseForBook(xmlContent, targetAbbrev, bookName) {
     const segment = xmlContent.substring(searchStart, searchEnd)
 
     const divMatch = segment.match(/<div\s+class="Commentary"[^>]*>([\s\S]*?)<\/div>/)
-    if (!divMatch) continue
+    const commentaryContent = divMatch ? divMatch[1] : segment
 
     // Replace inline note blocks with stable placeholders before paragraph
     // extraction, because notes can contain nested <p> tags.
     const notesByIndex = {}
     let nextNoteIndex = 1
-    const divContentWithNotePlaceholders = divMatch[1].replace(/<note\b[^>]*>[\s\S]*?<\/note>/gi, (noteBlock) => {
+    const contentWithNotePlaceholders = commentaryContent.replace(/<note\b[^>]*>[\s\S]*?<\/note>/gi, (noteBlock) => {
       const noteText = stripTagsForNote(noteBlock)
       if (!noteText) return ' '
       const noteIndex = nextNoteIndex++
@@ -359,12 +360,12 @@ function parseForBook(xmlContent, targetAbbrev, bookName) {
     const paragraphs = []
     const pPattern = /<p([^>]*)>([\s\S]*?)<\/p>/g
     let pMatch
-    while ((pMatch = pPattern.exec(divContentWithNotePlaceholders)) !== null) {
+    while ((pMatch = pPattern.exec(contentWithNotePlaceholders)) !== null) {
       const pAttrs = pMatch[1]
       const pContent = pMatch[2]
       const isScripture = /class="SCRIPTURE"/i.test(pAttrs)
-      // Skip footnote-only paragraphs (class="Footnote" or class="Super")
-      if (/class="Footnote"|class="Super"/i.test(pAttrs)) continue
+      // Skip footnote-only paragraphs. "Super" often contains primary commentary text.
+      if (/class="Footnote"/i.test(pAttrs)) continue
       const text = processCommentaryParagraph(pAttrs, pContent, isScripture, notesByIndex)
       if (text && text.replace(/<\/?[vs]q>/g, '').trim().length > 5) paragraphs.push(text)
     }

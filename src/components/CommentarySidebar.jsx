@@ -633,10 +633,23 @@ function CommentarySidebar({
     w.book === bookName && w.commentaries.some(c => c.chapter === chapter)
   )
 
-  // Get commentaries for current chapter from current work
-  const chapterCommentaries = (currentWorkData?.book === bookName && currentWorkData?.commentaries.filter(c => 
-    c.chapter === chapter
-  )) || []
+  // Get commentaries for current chapter from current work.
+  // Keep chapter introductions (verse 0) first, then verse-order.
+  const chapterCommentaries = (
+    currentWorkData?.book === bookName
+      ? currentWorkData.commentaries.filter(c => c.chapter === chapter)
+      : []
+  ).slice().sort((a, b) => {
+    const aIsIntro = Boolean(a?.isIntro || a?.verses?.some(v => v.verse === 0))
+    const bIsIntro = Boolean(b?.isIntro || b?.verses?.some(v => v.verse === 0))
+    if (aIsIntro !== bIsIntro) return aIsIntro ? -1 : 1
+
+    const aStart = Math.min(...(a.verses || []).map(v => v.verse))
+    const bStart = Math.min(...(b.verses || []).map(v => v.verse))
+    if (aStart !== bStart) return aStart - bStart
+
+    return String(a.reference || '').localeCompare(String(b.reference || ''))
+  })
 
   // Get introduction sections
   const introductionSections = (currentWorkData?.book === bookName && currentWorkData?.introduction) || []
@@ -1289,6 +1302,7 @@ function CommentarySidebar({
                 const verseKey = getVerseKey(commentary.verses, commentary.reference)
                 const isExpanded = expandedVerses[verseKey]
                 const commentaryIsBookmarked = isCommentaryBookmarked?.(commentary.id)
+                const isChapterIntro = Boolean(commentary?.isIntro || commentary?.verses?.some(v => v.verse === 0))
                 
                 return (
                   <div
@@ -1308,7 +1322,7 @@ function CommentarySidebar({
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-medium text-primary dark:text-blue-400" style={{ fontSize: `${Math.max(12, commentaryTextSize)}px` }}>
-                            {commentary.reference?.replace(`${bookName} `, '') || verseKey}
+                            {isChapterIntro ? 'Chapter Introduction' : (commentary.reference?.replace(`${bookName} `, '') || verseKey)}
                           </span>
                           <span className="text-gray-400 text-xs transform transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : '' }}>
                             ▶

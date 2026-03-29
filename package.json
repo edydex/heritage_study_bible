@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "convert-translations": "node scripts/convert-translations.cjs",
+    "audit-calvin-commentary": "node scripts/audit-calvin-commentary.cjs",
     "parse-docx": "node scripts/parseDocx.js",
     "deploy": "npm run build && gh-pages -d dist"
   },
