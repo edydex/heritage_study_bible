@@ -207,6 +207,21 @@ export const RESOURCE_CATEGORIES = [
         },
       },
       {
+        id: 'martyrdom-of-polycarp',
+        title: 'The Martyrdom of Polycarp',
+        author: 'The Church at Smyrna',
+        year: 156,
+        tag: 'Church Fathers',
+        description: 'The letter of the Church of Smyrna to the Church of Philomelium concerning the martyrdom of Polycarp.',
+        textPath: 'data/books/martyrdom-of-polycarp.txt',
+        textUrl: 'https://en.wikisource.org/wiki/Ante-Nicene_Christian_Library/The_Martyrdom_of_Polycarp',
+        librivox: {
+          title: 'The Martyrdom of Polycarp (Early Church Collection, Vol. 1, Track 11)',
+          url: 'https://librivox.org/the-early-church-collection-volume-1-by-various/',
+          audioUrl: 'https://dn721608.ca.archive.org/0/items/theearlychurchcollection_volume_1_2102_librivox/ecc01_11_martyrdompolycarp_unknown_64kb.mp3',
+        },
+      },
+      {
         id: 'tertullian-apology',
         title: "Tertullian's Apology",
         author: 'Tertullian',

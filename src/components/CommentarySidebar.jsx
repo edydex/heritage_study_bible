@@ -39,7 +39,54 @@ function stripCalvinMarkup(text) {
     .replace(/<vq>([\s\S]*?)<\/vq>/g, '$1')
     .replace(/<sq>([\s\S]*?)<\/sq>/g, '$1')
     .replace(/<fn n=['"]?\d+['"]?>[\s\S]*?<\/fn>/g, '')
+    .replace(/<corr n=['"]?\d+['"]?>[\s\S]*?<\/corr>/g, '')
     .replace(/\s*[—-]\s*Ed\.?/g, ' [Editorial note]')
+}
+
+// Source-text typo corrections shown transparently in the UI.
+// We preserve source JSON and annotate each correction with a {n} marker.
+const CALVIN_SOURCE_CORRECTIONS = {
+  calvin_matthew_24_9: [
+    {
+      from: 'what Paul stays is true',
+      to: 'what Paul says is true',
+      note: 'Source says "what Paul stays is true".',
+    },
+  ],
+  calvin_matthew_24_26: [
+    {
+      from: 'they 1earned that',
+      to: 'they learned that',
+      note: 'Source says "they 1earned that".',
+    },
+    {
+      from: 'I think it. probable',
+      to: 'I think it probable',
+      note: 'Source says "I think it. probable".',
+      showMarker: false,
+    },
+  ],
+}
+
+function applyCalvinSourceCorrections(text, commentaryId) {
+  const rules = CALVIN_SOURCE_CORRECTIONS[commentaryId]
+  if (!text || !Array.isArray(rules) || rules.length === 0) return String(text || '')
+
+  let output = String(text)
+  let markerNumber = 1
+  for (const rule of rules) {
+    if (!rule?.from || !rule?.to) continue
+    const index = output.indexOf(rule.from)
+    if (index === -1) continue
+    const markerText = `<corr n='${markerNumber}'>${rule.note || `Source says "${rule.from}".`}</corr>`
+    if (rule.showMarker === false) {
+      output = `${output.slice(0, index)}${rule.to}${output.slice(index + rule.from.length)}`
+    } else {
+      output = `${output.slice(0, index)}${rule.to}${markerText}${output.slice(index + rule.from.length)}`
+      markerNumber += 1
+    }
+  }
+  return output
 }
 
 const FOOTNOTE_EDGE_PADDING = 12
@@ -151,7 +198,13 @@ function computeFootnotePlacement({ anchorRect, naturalWidth, naturalHeight, bou
   return scored[0]
 }
 
-function CalvinFootnoteMarker({ noteNumber, noteText }) {
+function CalvinFootnoteMarker({
+  noteNumber,
+  noteText,
+  markerText,
+  ariaLabelPrefix = 'Footnote',
+  buttonClassName,
+}) {
   const [pinned, setPinned] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [popoverStyle, setPopoverStyle] = useState({})
@@ -298,10 +351,10 @@ function CalvinFootnoteMarker({ noteNumber, noteText }) {
         onBlur={() => {
           if (!pinned) scheduleClose()
         }}
-        aria-label={`Footnote ${noteNumber}`}
-        className="text-[10px] px-1 rounded border border-blue-200 dark:border-blue-700 text-primary dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors"
+        aria-label={`${ariaLabelPrefix} ${noteNumber}`}
+        className={buttonClassName || 'text-[10px] px-1 rounded border border-blue-200 dark:border-blue-700 text-primary dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors'}
       >
-        [{noteNumber}]
+        {markerText || `[${noteNumber}]`}
       </button>
       {isOpen && typeof document !== 'undefined' && createPortal(
         <span
@@ -336,8 +389,20 @@ function CalvinFootnoteMarker({ noteNumber, noteText }) {
   )
 }
 
+function CalvinSourceCorrectionMarker({ noteNumber, noteText }) {
+  return (
+    <CalvinFootnoteMarker
+      noteNumber={noteNumber}
+      noteText={noteText}
+      markerText={`{${noteNumber}}`}
+      ariaLabelPrefix="Source correction"
+      buttonClassName="text-[10px] px-1 rounded border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/40 transition-colors"
+    />
+  )
+}
+
 function renderCalvinInline(text, keyPrefix) {
-  const parts = String(text || '').split(/(<vq>[\s\S]*?<\/vq>|<fn n=['"]?\d+['"]?>[\s\S]*?<\/fn>)/g)
+  const parts = String(text || '').split(/(<vq>[\s\S]*?<\/vq>|<fn n=['"]?\d+['"]?>[\s\S]*?<\/fn>|<corr n=['"]?\d+['"]?>[\s\S]*?<\/corr>)/g)
   return parts.map((part, index) => {
     if (!part) return null
 
@@ -357,6 +422,17 @@ function renderCalvinInline(text, keyPrefix) {
           key={`${keyPrefix}-fn-${index}`}
           noteNumber={noteMatch[1]}
           noteText={noteMatch[2]}
+        />
+      )
+    }
+
+    const correctionMatch = part.match(/^<corr n=['"]?(\d+)['"]?>([\s\S]*?)<\/corr>$/)
+    if (correctionMatch) {
+      return (
+        <CalvinSourceCorrectionMarker
+          key={`${keyPrefix}-corr-${index}`}
+          noteNumber={correctionMatch[1]}
+          noteText={correctionMatch[2]}
         />
       )
     }
@@ -485,7 +561,7 @@ function renderCalvinParagraph(paragraph, pIndex) {
   }
 
   // Paragraph with structural markers.
-  if (paragraph.includes('<vq>') || paragraph.includes('<fn n=')) {
+  if (paragraph.includes('<vq>') || paragraph.includes('<fn n=') || paragraph.includes('<corr n=')) {
     return (
       <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
         {renderCalvinInline(paragraph, `p-${pIndex}`)}
@@ -1303,6 +1379,9 @@ function CommentarySidebar({
                 const isExpanded = expandedVerses[verseKey]
                 const commentaryIsBookmarked = isCommentaryBookmarked?.(commentary.id)
                 const isChapterIntro = Boolean(commentary?.isIntro || commentary?.verses?.some(v => v.verse === 0))
+                const displayText = selectedAuthor === 'john-calvin'
+                  ? applyCalvinSourceCorrections(commentary.text, commentary.id)
+                  : commentary.text
                 
                 return (
                   <div
@@ -1331,7 +1410,7 @@ function CommentarySidebar({
                         {!isExpanded && (
                           <p className="text-gray-600 dark:text-gray-200 mt-1 line-clamp-2" style={{ fontSize: `${Math.max(11, commentaryTextSize - 1)}px` }}>
                             {selectedAuthor === 'john-calvin'
-                              ? calvinPreview(commentary.text)
+                              ? calvinPreview(displayText)
                               : <>{commentary.text.substring(0, 120)}...</>}
                           </p>
                         )}
@@ -1358,7 +1437,7 @@ function CommentarySidebar({
                     {isExpanded && (
                       <div className="px-3 pb-3">
                         <div className="border-t border-blue-200 dark:border-blue-800 pt-3" style={{ fontSize: `${commentaryTextSize}px` }}>
-                          {commentary.text.split('\n\n').map((paragraph, pIndex) => {
+                          {displayText.split('\n\n').map((paragraph, pIndex) => {
                             if (selectedAuthor === 'john-calvin') {
                               return renderCalvinParagraph(paragraph, pIndex)
                             }

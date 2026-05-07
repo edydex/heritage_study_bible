@@ -479,7 +479,7 @@ function BookViewer() {
     )
   }
 
-  const embedUrl = activeLibrivox
+  const embedUrl = activeLibrivox?.archiveId
     ? `https://archive.org/embed/${activeLibrivox.archiveId}&playlist=1`
     : null
 
@@ -809,15 +809,26 @@ function BookViewer() {
               </a>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{activeLibrivox.title}</p>
-            <iframe
-              src={embedUrl}
-              width="100%"
-              height="300"
-              frameBorder="0"
-              allowFullScreen
-              className="rounded-lg bg-gray-100 dark:bg-gray-700"
-              title={activeLibrivox.title}
-            />
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
+                width="100%"
+                height="300"
+                frameBorder="0"
+                allowFullScreen
+                className="rounded-lg bg-gray-100 dark:bg-gray-700"
+                title={activeLibrivox.title}
+              />
+            ) : activeLibrivox.audioUrl ? (
+              <audio
+                controls
+                preload="none"
+                src={activeLibrivox.audioUrl}
+                className="w-full"
+              >
+                <a href={activeLibrivox.audioUrl}>Listen to {activeLibrivox.title}</a>
+              </audio>
+            ) : null}
           </div>
         )}
 
