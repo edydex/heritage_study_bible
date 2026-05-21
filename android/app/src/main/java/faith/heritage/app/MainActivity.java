@@ -7,7 +7,9 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -19,6 +21,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(HeritageControlsPlugin.class);
         super.onCreate(savedInstanceState);
         configureSystemBars();
+        registerBackHandler();
     }
 
     private void configureSystemBars() {
@@ -27,11 +30,36 @@ public class MainActivity extends BridgeActivity {
         window.setStatusBarColor(HERITAGE_BLUE);
         window.setNavigationBarColor(Color.WHITE);
 
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
+        controller.setAppearanceLightStatusBars(false);
+        controller.setAppearanceLightNavigationBars(true);
+
         int systemUiFlags = 0;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             systemUiFlags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         }
         window.getDecorView().setSystemUiVisibility(systemUiFlags);
+    }
+
+    private void registerBackHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                dispatchNativeBackToWeb();
+            }
+        });
+    }
+
+    private void dispatchNativeBackToWeb() {
+        if (getBridge() != null) {
+            getBridge().eval(
+                "window.dispatchEvent(new CustomEvent('heritage:native-back',{cancelable:true}));",
+                null
+            );
+            return;
+        }
+
+        finish();
     }
 
     @Override
@@ -58,14 +86,6 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onBackPressed() {
-        if (getBridge() != null) {
-            getBridge().eval(
-                "window.dispatchEvent(new CustomEvent('heritage:native-back',{cancelable:true}));",
-                null
-            );
-            return;
-        }
-
-        super.onBackPressed();
+        dispatchNativeBackToWeb();
     }
 }

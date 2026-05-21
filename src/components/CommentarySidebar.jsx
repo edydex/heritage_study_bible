@@ -968,7 +968,7 @@ function CommentarySidebar({
 
       {/* Sidebar - full screen on mobile, dynamic width on desktop */}
       <aside 
-        className="fixed top-0 right-0 bottom-0 w-full lg:w-auto flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 lg:z-40 transform transition-[width] duration-100 ease-out animate-slide-in-right android-mobile-safe-top"
+        className="fixed top-0 right-0 bottom-0 w-full lg:w-auto flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 lg:z-40 transform transition-[width] duration-100 ease-out animate-slide-in-right"
         style={{ width: window.innerWidth >= 1024 ? `${sidebarWidth}px` : undefined }}
         ref={sidebarRef}
       >
@@ -981,7 +981,7 @@ function CommentarySidebar({
           <div className="w-0.5 h-8 bg-gray-300 dark:bg-gray-600 group-hover:bg-primary rounded-full mx-auto transition-colors" />
         </div>
         {/* Top Bar with Close - height matches Header */}
-        <div className="flex items-center justify-between px-4 h-14 bg-primary text-white">
+        <div className="flex items-center justify-between px-4 h-14 bg-primary text-white android-mobile-safe-top">
           <h2 className="font-semibold text-lg leading-tight">Commentary</h2>
           <button
             onClick={onClose}

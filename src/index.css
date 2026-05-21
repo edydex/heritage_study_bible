@@ -138,5 +138,7 @@ html.capacitor-android header.sticky.top-0 {
   html.capacitor-android .android-mobile-safe-top {
     padding-top: 24px;
     padding-top: max(env(safe-area-inset-top), 24px);
+    min-height: calc(3.5rem + 24px);
+    min-height: calc(3.5rem + max(env(safe-area-inset-top), 24px));
   }
 }

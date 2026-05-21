@@ -233,6 +233,27 @@ function NativeBackNavigation() {
       window.setTimeout(() => {
         if (event?.defaultPrevented) return
 
+        const resourceDetailMatch = location.pathname.match(/^\/resources\/([^/]+)\/[^/]+/)
+        if (resourceDetailMatch) {
+          navigate(`/resources/${resourceDetailMatch[1]}`)
+          return
+        }
+
+        if (/^\/resources\/[^/]+$/.test(location.pathname)) {
+          getReaderProgress()
+            .then(progress => {
+              const saved = progress?.bible
+              const bookMeta = saved?.book ? bibleBooks.find(book => book.name === saved.book) : null
+              const chapter = Number(saved?.chapter)
+              const biblePath = bookMeta && Number.isInteger(chapter) && chapter >= 1 && chapter <= bookMeta.chapters
+                ? `/${bookToSlug(bookMeta.name)}/${chapter}`
+                : '/genesis/1'
+              navigate(biblePath, { state: { openResources: true } })
+            })
+            .catch(() => navigate('/genesis/1', { state: { openResources: true } }))
+          return
+        }
+
         if (/^\/[a-z0-9-]+\/\d+/i.test(location.pathname)) {
           exitNativeApp().catch(() => {})
           return
@@ -576,6 +597,12 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   useEffect(() => {
     saveBibleProgress(currentBook, currentChapter).catch(() => {})
   }, [currentBook, currentChapter])
+
+  useEffect(() => {
+    if (!location.state?.openResources) return
+    setShowResources(true)
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location.pathname, location.state, navigate])
 
   // Sync URL to state when URL changes
   useEffect(() => {
