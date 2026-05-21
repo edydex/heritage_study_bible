@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES } from '../data/resources'
 import {
+  COMMENTS_ITEM_TYPE,
   PLAN_NOTES_BASE_URL,
   bookToSlug,
   getCompletedDayNumbers,
@@ -263,8 +264,7 @@ function ReadingPlanViewer() {
   const openPlanItem = (reading, item) => {
     const targetReading = reading || selectedReading
     const targetItem = item || getFirstIncompleteItem(targetReading, progressState)
-    const parsed = parsePassageStart(targetItem?.passage)
-    if (!targetReading || !targetItem || !parsed) return
+    if (!targetReading || !targetItem) return
 
     saveActiveReadingPlan({
       planId: itemId,
@@ -273,6 +273,19 @@ function ReadingPlanViewer() {
       itemId: targetItem.id,
       groupId: groupRecord?.groupId || null,
     })
+
+    if (targetItem.type === COMMENTS_ITEM_TYPE) {
+      const firstBibleItem = getReadingItems(targetReading).find(row => row.type === 'chapter')
+      if (firstBibleItem?.book && firstBibleItem?.chapter) {
+        navigate(`/${bookToSlug(firstBibleItem.book)}/${firstBibleItem.chapter}`)
+      }
+      return
+    }
+
+    const parsed = targetItem.book && targetItem.chapter
+      ? { book: targetItem.book, chapter: targetItem.chapter }
+      : parsePassageStart(targetItem?.passage)
+    if (!parsed) return
     navigate(`/${bookToSlug(parsed.book)}/${parsed.chapter}`)
   }
 
@@ -611,7 +624,7 @@ function ReadingPlanViewer() {
                           {item.label}
                         </span>
                         <span className="block text-xs text-gray-500 dark:text-gray-400">
-                          {done ? 'Finished' : 'Tap to read'}
+                          {item.type === COMMENTS_ITEM_TYPE ? (done ? 'Finished' : 'Talk it over') : (done ? 'Finished' : 'Tap to read')}
                         </span>
                       </button>
                       <span className="text-2xl text-gray-400 dark:text-gray-500">›</span>

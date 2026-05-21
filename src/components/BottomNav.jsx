@@ -1,12 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  COMMENTS_ITEM_TYPE,
+  clearActiveReadingPlan,
   getFirstIncompleteItem,
+  getNextPlanDay,
+  getPlanItemById,
+  getPlanItemForChapter,
+  getPlanItemNeighbor,
+  getPlanModeLabel,
   getReadingItems,
   isPlanItemComplete,
+  loadPlanGroups,
   loadPlanProgress,
+  markPlanItemComplete,
   parsePassageStart,
+  planNotesApi,
   saveActiveReadingPlan,
   savePlanProgress,
+  setPlanDayNote,
   togglePlanItem,
 } from '../services/readingPlanProgress'
 
@@ -33,6 +44,11 @@ function BottomNav({
   const [activePlanData, setActivePlanData] = useState(null)
   const [activePlanProgress, setActivePlanProgress] = useState(null)
   const [activePlanLoading, setActivePlanLoading] = useState(false)
+  const [groupState, setGroupState] = useState(null)
+  const [commentText, setCommentText] = useState('')
+  const [commentAnswerText, setCommentAnswerText] = useState('')
+  const [planPanelMessage, setPlanPanelMessage] = useState('')
+  const [planPanelBusy, setPlanPanelBusy] = useState(false)
   const dragCleanupRef = useRef(null)
   const dragStateRef = useRef({
     active: false,
@@ -169,6 +185,27 @@ function BottomNav({
     return () => { cancelled = true }
   }, [activePlan?.planId, activePlan?.updatedAt])
 
+  const groupRecord = activePlan?.planId ? loadPlanGroups()[activePlan.planId] : null
+  const groupToken = groupRecord?.participantToken || groupRecord?.leaderToken || null
+
+  useEffect(() => {
+    if (!activePlan?.groupId || !groupToken) {
+      setGroupState(null)
+      return
+    }
+
+    let cancelled = false
+    planNotesApi.getGroupState(activePlan.groupId, groupToken)
+      .then(state => {
+        if (!cancelled) setGroupState(state)
+      })
+      .catch(() => {
+        if (!cancelled) setPlanPanelMessage('Group questions are unavailable right now.')
+      })
+
+    return () => { cancelled = true }
+  }, [activePlan?.groupId, groupToken])
+
   // Toggle: should the book/chapter picker avoid overlapping the commentary sidebar?
   // Set to false to make the picker full-width again.
   const PICKER_RESPECTS_SIDEBAR = true
@@ -189,6 +226,40 @@ function BottomNav({
     if (!activePlanReading || !activePlanProgress) return null
     return getFirstIncompleteItem(activePlanReading, activePlanProgress)
   }, [activePlanProgress, activePlanReading])
+  const currentPlanItem = useMemo(() => {
+    if (!activePlanReading) return null
+    return getPlanItemById(activePlanReading, activePlan?.itemId)
+      || getPlanItemForChapter(activePlanReading, currentBook, currentChapter)
+      || nextPlanItem
+      || activePlanItems[0]
+  }, [activePlan?.itemId, activePlanItems, activePlanReading, currentBook, currentChapter, nextPlanItem])
+  const previousPlanItem = useMemo(
+    () => getPlanItemNeighbor(activePlanReading, currentPlanItem?.id, 'previous'),
+    [activePlanReading, currentPlanItem?.id]
+  )
+  const followingPlanItem = useMemo(
+    () => getPlanItemNeighbor(activePlanReading, currentPlanItem?.id, 'next'),
+    [activePlanReading, currentPlanItem?.id]
+  )
+  const currentItemDone = activePlanProgress && currentPlanItem
+    ? isPlanItemComplete(activePlanProgress, activePlan.day, currentPlanItem.id)
+    : false
+  const selectedQuestions = useMemo(() => {
+    const questions = groupState?.questions || []
+    return questions.filter(question => Number(question.day) === Number(activePlan?.day))
+  }, [activePlan?.day, groupState])
+  const selectedAnswers = useMemo(() => {
+    const answers = groupState?.answers || []
+    return answers.filter(answer => Number(answer.day) === Number(activePlan?.day))
+  }, [activePlan?.day, groupState])
+
+  useEffect(() => {
+    if (!activePlan?.day || !activePlanProgress) {
+      setCommentText('')
+      return
+    }
+    setCommentText(activePlanProgress.dayNotes?.[activePlan.day] || '')
+  }, [activePlan?.day, activePlanProgress])
 
   const updateActivePlanProgress = (updater) => {
     if (!activePlan?.planId) return
@@ -199,21 +270,112 @@ function BottomNav({
     })
   }
 
-  const openPlanItem = (item) => {
+  const completeCurrentChapterItem = () => {
+    if (!activePlan?.planId || !activePlanReading || !currentPlanItem || currentPlanItem.type !== 'chapter') return
+    updateActivePlanProgress(prev => markPlanItemComplete(prev, activePlanReading, currentPlanItem.id))
+  }
+
+  const openPlanItem = (item, { showPanelForComments = true } = {}) => {
     if (!activePlan?.planId || !activePlanReading || !item) return
-    const parsed = parsePassageStart(item.passage)
-    if (!parsed) return
     saveActiveReadingPlan({
       ...activePlan,
       planTitle: activePlanData?.title || activePlan.planTitle,
       day: activePlanReading.day,
       itemId: item.id,
     })
+
+    if (item.type === COMMENTS_ITEM_TYPE) {
+      if (showPanelForComments) setShowPlanPanel(true)
+      return
+    }
+
+    const parsed = item.book && item.chapter ? { book: item.book, chapter: item.chapter } : parsePassageStart(item.passage)
+    if (!parsed) return
     setShowPlanPanel(false)
     if (typeof onPlanNavigate === 'function') {
       onPlanNavigate(parsed.book, parsed.chapter)
     } else {
       onNavigate(parsed.book, parsed.chapter)
+    }
+  }
+
+  const handlePlanPrevious = () => {
+    if (!activePlan?.planId) {
+      onPrevious()
+      return
+    }
+    if (!previousPlanItem) return
+    if (currentPlanItem?.type === 'chapter') completeCurrentChapterItem()
+    openPlanItem(previousPlanItem)
+  }
+
+  const handlePlanNext = () => {
+    if (!activePlan?.planId) {
+      onNext()
+      return
+    }
+    if (currentPlanItem?.type === COMMENTS_ITEM_TYPE) {
+      setShowPlanPanel(true)
+      return
+    }
+    completeCurrentChapterItem()
+    if (followingPlanItem) openPlanItem(followingPlanItem)
+  }
+
+  const handleClosePlanMode = () => {
+    clearActiveReadingPlan()
+    setShowPlanPanel(false)
+  }
+
+  const handleSaveComments = () => {
+    if (!activePlan?.planId || !activePlanReading) return
+    const commentsItem = activePlanItems.find(item => item.type === COMMENTS_ITEM_TYPE)
+    updateActivePlanProgress(prev => {
+      const withNote = setPlanDayNote(prev, activePlan.day, commentText)
+      return commentsItem ? markPlanItemComplete(withNote, activePlanReading, commentsItem.id) : withNote
+    })
+    setPlanPanelMessage('Comments saved.')
+  }
+
+  const handleNextPlanDay = () => {
+    const nextDay = getNextPlanDay(activePlanData, activePlan?.day)
+    if (!nextDay) {
+      handleClosePlanMode()
+      return
+    }
+    const nextItem = getFirstIncompleteItem(nextDay, activePlanProgress) || getReadingItems(nextDay)[0]
+    saveActiveReadingPlan({
+      ...activePlan,
+      day: nextDay.day,
+      itemId: nextItem?.id || null,
+    })
+    if (nextItem?.type === COMMENTS_ITEM_TYPE) {
+      setShowPlanPanel(true)
+      return
+    }
+    const parsed = nextItem?.book && nextItem?.chapter ? { book: nextItem.book, chapter: nextItem.chapter } : parsePassageStart(nextItem?.passage)
+    if (parsed && typeof onPlanNavigate === 'function') {
+      onPlanNavigate(parsed.book, parsed.chapter)
+    }
+  }
+
+  const handleSubmitGroupAnswer = async () => {
+    if (!activePlan?.groupId || !groupToken || !commentAnswerText.trim()) return
+    setPlanPanelBusy(true)
+    try {
+      await planNotesApi.submitAnswer(activePlan.groupId, groupToken, {
+        planId: activePlan.planId,
+        day: activePlan.day,
+        text: commentAnswerText.trim(),
+      })
+      setCommentAnswerText('')
+      const state = await planNotesApi.getGroupState(activePlan.groupId, groupToken)
+      setGroupState(state)
+      setPlanPanelMessage('Answer shared.')
+    } catch {
+      setPlanPanelMessage('Could not share that answer yet.')
+    } finally {
+      setPlanPanelBusy(false)
     }
   }
 
@@ -235,10 +397,10 @@ function BottomNav({
         <div className="flex items-center justify-between h-14 px-2">
           {/* Previous Button */}
           <button
-            onClick={onPrevious}
-            disabled={!hasPrevious}
+            onClick={handlePlanPrevious}
+            disabled={activePlan?.planId ? !previousPlanItem : !hasPrevious}
             className="flex items-center justify-center w-14 h-full text-primary dark:text-blue-400 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
-            aria-label="Previous chapter"
+            aria-label={activePlan?.planId ? 'Previous plan item' : 'Previous chapter'}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -247,35 +409,23 @@ function BottomNav({
 
           {/* Chapter Selector Button */}
           <button
-            onClick={() => setShowPicker(true)}
+            onClick={() => activePlan?.planId ? setShowPlanPanel(true) : setShowPicker(true)}
             className="flex-1 min-w-0 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
           >
             <span className="text-base font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[160px] sm:max-w-[200px]">
-              {currentBook} {currentChapter}
+              {activePlan?.planId ? getPlanModeLabel(currentPlanItem, currentBook, currentChapter) : `${currentBook} ${currentChapter}`}
             </span>
             <svg className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
-          {activePlan?.planId && (
-            <button
-              onClick={() => setShowPlanPanel(true)}
-              className="flex items-center justify-center w-14 h-full text-gray-900 dark:text-gray-100 active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
-              aria-label="Open reading plan day"
-            >
-              <span className="w-10 h-10 rounded-full bg-primary text-white dark:bg-gray-100 dark:text-gray-950 flex items-center justify-center text-sm font-bold">
-                {activePlan.day}
-              </span>
-            </button>
-          )}
-
           {/* Next Button */}
           <button
-            onClick={onNext}
-            disabled={!hasNext}
+            onClick={handlePlanNext}
+            disabled={activePlan?.planId ? (!followingPlanItem && currentPlanItem?.type !== COMMENTS_ITEM_TYPE) : !hasNext}
             className="flex items-center justify-center w-14 h-full text-primary dark:text-blue-400 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
-            aria-label="Next chapter"
+            aria-label={activePlan?.planId ? 'Next plan item' : 'Next chapter'}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -443,6 +593,12 @@ function BottomNav({
                 >
                   Open Plan
                 </button>
+                <button
+                  onClick={handleClosePlanMode}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300"
+                >
+                  Close Plan
+                </button>
               </div>
             </div>
 
@@ -459,8 +615,12 @@ function BottomNav({
 
               {activePlanItems.map(item => {
                 const done = activePlanProgress ? isPlanItemComplete(activePlanProgress, activePlan.day, item.id) : false
+                const active = currentPlanItem?.id === item.id
                 return (
-                  <div key={item.id} className="flex items-center gap-3 py-4 border-b border-gray-100 dark:border-gray-700">
+                  <div
+                    key={item.id}
+                    className={`flex items-center gap-3 py-4 border-b border-gray-100 dark:border-gray-700 ${active ? 'bg-primary/5 dark:bg-blue-500/10 -mx-3 px-3 rounded-lg border-b-transparent' : ''}`}
+                  >
                     <button
                       onClick={() => updateActivePlanProgress(prev => togglePlanItem(prev, activePlanReading, item.id))}
                       className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
@@ -473,29 +633,121 @@ function BottomNav({
                       ✓
                     </button>
                     <button
-                      onClick={() => openPlanItem(item)}
+                      onClick={() => {
+                        if (currentPlanItem?.type === 'chapter' && currentPlanItem.id !== item.id) completeCurrentChapterItem()
+                        openPlanItem(item)
+                      }}
                       className="min-w-0 flex-1 text-left"
                     >
                       <span className={`block text-lg ${done ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-gray-100'}`}>
                         {item.label}
                       </span>
                       <span className="block text-xs text-gray-500 dark:text-gray-400">
-                        {done ? 'Finished' : 'Tap to read'}
+                        {item.type === COMMENTS_ITEM_TYPE ? (done ? 'Finished' : 'Talk it over') : (done ? 'Finished' : 'Tap to read')}
                       </span>
                     </button>
                     <span className="text-2xl text-gray-400 dark:text-gray-500">›</span>
                   </div>
                 )
               })}
+
+              {currentPlanItem?.type === COMMENTS_ITEM_TYPE && (
+                <div className="py-5 space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                      Comments
+                    </label>
+                    <textarea
+                      value={commentText}
+                      onChange={event => setCommentText(event.target.value)}
+                      rows={4}
+                      placeholder="Write thoughts, notes, or prayer points from today's reading."
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    />
+                    <button
+                      onClick={handleSaveComments}
+                      className="mt-2 w-full py-2 rounded-lg bg-primary text-white font-semibold"
+                    >
+                      Mark Comments Done
+                    </button>
+                  </div>
+
+                  {selectedQuestions.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Questions</h4>
+                      {selectedQuestions.map(question => (
+                        <div key={question.id || question.text} className="rounded-lg bg-gray-50 dark:bg-gray-700/60 p-3">
+                          <p className="text-sm text-gray-900 dark:text-gray-100">{question.text}</p>
+                        </div>
+                      ))}
+                      <textarea
+                        value={commentAnswerText}
+                        onChange={event => setCommentAnswerText(event.target.value)}
+                        rows={3}
+                        placeholder="Answer for the group"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      />
+                      <button
+                        onClick={handleSubmitGroupAnswer}
+                        disabled={planPanelBusy || !commentAnswerText.trim()}
+                        className="w-full py-2 rounded-lg bg-primary text-white font-semibold disabled:opacity-60"
+                      >
+                        Share Answer
+                      </button>
+                    </div>
+                  )}
+
+                  {selectedAnswers.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Group Answers</h4>
+                      {selectedAnswers.map(answer => (
+                        <div key={answer.id || `${answer.memberId}-${answer.createdAt}`} className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{answer.displayName || 'Reader'}</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-100">{answer.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {currentItemDone && (
+                    <div className="rounded-lg border border-primary/30 dark:border-blue-500/30 bg-primary/5 dark:bg-blue-500/10 p-3">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                        Day {activePlan.day} is done.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button
+                          onClick={handleNextPlanDay}
+                          className="py-2 rounded-lg bg-primary text-white font-semibold"
+                        >
+                          Next Plan Day
+                        </button>
+                        <button
+                          onClick={handleClosePlanMode}
+                          className="py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold"
+                        >
+                          Exit Plan Mode
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {planPanelMessage && (
+                <p className="py-2 text-xs text-amber-600 dark:text-amber-300">{planPanelMessage}</p>
+              )}
             </div>
 
             <div className="p-4 border-t border-gray-100 dark:border-gray-700">
               <button
-                onClick={() => openPlanItem(nextPlanItem || activePlanItems[0])}
+                onClick={() => {
+                  if (currentPlanItem?.type === 'chapter') completeCurrentChapterItem()
+                  openPlanItem(nextPlanItem || activePlanItems[0])
+                }}
                 disabled={!activePlanItems.length}
                 className="w-full py-3 rounded-full bg-gray-950 dark:bg-gray-100 text-white dark:text-gray-950 font-bold disabled:opacity-50"
               >
-                Continue Reading
+                {nextPlanItem?.type === COMMENTS_ITEM_TYPE ? 'Talk It Over' : 'Continue Reading'}
               </button>
             </div>
           </div>

@@ -1,7 +1,8 @@
 import { STORAGE_KEYS } from './persistentStorage'
 
-export const PLAN_PROGRESS_VERSION = 3
+export const PLAN_PROGRESS_VERSION = 4
 export const PLAN_NOTES_BASE_URL = 'https://plannotes.heritage.faith'
+export const COMMENTS_ITEM_TYPE = 'comments'
 
 function readJson(key) {
   try {
@@ -55,24 +56,79 @@ export function bookToSlug(bookName) {
   return String(bookName || '').toLowerCase().replace(/\s+/g, '-')
 }
 
+export function parsePassageChapters(passage) {
+  const match = String(passage || '').trim().match(/^(.+?)\s+(\d+)(?::\d+)?(?:-(\d+)(?::\d+)?)?$/)
+  if (!match) return []
+
+  const book = match[1]
+  const start = Number(match[2])
+  const end = Number(match[3] || match[2])
+  if (!Number.isInteger(start) || !Number.isInteger(end)) return []
+
+  const first = Math.min(start, end)
+  const last = Math.max(start, end)
+  return Array.from({ length: last - first + 1 }, (_, index) => {
+    const chapter = first + index
+    return {
+      book,
+      chapter,
+      label: `${book} ${chapter}`,
+      passage,
+    }
+  })
+}
+
 export function getProgressKey(planId) {
   return `${STORAGE_KEYS.readingPlanPrefix}${planId}:progress`
 }
 
-export function getPlanItemId(day, index) {
+export function getLegacyPlanItemId(day, index) {
   return `day-${Number(day)}-reading-${Number(index) + 1}`
+}
+
+export function getPlanItemId(day, book, chapter) {
+  return `day-${Number(day)}-chapter-${bookToSlug(book)}-${Number(chapter)}`
+}
+
+export function getCommentsItemId(day) {
+  return `day-${Number(day)}-comments`
+}
+
+export function getBibleReadingItems(reading) {
+  if (!reading?.passages?.length) return []
+  const items = []
+  reading.passages.forEach((passage, passageIndex) => {
+    parsePassageChapters(passage).forEach(chapterRef => {
+      items.push({
+        id: getPlanItemId(reading.day, chapterRef.book, chapterRef.chapter),
+        day: reading.day,
+        type: 'chapter',
+        label: chapterRef.label,
+        passage,
+        book: chapterRef.book,
+        chapter: chapterRef.chapter,
+        passageIndex,
+        index: items.length,
+      })
+    })
+  })
+  return items
 }
 
 export function getReadingItems(reading) {
   if (!reading?.passages?.length) return []
-  return reading.passages.map((passage, index) => ({
-    id: getPlanItemId(reading.day, index),
-    day: reading.day,
-    type: 'reading',
-    label: passage,
-    passage,
-    index,
-  }))
+  const bibleItems = getBibleReadingItems(reading)
+  return [
+    ...bibleItems,
+    {
+      id: getCommentsItemId(reading.day),
+      day: reading.day,
+      type: COMMENTS_ITEM_TYPE,
+      label: 'Comments',
+      passage: null,
+      index: bibleItems.length,
+    },
+  ]
 }
 
 export function normalizeCompletedDays(days, totalDays = Number.POSITIVE_INFINITY) {
@@ -104,6 +160,7 @@ function emptyProgress(extra = {}) {
     completedDays: [],
     startedOn: null,
     updatedAt: null,
+    dayNotes: {},
     ...extra,
   }
 }
@@ -117,6 +174,7 @@ export function loadPlanProgress(planId) {
       startedOn: typeof saved.startedOn === 'string' ? saved.startedOn : null,
       updatedAt: saved.updatedAt || null,
       groupId: saved.groupId || null,
+      dayNotes: saved.dayNotes && typeof saved.dayNotes === 'object' ? saved.dayNotes : {},
     })
   }
 
@@ -145,6 +203,7 @@ export function savePlanProgress(planId, progress) {
     startedOn: typeof progress?.startedOn === 'string' ? progress.startedOn : null,
     updatedAt: progress?.updatedAt || new Date().toISOString(),
     groupId: progress?.groupId || null,
+    dayNotes: progress?.dayNotes && typeof progress.dayNotes === 'object' ? progress.dayNotes : {},
   })
 }
 
@@ -160,12 +219,29 @@ export function normalizeProgressForPlan(progress, plan) {
     completedItems[day] = getReadingItems(reading).map(item => item.id)
   }
 
+  for (const reading of plan.readings) {
+    const day = Number(reading.day)
+    const previousIds = new Set(completedItems[day] || [])
+    if (!previousIds.size) continue
+
+    const nextIds = new Set(previousIds)
+    reading.passages?.forEach((passage, index) => {
+      if (!previousIds.has(getLegacyPlanItemId(day, index))) return
+      parsePassageChapters(passage).forEach(chapterRef => {
+        nextIds.add(getPlanItemId(day, chapterRef.book, chapterRef.chapter))
+      })
+      nextIds.delete(getLegacyPlanItemId(day, index))
+    })
+    completedItems[day] = [...nextIds]
+  }
+
   return emptyProgress({
     ...progress,
     completedItems,
     completedDays: [],
     startedOn: progress?.startedOn || null,
     updatedAt: progress?.updatedAt || null,
+    dayNotes: progress?.dayNotes && typeof progress.dayNotes === 'object' ? progress.dayNotes : {},
   })
 }
 
@@ -202,6 +278,76 @@ export function getFirstIncompleteItem(reading, progress) {
   if (!items.length) return null
   const completed = getCompletedItemSet(progress, reading.day)
   return items.find(item => !completed.has(item.id)) || items[0]
+}
+
+export function getPlanItemById(reading, itemId) {
+  if (!reading || !itemId) return null
+  return getReadingItems(reading).find(item => item.id === itemId) || null
+}
+
+export function getPlanItemForChapter(reading, book, chapter) {
+  if (!reading || !book || !chapter) return null
+  return getReadingItems(reading).find(item =>
+    item.type === 'chapter' &&
+    item.book === book &&
+    Number(item.chapter) === Number(chapter)
+  ) || null
+}
+
+export function getPlanItemNeighbor(reading, itemId, direction) {
+  const items = getReadingItems(reading)
+  if (!items.length) return null
+  const index = items.findIndex(item => item.id === itemId)
+  if (index < 0) return null
+  const nextIndex = direction === 'previous' ? index - 1 : index + 1
+  return items[nextIndex] || null
+}
+
+export function getNextPlanDay(plan, day) {
+  if (!plan?.readings?.length) return null
+  return plan.readings.find(reading => Number(reading.day) > Number(day)) || null
+}
+
+export function getPlanModeLabel(item, fallbackBook, fallbackChapter) {
+  if (item?.type === COMMENTS_ITEM_TYPE) return 'Plan - Comments'
+  if (item?.label) return `Plan - ${item.label}`
+  if (fallbackBook && fallbackChapter) return `Plan - ${fallbackBook} ${fallbackChapter}`
+  return 'Plan'
+}
+
+export function markPlanItemComplete(progress, reading, itemId) {
+  const day = Number(reading?.day)
+  if (!Number.isInteger(day)) return progress
+  const validIds = new Set(getReadingItems(reading).map(item => item.id))
+  if (!validIds.has(itemId)) return progress
+
+  const set = getCompletedItemSet(progress, day)
+  set.add(itemId)
+  return emptyProgress({
+    ...progress,
+    completedItems: {
+      ...normalizeCompletedItems(progress?.completedItems),
+      [day]: [...set],
+    },
+    startedOn: progress?.startedOn || todayIsoDate(),
+    updatedAt: new Date().toISOString(),
+  })
+}
+
+export function setPlanDayNote(progress, day, note) {
+  const normalizedDay = Number(day)
+  if (!Number.isInteger(normalizedDay)) return progress
+  const dayNotes = {
+    ...(progress?.dayNotes || {}),
+    [normalizedDay]: String(note || ''),
+  }
+  if (!dayNotes[normalizedDay].trim()) delete dayNotes[normalizedDay]
+
+  return emptyProgress({
+    ...progress,
+    dayNotes,
+    updatedAt: new Date().toISOString(),
+  })
 }
 
 export function togglePlanItem(progress, reading, itemId) {
