@@ -21,4 +21,12 @@ public class HeritageControlsPlugin extends Plugin {
         result.put("enabled", sideButtonScrollEnabled);
         call.resolve(result);
     }
+
+    @PluginMethod
+    public void exitApp(PluginCall call) {
+        if (getActivity() != null) {
+            getActivity().finish();
+        }
+        call.resolve();
+    }
 }

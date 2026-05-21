@@ -17,6 +17,17 @@ export async function setNativeSideButtonScrollEnabled(enabled) {
   }
 }
 
+export async function exitNativeApp() {
+  if (!isNativeAndroid()) return false
+  try {
+    await HeritageControls.exitApp()
+    return true
+  } catch (error) {
+    console.warn('Heritage native exit is not available yet', error)
+    return false
+  }
+}
+
 function parseNativeScrollDirection(event) {
   const candidates = [event?.detail, event?.data, event]
 
@@ -44,4 +55,10 @@ export function addNativeScrollListener(callback) {
   }
   window.addEventListener('heritage:native-scroll', handler)
   return () => window.removeEventListener('heritage:native-scroll', handler)
+}
+
+export function addNativeBackListener(callback) {
+  const handler = event => callback(event)
+  window.addEventListener('heritage:native-back', handler)
+  return () => window.removeEventListener('heritage:native-back', handler)
 }

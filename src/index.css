@@ -107,6 +107,10 @@ html {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
 /* Hide number input spinners */
 .no-spinners::-webkit-outer-spin-button,
 .no-spinners::-webkit-inner-spin-button {
@@ -128,4 +132,11 @@ html {
 html.capacitor-android header.sticky.top-0 {
   padding-top: 24px;
   padding-top: max(env(safe-area-inset-top), 24px);
+}
+
+@media (max-width: 1023px) {
+  html.capacitor-android .android-mobile-safe-top {
+    padding-top: 24px;
+    padding-top: max(env(safe-area-inset-top), 24px);
+  }
 }

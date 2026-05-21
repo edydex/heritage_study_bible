@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react
 import { createPortal } from 'react-dom'
 import CompareModal from './CompareModal'
 import { localizeBookName } from '../utils/localizedBookNames'
+import { addNativeBackListener } from '../services/androidControls'
 
 // Regex fallback for entries without <vq> markup (older data or books CCEL didn't tag)
 const CALVIN_QUOTE_RE1 = /^(\s*\d+\.?\s+\S+(?:\s+\S+){0,12}?(?:\betc\b\.?\s*(?:[\u2014-]\s*)?|[.]))\s+/
@@ -923,6 +924,18 @@ function CommentarySidebar({
     return () => document.removeEventListener('keydown', handleEscape)
   }, [showCompareModal, showNotesModal, showAuthorSearch, showWorkDropdown, showWorkLinksDropdown, onClose])
 
+  useEffect(() => {
+    return addNativeBackListener(event => {
+      event?.preventDefault?.()
+      if (showCompareModal) setShowCompareModal(false)
+      else if (showNotesModal) setShowNotesModal(false)
+      else if (showAuthorSearch) setShowAuthorSearch(false)
+      else if (showWorkDropdown) setShowWorkDropdown(false)
+      else if (showWorkLinksDropdown) setShowWorkLinksDropdown(false)
+      else onClose()
+    })
+  }, [showCompareModal, showNotesModal, showAuthorSearch, showWorkDropdown, showWorkLinksDropdown, onClose])
+
   const activeVerses = selectedVerses.length > 0 ? selectedVerses : (selectedVerse ? [selectedVerse] : [])
   const isMultiSelection = activeVerses.length > 1
   const primaryVerse = selectedVerse || activeVerses[activeVerses.length - 1] || null
@@ -955,7 +968,7 @@ function CommentarySidebar({
 
       {/* Sidebar - full screen on mobile, dynamic width on desktop */}
       <aside 
-        className="fixed top-0 right-0 bottom-0 w-full lg:w-auto flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 lg:z-40 transform transition-[width] duration-100 ease-out animate-slide-in-right"
+        className="fixed top-0 right-0 bottom-0 w-full lg:w-auto flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 lg:z-40 transform transition-[width] duration-100 ease-out animate-slide-in-right android-mobile-safe-top"
         style={{ width: window.innerWidth >= 1024 ? `${sidebarWidth}px` : undefined }}
         ref={sidebarRef}
       >

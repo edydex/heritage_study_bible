@@ -20,9 +20,9 @@ import { translations, DEFAULT_TRANSLATION, loadTranslation } from './data/trans
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
 import { parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
-import { addNativeScrollListener, isNativeAndroid, setNativeSideButtonScrollEnabled } from './services/androidControls'
+import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, setNativeSideButtonScrollEnabled } from './services/androidControls'
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
-import { saveBibleProgress } from './services/readerProgress'
+import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 
@@ -224,6 +224,66 @@ function ScrollToTopOnRouteChange() {
   return null
 }
 
+function NativeBackNavigation() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    return addNativeBackListener(event => {
+      window.setTimeout(() => {
+        if (event?.defaultPrevented) return
+
+        if (/^\/[a-z0-9-]+\/\d+/i.test(location.pathname)) {
+          exitNativeApp().catch(() => {})
+          return
+        }
+
+        navigate(-1)
+      }, 0)
+    })
+  }, [location.pathname, navigate])
+
+  return null
+}
+
+function HomeRedirect() {
+  const [target, setTarget] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    getReaderProgress()
+      .then(progress => {
+        if (cancelled) return
+
+        const saved = progress?.bible
+        const bookMeta = saved?.book ? bibleBooks.find(book => book.name === saved.book) : null
+        const chapter = Number(saved?.chapter)
+        if (bookMeta && Number.isInteger(chapter) && chapter >= 1 && chapter <= bookMeta.chapters) {
+          setTarget(`/${bookToSlug(bookMeta.name)}/${chapter}`)
+          return
+        }
+
+        setTarget('/genesis/1')
+      })
+      .catch(() => {
+        if (!cancelled) setTarget('/genesis/1')
+      })
+
+    return () => { cancelled = true }
+  }, [])
+
+  if (!target) {
+    return (
+      <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center p-6">
+        <p className="text-gray-500 dark:text-gray-400 animate-pulse">Opening last passage...</p>
+      </div>
+    )
+  }
+
+  return <Navigate to={target} replace />
+}
+
 function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const { bookSlug, chapterNum } = useParams()
   const navigate = useNavigate()
@@ -407,6 +467,34 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const retryTranslationLoad = useCallback(() => {
     setTranslationReloadToken(prev => prev + 1)
   }, [])
+
+  useEffect(() => {
+    return addNativeBackListener(event => {
+      if (showBookmarkManager) {
+        event?.preventDefault?.()
+        setShowBookmarkManager(false)
+        return
+      }
+
+      if (showResources) {
+        event?.preventDefault?.()
+        setShowResources(false)
+        return
+      }
+
+      if (searchResults) {
+        event?.preventDefault?.()
+        setSearchResults(null)
+        return
+      }
+
+      if (multiSelectMode) {
+        event?.preventDefault?.()
+        setMultiSelectMode(false)
+        setSelectedVerses(selectedVerse ? [selectedVerse] : [])
+      }
+    })
+  }, [multiSelectMode, searchResults, selectedVerse, showBookmarkManager, showResources])
 
   // Lazy-load commentary data when book changes
   useEffect(() => {
@@ -1212,6 +1300,7 @@ function App() {
   return (
     <Router>
       <ScrollToTopOnRouteChange />
+      <NativeBackNavigation />
       <AndroidReaderControls enabled={sideButtonScroll} />
       <Routes>
         <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />
@@ -1222,7 +1311,7 @@ function App() {
         <Route path="/resources/:categoryId" element={<ResourcePage />} />
         <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
         <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
-        <Route path="/" element={<Navigate to="/genesis/1" replace />} />
+        <Route path="/" element={<HomeRedirect />} />
         <Route path="*" element={<Navigate to="/genesis/1" replace />} />
       </Routes>
     </Router>

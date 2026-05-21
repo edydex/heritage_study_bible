@@ -55,4 +55,17 @@ public class MainActivity extends BridgeActivity {
 
         return super.dispatchKeyEvent(event);
     }
+
+    @Override
+    public void onBackPressed() {
+        if (getBridge() != null) {
+            getBridge().eval(
+                "window.dispatchEvent(new CustomEvent('heritage:native-back',{cancelable:true}));",
+                null
+            );
+            return;
+        }
+
+        super.onBackPressed();
+    }
 }
