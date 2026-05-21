@@ -23,6 +23,7 @@ import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from '.
 import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, setNativeSideButtonScrollEnabled } from './services/androidControls'
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
+import { getActiveReadingPlan } from './services/readingPlanProgress'
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
@@ -400,6 +401,19 @@ function HomeRedirect() {
   return <Navigate to={target} replace />
 }
 
+function ReadingPlanInviteRedirect() {
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  const planId = params.get('plan') || params.get('planId') || 'chronological-bible'
+  const groupId = params.get('group') || params.get('groupId') || ''
+  const inviteToken = params.get('invite') || params.get('inviteToken') || ''
+  const query = groupId && inviteToken
+    ? `?group=${encodeURIComponent(groupId)}&invite=${encodeURIComponent(inviteToken)}`
+    : ''
+
+  return <Navigate to={`/resources/reading-plans/${planId}${query}`} replace />
+}
+
 function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const { bookSlug, chapterNum } = useParams()
   const navigate = useNavigate()
@@ -426,6 +440,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const [multiSelectMode, setMultiSelectMode] = useState(false)
   const bibleContainerRef = useRef(null)
   const searchRequestRef = useRef(0)
+  const [activeReadingPlan, setActiveReadingPlan] = useState(() => getActiveReadingPlan())
   
   // Translation state
   const [translationId, setTranslationId] = useState(() => {
@@ -583,6 +598,22 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
   const retryTranslationLoad = useCallback(() => {
     setTranslationReloadToken(prev => prev + 1)
+  }, [])
+
+  useEffect(() => {
+    const handleActivePlanChange = (event) => {
+      setActiveReadingPlan(event.detail || getActiveReadingPlan())
+    }
+    const handleStorage = (event) => {
+      if (event.key === STORAGE_KEYS.activeReadingPlan) setActiveReadingPlan(getActiveReadingPlan())
+    }
+
+    window.addEventListener('heritage-active-plan-change', handleActivePlanChange)
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener('heritage-active-plan-change', handleActivePlanChange)
+      window.removeEventListener('storage', handleStorage)
+    }
   }, [])
 
   useEffect(() => {
@@ -1090,6 +1121,15 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   }
 
+  const handlePlanNavigate = (bookName, chapter, path) => {
+    if (path) {
+      navigate(path)
+      return
+    }
+    if (!bookName || !chapter) return
+    handleNavigate(bookName, chapter)
+  }
+
   // Handle author change
   const handleAuthorChange = (authorId) => {
     setSelectedAuthor(authorId)
@@ -1395,12 +1435,14 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
             currentChapter={currentChapter}
             books={bibleBooks}
             onNavigate={handleNavigate}
+            onPlanNavigate={handlePlanNavigate}
             onPrevious={goToPrevious}
             onNext={goToNext}
             hasPrevious={hasPrevious}
             hasNext={hasNext}
             isSidebarOpen={isLargeScreen && isSidebarOpen}
             sidebarWidth={sidebarWidth}
+            activePlan={activeReadingPlan}
           />
         )}
 
@@ -1440,6 +1482,7 @@ function App() {
         <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />
         <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />
         <Route path="/resources/books/:itemId" element={<BookViewer />} />
+        <Route path="/reading-plan-join" element={<ReadingPlanInviteRedirect />} />
         <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
         <Route path="/resources/tools/:itemId" element={<ToolViewer />} />
         <Route path="/resources/:categoryId" element={<ResourcePage />} />

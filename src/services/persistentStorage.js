@@ -17,6 +17,8 @@ export const STORAGE_KEYS = {
   readerProgress: 'heritage-reader-progress',
   resourceBookmarks: 'heritage-resource-bookmarks',
   readingPlanPrefix: 'heritage-reading-plan:',
+  activeReadingPlan: 'heritage-reading-plan:active',
+  readingPlanGroups: 'heritage-reading-plan:groups',
 }
 
 export const EXPORTABLE_EXACT_KEYS = [
@@ -34,6 +36,8 @@ export const EXPORTABLE_EXACT_KEYS = [
   STORAGE_KEYS.massExportSettings,
   STORAGE_KEYS.readerProgress,
   STORAGE_KEYS.resourceBookmarks,
+  STORAGE_KEYS.activeReadingPlan,
+  STORAGE_KEYS.readingPlanGroups,
 ]
 
 export function isNativePlatform() {

@@ -1,4 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  getFirstIncompleteItem,
+  getReadingItems,
+  isPlanItemComplete,
+  loadPlanProgress,
+  parsePassageStart,
+  saveActiveReadingPlan,
+  savePlanProgress,
+  togglePlanItem,
+} from '../services/readingPlanProgress'
 
 function BottomNav({ 
   currentBook, 
@@ -10,13 +20,19 @@ function BottomNav({
   hasPrevious,
   hasNext,
   isSidebarOpen = false,
-  sidebarWidth = 540
+  sidebarWidth = 540,
+  activePlan = null,
+  onPlanNavigate = null
 }) {
   const [showPicker, setShowPicker] = useState(false)
+  const [showPlanPanel, setShowPlanPanel] = useState(false)
   const [pickerView, setPickerView] = useState('book') // 'book' or 'chapter'
   const [selectedBook, setSelectedBook] = useState(null)
   const [dragOffsetY, setDragOffsetY] = useState(0)
   const [isDraggingPanel, setIsDraggingPanel] = useState(false)
+  const [activePlanData, setActivePlanData] = useState(null)
+  const [activePlanProgress, setActivePlanProgress] = useState(null)
+  const [activePlanLoading, setActivePlanLoading] = useState(false)
   const dragCleanupRef = useRef(null)
   const dragStateRef = useRef({
     active: false,
@@ -54,6 +70,7 @@ function BottomNav({
   const handleClose = () => {
     clearDragListeners()
     setShowPicker(false)
+    setShowPlanPanel(false)
     setPickerView('book')
     setSelectedBook(null)
     setDragOffsetY(0)
@@ -120,6 +137,38 @@ function BottomNav({
 
   useEffect(() => () => clearDragListeners(), [])
 
+  useEffect(() => {
+    if (!activePlan?.planId) {
+      setActivePlanData(null)
+      setActivePlanProgress(null)
+      setShowPlanPanel(false)
+      return
+    }
+
+    let cancelled = false
+    const loadPlan = async () => {
+      setActivePlanLoading(true)
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}data/reading-plans/${activePlan.planId}.json`)
+        if (!response.ok) throw new Error('Plan not found')
+        const data = await response.json()
+        if (cancelled) return
+        setActivePlanData(data)
+        setActivePlanProgress(loadPlanProgress(activePlan.planId))
+      } catch {
+        if (!cancelled) {
+          setActivePlanData(null)
+          setActivePlanProgress(loadPlanProgress(activePlan.planId))
+        }
+      } finally {
+        if (!cancelled) setActivePlanLoading(false)
+      }
+    }
+
+    loadPlan()
+    return () => { cancelled = true }
+  }, [activePlan?.planId, activePlan?.updatedAt])
+
   // Toggle: should the book/chapter picker avoid overlapping the commentary sidebar?
   // Set to false to make the picker full-width again.
   const PICKER_RESPECTS_SIDEBAR = true
@@ -131,6 +180,50 @@ function BottomNav({
   // Group books by testament
   const oldTestament = books.filter((_, i) => i < 39)
   const newTestament = books.filter((_, i) => i >= 39)
+  const activePlanReading = useMemo(() => {
+    if (!activePlanData?.readings?.length || !activePlan?.day) return null
+    return activePlanData.readings.find(reading => Number(reading.day) === Number(activePlan.day)) || null
+  }, [activePlan?.day, activePlanData])
+  const activePlanItems = useMemo(() => getReadingItems(activePlanReading), [activePlanReading])
+  const nextPlanItem = useMemo(() => {
+    if (!activePlanReading || !activePlanProgress) return null
+    return getFirstIncompleteItem(activePlanReading, activePlanProgress)
+  }, [activePlanProgress, activePlanReading])
+
+  const updateActivePlanProgress = (updater) => {
+    if (!activePlan?.planId) return
+    setActivePlanProgress(prev => {
+      const next = updater(prev || loadPlanProgress(activePlan.planId))
+      savePlanProgress(activePlan.planId, next)
+      return next
+    })
+  }
+
+  const openPlanItem = (item) => {
+    if (!activePlan?.planId || !activePlanReading || !item) return
+    const parsed = parsePassageStart(item.passage)
+    if (!parsed) return
+    saveActiveReadingPlan({
+      ...activePlan,
+      planTitle: activePlanData?.title || activePlan.planTitle,
+      day: activePlanReading.day,
+      itemId: item.id,
+    })
+    setShowPlanPanel(false)
+    if (typeof onPlanNavigate === 'function') {
+      onPlanNavigate(parsed.book, parsed.chapter)
+    } else {
+      onNavigate(parsed.book, parsed.chapter)
+    }
+  }
+
+  const openFullPlan = () => {
+    if (!activePlan?.planId) return
+    setShowPlanPanel(false)
+    if (typeof onPlanNavigate === 'function') {
+      onPlanNavigate(null, null, `/resources/reading-plans/${activePlan.planId}`)
+    }
+  }
 
   return (
     <>
@@ -155,15 +248,27 @@ function BottomNav({
           {/* Chapter Selector Button */}
           <button
             onClick={() => setShowPicker(true)}
-            className="flex-1 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
+            className="flex-1 min-w-0 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
           >
-            <span className="text-base font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[200px]">
+            <span className="text-base font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[160px] sm:max-w-[200px]">
               {currentBook} {currentChapter}
             </span>
             <svg className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
+
+          {activePlan?.planId && (
+            <button
+              onClick={() => setShowPlanPanel(true)}
+              className="flex items-center justify-center w-14 h-full text-gray-900 dark:text-gray-100 active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
+              aria-label="Open reading plan day"
+            >
+              <span className="w-10 h-10 rounded-full bg-primary text-white dark:bg-gray-100 dark:text-gray-950 flex items-center justify-center text-sm font-bold">
+                {activePlan.day}
+              </span>
+            </button>
+          )}
 
           {/* Next Button */}
           <button
@@ -295,6 +400,102 @@ function BottomNav({
                 className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium active:bg-gray-200 dark:active:bg-gray-600 transition-colors"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPlanPanel && activePlan?.planId && (
+        <div
+          className="fixed inset-0 z-50 transition-all duration-300"
+          style={pickerRightStyle}
+        >
+          <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
+          <div
+            className={`absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-2xl shadow-2xl safe-area-bottom max-h-[82vh] flex flex-col ${isDraggingPanel ? '' : 'animate-slide-up'}`}
+            style={{
+              transform: `translateY(${dragOffsetY}px)`,
+              transition: isDraggingPanel ? 'none' : 'transform 180ms ease-out',
+            }}
+          >
+            <div
+              className="flex justify-center py-3 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none"
+              onMouseDown={(e) => beginPanelDrag(e.clientY)}
+              onTouchStart={(e) => beginPanelDrag(e.touches[0]?.clientY || 0)}
+            >
+              <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+            </div>
+
+            <div className="px-5 pb-3 border-b border-gray-100 dark:border-gray-700">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {activePlanData?.title || activePlan.planTitle || 'Reading Plan'}
+                  </p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    Day {activePlan.day}
+                  </h3>
+                </div>
+                <button
+                  onClick={openFullPlan}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+                >
+                  Open Plan
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-5 py-2">
+              {activePlanLoading && (
+                <p className="py-8 text-center text-gray-500 dark:text-gray-400 animate-pulse">Loading plan...</p>
+              )}
+
+              {!activePlanLoading && activePlanItems.length === 0 && (
+                <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                  This plan day is not available offline yet.
+                </p>
+              )}
+
+              {activePlanItems.map(item => {
+                const done = activePlanProgress ? isPlanItemComplete(activePlanProgress, activePlan.day, item.id) : false
+                return (
+                  <div key={item.id} className="flex items-center gap-3 py-4 border-b border-gray-100 dark:border-gray-700">
+                    <button
+                      onClick={() => updateActivePlanProgress(prev => togglePlanItem(prev, activePlanReading, item.id))}
+                      className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                        done
+                          ? 'bg-primary border-primary text-white'
+                          : 'border-gray-300 dark:border-gray-600 text-transparent'
+                      }`}
+                      aria-label={done ? `Mark ${item.label} incomplete` : `Mark ${item.label} complete`}
+                    >
+                      ✓
+                    </button>
+                    <button
+                      onClick={() => openPlanItem(item)}
+                      className="min-w-0 flex-1 text-left"
+                    >
+                      <span className={`block text-lg ${done ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-gray-100'}`}>
+                        {item.label}
+                      </span>
+                      <span className="block text-xs text-gray-500 dark:text-gray-400">
+                        {done ? 'Finished' : 'Tap to read'}
+                      </span>
+                    </button>
+                    <span className="text-2xl text-gray-400 dark:text-gray-500">›</span>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="p-4 border-t border-gray-100 dark:border-gray-700">
+              <button
+                onClick={() => openPlanItem(nextPlanItem || activePlanItems[0])}
+                disabled={!activePlanItems.length}
+                className="w-full py-3 rounded-full bg-gray-950 dark:bg-gray-100 text-white dark:text-gray-950 font-bold disabled:opacity-50"
+              >
+                Continue Reading
               </button>
             </div>
           </div>
