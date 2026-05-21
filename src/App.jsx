@@ -20,7 +20,7 @@ import { translations, DEFAULT_TRANSLATION, loadTranslation } from './data/trans
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
 import { parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
-import { addNativeScrollListener, setNativeSideButtonScrollEnabled } from './services/androidControls'
+import { addNativeScrollListener, isNativeAndroid, setNativeSideButtonScrollEnabled } from './services/androidControls'
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { saveBibleProgress } from './services/readerProgress'
 
@@ -99,7 +99,7 @@ function forceScrollTop() {
 function isEditableTarget(element) {
   if (!element) return false
   const tag = element.tagName?.toLowerCase()
-  return element.isContentEditable || ['input', 'textarea', 'select', 'button', 'audio', 'video'].includes(tag)
+  return element.isContentEditable || ['input', 'textarea', 'select', 'audio', 'video'].includes(tag)
 }
 
 function getBestScrollTarget() {
@@ -1147,7 +1147,11 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 // Main App with Router
 function App() {
   const [sideButtonScroll, setSideButtonScrollState] = useState(() => {
-    try { return localStorage.getItem(STORAGE_KEYS.sideButtonScroll) === 'true' } catch { return false }
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.sideButtonScroll)
+      if (saved != null) return saved === 'true'
+    } catch {}
+    return isNativeAndroid()
   })
 
   const setSideButtonScroll = useCallback((enabled) => {

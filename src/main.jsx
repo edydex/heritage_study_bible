@@ -2,8 +2,17 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
+import { Capacitor } from '@capacitor/core'
 
 const LEGACY_SW_CLEANUP_FLAG = 'heritage-sw-cleanup-v1'
+
+try {
+  if (Capacitor.isNativePlatform?.()) {
+    document.documentElement.classList.add('capacitor-native', `capacitor-${Capacitor.getPlatform()}`)
+  }
+} catch {
+  // Platform classes are only a progressive enhancement.
+}
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
