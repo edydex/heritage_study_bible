@@ -116,6 +116,50 @@ function getBestScrollTarget() {
   return candidates.find(element => element.scrollHeight > element.clientHeight + 20) || document.scrollingElement
 }
 
+function getVerticalChromeHeight(position) {
+  const selectors = position === 'top'
+    ? ['header.sticky', '.fixed.top-0', '.sticky.top-0']
+    : ['nav.fixed.bottom-0', '.fixed.bottom-0']
+
+  const seen = new Set()
+  return selectors.reduce((total, selector) => {
+    return total + Array.from(document.querySelectorAll(selector)).reduce((sum, element) => {
+      if (seen.has(element)) return sum
+      seen.add(element)
+
+      const rect = element.getBoundingClientRect()
+      const styles = window.getComputedStyle(element)
+      const isVisible = rect.height > 0 && styles.display !== 'none' && styles.visibility !== 'hidden'
+      if (!isVisible) return sum
+
+      const isRelevantTop = position === 'top' && rect.top <= 2 && rect.bottom > 0
+      const isRelevantBottom = position === 'bottom' && rect.bottom >= window.innerHeight - 2 && rect.top < window.innerHeight
+      return (isRelevantTop || isRelevantBottom) ? sum + rect.height : sum
+    }, 0)
+  }, 0)
+}
+
+function getReaderLineHeight() {
+  const sample = document.querySelector('.verse-text') || document.querySelector('main') || document.body
+  const computed = window.getComputedStyle(sample)
+  const parsed = Number.parseFloat(computed.lineHeight)
+  if (Number.isFinite(parsed)) return parsed
+
+  const fontSize = Number.parseFloat(computed.fontSize)
+  return Number.isFinite(fontSize) ? fontSize * 1.6 : 32
+}
+
+function getNativeReaderScrollDistance(target) {
+  const viewport = window.innerHeight || target?.clientHeight || 700
+  const targetViewport = target && target !== document.scrollingElement && target !== document.documentElement && target !== document.body
+    ? target.clientHeight
+    : viewport - getVerticalChromeHeight('top') - getVerticalChromeHeight('bottom')
+
+  const readableHeight = Math.max(180, targetViewport || viewport)
+  const overlap = Math.max(28, Math.min(72, getReaderLineHeight() * 1.25))
+  return Math.max(160, Math.round(readableHeight - overlap))
+}
+
 function isReaderRoute(pathname) {
   if (!pathname) return false
   return (
@@ -140,8 +184,7 @@ function AndroidReaderControls({ enabled }) {
       const target = getBestScrollTarget()
       if (!target) return
 
-      const viewport = window.innerHeight || target.clientHeight || 700
-      const distance = Math.max(240, Math.round(viewport * 0.86))
+      const distance = getNativeReaderScrollDistance(target)
       const delta = direction === 'up' ? -distance : distance
 
       if (target === document.scrollingElement || target === document.documentElement || target === document.body) {
@@ -209,7 +252,12 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   
   // Translation state
   const [translationId, setTranslationId] = useState(() => {
-    try { return localStorage.getItem('heritage-translation') || DEFAULT_TRANSLATION } catch { return DEFAULT_TRANSLATION }
+    try {
+      const saved = localStorage.getItem('heritage-translation')
+      const migrated = localStorage.getItem('heritage-default-translation-v2') === 'done'
+      if (!migrated && (!saved || saved === 'LSV')) return DEFAULT_TRANSLATION
+      return saved || DEFAULT_TRANSLATION
+    } catch { return DEFAULT_TRANSLATION }
   })
   const [bibleData, setBibleData] = useState(null)
   const [translationLoading, setTranslationLoading] = useState(false)
@@ -255,6 +303,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   // Persist translation choice
   useEffect(() => {
     setStoredValue(STORAGE_KEYS.translation, translationId).catch(() => {})
+    try { localStorage.setItem('heritage-default-translation-v2', 'done') } catch {}
   }, [translationId])
 
   // Keep secondary translation distinct from primary.

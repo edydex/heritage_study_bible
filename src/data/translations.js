@@ -70,7 +70,7 @@ export const translations = [
   },
 ]
 
-export const DEFAULT_TRANSLATION = 'LSV'
+export const DEFAULT_TRANSLATION = 'BSB'
 
 // Module-level cache for loaded translations
 const translationCache = new Map()

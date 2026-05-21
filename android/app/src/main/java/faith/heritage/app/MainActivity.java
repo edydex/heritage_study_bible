@@ -44,9 +44,9 @@ public class MainActivity extends BridgeActivity {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 String direction = (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_PAGE_UP) ? "up" : "down";
                 if (getBridge() != null) {
-                    getBridge().triggerWindowJSEvent(
-                        "heritage:native-scroll",
-                        "{\"direction\":\"" + direction + "\"}"
+                    getBridge().eval(
+                        "window.dispatchEvent(new CustomEvent('heritage:native-scroll',{detail:{direction:'" + direction + "'}}));",
+                        null
                     );
                 }
             }

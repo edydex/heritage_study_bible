@@ -17,10 +17,30 @@ export async function setNativeSideButtonScrollEnabled(enabled) {
   }
 }
 
+function parseNativeScrollDirection(event) {
+  const candidates = [event?.detail, event?.data, event]
+
+  for (const candidate of candidates) {
+    if (!candidate) continue
+    if (candidate.direction === 'up' || candidate.direction === 'down') return candidate.direction
+
+    if (typeof candidate === 'string') {
+      try {
+        const parsed = JSON.parse(candidate)
+        if (parsed.direction === 'up' || parsed.direction === 'down') return parsed.direction
+      } catch {
+        // Some Capacitor dispatch paths pass JSON strings, others pass CustomEvent.detail.
+      }
+    }
+  }
+
+  return 'down'
+}
+
 export function addNativeScrollListener(callback) {
   const handler = event => {
-    const detail = event?.detail || {}
-    callback(detail.direction === 'up' ? 'up' : 'down', detail)
+    const detail = event?.detail || event?.data || {}
+    callback(parseNativeScrollDirection(event), detail)
   }
   window.addEventListener('heritage:native-scroll', handler)
   return () => window.removeEventListener('heritage:native-scroll', handler)
