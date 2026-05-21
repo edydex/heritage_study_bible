@@ -3,6 +3,7 @@ import { translations } from '../data/translations'
 
 function Header({
   onSearch,
+  isSearchLoading = false,
   searchQuery,
   setSearchQuery,
   onBookmarkClick,
@@ -28,6 +29,7 @@ function Header({
   onDarkModeChange,
   sideButtonScroll = false,
   onSideButtonScrollChange,
+  showVolumeScrollSetting = false,
 }) {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -148,9 +150,15 @@ function Header({
               />
               <button 
                 type="submit"
-                className="px-2 sm:px-3 py-1.5 sm:py-2 hover:bg-white/10 rounded-r-lg transition-colors"
+                disabled={isSearchLoading}
+                aria-label={isSearchLoading ? 'Searching' : 'Search'}
+                className="px-2 sm:px-3 py-1.5 sm:py-2 hover:bg-white/10 rounded-r-lg transition-colors disabled:cursor-wait disabled:opacity-80 min-w-[2.25rem] flex items-center justify-center"
               >
-                🔍
+                {isSearchLoading ? (
+                  <span className="inline-block h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                ) : (
+                  '🔍'
+                )}
               </button>
             </div>
           </form>
@@ -338,24 +346,25 @@ function Header({
                   </p>
                 </div>
 
-                {/* Android Side Buttons */}
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); onSideButtonScrollChange?.(!sideButtonScroll) }}
-                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <span className="text-sm text-gray-700 dark:text-gray-200 font-medium flex items-center gap-1.5">
-                      ⬆️ Side Buttons
-                    </span>
-                    <div className={`w-11 h-6 rounded-full transition-colors relative ${sideButtonScroll ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
-                      <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${sideButtonScroll ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </div>
-                  </button>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 px-1 mt-1">
-                    Android volume keys page-scroll in reader screens
-                  </p>
-                </div>
+                {showVolumeScrollSetting && (
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); onSideButtonScrollChange?.(!sideButtonScroll) }}
+                      className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <span className="text-sm text-gray-700 dark:text-gray-200 font-medium flex items-center gap-1.5">
+                        🔊 Volume Scroll
+                      </span>
+                      <div className={`w-11 h-6 rounded-full transition-colors relative ${sideButtonScroll ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${sideButtonScroll ? 'translate-x-5' : 'translate-x-0'}`} />
+                      </div>
+                    </button>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 px-1 mt-1">
+                      Use volume keys to page-scroll reader screens
+                    </p>
+                  </div>
+                )}
 
                 {/* Dark Mode */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">

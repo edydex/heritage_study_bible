@@ -320,6 +320,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const [showResources, setShowResources] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState(null)
+  const [searchLoading, setSearchLoading] = useState(false)
   const [toast, setToast] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false) // Start closed
   const [showGoToPassageButton, setShowGoToPassageButton] = useState(false)
@@ -906,6 +907,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
     if (!trimmedQuery) {
       setSearchResults(null)
+      setSearchLoading(false)
       return
     }
 
@@ -916,6 +918,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       if (ref) {
         setSearchQuery('')
         setSearchResults(null)
+        setSearchLoading(false)
         if (ref.verse) {
           navigateToVerse(ref.book, ref.chapter, ref.verse)
         } else {
@@ -925,39 +928,46 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       }
     }
 
-    const bibleMatches = searchBibleVerses(bibleData, trimmedQuery, {
-      maxResults: 200,
-      hasCommentary: (book, chapter, verse) => hasAnyCommentary(book, chapter, verse, authorsData),
-    })
-    let commentaryMatches = { items: [], capped: false }
-    let bookMatches = { books: [], capped: false }
+    setSearchLoading(true)
+
     try {
-      ;[commentaryMatches, bookMatches] = await Promise.all([
-        searchCommentaryLibrary(trimmedQuery, { maxResults: 200 }),
-        searchBookLibrary(trimmedQuery, { maxResults: 200, maxPerBook: 80 }),
-      ])
-    } catch (error) {
-      console.warn('Cross-library search failed', error)
-      if (commentaryMatches.items.length === 0) {
-        try {
-          commentaryMatches = await searchCommentaryLibrary(trimmedQuery, { maxResults: 200 })
-        } catch {
-          commentaryMatches = { items: [], capped: false }
+      const bibleMatches = searchBibleVerses(bibleData, trimmedQuery, {
+        maxResults: 200,
+        hasCommentary: (book, chapter, verse) => hasAnyCommentary(book, chapter, verse, authorsData),
+      })
+      let commentaryMatches = { items: [], capped: false }
+      let bookMatches = { books: [], capped: false }
+
+      try {
+        ;[commentaryMatches, bookMatches] = await Promise.all([
+          searchCommentaryLibrary(trimmedQuery, { maxResults: 200 }),
+          searchBookLibrary(trimmedQuery, { maxResults: 200, maxPerBook: 80 }),
+        ])
+      } catch (error) {
+        console.warn('Cross-library search failed', error)
+        if (commentaryMatches.items.length === 0) {
+          try {
+            commentaryMatches = await searchCommentaryLibrary(trimmedQuery, { maxResults: 200 })
+          } catch {
+            commentaryMatches = { items: [], capped: false }
+          }
         }
       }
+
+      if (requestId !== searchRequestRef.current) return
+
+      setSearchResults({
+        verses: bibleMatches.items,
+        versesCapped: bibleMatches.capped,
+        commentaries: commentaryMatches.items,
+        commentariesCapped: commentaryMatches.capped,
+        books: bookMatches.books,
+        booksCapped: bookMatches.capped,
+        sectionOrder: ['verses', 'commentaries', 'books'],
+      })
+    } finally {
+      if (requestId === searchRequestRef.current) setSearchLoading(false)
     }
-
-    if (requestId !== searchRequestRef.current) return
-
-    setSearchResults({
-      verses: bibleMatches.items,
-      versesCapped: bibleMatches.capped,
-      commentaries: commentaryMatches.items,
-      commentariesCapped: commentaryMatches.capped,
-      books: bookMatches.books,
-      booksCapped: bookMatches.capped,
-      sectionOrder: ['verses', 'commentaries', 'books'],
-    })
   }
 
   // Navigate to verse from search or bookmark
@@ -1010,6 +1020,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-background'}`}>
         <Header 
           onSearch={handleSearch}
+          isSearchLoading={searchLoading}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           onBookmarkClick={() => setShowBookmarkManager(true)}
@@ -1039,6 +1050,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           onDarkModeChange={setDarkMode}
           sideButtonScroll={sideButtonScroll}
           onSideButtonScrollChange={onSideButtonScrollChange}
+          showVolumeScrollSetting={isNativeAndroid()}
         />
         
         <div className="flex">
