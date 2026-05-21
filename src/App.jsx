@@ -20,6 +20,9 @@ import { translations, DEFAULT_TRANSLATION, loadTranslation } from './data/trans
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
 import { parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
+import { addNativeScrollListener, setNativeSideButtonScrollEnabled } from './services/androidControls'
+import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
+import { saveBibleProgress } from './services/readerProgress'
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 
@@ -93,6 +96,65 @@ function forceScrollTop() {
   body.style.scrollBehavior = prevBodyBehavior
 }
 
+function isEditableTarget(element) {
+  if (!element) return false
+  const tag = element.tagName?.toLowerCase()
+  return element.isContentEditable || ['input', 'textarea', 'select', 'button', 'audio', 'video'].includes(tag)
+}
+
+function getBestScrollTarget() {
+  const active = document.activeElement
+  if (isEditableTarget(active)) return null
+
+  const candidates = [
+    document.querySelector('[data-reader-scroll-target="true"]'),
+    document.scrollingElement,
+    document.documentElement,
+    document.body,
+  ].filter(Boolean)
+
+  return candidates.find(element => element.scrollHeight > element.clientHeight + 20) || document.scrollingElement
+}
+
+function isReaderRoute(pathname) {
+  if (!pathname) return false
+  return (
+    /^\/[a-z0-9-]+\/\d+/i.test(pathname) ||
+    pathname.startsWith('/resources/books/') ||
+    pathname.startsWith('/resources/confessions/') ||
+    pathname.startsWith('/resources/tools/apocrypha') ||
+    pathname.startsWith('/resources/tools/hymns')
+  )
+}
+
+function AndroidReaderControls({ enabled }) {
+  const location = useLocation()
+
+  useEffect(() => {
+    setNativeSideButtonScrollEnabled(Boolean(enabled) && isReaderRoute(location.pathname)).catch(() => {})
+  }, [enabled, location.pathname])
+
+  useEffect(() => {
+    return addNativeScrollListener(direction => {
+      if (!enabled || !isReaderRoute(location.pathname)) return
+      const target = getBestScrollTarget()
+      if (!target) return
+
+      const viewport = window.innerHeight || target.clientHeight || 700
+      const distance = Math.max(240, Math.round(viewport * 0.86))
+      const delta = direction === 'up' ? -distance : distance
+
+      if (target === document.scrollingElement || target === document.documentElement || target === document.body) {
+        window.scrollBy({ top: delta, left: 0, behavior: 'auto' })
+      } else {
+        target.scrollTop += delta
+      }
+    })
+  }, [enabled, location.pathname])
+
+  return null
+}
+
 function ScrollToTopOnRouteChange() {
   const location = useLocation()
 
@@ -119,7 +181,7 @@ function ScrollToTopOnRouteChange() {
   return null
 }
 
-function BibleStudyApp() {
+function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const { bookSlug, chapterNum } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -192,7 +254,7 @@ function BibleStudyApp() {
 
   // Persist translation choice
   useEffect(() => {
-    try { localStorage.setItem('heritage-translation', translationId) } catch {}
+    setStoredValue(STORAGE_KEYS.translation, translationId).catch(() => {})
   }, [translationId])
 
   // Keep secondary translation distinct from primary.
@@ -208,7 +270,7 @@ function BibleStudyApp() {
   // Persist selected secondary translation (mode intentionally defaults OFF on fresh load).
   useEffect(() => {
     if (!parallelTranslationId) return
-    try { localStorage.setItem('heritage-parallel-translation', parallelTranslationId) } catch {}
+    setStoredValue(STORAGE_KEYS.parallelTranslation, parallelTranslationId).catch(() => {})
   }, [parallelTranslationId])
 
   // Lazy-load secondary translation only when parallel mode is enabled.
@@ -268,17 +330,17 @@ function BibleStudyApp() {
   })
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
-    try { localStorage.setItem('heritage-dark-mode', String(darkMode)) } catch {}
+    setStoredValue(STORAGE_KEYS.darkMode, String(darkMode)).catch(() => {})
   }, [darkMode])
   
   useEffect(() => {
-    try { localStorage.setItem('heritage-text-size', String(textSize)) } catch {}
+    setStoredValue(STORAGE_KEYS.textSize, String(textSize)).catch(() => {})
   }, [textSize])
   useEffect(() => {
-    try { localStorage.setItem('heritage-commentary-text-size', String(commentaryTextSize)) } catch {}
+    setStoredValue(STORAGE_KEYS.commentaryTextSize, String(commentaryTextSize)).catch(() => {})
   }, [commentaryTextSize])
   useEffect(() => {
-    try { localStorage.setItem('heritage-verse-stacking', String(verseStacking)) } catch {}
+    setStoredValue(STORAGE_KEYS.verseStacking, String(verseStacking)).catch(() => {})
   }, [verseStacking])
 
   // Sidebar width state (persisted, px)
@@ -286,7 +348,7 @@ function BibleStudyApp() {
     try { const v = parseInt(localStorage.getItem('heritage-sidebar-width')); return v >= 320 && v <= 1200 ? v : 540 } catch { return 540 }
   })
   useEffect(() => {
-    try { localStorage.setItem('heritage-sidebar-width', String(sidebarWidth)) } catch {}
+    setStoredValue(STORAGE_KEYS.sidebarWidth, String(sidebarWidth)).catch(() => {})
   }, [sidebarWidth])
 
   const retryCommentaryLoad = useCallback(() => {
@@ -373,6 +435,10 @@ function BibleStudyApp() {
     commentaryBookmarks, isCommentaryBookmarked, toggleCommentaryBookmark,
     notes, saveNote, deleteNote
   } = useBookmarks()
+
+  useEffect(() => {
+    saveBibleProgress(currentBook, currentChapter).catch(() => {})
+  }, [currentBook, currentChapter])
 
   // Sync URL to state when URL changes
   useEffect(() => {
@@ -807,6 +873,8 @@ function BibleStudyApp() {
           onParallelDisable={() => setParallelMode(false)}
           darkMode={darkMode}
           onDarkModeChange={setDarkMode}
+          sideButtonScroll={sideButtonScroll}
+          onSideButtonScrollChange={onSideButtonScrollChange}
         />
         
         <div className="flex">
@@ -1078,9 +1146,20 @@ function BibleStudyApp() {
 
 // Main App with Router
 function App() {
+  const [sideButtonScroll, setSideButtonScrollState] = useState(() => {
+    try { return localStorage.getItem(STORAGE_KEYS.sideButtonScroll) === 'true' } catch { return false }
+  })
+
+  const setSideButtonScroll = useCallback((enabled) => {
+    const next = Boolean(enabled)
+    setSideButtonScrollState(next)
+    setStoredValue(STORAGE_KEYS.sideButtonScroll, String(next)).catch(() => {})
+  }, [])
+
   return (
     <Router>
       <ScrollToTopOnRouteChange />
+      <AndroidReaderControls enabled={sideButtonScroll} />
       <Routes>
         <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />
         <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />
@@ -1088,8 +1167,8 @@ function App() {
         <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
         <Route path="/resources/tools/:itemId" element={<ToolViewer />} />
         <Route path="/resources/:categoryId" element={<ResourcePage />} />
-        <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp />} />
-        <Route path="/:bookSlug" element={<BibleStudyApp />} />
+        <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
+        <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
         <Route path="/" element={<Navigate to="/genesis/1" replace />} />
         <Route path="*" element={<Navigate to="/genesis/1" replace />} />
       </Routes>

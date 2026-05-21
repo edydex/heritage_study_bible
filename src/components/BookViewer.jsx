@@ -7,6 +7,8 @@ import { DEFAULT_TRANSLATION, loadTranslation } from '../data/translations'
 import { makeSearchSnippet, searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from '../utils/librarySearch'
 import { extractBookFootnotes, parseBibleRefFromFootnote } from '../utils/bookFootnotes'
 import { authors as initialAuthors, getAuthorsForBook, loadCommentaryForBook } from '../data/authors'
+import { canUseNativeAudioDownloads, deleteDownloadedAudio, downloadAudio, getDownloadedAudio } from '../services/audioDownloads'
+import { getReaderProgress, getResourceBookmarks, saveResourceProgress, toggleResourceBookmark } from '../services/readerProgress'
 
 function splitChapterTitle(title) {
   const normalizedTitle = String(title || '').trim()
@@ -172,6 +174,11 @@ function BookViewer() {
     bible: false,
     commentary: false,
   })
+  const [audioDownload, setAudioDownload] = useState(null)
+  const [audioDownloadBusy, setAudioDownloadBusy] = useState(false)
+  const [audioDownloadMessage, setAudioDownloadMessage] = useState('')
+  const [resourceBookmarks, setResourceBookmarks] = useState([])
+  const [bookmarkStatus, setBookmarkStatus] = useState('')
   const pendingChapterRef = useRef(null)
   const crossSearchRequestRef = useRef(0)
 
@@ -272,6 +279,9 @@ function BookViewer() {
   }, [chapterEntries])
 
   const selectedEntry = chapterEntries.find(entry => entry.index === selectedChapterIndex) || null
+  const currentResourceBookmarked = resourceBookmarks.some(
+    item => item.resourceId === book?.id && item.chapterIndex === selectedChapterIndex
+  )
   const selectedBookGroup = selectedEntry?.groupKey || bookGroups[0] || null
   const shouldShowBookSelector = bookGroups.length > 1
 
@@ -307,6 +317,54 @@ function BookViewer() {
     ? chapterEntries.filter(entry => entry.groupKey === (navigatorGroup || selectedBookGroup))
     : chapterEntries
 
+  useEffect(() => {
+    let cancelled = false
+    const restoreProgress = async () => {
+      if (!book?.id || chapters.length === 0) return
+      try {
+        const progress = await getReaderProgress()
+        const resourceProgress = progress.resources?.[book.id]
+        if (!cancelled && resourceProgress && Number.isInteger(resourceProgress.chapterIndex)) {
+          const nextIndex = Math.max(0, Math.min(chapters.length - 1, resourceProgress.chapterIndex))
+          setSelectedChapterIndex(nextIndex)
+        }
+      } catch {}
+    }
+    restoreProgress()
+    return () => { cancelled = true }
+  }, [book?.id, chapters.length])
+
+  useEffect(() => {
+    if (!book?.id || chapters.length === 0) return
+    saveResourceProgress(book.id, selectedChapterIndex, selectedEntry?.chapterLabel || selectedChapter?.title || '').catch(() => {})
+  }, [book?.id, chapters.length, selectedChapterIndex, selectedEntry?.chapterLabel, selectedChapter?.title])
+
+  useEffect(() => {
+    let cancelled = false
+    getResourceBookmarks()
+      .then(items => { if (!cancelled) setResourceBookmarks(Array.isArray(items) ? items : []) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [book?.id])
+
+  const handleToggleResourceBookmark = async () => {
+    if (!book?.id) return
+    setBookmarkStatus('')
+    try {
+      const result = await toggleResourceBookmark({
+        resourceId: book.id,
+        title: book.title,
+        author: book.author,
+        chapterIndex: selectedChapterIndex,
+        chapterLabel: selectedEntry?.chapterLabel || selectedChapter?.title || 'Section',
+      })
+      setResourceBookmarks(result.bookmarks)
+      setBookmarkStatus(result.bookmarked ? 'Section bookmarked.' : 'Section bookmark removed.')
+    } catch (error) {
+      setBookmarkStatus(error.message || 'Could not update section bookmark.')
+    }
+  }
+
   const activeTrackLabel = useMemo(() => {
     if (!selectedChapterNumber || !Array.isArray(book?.librivoxChapterRanges)) return null
     const range = book.librivoxChapterRanges.find(
@@ -330,6 +388,55 @@ function BookViewer() {
     }
     return book?.librivox || null
   }, [book?.librivox, book?.librivoxVolumes, selectedBookGroup])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadDownloadedAudio = async () => {
+      setAudioDownload(null)
+      setAudioDownloadMessage('')
+      if (!book?.id || !activeLibrivox?.audioUrl || !canUseNativeAudioDownloads()) return
+      try {
+        const record = await getDownloadedAudio(book.id)
+        if (!cancelled) setAudioDownload(record)
+      } catch (error) {
+        console.warn('Failed to read downloaded audio state', error)
+      }
+    }
+
+    loadDownloadedAudio()
+    return () => { cancelled = true }
+  }, [book?.id, activeLibrivox?.audioUrl])
+
+  const handleDownloadAudio = async () => {
+    if (!book?.id || !activeLibrivox?.audioUrl) return
+    setAudioDownloadBusy(true)
+    setAudioDownloadMessage('Downloading audio…')
+    try {
+      const record = await downloadAudio(book.id, activeLibrivox.audioUrl, activeLibrivox.title || book.title)
+      setAudioDownload(record)
+      setAudioDownloadMessage('Audio downloaded for offline playback.')
+    } catch (error) {
+      setAudioDownloadMessage(error.message || 'Audio download failed.')
+    } finally {
+      setAudioDownloadBusy(false)
+    }
+  }
+
+  const handleDeleteAudio = async () => {
+    if (!book?.id) return
+    setAudioDownloadBusy(true)
+    setAudioDownloadMessage('')
+    try {
+      await deleteDownloadedAudio(book.id)
+      setAudioDownload(null)
+      setAudioDownloadMessage('Downloaded audio removed.')
+    } catch (error) {
+      setAudioDownloadMessage(error.message || 'Could not delete downloaded audio.')
+    } finally {
+      setAudioDownloadBusy(false)
+    }
+  }
 
   const searchState = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -482,6 +589,8 @@ function BookViewer() {
   const embedUrl = activeLibrivox?.archiveId
     ? `https://archive.org/embed/${activeLibrivox.archiveId}&playlist=1`
     : null
+  const audioSourceUrl = audioDownload?.webPath || activeLibrivox?.audioUrl || null
+  const canDownloadActiveAudio = Boolean(activeLibrivox?.audioUrl) && canUseNativeAudioDownloads()
 
   const yearDisplay = book.year < 1000 ? `${book.year} AD` : `${book.year}`
   const sourceLabel = book.textUrl?.includes('gutenberg.org') ? 'Gutenberg ↗' : 'Source text ↗'
@@ -809,7 +918,27 @@ function BookViewer() {
               </a>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{activeLibrivox.title}</p>
-            {embedUrl ? (
+            {canDownloadActiveAudio && (
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                {audioDownload ? (
+                  <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-semibold">
+                    Downloaded offline
+                  </span>
+                ) : null}
+                <button
+                  onClick={audioDownload ? handleDeleteAudio : handleDownloadAudio}
+                  disabled={audioDownloadBusy}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
+                >
+                  {audioDownload ? 'Delete Download' : 'Download Audio'}
+                </button>
+                {audioDownloadMessage && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{audioDownloadMessage}</span>
+                )}
+              </div>
+            )}
+
+            {embedUrl && !audioDownload ? (
               <iframe
                 src={embedUrl}
                 width="100%"
@@ -819,14 +948,14 @@ function BookViewer() {
                 className="rounded-lg bg-gray-100 dark:bg-gray-700"
                 title={activeLibrivox.title}
               />
-            ) : activeLibrivox.audioUrl ? (
+            ) : audioSourceUrl ? (
               <audio
                 controls
                 preload="none"
-                src={activeLibrivox.audioUrl}
+                src={audioSourceUrl}
                 className="w-full"
               >
-                <a href={activeLibrivox.audioUrl}>Listen to {activeLibrivox.title}</a>
+                <a href={audioSourceUrl}>Listen to {activeLibrivox.title}</a>
               </audio>
             ) : null}
           </div>
@@ -839,6 +968,15 @@ function BookViewer() {
               <span className="text-xl">📖</span>
               <h3 className="font-semibold text-gray-800 dark:text-gray-200">Read in App</h3>
             </div>
+            <div className="flex items-center gap-2">
+              {chapters.length > 0 && (
+                <button
+                  onClick={handleToggleResourceBookmark}
+                  className={`text-xs px-2 py-1 rounded-lg border transition-colors ${currentResourceBookmarked ? 'border-amber-300 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                >
+                  {currentResourceBookmarked ? '★ Section' : '☆ Section'}
+                </button>
+              )}
             {book.textUrl && (
               <a
                 href={book.textUrl}
@@ -849,7 +987,12 @@ function BookViewer() {
                 {sourceLabel}
               </a>
             )}
+            </div>
           </div>
+
+          {bookmarkStatus && (
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-3">{bookmarkStatus}</p>
+          )}
 
           {textLoading && (
             <p className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">Loading book text…</p>

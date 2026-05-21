@@ -343,6 +343,11 @@ export const RESOURCE_CATEGORIES = [
         description: 'Paste many references and export copyable plain text or Markdown across translations.',
       },
       {
+        id: 'backup-export',
+        title: 'Backup / Export',
+        description: 'Export and import notes, bookmarks, settings, and cache tracked content for offline use.',
+      },
+      {
         id: 'cross-references',
         title: 'Cross References',
         description: 'Treasury of Scripture Knowledge \u2014 500,000+ cross references.',

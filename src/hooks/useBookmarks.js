@@ -1,61 +1,58 @@
 import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
+import { getStoredJson, setStoredJson, STORAGE_KEYS } from '../services/persistentStorage'
 
-const STORAGE_KEY = 'bible-study-bookmarks'
-const COMMENTARY_STORAGE_KEY = 'bible-study-commentary-bookmarks'
-const NOTES_STORAGE_KEY = 'bible-study-notes'
+const STORAGE_KEY = STORAGE_KEYS.bookmarks
+const COMMENTARY_STORAGE_KEY = STORAGE_KEYS.commentaryBookmarks
+const NOTES_STORAGE_KEY = STORAGE_KEYS.notes
 
 export function useBookmarks() {
   const [bookmarks, setBookmarks] = useState([])
   const [commentaryBookmarks, setCommentaryBookmarks] = useState([])
   const [notes, setNotes] = useState([])
+  const [hydrated, setHydrated] = useState(false)
 
-  // Load bookmarks from localStorage on mount
+  // Load from localStorage first, then native Preferences if this is the Android app.
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        setBookmarks(JSON.parse(stored))
+    let cancelled = false
+
+    const load = async () => {
+      try {
+        const [storedBookmarks, storedCommentary, storedNotes] = await Promise.all([
+          getStoredJson(STORAGE_KEY, []),
+          getStoredJson(COMMENTARY_STORAGE_KEY, []),
+          getStoredJson(NOTES_STORAGE_KEY, []),
+        ])
+
+        if (cancelled) return
+        setBookmarks(Array.isArray(storedBookmarks) ? storedBookmarks : [])
+        setCommentaryBookmarks(Array.isArray(storedCommentary) ? storedCommentary : [])
+        setNotes(Array.isArray(storedNotes) ? storedNotes : [])
+      } catch (e) {
+        console.error('Error loading bookmarks:', e)
+      } finally {
+        if (!cancelled) setHydrated(true)
       }
-      const storedCommentary = localStorage.getItem(COMMENTARY_STORAGE_KEY)
-      if (storedCommentary) {
-        setCommentaryBookmarks(JSON.parse(storedCommentary))
-      }
-      const storedNotes = localStorage.getItem(NOTES_STORAGE_KEY)
-      if (storedNotes) {
-        setNotes(JSON.parse(storedNotes))
-      }
-    } catch (e) {
-      console.error('Error loading bookmarks:', e)
     }
+
+    load()
+    return () => { cancelled = true }
   }, [])
 
-  // Save bookmarks to localStorage whenever they change
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks))
-    } catch (e) {
-      console.error('Error saving bookmarks:', e)
-    }
-  }, [bookmarks])
+    if (!hydrated) return
+    setStoredJson(STORAGE_KEY, bookmarks).catch(e => console.error('Error saving bookmarks:', e))
+  }, [bookmarks, hydrated])
 
-  // Save commentary bookmarks
   useEffect(() => {
-    try {
-      localStorage.setItem(COMMENTARY_STORAGE_KEY, JSON.stringify(commentaryBookmarks))
-    } catch (e) {
-      console.error('Error saving commentary bookmarks:', e)
-    }
-  }, [commentaryBookmarks])
+    if (!hydrated) return
+    setStoredJson(COMMENTARY_STORAGE_KEY, commentaryBookmarks).catch(e => console.error('Error saving commentary bookmarks:', e))
+  }, [commentaryBookmarks, hydrated])
 
-  // Save notes
   useEffect(() => {
-    try {
-      localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes))
-    } catch (e) {
-      console.error('Error saving notes:', e)
-    }
-  }, [notes])
+    if (!hydrated) return
+    setStoredJson(NOTES_STORAGE_KEY, notes).catch(e => console.error('Error saving notes:', e))
+  }, [notes, hydrated])
 
   const addBookmark = (bookmark) => {
     const newBookmark = {
@@ -94,7 +91,6 @@ export function useBookmarks() {
     )
   }
 
-  // Commentary bookmark functions
   const addCommentaryBookmark = (commentary, authorName, workTitle) => {
     const existing = commentaryBookmarks.find(cb => cb.commentaryId === commentary.id)
     if (existing) return existing
@@ -131,16 +127,13 @@ export function useBookmarks() {
     }
   }
 
-  // Note functions - Notes are linked to specific verses
   const saveNote = (book, chapter, verse, text, verseText = '') => {
     const existing = notes.find(n => 
       n.book === book && n.chapter === chapter && n.verse === verse
     )
     
     if (existing) {
-      // Update existing note
       if (text.trim() === '') {
-        // Remove note if text is empty
         setNotes(prev => prev.filter(n => n.id !== existing.id))
         return null
       }
@@ -151,7 +144,6 @@ export function useBookmarks() {
       ))
       return existing
     } else if (text.trim() !== '') {
-      // Create new note
       const newNote = {
         id: uuidv4(),
         type: 'note',

@@ -4,6 +4,7 @@ import { RESOURCE_CATEGORIES } from '../data/resources'
 import MassVerseExportViewer from './MassVerseExportViewer'
 import ApocryphaViewer from './ApocryphaViewer'
 import HymnsViewer from './HymnsViewer'
+import BackupExportViewer from './BackupExportViewer'
 
 function ToolViewer() {
   const { itemId } = useParams()
@@ -23,6 +24,9 @@ function ToolViewer() {
   }
   if (itemId === 'hymns') {
     return <HymnsViewer toolMeta={tool} />
+  }
+  if (itemId === 'backup-export') {
+    return <BackupExportViewer toolMeta={tool} />
   }
 
   return (

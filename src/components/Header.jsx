@@ -26,6 +26,8 @@ function Header({
   onParallelDisable,
   darkMode = false,
   onDarkModeChange,
+  sideButtonScroll = false,
+  onSideButtonScrollChange,
 }) {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -330,6 +332,25 @@ function Header({
                   </button>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400 px-1 mt-1">
                     {verseStacking ? '1 text 2 text' : '1 text\\n2 text'}
+                  </p>
+                </div>
+
+                {/* Android Side Buttons */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onSideButtonScrollChange?.(!sideButtonScroll) }}
+                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <span className="text-sm text-gray-700 dark:text-gray-200 font-medium flex items-center gap-1.5">
+                      ⬆️ Side Buttons
+                    </span>
+                    <div className={`w-11 h-6 rounded-full transition-colors relative ${sideButtonScroll ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                      <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${sideButtonScroll ? 'translate-x-5' : 'translate-x-0'}`} />
+                    </div>
+                  </button>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 px-1 mt-1">
+                    Android volume keys page-scroll in reader screens
                   </p>
                 </div>
 
