@@ -50,6 +50,9 @@ function BottomNav({
   const [planPanelMessage, setPlanPanelMessage] = useState('')
   const [planPanelBusy, setPlanPanelBusy] = useState(false)
   const dragCleanupRef = useRef(null)
+  const overlayHistoryRef = useRef(false)
+  const overlayClosingFromBackRef = useRef(false)
+  const pendingOverlayCallbackRef = useRef(null)
   const dragStateRef = useRef({
     active: false,
     startY: 0,
@@ -77,13 +80,12 @@ function BottomNav({
   }
 
   const handleChapterSelect = (chapter) => {
-    onNavigate(selectedBook.name, chapter)
-    setShowPicker(false)
-    setPickerView('book')
-    setSelectedBook(null)
+    const bookName = selectedBook?.name
+    if (!bookName) return
+    closeBottomOverlayForNavigation(() => onNavigate(bookName, chapter))
   }
 
-  const handleClose = () => {
+  const closeBottomOverlayState = () => {
     clearDragListeners()
     setShowPicker(false)
     setShowPlanPanel(false)
@@ -92,6 +94,28 @@ function BottomNav({
     setDragOffsetY(0)
     setIsDraggingPanel(false)
     dragStateRef.current.active = false
+  }
+
+  const handleClose = () => {
+    if (overlayHistoryRef.current && typeof window !== 'undefined' && !overlayClosingFromBackRef.current) {
+      overlayClosingFromBackRef.current = true
+      window.history.back()
+      return
+    }
+
+    closeBottomOverlayState()
+  }
+
+  const closeBottomOverlayForNavigation = (callback) => {
+    if (overlayHistoryRef.current && typeof window !== 'undefined' && !overlayClosingFromBackRef.current) {
+      pendingOverlayCallbackRef.current = callback
+      overlayClosingFromBackRef.current = true
+      window.history.back()
+      return
+    }
+
+    closeBottomOverlayState()
+    if (callback) callback()
   }
 
   const beginPanelDrag = (clientY) => {
@@ -152,6 +176,34 @@ function BottomNav({
   }
 
   useEffect(() => () => clearDragListeners(), [])
+
+  useEffect(() => {
+    const overlayOpen = showPicker || showPlanPanel
+    if (!overlayOpen || overlayHistoryRef.current || typeof window === 'undefined') return
+
+    const currentState = window.history.state || {}
+    window.history.pushState({ ...currentState, heritageBottomOverlay: true }, '', window.location.href)
+    overlayHistoryRef.current = true
+  }, [showPicker, showPlanPanel])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+
+    const handlePopState = () => {
+      if (!overlayHistoryRef.current) return
+
+      overlayHistoryRef.current = false
+      overlayClosingFromBackRef.current = false
+      closeBottomOverlayState()
+
+      const pendingCallback = pendingOverlayCallbackRef.current
+      pendingOverlayCallbackRef.current = null
+      if (pendingCallback) window.setTimeout(pendingCallback, 0)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   useEffect(() => {
     if (!activePlan?.planId) {
@@ -291,12 +343,13 @@ function BottomNav({
 
     const parsed = item.book && item.chapter ? { book: item.book, chapter: item.chapter } : parsePassageStart(item.passage)
     if (!parsed) return
-    setShowPlanPanel(false)
-    if (typeof onPlanNavigate === 'function') {
-      onPlanNavigate(parsed.book, parsed.chapter)
-    } else {
-      onNavigate(parsed.book, parsed.chapter)
-    }
+    closeBottomOverlayForNavigation(() => {
+      if (typeof onPlanNavigate === 'function') {
+        onPlanNavigate(parsed.book, parsed.chapter)
+      } else {
+        onNavigate(parsed.book, parsed.chapter)
+      }
+    })
   }
 
   const handlePlanPrevious = () => {
@@ -324,7 +377,7 @@ function BottomNav({
 
   const handleClosePlanMode = () => {
     clearActiveReadingPlan()
-    setShowPlanPanel(false)
+    handleClose()
   }
 
   const handleSaveComments = () => {
@@ -355,7 +408,7 @@ function BottomNav({
     }
     const parsed = nextItem?.book && nextItem?.chapter ? { book: nextItem.book, chapter: nextItem.chapter } : parsePassageStart(nextItem?.passage)
     if (parsed && typeof onPlanNavigate === 'function') {
-      onPlanNavigate(parsed.book, parsed.chapter)
+      closeBottomOverlayForNavigation(() => onPlanNavigate(parsed.book, parsed.chapter))
     }
   }
 
@@ -381,9 +434,8 @@ function BottomNav({
 
   const openFullPlan = () => {
     if (!activePlan?.planId) return
-    setShowPlanPanel(false)
     if (typeof onPlanNavigate === 'function') {
-      onPlanNavigate(null, null, `/resources/reading-plans/${activePlan.planId}`)
+      closeBottomOverlayForNavigation(() => onPlanNavigate(null, null, `/resources/reading-plans/${activePlan.planId}`))
     }
   }
 
