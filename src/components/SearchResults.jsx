@@ -12,7 +12,7 @@ function SearchResults({ results, query, onVerseClick, onCommentaryClick, onBook
       const regex = new RegExp(`(${escaped})`, 'gi')
       const parts = text.split(regex)
       return parts.map((part, i) => 
-        part.toLowerCase() === query.toLowerCase() ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-700 dark:text-white px-0.5">{part}</mark> : part
+        part.toLowerCase() === query.toLowerCase() ? <mark key={i} className="bg-yellow-200 dark:bg-amber-600/70 dark:text-amber-50 px-0.5">{part}</mark> : part
       )
     } catch {
       return text
@@ -66,11 +66,11 @@ function SearchResults({ results, query, onVerseClick, onCommentaryClick, onBook
                         className="p-4 bg-gray-50 dark:bg-gray-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg cursor-pointer transition-colors"
                       >
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-primary">
+                          <span className="font-medium text-primary dark:text-blue-300">
                             {result.book || 'Revelation'} {result.chapter}:{result.verse}
                           </span>
                           {result.hasCommentary && (
-                            <span className="text-xs bg-secondary/20 text-amber-700 px-2 py-0.5 rounded">
+                            <span className="text-xs bg-secondary/20 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded">
                               Has Commentary
                             </span>
                           )}
@@ -99,10 +99,10 @@ function SearchResults({ results, query, onVerseClick, onCommentaryClick, onBook
                         className="p-4 bg-gray-50 dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg cursor-pointer transition-colors"
                       >
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-primary">
+                          <span className="font-medium text-primary dark:text-blue-300">
                             {result.reference}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             {result.timestamp}
                           </span>
                         </div>
@@ -131,10 +131,10 @@ function SearchResults({ results, query, onVerseClick, onCommentaryClick, onBook
                         className="p-4 bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg cursor-pointer transition-colors"
                       >
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="font-medium text-primary">
+                          <span className="font-medium text-primary dark:text-blue-300">
                             {result.bookTitle}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             {result.groupKey !== 'Front Matter' ? `${result.groupKey} · ` : ''}{result.chapterLabel}
                           </span>
                         </div>

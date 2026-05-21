@@ -86,7 +86,7 @@ function highlightText(text, query) {
     return parts.map((part, index) =>
       part.toLowerCase() === query.toLowerCase()
         ? (
-            <mark key={index} className="bg-yellow-200 dark:bg-yellow-700 dark:text-white px-0.5">
+            <mark key={index} className="bg-yellow-200 dark:bg-amber-600/70 dark:text-amber-50 px-0.5">
               {part}
             </mark>
           )

@@ -15,18 +15,94 @@ body {
 
 .dark body,
 html.dark body {
-  background-color: #111827;
+  background-color: #000;
   color: #e5e7eb;
 }
 
+/*
+ * OLED dark mode: Tailwind's default gray scale has a blue cast, which makes the
+ * app read as dark navy on phones. Keep the same utility names, but remap dark
+ * surfaces to neutral near-black tones and lift primary blue text for contrast.
+ */
+html.dark .dark\:bg-gray-900 {
+  background-color: #000 !important;
+}
+
+html.dark .dark\:bg-gray-800 {
+  background-color: #090909 !important;
+}
+
+html.dark .dark\:hover\:bg-gray-800:hover {
+  background-color: #111 !important;
+}
+
+html.dark .dark\:bg-gray-800\/80 {
+  background-color: rgba(9, 9, 9, 0.88) !important;
+}
+
+html.dark .dark\:bg-gray-700,
+html.dark .dark\:hover\:bg-gray-700:hover,
+html.dark .dark\:active\:bg-gray-700:active {
+  background-color: #171717 !important;
+}
+
+html.dark .dark\:bg-gray-700\/80 {
+  background-color: rgba(23, 23, 23, 0.86) !important;
+}
+
+html.dark .dark\:bg-gray-700\/60 {
+  background-color: rgba(23, 23, 23, 0.72) !important;
+}
+
+html.dark .dark\:bg-gray-700\/50 {
+  background-color: rgba(23, 23, 23, 0.62) !important;
+}
+
+html.dark .dark\:bg-gray-600,
+html.dark .dark\:hover\:bg-gray-600:hover,
+html.dark .dark\:active\:bg-gray-600:active {
+  background-color: #262626 !important;
+}
+
+html.dark .dark\:border-gray-700 {
+  border-color: #262626 !important;
+}
+
+html.dark .dark\:divide-gray-700 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #262626 !important;
+}
+
+html.dark .dark\:border-gray-600 {
+  border-color: #333 !important;
+}
+
+html.dark .text-primary,
+html.dark .dark\:text-blue-400 {
+  color: #93c5fd !important;
+}
+
+html.dark .bg-white.text-primary {
+  color: #1e40af !important;
+}
+
+html.dark .dark\:text-blue-300 {
+  color: #bfdbfe !important;
+}
+
+html.dark header.bg-primary {
+  background-color: #000 !important;
+  border-bottom: 1px solid #262626;
+  box-shadow: none;
+}
+
 html.dark ::-webkit-scrollbar-track {
-  background: #1f2937;
+  background: #000;
 }
 html.dark ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: #262626;
 }
 html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: #404040;
 }
 
 .verse-text {
