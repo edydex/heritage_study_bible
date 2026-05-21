@@ -25,6 +25,7 @@ import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
+const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
 
 function getPendingCommentaryLoadsForBook(bookName, authorsData) {
   const pending = []
@@ -160,6 +161,92 @@ function getNativeReaderScrollDistance(target) {
   return Math.max(160, Math.round(readableHeight - overlap))
 }
 
+function isDocumentScrollTarget(target) {
+  return target === document.scrollingElement || target === document.documentElement || target === document.body
+}
+
+function removeNativeScrollMarker() {
+  document.getElementById(NATIVE_SCROLL_MARKER_ID)?.remove()
+}
+
+function getReaderViewportBounds(target) {
+  if (isDocumentScrollTarget(target)) {
+    return {
+      top: getVerticalChromeHeight('top') + 8,
+      bottom: (window.innerHeight || 0) - getVerticalChromeHeight('bottom') - 8,
+    }
+  }
+
+  const rect = target.getBoundingClientRect()
+  return {
+    top: Math.max(0, rect.top) + 8,
+    bottom: Math.min(window.innerHeight || rect.bottom, rect.bottom) - 8,
+  }
+}
+
+function getReaderContentRect() {
+  const element = document.querySelector('[data-reader-scroll-target="true"]')
+    || document.querySelector('main .container')
+    || document.querySelector('main')
+    || document.body
+  return element.getBoundingClientRect()
+}
+
+function findLastFullyVisibleReaderLine(target) {
+  const bounds = getReaderViewportBounds(target)
+  if (bounds.bottom <= bounds.top) return null
+
+  const lineRects = []
+  for (const element of document.querySelectorAll('.verse-text')) {
+    const range = document.createRange()
+    try {
+      range.selectNodeContents(element)
+      for (const rect of range.getClientRects()) {
+        if (rect.width < 16 || rect.height < 8) continue
+        if (rect.top < bounds.top || rect.bottom > bounds.bottom) continue
+        lineRects.push(rect)
+      }
+    } finally {
+      range.detach?.()
+    }
+  }
+
+  if (!lineRects.length) return null
+  return lineRects.reduce((last, rect) => {
+    if (!last) return rect
+    if (rect.bottom > last.bottom + 1) return rect
+    if (Math.abs(rect.bottom - last.bottom) <= 1 && rect.left > last.left) return rect
+    return last
+  }, null)
+}
+
+function placeNativeScrollMarker(target) {
+  removeNativeScrollMarker()
+
+  const lineRect = findLastFullyVisibleReaderLine(target)
+  if (!lineRect) return
+
+  const contentRect = getReaderContentRect()
+  const scrollTop = window.scrollY || document.documentElement.scrollTop || 0
+  const scrollLeft = window.scrollX || document.documentElement.scrollLeft || 0
+  const marker = document.createElement('div')
+  marker.id = NATIVE_SCROLL_MARKER_ID
+  marker.setAttribute('aria-hidden', 'true')
+
+  Object.assign(marker.style, {
+    position: 'absolute',
+    top: `${lineRect.bottom + scrollTop + 4}px`,
+    left: `${Math.max(12, contentRect.left + scrollLeft + 12)}px`,
+    width: `${Math.max(48, contentRect.width - 24)}px`,
+    height: '0',
+    borderTop: '1px dashed rgba(156, 163, 175, 0.78)',
+    pointerEvents: 'none',
+    zIndex: '30',
+  })
+
+  document.body.appendChild(marker)
+}
+
 function isReaderRoute(pathname) {
   if (!pathname) return false
   return (
@@ -175,6 +262,11 @@ function AndroidReaderControls({ enabled }) {
   const location = useLocation()
 
   useEffect(() => {
+    removeNativeScrollMarker()
+    return removeNativeScrollMarker
+  }, [location.pathname])
+
+  useEffect(() => {
     setNativeSideButtonScrollEnabled(Boolean(enabled) && isReaderRoute(location.pathname)).catch(() => {})
   }, [enabled, location.pathname])
 
@@ -187,7 +279,10 @@ function AndroidReaderControls({ enabled }) {
       const distance = getNativeReaderScrollDistance(target)
       const delta = direction === 'up' ? -distance : distance
 
-      if (target === document.scrollingElement || target === document.documentElement || target === document.body) {
+      if (direction === 'down') placeNativeScrollMarker(target)
+      else removeNativeScrollMarker()
+
+      if (isDocumentScrollTarget(target)) {
         window.scrollBy({ top: delta, left: 0, behavior: 'auto' })
       } else {
         target.scrollTop += delta
