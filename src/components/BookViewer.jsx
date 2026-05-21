@@ -703,7 +703,6 @@ function BookViewer() {
               <div className={`flex items-center bg-white/10 rounded-lg transition-all ${isSearchFocused ? 'ring-2 ring-white/50' : ''}`}>
                 <input
                   ref={searchInputRef}
-                  enterKeyHint="search"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   onFocus={() => setIsSearchFocused(true)}

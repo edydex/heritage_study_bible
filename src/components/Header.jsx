@@ -139,7 +139,6 @@ function Header({
                 name="hsb-search"
                 autoComplete="off"
                 spellCheck="false"
-                enterKeyHint="search"
                 placeholder={isSmallScreen ? 'Find...' : 'Search or go to verse...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
