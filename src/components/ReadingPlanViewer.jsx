@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES } from '../data/resources'
 import {
@@ -27,6 +27,7 @@ import {
 } from '../services/readingPlanProgress'
 
 const PLAN_CACHE_VERSION = 1
+const DAY_STRIP_RADIUS = 7
 
 function readJson(key) {
   try {
@@ -90,12 +91,16 @@ function ReadingPlanViewer() {
   const [cacheNotice, setCacheNotice] = useState('')
   const [filterMode, setFilterMode] = useState('all')
   const [showMoreSettings, setShowMoreSettings] = useState(false)
+  const [showDayMenu, setShowDayMenu] = useState(false)
   const [selectedDay, setSelectedDay] = useState(null)
   const [joinLink, setJoinLink] = useState('')
   const [groupBusy, setGroupBusy] = useState(false)
   const [groupMessage, setGroupMessage] = useState('')
   const [groupState, setGroupState] = useState(null)
   const [answerText, setAnswerText] = useState('')
+  const dayMenuHistoryRef = useRef(false)
+  const dayMenuClosingFromBackRef = useRef(false)
+  const pendingDayMenuCallbackRef = useRef(null)
 
   const category = RESOURCE_CATEGORIES.find(c => c.id === 'reading-plans')
   const meta = category?.items.find(i => i.id === itemId)
@@ -183,6 +188,12 @@ function ReadingPlanViewer() {
   const completedSet = useMemo(() => new Set(completedDays), [completedDays])
   const nextUnreadDay = useMemo(() => getNextIncompleteDay(plan, progressState), [plan, progressState])
   const progressPct = plan?.totalDays ? Math.round((completedDays.length / plan.totalDays) * 100) : 0
+  const totalDayCount = plan?.totalDays || readings.length
+  const dayAfterLastCompleted = useMemo(() => {
+    if (!totalDayCount) return 1
+    if (!completedDays.length) return 1
+    return Math.min(totalDayCount, Math.max(...completedDays) + 1)
+  }, [completedDays, totalDayCount])
 
   const selectedReading = useMemo(() => {
     if (!readings.length) return null
@@ -203,12 +214,65 @@ function ReadingPlanViewer() {
 
   useEffect(() => {
     if (!plan?.readings?.length) return
-    const target = todayDay || nextUnreadDay || 1
+    const target = dayAfterLastCompleted || nextUnreadDay || todayDay || 1
     setSelectedDay(prev => {
       if (prev && plan.readings.some(row => row.day === prev)) return prev
       return target
     })
-  }, [nextUnreadDay, plan, todayDay])
+  }, [dayAfterLastCompleted, nextUnreadDay, plan, todayDay])
+
+  const closeDayMenuState = () => {
+    setShowDayMenu(false)
+  }
+
+  const closeDayMenu = () => {
+    if (dayMenuHistoryRef.current && typeof window !== 'undefined' && !dayMenuClosingFromBackRef.current) {
+      dayMenuClosingFromBackRef.current = true
+      window.history.back()
+      return
+    }
+
+    closeDayMenuState()
+  }
+
+  const closeDayMenuForSelection = (callback) => {
+    if (dayMenuHistoryRef.current && typeof window !== 'undefined' && !dayMenuClosingFromBackRef.current) {
+      pendingDayMenuCallbackRef.current = callback
+      dayMenuClosingFromBackRef.current = true
+      window.history.back()
+      return
+    }
+
+    closeDayMenuState()
+    if (callback) callback()
+  }
+
+  useEffect(() => {
+    if (!showDayMenu || dayMenuHistoryRef.current || typeof window === 'undefined') return
+
+    const currentState = window.history.state || {}
+    window.history.pushState({ ...currentState, heritagePlanDayMenu: true }, '', window.location.href)
+    dayMenuHistoryRef.current = true
+  }, [showDayMenu])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+
+    const handlePopState = () => {
+      if (!dayMenuHistoryRef.current) return
+
+      dayMenuHistoryRef.current = false
+      dayMenuClosingFromBackRef.current = false
+      closeDayMenuState()
+
+      const pendingCallback = pendingDayMenuCallbackRef.current
+      pendingDayMenuCallbackRef.current = null
+      if (pendingCallback) window.setTimeout(pendingCallback, 0)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   const refreshGroupState = useCallback(async () => {
     if (!groupRecord?.groupId || !groupToken) return
@@ -335,8 +399,12 @@ function ReadingPlanViewer() {
     return readings
   }, [completedSet, filterMode, readings])
 
-  const dayStripStart = Math.max(1, (selectedReading?.day || todayDay || 1) - 3)
-  const dayStripEnd = Math.min(plan?.totalDays || readings.length, dayStripStart + 13)
+  const dayStripFocus = selectedReading?.day || dayAfterLastCompleted || nextUnreadDay || todayDay || 1
+  const maxStripItems = (DAY_STRIP_RADIUS * 2) + 1
+  const rawDayStripStart = dayStripFocus - DAY_STRIP_RADIUS
+  const boundedDayStripStart = Math.max(1, Math.min(rawDayStripStart, Math.max(1, totalDayCount - maxStripItems + 1)))
+  const dayStripStart = boundedDayStripStart
+  const dayStripEnd = Math.min(totalDayCount, dayStripStart + maxStripItems - 1)
   const visibleStripDays = readings.filter(reading => reading.day >= dayStripStart && reading.day <= dayStripEnd)
 
   const handleCreateGroup = async () => {
@@ -483,24 +551,26 @@ function ReadingPlanViewer() {
       <header className="bg-primary text-white shadow-lg sticky top-0 z-40 safe-area-top">
         <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
           <button
-            onClick={() => navigate('/resources/reading-plans')}
+            onClick={() => showDayMenu ? closeDayMenu() : navigate('/resources/reading-plans')}
             className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
-            aria-label="Back to reading plans"
+            aria-label={showDayMenu ? 'Back to plan' : 'Back to reading plans'}
           >
             <span className="text-xl leading-none">‹</span>
           </button>
           <div className="flex-1 min-w-0">
             <h1 className="text-base sm:text-lg font-bold heading-text truncate">
-              {meta?.title || plan?.title || 'Loading...'}
+              {showDayMenu ? 'Select Plan Day' : (meta?.title || plan?.title || 'Loading...')}
             </h1>
           </div>
-          <button
-            onClick={() => setShowMoreSettings(value => !value)}
-            className="p-2 rounded-lg hover:bg-white/20 transition-colors"
-            aria-label="More settings"
-          >
-            <span className="block text-xl leading-none">⋮</span>
-          </button>
+          {!showDayMenu && (
+            <button
+              onClick={() => setShowMoreSettings(value => !value)}
+              className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+              aria-label="More settings"
+            >
+              <span className="block text-xl leading-none">⋮</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -518,7 +588,59 @@ function ReadingPlanViewer() {
           </div>
         )}
 
-        {plan && !loading && selectedReading && (
+        {plan && !loading && showDayMenu && selectedReading && (
+          <section className="pb-6">
+            <div className="mb-5">
+              <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold">
+                {completedDays.length} of {plan.totalDays} days complete
+              </p>
+              <h2 className="mt-1 text-2xl font-bold text-gray-950 dark:text-gray-100">
+                All Plan Days
+              </h2>
+            </div>
+
+            <div className="space-y-2">
+              {readings.map(reading => {
+                const done = completedSet.has(reading.day)
+                const active = selectedReading.day === reading.day
+                const date = formatDateForDay(startedOn, reading.day)
+                const items = getReadingItems(reading)
+                const summary = items
+                  .filter(item => item.type !== COMMENTS_ITEM_TYPE)
+                  .map(item => item.label)
+                  .join(', ')
+
+                return (
+                  <button
+                    key={reading.day}
+                    onClick={() => closeDayMenuForSelection(() => {
+                      setSelectedDay(reading.day)
+                    })}
+                    className={`w-full rounded-lg border px-4 py-3 text-left transition-colors ${
+                      active
+                        ? 'border-primary dark:border-blue-500 bg-primary/10 dark:bg-blue-500/20'
+                        : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700'
+                    }`}
+                  >
+                    <span className="flex items-center justify-between gap-3">
+                      <span className="text-base font-semibold text-gray-950 dark:text-gray-100">
+                        Day {reading.day}
+                      </span>
+                      <span className={`text-xs font-semibold ${done ? 'text-primary dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                        {done ? 'Complete' : todayDay === reading.day ? 'Today' : date || 'Not complete'}
+                      </span>
+                    </span>
+                    <span className="mt-1 block text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                      {summary || reading.passage || 'Reading day'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {plan && !loading && !showDayMenu && selectedReading && (
           <>
             <section className="mb-5">
               <h2 className="heading-text text-2xl sm:text-3xl font-bold text-gray-950 dark:text-gray-100">
@@ -572,6 +694,17 @@ function ReadingPlanViewer() {
                     </button>
                   )
                 })}
+                <button
+                  onClick={() => setShowDayMenu(true)}
+                  className="w-20 h-16 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 text-left px-3 py-2 transition-colors"
+                >
+                  <span className="block text-base font-semibold text-gray-900 dark:text-gray-100">
+                    See all
+                  </span>
+                  <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {plan.totalDays} days
+                  </span>
+                </button>
               </div>
             </section>
 
@@ -885,14 +1018,16 @@ function ReadingPlanViewer() {
           </>
         )}
 
-        <div className="mt-12 text-center">
-          <button
-            onClick={() => navigate('/resources/reading-plans')}
-            className="text-sm text-primary dark:text-blue-400 hover:underline"
-          >
-            Back to Reading Plans
-          </button>
-        </div>
+        {!showDayMenu && (
+          <div className="mt-12 text-center">
+            <button
+              onClick={() => navigate('/resources/reading-plans')}
+              className="text-sm text-primary dark:text-blue-400 hover:underline"
+            >
+              Back to Reading Plans
+            </button>
+          </div>
+        )}
       </main>
     </div>
   )
