@@ -82,7 +82,10 @@ function Header({
   const handleSubmit = (e) => {
     e.preventDefault()
     // Use the actual DOM input value to avoid any browser autocomplete interference
-    const value = inputRef.current ? inputRef.current.value : searchQuery
+    const input = inputRef.current
+    const value = input ? input.value : searchQuery
+    input?.blur()
+    setIsSearchFocused(false)
     onSearch(value)
   }
 
@@ -136,6 +139,7 @@ function Header({
                 name="hsb-search"
                 autoComplete="off"
                 spellCheck="false"
+                enterKeyHint="search"
                 placeholder={isSmallScreen ? 'Find...' : 'Search or go to verse...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

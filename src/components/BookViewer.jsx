@@ -181,6 +181,7 @@ function BookViewer() {
   const [bookmarkStatus, setBookmarkStatus] = useState('')
   const pendingChapterRef = useRef(null)
   const crossSearchRequestRef = useRef(0)
+  const searchInputRef = useRef(null)
 
   const category = RESOURCE_CATEGORIES.find(c => c.id === 'books')
   const book = category?.items.find(i => i.id === itemId)
@@ -693,12 +694,16 @@ function BookViewer() {
             <form
               onSubmit={(event) => {
                 event.preventDefault()
+                searchInputRef.current?.blur()
+                setIsSearchFocused(false)
                 if (searchResults.length) jumpToSearchResult(activeSearchResult ? activeSearchResultIndex : 0)
               }}
               className="flex-1 min-w-0 max-w-xl"
             >
               <div className={`flex items-center bg-white/10 rounded-lg transition-all ${isSearchFocused ? 'ring-2 ring-white/50' : ''}`}>
                 <input
+                  ref={searchInputRef}
+                  enterKeyHint="search"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
