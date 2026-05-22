@@ -1,10 +1,10 @@
-const CACHE_NAME = 'heritage-v2'
+const CACHE_NAME = 'heritage-v3'
 
 // App shell files to cache immediately on install
 const APP_SHELL = [
   '/',
   '/index.html',
-  '/favicon.svg',
+  '/favicon.png',
   '/manifest.json'
 ]
 
