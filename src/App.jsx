@@ -1152,7 +1152,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
   return (
     <>
-      <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-background'}`}>
+      <div className={`min-h-screen ${darkMode ? 'dark bg-black' : 'bg-background'}`}>
         <Header 
           onSearch={handleSearch}
           isSearchLoading={searchLoading}

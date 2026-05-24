@@ -1520,6 +1520,9 @@ function CommentarySidebar({
                 <textarea
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
+                  autoComplete="on"
+                  autoCorrect="on"
+                  spellCheck={true}
                   placeholder="Write your notes here..."
                   className="w-full h-32 px-3 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                 />

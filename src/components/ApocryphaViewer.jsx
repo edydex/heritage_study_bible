@@ -181,7 +181,7 @@ function ApocryphaViewer({ toolMeta }) {
               </p>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8">
+            <div className="bg-white dark:bg-black rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8">
               {selectedChapterData.verses.map((verse) => (
                 <div
                   key={verse.number}

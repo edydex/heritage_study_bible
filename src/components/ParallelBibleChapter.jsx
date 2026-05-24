@@ -105,7 +105,7 @@ function ParallelBibleChapter({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8" ref={containerRef}>
+    <div className="bg-white dark:bg-black rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8" ref={containerRef}>
       <div className="space-y-2">
         {verseNumbers.map((verseNumber) => {
           const primaryVerse = primaryVerseMap.get(verseNumber)
@@ -162,7 +162,7 @@ function ParallelBibleChapter({
               </div>
 
               <div className="md:hidden p-2 space-y-2">
-                <div className="rounded-md bg-white dark:bg-gray-800 p-2 cursor-pointer" onClick={() => handleVerseClick(verseNumber)}>
+                <div className="rounded-md bg-white dark:bg-black p-2 cursor-pointer" onClick={() => handleVerseClick(verseNumber)}>
                   <div className="text-[11px] uppercase tracking-wide text-primary dark:text-blue-400 font-semibold mb-1">{primaryTranslationId}</div>
                   <div className="flex items-start gap-2 group">
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
@@ -186,7 +186,7 @@ function ParallelBibleChapter({
                   </div>
                 </div>
 
-                <div className="rounded-md bg-white/70 dark:bg-gray-800/80 p-2 cursor-pointer" onClick={() => handleVerseClick(verseNumber)}>
+                <div className="rounded-md bg-white/70 dark:bg-black p-2 cursor-pointer" onClick={() => handleVerseClick(verseNumber)}>
                   <div className="text-[11px] uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-1">{secondaryTranslationId}</div>
                   <div className="flex items-start gap-2">
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
