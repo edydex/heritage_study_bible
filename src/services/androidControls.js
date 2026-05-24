@@ -17,6 +17,17 @@ export async function setNativeSideButtonScrollEnabled(enabled) {
   }
 }
 
+export async function setNativeSearchKeyboardCaptureInputEnabled(enabled) {
+  if (!isNativeAndroid()) return false
+  try {
+    await HeritageControls.setSearchKeyboardCaptureInputEnabled({ enabled: Boolean(enabled) })
+    return true
+  } catch (error) {
+    console.warn('Heritage native search keyboard controls are not available yet', error)
+    return false
+  }
+}
+
 export async function exitNativeApp() {
   if (!isNativeAndroid()) return false
   try {

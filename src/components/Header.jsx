@@ -30,6 +30,7 @@ function Header({
   sideButtonScroll = false,
   onSideButtonScrollChange,
   showVolumeScrollSetting = false,
+  onSearchKeyboardCaptureChange,
 }) {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -80,6 +81,14 @@ function Header({
   }, [showParallelModal, availableParallelTranslations, parallelSecondaryId])
 
   const inputRef = useRef(null)
+
+  const setSearchKeyboardCapture = (enabled) => {
+    onSearchKeyboardCaptureChange?.(enabled)
+  }
+
+  useEffect(() => {
+    return () => onSearchKeyboardCaptureChange?.(false)
+  }, [onSearchKeyboardCaptureChange])
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -142,13 +151,19 @@ function Header({
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
-                inputMode="url"
                 enterKeyHint="search"
                 placeholder={isSmallScreen ? 'Find...' : 'Search or go to verse...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
+                onPointerDown={() => setSearchKeyboardCapture(true)}
+                onFocus={() => {
+                  setSearchKeyboardCapture(true)
+                  setIsSearchFocused(true)
+                }}
+                onBlur={() => {
+                  setSearchKeyboardCapture(false)
+                  setIsSearchFocused(false)
+                }}
                 className="flex-1 bg-transparent px-2 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base text-white placeholder-blue-200 focus:outline-none min-w-0"
               />
               <button 

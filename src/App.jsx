@@ -20,7 +20,7 @@ import { translations, DEFAULT_TRANSLATION, loadTranslation } from './data/trans
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
 import { parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
-import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, setNativeSideButtonScrollEnabled } from './services/androidControls'
+import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, setNativeSideButtonScrollEnabled, setNativeSearchKeyboardCaptureInputEnabled } from './services/androidControls'
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
 import { getActiveReadingPlan } from './services/readingPlanProgress'
@@ -1186,6 +1186,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           sideButtonScroll={sideButtonScroll}
           onSideButtonScrollChange={onSideButtonScrollChange}
           showVolumeScrollSetting={isNativeAndroid()}
+          onSearchKeyboardCaptureChange={setNativeSearchKeyboardCaptureInputEnabled}
         />
         
         <div className="flex">
