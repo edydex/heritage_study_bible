@@ -1186,7 +1186,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           sideButtonScroll={sideButtonScroll}
           onSideButtonScrollChange={onSideButtonScrollChange}
           showVolumeScrollSetting={isNativeAndroid()}
-          showSearchNumberPad={isNativeAndroid()}
         />
         
         <div className="flex">
