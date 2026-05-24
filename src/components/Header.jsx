@@ -142,6 +142,7 @@ function Header({
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
+                inputMode="url"
                 enterKeyHint="search"
                 placeholder={isSmallScreen ? 'Find...' : 'Search or go to verse...'}
                 value={searchQuery}
