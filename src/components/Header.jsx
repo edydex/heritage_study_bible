@@ -30,6 +30,7 @@ function Header({
   sideButtonScroll = false,
   onSideButtonScrollChange,
   showVolumeScrollSetting = false,
+  showSearchNumberPad = false,
 }) {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -91,6 +92,21 @@ function Header({
     onSearch(value)
   }
 
+  const insertSearchDigit = (digit) => {
+    const input = inputRef.current
+    const currentValue = input ? input.value : searchQuery
+    const selectionStart = input?.selectionStart ?? currentValue.length
+    const selectionEnd = input?.selectionEnd ?? selectionStart
+    const nextValue = `${currentValue.slice(0, selectionStart)}${digit}${currentValue.slice(selectionEnd)}`
+    const nextCaret = selectionStart + digit.length
+
+    setSearchQuery(nextValue)
+    requestAnimationFrame(() => {
+      input?.focus()
+      input?.setSelectionRange(nextCaret, nextCaret)
+    })
+  }
+
   // Close settings dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -120,7 +136,7 @@ function Header({
   }
 
   return (
-    <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
+    <header className="relative bg-primary text-white shadow-lg sticky top-0 z-40">
       <div
         className="px-4 sm:px-6 h-14 flex items-center transition-all duration-300"
         style={{ marginRight: isSidebarOpen ? `${sidebarWidth}px` : 0 }}
@@ -386,6 +402,23 @@ function Header({
           </div>
         </div>
       </div>
+
+      {showSearchNumberPad && isSearchFocused && (
+        <div className="sm:hidden absolute left-0 right-0 top-full z-50 grid grid-cols-10 gap-px border-y border-white/10 bg-black/95 px-1 py-1 shadow-lg">
+          {'1234567890'.split('').map((digit) => (
+            <button
+              key={digit}
+              type="button"
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={() => insertSearchDigit(digit)}
+              className="h-9 rounded-md bg-white/10 text-sm font-bold text-white active:bg-white/25"
+              aria-label={`Insert ${digit}`}
+            >
+              {digit}
+            </button>
+          ))}
+        </div>
+      )}
 
       {showParallelModal && (
         <div
