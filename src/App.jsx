@@ -28,21 +28,40 @@ import { checkForApkUpdate, openApkDownload } from './services/appUpdates'
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
+const DEFAULT_VOLUME_SCROLL_ANIMATION_MS = 180
+const MIN_VOLUME_SCROLL_ANIMATION_MS = 60
+const MAX_VOLUME_SCROLL_ANIMATION_MS = 600
 const DEFAULT_ADVANCED_SETTINGS = {
   eInkLightBackground: false,
-  volumeScrollAnimationMs: 180,
+  volumeScrollAnimationMs: DEFAULT_VOLUME_SCROLL_ANIMATION_MS,
 }
 let nativeScrollAnimationFrame = null
+
+function clampVolumeScrollAnimationMs(value) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0
+  return Math.max(MIN_VOLUME_SCROLL_ANIMATION_MS, Math.min(MAX_VOLUME_SCROLL_ANIMATION_MS, Math.round(parsed)))
+}
+
+function getVolumeScrollSpeedPercent(durationMs) {
+  if (!durationMs) return 0
+  return Math.max(30, Math.min(300, Math.round((DEFAULT_VOLUME_SCROLL_ANIMATION_MS / durationMs) * 100)))
+}
+
+function getVolumeScrollDurationFromSpeedPercent(speedPercent) {
+  const parsed = Number(speedPercent)
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0
+  return clampVolumeScrollAnimationMs((DEFAULT_VOLUME_SCROLL_ANIMATION_MS * 100) / parsed)
+}
 
 function normalizeAdvancedSettings(value) {
   if (!value || typeof value !== 'object') return DEFAULT_ADVANCED_SETTINGS
 
-  const parsedDuration = Number(value.volumeScrollAnimationMs)
   return {
     eInkLightBackground: value.eInkLightBackground === true,
-    volumeScrollAnimationMs: Number.isFinite(parsedDuration)
-      ? Math.max(0, Math.min(600, Math.round(parsedDuration)))
-      : DEFAULT_ADVANCED_SETTINGS.volumeScrollAnimationMs,
+    volumeScrollAnimationMs: value.volumeScrollAnimationMs == null
+      ? DEFAULT_ADVANCED_SETTINGS.volumeScrollAnimationMs
+      : clampVolumeScrollAnimationMs(value.volumeScrollAnimationMs),
   }
 }
 
@@ -226,8 +245,7 @@ function animateNativeReaderScroll(target, delta, durationMs = 0) {
 
   const step = (now) => {
     const progress = Math.min(1, (now - startTime) / durationMs)
-    const eased = 1 - Math.pow(1 - progress, 3)
-    setScrollTopForTarget(target, startTop + (targetTop - startTop) * eased)
+    setScrollTopForTarget(target, startTop + (targetTop - startTop) * progress)
 
     if (progress < 1) {
       nativeScrollAnimationFrame = window.requestAnimationFrame(step)
@@ -503,6 +521,8 @@ function ReadingPlanInviteRedirect() {
 function AdvancedSettingsPage({ settings, onSettingsChange }) {
   const navigate = useNavigate()
   const normalized = normalizeAdvancedSettings(settings)
+  const volumeScrollSpeedPercent = getVolumeScrollSpeedPercent(normalized.volumeScrollAnimationMs)
+  const volumeScrollSliderValue = volumeScrollSpeedPercent || 100
   const [updateStatus, setUpdateStatus] = useState('idle')
   const [updateMessage, setUpdateMessage] = useState('')
   const [updateResult, setUpdateResult] = useState(null)
@@ -510,6 +530,10 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
 
   const updateSetting = (key, value) => {
     onSettingsChange?.(normalizeAdvancedSettings({ ...normalized, [key]: value }))
+  }
+
+  const updateVolumeScrollSpeed = (speedPercent) => {
+    updateSetting('volumeScrollAnimationMs', getVolumeScrollDurationFromSpeedPercent(speedPercent))
   }
 
   const handleCheckForUpdate = async () => {
@@ -599,47 +623,57 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
         <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Volume Scroll Animation</h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Volume Scroll Speed</h2>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {normalized.volumeScrollAnimationMs === 0
                   ? 'Instant movement'
-                  : `${normalized.volumeScrollAnimationMs} ms`}
+                  : `${volumeScrollSpeedPercent}% speed`}
               </p>
             </div>
             <input
               type="number"
               inputMode="numeric"
-              min="0"
-              max="600"
+              min="30"
+              max="300"
               step="10"
-              value={normalized.volumeScrollAnimationMs}
-              onChange={(event) => updateSetting('volumeScrollAnimationMs', event.target.value)}
+              value={volumeScrollSliderValue}
+              onChange={(event) => updateVolumeScrollSpeed(event.target.value)}
+              disabled={normalized.volumeScrollAnimationMs === 0}
               className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100"
             />
           </div>
 
           <input
             type="range"
-            min="0"
-            max="600"
+            min="30"
+            max="300"
             step="10"
-            value={normalized.volumeScrollAnimationMs}
-            onChange={(event) => updateSetting('volumeScrollAnimationMs', event.target.value)}
-            className="mt-4 w-full accent-blue-700"
+            value={volumeScrollSliderValue}
+            onChange={(event) => updateVolumeScrollSpeed(event.target.value)}
+            disabled={normalized.volumeScrollAnimationMs === 0}
+            className="mt-4 w-full accent-blue-700 disabled:opacity-50"
           />
 
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="mt-3 grid grid-cols-4 gap-2">
             {[
               ['Off', 0],
-              ['Default', DEFAULT_ADVANCED_SETTINGS.volumeScrollAnimationMs],
-              ['Slow', 320],
+              ['Slow', 60],
+              ['Default', 100],
+              ['Fast', 200],
             ].map(([label, value]) => (
               <button
                 key={label}
                 type="button"
-                onClick={() => updateSetting('volumeScrollAnimationMs', value)}
+                onClick={() => {
+                  if (value === 0) {
+                    updateSetting('volumeScrollAnimationMs', 0)
+                    return
+                  }
+                  updateVolumeScrollSpeed(value)
+                }}
                 className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                  normalized.volumeScrollAnimationMs === value
+                  (value === 0 && normalized.volumeScrollAnimationMs === 0) ||
+                  (value !== 0 && normalized.volumeScrollAnimationMs !== 0 && Math.abs(volumeScrollSpeedPercent - value) <= 5)
                     ? 'border-primary bg-primary/10 text-primary dark:border-blue-400 dark:bg-blue-500/15 dark:text-blue-300'
                     : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
