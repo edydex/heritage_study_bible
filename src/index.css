@@ -8,9 +8,14 @@
 
 body {
   margin: 0;
-  background-color: #fff;
+  background-color: #fafaf9;
   color: #1f2937;
   font-family: 'Inter', system-ui, sans-serif;
+}
+
+html.eink-light:not(.dark) body,
+html.eink-light:not(.dark) .bg-background {
+  background-color: #fff !important;
 }
 
 .dark body,

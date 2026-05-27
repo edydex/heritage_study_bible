@@ -27,8 +27,31 @@ import { getActiveReadingPlan } from './services/readingPlanProgress'
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
-const NATIVE_SCROLL_ANIMATION_MS = 180
+const DEFAULT_ADVANCED_SETTINGS = {
+  eInkLightBackground: false,
+  volumeScrollAnimationMs: 0,
+}
 let nativeScrollAnimationFrame = null
+
+function normalizeAdvancedSettings(value) {
+  if (!value || typeof value !== 'object') return DEFAULT_ADVANCED_SETTINGS
+
+  const parsedDuration = Number(value.volumeScrollAnimationMs)
+  return {
+    eInkLightBackground: value.eInkLightBackground === true,
+    volumeScrollAnimationMs: Number.isFinite(parsedDuration)
+      ? Math.max(0, Math.min(600, Math.round(parsedDuration)))
+      : DEFAULT_ADVANCED_SETTINGS.volumeScrollAnimationMs,
+  }
+}
+
+function loadAdvancedSettings() {
+  try {
+    return normalizeAdvancedSettings(JSON.parse(localStorage.getItem(STORAGE_KEYS.advancedSettings) || '{}'))
+  } catch {
+    return DEFAULT_ADVANCED_SETTINGS
+  }
+}
 
 function getPendingCommentaryLoadsForBook(bookName, authorsData) {
   const pending = []
@@ -185,10 +208,15 @@ function setScrollTopForTarget(target, top) {
   target.scrollTop = top
 }
 
-function animateNativeReaderScroll(target, delta) {
+function animateNativeReaderScroll(target, delta, durationMs = 0) {
   if (nativeScrollAnimationFrame) {
     window.cancelAnimationFrame(nativeScrollAnimationFrame)
     nativeScrollAnimationFrame = null
+  }
+
+  if (!durationMs) {
+    setScrollTopForTarget(target, getScrollTopForTarget(target) + delta)
+    return
   }
 
   const startTop = getScrollTopForTarget(target)
@@ -196,7 +224,7 @@ function animateNativeReaderScroll(target, delta) {
   const startTime = performance.now()
 
   const step = (now) => {
-    const progress = Math.min(1, (now - startTime) / NATIVE_SCROLL_ANIMATION_MS)
+    const progress = Math.min(1, (now - startTime) / durationMs)
     const eased = 1 - Math.pow(1 - progress, 3)
     setScrollTopForTarget(target, startTop + (targetTop - startTop) * eased)
 
@@ -303,7 +331,7 @@ function isReaderRoute(pathname) {
   )
 }
 
-function AndroidReaderControls({ enabled }) {
+function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0 }) {
   const location = useLocation()
 
   useEffect(() => {
@@ -327,9 +355,9 @@ function AndroidReaderControls({ enabled }) {
       if (direction === 'down') placeNativeScrollMarker(target)
       else removeNativeScrollMarker()
 
-      animateNativeReaderScroll(target, delta)
+      animateNativeReaderScroll(target, delta, volumeScrollAnimationMs)
     })
-  }, [enabled, location.pathname])
+  }, [enabled, location.pathname, volumeScrollAnimationMs])
 
   return null
 }
@@ -452,6 +480,109 @@ function ReadingPlanInviteRedirect() {
     : ''
 
   return <Navigate to={`/resources/reading-plans/${planId}${query}`} replace />
+}
+
+function AdvancedSettingsPage({ settings, onSettingsChange }) {
+  const navigate = useNavigate()
+  const normalized = normalizeAdvancedSettings(settings)
+
+  const updateSetting = (key, value) => {
+    onSettingsChange?.(normalizeAdvancedSettings({ ...normalized, [key]: value }))
+  }
+
+  return (
+    <div className="min-h-screen bg-background dark:bg-gray-900">
+      <header className="bg-primary text-white sticky top-0 z-40 shadow-lg">
+        <div className="h-14 px-4 sm:px-6 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
+            aria-label="Back"
+          >
+            ←
+          </button>
+          <div className="min-w-0">
+            <h1 className="heading-text text-lg font-bold leading-tight">Advanced Settings</h1>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto max-w-2xl px-4 py-5 pb-20 space-y-4">
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <button
+            type="button"
+            onClick={() => updateSetting('eInkLightBackground', !normalized.eInkLightBackground)}
+            className="w-full flex items-center justify-between gap-4 text-left"
+          >
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Pure White Light Background</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Use #ffffff for light-mode page backgrounds.
+              </p>
+            </div>
+            <div className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${normalized.eInkLightBackground ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
+              <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${normalized.eInkLightBackground ? 'translate-x-5' : 'translate-x-0'}`} />
+            </div>
+          </button>
+        </section>
+
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Volume Scroll Animation</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {normalized.volumeScrollAnimationMs === 0
+                  ? 'Instant movement'
+                  : `${normalized.volumeScrollAnimationMs} ms`}
+              </p>
+            </div>
+            <input
+              type="number"
+              inputMode="numeric"
+              min="0"
+              max="600"
+              step="10"
+              value={normalized.volumeScrollAnimationMs}
+              onChange={(event) => updateSetting('volumeScrollAnimationMs', event.target.value)}
+              className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100"
+            />
+          </div>
+
+          <input
+            type="range"
+            min="0"
+            max="600"
+            step="10"
+            value={normalized.volumeScrollAnimationMs}
+            onChange={(event) => updateSetting('volumeScrollAnimationMs', event.target.value)}
+            className="mt-4 w-full accent-blue-700"
+          />
+
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {[
+              ['Default', 0],
+              ['Fast', 180],
+              ['Slow', 320],
+            ].map(([label, value]) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => updateSetting('volumeScrollAnimationMs', value)}
+                className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                  normalized.volumeScrollAnimationMs === value
+                    ? 'border-primary bg-primary/10 text-primary dark:border-blue-400 dark:bg-blue-500/15 dark:text-blue-300'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
+  )
 }
 
 function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
@@ -1227,6 +1358,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           onSideButtonScrollChange={onSideButtonScrollChange}
           showVolumeScrollSetting={isNativeAndroid()}
           onSearchKeyboardCaptureChange={setNativeSearchKeyboardCaptureInputEnabled}
+          onAdvancedSettingsClick={() => navigate('/settings/advanced')}
         />
         
         <div className="flex">
@@ -1507,6 +1639,7 @@ function App() {
     } catch {}
     return isNativeAndroid()
   })
+  const [advancedSettings, setAdvancedSettingsState] = useState(loadAdvancedSettings)
 
   const setSideButtonScroll = useCallback((enabled) => {
     const next = Boolean(enabled)
@@ -1514,11 +1647,24 @@ function App() {
     setStoredValue(STORAGE_KEYS.sideButtonScroll, String(next)).catch(() => {})
   }, [])
 
+  const setAdvancedSettings = useCallback((settings) => {
+    const normalized = normalizeAdvancedSettings(settings)
+    setAdvancedSettingsState(normalized)
+    setStoredValue(STORAGE_KEYS.advancedSettings, JSON.stringify(normalized)).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('eink-light', advancedSettings.eInkLightBackground)
+  }, [advancedSettings.eInkLightBackground])
+
   return (
     <Router>
       <ScrollToTopOnRouteChange />
       <NativeBackNavigation />
-      <AndroidReaderControls enabled={sideButtonScroll} />
+      <AndroidReaderControls
+        enabled={sideButtonScroll}
+        volumeScrollAnimationMs={advancedSettings.volumeScrollAnimationMs}
+      />
       <Routes>
         <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />
         <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />
@@ -1527,6 +1673,7 @@ function App() {
         <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
         <Route path="/resources/tools/:itemId" element={<ToolViewer />} />
         <Route path="/resources/:categoryId" element={<ResourcePage />} />
+        <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} />} />
         <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
         <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
         <Route path="/" element={<HomeRedirect />} />
