@@ -27,6 +27,8 @@ import { getActiveReadingPlan } from './services/readingPlanProgress'
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
+const NATIVE_SCROLL_ANIMATION_MS = 180
+let nativeScrollAnimationFrame = null
 
 function getPendingCommentaryLoadsForBook(bookName, authorsData) {
   const pending = []
@@ -166,6 +168,48 @@ function isDocumentScrollTarget(target) {
   return target === document.scrollingElement || target === document.documentElement || target === document.body
 }
 
+function getScrollTopForTarget(target) {
+  if (isDocumentScrollTarget(target)) return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
+  return target.scrollTop || 0
+}
+
+function setScrollTopForTarget(target, top) {
+  if (isDocumentScrollTarget(target)) {
+    const scroller = document.scrollingElement || document.documentElement
+    scroller.scrollTop = top
+    document.documentElement.scrollTop = top
+    document.body.scrollTop = top
+    return
+  }
+
+  target.scrollTop = top
+}
+
+function animateNativeReaderScroll(target, delta) {
+  if (nativeScrollAnimationFrame) {
+    window.cancelAnimationFrame(nativeScrollAnimationFrame)
+    nativeScrollAnimationFrame = null
+  }
+
+  const startTop = getScrollTopForTarget(target)
+  const targetTop = startTop + delta
+  const startTime = performance.now()
+
+  const step = (now) => {
+    const progress = Math.min(1, (now - startTime) / NATIVE_SCROLL_ANIMATION_MS)
+    const eased = 1 - Math.pow(1 - progress, 3)
+    setScrollTopForTarget(target, startTop + (targetTop - startTop) * eased)
+
+    if (progress < 1) {
+      nativeScrollAnimationFrame = window.requestAnimationFrame(step)
+    } else {
+      nativeScrollAnimationFrame = null
+    }
+  }
+
+  nativeScrollAnimationFrame = window.requestAnimationFrame(step)
+}
+
 function removeNativeScrollMarker() {
   document.getElementById(NATIVE_SCROLL_MARKER_ID)?.remove()
 }
@@ -283,11 +327,7 @@ function AndroidReaderControls({ enabled }) {
       if (direction === 'down') placeNativeScrollMarker(target)
       else removeNativeScrollMarker()
 
-      if (isDocumentScrollTarget(target)) {
-        window.scrollBy({ top: delta, left: 0, behavior: 'auto' })
-      } else {
-        target.scrollTop += delta
-      }
+      animateNativeReaderScroll(target, delta)
     })
   }, [enabled, location.pathname])
 
