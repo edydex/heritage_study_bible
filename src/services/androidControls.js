@@ -39,6 +39,27 @@ export async function exitNativeApp() {
   }
 }
 
+export async function getNativeAppInfo() {
+  if (!isNativeAndroid()) return null
+  try {
+    return await HeritageControls.getAppInfo()
+  } catch (error) {
+    console.warn('Heritage native app info is not available yet', error)
+    return null
+  }
+}
+
+export async function openNativeExternalUrl(url) {
+  if (!isNativeAndroid() || !url) return false
+  try {
+    await HeritageControls.openExternalUrl({ url })
+    return true
+  } catch (error) {
+    console.warn('Heritage native external URL opener is not available yet', error)
+    return false
+  }
+}
+
 function parseNativeScrollDirection(event) {
   const candidates = [event?.detail, event?.data, event]
 

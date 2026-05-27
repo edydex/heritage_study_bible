@@ -24,6 +24,7 @@ import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNative
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
 import { getActiveReadingPlan } from './services/readingPlanProgress'
+import { checkForApkUpdate, openApkDownload } from './services/appUpdates'
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
@@ -391,11 +392,28 @@ function ScrollToTopOnRouteChange() {
 function NativeBackNavigation() {
   const navigate = useNavigate()
   const location = useLocation()
+  const routeHistoryRef = useRef([])
+
+  useEffect(() => {
+    const route = `${location.pathname}${location.search}${location.hash}`
+    const history = routeHistoryRef.current
+    if (history[history.length - 1] !== route) {
+      history.push(route)
+      if (history.length > 40) history.splice(0, history.length - 40)
+    }
+  }, [location.hash, location.pathname, location.search])
 
   useEffect(() => {
     return addNativeBackListener(event => {
       window.setTimeout(() => {
         if (event?.defaultPrevented) return
+
+        const history = routeHistoryRef.current
+        if (history.length > 1) {
+          history.pop()
+          navigate(-1)
+          return
+        }
 
         const resourceDetailMatch = location.pathname.match(/^\/resources\/([^/]+)\/[^/]+/)
         if (resourceDetailMatch) {
@@ -423,10 +441,10 @@ function NativeBackNavigation() {
           return
         }
 
-        navigate(-1)
+        exitNativeApp().catch(() => {})
       }, 0)
     })
-  }, [location.pathname, navigate])
+  }, [location.hash, location.pathname, location.search, navigate])
 
   return null
 }
@@ -485,9 +503,60 @@ function ReadingPlanInviteRedirect() {
 function AdvancedSettingsPage({ settings, onSettingsChange }) {
   const navigate = useNavigate()
   const normalized = normalizeAdvancedSettings(settings)
+  const [updateStatus, setUpdateStatus] = useState('idle')
+  const [updateMessage, setUpdateMessage] = useState('')
+  const [updateResult, setUpdateResult] = useState(null)
+  const canCheckApkUpdates = isNativeAndroid()
 
   const updateSetting = (key, value) => {
     onSettingsChange?.(normalizeAdvancedSettings({ ...normalized, [key]: value }))
+  }
+
+  const handleCheckForUpdate = async () => {
+    if (!canCheckApkUpdates) return
+
+    setUpdateStatus('checking')
+    setUpdateMessage('Checking GitHub releases...')
+    setUpdateResult(null)
+
+    try {
+      const result = await checkForApkUpdate()
+      setUpdateResult(result)
+
+      if (result.status === 'update-available') {
+        setUpdateStatus('downloading')
+        setUpdateMessage(`Version ${result.latestVersion} is available. Opening APK download...`)
+        await openApkDownload(result.downloadUrl)
+        setUpdateStatus('ready')
+        return
+      }
+
+      if (result.status === 'up-to-date') {
+        setUpdateStatus('ready')
+        setUpdateMessage(`You're up to date${result.currentVersion ? ` on version ${result.currentVersion}` : ''}.`)
+        return
+      }
+
+      if (result.status === 'no-apk') {
+        setUpdateStatus('ready')
+        setUpdateMessage('The latest GitHub release does not include an APK asset yet.')
+        return
+      }
+
+      setUpdateStatus('ready')
+      setUpdateMessage('No GitHub release is available yet.')
+    } catch (error) {
+      setUpdateStatus('error')
+      setUpdateMessage(error?.message || 'Could not check for updates.')
+    }
+  }
+
+  const handleDownloadUpdate = async () => {
+    if (!updateResult?.downloadUrl) return
+    setUpdateStatus('downloading')
+    setUpdateMessage('Opening APK download...')
+    await openApkDownload(updateResult.downloadUrl)
+    setUpdateStatus('ready')
   }
 
   return (
@@ -578,6 +647,59 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
                 {label}
               </button>
             ))}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">App Updates</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {canCheckApkUpdates
+                  ? 'Check GitHub Releases for a newer Android APK.'
+                  : 'APK update checks are available in the Android app.'}
+              </p>
+              {updateMessage && (
+                <p className={`text-xs mt-2 ${
+                  updateStatus === 'error'
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-gray-600 dark:text-gray-300'
+                }`}>
+                  {updateMessage}
+                </p>
+              )}
+              {updateResult?.releaseUrl && (
+                <a
+                  href={updateResult.releaseUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block text-xs mt-2 text-primary dark:text-blue-300 hover:underline"
+                >
+                  View latest release
+                </a>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:items-end gap-2">
+              <button
+                type="button"
+                onClick={handleCheckForUpdate}
+                disabled={!canCheckApkUpdates || updateStatus === 'checking' || updateStatus === 'downloading'}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {updateStatus === 'checking' ? 'Checking...' : 'Check for update'}
+              </button>
+              {updateResult?.status === 'update-available' && (
+                <button
+                  type="button"
+                  onClick={handleDownloadUpdate}
+                  disabled={updateStatus === 'downloading'}
+                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-100 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Download APK
+                </button>
+              )}
+            </div>
           </div>
         </section>
       </main>
@@ -1331,7 +1453,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           setSearchQuery={setSearchQuery}
           onBookmarkClick={() => setShowBookmarkManager(true)}
           onResourcesClick={() => setShowResources(true)}
-          bookmarkCount={bookmarks.length}
           isSidebarOpen={isLargeScreen && isSidebarOpen}
           sidebarWidth={sidebarWidth}
           textSize={textSize}

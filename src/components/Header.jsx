@@ -8,7 +8,6 @@ function Header({
   setSearchQuery,
   onBookmarkClick,
   onResourcesClick,
-  bookmarkCount,
   isSidebarOpen = false,
   sidebarWidth = 540,
   textSize = 18,
@@ -261,11 +260,6 @@ function Header({
             title="View bookmarks"
           >
             <span className="text-sm sm:text-base">⭐</span>
-            {bookmarkCount > 0 && (
-              <span className="bg-secondary text-[10px] sm:text-xs px-1 sm:px-1.5 py-0.5 rounded-full text-gray-900 font-medium">
-                {bookmarkCount}
-              </span>
-            )}
           </button>
 
           {/* Resources Button */}

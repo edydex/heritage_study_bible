@@ -3,12 +3,20 @@ apply plugin: 'com.android.application'
 android {
     namespace = "faith.heritage.app"
     compileSdk = rootProject.ext.compileSdkVersion
+    signingConfigs {
+        debug {
+            storeFile file("heritage-debug.keystore")
+            storePassword "android"
+            keyAlias "heritage-debug"
+            keyPassword "android"
+        }
+    }
     defaultConfig {
         applicationId "faith.heritage.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -17,6 +25,9 @@ android {
         }
     }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

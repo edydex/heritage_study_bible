@@ -25,6 +25,7 @@ import {
   todayIsoDate,
   togglePlanItem,
 } from '../services/readingPlanProgress'
+import { addNativeBackListener } from '../services/androidControls'
 
 const PLAN_CACHE_VERSION = 1
 const DAY_STRIP_RADIUS = 7
@@ -273,6 +274,21 @@ function ReadingPlanViewer() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  useEffect(() => {
+    return addNativeBackListener(event => {
+      if (showDayMenu) {
+        event?.preventDefault?.()
+        closeDayMenu()
+        return
+      }
+
+      if (showMoreSettings) {
+        event?.preventDefault?.()
+        setShowMoreSettings(false)
+      }
+    })
+  }, [showDayMenu, showMoreSettings])
 
   const refreshGroupState = useCallback(async () => {
     if (!groupRecord?.groupId || !groupToken) return
