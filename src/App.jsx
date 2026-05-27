@@ -29,7 +29,7 @@ const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
 const DEFAULT_ADVANCED_SETTINGS = {
   eInkLightBackground: false,
-  volumeScrollAnimationMs: 0,
+  volumeScrollAnimationMs: 180,
 }
 let nativeScrollAnimationFrame = null
 
@@ -561,8 +561,8 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
 
           <div className="mt-3 grid grid-cols-3 gap-2">
             {[
-              ['Default', 0],
-              ['Fast', 180],
+              ['Off', 0],
+              ['Default', DEFAULT_ADVANCED_SETTINGS.volumeScrollAnimationMs],
               ['Slow', 320],
             ].map(([label, value]) => (
               <button
