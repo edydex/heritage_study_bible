@@ -205,16 +205,34 @@ function getScrollTopForTarget(target) {
   return target.scrollTop || 0
 }
 
-function setScrollTopForTarget(target, top) {
+function setScrollTopForTarget(target, top, forceInstant = false) {
   if (isDocumentScrollTarget(target)) {
     const scroller = document.scrollingElement || document.documentElement
+    const prevScrollerBehavior = scroller.style.scrollBehavior
+    const prevHtmlBehavior = document.documentElement.style.scrollBehavior
+    const prevBodyBehavior = document.body.style.scrollBehavior
+    if (forceInstant) {
+      scroller.style.scrollBehavior = 'auto'
+      document.documentElement.style.scrollBehavior = 'auto'
+      document.body.style.scrollBehavior = 'auto'
+    }
+
     scroller.scrollTop = top
     document.documentElement.scrollTop = top
     document.body.scrollTop = top
+
+    if (forceInstant) {
+      scroller.style.scrollBehavior = prevScrollerBehavior
+      document.documentElement.style.scrollBehavior = prevHtmlBehavior
+      document.body.style.scrollBehavior = prevBodyBehavior
+    }
     return
   }
 
+  const prevTargetBehavior = target.style.scrollBehavior
+  if (forceInstant) target.style.scrollBehavior = 'auto'
   target.scrollTop = top
+  if (forceInstant) target.style.scrollBehavior = prevTargetBehavior
 }
 
 function animateNativeReaderScroll(target, delta, durationMs = 0) {
@@ -224,7 +242,7 @@ function animateNativeReaderScroll(target, delta, durationMs = 0) {
   }
 
   if (!durationMs) {
-    setScrollTopForTarget(target, getScrollTopForTarget(target) + delta)
+    setScrollTopForTarget(target, getScrollTopForTarget(target) + delta, true)
     return
   }
 
@@ -234,7 +252,7 @@ function animateNativeReaderScroll(target, delta, durationMs = 0) {
 
   const step = (now) => {
     const progress = Math.min(1, (now - startTime) / durationMs)
-    setScrollTopForTarget(target, startTop + (targetTop - startTop) * progress)
+    setScrollTopForTarget(target, startTop + (targetTop - startTop) * progress, true)
 
     if (progress < 1) {
       nativeScrollAnimationFrame = window.requestAnimationFrame(step)
