@@ -28,6 +28,9 @@ import { checkForApkUpdate, openApkDownload } from './services/appUpdates'
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
+const NATIVE_VOLUME_NEXT_EVENT = 'heritage:native-volume-next'
+const NATIVE_VOLUME_NEXT_DOUBLE_PRESS_MS = 480
+const NATIVE_SCROLL_BOTTOM_TOLERANCE_PX = 18
 const DEFAULT_VOLUME_SCROLL_ANIMATION_MS = 180
 const MAX_VOLUME_SCROLL_ANIMATION_MS = 600
 const DEFAULT_ADVANCED_SETTINGS = {
@@ -205,6 +208,28 @@ function getScrollTopForTarget(target) {
   return target.scrollTop || 0
 }
 
+function getMaxScrollTopForTarget(target) {
+  if (isDocumentScrollTarget(target)) {
+    const scroller = document.scrollingElement || document.documentElement
+    const scrollHeight = Math.max(
+      scroller?.scrollHeight || 0,
+      document.documentElement?.scrollHeight || 0,
+      document.body?.scrollHeight || 0
+    )
+    return Math.max(0, scrollHeight - (window.innerHeight || scroller?.clientHeight || 0))
+  }
+
+  return Math.max(0, (target?.scrollHeight || 0) - (target?.clientHeight || 0))
+}
+
+function isScrollTargetAtBottom(target) {
+  return getScrollTopForTarget(target) >= getMaxScrollTopForTarget(target) - NATIVE_SCROLL_BOTTOM_TOLERANCE_PX
+}
+
+function dispatchNativeVolumeNext() {
+  window.dispatchEvent(new CustomEvent(NATIVE_VOLUME_NEXT_EVENT))
+}
+
 function setScrollTopForTarget(target, top, forceInstant = false) {
   if (isDocumentScrollTarget(target)) {
     const scroller = document.scrollingElement || document.documentElement
@@ -373,6 +398,7 @@ function isReaderRoute(pathname) {
 
 function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0 }) {
   const location = useLocation()
+  const lastBottomDownPressAtRef = useRef(0)
 
   useEffect(() => {
     removeNativeScrollMarker()
@@ -388,6 +414,21 @@ function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0 }) {
       if (!enabled || !isReaderRoute(location.pathname)) return
       const target = getBestScrollTarget()
       if (!target) return
+
+      if (direction !== 'down') {
+        lastBottomDownPressAtRef.current = 0
+      } else if (isScrollTargetAtBottom(target)) {
+        const now = performance.now()
+        if (now - lastBottomDownPressAtRef.current <= NATIVE_VOLUME_NEXT_DOUBLE_PRESS_MS) {
+          lastBottomDownPressAtRef.current = 0
+          removeNativeScrollMarker()
+          dispatchNativeVolumeNext()
+          return
+        }
+        lastBottomDownPressAtRef.current = now
+      } else {
+        lastBottomDownPressAtRef.current = 0
+      }
 
       const distance = getNativeReaderScrollDistance(target)
       const delta = direction === 'up' ? -distance : distance

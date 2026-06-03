@@ -21,6 +21,8 @@ import {
   togglePlanItem,
 } from '../services/readingPlanProgress'
 
+const NATIVE_VOLUME_NEXT_EVENT = 'heritage:native-volume-next'
+
 function BottomNav({ 
   currentBook, 
   currentChapter, 
@@ -53,6 +55,7 @@ function BottomNav({
   const overlayHistoryRef = useRef(false)
   const overlayClosingFromBackRef = useRef(false)
   const pendingOverlayCallbackRef = useRef(null)
+  const nativeVolumeNextHandlerRef = useRef(null)
   const dragStateRef = useRef({
     active: false,
     startY: 0,
@@ -374,6 +377,25 @@ function BottomNav({
     completeCurrentChapterItem()
     if (followingPlanItem) openPlanItem(followingPlanItem)
   }
+
+  nativeVolumeNextHandlerRef.current = () => {
+    if (activePlan?.planId) {
+      if (!followingPlanItem && currentPlanItem?.type !== COMMENTS_ITEM_TYPE) return
+      handlePlanNext()
+      return
+    }
+
+    if (hasNext) handlePlanNext()
+  }
+
+  useEffect(() => {
+    const handleNativeVolumeNext = () => {
+      nativeVolumeNextHandlerRef.current?.()
+    }
+
+    window.addEventListener(NATIVE_VOLUME_NEXT_EVENT, handleNativeVolumeNext)
+    return () => window.removeEventListener(NATIVE_VOLUME_NEXT_EVENT, handleNativeVolumeNext)
+  }, [])
 
   const handleClosePlanMode = () => {
     clearActiveReadingPlan()
