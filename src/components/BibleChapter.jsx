@@ -101,6 +101,8 @@ function BibleChapter({
                 id={`verse-${chapter.number}-${verse.number}`}
                 ref={(el) => setVerseRef(verse.number, el)}
                 className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 ${
+                  verse.isSuperscription ? 'mb-2 border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic' : ''
+                } ${
                   hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50' : ''
                 } ${
                   selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : ''
@@ -114,7 +116,9 @@ function BibleChapter({
                 {/* Verse Text */}
                 <p
                   className={`verse-text flex-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 ${
-                    hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
+                    verse.isSuperscription
+                      ? 'text-gray-500 dark:text-gray-400'
+                      : hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
                   }`}
                   style={verseStyle}
                   onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
@@ -154,6 +158,8 @@ function BibleChapter({
                 id={`verse-${chapter.number}-${verse.number}`}
                 ref={(el) => setVerseRef(verse.number, el)}
                 className={`group/stack inline rounded-md px-0.5 sm:px-1 py-0.5 ${
+                  verse.isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : ''
+                } ${
                   hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                 } ${
                   selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : ''
@@ -164,7 +170,9 @@ function BibleChapter({
                 </span>
                 <span
                   className={`cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 ${
-                    hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
+                    verse.isSuperscription
+                      ? 'text-gray-500 dark:text-gray-400'
+                      : hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
                   }`}
                   onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
                 >

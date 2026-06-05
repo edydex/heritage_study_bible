@@ -118,6 +118,7 @@ function ReadingPlanViewer() {
   const [groupMessage, setGroupMessage] = useState('')
   const [groupState, setGroupState] = useState(null)
   const [answerText, setAnswerText] = useState('')
+  const [showMethodology, setShowMethodology] = useState(false)
   const dayMenuHistoryRef = useRef(false)
   const dayMenuClosingFromBackRef = useRef(false)
   const pendingDayMenuCallbackRef = useRef(null)
@@ -200,6 +201,15 @@ function ReadingPlanViewer() {
   useEffect(() => {
     savePlanProgress(itemId, progressState)
   }, [itemId, progressState])
+
+  useEffect(() => {
+    if (!showMethodology) return undefined
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setShowMethodology(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showMethodology])
 
   const readings = plan?.readings || []
   const startedOn = progressState.startedOn || ''
@@ -695,7 +705,14 @@ function ReadingPlanViewer() {
                 {plan.title}
               </h2>
               <p className="mt-2 text-sm sm:text-base leading-relaxed text-gray-600 dark:text-gray-400">
-                {plan.description}
+                {plan.description}{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowMethodology(true)}
+                  className="font-semibold text-primary dark:text-blue-300 underline underline-offset-2"
+                >
+                  See methodology and sources.
+                </button>
               </p>
               {cacheNotice && (
                 <p className="text-xs text-amber-600 dark:text-amber-300 mt-2">{cacheNotice}</p>
@@ -1110,6 +1127,116 @@ function ReadingPlanViewer() {
           </div>
         )}
       </main>
+
+      {showMethodology && plan && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 px-4 py-6 sm:py-10 overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="methodology-title"
+          onClick={() => setShowMethodology(false)}
+        >
+          <div
+            className="mx-auto max-w-2xl rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl"
+            onClick={event => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-gray-200 dark:border-gray-700 px-5 py-4">
+              <div>
+                <p className="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400">
+                  Plan Details
+                </p>
+                <h3 id="methodology-title" className="mt-1 text-lg font-bold text-gray-950 dark:text-gray-100">
+                  Methodology and Sources
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMethodology(false)}
+                className="rounded-lg px-3 py-1.5 text-sm font-semibold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="max-h-[75vh] overflow-y-auto px-5 py-5 space-y-6">
+              {Array.isArray(plan.methodology) && plan.methodology.length > 0 && (
+                <section>
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    How this plan is ordered
+                  </h4>
+                  <ul className="mt-3 space-y-2">
+                    {plan.methodology.map((item, index) => (
+                      <li key={`${index}-${item}`} className="flex gap-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                        <span className="mt-2 h-1.5 w-1.5 rounded-full bg-primary dark:bg-blue-400 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              <section>
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  Reading balance
+                </h4>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                  {plan.wordCountSummary && (
+                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">Words per day</p>
+                      <p className="mt-1 text-gray-600 dark:text-gray-300">
+                        {plan.wordCountSummary.min?.toLocaleString()}-{plan.wordCountSummary.max?.toLocaleString()} words, averaging {plan.wordCountSummary.average?.toLocaleString()}.
+                      </p>
+                    </div>
+                  )}
+                  {plan.characterCountSummary && (
+                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">Characters per day</p>
+                      <p className="mt-1 text-gray-600 dark:text-gray-300">
+                        {plan.characterCountSummary.min?.toLocaleString()}-{plan.characterCountSummary.max?.toLocaleString()} characters, averaging {plan.characterCountSummary.average?.toLocaleString()}.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {Array.isArray(plan.sourceNotes) && plan.sourceNotes.length > 0 && (
+                <section>
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    Sources
+                  </h4>
+                  <ul className="mt-3 space-y-3">
+                    {plan.sourceNotes.map(source => (
+                      <li key={source.id} className="text-sm leading-relaxed">
+                        {source.url ? (
+                          <a
+                            href={source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-semibold text-primary dark:text-blue-300 underline underline-offset-2"
+                          >
+                            {source.title}
+                          </a>
+                        ) : (
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">{source.title}</span>
+                        )}
+                        {source.use && (
+                          <p className="mt-1 text-gray-600 dark:text-gray-300">{source.use}</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {plan.attribution && (
+                <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                  {plan.attribution}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

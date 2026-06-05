@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react
 import { createPortal } from 'react-dom'
 import CompareModal from './CompareModal'
 import { localizeBookName } from '../utils/localizedBookNames'
+import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptions'
 import { addNativeBackListener } from '../services/androidControls'
 
 // Regex fallback for entries without <vq> markup (older data or books CCEL didn't tag)
@@ -477,13 +478,8 @@ function buildContiguousRanges(verses) {
   return ranges
 }
 
-function getVerseTextFromData(data, book, chapter, verse) {
-  if (!data?.books) return ''
-  return data.books
-    .find(b => b.name === book)
-    ?.chapters?.find(c => c.number === chapter)
-    ?.verses?.find(v => v.number === verse)
-    ?.text || ''
+function getVerseTextFromData(data, book, chapter, verse, translationId) {
+  return getVerseTextWithPsalmSuperscription(data, book, chapter, verse, translationId)
 }
 
 function formatVersesForCopy({
@@ -521,7 +517,7 @@ function formatVersesForCopy({
 
       const primaryLines = range.map(v => {
         const bookName = v.book || fallbackBookName
-        const text = v.text || getVerseTextFromData(primaryBibleData, bookName, v.chapter, v.verse)
+        const text = v.text || getVerseTextFromData(primaryBibleData, bookName, v.chapter, v.verse, primaryTranslationId)
         return `(${v.verse}) ${text || '[Verse unavailable]'}`
       })
       sections.push(`${primaryRef} (${primaryTranslationId}) - ${primaryLines.join('\n')}`)
@@ -533,7 +529,7 @@ function formatVersesForCopy({
           : `${secondaryBookName} ${chapter}:${startVerse}-${endVerse}`
         const secondaryLines = range.map(v => {
           const bookName = v.book || fallbackBookName
-          const text = getVerseTextFromData(secondaryBibleData, bookName, v.chapter, v.verse)
+          const text = getVerseTextFromData(secondaryBibleData, bookName, v.chapter, v.verse, secondaryTranslationId)
           return `(${v.verse}) ${text || '[Verse unavailable]'}`
         })
         sections.push(`${secondaryRef} (${secondaryTranslationId}) - ${secondaryLines.join('\n')}`)
@@ -947,11 +943,13 @@ function CommentarySidebar({
   const selectedVerseDisplayText = primaryVerse
     ? (
         primaryVerse.text ||
-        bibleData?.books
-          ?.find(b => b.name === bookName)
-          ?.chapters?.find(c => c.number === primaryVerse.chapter)
-          ?.verses?.find(v => v.number === primaryVerse.verse)
-          ?.text ||
+        getVerseTextWithPsalmSuperscription(
+          bibleData,
+          bookName,
+          primaryVerse.chapter,
+          primaryVerse.verse,
+          translationId
+        ) ||
         ''
       )
     : ''
@@ -1480,8 +1478,13 @@ function CommentarySidebar({
 
       {/* Compare Modal */}
       {showCompareModal && primaryVerse && (() => {
-        const chData = bibleData?.books?.find(b => b.name === bookName)?.chapters?.find(c => c.number === primaryVerse.chapter)
-        const vText = chData?.verses?.find(v => v.number === primaryVerse.verse)?.text || primaryVerse.text || ''
+        const vText = getVerseTextWithPsalmSuperscription(
+          bibleData,
+          bookName,
+          primaryVerse.chapter,
+          primaryVerse.verse,
+          translationId
+        ) || primaryVerse.text || ''
         return (
           <CompareModal
             bookName={bookName}

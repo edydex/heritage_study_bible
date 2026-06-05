@@ -8,8 +8,9 @@ const generatorVersion = 2
 const sourceNotes = [
   {
     id: 'biblical_superscriptions',
-    title: 'Internal biblical superscriptions and date notices',
-    use: 'Explicit book openings, psalm titles, and dated prophetic headings such as Isaiah 1:1, Micah 1:1, and Psalm 90.',
+    title: 'Internal biblical headings, date notices, and contextual anchors',
+    use: 'Explicit book openings, psalm titles, dated prophetic headings, and internal contextual signals such as Isaiah 1:1, Zephaniah 1:1, Psalm 90, and Habakkuk 1:6.',
+    url: 'https://www.biblegateway.com/versions/World-English-Bible-WEB/',
     rightsNote: 'Primary biblical reference data; translation text remains separately licensed.',
   },
   {
@@ -27,6 +28,20 @@ const sourceNotes = [
     use: 'Kings, Chronicles, and Prophets alignment during the monarchy.',
     url: 'https://search.worldcat.org/title/A-Harmony-of-the-Kings-and-Prophets/oclc/1000381978',
     rightsNote: 'Public-domain-era source; used as a historical guide.',
+  },
+  {
+    id: 'josiah_reform_context',
+    title: 'Josiah-era reform passages',
+    use: '2 Kings 22-23 and 2 Chronicles 34-35 for Josiah, the book of the law, Huldah, and Judah\'s covenant reform.',
+    url: 'https://www.biblegateway.com/passage/?search=2%20Kings%2022-23%3B%202%20Chronicles%2034-35&version=WEB',
+    rightsNote: 'Primary biblical reference data; translation text remains separately licensed.',
+  },
+  {
+    id: 'nahum_nineveh_context',
+    title: 'Nahum and Nineveh historical context',
+    use: 'Historical context for placing Nahum before Nineveh\'s fall and near the late Assyrian/Josiah-era crisis.',
+    url: 'https://www.encyclopedia.com/philosophy-and-religion/bible/old-testament/nahum',
+    rightsNote: 'Used for high-level historical context only.',
   },
   {
     id: 'robinson_gospel_harmony',
@@ -70,6 +85,35 @@ function note(id, title, text, sources = []) {
   }
 }
 
+const readingRhythmPsalmSprinkles = [
+  {
+    id: 'undated-psalms-covenant-sprinkle',
+    target: 'covenant_law',
+    note: note(
+      'undated-psalms-covenant-sprinkle',
+      'Why this Psalm is added to a hard reading day',
+      'Psalm chronology is ambiguous for these worship and praise Psalms. Instead of pretending we know their exact dates, the plan sprinkles them one at a time onto dense covenant-law and wilderness days as breathing spaces. In other words: this placement is for reading rhythm, not because these Psalms were written during Leviticus or Numbers.',
+      ['biblical_superscriptions', 'townsend_ot_nt']
+    ),
+    psalms: [111, 112, 113, 115, 116, 117, 118, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 71, 104],
+  },
+  {
+    id: 'undated-psalms-genealogy-sprinkle',
+    target: 'chronicles_genealogies',
+    note: note(
+      'undated-psalms-genealogy-sprinkle',
+      'Why this Psalm is added to a genealogy day',
+      'The early chapters of Chronicles preserve important genealogy and tribal memory, but they are naturally slower to read. These Psalms have no clear event setting, so the plan uses them as one-at-a-time worshipful pauses at the end of genealogy days while marking the placement as intentionally non-chronological.',
+      ['biblical_superscriptions', 'townsend_ot_nt']
+    ),
+    psalms: [1, 33, 66, 67],
+  },
+]
+
+const readingRhythmPsalmKeys = new Set(readingRhythmPsalmSprinkles.flatMap(group =>
+  group.psalms.map(psalm => `Psalms ${psalm}`)
+))
+
 const chronologicalSections = [
   {
     title: 'Primeval History and Patriarchal Wisdom',
@@ -100,6 +144,13 @@ const chronologicalSections = [
       'Psalms 90',
       'Deuteronomy 1-34',
       note(
+        'psalm-119-torah-meditation',
+        'Why Psalm 119 follows Deuteronomy',
+        'Psalm 119 is not dated to Moses, but it is an extended meditation on Yahweh\'s law, word, commandments, and ways. The plan places it after Deuteronomy as a substantial Torah-reflection reading rather than treating it like one of the shorter reading-rhythm Psalms.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
+      ),
+      'Psalms 119',
+      note(
         'exodus-wilderness-psalms',
         'Why these Psalms follow Moses',
         'Psalm 90 is explicitly titled as a prayer of Moses. Psalms 78, 105, 106, 114, 135, and 136 are not all Mosaic compositions; they are later worshipful retellings of the Exodus and wilderness story, so they are grouped after the Mosaic narrative as theological reflection on that period.',
@@ -129,17 +180,29 @@ const chronologicalSections = [
     confidence: 'medium',
     sources: ['townsend_ot_nt'],
     passages: [
-      '1 Samuel 1-31',
-      '1 Chronicles 10',
+      '1 Samuel 1-18',
+      note(
+        'david-flight-psalms',
+        'Why these Psalms are inside David\'s flight from Saul',
+        'Several Psalm headings tie individual prayers to episodes while David is fleeing Saul: Saul watching David\'s house, David at Gath, Doeg reporting Ahimelech, the Ziphites, and David hiding in the cave. The plan places those Psalms next to the nearest matching Samuel narrative instead of holding them all until the end of David\'s life.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
+      ),
       'Psalms 7',
-      'Psalms 11',
-      'Psalms 34',
-      'Psalms 52',
-      'Psalms 54',
-      'Psalms 56-57',
+      '1 Samuel 19',
       'Psalms 59',
+      '1 Samuel 20-21',
+      'Psalms 34',
+      'Psalms 56',
+      '1 Samuel 22',
+      'Psalms 52',
+      '1 Samuel 23',
+      'Psalms 54',
       'Psalms 63',
+      '1 Samuel 24',
+      'Psalms 57',
       'Psalms 142',
+      '1 Samuel 25-31',
+      '1 Chronicles 10',
     ],
   },
   {
@@ -148,22 +211,78 @@ const chronologicalSections = [
     confidence: 'medium',
     sources: ['townsend_ot_nt'],
     passages: [
-      '2 Samuel 1-24',
-      '1 Chronicles 11-29',
-      'Psalms 2',
-      'Psalms 3-6',
-      'Psalms 8',
-      'Psalms 9-10',
-      'Psalms 12-18',
-      'Psalms 19',
-      'Psalms 20-32',
-      'Psalms 35-41',
+      note(
+        'samuel-chronicles-parallel-history',
+        'Why Samuel and Chronicles are intertwined',
+        'Chronicles often retells the same monarchy history from a later priestly and temple-focused angle. Rather than reading all of Samuel and then a large repeated Chronicles block, this plan interleaves the clearest parallels so David\'s reign is followed as a single event-flow with complementary accounts.',
+        ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
+      ),
+      '2 Samuel 1-4',
+      '2 Samuel 5',
+      '1 Chronicles 11-12',
+      '2 Samuel 6',
+      '1 Chronicles 13-16',
+      '2 Samuel 7',
+      '1 Chronicles 17',
+      '2 Samuel 8-10',
+      '1 Chronicles 18-19',
+      'Psalms 60',
+      '2 Samuel 11-12',
       'Psalms 51',
+      '1 Chronicles 20',
+      '2 Samuel 13-14',
+      '2 Samuel 15-18',
+      'Psalms 3',
+      '2 Samuel 19-20',
+      '2 Samuel 21',
+      note(
+        'psalm-18-samuel-parallel',
+        'Why Psalm 18 follows David\'s song in Samuel',
+        'Psalm 18 is explicitly tied to the day Yahweh delivered David from his enemies and from Saul, and 2 Samuel 22 preserves the same song inside David\'s story. The plan reads Psalm 18 immediately after that Samuel parallel rather than burying it in a general Davidic collection.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
+      ),
+      '2 Samuel 22',
+      'Psalms 18',
+      '2 Samuel 23-24',
+      '1 Chronicles 21',
+      note(
+        'david-temple-preparation-psalms',
+        'Why Psalm 30 is near David\'s temple preparations',
+        'Psalm 30 is titled as a song for the dedication of the temple and by David. Since the temple itself is built under Solomon, this is not an exact event timestamp; the plan places it near David\'s altar, temple-site, and preparation material while marking the connection as title-based rather than certain.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
+      ),
+      'Psalms 30',
+      '1 Chronicles 22-29',
+      note(
+        'levitical-psalm-collections',
+        'Why the Asaph and Korah Psalms are near David\'s worship organization',
+        'The headings for many of these Psalms name Asaph, the sons of Korah, Heman, or Ethan, while Chronicles describes David organizing temple singers and gatekeepers. Their final dates are not always obvious, and some titles may represent later guild collections, so this is a worship-organization placement rather than a precise claim about when each Psalm was written.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
+      ),
+      'Psalms 42-50',
+      'Psalms 73',
+      'Psalms 75-77',
+      'Psalms 80-84',
+      'Psalms 87-88',
+      note(
+        'general-davidic-psalms',
+        'Why these Davidic Psalms stay as a collection',
+        'These Psalms are titled as Davidic or are traditionally royal/Davidic, but most do not name a specific life event the way Psalms 3, 18, 34, 51, 52, 54, 56, 57, 59, 60, and 142 do. The plan keeps them in David\'s reign, but does not pretend we know a tighter date for each one.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
+      ),
+      'Psalms 2',
+      'Psalms 4-6',
+      'Psalms 8-17',
+      'Psalms 19',
+      'Psalms 20-29',
+      'Psalms 31-32',
+      'Psalms 35-41',
       'Psalms 53',
       'Psalms 55',
       'Psalms 58',
-      'Psalms 60-62',
-      'Psalms 64-71',
+      'Psalms 61-62',
+      'Psalms 64-65',
+      'Psalms 68-70',
       'Psalms 86',
       'Psalms 101',
       'Psalms 103',
@@ -182,8 +301,13 @@ const chronologicalSections = [
     confidence: 'medium',
     sources: ['townsend_ot_nt'],
     passages: [
-      '1 Kings 1-11',
-      '2 Chronicles 1-9',
+      '1 Kings 1-2',
+      '1 Kings 3-4',
+      '2 Chronicles 1',
+      '1 Kings 5-8',
+      '2 Chronicles 2-7',
+      '1 Kings 9-11',
+      '2 Chronicles 8-9',
       'Song of Solomon 1-8',
       'Proverbs 1-31',
       'Ecclesiastes 1-12',
@@ -197,22 +321,39 @@ const chronologicalSections = [
     confidence: 'medium',
     sources: ['townsend_ot_nt', 'merrill_kings_prophets'],
     passages: [
-      '1 Kings 12-16',
-      '2 Chronicles 10-16',
-      '1 Kings 17-22',
+      note(
+        'kings-chronicles-parallel-history',
+        'Why Kings and Chronicles are intertwined',
+        'Kings and Chronicles overlap heavily from the divided kingdom onward, but they do not emphasize the same things. Kings keeps Israel and Judah together in one political narrative; Chronicles focuses on Judah, the temple, and Davidic continuity. The plan alternates the parallel blocks so the shared reigns stay close together instead of making Chronicles feel like a long rewind.',
+        ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
+      ),
+      '1 Kings 12-14',
+      '2 Chronicles 10-12',
+      '1 Kings 15-16',
+      '2 Chronicles 13-16',
+      '1 Kings 17-19',
+      '1 Kings 20-22',
       '2 Chronicles 17-20',
       '2 Kings 1-8',
       '2 Chronicles 21-22',
       note(
-        'obadiah-joel-early-prophets',
-        'Why Obadiah and Joel are here',
-        'Obadiah and Joel do not give the same kind of dated royal headings that Isaiah or Hosea give, so this placement is an informed early-prophet arrangement rather than a hard date. Townsend and Merrill both represent the older public-domain practice of interleaving these short prophets with the divided-kingdom history instead of leaving them at the end of the Old Testament.',
+        'obadiah-traditional-placement',
+        'Why Obadiah is here',
+        'Obadiah does not give a dated royal heading, so this is a tentative traditional placement rather than a hard chronological claim. The plan is not aligning Obadiah by a later fulfillment event; it is following older chronological arrangements that place the book among the early divided-kingdom prophets while marking the date as uncertain.',
         ['townsend_ot_nt', 'merrill_kings_prophets']
       ),
       'Obadiah 1',
+      note(
+        'joel-traditional-placement',
+        'Why Joel is here',
+        'Joel also lacks a dated royal heading, and interpreters have placed it in more than one period. This plan keeps Joel in the early-prophet block because that is how the public-domain chronological guides used here arrange it, but the note is intentionally explicit: this is traditional and tentative, not a claim that Joel must have been written at this exact point.',
+        ['townsend_ot_nt', 'merrill_kings_prophets']
+      ),
       'Joel 1-3',
-      '2 Kings 9-13',
-      '2 Chronicles 23-24',
+      '2 Kings 9-11',
+      '2 Chronicles 23',
+      '2 Kings 12-13',
+      '2 Chronicles 24',
       note(
         'jonah-jeroboam-ii',
         'Why Jonah appears during Israel\'s monarchy',
@@ -236,15 +377,26 @@ const chronologicalSections = [
     confidence: 'medium',
     sources: ['townsend_ot_nt', 'merrill_kings_prophets'],
     passages: [
-      '2 Kings 14-15',
-      '2 Chronicles 25-27',
+      '2 Kings 14',
+      '2 Chronicles 25',
+      '2 Kings 15',
+      '2 Chronicles 26-27',
       note(
         'isaiah-uzziah-transition',
         'Why Isaiah begins here',
-        'Isaiah 1:1 places Isaiah\'s ministry during the reigns of Uzziah, Jotham, Ahaz, and Hezekiah. That is why Isaiah begins after the Uzziah/Jotham-era material in Kings and Chronicles rather than later in canonical order.',
+        'Isaiah 1:1 places Isaiah\'s ministry during the reigns of Uzziah, Jotham, Ahaz, and Hezekiah, and Isaiah 6:1 specifically locates Isaiah\'s temple vision in the year Uzziah died. The first Isaiah block is therefore read near the Uzziah/Jotham-era material rather than as one undifferentiated prophetic book.',
         ['biblical_superscriptions', 'merrill_kings_prophets']
       ),
-      'Isaiah 1-12',
+      'Isaiah 1-6',
+      '2 Kings 16',
+      '2 Chronicles 28',
+      note(
+        'isaiah-ahaz-crisis',
+        'Why Isaiah 7-12 follows Ahaz',
+        'Isaiah 7:1 explicitly places the Syria-Ephraim crisis in the days of Ahaz. Chapters 7-12 are kept together as the surrounding Immanuel/Assyria material connected to that same crisis-era setting.',
+        ['biblical_superscriptions', 'merrill_kings_prophets']
+      ),
+      'Isaiah 7-12',
       note(
         'micah-isaiah-overlap',
         'Why Micah follows Isaiah',
@@ -252,69 +404,123 @@ const chronologicalSections = [
         ['biblical_superscriptions', 'merrill_kings_prophets']
       ),
       'Micah 1-7',
-      'Isaiah 13-39',
-      '2 Kings 16-20',
-      '2 Chronicles 28-32',
       note(
-        'minor-prophets-assyrian-babylonian-crisis',
-        'Why Nahum, Zephaniah, and Habakkuk are here',
-        'These books sit around Judah\'s late monarchy and the Assyrian-to-Babylonian crisis rather than inside a neat chapter-by-chapter narrative slot. Zephaniah 1:1 dates him to Josiah, while Nahum and Habakkuk are placed here by the older chronological sources because their oracles fit the collapse of Assyrian power and the rise of Babylon.',
+        'isaiah-burdens-ahaz-sargon',
+        'Why Isaiah 13-23 is here',
+        'Isaiah 13-23 contains a collection of burdens against the nations. Some are undated, but Isaiah 14:28 anchors one oracle in the year Ahaz died, and Isaiah 20:1 anchors another in Sargon\'s Ashdod campaign, so this block is placed in the Ahaz-to-Assyria crisis period while acknowledging that not every chapter has its own date stamp.',
         ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
-      'Nahum 1-3',
-      'Zephaniah 1-3',
-      'Habakkuk 1-3',
+      'Isaiah 13-23',
+      '2 Kings 17',
+      '2 Kings 18',
+      '2 Chronicles 29-31',
+      '2 Kings 19-20',
+      '2 Chronicles 32',
+      note(
+        'isaiah-hezekiah-assyrian-crisis',
+        'Why Isaiah 24-39 follows Hezekiah',
+        'Isaiah 36:1 ties the Sennacherib narrative to Hezekiah\'s fourteenth year, and Isaiah 38-39 stay in Hezekiah\'s reign. Isaiah 24-35 are less directly dated but fit the surrounding Assyrian-crisis material, so they are grouped immediately before the explicitly Hezekiah-era narrative.',
+        ['biblical_superscriptions', 'merrill_kings_prophets']
+      ),
+      'Isaiah 24-39',
+      note(
+        'isaiah-comfort-prophecy',
+        'Why Isaiah 40-66 stays with Isaiah',
+        'Isaiah 40-66 looks ahead to exile, comfort, restoration, and return, but this plan aligns prophetic books primarily by the prophet\'s ministry or writing setting rather than by the later events being prophesied. So these chapters stay with Isaiah\'s Uzziah-through-Hezekiah-era ministry, with this note marking the later horizon they point toward.',
+        ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
+      ),
+      'Isaiah 40-66',
     ],
   },
   {
-    title: 'Jeremiah, Fall of Jerusalem, and Exilic Psalms',
+    title: 'Late Judah Prophets, Fall of Jerusalem, and Exilic Psalms',
     period: 'judah_fall_exile',
     confidence: 'medium',
     sources: ['townsend_ot_nt', 'merrill_kings_prophets'],
     passages: [
+      '2 Kings 21',
+      '2 Chronicles 33',
+      note(
+        'josiah-prophetic-cluster',
+        'Why so many prophets cluster around Josiah',
+        'Josiah\'s reign sits at a strange pressure point: Judah has one last serious covenant reform after the book of the law is found, Assyria is collapsing, Babylon is rising, and Jerusalem is still heading toward judgment. Zephaniah explicitly names Josiah, Jeremiah begins in Josiah\'s thirteenth year, Nahum fits the still-living Nineveh crisis, and Habakkuk looks toward the Chaldeans. So this cluster is not just a random pile-up of prophets; it is a real historical hinge where reform, warning, empire-collapse, and coming exile all meet.',
+        ['biblical_superscriptions', 'josiah_reform_context', 'nahum_nineveh_context', 'townsend_ot_nt', 'merrill_kings_prophets']
+      ),
+      note(
+        'nahum-zephaniah-late-judah-setting',
+        'Why Nahum and Zephaniah are here',
+        'Zephaniah 1:1 explicitly places his ministry in Josiah\'s reign. Nahum is not dated by a king, but Nineveh is still the living object of the oracle, so the plan places Nahum in the late Assyrian period before Nineveh\'s fall. This is a writing-setting placement, not a jump forward to the fulfillment of the prophecy.',
+        ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
+      ),
+      'Nahum 1-3',
+      'Zephaniah 1-3',
       note(
         'jeremiah-fall-of-jerusalem',
         'Why Jeremiah begins before Jerusalem falls',
-        'Jeremiah 1:1-3 dates his ministry from Josiah through the fall of Jerusalem. The plan therefore starts Jeremiah before the final Kings/Chronicles collapse, then returns to those historical chapters and finishes Jeremiah and Lamentations after the city falls.',
+        'Jeremiah 1:1-3 dates his ministry from Josiah\'s thirteenth year through the fall of Jerusalem. Jeremiah is not arranged like a simple diary, so the plan begins him in Josiah\'s reign and then keeps most of the book in larger era bands instead of trying to reshuffle every dated chapter into a perfect timeline.',
         ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
-      'Jeremiah 1-38',
-      '2 Kings 21-25',
-      '2 Chronicles 33-36',
-      'Jeremiah 39-52',
+      'Jeremiah 1-20',
+      '2 Kings 22',
+      '2 Chronicles 34',
+      '2 Kings 23',
+      '2 Chronicles 35',
+      note(
+        'jeremiah-era-band-compromise',
+        'Why Jeremiah is not sorted chapter by chapter',
+        'Some Jeremiah chapters have very specific dates, but the book also collects sermons, narratives, restoration promises, and oracles in a non-linear shape. A strictly sorted Jeremiah would bounce back and forth so much that it becomes harder to read. This plan makes a tradeoff: it respects the clearest Josiah, Jehoiakim, Zedekiah, and fall-of-Jerusalem anchors, but keeps the middle of Jeremiah in broad late-monarchy bands.',
+        ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
+      ),
+      'Jeremiah 21-24',
+      'Jeremiah 25-26',
+      'Jeremiah 27-29',
+      'Jeremiah 30-36',
+      note(
+        'habakkuk-babylonian-rise-setting',
+        'Why Habakkuk is here',
+        'Habakkuk is not dated by a royal heading, but Habakkuk 1:6 speaks of the Chaldeans being raised up, which fits late Judah as Babylon is rising. The plan places Habakkuk by that likely writing setting before Jerusalem\'s fall, not by the later completion of the judgment it announces.',
+        ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
+      ),
+      'Habakkuk 1-3',
+      '2 Kings 24',
+      note(
+        'daniel-early-babylonian-exile',
+        'Why Daniel begins here',
+        'Daniel 1 opens in the third year of Jehoiakim and Daniel 2 is set in Nebuchadnezzar\'s second year. Those early Babylonian-court chapters belong with Judah\'s first Babylonian crisis rather than with the later Persian-era Daniel visions.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
+      ),
+      'Daniel 1-2',
+      note(
+        'jeremiah-zedekiah-siege-anchors',
+        'Why these Jeremiah chapters follow the first exile',
+        'Jeremiah 37-38 sit in the last Zedekiah-era siege narrative, after Judah has already entered the Babylonian crisis but before Jerusalem finally falls. They are kept here as the clearest final-siege block before the fall is narrated in Kings, Chronicles, and Jeremiah itself.',
+        ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
+      ),
+      'Jeremiah 37-38',
+      note(
+        'jeremiah-appendix-oracles',
+        'Why Jeremiah 45-51 stays together here',
+        'Jeremiah 45-51 is a Baruch-and-nations appendix near the end of the book. Some pieces point backward to Jehoiakim, and Jeremiah 51:59 links the Babylon scroll to Zedekiah\'s fourth year. Rather than scatter those chapters in several directions, the plan keeps the appendix together before Jerusalem falls and notes that its internal dates reach back across the late monarchy.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
+      ),
+      'Jeremiah 45-51',
+      '2 Kings 25',
+      '2 Chronicles 36',
+      'Jeremiah 39-44',
+      'Jeremiah 52',
       'Lamentations 1-5',
       note(
-        'isaiah-comfort-exile',
-        'Why Isaiah 40-66 is read after the fall',
-        'Isaiah is a single canonical book, but chapters 40-66 speak heavily into exile, comfort, restoration, and return. Chronological arrangements commonly keep Isaiah 1-39 with the Assyrian crisis and read the later comfort section alongside the exile-and-return movement.',
-        ['townsend_ot_nt', 'merrill_kings_prophets']
+        'exilic-psalm-laments',
+        'Why these Psalms follow Jerusalem\'s fall',
+        'These Psalms are not all dated by a royal heading, but their contents fit the shock of exile, ruined sanctuary, threatened covenant, or Babylon more directly than a generic Davidic placement would. Psalm 137 is the clearest Babylon Psalm; Psalms 74, 79, 89, and 102 are kept nearby as destruction-and-restoration laments.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
       ),
-      'Isaiah 40-66',
-      note(
-        'ambiguous-psalm-block',
-        'Why these Psalms are grouped here',
-        'Psalm chronology is ambiguous. This block holds the less certain Psalms together for now; once the dateable Psalms are aligned, we can sprinkle the ambiguous ones into harder-to-read sections to make those stretches easier to get through.',
-        ['townsend_ot_nt']
-      ),
-      'Psalms 1',
-      'Psalms 33',
-      'Psalms 42-50',
-      'Psalms 73-77',
-      'Psalms 79-85',
-      'Psalms 87-89',
-      'Psalms 91-100',
+      'Psalms 74',
+      'Psalms 79',
+      'Psalms 85',
+      'Psalms 89',
       'Psalms 102',
-      'Psalms 104',
-      'Psalms 107',
-      'Psalms 111-113',
-      'Psalms 115-121',
-      'Psalms 123',
-      'Psalms 125-126',
-      'Psalms 128-130',
-      'Psalms 132',
-      'Psalms 134',
       'Psalms 137',
-      'Psalms 146-150',
     ],
   },
   {
@@ -324,13 +530,30 @@ const chronologicalSections = [
     sources: ['townsend_ot_nt', 'merrill_kings_prophets'],
     passages: [
       note(
-        'ezekiel-daniel-exile',
-        'Why Ezekiel and Daniel open the exile section',
-        'Ezekiel 1:1-3 explicitly sets the book among the exiles by the Chebar canal, and Daniel opens in the Babylonian court after Jerusalem is besieged. That is why these books are grouped with the exile rather than read only in canonical order.',
+        'ezekiel-dated-exile-visions',
+        'Why Ezekiel is split into dated exile blocks',
+        'Ezekiel gives repeated year, month, and day markers from Jehoiachin\'s captivity. The plan keeps Ezekiel mostly in canonical order but splits the major blocks where the book itself gives clear chronological markers, including the siege date in Ezekiel 24 and the restoration vision in Ezekiel 40.',
         ['biblical_superscriptions', 'townsend_ot_nt']
       ),
-      'Ezekiel 1-48',
-      'Daniel 1-12',
+      'Ezekiel 1-7',
+      'Ezekiel 8-19',
+      'Ezekiel 20-24',
+      'Ezekiel 29-30',
+      'Ezekiel 25-28',
+      'Ezekiel 31-32',
+      'Ezekiel 33-39',
+      'Ezekiel 40-48',
+      note(
+        'daniel-later-reign-markers',
+        'Why Daniel is not read straight through',
+        'Daniel 7-8 are dated to Belshazzar before the fall of Babylon in Daniel 5, while Daniel 9 is dated to Darius and Daniel 10-12 to Cyrus. The plan therefore reads Daniel\'s later chapters by their internal reign markers instead of simple chapter order.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
+      ),
+      'Daniel 3-4',
+      'Daniel 7-8',
+      'Daniel 5-6',
+      'Daniel 9',
+      'Daniel 10-12',
       'Ezra 1-6',
       note(
         'haggai-zechariah-temple-rebuild',
@@ -344,9 +567,23 @@ const chronologicalSections = [
       'Ezra 7-10',
       'Nehemiah 1-13',
       note(
+        'return-and-pilgrimage-psalms',
+        'Why these Psalms follow the return',
+        'Several Psalms in this group look like restored-community, pilgrimage, or temple-worship songs rather than dated monarchy episodes. Psalm 126 explicitly celebrates restored fortunes, and many Songs of Ascents fit pilgrimage worship. The plan places them after Ezra and Nehemiah as return-era worship, while still treating the exact composition dates as uncertain.',
+        ['biblical_superscriptions', 'townsend_ot_nt']
+      ),
+      'Psalms 107',
+      'Psalms 120-121',
+      'Psalms 123',
+      'Psalms 125-126',
+      'Psalms 128-130',
+      'Psalms 132',
+      'Psalms 134',
+      'Psalms 146-150',
+      note(
         'malachi-post-exilic-close',
         'Why Malachi closes the Old Testament',
-        'Malachi is not dated by a named king, but its temple, priesthood, and covenant concerns fit the restored post-exilic community. Older chronological plans commonly place it after Ezra and Nehemiah as the final prophetic word before the New Testament gap.',
+        'Malachi is not dated by a named king, but its temple, priesthood, and covenant concerns fit the restored post-exilic community. Older chronological plans commonly place it after Ezra and Nehemiah as one of the final prophetic words before the New Testament gap, so this plan lets Malachi close the Old Testament readings.',
         ['townsend_ot_nt', 'merrill_kings_prophets']
       ),
       'Malachi 1-4',
@@ -562,7 +799,7 @@ function expandChronology(chapterMetrics) {
   for (const book of bibleBooks) {
     for (let chapter = 1; chapter <= book.chapters; chapter += 1) {
       const key = `${book.name} ${chapter}`
-      if (!seen.has(key)) missing.push(key)
+      if (!seen.has(key) && !readingRhythmPsalmKeys.has(key)) missing.push(key)
     }
   }
 
@@ -571,8 +808,9 @@ function expandChronology(chapterMetrics) {
   }
 
   const chapterCount = items.filter(item => item.type === 'chapter').length
-  if (chapterCount !== 1189) {
-    throw new Error(`Expected 1189 chapters, found ${chapterCount}`)
+  const expectedChapterCount = 1189 - readingRhythmPsalmKeys.size
+  if (chapterCount !== expectedChapterCount) {
+    throw new Error(`Expected ${expectedChapterCount} base chapters, found ${chapterCount}`)
   }
 
   return items
@@ -650,6 +888,105 @@ function toReadingItems(dayItems) {
 
   flushChapters()
   return items
+}
+
+function toNoteReadingItem(noteItem) {
+  return {
+    type: 'note',
+    id: noteItem.id,
+    title: noteItem.title,
+    text: noteItem.text,
+    sources: noteItem.sources || [],
+    sourceLabels: (noteItem.sources || []).map(source => sourceTitleById.get(source) || source),
+    sourceLinks: (noteItem.sources || []).map(source => sourceLinkById.get(source)).filter(Boolean),
+  }
+}
+
+function readingHasPsalm(reading) {
+  return reading.passages.some(passage => passage.startsWith('Psalms '))
+}
+
+function readingMatchesSprinkleTarget(reading, target) {
+  const chapterRefs = reading.passages.flatMap(passage => {
+    if (passage.startsWith('Psalms ')) return []
+    const parsed = parseChapterReference(passage)
+    const chapters = []
+    for (let chapter = parsed.start; chapter <= parsed.end; chapter += 1) {
+      chapters.push({ book: parsed.book, chapter })
+    }
+    return chapters
+  })
+
+  if (target === 'covenant_law') {
+    return chapterRefs.some(ref => ref.book === 'Leviticus' || ref.book === 'Numbers')
+  }
+
+  if (target === 'deuteronomy') {
+    return chapterRefs.some(ref => ref.book === 'Deuteronomy')
+  }
+
+  if (target === 'chronicles_genealogies') {
+    return chapterRefs.some(ref => ref.book === '1 Chronicles' && ref.chapter <= 9)
+  }
+
+  return false
+}
+
+function appendReadingRhythmPsalms(readings, chapterMetrics) {
+  const usedDays = new Set()
+
+  for (const group of readingRhythmPsalmSprinkles) {
+    const candidates = readings
+      .filter(reading => readingMatchesSprinkleTarget(reading, group.target))
+      .filter(reading => !readingHasPsalm(reading))
+
+    if (candidates.length < group.psalms.length) {
+      throw new Error(`Not enough candidate days for ${group.id}: ${candidates.length} for ${group.psalms.length} Psalms`)
+    }
+
+    const availableCandidates = candidates
+      .filter(reading => !usedDays.has(reading.day))
+      .sort((a, b) => a.wordCount - b.wordCount || a.day - b.day)
+
+    if (availableCandidates.length < group.psalms.length) {
+      throw new Error(`Not enough unused candidate days for ${group.id}: ${availableCandidates.length} for ${group.psalms.length} Psalms`)
+    }
+
+    const selectedCandidates = availableCandidates
+      .slice(0, group.psalms.length)
+
+    const assignments = group.psalms
+      .map(psalm => {
+        const reference = `Psalms ${psalm}`
+        const metrics = chapterMetrics.get(reference)
+        if (!metrics) throw new Error(`Missing metrics for ${reference}`)
+        return { psalm, reference, metrics }
+      })
+      .sort((a, b) => b.metrics.wordCount - a.metrics.wordCount)
+      .map((psalmInfo, index) => {
+        const reading = selectedCandidates[index]
+        usedDays.add(reading.day)
+        return { ...psalmInfo, reading }
+      })
+      .sort((a, b) => a.reading.day - b.reading.day)
+
+    assignments.forEach((assignment, index) => {
+      const { reading, reference, metrics } = assignment
+
+      if (index === 0) {
+        reading.items.push(toNoteReadingItem(group.note))
+        reading.sources = [...new Set([...reading.sources, ...(group.note.sources || [])])]
+      }
+
+      reading.items.push({ type: 'passage', passage: reference })
+      reading.passages.push(reference)
+      reading.sections = [...new Set([...reading.sections, 'Reading Rhythm Psalms'])]
+      reading.periods = [...new Set([...reading.periods, 'reading_rhythm_psalms'])]
+      reading.sources = [...new Set([...reading.sources, 'biblical_superscriptions', 'townsend_ot_nt'])]
+      reading.wordCount += metrics.wordCount
+      reading.characterCount += metrics.characterCount
+    })
+  }
 }
 
 function findCharacterPartition(chapters, average, tolerance) {
@@ -771,25 +1108,91 @@ function summarizeReadings(readings, field) {
   }
 }
 
+function summarizeCharacterBounds(readings, totalCharacters) {
+  const average = totalCharacters / totalDays
+  const counts = readings.map(reading => reading.characterCount)
+  const min = Math.min(...counts)
+  const max = Math.max(...counts)
+  const actualTolerance = Math.ceil(Math.max(
+    Math.abs(average - min) / average,
+    Math.abs(max - average) / average
+  ) * 100) / 100
+  const targetTolerance = 0.2
+
+  return {
+    average: Math.round(average),
+    lower: Math.ceil(average * (1 - actualTolerance)),
+    upper: Math.floor(average * (1 + actualTolerance)),
+    targetTolerance,
+    actualTolerance,
+    targetMet: actualTolerance <= targetTolerance,
+  }
+}
+
+function validateReadingChapterCoverage(readings) {
+  const seen = new Map()
+
+  readings.forEach(reading => {
+    reading.passages.forEach(passage => {
+      const parsed = parseChapterReference(passage)
+      for (let chapter = parsed.start; chapter <= parsed.end; chapter += 1) {
+        const key = `${parsed.book} ${chapter}`
+        const previous = seen.get(key)
+        if (previous) {
+          throw new Error(`Duplicate chapter ${key}: day ${previous} and day ${reading.day}`)
+        }
+        seen.set(key, reading.day)
+      }
+    })
+  })
+
+  const missing = []
+  for (const book of bibleBooks) {
+    for (let chapter = 1; chapter <= book.chapters; chapter += 1) {
+      const key = `${book.name} ${chapter}`
+      if (!seen.has(key)) missing.push(key)
+    }
+  }
+
+  if (missing.length) {
+    throw new Error(`Missing chapters after reading generation: ${missing.join(', ')}`)
+  }
+
+  if (seen.size !== 1189) {
+    throw new Error(`Expected 1189 final chapters, found ${seen.size}`)
+  }
+
+  return seen.size
+}
+
 const chapterMetrics = loadWebChapterMetrics()
 const chronologyItems = expandChronology(chapterMetrics)
 const chapterItems = chronologyItems.filter(item => item.type === 'chapter')
-const totalChapters = chapterItems.length
-const totalWords = chapterItems.reduce((sum, chapter) => sum + chapter.wordCount, 0)
-const totalCharacters = chapterItems.reduce((sum, chapter) => sum + chapter.characterCount, 0)
-const { readings, characterBounds } = generateReadings(chronologyItems, totalCharacters)
+const baseCharacters = chapterItems.reduce((sum, chapter) => sum + chapter.characterCount, 0)
+const { readings } = generateReadings(chronologyItems, baseCharacters)
+appendReadingRhythmPsalms(readings, chapterMetrics)
+const totalChapters = validateReadingChapterCoverage(readings)
+const totalWords = readings.reduce((sum, reading) => sum + reading.wordCount, 0)
+const totalCharacters = readings.reduce((sum, reading) => sum + reading.characterCount, 0)
+const characterBounds = summarizeCharacterBounds(readings, totalCharacters)
 
 const output = {
   id: 'chronological-bible',
   title: 'Chronological Bible in 365 Days',
-  description: 'A full-Bible plan arranged by broad biblical chronology, with Psalms, Prophets, Gospels, Acts, and Epistles placed near their historical settings where possible.',
+  description: 'A full-Bible plan arranged by broad biblical chronology, with Psalms, Prophets, Gospels, Acts, and Epistles placed near their historical settings where possible. Undated Psalms are sprinkled into dense reading sections as reading-rhythm pauses, but the plan is not claiming they were written at those moments.',
   attribution: 'Original generated plan for Heritage Study Bible. Built from public-domain-era chronology sources and bundled WEB character counts; not copied from a modern 365-day schedule.',
   licenseNote: 'The plan data is an original reference compilation generated by this project. Bible translation text remains separately licensed by translation module.',
   generatorVersion,
   methodology: [
     'Build an ordered chapter sequence from independent chronology sections.',
+    'Align historical narrative and retrospective books with the time period they describe, while noting when the placement is traditional rather than explicit.',
+    'Align prophetic and other prospective books primarily by the prophet\'s ministry or likely writing setting, not by the later events being prophesied.',
+    'When prophetic books give internal chapter-level date markers, split them at whole-chapter boundaries and keep undated adjacent material near the nearest anchored block.',
+    'For long prophetic books whose internal order is mixed, prefer readable era bands over a brittle chapter-by-chapter reshuffle, and explain the compromise in a plan note.',
+    'When a prophetic book lacks an explicit date, label the placement as inferred, tentative, or traditional instead of treating it like a fixed timestamp.',
+    'Use plan notes to mark when a prophecy points forward to a later period or when a book-to-book connection is less obvious.',
     'Validate that every Protestant-canon Bible chapter appears exactly once.',
-    'Keep dateable Psalms near their likely historical settings, while holding broadly undated Psalms together for a later attribution and reading-rhythm pass.',
+    'Keep event-titled Psalms near their named historical settings, place author- or guild-titled Psalms near the broad setting their headings suggest, and use clearly labeled undated Psalms as reading-rhythm pauses in dense sections without forcing false precision.',
     'Use bundled World English Bible character counts to balance daily readings; the generated metadata records whether the 20 percent target is feasible at whole-chapter granularity.',
     'Keep the app-facing plan at whole-chapter granularity because the current reader tracks plan progress by chapter.',
   ],

@@ -1,6 +1,7 @@
 import { RESOURCE_CATEGORIES } from '../data/resources'
 import { authors as commentaryAuthors } from '../data/authors'
 import { parseBookChapters } from './bookChapters'
+import { withPsalmSuperscriptionVerse } from './psalmSuperscriptions'
 
 const bookChaptersCache = new Map()
 const commentaryWorkCache = new Map()
@@ -160,14 +161,15 @@ export function searchBibleVerses(bibleData, query, options = {}) {
     return { items: [], capped: false }
   }
 
-  const { maxResults = 200, hasCommentary } = options
+  const { maxResults = 200, hasCommentary, translationId } = options
   const items = []
   let capped = false
 
   outer:
   for (const book of bibleData.books) {
     for (const chapter of book.chapters) {
-      for (const verse of chapter.verses) {
+      const searchableChapter = withPsalmSuperscriptionVerse(chapter, book.name, translationId)
+      for (const verse of searchableChapter.verses) {
         if (!verse.text?.toLowerCase().includes(normalizedQuery)) continue
         items.push({
           book: book.name,

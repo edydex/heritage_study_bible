@@ -110,6 +110,7 @@ function ParallelBibleChapter({
         {verseNumbers.map((verseNumber) => {
           const primaryVerse = primaryVerseMap.get(verseNumber)
           const secondaryVerse = secondaryVerseMap.get(verseNumber)
+          const isSuperscription = Boolean(primaryVerse?.isSuperscription || secondaryVerse?.isSuperscription)
           const hasComment = hasCommentary(primaryChapter.number, verseNumber)
           const bookmarked = isBookmarked(verseNumber)
           const selected = isVerseSelected?.(primaryChapter.number, verseNumber)
@@ -117,6 +118,8 @@ function ParallelBibleChapter({
           const rowClassName = `rounded-lg border transition-all ${
             selected
               ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700'
+              : isSuperscription
+                ? 'bg-white dark:bg-black border-gray-200 dark:border-gray-800'
               : 'bg-gray-50 dark:bg-gray-700/60 border-gray-200 dark:border-gray-700'
           } ${
             hasComment
@@ -134,7 +137,7 @@ function ParallelBibleChapter({
               <div className="hidden md:grid md:grid-cols-2 md:gap-3 md:p-2">
                 <div className="group flex items-start gap-2 rounded-md p-2 hover:bg-white/70 dark:hover:bg-gray-700 cursor-pointer" onClick={() => handleVerseClick(verseNumber)}>
                   <span className="text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[2rem] pt-0.5 select-none text-right">{verseNumber}</span>
-                  <p className="verse-text flex-1 text-gray-800 dark:text-gray-200" style={verseStyle}>
+                  <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`} style={verseStyle}>
                     {primaryVerse ? renderVerseText(primaryVerse.text) : <MissingVerse translationId={primaryTranslationId} />}
                   </p>
                   <button
@@ -155,7 +158,7 @@ function ParallelBibleChapter({
 
                 <div className="flex items-start gap-2 rounded-md p-2 hover:bg-white/60 dark:hover:bg-gray-700 cursor-pointer" onClick={() => handleVerseClick(verseNumber)}>
                   <span className="text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[2rem] pt-0.5 select-none text-right">{verseNumber}</span>
-                  <p className="verse-text flex-1 text-gray-700 dark:text-gray-300" style={verseStyle}>
+                  <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`} style={verseStyle}>
                     {secondaryVerse ? renderVerseText(secondaryVerse.text) : <MissingVerse translationId={secondaryTranslationId} />}
                   </p>
                 </div>
@@ -166,7 +169,7 @@ function ParallelBibleChapter({
                   <div className="text-[11px] uppercase tracking-wide text-primary dark:text-blue-400 font-semibold mb-1">{primaryTranslationId}</div>
                   <div className="flex items-start gap-2 group">
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
-                    <p className="verse-text flex-1 text-gray-800 dark:text-gray-200" style={verseStyle}>
+                    <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`} style={verseStyle}>
                       {primaryVerse ? renderVerseText(primaryVerse.text) : <MissingVerse translationId={primaryTranslationId} />}
                     </p>
                     <button
@@ -190,7 +193,7 @@ function ParallelBibleChapter({
                   <div className="text-[11px] uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-1">{secondaryTranslationId}</div>
                   <div className="flex items-start gap-2">
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
-                    <p className="verse-text flex-1 text-gray-700 dark:text-gray-300" style={verseStyle}>
+                    <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`} style={verseStyle}>
                       {secondaryVerse ? renderVerseText(secondaryVerse.text) : <MissingVerse translationId={secondaryTranslationId} />}
                     </p>
                   </div>

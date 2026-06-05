@@ -1,6 +1,11 @@
 import { bibleBooks } from '../data/bible-books.js'
 import { resolveBookAliasPrefix } from './parseBibleReference.js'
 import { localizeBookName } from './localizedBookNames.js'
+import {
+  getVerseTextWithPsalmSuperscription,
+  hasPsalmSuperscription,
+  withPsalmSuperscriptionVerse,
+} from './psalmSuperscriptions.js'
 
 function normalizeInput(input) {
   return String(input || '')
@@ -18,20 +23,19 @@ function getBookData(bibleData, bookName) {
   return bibleData?.books?.find(book => book.name === bookName) || null
 }
 
-function getChapterData(bibleData, bookName, chapter) {
-  return getBookData(bibleData, bookName)?.chapters?.find(row => row.number === chapter) || null
+function getChapterData(bibleData, bookName, chapter, translationId = null) {
+  const chapterData = getBookData(bibleData, bookName)?.chapters?.find(row => row.number === chapter) || null
+  return withPsalmSuperscriptionVerse(chapterData, bookName, translationId)
 }
 
 function getChapterVerseCount(bibleData, bookName, chapter) {
   const chapterData = getChapterData(bibleData, bookName, chapter)
-  return Array.isArray(chapterData?.verses) ? chapterData.verses.length : 0
+  if (!Array.isArray(chapterData?.verses) || chapterData.verses.length === 0) return 0
+  return Math.max(...chapterData.verses.map(verse => verse.number))
 }
 
-function getVerseText(bibleData, bookName, chapter, verse) {
-  return (
-    getChapterData(bibleData, bookName, chapter)?.verses?.find(row => row.number === verse)?.text ||
-    ''
-  )
+function getVerseText(bibleData, bookName, chapter, verse, translationId = null) {
+  return getVerseTextWithPsalmSuperscription(bibleData, bookName, chapter, verse, translationId)
 }
 
 function formatReference(bookName, startChapter, startVerse, endChapter, endVerse) {
@@ -135,11 +139,14 @@ function validateRange({
     return `${bookName} has missing chapter data in selected translation.`
   }
 
+  const startVerseMinimum = hasPsalmSuperscription(bookName, startChapter) ? 0 : 1
+  const endVerseMinimum = hasPsalmSuperscription(bookName, endChapter) ? 0 : 1
+
   if (
     !Number.isInteger(startVerse) ||
     !Number.isInteger(endVerse) ||
-    startVerse < 1 ||
-    endVerse < 1 ||
+    startVerse < startVerseMinimum ||
+    endVerse < endVerseMinimum ||
     startVerse > startChapterVerseCount ||
     endVerse > endChapterVerseCount
   ) {
@@ -483,7 +490,8 @@ export function buildMassExportRows(entries, translationIds, translationDataById
           bibleData,
           verseRef.book,
           verseRef.chapter,
-          verseRef.verse
+          verseRef.verse,
+          translationId
         )
         return `(${verseRef.verse}) ${verseText || '[Verse unavailable]'}`
       })

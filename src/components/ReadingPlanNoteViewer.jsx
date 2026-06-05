@@ -99,7 +99,12 @@ function ReadingPlanNoteViewer() {
     return planEntries.findIndex(({ reading, item }) =>
       Number(reading.day) === requestedDay &&
       item.type === PLAN_NOTE_ITEM_TYPE &&
-      (item.id === noteId || item.id === decodedNoteId)
+      (
+        item.id === noteId ||
+        item.id === decodedNoteId ||
+        item.rawNoteId === noteId ||
+        item.rawNoteId === decodedNoteId
+      )
     )
   }, [decodedNoteId, noteId, planEntries, requestedDay])
 

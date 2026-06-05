@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { translations, loadTranslation } from '../data/translations'
 import { bibleBooks } from '../data/bible-books.js'
+import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptions'
 
 // BibleHub book slug map — matches BibleHub URL patterns
 const BIBLEHUB_SLUGS = {
@@ -44,7 +45,7 @@ function getOriginalLanguage(bookName) {
 
 function getBibleHubUrl(bookName, chapter, verse) {
   const slug = BIBLEHUB_SLUGS[bookName]
-  if (!slug) return null
+  if (!slug || Number(verse) < 1) return null
   return `https://biblehub.com/text/${slug}/${chapter}-${verse}.htm`
 }
 
@@ -88,12 +89,16 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
     setLoadingIds(prev => new Set([...prev, tId]))
     try {
       const data = await loadTranslation(tId)
-      const bookData = data.books.find(b => b.name === bookName)
       const combinedText = selectedPassages
         .map(item => {
-          const chapterData = bookData?.chapters.find(c => c.number === item.chapter)
-          const verseData = chapterData?.verses.find(v => v.number === item.verse)
-          return `${bookName} ${item.chapter}:${item.verse} ${verseData?.text || '(verse not found)'}`
+          const text = getVerseTextWithPsalmSuperscription(
+            data,
+            bookName,
+            item.chapter,
+            item.verse,
+            tId
+          )
+          return `${bookName} ${item.chapter}:${item.verse} ${text || '(verse not found)'}`
         })
         .join('\n\n')
       setLoadedTexts(prev => ({ ...prev, [tId]: combinedText }))

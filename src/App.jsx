@@ -26,6 +26,7 @@ import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
 import { getActiveReadingPlan } from './services/readingPlanProgress'
 import { checkForApkUpdate, openApkDownload } from './services/appUpdates'
+import { getVerseTextWithPsalmSuperscription, withPsalmSuperscriptionVerse } from './utils/psalmSuperscriptions'
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
@@ -1119,19 +1120,21 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   // Handle external deep links that should open commentary at a specific verse
   useEffect(() => {
     const incoming = location.state?.openCommentaryVerse
-    if (!incoming?.book || !incoming?.chapter || !incoming?.verse) return
+    if (!incoming?.book || incoming?.chapter == null || incoming?.verse == null) return
 
     const incomingBook = incoming.book
     const incomingChapter = Number(incoming.chapter)
     const incomingVerse = Number(incoming.verse)
 
-    if (!incomingBook || !incomingChapter || !incomingVerse) return
+    if (!incomingBook || !Number.isInteger(incomingChapter) || !Number.isInteger(incomingVerse)) return
 
-    const verseText = bibleData?.books
-      ?.find(b => b.name === incomingBook)
-      ?.chapters?.find(c => c.number === incomingChapter)
-      ?.verses?.find(v => v.number === incomingVerse)
-      ?.text || ''
+    const verseText = getVerseTextWithPsalmSuperscription(
+      bibleData,
+      incomingBook,
+      incomingChapter,
+      incomingVerse,
+      translationId
+    )
 
     const incomingSelection = { book: incomingBook, chapter: incomingChapter, verse: incomingVerse, text: verseText }
     setCurrentBook(incomingBook)
@@ -1217,15 +1220,17 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   // Get current chapter data
   const currentChapterData = useMemo(() => {
     if (!currentBookData) return null
-    return currentBookData.chapters.find(c => c.number === currentChapter)
-  }, [currentBookData, currentChapter])
+    const chapter = currentBookData.chapters.find(c => c.number === currentChapter)
+    return withPsalmSuperscriptionVerse(chapter, currentBook, translationId)
+  }, [currentBookData, currentBook, currentChapter, translationId])
 
   const secondaryChapterData = useMemo(() => {
     if (!parallelBibleData || !parallelMode) return null
     const bookData = parallelBibleData.books?.find(b => b.name === currentBook)
     if (!bookData) return null
-    return bookData.chapters.find(c => c.number === currentChapter) || null
-  }, [parallelBibleData, parallelMode, currentBook, currentChapter])
+    const chapter = bookData.chapters.find(c => c.number === currentChapter) || null
+    return withPsalmSuperscriptionVerse(chapter, currentBook, parallelTranslationId)
+  }, [parallelBibleData, parallelMode, currentBook, currentChapter, parallelTranslationId])
 
   // Get book metadata (chapters count, etc.)
   const currentBookMeta = useMemo(() => {
@@ -1354,11 +1359,13 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     let addedCount = 0
     normalized.forEach(v => {
       if (isBookmarked(v.book, v.chapter, v.verse)) return
-      const verseText = v.text || bibleData?.books
-        ?.find(b => b.name === v.book)
-        ?.chapters?.find(c => c.number === v.chapter)
-        ?.verses?.find(row => row.number === v.verse)
-        ?.text || ''
+      const verseText = v.text || getVerseTextWithPsalmSuperscription(
+        bibleData,
+        v.book,
+        v.chapter,
+        v.verse,
+        translationId
+      )
       addBookmark({
         book: v.book,
         chapter: v.chapter,
@@ -1380,11 +1387,13 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
     verses.forEach(v => {
       const verseBook = v.book || currentBook
-      const verseText = v.text || bibleData?.books
-        ?.find(b => b.name === verseBook)
-        ?.chapters?.find(c => c.number === v.chapter)
-        ?.verses?.find(row => row.number === v.verse)
-        ?.text || ''
+      const verseText = v.text || getVerseTextWithPsalmSuperscription(
+        bibleData,
+        verseBook,
+        v.chapter,
+        v.verse,
+        translationId
+      )
       saveNote(verseBook, v.chapter, v.verse, text, verseText)
     })
 
@@ -1420,7 +1429,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         setSearchQuery('')
         setSearchResults(null)
         setSearchLoading(false)
-        if (ref.verse) {
+        if (ref.verse != null) {
           navigateToVerse(ref.book, ref.chapter, ref.verse)
         } else {
           handleNavigate(ref.book, ref.chapter)
@@ -1434,6 +1443,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     try {
       const bibleMatches = searchBibleVerses(bibleData, trimmedQuery, {
         maxResults: 200,
+        translationId,
         hasCommentary: (book, chapter, verse) => hasAnyCommentary(book, chapter, verse, authorsData),
       })
       let commentaryMatches = { items: [], capped: false }

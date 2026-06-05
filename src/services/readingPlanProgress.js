@@ -129,6 +129,7 @@ export function getBibleReadingItems(reading) {
       if (entry?.type === 'note') {
         items.push({
           id: getPlanNoteItemId(reading.day, entry.id, entryIndex),
+          rawNoteId: entry.id || '',
           day: reading.day,
           type: PLAN_NOTE_ITEM_TYPE,
           label: entry.title || 'Plan note',
