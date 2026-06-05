@@ -8,7 +8,7 @@ export const RESOURCE_CATEGORIES = [
       {
         id: 'chronological-bible',
         title: 'Chronological Bible in 365 Days',
-        description: 'Read Scripture in broad historical sequence, one year at a time.',
+        description: 'Read Scripture in a sourced chronological sequence with Psalms, Prophets, Gospels, Acts, and Epistles placed near their historical settings.',
       },
       {
         id: 'bible-in-a-year',

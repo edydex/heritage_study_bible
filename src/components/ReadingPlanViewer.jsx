@@ -3,11 +3,13 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES } from '../data/resources'
 import {
   COMMENTS_ITEM_TYPE,
+  PLAN_NOTE_ITEM_TYPE,
   PLAN_NOTES_BASE_URL,
   bookToSlug,
   getCompletedDayNumbers,
   getFirstIncompleteItem,
   getNextIncompleteDay,
+  getPlanNotePath,
   getReadingItems,
   getTodayPlanDay,
   isPlanDayComplete,
@@ -80,6 +82,23 @@ function formatDateForDay(startedOn, day) {
   const value = new Date(year, month - 1, date)
   value.setDate(value.getDate() + day - 1)
   return value.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
+function getPlanNoteSources(item) {
+  if (Array.isArray(item?.sourceLinks) && item.sourceLinks.length) {
+    return item.sourceLinks.map((source, index) => ({
+      key: source.id || source.url || `${source.title || 'source'}-${index}`,
+      title: source.title || source.id || 'Source',
+      url: source.url || '',
+    }))
+  }
+
+  const labels = item?.sourceLabels?.length ? item.sourceLabels : item?.sources || []
+  return labels.map((label, index) => ({
+    key: `${label}-${index}`,
+    title: label,
+    url: '',
+  }))
 }
 
 function ReadingPlanViewer() {
@@ -200,6 +219,13 @@ function ReadingPlanViewer() {
     if (!readings.length) return null
     return readings.find(reading => reading.day === selectedDay) || readings[0]
   }, [readings, selectedDay])
+
+  useEffect(() => {
+    if (!readings.length) return
+    const queryDay = Number(searchParams.get('day'))
+    if (!Number.isInteger(queryDay)) return
+    if (readings.some(reading => Number(reading.day) === queryDay)) setSelectedDay(queryDay)
+  }, [readings, searchParams])
 
   const selectedItems = useMemo(() => getReadingItems(selectedReading), [selectedReading])
   const selectedDayComplete = selectedReading ? isPlanDayComplete(progressState, selectedReading) : false
@@ -359,6 +385,12 @@ function ReadingPlanViewer() {
       if (firstBibleItem?.book && firstBibleItem?.chapter) {
         navigate(`/${bookToSlug(firstBibleItem.book)}/${firstBibleItem.chapter}`)
       }
+      return
+    }
+
+    if (targetItem.type === PLAN_NOTE_ITEM_TYPE) {
+      const notePath = getPlanNotePath(itemId, targetReading.day, targetItem.id)
+      if (notePath) navigate(notePath)
       return
     }
 
@@ -749,14 +781,15 @@ function ReadingPlanViewer() {
               <div className="space-y-1">
                 {selectedItems.map(item => {
                   const done = isPlanItemComplete(progressState, selectedReading.day, item.id)
+                  const isPlanNote = item.type === PLAN_NOTE_ITEM_TYPE
                   return (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 py-4 border-b border-gray-200 dark:border-gray-700"
+                      className={`flex items-start gap-3 py-4 border-b border-gray-200 dark:border-gray-700 ${isPlanNote ? 'bg-amber-50/60 dark:bg-amber-900/10 -mx-3 px-3 rounded-lg border-b-transparent' : ''}`}
                     >
                       <button
                         onClick={() => toggleItem(selectedReading, item.id)}
-                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
                           done
                             ? 'bg-primary border-primary text-white'
                             : 'border-gray-300 dark:border-gray-600 text-transparent'
@@ -765,18 +798,47 @@ function ReadingPlanViewer() {
                       >
                         ✓
                       </button>
-                      <button
-                        onClick={() => openPlanItem(selectedReading, item)}
-                        className="min-w-0 flex-1 text-left"
-                      >
-                        <span className={`block text-lg ${done ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-gray-100'}`}>
-                          {item.label}
-                        </span>
-                        <span className="block text-xs text-gray-500 dark:text-gray-400">
-                          {item.type === COMMENTS_ITEM_TYPE ? (done ? 'Finished' : 'Talk it over') : (done ? 'Finished' : 'Tap to read')}
-                        </span>
-                      </button>
-                      <span className="text-2xl text-gray-400 dark:text-gray-500">›</span>
+                      <div className="min-w-0 flex-1">
+                        <button
+                          onClick={() => openPlanItem(selectedReading, item)}
+                          className="w-full text-left"
+                        >
+                          <span className={`block ${isPlanNote ? 'text-base font-semibold' : 'text-lg'} ${done ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-gray-100'}`}>
+                            {item.label}
+                          </span>
+                          {isPlanNote && item.note && (
+                            <span className="mt-1 block text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                              {item.note}
+                            </span>
+                          )}
+                          <span className="block text-xs text-gray-500 dark:text-gray-400">
+                            {item.type === COMMENTS_ITEM_TYPE ? (done ? 'Finished' : 'Talk it over') : isPlanNote ? (done ? 'Finished' : 'Plan note') : (done ? 'Finished' : 'Tap to read')}
+                          </span>
+                        </button>
+                        {isPlanNote && getPlanNoteSources(item).length > 0 && (
+                          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Source:{' '}
+                            {getPlanNoteSources(item).map((source, sourceIndex) => (
+                              <span key={source.key}>
+                                {source.url ? (
+                                  <a
+                                    href={source.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-primary dark:text-blue-300 underline underline-offset-2"
+                                  >
+                                    {source.title}
+                                  </a>
+                                ) : (
+                                  <span>{source.title}</span>
+                                )}
+                                {sourceIndex < getPlanNoteSources(item).length - 1 ? ', ' : ''}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {!isPlanNote && <span className="text-2xl text-gray-400 dark:text-gray-500">›</span>}
                     </div>
                   )
                 })}

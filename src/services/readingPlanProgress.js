@@ -3,6 +3,7 @@ import { STORAGE_KEYS } from './persistentStorage'
 export const PLAN_PROGRESS_VERSION = 4
 export const PLAN_NOTES_BASE_URL = 'https://plannotes.heritage.faith'
 export const COMMENTS_ITEM_TYPE = 'comments'
+export const PLAN_NOTE_ITEM_TYPE = 'plan-note'
 
 function readJson(key) {
   try {
@@ -94,29 +95,67 @@ export function getCommentsItemId(day) {
   return `day-${Number(day)}-comments`
 }
 
-export function getBibleReadingItems(reading) {
-  if (!reading?.passages?.length) return []
-  const items = []
-  reading.passages.forEach((passage, passageIndex) => {
-    parsePassageChapters(passage).forEach(chapterRef => {
-      items.push({
-        id: getPlanItemId(reading.day, chapterRef.book, chapterRef.chapter),
-        day: reading.day,
-        type: 'chapter',
-        label: chapterRef.label,
-        passage,
-        book: chapterRef.book,
-        chapter: chapterRef.chapter,
-        passageIndex,
-        index: items.length,
-      })
+export function getPlanNoteItemId(day, noteId, index) {
+  return `day-${Number(day)}-note-${String(noteId || index + 1).toLowerCase().replace(/[^a-z0-9_-]+/g, '-')}`
+}
+
+export function getPlanNotePath(planId, day, itemId) {
+  if (!planId || !day || !itemId) return null
+  return `/resources/reading-plans/${planId}/note/${Number(day)}/${encodeURIComponent(itemId)}`
+}
+
+function appendPassageReadingItems(reading, passage, passageIndex, items) {
+  parsePassageChapters(passage).forEach(chapterRef => {
+    items.push({
+      id: getPlanItemId(reading.day, chapterRef.book, chapterRef.chapter),
+      day: reading.day,
+      type: 'chapter',
+      label: chapterRef.label,
+      passage,
+      book: chapterRef.book,
+      chapter: chapterRef.chapter,
+      passageIndex,
+      index: items.length,
     })
+  })
+}
+
+export function getBibleReadingItems(reading) {
+  if (!reading?.passages?.length && !reading?.items?.length) return []
+  const items = []
+
+  if (Array.isArray(reading.items) && reading.items.length) {
+    reading.items.forEach((entry, entryIndex) => {
+      if (entry?.type === 'note') {
+        items.push({
+          id: getPlanNoteItemId(reading.day, entry.id, entryIndex),
+          day: reading.day,
+          type: PLAN_NOTE_ITEM_TYPE,
+          label: entry.title || 'Plan note',
+          note: entry.text || '',
+          sources: Array.isArray(entry.sources) ? entry.sources : [],
+          sourceLabels: Array.isArray(entry.sourceLabels) ? entry.sourceLabels : [],
+          sourceLinks: Array.isArray(entry.sourceLinks) ? entry.sourceLinks : [],
+          index: items.length,
+        })
+        return
+      }
+
+      if (entry?.type === 'passage' && entry.passage) {
+        appendPassageReadingItems(reading, entry.passage, entryIndex, items)
+      }
+    })
+    return items
+  }
+
+  reading.passages.forEach((passage, passageIndex) => {
+    appendPassageReadingItems(reading, passage, passageIndex, items)
   })
   return items
 }
 
 export function getReadingItems(reading) {
-  if (!reading?.passages?.length) return []
+  if (!reading?.passages?.length && !reading?.items?.length) return []
   const bibleItems = getBibleReadingItems(reading)
   return [
     ...bibleItems,

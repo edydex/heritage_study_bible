@@ -13,6 +13,7 @@ import ResourcePage from './components/ResourcePage'
 import ConfessionViewer from './components/ConfessionViewer'
 import BookViewer from './components/BookViewer'
 import ReadingPlanViewer from './components/ReadingPlanViewer'
+import ReadingPlanNoteViewer from './components/ReadingPlanNoteViewer'
 import ToolViewer from './components/ToolViewer'
 import { useBookmarks } from './hooks/useBookmarks'
 import { bibleBooks } from './data/bible-books.js'
@@ -1872,6 +1873,7 @@ function App() {
         <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />
         <Route path="/resources/books/:itemId" element={<BookViewer />} />
         <Route path="/reading-plan-join" element={<ReadingPlanInviteRedirect />} />
+        <Route path="/resources/reading-plans/:itemId/note/:day/:noteId" element={<ReadingPlanNoteViewer />} />
         <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
         <Route path="/resources/tools/:itemId" element={<ToolViewer />} />
         <Route path="/resources/:categoryId" element={<ResourcePage />} />
