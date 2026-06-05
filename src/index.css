@@ -118,6 +118,20 @@ html.dark ::-webkit-scrollbar-thumb:hover {
   font-family: 'Merriweather', Georgia, serif;
 }
 
+.reader-main {
+  --reader-bottom-nav-height: 3.5rem;
+  --reader-bottom-insurance: 2rem;
+  padding-bottom: calc(
+    var(--reader-bottom-nav-height) +
+    env(safe-area-inset-bottom, 0px) +
+    var(--reader-bottom-insurance)
+  );
+}
+
+.reader-chapter-end-spacer {
+  height: 1.25rem;
+}
+
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;

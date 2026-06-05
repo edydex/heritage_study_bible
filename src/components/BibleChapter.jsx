@@ -190,6 +190,7 @@ function BibleChapter({
           })}
         </div>
       )}
+      <div className="reader-chapter-end-spacer" aria-hidden="true" />
     </div>
   )
 }

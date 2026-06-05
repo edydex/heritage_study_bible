@@ -1567,7 +1567,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         <div className="flex">
           {/* Main Content */}
           <main
-            className="flex-1 px-0 sm:px-4 py-2 sm:py-6 pb-20 transition-all duration-300"
+            className="reader-main flex-1 px-0 sm:px-4 py-2 sm:py-6 transition-all duration-300"
             style={{ marginRight: isLargeScreen && isSidebarOpen ? `${sidebarWidth}px` : 0 }}
           >
             <div className="container mx-auto max-w-3xl" ref={bibleContainerRef}>

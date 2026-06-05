@@ -200,6 +200,7 @@ function ParallelBibleChapter({
           )
         })}
       </div>
+      <div className="reader-chapter-end-spacer" aria-hidden="true" />
     </div>
   )
 }
