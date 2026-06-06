@@ -32,6 +32,7 @@ const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
 const NATIVE_VOLUME_NEXT_EVENT = 'heritage:native-volume-next'
 const NATIVE_VOLUME_NEXT_DOUBLE_PRESS_MS = 480
+const NATIVE_VOLUME_NEXT_SCROLL_BLOCK_MS = 500
 const NATIVE_SCROLL_BOTTOM_TOLERANCE_PX = 18
 const DEFAULT_VOLUME_SCROLL_ANIMATION_MS = 180
 const MAX_VOLUME_SCROLL_ANIMATION_MS = 600
@@ -262,11 +263,15 @@ function setScrollTopForTarget(target, top, forceInstant = false) {
   if (forceInstant) target.style.scrollBehavior = prevTargetBehavior
 }
 
-function animateNativeReaderScroll(target, delta, durationMs = 0) {
+function cancelNativeReaderScrollAnimation() {
   if (nativeScrollAnimationFrame) {
     window.cancelAnimationFrame(nativeScrollAnimationFrame)
     nativeScrollAnimationFrame = null
   }
+}
+
+function animateNativeReaderScroll(target, delta, durationMs = 0) {
+  cancelNativeReaderScrollAnimation()
 
   if (!durationMs) {
     setScrollTopForTarget(target, getScrollTopForTarget(target) + delta, true)
@@ -401,10 +406,15 @@ function isReaderRoute(pathname) {
 function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0 }) {
   const location = useLocation()
   const lastBottomDownPressAtRef = useRef(0)
+  const blockNativeScrollUntilRef = useRef(0)
 
   useEffect(() => {
+    cancelNativeReaderScrollAnimation()
     removeNativeScrollMarker()
-    return removeNativeScrollMarker
+    return () => {
+      cancelNativeReaderScrollAnimation()
+      removeNativeScrollMarker()
+    }
   }, [location.pathname])
 
   useEffect(() => {
@@ -416,13 +426,16 @@ function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0 }) {
       if (!enabled || !isReaderRoute(location.pathname)) return
       const target = getBestScrollTarget()
       if (!target) return
+      const now = performance.now()
+      if (now < blockNativeScrollUntilRef.current) return
 
       if (direction !== 'down') {
         lastBottomDownPressAtRef.current = 0
       } else if (isScrollTargetAtBottom(target)) {
-        const now = performance.now()
         if (now - lastBottomDownPressAtRef.current <= NATIVE_VOLUME_NEXT_DOUBLE_PRESS_MS) {
           lastBottomDownPressAtRef.current = 0
+          blockNativeScrollUntilRef.current = now + NATIVE_VOLUME_NEXT_SCROLL_BLOCK_MS
+          cancelNativeReaderScrollAnimation()
           removeNativeScrollMarker()
           dispatchNativeVolumeNext()
           return

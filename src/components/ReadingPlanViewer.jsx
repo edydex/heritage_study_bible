@@ -119,6 +119,7 @@ function ReadingPlanViewer() {
   const [groupState, setGroupState] = useState(null)
   const [answerText, setAnswerText] = useState('')
   const [showMethodology, setShowMethodology] = useState(false)
+  const dayStripRef = useRef(null)
   const dayMenuHistoryRef = useRef(false)
   const dayMenuClosingFromBackRef = useRef(false)
   const pendingDayMenuCallbackRef = useRef(null)
@@ -459,11 +460,14 @@ function ReadingPlanViewer() {
 
   const dayStripFocus = selectedReading?.day || dayAfterLastCompleted || nextUnreadDay || todayDay || 1
   const maxStripItems = (DAY_STRIP_RADIUS * 2) + 1
-  const rawDayStripStart = dayStripFocus - DAY_STRIP_RADIUS
-  const boundedDayStripStart = Math.max(1, Math.min(rawDayStripStart, Math.max(1, totalDayCount - maxStripItems + 1)))
-  const dayStripStart = boundedDayStripStart
+  const preferredDayStripStart = dayStripFocus > 1 ? dayStripFocus - 1 : 1
+  const dayStripStart = Math.max(1, Math.min(preferredDayStripStart, Math.max(1, totalDayCount - maxStripItems + 1)))
   const dayStripEnd = Math.min(totalDayCount, dayStripStart + maxStripItems - 1)
   const visibleStripDays = readings.filter(reading => reading.day >= dayStripStart && reading.day <= dayStripEnd)
+
+  useEffect(() => {
+    dayStripRef.current?.scrollTo?.({ left: 0, behavior: 'auto' })
+  }, [dayStripStart, itemId])
 
   const handleCreateGroup = async () => {
     if (!plan) return
@@ -732,7 +736,7 @@ function ReadingPlanViewer() {
               </div>
             </section>
 
-            <section className="mb-6 -mx-4 sm:-mx-6 overflow-x-auto px-4 sm:px-6">
+            <section ref={dayStripRef} className="mb-6 -mx-4 sm:-mx-6 overflow-x-auto px-4 sm:px-6">
               <div className="flex gap-2 min-w-max pb-1">
                 {visibleStripDays.map(reading => {
                   const done = completedSet.has(reading.day)

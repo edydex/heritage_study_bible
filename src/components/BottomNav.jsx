@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { RESOURCE_CATEGORIES } from '../data/resources'
 import {
   COMMENTS_ITEM_TYPE,
   PLAN_NOTE_ITEM_TYPE,
   clearActiveReadingPlan,
   getFirstIncompleteItem,
+  getNextIncompleteDay,
   getNextPlanDay,
   getPlanItemById,
   getPlanItemForChapter,
@@ -15,6 +17,7 @@ import {
   loadPlanGroups,
   loadPlanProgress,
   markPlanItemComplete,
+  normalizeProgressForPlan,
   parsePassageStart,
   planNotesApi,
   saveActiveReadingPlan,
@@ -24,6 +27,36 @@ import {
 } from '../services/readingPlanProgress'
 
 const NATIVE_VOLUME_NEXT_EVENT = 'heritage:native-volume-next'
+
+function getReadingPlanResources() {
+  return RESOURCE_CATEGORIES.find(category => category.id === 'reading-plans')?.items || []
+}
+
+function hasMeaningfulPlanProgress(progress) {
+  if (!progress) return false
+  if (Object.values(progress.completedItems || {}).some(items => Array.isArray(items) && items.length > 0)) return true
+  if (Array.isArray(progress.completedDays) && progress.completedDays.length > 0) return true
+  return false
+}
+
+function getLastUsedPlanShortcut() {
+  return getReadingPlanResources()
+    .map(plan => {
+      const progress = loadPlanProgress(plan.id)
+      if (!hasMeaningfulPlanProgress(progress)) return null
+      return {
+        planId: plan.id,
+        planTitle: plan.title,
+        updatedAt: progress.updatedAt || '',
+      }
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      const bTime = Date.parse(b.updatedAt) || 0
+      const aTime = Date.parse(a.updatedAt) || 0
+      return bTime - aTime
+    })[0] || null
+}
 
 function getPlanNoteSources(item) {
   if (Array.isArray(item?.sourceLinks) && item.sourceLinks.length) {
@@ -65,6 +98,8 @@ function BottomNav({
   const [activePlanData, setActivePlanData] = useState(null)
   const [activePlanProgress, setActivePlanProgress] = useState(null)
   const [activePlanLoading, setActivePlanLoading] = useState(false)
+  const [planShortcut, setPlanShortcut] = useState(null)
+  const [planShortcutBusy, setPlanShortcutBusy] = useState(false)
   const [groupState, setGroupState] = useState(null)
   const [commentText, setCommentText] = useState('')
   const [commentAnswerText, setCommentAnswerText] = useState('')
@@ -105,6 +140,63 @@ function BottomNav({
     const bookName = selectedBook?.name
     if (!bookName) return
     closeBottomOverlayForNavigation(() => onNavigate(bookName, chapter))
+  }
+
+  const handleOpenPlanShortcut = async () => {
+    const shortcut = planShortcut || getLastUsedPlanShortcut()
+    if (!shortcut?.planId || planShortcutBusy) return
+
+    setPlanShortcutBusy(true)
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}data/reading-plans/${shortcut.planId}.json`)
+      if (!response.ok) throw new Error('Plan not found')
+      const plan = await response.json()
+      const storedProgress = loadPlanProgress(shortcut.planId)
+      const progress = normalizeProgressForPlan(storedProgress, plan)
+      const groupRecord = loadPlanGroups()[shortcut.planId] || null
+      const targetDay = getNextIncompleteDay(plan, progress) || plan.readings?.[0]?.day
+      const targetReading = plan.readings?.find(reading => Number(reading.day) === Number(targetDay)) || plan.readings?.[0]
+      const targetItem = getFirstIncompleteItem(targetReading, progress) || getReadingItems(targetReading)[0]
+      if (!targetReading || !targetItem) return
+
+      saveActiveReadingPlan({
+        planId: shortcut.planId,
+        planTitle: plan.title || shortcut.planTitle || 'Reading Plan',
+        day: targetReading.day,
+        itemId: targetItem.id,
+        groupId: groupRecord?.groupId || storedProgress.groupId || null,
+      })
+
+      if (targetItem.type === COMMENTS_ITEM_TYPE) {
+        closeBottomOverlayForNavigation(() => setShowPlanPanel(true))
+        return
+      }
+
+      if (targetItem.type === PLAN_NOTE_ITEM_TYPE) {
+        const notePath = getPlanNotePath(shortcut.planId, targetReading.day, targetItem.id)
+        if (notePath && typeof onPlanNavigate === 'function') {
+          closeBottomOverlayForNavigation(() => onPlanNavigate(null, null, notePath))
+        }
+        return
+      }
+
+      const parsed = targetItem.book && targetItem.chapter
+        ? { book: targetItem.book, chapter: targetItem.chapter }
+        : parsePassageStart(targetItem.passage)
+      if (!parsed) return
+
+      closeBottomOverlayForNavigation(() => {
+        if (typeof onPlanNavigate === 'function') {
+          onPlanNavigate(parsed.book, parsed.chapter)
+        } else {
+          onNavigate(parsed.book, parsed.chapter)
+        }
+      })
+    } catch (error) {
+      console.warn('Could not continue reading plan', error)
+    } finally {
+      setPlanShortcutBusy(false)
+    }
   }
 
   const closeBottomOverlayState = () => {
@@ -258,6 +350,11 @@ function BottomNav({
     loadPlan()
     return () => { cancelled = true }
   }, [activePlan?.planId, activePlan?.updatedAt])
+
+  useEffect(() => {
+    if (!showPicker || pickerView !== 'book') return
+    setPlanShortcut(getLastUsedPlanShortcut())
+  }, [showPicker, pickerView])
 
   const groupRecord = activePlan?.planId ? loadPlanGroups()[activePlan.planId] : null
   const groupToken = groupRecord?.participantToken || groupRecord?.leaderToken || null
@@ -592,7 +689,19 @@ function BottomNav({
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{selectedBook?.name}</h3>
                 </div>
               ) : (
-                <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-gray-200">Select Book</h3>
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Select Book</h3>
+                  {planShortcut && (
+                    <button
+                      type="button"
+                      onClick={handleOpenPlanShortcut}
+                      disabled={planShortcutBusy}
+                      className="px-3 py-1.5 rounded-lg bg-primary text-white text-sm font-semibold disabled:opacity-60 active:bg-primary/90"
+                    >
+                      {planShortcutBusy ? 'Opening...' : 'Plan'}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 
