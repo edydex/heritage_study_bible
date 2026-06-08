@@ -240,6 +240,21 @@ function ReadingPlanViewer() {
 
   const selectedItems = useMemo(() => getReadingItems(selectedReading), [selectedReading])
   const selectedDayComplete = selectedReading ? isPlanDayComplete(progressState, selectedReading) : false
+  const primaryActionReading = useMemo(() => {
+    if (!selectedReading) return null
+    if (!selectedDayComplete) return selectedReading
+    if (!nextUnreadDay) return selectedReading
+    return readings.find(reading => Number(reading.day) === Number(nextUnreadDay)) || selectedReading
+  }, [nextUnreadDay, readings, selectedDayComplete, selectedReading])
+  const primaryActionItem = useMemo(
+    () => getFirstIncompleteItem(primaryActionReading, progressState),
+    [primaryActionReading, progressState]
+  )
+  const primaryActionAdvancesDay = Boolean(
+    primaryActionReading &&
+    selectedReading &&
+    Number(primaryActionReading.day) !== Number(selectedReading.day)
+  )
   const selectedDate = formatDateForDay(startedOn, selectedReading?.day)
   const selectedQuestions = useMemo(() => {
     const questions = groupState?.questions || []
@@ -1110,10 +1125,12 @@ function ReadingPlanViewer() {
             <div className="fixed left-0 right-0 bottom-0 z-40 bg-white/95 dark:bg-gray-900/95 border-t border-gray-200 dark:border-gray-700 safe-area-bottom px-4 py-3">
               <div className="mx-auto max-w-3xl">
                 <button
-                  onClick={() => openPlanItem(selectedReading, getFirstIncompleteItem(selectedReading, progressState))}
+                  onClick={() => openPlanItem(primaryActionReading, primaryActionItem)}
                   className="w-full h-14 rounded-full bg-gray-950 dark:bg-gray-100 text-white dark:text-gray-950 text-lg font-bold shadow-lg active:scale-[0.99] transition-transform"
                 >
-                  {selectedDayComplete ? 'Read Again' : 'Start Reading'}
+                  {selectedDayComplete
+                    ? (primaryActionAdvancesDay ? `Continue Day ${primaryActionReading.day}` : 'Read Again')
+                    : 'Start Reading'}
                 </button>
               </div>
             </div>

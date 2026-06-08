@@ -153,6 +153,7 @@ function BottomNav({
       const plan = await response.json()
       const storedProgress = loadPlanProgress(shortcut.planId)
       const progress = normalizeProgressForPlan(storedProgress, plan)
+      savePlanProgress(shortcut.planId, progress)
       const groupRecord = loadPlanGroups()[shortcut.planId] || null
       const targetDay = getNextIncompleteDay(plan, progress) || plan.readings?.[0]?.day
       const targetReading = plan.readings?.find(reading => Number(reading.day) === Number(targetDay)) || plan.readings?.[0]

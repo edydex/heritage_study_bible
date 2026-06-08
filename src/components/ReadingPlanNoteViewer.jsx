@@ -147,7 +147,12 @@ function ReadingPlanNoteViewer() {
     }
 
     if (item.type === COMMENTS_ITEM_TYPE) {
-      navigate(`/resources/reading-plans/${itemId}?day=${targetReading.day}`)
+      const firstBibleItem = getReadingItems(targetReading).find(row => row.type === 'chapter')
+      if (firstBibleItem?.book && firstBibleItem?.chapter) {
+        navigate(`/${bookToSlug(firstBibleItem.book)}/${firstBibleItem.chapter}`)
+      } else {
+        navigate(`/resources/reading-plans/${itemId}?day=${targetReading.day}`)
+      }
       return
     }
 
