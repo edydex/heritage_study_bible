@@ -798,6 +798,116 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
             </div>
           </div>
         </section>
+
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <button
+            type="button"
+            onClick={() => navigate('/settings/about')}
+            className="w-full flex items-center justify-between gap-4 text-left"
+          >
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">About Heritage Study Bible</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Read a short overview of the app and its resources.
+              </p>
+            </div>
+            <span className="text-2xl leading-none text-gray-400 dark:text-gray-500">›</span>
+          </button>
+        </section>
+      </main>
+    </div>
+  )
+}
+
+function AboutPage() {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const previousTitle = document.title
+    const description = 'Heritage Study Bible is a fast Bible reading app with convenient Bible navigation, reading plans, and historical Christian resources including confessions, commentaries, and books.'
+    let metaDescription = document.querySelector('meta[name="description"]')
+    const previousDescription = metaDescription?.getAttribute('content') || ''
+
+    document.title = 'About Heritage Study Bible'
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta')
+      metaDescription.setAttribute('name', 'description')
+      document.head.appendChild(metaDescription)
+    }
+    metaDescription.setAttribute('content', description)
+
+    return () => {
+      document.title = previousTitle
+      if (metaDescription) metaDescription.setAttribute('content', previousDescription)
+    }
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-background dark:bg-black">
+      <header className="bg-primary text-white sticky top-0 z-40 shadow-lg">
+        <div className="h-14 px-4 sm:px-6 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
+            aria-label="Back"
+          >
+            ←
+          </button>
+          <div className="min-w-0">
+            <h1 className="heading-text text-lg font-bold leading-tight">About</h1>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto max-w-2xl px-4 py-6 pb-20">
+        <section className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary dark:text-blue-300">
+                Heritage Study Bible
+              </p>
+              <h2 className="heading-text mt-2 text-2xl sm:text-3xl font-bold text-gray-950 dark:text-gray-100">
+                A fast, practical Bible reading app.
+              </h2>
+              <p className="mt-3 text-sm sm:text-base leading-7 text-gray-600 dark:text-gray-300">
+                Heritage Study Bible is built around quick Bible navigation, responsive reading, and simple tools that stay out of the way while you read.
+              </p>
+            </div>
+            <img
+              src="/icons/bear-hb-small.svg"
+              alt=""
+              className="mx-auto h-28 w-36 sm:h-32 sm:w-40 object-contain"
+              loading="lazy"
+            />
+          </div>
+        </section>
+
+        <section className="mt-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-5 sm:p-6">
+          <h3 className="heading-text text-xl font-bold text-gray-950 dark:text-gray-100">
+            What It Offers
+          </h3>
+          <div className="mt-4 space-y-4 text-sm sm:text-base leading-7 text-gray-600 dark:text-gray-300">
+            <p>
+              The app emphasizes convenient movement through Scripture: searching, jumping between books and chapters, reading with volume-button scrolling on Android, and keeping the reading experience comfortable across phones, browsers, and e-ink-style screens.
+            </p>
+            <p>
+              It also includes Bible reading plans designed for daily use, with plan-mode navigation, item progress, and space for reflection as you move through each day.
+            </p>
+            <p>
+              Alongside the Bible, Heritage Study Bible gathers Christian and historically adjacent resources such as confessions, commentaries, books, hymns, and other study tools so Scripture can be read with help from the wider Christian tradition.
+            </p>
+          </div>
+        </section>
+
+        <section className="mt-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-5 sm:p-6">
+          <h3 className="heading-text text-xl font-bold text-gray-950 dark:text-gray-100">
+            Why “Heritage”
+          </h3>
+          <p className="mt-3 text-sm sm:text-base leading-7 text-gray-600 dark:text-gray-300">
+            The goal is to make serious Bible reading feel accessible: Scripture first, with historical resources close at hand when they help clarify doctrine, context, worship, or Christian practice.
+          </p>
+        </section>
       </main>
     </div>
   )
@@ -1900,6 +2010,7 @@ function App() {
         <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
         <Route path="/resources/tools/:itemId" element={<ToolViewer />} />
         <Route path="/resources/:categoryId" element={<ResourcePage />} />
+        <Route path="/settings/about" element={<AboutPage />} />
         <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} />} />
         <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
         <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
