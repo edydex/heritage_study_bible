@@ -6,7 +6,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.graphics.Color;
 import android.view.View;
+import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 
 import com.getcapacitor.JSObject;
@@ -15,8 +17,13 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+
 @CapacitorPlugin(name = "HeritageControls")
 public class HeritageControlsPlugin extends Plugin {
+    private static final int HERITAGE_BLUE = Color.rgb(30, 64, 175);
     private static boolean sideButtonScrollEnabled = false;
     private static boolean searchKeyboardCaptureInputEnabled = false;
 
@@ -52,6 +59,45 @@ public class HeritageControlsPlugin extends Plugin {
 
         JSObject result = new JSObject();
         result.put("enabled", searchKeyboardCaptureInputEnabled);
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void setReaderChromeHidden(PluginCall call) {
+        boolean hidden = call.getBoolean("hidden", false);
+
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                Window window = getActivity().getWindow();
+                View decorView = window.getDecorView();
+                WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
+
+                if (hidden) {
+                    WindowCompat.setDecorFitsSystemWindows(window, true);
+                    controller.hide(WindowInsetsCompat.Type.statusBars());
+                    controller.setSystemBarsBehavior(
+                        WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    );
+                    return;
+                }
+
+                WindowCompat.setDecorFitsSystemWindows(window, true);
+                controller.show(WindowInsetsCompat.Type.statusBars());
+                window.setStatusBarColor(HERITAGE_BLUE);
+                window.setNavigationBarColor(Color.WHITE);
+                controller.setAppearanceLightStatusBars(false);
+                controller.setAppearanceLightNavigationBars(true);
+
+                int systemUiFlags = 0;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    systemUiFlags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                }
+                decorView.setSystemUiVisibility(systemUiFlags);
+            });
+        }
+
+        JSObject result = new JSObject();
+        result.put("hidden", hidden);
         call.resolve(result);
     }
 
