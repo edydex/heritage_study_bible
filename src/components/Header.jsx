@@ -2,6 +2,13 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { translations } from '../data/translations'
 import { isNativeAndroid, setNativeReaderChromeHidden } from '../services/androidControls'
 
+const NATIVE_VOLUME_NEXT_EVENT = 'heritage:native-volume-next'
+const READER_HEADER_HIDE_SCROLL_PX = 24
+const READER_HEADER_SHOW_SCROLL_PX = 64
+const READER_HEADER_MIN_SCROLL_DELTA_PX = 4
+const READER_CHROME_SETTLE_MS = 700
+const READER_VOLUME_NEXT_HEADER_SUPPRESS_MS = 900
+
 function Header({
   onSearch,
   isSearchLoading = false,
@@ -42,6 +49,9 @@ function Header({
   const [selectedParallelLanguage, setSelectedParallelLanguage] = useState('')
   const settingsRef = useRef(null)
   const translationsRef = useRef(null)
+  const suppressShowUntilRef = useRef(0)
+  const chromeSettleUntilRef = useRef(0)
+  const nativeChromeHiddenRef = useRef(null)
   // Temporary input values allow typing any number; clamped on blur
   const [bibleInput, setBibleInput] = useState(String(textSize))
   const [commentaryInput, setCommentaryInput] = useState(String(commentaryTextSize))
@@ -97,7 +107,14 @@ function Header({
     if (!isNativeAndroid()) return undefined
 
     let lastScrollY = window.scrollY || document.documentElement.scrollTop || 0
+    let upwardTravel = 0
+    let downwardTravel = 0
     let frame = null
+
+    const handleNativeVolumeNext = () => {
+      suppressShowUntilRef.current = performance.now() + READER_VOLUME_NEXT_HEADER_SUPPRESS_MS
+      setAutoHidden(true)
+    }
 
     const handleScroll = () => {
       if (frame != null) return
@@ -105,11 +122,38 @@ function Header({
       frame = window.requestAnimationFrame(() => {
         const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0
         const delta = currentScrollY - lastScrollY
+        const absDelta = Math.abs(delta)
+        const now = performance.now()
 
-        if (currentScrollY <= 2 || delta < 0) {
+        if (currentScrollY <= 2) {
+          upwardTravel = 0
+          downwardTravel = 0
           setAutoHidden(false)
-        } else if (delta > 1 && currentScrollY > 8) {
-          setAutoHidden(true)
+          lastScrollY = currentScrollY
+          frame = null
+          return
+        }
+
+        if (absDelta < READER_HEADER_MIN_SCROLL_DELTA_PX || now < chromeSettleUntilRef.current) {
+          lastScrollY = currentScrollY
+          frame = null
+          return
+        }
+
+        if (delta > 0) {
+          downwardTravel += delta
+          upwardTravel = 0
+          if (currentScrollY > READER_HEADER_HIDE_SCROLL_PX && downwardTravel >= READER_HEADER_HIDE_SCROLL_PX) {
+            setAutoHidden(true)
+            downwardTravel = 0
+          }
+        } else if (delta < 0) {
+          upwardTravel += -delta
+          downwardTravel = 0
+          if (now >= suppressShowUntilRef.current && upwardTravel >= READER_HEADER_SHOW_SCROLL_PX) {
+            setAutoHidden(false)
+            upwardTravel = 0
+          }
         }
 
         lastScrollY = currentScrollY
@@ -118,10 +162,13 @@ function Header({
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener(NATIVE_VOLUME_NEXT_EVENT, handleNativeVolumeNext)
 
     return () => {
       window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener(NATIVE_VOLUME_NEXT_EVENT, handleNativeVolumeNext)
       if (frame != null) window.cancelAnimationFrame(frame)
+      nativeChromeHiddenRef.current = false
       setNativeReaderChromeHidden(false).catch(() => {})
     }
   }, [])
@@ -129,6 +176,9 @@ function Header({
   useEffect(() => {
     if (!isNativeAndroid()) return
     const shouldHide = (hidden || autoHidden) && !isSearchFocused && !showSettings && !showTranslations && !showParallelModal
+    if (nativeChromeHiddenRef.current === shouldHide) return
+    nativeChromeHiddenRef.current = shouldHide
+    chromeSettleUntilRef.current = performance.now() + READER_CHROME_SETTLE_MS
     setNativeReaderChromeHidden(shouldHide).catch(() => {})
   }, [autoHidden, hidden, isSearchFocused, showSettings, showTranslations, showParallelModal])
 
