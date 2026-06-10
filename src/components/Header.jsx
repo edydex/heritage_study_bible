@@ -3,11 +3,12 @@ import { translations } from '../data/translations'
 import { isNativeAndroid, setNativeReaderChromeHidden } from '../services/androidControls'
 
 const NATIVE_VOLUME_NEXT_EVENT = 'heritage:native-volume-next'
+const READER_CHROME_SUPPRESS_EVENT = 'heritage:reader-chrome-suppress-show'
 const READER_HEADER_HIDE_SCROLL_PX = 24
 const READER_HEADER_SHOW_SCROLL_PX = 64
 const READER_HEADER_MIN_SCROLL_DELTA_PX = 4
 const READER_CHROME_SETTLE_MS = 700
-const READER_VOLUME_NEXT_HEADER_SUPPRESS_MS = 900
+const READER_VOLUME_NEXT_HEADER_SUPPRESS_MS = 1800
 
 function Header({
   onSearch,
@@ -111,9 +112,23 @@ function Header({
     let downwardTravel = 0
     let frame = null
 
-    const handleNativeVolumeNext = () => {
-      suppressShowUntilRef.current = performance.now() + READER_VOLUME_NEXT_HEADER_SUPPRESS_MS
+    const suppressHeaderShow = (durationMs = READER_VOLUME_NEXT_HEADER_SUPPRESS_MS) => {
+      suppressShowUntilRef.current = Math.max(
+        suppressShowUntilRef.current,
+        performance.now() + durationMs
+      )
       setAutoHidden(true)
+    }
+
+    const handleNativeVolumeNext = () => {
+      suppressHeaderShow()
+    }
+
+    const handleReaderChromeSuppress = (event) => {
+      const durationMs = Number(event.detail?.durationMs)
+      suppressHeaderShow(Number.isFinite(durationMs) && durationMs > 0
+        ? durationMs
+        : READER_VOLUME_NEXT_HEADER_SUPPRESS_MS)
     }
 
     const handleScroll = () => {
@@ -128,7 +143,7 @@ function Header({
         if (currentScrollY <= 2) {
           upwardTravel = 0
           downwardTravel = 0
-          setAutoHidden(false)
+          setAutoHidden(now < suppressShowUntilRef.current)
           lastScrollY = currentScrollY
           frame = null
           return
@@ -163,10 +178,12 @@ function Header({
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     window.addEventListener(NATIVE_VOLUME_NEXT_EVENT, handleNativeVolumeNext)
+    window.addEventListener(READER_CHROME_SUPPRESS_EVENT, handleReaderChromeSuppress)
 
     return () => {
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener(NATIVE_VOLUME_NEXT_EVENT, handleNativeVolumeNext)
+      window.removeEventListener(READER_CHROME_SUPPRESS_EVENT, handleReaderChromeSuppress)
       if (frame != null) window.cancelAnimationFrame(frame)
       nativeChromeHiddenRef.current = false
       setNativeReaderChromeHidden(false).catch(() => {})
