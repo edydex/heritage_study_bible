@@ -224,7 +224,7 @@ html {
 }
 
 /* Capacitor Android should use native insets, but this keeps sticky bars sane on devices that expose safe-area values. */
-html.capacitor-android header.sticky.top-0 {
+html.capacitor-android header.sticky.top-0:not(.reader-primary-header) {
   padding-top: 24px;
   padding-top: max(env(safe-area-inset-top), 24px);
 }
