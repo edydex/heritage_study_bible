@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { translations } from '../data/translations'
+import { isNativeAndroid, setNativeReaderChromeHidden } from '../services/androidControls'
 
 function Header({
   onSearch,
@@ -31,11 +32,13 @@ function Header({
   showVolumeScrollSetting = false,
   onSearchKeyboardCaptureChange,
   onAdvancedSettingsClick,
+  hidden = false,
 }) {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showTranslations, setShowTranslations] = useState(false)
   const [showParallelModal, setShowParallelModal] = useState(false)
+  const [autoHidden, setAutoHidden] = useState(false)
   const [selectedParallelLanguage, setSelectedParallelLanguage] = useState('')
   const settingsRef = useRef(null)
   const translationsRef = useRef(null)
@@ -90,6 +93,45 @@ function Header({
     return () => onSearchKeyboardCaptureChange?.(false)
   }, [onSearchKeyboardCaptureChange])
 
+  useEffect(() => {
+    if (!isNativeAndroid()) return undefined
+
+    let lastScrollY = window.scrollY || document.documentElement.scrollTop || 0
+    let frame = null
+
+    const handleScroll = () => {
+      if (frame != null) return
+
+      frame = window.requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0
+        const delta = currentScrollY - lastScrollY
+
+        if (currentScrollY <= 2 || delta < 0) {
+          setAutoHidden(false)
+        } else if (delta > 1 && currentScrollY > 8) {
+          setAutoHidden(true)
+        }
+
+        lastScrollY = currentScrollY
+        frame = null
+      })
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (frame != null) window.cancelAnimationFrame(frame)
+      setNativeReaderChromeHidden(false).catch(() => {})
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isNativeAndroid()) return
+    const shouldHide = (hidden || autoHidden) && !isSearchFocused && !showSettings && !showTranslations && !showParallelModal
+    setNativeReaderChromeHidden(shouldHide).catch(() => {})
+  }, [autoHidden, hidden, isSearchFocused, showSettings, showTranslations, showParallelModal])
+
   const handleSubmit = (e) => {
     e.preventDefault()
     // Use the actual DOM input value to avoid any browser autocomplete interference
@@ -129,7 +171,13 @@ function Header({
   }
 
   return (
-    <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
+    <header
+      className={`reader-primary-header bg-primary text-white shadow-lg sticky top-0 z-40 transition-transform duration-200 ease-out will-change-transform ${
+        (hidden || autoHidden) && !isSearchFocused && !showSettings && !showTranslations && !showParallelModal
+          ? '-translate-y-full pointer-events-none shadow-none'
+          : 'translate-y-0'
+      }`}
+    >
       <div
         className="px-4 sm:px-6 h-14 flex items-center transition-all duration-300"
         style={{ marginRight: isSidebarOpen ? `${sidebarWidth}px` : 0 }}
@@ -355,7 +403,7 @@ function Header({
                     </div>
                   </button>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400 px-1 mt-1">
-                    {verseStacking ? '1 text 2 text' : '1 text\\n2 text'}
+                    {verseStacking ? '1 text 2 text' : '1 text\n2 text'}
                   </p>
                 </div>
 
