@@ -28,6 +28,17 @@ export async function setNativeSearchKeyboardCaptureInputEnabled(enabled) {
   }
 }
 
+export async function setNativeReaderChromeHidden(hidden) {
+  if (!isNativeAndroid()) return false
+  try {
+    await HeritageControls.setReaderChromeHidden({ hidden: Boolean(hidden) })
+    return true
+  } catch (error) {
+    console.warn('Heritage native reader chrome controls are not available yet', error)
+    return false
+  }
+}
+
 export async function exitNativeApp() {
   if (!isNativeAndroid()) return false
   try {
