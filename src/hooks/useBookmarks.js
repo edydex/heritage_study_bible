@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { v4 as uuidv4 } from 'uuid'
 import { getStoredJson, setStoredJson, STORAGE_KEYS } from '../services/persistentStorage'
 
 const STORAGE_KEY = STORAGE_KEYS.bookmarks
@@ -56,7 +55,7 @@ export function useBookmarks() {
 
   const addBookmark = (bookmark) => {
     const newBookmark = {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       ...bookmark,
       dateCreated: new Date().toISOString(),
       dateModified: new Date().toISOString()
@@ -96,7 +95,7 @@ export function useBookmarks() {
     if (existing) return existing
 
     const newBookmark = {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       commentaryId: commentary.id,
       reference: commentary.reference,
       chapter: commentary.chapter,
@@ -145,7 +144,7 @@ export function useBookmarks() {
       return existing
     } else if (text.trim() !== '') {
       const newNote = {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         type: 'note',
         book,
         chapter,

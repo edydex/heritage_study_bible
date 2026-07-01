@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
 
 vi.mock('@capacitor/core', () => ({
@@ -7,17 +7,17 @@ vi.mock('@capacitor/core', () => ({
   },
 }))
 
-vi.mock('uuid', () => ({
-  v4: vi.fn(() => 'test-uuid-1'),
-}))
-
 import { useBookmarks } from './useBookmarks'
 import { STORAGE_KEYS } from '../services/persistentStorage'
 
 describe('useBookmarks', () => {
   beforeEach(() => {
     localStorage.clear()
-    vi.clearAllMocks()
+    vi.spyOn(crypto, 'randomUUID').mockReturnValue('test-uuid-1')
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it('hydrates bookmarks, commentary bookmarks, and notes from storage', async () => {
