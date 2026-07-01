@@ -5,6 +5,9 @@ export const STORAGE_KEYS = {
   bookmarks: 'bible-study-bookmarks',
   commentaryBookmarks: 'bible-study-commentary-bookmarks',
   notes: 'bible-study-notes',
+  highlights: 'bible-study-highlights',
+  journal: 'bible-study-journal',
+  ink: 'bible-study-ink',
   translation: 'heritage-translation',
   parallelTranslation: 'heritage-parallel-translation',
   textSize: 'heritage-text-size',
@@ -26,6 +29,9 @@ export const EXPORTABLE_EXACT_KEYS = [
   STORAGE_KEYS.bookmarks,
   STORAGE_KEYS.commentaryBookmarks,
   STORAGE_KEYS.notes,
+  STORAGE_KEYS.highlights,
+  STORAGE_KEYS.journal,
+  STORAGE_KEYS.ink,
   STORAGE_KEYS.translation,
   STORAGE_KEYS.parallelTranslation,
   STORAGE_KEYS.textSize,
@@ -142,6 +148,8 @@ export async function exportNotesMarkdown() {
   const notes = await getStoredJson(STORAGE_KEYS.notes, [])
   const bookmarks = await getStoredJson(STORAGE_KEYS.bookmarks, [])
   const commentaryBookmarks = await getStoredJson(STORAGE_KEYS.commentaryBookmarks, [])
+  const journal = await getStoredJson(STORAGE_KEYS.journal, [])
+  const ink = await getStoredJson(STORAGE_KEYS.ink, [])
   const lines = ['# Heritage Study Bible Export', '', `Exported: ${new Date().toISOString()}`, '']
 
   lines.push('## Verse Notes', '')
@@ -150,6 +158,31 @@ export async function exportNotesMarkdown() {
     lines.push(`### ${note.book} ${note.chapter}:${note.verse}`, '')
     if (note.verseText) lines.push(`> ${note.verseText}`, '')
     lines.push(note.text || '', '')
+  }
+
+  lines.push('## Journal Entries', '')
+  const journalEntries = Array.isArray(journal) ? journal : []
+  if (journalEntries.length === 0) lines.push('_No journal entries._', '')
+  // Set of "book|chapter" that have handwritten ink strokes.
+  const inkChapters = new Set(
+    (Array.isArray(ink) ? ink : [])
+      .filter(entry => Array.isArray(entry?.strokes) && entry.strokes.length > 0)
+      .map(entry => `${entry.book}|${entry.chapter}`)
+  )
+  for (const entry of journalEntries) {
+    const pane = entry.pane || 'notes'
+    const paneLabel = pane === 'bible' ? ' (bible margin)' : pane === 'notes' ? ' (side notes)' : ''
+    lines.push(`### ${entry.book} ${entry.chapter}${paneLabel}`, '')
+    if (entry.text) lines.push(entry.text, '')
+    if (inkChapters.has(`${entry.book}|${entry.chapter}`)) {
+      lines.push('_[handwritten note present]_', '')
+      inkChapters.delete(`${entry.book}|${entry.chapter}`)
+    }
+  }
+  // Chapters with only handwritten ink (no typed journal text).
+  for (const key of inkChapters) {
+    const [book, chapter] = key.split('|')
+    lines.push(`### ${book} ${chapter}`, '', '_[handwritten note present]_', '')
   }
 
   lines.push('## Verse Bookmarks', '')

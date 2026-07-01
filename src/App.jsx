@@ -15,8 +15,11 @@ import BookViewer from './components/BookViewer'
 import ReadingPlanViewer from './components/ReadingPlanViewer'
 import ReadingPlanNoteViewer from './components/ReadingPlanNoteViewer'
 import ToolViewer from './components/ToolViewer'
+import JournalView from './components/JournalView'
 import { useBookmarks } from './hooks/useBookmarks'
+import { useHighlights } from './hooks/useHighlights'
 import { bibleBooks } from './data/bible-books.js'
+import { bookToSlug, slugToBook } from './utils/bookSlug'
 import { translations, DEFAULT_TRANSLATION, loadTranslation } from './data/translations'
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
 import { parseBibleReference } from './utils/parseBibleReference'
@@ -104,19 +107,6 @@ function getUnresolvedCommentaryLoads(pendingLoads, authorsData) {
 
 async function wait(ms) {
   await new Promise(resolve => window.setTimeout(resolve, ms))
-}
-
-// Helper to convert book name to URL slug
-function bookToSlug(bookName) {
-  return bookName.toLowerCase().replace(/\s+/g, '-')
-}
-
-// Helper to convert URL slug back to book name
-function slugToBook(slug) {
-  if (!slug) return null
-  const normalized = slug.toLowerCase().replace(/-/g, ' ')
-  const book = bibleBooks.find(b => b.name.toLowerCase() === normalized)
-  return book?.name || null
 }
 
 function forceScrollTop() {
@@ -1220,6 +1210,8 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     notes, saveNote, deleteNote
   } = useBookmarks()
 
+  const { getHighlight } = useHighlights()
+
   useEffect(() => {
     saveBibleProgress(currentBook, currentChapter).catch(() => {})
   }, [currentBook, currentChapter])
@@ -1668,6 +1660,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           setSearchQuery={setSearchQuery}
           onBookmarkClick={() => setShowBookmarkManager(true)}
           onResourcesClick={() => setShowResources(true)}
+          onJournalClick={() => navigate(`/journal/${bookToSlug(currentBook)}/${currentChapter}`)}
           isSidebarOpen={isLargeScreen && isSidebarOpen}
           sidebarWidth={sidebarWidth}
           textSize={textSize}
@@ -1799,6 +1792,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                         isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
                         onBookmarkToggle={handleBookmarkToggle}
                         onVersePosition={updateVersePosition}
+                        getHighlight={(ch, v) => getHighlight(currentBook, ch, v)?.color}
                         textSize={textSize}
                         verseStacking={verseStacking}
                       />
@@ -2012,6 +2006,8 @@ function App() {
         <Route path="/resources/:categoryId" element={<ResourcePage />} />
         <Route path="/settings/about" element={<AboutPage />} />
         <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} />} />
+        <Route path="/journal/:bookSlug/:chapterNum" element={<JournalView />} />
+        <Route path="/journal/:bookSlug" element={<JournalView />} />
         <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
         <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
         <Route path="/" element={<HomeRedirect />} />

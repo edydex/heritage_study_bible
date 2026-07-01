@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react'
+import { getHighlightColor } from '../hooks/useHighlights'
 
 // Render verse text, converting:
 //   <b>...</b> tags to bold spans (used in Psalms headers etc.)
@@ -37,11 +38,18 @@ function BibleChapter({
   onBookmarkToggle,
   onVersePosition,
   isVerseSelected,
+  getHighlight,
   textSize = 18,
   verseStacking = false,
 }) {
   const containerRef = useRef(null)
   const verseRefs = useRef({})
+
+  // Resolve a verse's highlight color id to its Tailwind background classes.
+  const highlightClassFor = (verseNumber) => {
+    const colorId = getHighlight?.(chapter.number, verseNumber)
+    return colorId ? (getHighlightColor(colorId)?.verseClass || '') : ''
+  }
 
   // Dynamic text style from numeric textSize (px)
   const verseStyle = { fontSize: `${textSize}px`, lineHeight: 1.6 }
@@ -94,6 +102,7 @@ function BibleChapter({
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
             const selected = isVerseSelected?.(chapter.number, verse.number)
+            const highlightClass = highlightClassFor(verse.number)
 
             return (
               <div
@@ -105,7 +114,7 @@ function BibleChapter({
                 } ${
                   hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50' : ''
                 } ${
-                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : ''
+                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : highlightClass
                 }`}
               >
                 {/* Verse Number */}
@@ -152,6 +161,7 @@ function BibleChapter({
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
             const selected = isVerseSelected?.(chapter.number, verse.number)
+            const highlightClass = highlightClassFor(verse.number)
 
             return (
               <span
@@ -163,7 +173,7 @@ function BibleChapter({
                 } ${
                   hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                 } ${
-                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : ''
+                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : highlightClass
                 }`}
               >
                 <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium select-none mr-1">

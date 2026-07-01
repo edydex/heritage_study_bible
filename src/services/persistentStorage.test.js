@@ -64,6 +64,46 @@ describe('persistentStorage', () => {
     expect(EXPORTABLE_EXACT_KEYS).toContain(STORAGE_KEYS.activeReadingPlan)
   })
 
+  it('round-trips highlight, journal, and ink data through export/import', async () => {
+    const highlights = [{ id: 'h1', book: 'John', chapter: 3, verse: 16, color: 'yellow' }]
+    const journal = [{ book: 'John', chapter: 3, text: 'My reflections' }]
+    const ink = [{ book: 'John', chapter: 3, pane: 'bible', strokes: [{ id: 's1', color: '#000', size: 4, points: [[1, 2, 0.5]] }] }]
+
+    localStorage.setItem(STORAGE_KEYS.highlights, JSON.stringify(highlights))
+    localStorage.setItem(STORAGE_KEYS.journal, JSON.stringify(journal))
+    localStorage.setItem(STORAGE_KEYS.ink, JSON.stringify(ink))
+
+    const payload = await exportHeritageData()
+    expect(payload.data[STORAGE_KEYS.highlights]).toBe(JSON.stringify(highlights))
+    expect(payload.data[STORAGE_KEYS.journal]).toBe(JSON.stringify(journal))
+    expect(payload.data[STORAGE_KEYS.ink]).toBe(JSON.stringify(ink))
+
+    localStorage.clear()
+    await importHeritageData(payload)
+
+    await expect(getStoredJson(STORAGE_KEYS.highlights, [])).resolves.toEqual(highlights)
+    await expect(getStoredJson(STORAGE_KEYS.journal, [])).resolves.toEqual(journal)
+    await expect(getStoredJson(STORAGE_KEYS.ink, [])).resolves.toEqual(ink)
+  })
+
+  it('includes journal entries and handwritten-note markers in markdown export', async () => {
+    await setStoredJson(STORAGE_KEYS.journal, [
+      { book: 'John', chapter: 3, text: 'Typed reflection' },
+    ])
+    await setStoredJson(STORAGE_KEYS.ink, [
+      { book: 'John', chapter: 3, pane: 'notes', strokes: [{ id: 's1', points: [[0, 0, 0.5]] }] },
+      { book: 'Psalms', chapter: 23, pane: 'bible', strokes: [{ id: 's2', points: [[0, 0, 0.5]] }] },
+    ])
+
+    const markdown = await exportNotesMarkdown()
+    expect(markdown).toContain('## Journal Entries')
+    expect(markdown).toContain('John 3')
+    expect(markdown).toContain('Typed reflection')
+    expect(markdown).toContain('[handwritten note present]')
+    // Chapter with only ink (no typed journal) still appears.
+    expect(markdown).toContain('Psalms 23')
+  })
+
   it('exports notes and bookmarks as markdown', async () => {
     await setStoredJson(STORAGE_KEYS.notes, [
       {

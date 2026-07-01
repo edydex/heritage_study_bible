@@ -17,6 +17,7 @@ function Header({
   setSearchQuery,
   onBookmarkClick,
   onResourcesClick,
+  onJournalClick,
   isSidebarOpen = false,
   sidebarWidth = 540,
   textSize = 18,
@@ -387,6 +388,17 @@ function Header({
           >
             <span className="text-sm sm:text-base">📚</span>
           </button>
+
+          {/* Journal Button */}
+          {onJournalClick && (
+            <button
+              onClick={onJournalClick}
+              className="flex items-center px-2 sm:px-3 py-1.5 sm:py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors flex-shrink-0"
+              title="Journaling mode"
+            >
+              <span className="text-sm sm:text-base">📝</span>
+            </button>
+          )}
 
           {/* Settings Button */}
           <div className="relative flex-shrink-0" ref={settingsRef}>
