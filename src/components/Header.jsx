@@ -267,6 +267,7 @@ function Header({
                 autoCorrect="off"
                 spellCheck={false}
                 enterKeyHint="search"
+                data-testid="reader-search-input"
                 placeholder={isSmallScreen ? 'Find...' : 'Search or go to verse...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -371,6 +372,7 @@ function Header({
           {/* Bookmark Button */}
           <button 
             onClick={onBookmarkClick}
+            data-testid="open-bookmarks"
             className="flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors flex-shrink-0"
             title="View bookmarks"
           >

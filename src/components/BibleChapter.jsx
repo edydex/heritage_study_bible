@@ -128,6 +128,7 @@ function BibleChapter({
 
                 {/* Bookmark Button */}
                 <button
+                  data-testid={`verse-bookmark-${verse.number}`}
                   onClick={(e) => {
                     e.stopPropagation()
                     onBookmarkToggle(chapter.number, verse.number, verse.text)
@@ -179,6 +180,7 @@ function BibleChapter({
                   {renderVerseText(verse.text)}
                 </span>
                 <button
+                  data-testid={`verse-bookmark-${verse.number}`}
                   onClick={(e) => {
                     e.stopPropagation()
                     onBookmarkToggle(chapter.number, verse.number, verse.text)
