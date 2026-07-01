@@ -51,6 +51,16 @@ function BibleChapter({
     return colorId ? (getHighlightColor(colorId)?.verseClass || '') : ''
   }
 
+  // Gray hover backgrounds override highlight colors in Tailwind; skip them when
+  // a verse already has a highlight or selection background.
+  const verseHoverClasses = (selected, highlightClass, hasComment) => {
+    if (selected || highlightClass) return ''
+    if (hasComment) {
+      return 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50'
+    }
+    return 'hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600'
+  }
+
   // Dynamic text style from numeric textSize (px)
   const verseStyle = { fontSize: `${textSize}px`, lineHeight: 1.6 }
 
@@ -109,10 +119,8 @@ function BibleChapter({
                 key={verse.number}
                 id={`verse-${chapter.number}-${verse.number}`}
                 ref={(el) => setVerseRef(verse.number, el)}
-                className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 ${
+                className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 ${verseHoverClasses(selected, highlightClass, hasComment)} ${
                   verse.isSuperscription ? 'mb-2 border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic' : ''
-                } ${
-                  hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50' : ''
                 } ${
                   selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : highlightClass
                 }`}
@@ -168,10 +176,8 @@ function BibleChapter({
                 key={verse.number}
                 id={`verse-${chapter.number}-${verse.number}`}
                 ref={(el) => setVerseRef(verse.number, el)}
-                className={`group/stack inline rounded-md px-0.5 sm:px-1 py-0.5 ${
+                className={`group/stack inline rounded-md px-0.5 sm:px-1 py-0.5 ${verseHoverClasses(selected, highlightClass, hasComment)} ${
                   verse.isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : ''
-                } ${
-                  hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                 } ${
                   selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : highlightClass
                 }`}
