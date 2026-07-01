@@ -1,16 +1,14 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { getHighlightColor } from '../hooks/useHighlights'
+import { applyHighlightRanges } from '../utils/verseHighlightText'
 
 // Render verse text, converting:
 //   <b>...</b> tags to bold spans (used in Psalms headers etc.)
 //   || to poetic line breaks (used in LSV for poetry)
 function renderVerseText(text) {
-  // Preserve explicit line breaks and LSV poetry markers (||)
   const lines = String(text).replace(/\s*\|\|\s*/g, '\n').split('\n')
   if (lines.length === 1 && !text.includes('<b>')) return text
 
   return lines.map((line, li) => {
-    // Handle <b> tags within each line segment
     let rendered
     if (line.includes('<b>')) {
       const parts = line.split(/(<b>.*?<\/b>)/g)
@@ -24,9 +22,17 @@ function renderVerseText(text) {
     }
 
     if (li === 0) return <span key={li}>{rendered}</span>
-    // Each subsequent || segment starts on a new indented line
     return <span key={li}><br /><span className="inline-block w-4" />{rendered}</span>
   })
+}
+
+function renderVerseBody(verse, getVerseHighlights, chapterNumber) {
+  const ranges = getVerseHighlights?.(chapterNumber, verse.number) || []
+  if (ranges.length > 0) {
+    const highlighted = applyHighlightRanges(verse.text, ranges)
+    if (highlighted) return highlighted
+  }
+  return renderVerseText(verse.text)
 }
 
 function BibleChapter({
@@ -38,47 +44,38 @@ function BibleChapter({
   onBookmarkToggle,
   onVersePosition,
   isVerseSelected,
-  getHighlight,
+  getVerseHighlights,
+  highlightMode = false,
   textSize = 18,
   verseStacking = false,
 }) {
   const containerRef = useRef(null)
   const verseRefs = useRef({})
 
-  // Resolve a verse's highlight color id to its Tailwind background classes.
-  const highlightClassFor = (verseNumber) => {
-    const colorId = getHighlight?.(chapter.number, verseNumber)
-    return colorId ? (getHighlightColor(colorId)?.verseClass || '') : ''
-  }
-
-  // Gray hover backgrounds override highlight colors in Tailwind; skip them when
-  // a verse already has a highlight or selection background.
-  const verseHoverClasses = (selected, highlightClass, hasComment) => {
-    if (selected || highlightClass) return ''
+  const verseHoverClasses = (selected, hasComment) => {
+    if (selected) return ''
     if (hasComment) {
       return 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50'
     }
     return 'hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600'
   }
 
-  // Dynamic text style from numeric textSize (px)
   const verseStyle = { fontSize: `${textSize}px`, lineHeight: 1.6 }
 
-  // Track verse positions for sidebar alignment
   useEffect(() => {
     if (!onVersePosition || !containerRef.current) return
 
     const updatePositions = () => {
       const containerRect = containerRef.current.getBoundingClientRect()
       const scrollTop = window.scrollY || document.documentElement.scrollTop
-      
+
       chapter.verses.forEach(verse => {
         const verseEl = verseRefs.current[verse.number]
         if (verseEl) {
           const rect = verseEl.getBoundingClientRect()
           const verseKey = `${chapter.number}-${verse.number}`
           onVersePosition(verseKey, {
-            top: rect.top + scrollTop - 80, // Account for header
+            top: rect.top + scrollTop - 80,
             height: rect.height,
             offsetFromContainer: rect.top - containerRect.top
           })
@@ -86,7 +83,6 @@ function BibleChapter({
       })
     }
 
-    // Update positions after render and on scroll
     updatePositions()
     const handleScroll = () => requestAnimationFrame(updatePositions)
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -102,48 +98,55 @@ function BibleChapter({
     verseRefs.current[verseNumber] = el
   }, [])
 
+  const handleVerseTextClick = (ch, verse, text) => {
+    if (highlightMode) return
+    onVerseClick?.(ch, verse, text)
+  }
+
+  const textInteractionClass = highlightMode
+    ? 'select-text cursor-text'
+    : 'cursor-pointer hover:text-gray-900 dark:hover:text-gray-100'
+
   return (
     <div className="bg-white dark:bg-black rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8" ref={containerRef}>
 
-      {/* Verses */}
       {!verseStacking ? (
         <div>
           {chapter.verses.map((verse) => {
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
             const selected = isVerseSelected?.(chapter.number, verse.number)
-            const highlightClass = highlightClassFor(verse.number)
 
             return (
               <div
                 key={verse.number}
                 id={`verse-${chapter.number}-${verse.number}`}
                 ref={(el) => setVerseRef(verse.number, el)}
-                className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 ${verseHoverClasses(selected, highlightClass, hasComment)} ${
+                className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 ${verseHoverClasses(selected, hasComment)} ${
                   verse.isSuperscription ? 'mb-2 border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic' : ''
                 } ${
-                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : highlightClass
+                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : ''
                 }`}
               >
-                {/* Verse Number */}
                 <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-0.5 select-none text-right">
                   {verse.number}
                 </span>
 
-                {/* Verse Text */}
                 <p
-                  className={`verse-text flex-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 ${
+                  className={`verse-text flex-1 ${textInteractionClass} ${
                     verse.isSuperscription
                       ? 'text-gray-500 dark:text-gray-400'
                       : hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
                   }`}
                   style={verseStyle}
-                  onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
+                  data-verse-text
+                  data-verse={verse.number}
+                  data-chapter={chapter.number}
+                  onClick={() => handleVerseTextClick(chapter.number, verse.number, verse.text)}
                 >
-                  {renderVerseText(verse.text)}
+                  {renderVerseBody(verse, getVerseHighlights, chapter.number)}
                 </p>
 
-                {/* Bookmark Button */}
                 <button
                   data-testid={`verse-bookmark-${verse.number}`}
                   onClick={(e) => {
@@ -169,31 +172,33 @@ function BibleChapter({
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
             const selected = isVerseSelected?.(chapter.number, verse.number)
-            const highlightClass = highlightClassFor(verse.number)
 
             return (
               <span
                 key={verse.number}
                 id={`verse-${chapter.number}-${verse.number}`}
                 ref={(el) => setVerseRef(verse.number, el)}
-                className={`group/stack inline rounded-md px-0.5 sm:px-1 py-0.5 ${verseHoverClasses(selected, highlightClass, hasComment)} ${
+                className={`group/stack inline rounded-md px-0.5 sm:px-1 py-0.5 ${verseHoverClasses(selected, hasComment)} ${
                   verse.isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : ''
                 } ${
-                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : highlightClass
+                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : ''
                 }`}
               >
                 <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium select-none mr-1">
                   {verse.number}
                 </span>
                 <span
-                  className={`cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 ${
+                  className={`${textInteractionClass} ${
                     verse.isSuperscription
                       ? 'text-gray-500 dark:text-gray-400'
                       : hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
                   }`}
-                  onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
+                  data-verse-text
+                  data-verse={verse.number}
+                  data-chapter={chapter.number}
+                  onClick={() => handleVerseTextClick(chapter.number, verse.number, verse.text)}
                 >
-                  {renderVerseText(verse.text)}
+                  {renderVerseBody(verse, getVerseHighlights, chapter.number)}
                 </span>
                 <button
                   data-testid={`verse-bookmark-${verse.number}`}

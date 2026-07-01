@@ -14,17 +14,25 @@ test.describe('Journaling mode', () => {
     await expect(page.getByPlaceholder('Write your reflections, prayers, and notes here...')).toBeVisible()
   })
 
-  test('highlights a verse and persists it across reload', async ({ page }) => {
+  test('highlights selected text and persists across reload', async ({ page }) => {
     await openJournal(page)
 
-    await page.getByTitle('Highlight verses').click()
+    await page.getByTitle('Highlight text (drag to select)').click()
     await page.getByTitle('Yellow').click()
-    await page.locator('#verse-1-1').click()
 
-    await expect(page.locator('#verse-1-1')).toHaveClass(/bg-yellow-200/)
+    const verseText = page.locator('#verse-1-1 [data-verse-text]')
+    const box = await verseText.boundingBox()
+    expect(box).toBeTruthy()
+    await page.mouse.move(box.x + 8, box.y + box.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(box.x + box.width * 0.45, box.y + box.height / 2)
+    await page.mouse.up()
+
+    await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 10_000 })
+    await expect(page.locator('#verse-1-1')).not.toHaveClass(/bg-yellow-200/)
 
     await page.reload({ waitUntil: 'networkidle' })
-    await expect(page.locator('#verse-1-1')).toHaveClass(/bg-yellow-200/, { timeout: 20_000 })
+    await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 20_000 })
   })
 
   test('saves a typed journal note across reload', async ({ page }) => {
@@ -32,7 +40,6 @@ test.describe('Journaling mode', () => {
 
     const textarea = page.getByPlaceholder('Write your reflections, prayers, and notes here...')
     await textarea.fill('In the beginning — my reflection.')
-    // Allow debounced autosave to fire.
     await page.waitForTimeout(800)
 
     await page.reload({ waitUntil: 'networkidle' })

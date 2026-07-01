@@ -20,39 +20,53 @@ describe('useHighlights', () => {
     vi.clearAllMocks()
   })
 
-  it('exposes a 4-color palette with Tailwind classes', () => {
+  it('exposes inline mark classes for the palette', () => {
     expect(HIGHLIGHT_COLORS).toHaveLength(4)
-    expect(getHighlightColor('yellow')?.verseClass).toContain('bg-yellow')
+    expect(getHighlightColor('yellow')?.markClass).toContain('bg-yellow')
     expect(getHighlightColor('nope')).toBeNull()
   })
 
-  it('sets, replaces, and toggles a highlight', async () => {
+  it('migrates legacy whole-verse highlights on load', async () => {
+    localStorage.setItem(STORAGE_KEYS.highlights, JSON.stringify([
+      { id: 'h1', book: 'John', chapter: 3, verse: 16, color: 'yellow' },
+    ]))
     const { result } = renderHook(() => useHighlights())
-    await waitFor(() => expect(result.current.highlights).toEqual([]))
-
-    act(() => result.current.setHighlight('John', 3, 16, 'yellow'))
-    expect(result.current.getHighlight('John', 3, 16)?.color).toBe('yellow')
-
-    // Different color replaces in place.
-    act(() => result.current.setHighlight('John', 3, 16, 'green'))
-    expect(result.current.getHighlight('John', 3, 16)?.color).toBe('green')
-    expect(result.current.highlights).toHaveLength(1)
-
-    // Same color toggles off.
-    act(() => result.current.setHighlight('John', 3, 16, 'green'))
-    expect(result.current.getHighlight('John', 3, 16)).toBeNull()
+    await waitFor(() => {
+      expect(result.current.getVerseHighlights('John', 3, 16)).toHaveLength(1)
+    })
+    const h = result.current.getVerseHighlights('John', 3, 16)[0]
+    expect(h.start).toBe(0)
+    expect(h.end).toBe(Number.MAX_SAFE_INTEGER)
   })
 
-  it('clears a highlight and persists to storage', async () => {
+  it('adds multiple text ranges per verse', async () => {
     const { result } = renderHook(() => useHighlights())
     await waitFor(() => expect(result.current.highlights).toEqual([]))
 
-    act(() => result.current.setHighlight('Psalms', 23, 1, 'blue'))
-    await waitFor(() => {
-      expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.highlights))).toHaveLength(1)
+    act(() => {
+      result.current.addHighlightRanges('John', 3, [
+        { verse: 16, start: 0, end: 4, color: 'yellow' },
+        { verse: 16, start: 10, end: 20, color: 'green' },
+      ])
     })
 
-    act(() => result.current.clearHighlight('Psalms', 23, 1))
-    expect(result.current.getHighlight('Psalms', 23, 1)).toBeNull()
+    expect(result.current.getVerseHighlights('John', 3, 16)).toHaveLength(2)
+  })
+
+  it('finds and removes a highlight at an offset', async () => {
+    const { result } = renderHook(() => useHighlights())
+    await waitFor(() => expect(result.current.highlights).toEqual([]))
+
+    act(() => {
+      result.current.addHighlightRanges('John', 3, [
+        { verse: 16, start: 5, end: 12, color: 'blue' },
+      ])
+    })
+
+    const hit = result.current.findHighlightAt('John', 3, 16, 8)
+    expect(hit?.color).toBe('blue')
+
+    act(() => result.current.removeHighlight(hit.id))
+    expect(result.current.getVerseHighlights('John', 3, 16)).toHaveLength(0)
   })
 })

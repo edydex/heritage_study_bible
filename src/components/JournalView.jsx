@@ -8,6 +8,7 @@ import { bookToSlug, slugToBook } from '../utils/bookSlug'
 import { translations, DEFAULT_TRANSLATION, loadTranslation } from '../data/translations'
 import { withPsalmSuperscriptionVerse } from '../utils/psalmSuperscriptions'
 import { setStoredValue, STORAGE_KEYS } from '../services/persistentStorage'
+import { selectionToHighlightRanges, getCanonicalOffsetFromPoint } from '../utils/verseHighlightText'
 import { useHighlights, HIGHLIGHT_COLORS } from '../hooks/useHighlights'
 import { useJournal } from '../hooks/useJournal'
 import { useInk } from '../hooks/useInk'
@@ -64,7 +65,7 @@ function JournalView() {
   const [highlightColor, setHighlightColor] = useState(HIGHLIGHT_COLORS[0].id)
   const [undoStack, setUndoStack] = useState([])
 
-  const { getHighlight, setHighlight } = useHighlights()
+  const { getVerseHighlights, addHighlightRanges, removeHighlight, findHighlightAt } = useHighlights()
   const { getEntry, saveEntry, addBibleSpace } = useJournal()
   const { getStrokes, addStroke, eraseStroke, clearPane } = useInk()
 
@@ -113,11 +114,65 @@ function JournalView() {
     if (target) navigate(`/journal/${bookToSlug(target.book)}/${target.chapter}`)
   }
 
-  const handleVerseClick = (ch, verse) => {
-    if (tool === INK_TOOLS.highlight) {
-      setHighlight(book, ch, verse, highlightColor)
+  const highlightActive = tool === INK_TOOLS.highlight
+  const drawingActive = tool === INK_TOOLS.draw || tool === INK_TOOLS.erase
+  const paneScrollClass = `relative flex-1 overflow-y-auto ${
+    highlightActive ? 'select-text' : 'select-none'
+  } ${drawingActive ? 'touch-none' : ''}`
+
+  // Apply text highlights when the user finishes a drag selection.
+  useEffect(() => {
+    if (!highlightActive) return
+    const el = leftScrollRef.current
+    if (!el) return
+
+    let lastApplyAt = 0
+    const applySelection = () => {
+      const now = Date.now()
+      if (now - lastApplyAt < 50) return
+      lastApplyAt = now
+      const selection = window.getSelection()
+      if (!selection || selection.isCollapsed) return
+      const ranges = selectionToHighlightRanges(selection, el, chapter)
+      if (!ranges.length) return
+      addHighlightRanges(
+        book,
+        chapter,
+        ranges.map(r => ({ ...r, color: highlightColor }))
+      )
+      selection.removeAllRanges()
     }
-  }
+
+    el.addEventListener('mouseup', applySelection)
+    el.addEventListener('pointerup', applySelection)
+    return () => {
+      el.removeEventListener('mouseup', applySelection)
+      el.removeEventListener('pointerup', applySelection)
+    }
+  }, [highlightActive, book, chapter, highlightColor, addHighlightRanges])
+
+  // Eraser: remove text highlight under pointer (in addition to ink strokes).
+  useEffect(() => {
+    if (tool !== INK_TOOLS.erase) return
+    const el = leftScrollRef.current
+    if (!el) return
+
+    const eraseHighlight = (e) => {
+      const verseText = e.target.closest?.('[data-verse-text]')
+      if (!verseText) return
+      const offset = getCanonicalOffsetFromPoint(verseText, e.clientX, e.clientY)
+      if (offset == null) return
+      const verse = Number(verseText.dataset.verse)
+      const hit = findHighlightAt(book, chapter, verse, offset)
+      if (hit) {
+        removeHighlight(hit.id)
+        e.preventDefault()
+      }
+    }
+
+    el.addEventListener('pointerdown', eraseHighlight)
+    return () => el.removeEventListener('pointerdown', eraseHighlight)
+  }, [tool, book, chapter, findHighlightAt, removeHighlight])
 
   const commitStroke = (pane) => (stroke) => {
     addStroke(book, chapter, pane, stroke)
@@ -146,10 +201,6 @@ function JournalView() {
 
   // Reset undo history when navigating to a different chapter.
   useEffect(() => { setUndoStack([]) }, [book, chapter])
-
-  const drawingActive = tool === INK_TOOLS.draw || tool === INK_TOOLS.erase
-  // touch-none while drawing so finger draws instead of scrolling the pane
-  const paneScrollClass = `relative flex-1 overflow-y-auto select-none ${drawingActive ? 'touch-none' : ''}`
 
   const toolButton = (id, label, title) => (
     <button
@@ -222,9 +273,9 @@ function JournalView() {
         {/* Tools */}
         <div className="flex items-center gap-1.5">
           {toolButton(INK_TOOLS.select, '✋', 'Read / scroll (finger scrolls)')}
-          {toolButton(INK_TOOLS.highlight, '🖍', 'Highlight verses')}
+          {toolButton(INK_TOOLS.highlight, '🖍', 'Highlight text (drag to select)')}
           {toolButton(INK_TOOLS.draw, '✒️', 'Draw (pen, mouse, or finger)')}
-          {toolButton(INK_TOOLS.erase, '🧽', 'Erase ink')}
+          {toolButton(INK_TOOLS.erase, '🧽', 'Erase ink and highlights')}
         </div>
 
         {/* Contextual controls */}
@@ -308,8 +359,8 @@ function JournalView() {
             loading={loading}
             loadError={loadError}
             translationId={translationId}
-            onVerseClick={handleVerseClick}
-            getHighlight={(ch, v) => getHighlight(book, ch, v)?.color}
+            getVerseHighlights={(ch, v) => getVerseHighlights(book, ch, v)}
+            highlightMode={highlightActive}
             getEntry={getEntry}
             saveEntry={saveEntry}
             addBibleSpace={addBibleSpace}

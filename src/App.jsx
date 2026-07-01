@@ -1210,7 +1210,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     notes, saveNote, deleteNote
   } = useBookmarks()
 
-  const { getHighlight } = useHighlights()
+  const { getVerseHighlights } = useHighlights()
 
   useEffect(() => {
     saveBibleProgress(currentBook, currentChapter).catch(() => {})
@@ -1792,7 +1792,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                         isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
                         onBookmarkToggle={handleBookmarkToggle}
                         onVersePosition={updateVersePosition}
-                        getHighlight={(ch, v) => getHighlight(currentBook, ch, v)?.color}
+                        getVerseHighlights={(ch, v) => getVerseHighlights(currentBook, ch, v)}
                         textSize={textSize}
                         verseStacking={verseStacking}
                       />

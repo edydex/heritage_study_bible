@@ -14,7 +14,8 @@ function JournalBiblePane({
   loadError,
   translationId,
   onVerseClick,
-  getHighlight,
+  getVerseHighlights,
+  highlightMode = false,
   getEntry,
   saveEntry,
   addBibleSpace,
@@ -75,7 +76,8 @@ function JournalBiblePane({
           onVerseClick={onVerseClick}
           isBookmarked={() => false}
           onBookmarkToggle={() => {}}
-          getHighlight={getHighlight}
+          getVerseHighlights={getVerseHighlights}
+          highlightMode={highlightMode}
           textSize={18}
         />
       )}

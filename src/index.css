@@ -6,6 +6,11 @@
   box-sizing: border-box;
 }
 
+.verse-highlight {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 body {
   margin: 0;
   background-color: #fafaf9;

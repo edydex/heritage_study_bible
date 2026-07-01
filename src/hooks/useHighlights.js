@@ -4,17 +4,44 @@ import { getStoredJson, setStoredJson, STORAGE_KEYS } from '../services/persiste
 
 const STORAGE_KEY = STORAGE_KEYS.highlights
 
-// Fixed 4-color palette. Class strings are written as literals so Tailwind's
-// content scanner picks them up at build time (no dynamic class construction).
 export const HIGHLIGHT_COLORS = [
-  { id: 'yellow', label: 'Yellow', swatch: 'bg-yellow-300', verseClass: 'bg-yellow-200 dark:bg-yellow-500/30' },
-  { id: 'green', label: 'Green', swatch: 'bg-green-300', verseClass: 'bg-green-200 dark:bg-green-500/30' },
-  { id: 'blue', label: 'Blue', swatch: 'bg-blue-300', verseClass: 'bg-blue-200 dark:bg-blue-500/30' },
-  { id: 'pink', label: 'Pink', swatch: 'bg-pink-300', verseClass: 'bg-pink-200 dark:bg-pink-500/30' },
+  {
+    id: 'yellow',
+    label: 'Yellow',
+    swatch: 'bg-yellow-300',
+    markClass: 'bg-yellow-200/70 dark:bg-yellow-500/40',
+  },
+  {
+    id: 'green',
+    label: 'Green',
+    swatch: 'bg-green-300',
+    markClass: 'bg-green-200/70 dark:bg-green-500/40',
+  },
+  {
+    id: 'blue',
+    label: 'Blue',
+    swatch: 'bg-blue-300',
+    markClass: 'bg-blue-200/70 dark:bg-blue-500/40',
+  },
+  {
+    id: 'pink',
+    label: 'Pink',
+    swatch: 'bg-pink-300',
+    markClass: 'bg-pink-200/70 dark:bg-pink-500/40',
+  },
 ]
 
 export function getHighlightColor(colorId) {
   return HIGHLIGHT_COLORS.find(c => c.id === colorId) || null
+}
+
+function migrateHighlight(entry) {
+  if (typeof entry.start === 'number' && typeof entry.end === 'number') return entry
+  return {
+    ...entry,
+    start: 0,
+    end: Number.MAX_SAFE_INTEGER,
+  }
 }
 
 export function useHighlights() {
@@ -27,7 +54,8 @@ export function useHighlights() {
       try {
         const stored = await getStoredJson(STORAGE_KEY, [])
         if (cancelled) return
-        setHighlights(Array.isArray(stored) ? stored : [])
+        const list = Array.isArray(stored) ? stored.map(migrateHighlight) : []
+        setHighlights(list)
       } catch (e) {
         console.error('Error loading highlights:', e)
       } finally {
@@ -43,28 +71,48 @@ export function useHighlights() {
     setStoredJson(STORAGE_KEY, highlights).catch(e => console.error('Error saving highlights:', e))
   }, [highlights, hydrated])
 
-  const getHighlight = useCallback((book, chapter, verse) => {
-    return highlights.find(h => h.book === book && h.chapter === chapter && h.verse === verse) || null
+  const getVerseHighlights = useCallback((book, chapter, verse) => {
+    return highlights.filter(h => h.book === book && h.chapter === chapter && h.verse === verse)
   }, [highlights])
 
-  // Toggle off when the same color is applied again; replace when a different
-  // color is chosen; create when none exists.
-  const setHighlight = useCallback((book, chapter, verse, color) => {
-    setHighlights(prev => {
-      const existing = prev.find(h => h.book === book && h.chapter === chapter && h.verse === verse)
-      if (existing) {
-        if (existing.color === color) {
-          return prev.filter(h => h.id !== existing.id)
-        }
-        return prev.map(h => h.id === existing.id ? { ...h, color } : h)
-      }
-      return [...prev, { id: uuidv4(), book, chapter, verse, color, dateCreated: new Date().toISOString() }]
-    })
+  const addHighlightRanges = useCallback((book, chapter, ranges) => {
+    if (!ranges.length) return
+    const now = new Date().toISOString()
+    setHighlights(prev => [
+      ...prev,
+      ...ranges.map((range) => ({
+        id: uuidv4(),
+        book,
+        chapter,
+        verse: range.verse,
+        start: range.start,
+        end: range.end,
+        color: range.color,
+        dateCreated: now,
+      })),
+    ])
   }, [])
 
-  const clearHighlight = useCallback((book, chapter, verse) => {
-    setHighlights(prev => prev.filter(h => !(h.book === book && h.chapter === chapter && h.verse === verse)))
+  const removeHighlight = useCallback((id) => {
+    setHighlights(prev => prev.filter(h => h.id !== id))
   }, [])
 
-  return { highlights, getHighlight, setHighlight, clearHighlight }
+  const findHighlightAt = useCallback((book, chapter, verse, offset) => {
+    const matches = highlights.filter(h =>
+      h.book === book
+      && h.chapter === chapter
+      && h.verse === verse
+      && h.start <= offset
+      && h.end > offset
+    )
+    return matches.length ? matches[matches.length - 1] : null
+  }, [highlights])
+
+  return {
+    highlights,
+    getVerseHighlights,
+    addHighlightRanges,
+    removeHighlight,
+    findHighlightAt,
+  }
 }
