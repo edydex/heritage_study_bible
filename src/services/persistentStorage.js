@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
   highlights: 'bible-study-highlights',
   journal: 'bible-study-journal',
   ink: 'bible-study-ink',
+  journalTipsDismissed: 'heritage-journal-tips-dismissed',
   translation: 'heritage-translation',
   parallelTranslation: 'heritage-parallel-translation',
   textSize: 'heritage-text-size',

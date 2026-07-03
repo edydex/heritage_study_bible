@@ -46,6 +46,7 @@ function BibleChapter({
   isVerseSelected,
   getVerseHighlights,
   highlightMode = false,
+  renderAfterVerse,
   textSize = 18,
   verseStacking = false,
 }) {
@@ -118,16 +119,17 @@ function BibleChapter({
             const selected = isVerseSelected?.(chapter.number, verse.number)
 
             return (
-              <div
-                key={verse.number}
-                id={`verse-${chapter.number}-${verse.number}`}
-                ref={(el) => setVerseRef(verse.number, el)}
-                className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 ${verseHoverClasses(selected, hasComment)} ${
-                  verse.isSuperscription ? 'mb-2 border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic' : ''
-                } ${
-                  selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : ''
-                }`}
-              >
+              <div key={verse.number}>
+                <div
+                  id={`verse-${chapter.number}-${verse.number}`}
+                  ref={(el) => setVerseRef(verse.number, el)}
+                  data-ink-anchor={`verse-${chapter.number}-${verse.number}`}
+                  className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 ${verseHoverClasses(selected, hasComment)} ${
+                    verse.isSuperscription ? 'mb-2 border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic' : ''
+                  } ${
+                    selected ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700' : ''
+                  }`}
+                >
                 <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-0.5 select-none text-right">
                   {verse.number}
                 </span>
@@ -162,6 +164,8 @@ function BibleChapter({
                 >
                   {bookmarked ? '★' : '☆'}
                 </button>
+                </div>
+                {renderAfterVerse?.(verse.number)}
               </div>
             )
           })}

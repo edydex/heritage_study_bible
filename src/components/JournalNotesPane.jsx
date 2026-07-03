@@ -1,72 +1,63 @@
-import { useEffect, useRef, useState } from 'react'
-import { JOURNAL_PANES } from '../hooks/useJournal'
+import { useCallback, useRef } from 'react'
+import JournalTextBlock from './JournalTextBlock'
+import { DEFAULT_PAGE_HEIGHT } from '../hooks/useJournal'
+import { isDoubleTap } from '../utils/doubleTap'
 
-const AUTOSAVE_DELAY_MS = 500
+function JournalNotesPane({
+  blocks = [],
+  pageHeight = DEFAULT_PAGE_HEIGHT,
+  onBlockTextChange,
+  onBlockRemove,
+  onAddBlock,
+  inkBlockingText = false,
+}) {
+  const lastTap = useRef(null)
+  const pageRef = useRef(null)
+  const insertGuard = useRef(false)
 
-// Typed, autosaving journal entry for the current book/chapter. When ink tools
-// are active the textarea is made non-interactive so pen strokes land on the
-// InkLayer overlay above it instead of the caret.
-function JournalNotesPane({ book, chapter, getEntry, saveEntry, drawingActive = false }) {
-  const [text, setText] = useState('')
-  const [savedAt, setSavedAt] = useState(null)
-  const saveTimer = useRef(null)
-  // True once the user edits the current chapter; blocks storage re-sync from
-  // clobbering in-progress typing.
-  const dirtyRef = useRef(false)
+  const addBlockAtEvent = useCallback((e) => {
+    if (insertGuard.current) return
+    if (inkBlockingText) return
+    if (e.pointerType === 'pen') return
+    if (e.target.closest('textarea') || e.target.closest('button')) return
 
-  // Reset the dirty flag whenever the chapter changes so the entry re-loads.
-  useEffect(() => {
-    dirtyRef.current = false
-  }, [book, chapter])
+    const page = pageRef.current
+    if (!page) return
 
-  // Sync from stored entry while the field is untouched. This also handles the
-  // async hydration of useJournal: getEntry's identity changes once storage
-  // loads, re-running this effect and populating the text.
-  useEffect(() => {
-    if (dirtyRef.current) return
-    const entry = getEntry(book, chapter, JOURNAL_PANES.notes)
-    setText(entry?.text || '')
-    setSavedAt(entry?.dateModified || null)
-  }, [book, chapter, getEntry])
+    insertGuard.current = true
+    window.setTimeout(() => { insertGuard.current = false }, 400)
 
-  useEffect(() => () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-  }, [])
+    e.preventDefault()
+    e.stopPropagation()
+    const pageRect = page.getBoundingClientRect()
+    const y = e.clientY - pageRect.top
+    onAddBlock(Math.max(8, y))
+  }, [inkBlockingText, onAddBlock])
 
-  const handleChange = (e) => {
-    const value = e.target.value
-    dirtyRef.current = true
-    setText(value)
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => {
-      saveEntry(book, chapter, value, JOURNAL_PANES.notes)
-      setSavedAt(new Date().toISOString())
-    }, AUTOSAVE_DELAY_MS)
-  }
-
-  const savedLabel = savedAt
-    ? `Saved ${new Date(savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-    : 'Not saved yet'
+  const handlePaperPointerUp = useCallback((e) => {
+    if (!isDoubleTap(e, lastTap)) return
+    addBlockAtEvent(e)
+  }, [addBlockAtEvent])
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-baseline justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <h3 className="text-sm font-semibold text-primary dark:text-blue-400 heading-text">
-          {book} {chapter} — Notes
-        </h3>
-        <span className="text-[11px] text-gray-400 dark:text-gray-500">{savedLabel}</span>
-      </div>
-      <textarea
-        value={text}
-        onChange={handleChange}
-        placeholder="Write your reflections, prayers, and notes here..."
-        readOnly={drawingActive}
-        className={`flex-1 w-full resize-none bg-transparent px-4 py-3 text-gray-800 dark:text-gray-200 leading-relaxed focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-600 ${
-          drawingActive ? 'pointer-events-none select-none' : ''
-        }`}
-        style={{ fontSize: '17px' }}
-        spellCheck={true}
-      />
+    <div
+      ref={pageRef}
+      data-ink-anchor="notes-page"
+      data-testid="notes-paper-page"
+      onDoubleClick={addBlockAtEvent}
+      onPointerUp={handlePaperPointerUp}
+      className="journal-notes-page relative px-2"
+      style={{ minHeight: `${pageHeight}px` }}
+    >
+      {blocks.map(block => (
+        <JournalTextBlock
+          key={block.id}
+          block={block}
+          onTextChange={onBlockTextChange}
+          onRemove={onBlockRemove}
+          inkBlockingText={inkBlockingText}
+        />
+      ))}
     </div>
   )
 }

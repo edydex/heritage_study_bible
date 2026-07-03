@@ -8,7 +8,13 @@ vi.mock('@capacitor/core', () => ({
 import { useInk } from './useInk'
 import { STORAGE_KEYS } from '../services/persistentStorage'
 
-const stroke = (id) => ({ id, color: '#000', size: 4, points: [[0, 0, 0.5], [1, 1, 0.5]] })
+const stroke = (id, anchorId = null) => ({
+  id,
+  color: '#000',
+  size: 4,
+  anchorId,
+  points: [[10, 20, 0.5], [30, 40, 0.5]],
+})
 
 describe('useInk', () => {
   beforeEach(() => {
@@ -26,6 +32,15 @@ describe('useInk', () => {
     expect(result.current.getStrokes('John', 3, 'bible')).toHaveLength(1)
     expect(result.current.getStrokes('John', 3, 'notes')).toHaveLength(1)
     expect(result.current.getStrokes('John', 4, 'bible')).toEqual([])
+  })
+
+  it('stores anchored strokes and detects anchor hits', async () => {
+    const { result } = renderHook(() => useInk())
+    await waitFor(() => expect(result.current.entries).toEqual([]))
+
+    act(() => result.current.addStroke('John', 3, 'bible', stroke('s1', 'gap-abc')))
+    expect(result.current.hasStrokesOnAnchor('John', 3, 'bible', 'gap-abc')).toBe(true)
+    expect(result.current.hasStrokesOnAnchor('John', 3, 'bible', 'gap-other')).toBe(false)
   })
 
   it('erases a single stroke and drops empty entries', async () => {

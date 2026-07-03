@@ -3,6 +3,10 @@ import { expect, test } from '@playwright/test'
 async function openJournal(page, path = '/#/journal/genesis/1') {
   await page.goto(path, { waitUntil: 'networkidle' })
   await expect(page.locator('#verse-1-1')).toBeVisible({ timeout: 20_000 })
+  const tips = page.getByTestId('journal-tips-banner')
+  if (await tips.isVisible()) {
+    await page.getByTestId('journal-tips-dismiss').click()
+  }
 }
 
 test.describe('Journaling mode', () => {
@@ -11,7 +15,22 @@ test.describe('Journaling mode', () => {
     await expect(page.locator('#verse-1-1')).toBeVisible({ timeout: 20_000 })
     await page.getByTitle('Journaling mode').click()
     await expect(page).toHaveURL(/#\/journal\/genesis\/1/)
-    await expect(page.getByPlaceholder('Write your reflections, prayers, and notes here...')).toBeVisible()
+    await expect(page.getByTestId('notes-paper-page')).toBeVisible()
+  })
+
+  test('shows a one-time tip about double-tap between verses', async ({ page }) => {
+    await page.goto('/#/journal/genesis/1', { waitUntil: 'networkidle' })
+    await expect(page.locator('#verse-1-1')).toBeVisible({ timeout: 20_000 })
+
+    const banner = page.getByTestId('journal-tips-banner')
+    await expect(banner).toBeVisible()
+    await expect(banner).toContainText('between verses')
+
+    await page.getByTestId('journal-tips-dismiss').click()
+    await expect(banner).not.toBeVisible()
+
+    await page.reload({ waitUntil: 'networkidle' })
+    await expect(banner).not.toBeVisible({ timeout: 10_000 })
   })
 
   test('highlights selected text and persists across reload', async ({ page }) => {
@@ -29,34 +48,64 @@ test.describe('Journaling mode', () => {
     await page.mouse.up()
 
     await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 10_000 })
-    await expect(page.locator('#verse-1-1')).not.toHaveClass(/bg-yellow-200/)
 
     await page.reload({ waitUntil: 'networkidle' })
     await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 20_000 })
   })
 
-  test('saves a typed journal note across reload', async ({ page }) => {
+  test('inserts inline gap on double-tap and saves typed margin notes', async ({ page }) => {
     await openJournal(page)
 
-    const textarea = page.getByPlaceholder('Write your reflections, prayers, and notes here...')
-    await textarea.fill('In the beginning — my reflection.')
+    const zone = page.getByTestId('gap-zone-after-1')
+    await zone.scrollIntoViewIfNeeded()
+    await zone.dblclick()
+    const gapText = page.getByTestId('journal-gap-text')
+    await expect(gapText).toBeVisible()
+    await gapText.fill('Margin reflection beside verse 1.')
+
     await page.waitForTimeout(800)
 
     await page.reload({ waitUntil: 'networkidle' })
-    await expect(page.getByPlaceholder('Write your reflections, prayers, and notes here...'))
+    await expect(page.getByTestId('journal-gap-text'))
+      .toHaveValue('Margin reflection beside verse 1.', { timeout: 20_000 })
+  })
+
+  test('creates notes text block on double-tap and persists', async ({ page }) => {
+    await openJournal(page)
+
+    const paper = page.getByTestId('notes-paper-page')
+    await paper.dblclick({ position: { x: 40, y: 60 } })
+
+    const block = page.getByTestId('notes-block-text')
+    await expect(block).toBeVisible({ timeout: 10_000 })
+    await block.fill('In the beginning — my reflection.')
+    await page.waitForTimeout(800)
+
+    await page.reload({ waitUntil: 'networkidle' })
+    await expect(page.getByTestId('notes-block-text'))
       .toHaveValue('In the beginning — my reflection.', { timeout: 20_000 })
   })
 
-  test('adds bible margin space and saves typed margin notes', async ({ page }) => {
+  test('deletes a notes text block', async ({ page }) => {
     await openJournal(page)
 
-    await page.getByTestId('add-bible-space').click()
-    const margin = page.getByTestId('bible-margin-notes')
-    await margin.fill('Margin reflection beside the text.')
-    await page.waitForTimeout(800)
+    const paper = page.getByTestId('notes-paper-page')
+    await paper.dblclick({ position: { x: 40, y: 60 } })
+    const block = page.getByTestId('notes-block-text')
+    await expect(block).toBeVisible()
+    await block.fill('Temporary note')
 
-    await page.reload({ waitUntil: 'networkidle' })
-    await expect(page.getByTestId('bible-margin-notes'))
-      .toHaveValue('Margin reflection beside the text.', { timeout: 20_000 })
+    await page.getByTestId('notes-block-delete').click()
+    await expect(block).not.toBeVisible()
+  })
+
+  test('adds notes page space', async ({ page }) => {
+    await openJournal(page)
+
+    const paper = page.getByTestId('notes-paper-page')
+    const before = await paper.evaluate(el => el.style.minHeight)
+    await page.getByTestId('add-notes-space').click()
+    const after = await paper.evaluate(el => el.style.minHeight)
+    expect(after).not.toBe(before)
   })
 })

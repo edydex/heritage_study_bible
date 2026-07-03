@@ -10,8 +10,6 @@ function matches(entry, book, chapter, pane) {
   return entry.book === book && entry.chapter === chapter && entry.pane === pane
 }
 
-// Per-chapter, per-pane freehand ink strokes. Each entry:
-//   { book, chapter, pane, strokes: [ { id, color, size, points: [[x,y,pressure], ...] } ] }
 export function useInk() {
   const [entries, setEntries] = useState([])
   const [hydrated, setHydrated] = useState(false)
@@ -43,6 +41,10 @@ export function useInk() {
     return entry?.strokes || []
   }, [entries])
 
+  const hasStrokesOnAnchor = useCallback((book, chapter, pane, anchorId) => {
+    return getStrokes(book, chapter, pane).some(s => s.anchorId === anchorId)
+  }, [getStrokes])
+
   const addStroke = useCallback((book, chapter, pane, stroke) => {
     const withId = { id: stroke.id || uuidv4(), ...stroke }
     setEntries(prev => {
@@ -69,5 +71,13 @@ export function useInk() {
     setEntries(prev => prev.filter(e => !matches(e, book, chapter, pane)))
   }, [])
 
-  return { entries, getStrokes, addStroke, eraseStroke, clearPane, hydrated }
+  return {
+    entries,
+    hydrated,
+    getStrokes,
+    hasStrokesOnAnchor,
+    addStroke,
+    eraseStroke,
+    clearPane,
+  }
 }
