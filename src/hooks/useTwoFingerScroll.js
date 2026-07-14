@@ -3,98 +3,94 @@ import { useEffect, useRef } from 'react'
 export const TWO_FINGER_SCROLL_START = 'journal-two-finger-scroll'
 export const TWO_FINGER_SCROLL_END = 'journal-two-finger-scroll-end'
 
+function averageClientY(touches) {
+  let sum = 0
+  for (let i = 0; i < touches.length; i++) sum += touches[i].clientY
+  return sum / touches.length
+}
+
 /**
  * When enabled (e.g. touch-none tool modes), allow scrolling with two fingers.
- * Dispatches start/end events so ink/highlight gestures can cancel and resume.
+ * Uses TouchEvents (`e.touches`) so active-finger count can't get stuck from
+ * missed pointerup/lostpointercapture. Dispatches start/end for ink/highlight.
  */
 export function useTwoFingerScroll(scrollRef, enabled) {
-  const activePointers = useRef(new Map())
-  const scrolling = useRef(false)
-  const lastY = useRef(null)
+  const scrollingRef = useRef(false)
 
   useEffect(() => {
     if (!enabled) return
     const el = scrollRef.current
     if (!el) return
 
-    const averageY = () => {
-      let sum = 0
-      for (const p of activePointers.current.values()) sum += p.y
-      return sum / activePointers.current.size
-    }
-
-    const releaseCaptures = () => {
-      for (const id of activePointers.current.keys()) {
-        try { el.releasePointerCapture?.(id) } catch { /* ignore */ }
-      }
-    }
+    let lastY = null
 
     const endScrolling = () => {
-      if (!scrolling.current) return
-      scrolling.current = false
-      lastY.current = null
+      if (!scrollingRef.current) return
+      scrollingRef.current = false
+      lastY = null
       el.dispatchEvent(new CustomEvent(TWO_FINGER_SCROLL_END, { bubbles: false }))
     }
 
-    const clear = () => {
-      endScrolling()
-      activePointers.current.clear()
-      lastY.current = null
+    const startScrolling = (touches) => {
+      if (scrollingRef.current) return
+      scrollingRef.current = true
+      lastY = averageClientY(touches)
+      el.dispatchEvent(new CustomEvent(TWO_FINGER_SCROLL_START, { bubbles: false }))
     }
 
-    const onDown = (e) => {
-      if (e.pointerType === 'pen') return
-
-      // Drop stale tracked pointers if the browser reused ids after a missed up.
-      if (activePointers.current.has(e.pointerId)) {
-        activePointers.current.delete(e.pointerId)
-      }
-
-      activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
-
-      if (activePointers.current.size >= 2 && !scrolling.current) {
-        scrolling.current = true
-        lastY.current = averageY()
-        releaseCaptures()
-        el.dispatchEvent(new CustomEvent(TWO_FINGER_SCROLL_START, { bubbles: false }))
-        // Block ink/highlight handlers from treating this as a new stroke.
-        e.preventDefault()
-        e.stopImmediatePropagation()
-      }
+    const onTouchStart = (e) => {
+      if (e.touches.length >= 2) startScrolling(e.touches)
     }
 
-    const onMove = (e) => {
-      if (!activePointers.current.has(e.pointerId)) return
-      activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
-      if (!scrolling.current || activePointers.current.size < 2) return
+    const onTouchMove = (e) => {
+      if (e.touches.length < 2) {
+        endScrolling()
+        return
+      }
+      if (!scrollingRef.current) startScrolling(e.touches)
       e.preventDefault()
-      e.stopPropagation()
-      const y = averageY()
-      el.scrollTop += lastY.current - y
-      lastY.current = y
+      const y = averageClientY(e.touches)
+      if (lastY != null) el.scrollTop += lastY - y
+      lastY = y
     }
 
-    const onUp = (e) => {
-      if (!activePointers.current.has(e.pointerId)) return
-      activePointers.current.delete(e.pointerId)
-      if (activePointers.current.size < 2) endScrolling()
-      if (activePointers.current.size === 0) {
-        activePointers.current.clear()
-        lastY.current = null
+    const onTouchEnd = (e) => {
+      if (e.touches.length >= 2) {
+        lastY = averageClientY(e.touches)
+        return
       }
+      endScrolling()
     }
 
-    el.addEventListener('pointerdown', onDown, { capture: true })
-    el.addEventListener('pointermove', onMove, { capture: true, passive: false })
-    el.addEventListener('pointerup', onUp, { capture: true })
-    el.addEventListener('pointercancel', onUp, { capture: true })
+    // While two-finger scrolling, block touch pointer events from restarting ink.
+    const blockInkPointers = (e) => {
+      if (!scrollingRef.current) return
+      if (e.pointerType === 'pen') return
+      e.preventDefault()
+      e.stopImmediatePropagation()
+    }
+
+    const forceEnd = () => endScrolling()
+
+    el.addEventListener('touchstart', onTouchStart, { capture: true, passive: true })
+    el.addEventListener('touchmove', onTouchMove, { capture: true, passive: false })
+    el.addEventListener('touchend', onTouchEnd, { capture: true })
+    el.addEventListener('touchcancel', onTouchEnd, { capture: true })
+    el.addEventListener('pointerdown', blockInkPointers, { capture: true })
+    el.addEventListener('pointermove', blockInkPointers, { capture: true })
+    window.addEventListener('blur', forceEnd)
+    document.addEventListener('visibilitychange', forceEnd)
 
     return () => {
-      el.removeEventListener('pointerdown', onDown, { capture: true })
-      el.removeEventListener('pointermove', onMove, { capture: true })
-      el.removeEventListener('pointerup', onUp, { capture: true })
-      el.removeEventListener('pointercancel', onUp, { capture: true })
-      clear()
+      el.removeEventListener('touchstart', onTouchStart, { capture: true })
+      el.removeEventListener('touchmove', onTouchMove, { capture: true })
+      el.removeEventListener('touchend', onTouchEnd, { capture: true })
+      el.removeEventListener('touchcancel', onTouchEnd, { capture: true })
+      el.removeEventListener('pointerdown', blockInkPointers, { capture: true })
+      el.removeEventListener('pointermove', blockInkPointers, { capture: true })
+      window.removeEventListener('blur', forceEnd)
+      document.removeEventListener('visibilitychange', forceEnd)
+      endScrolling()
     }
   }, [scrollRef, enabled])
 }

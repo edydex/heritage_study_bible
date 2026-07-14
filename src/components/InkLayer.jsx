@@ -195,9 +195,11 @@ function InkLayer({
     }
 
     const handleDown = (e) => {
-      if (suppressInk.current) return
       // Second+ finger must not start a new stroke (two-finger scroll).
       if (e.pointerType === 'touch' && !e.isPrimary) return
+      // Fresh primary down always recovers from a stuck suppress flag.
+      if (e.isPrimary) suppressInk.current = false
+      else if (suppressInk.current) return
       if (!shouldInkCapture(tool, e.pointerType)) return
       if (tool === INK_TOOLS.text || tool === INK_TOOLS.highlight) return
 
