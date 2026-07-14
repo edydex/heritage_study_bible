@@ -1,11 +1,9 @@
 import { useCallback, useRef } from 'react'
 import JournalTextBlock from './JournalTextBlock'
-import { DEFAULT_PAGE_HEIGHT } from '../hooks/useJournal'
 import { isDoubleTap } from '../utils/doubleTap'
 
 function JournalNotesPane({
   blocks = [],
-  pageHeight = DEFAULT_PAGE_HEIGHT,
   onBlockTextChange,
   onBlockRemove,
   onAddBlock,
@@ -46,8 +44,7 @@ function JournalNotesPane({
       data-testid="notes-paper-page"
       onDoubleClick={addBlockAtEvent}
       onPointerUp={handlePaperPointerUp}
-      className="journal-notes-page relative px-2"
-      style={{ minHeight: `${pageHeight}px` }}
+      className="journal-notes-page relative px-2 min-h-full h-full"
     >
       {blocks.map(block => (
         <JournalTextBlock

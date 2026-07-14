@@ -20,7 +20,7 @@ import {
 } from '../utils/verseHighlightText'
 import { useHighlights, HIGHLIGHT_COLORS } from '../hooks/useHighlights'
 import { useJournal } from '../hooks/useJournal'
-import { useInk } from '../hooks/useInk'
+import { useInk, INK_PANES } from '../hooks/useInk'
 
 const PEN_COLORS = [
   { id: 'black', value: '#111827' },
@@ -84,57 +84,14 @@ function JournalView() {
     updateGap,
     removeGap,
     getNotesBlocks,
-    getNotesPageHeight,
     addNotesBlock,
     updateNotesBlock,
     removeNotesBlock,
-    addNotesPageHeight,
   } = useJournal()
   const { getStrokes, hasStrokesOnAnchor, addStroke, eraseStroke, clearPane } = useInk()
 
-  const leftScrollRef = useRef(null)
-  const rightScrollRef = useRef(null)
+  const journalScrollRef = useRef(null)
   const gapSaveTimers = useRef({})
-  const scrollNotesToY = useRef(null)
-  const syncingScroll = useRef(false)
-
-  // Keep Bible and notes panes at the same relative scroll position.
-  useEffect(() => {
-    const left = leftScrollRef.current
-    const right = rightScrollRef.current
-    if (!left || !right) return
-
-    const scrollRatio = (el) => {
-      const max = el.scrollHeight - el.clientHeight
-      return max > 0 ? el.scrollTop / max : 0
-    }
-
-    const applyRatio = (source, target) => {
-      const max = target.scrollHeight - target.clientHeight
-      if (max <= 0) return
-      const next = scrollRatio(source) * max
-      if (Math.abs(target.scrollTop - next) < 1) return
-      syncingScroll.current = true
-      target.scrollTop = next
-      requestAnimationFrame(() => { syncingScroll.current = false })
-    }
-
-    const onLeftScroll = () => {
-      if (syncingScroll.current) return
-      applyRatio(left, right)
-    }
-    const onRightScroll = () => {
-      if (syncingScroll.current) return
-      applyRatio(right, left)
-    }
-
-    left.addEventListener('scroll', onLeftScroll, { passive: true })
-    right.addEventListener('scroll', onRightScroll, { passive: true })
-    return () => {
-      left.removeEventListener('scroll', onLeftScroll)
-      right.removeEventListener('scroll', onRightScroll)
-    }
-  }, [book, chapter, loading])
 
   useEffect(() => {
     if (!book) navigate(`/genesis/1`, { replace: true })
@@ -185,23 +142,6 @@ function JournalView() {
   const bookMeta = useMemo(() => bibleBooks.find(b => b.name === book), [book])
   const gaps = useMemo(() => getBibleGaps(book, chapter), [getBibleGaps, book, chapter])
   const notesBlocks = useMemo(() => getNotesBlocks(book, chapter), [getNotesBlocks, book, chapter])
-  const notesPageHeight = useMemo(() => getNotesPageHeight(book, chapter), [getNotesPageHeight, book, chapter])
-
-  useEffect(() => {
-    if (scrollNotesToY.current == null) return
-    const target = scrollNotesToY.current
-    scrollNotesToY.current = null
-    const el = rightScrollRef.current
-    if (!el) return
-    requestAnimationFrame(() => {
-      el.scrollTo({ top: Math.max(0, target - 16), behavior: 'smooth' })
-    })
-  }, [notesPageHeight])
-
-  const handleMorePaper = useCallback(() => {
-    scrollNotesToY.current = notesPageHeight
-    addNotesPageHeight(book, chapter)
-  }, [notesPageHeight, book, chapter, addNotesPageHeight])
 
   const go = (target) => {
     if (target) navigate(`/journal/${bookToSlug(target.book)}/${target.chapter}`)
@@ -210,16 +150,10 @@ function JournalView() {
   const highlightActive = tool === INK_TOOLS.highlight
   const penToolActive = tool === INK_TOOLS.pen
   const inkBlockingText = penToolActive || tool === INK_TOOLS.erase
-  // Highlight needs touch-none so finger/pen drag selects instead of scrolls.
-  const bibleTouchLocked = penToolActive || tool === INK_TOOLS.erase || highlightActive
-  const notesTouchLocked = penToolActive || tool === INK_TOOLS.erase
-
-  const paneScrollClass = `relative flex-1 overflow-y-auto ${
-    highlightActive ? 'select-text' : ''
-  } ${bibleTouchLocked ? 'touch-none' : ''}`
+  const touchLocked = penToolActive || tool === INK_TOOLS.erase || highlightActive
 
   const hasInkOnGap = useCallback((gapId) => {
-    return hasStrokesOnAnchor(book, chapter, 'bible', `gap-${gapId}`)
+    return hasStrokesOnAnchor(book, chapter, INK_PANES.page, `gap-${gapId}`)
   }, [hasStrokesOnAnchor, book, chapter])
 
   const tryRemoveEmptyGap = useCallback((gapId, text) => {
@@ -243,7 +177,7 @@ function JournalView() {
   // Custom highlight drag for mouse, finger, and Apple Pencil.
   useEffect(() => {
     if (!highlightActive) return
-    const el = leftScrollRef.current
+    const el = journalScrollRef.current
     if (!el) return
 
     let dragging = false
@@ -315,7 +249,7 @@ function JournalView() {
 
   useEffect(() => {
     if (tool !== INK_TOOLS.erase) return
-    const el = leftScrollRef.current
+    const el = journalScrollRef.current
     if (!el) return
 
     const eraseHighlight = (e) => {
@@ -335,13 +269,13 @@ function JournalView() {
     return () => el.removeEventListener('pointerdown', eraseHighlight)
   }, [tool, book, chapter, findHighlightAt, removeHighlight])
 
-  const commitStroke = (pane) => (stroke) => {
-    addStroke(book, chapter, pane, stroke)
-    setUndoStack(prev => [...prev, { pane, strokeId: stroke.id }])
+  const commitStroke = (stroke) => {
+    addStroke(book, chapter, INK_PANES.page, stroke)
+    setUndoStack(prev => [...prev, { pane: INK_PANES.page, strokeId: stroke.id }])
   }
 
-  const handleErase = (pane) => (strokeId) => {
-    eraseStroke(book, chapter, pane, strokeId)
+  const handleErase = (strokeId) => {
+    eraseStroke(book, chapter, INK_PANES.page, strokeId)
     setUndoStack(prev => prev.filter(u => u.strokeId !== strokeId))
   }
 
@@ -355,8 +289,7 @@ function JournalView() {
   }
 
   const clearInk = () => {
-    clearPane(book, chapter, 'bible')
-    clearPane(book, chapter, 'notes')
+    clearPane(book, chapter, INK_PANES.page)
     setUndoStack([])
     setShowClearInkConfirm(false)
   }
@@ -501,7 +434,7 @@ function JournalView() {
       <ConfirmDialog
         open={showClearInkConfirm}
         title="Clear all ink?"
-        message="This removes every pen stroke on this chapter from both panes. It cannot be undone."
+        message="This removes every pen stroke on this chapter. It cannot be undone."
         confirmLabel="Clear ink"
         cancelLabel="Cancel"
         destructive
@@ -511,75 +444,57 @@ function JournalView() {
 
       {showJournalTips && <JournalTipsBanner onDismiss={dismissJournalTips} />}
 
-      <div className="flex-1 min-h-0 flex flex-col md:flex-row">
-        <div
-          ref={leftScrollRef}
-          className={`${paneScrollClass} md:w-3/5 h-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-300 dark:border-gray-700`}
-        >
-          <InkLayer
-            scrollContainerRef={leftScrollRef}
-            strokes={getStrokes(book, chapter, 'bible')}
-            tool={tool}
-            color={penColor}
-            size={penSize}
-            onCommitStroke={commitStroke('bible')}
-            onEraseStroke={handleErase('bible')}
-          />
-          <JournalBiblePane
-            book={book}
-            chapter={chapter}
-            chapterData={chapterData}
-            loading={loading}
-            loadError={loadError}
-            translationId={translationId}
-            getVerseHighlights={(ch, v) => getVerseHighlights(book, ch, v)}
-            highlightMode={highlightActive}
-            gaps={gaps}
-            onGapTextChange={handleGapTextChange}
-            onGapRemove={handleGapRemove}
-            onInsertGap={(afterVerse) => addGap(book, chapter, afterVerse)}
-            inkBlockingText={inkBlockingText}
-          />
-        </div>
+      <div
+        ref={journalScrollRef}
+        data-testid="journal-scroll"
+        className={`relative flex-1 min-h-0 overflow-y-auto ${
+          highlightActive ? 'select-text' : ''
+        } ${touchLocked ? 'touch-none' : ''}`}
+      >
+        <InkLayer
+          scrollContainerRef={journalScrollRef}
+          strokes={getStrokes(book, chapter, INK_PANES.page)}
+          tool={tool}
+          color={penColor}
+          size={penSize}
+          onCommitStroke={commitStroke}
+          onEraseStroke={handleErase}
+        />
 
-        <div className="relative md:w-2/5 h-1/2 md:h-full flex flex-col min-h-0 bg-white dark:bg-gray-900">
-          <div className="flex-shrink-0 flex items-center justify-between px-4 py-2.5 border-b border-gray-100 dark:border-gray-800">
-            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 heading-text">
-              Notes
-            </h3>
-            <button
-              type="button"
-              onClick={handleMorePaper}
-              data-testid="add-notes-space"
-              className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              title="Extend the page"
-            >
-              More paper
-            </button>
-          </div>
-          <div
-            ref={rightScrollRef}
-            className={`relative flex-1 min-h-0 overflow-y-auto ${
-              notesTouchLocked ? 'touch-none' : ''
-            }`}
-          >
-            <InkLayer
-              scrollContainerRef={rightScrollRef}
-              strokes={getStrokes(book, chapter, 'notes')}
-              tool={tool}
-              color={penColor}
-              size={penSize}
-              onCommitStroke={commitStroke('notes')}
-              onEraseStroke={handleErase('notes')}
-            />
-            <JournalNotesPane
-              blocks={notesBlocks}
-              pageHeight={notesPageHeight}
-              onBlockTextChange={(id, text) => updateNotesBlock(book, chapter, id, { text })}
-              onBlockRemove={(id) => removeNotesBlock(book, chapter, id)}
-              onAddBlock={(y) => addNotesBlock(book, chapter, y, '')}
+        <div className="flex flex-col md:flex-row md:items-stretch">
+          <div className="md:w-3/5 border-b md:border-b-0 md:border-r border-gray-300 dark:border-gray-700">
+            <JournalBiblePane
+              book={book}
+              chapter={chapter}
+              chapterData={chapterData}
+              loading={loading}
+              loadError={loadError}
+              translationId={translationId}
+              getVerseHighlights={(ch, v) => getVerseHighlights(book, ch, v)}
+              highlightMode={highlightActive}
+              gaps={gaps}
+              onGapTextChange={handleGapTextChange}
+              onGapRemove={handleGapRemove}
+              onInsertGap={(afterVerse) => addGap(book, chapter, afterVerse)}
               inkBlockingText={inkBlockingText}
             />
+          </div>
+
+          <div className="md:w-2/5 flex flex-col md:min-h-full bg-white dark:bg-gray-900">
+            <div className="sticky top-0 z-10 flex items-center px-4 py-2.5 border-b border-gray-100 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 heading-text">
+                Notes
+              </h3>
+            </div>
+            <div className="flex-1 md:min-h-0">
+              <JournalNotesPane
+                blocks={notesBlocks}
+                onBlockTextChange={(id, text) => updateNotesBlock(book, chapter, id, { text })}
+                onBlockRemove={(id) => removeNotesBlock(book, chapter, id)}
+                onAddBlock={(y) => addNotesBlock(book, chapter, y, '')}
+                inkBlockingText={inkBlockingText}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -16,6 +16,7 @@ test.describe('Journaling mode', () => {
     await page.getByTitle('Journaling mode').click()
     await expect(page).toHaveURL(/#\/journal\/genesis\/1/)
     await expect(page.getByTestId('notes-paper-page')).toBeVisible()
+    await expect(page.getByTestId('journal-scroll')).toBeVisible()
   })
 
   test('shows a one-time tip about double-tap between verses', async ({ page }) => {
@@ -69,7 +70,7 @@ test.describe('Journaling mode', () => {
 
     await page.evaluate(({ startX, endX, y }) => {
       const target = document.querySelector('#verse-1-1 [data-verse-text]')
-      const pane = target.closest('.overflow-y-auto') || target
+      const pane = document.querySelector('[data-testid="journal-scroll"]') || target
       const fire = (type, x, on) => {
         on.dispatchEvent(new PointerEvent(type, {
           bubbles: true,
@@ -135,13 +136,10 @@ test.describe('Journaling mode', () => {
     await expect(block).not.toBeVisible()
   })
 
-  test('adds notes page space', async ({ page }) => {
+  test('notes column matches shared journal scroll layout', async ({ page }) => {
     await openJournal(page)
-
-    const paper = page.getByTestId('notes-paper-page')
-    const before = await paper.evaluate(el => el.style.minHeight)
-    await page.getByTestId('add-notes-space').click()
-    const after = await paper.evaluate(el => el.style.minHeight)
-    expect(after).not.toBe(before)
+    await expect(page.getByTestId('add-notes-space')).toHaveCount(0)
+    await expect(page.getByTestId('journal-scroll')).toBeVisible()
+    await expect(page.getByTestId('notes-paper-page')).toBeVisible()
   })
 })
