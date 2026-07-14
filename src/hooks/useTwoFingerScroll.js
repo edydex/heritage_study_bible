@@ -34,6 +34,9 @@ export function useTwoFingerScroll(scrollRef, enabled) {
         scrolling.current = true
         lastY.current = averageY()
         el.dispatchEvent(new CustomEvent('journal-two-finger-scroll', { bubbles: false }))
+        // Block ink/highlight handlers from treating this as a new stroke.
+        e.preventDefault()
+        e.stopImmediatePropagation()
         try { el.releasePointerCapture?.(e.pointerId) } catch { /* ignore */ }
       }
     }

@@ -105,6 +105,9 @@ function InkLayer({
   const drawing = useRef(false)
   const livePoints = useRef([])
   const liveAnchor = useRef(null)
+  const activePointerId = useRef(null)
+  const suppressInk = useRef(false)
+  const activeTouchPointers = useRef(new Set())
 
   const measureAnchors = useCallback(() => {
     const el = scrollContainerRef.current
@@ -177,12 +180,37 @@ function InkLayer({
     const el = scrollContainerRef.current
     if (!el) return
 
+    const clearLive = () => {
+      drawing.current = false
+      livePoints.current = []
+      setLiveStroke(null)
+      liveAnchor.current = null
+      if (activePointerId.current != null) {
+        try { el.releasePointerCapture?.(activePointerId.current) } catch { /* ignore */ }
+        activePointerId.current = null
+      }
+    }
+
+    const trackTouchPointer = (e, down) => {
+      if (e.pointerType !== 'touch' && e.pointerType !== 'mouse') return
+      if (down) activeTouchPointers.current.add(e.pointerId)
+      else activeTouchPointers.current.delete(e.pointerId)
+      if (activeTouchPointers.current.size === 0) {
+        suppressInk.current = false
+      }
+    }
+
     const handleDown = (e) => {
+      trackTouchPointer(e, true)
+      if (suppressInk.current) return
+      // Second+ finger must not start a new stroke (two-finger scroll).
+      if (e.pointerType === 'touch' && !e.isPrimary) return
       if (!shouldInkCapture(tool, e.pointerType)) return
       if (tool === INK_TOOLS.text || tool === INK_TOOLS.highlight) return
 
       e.preventDefault()
-      try { el.setPointerCapture?.(e.pointerId) } catch {}
+      try { el.setPointerCapture?.(e.pointerId) } catch { /* ignore */ }
+      activePointerId.current = e.pointerId
 
       const pt = toContentPoint(e)
       const erasing = isErasing(tool)
@@ -201,7 +229,8 @@ function InkLayer({
     }
 
     const handleMove = (e) => {
-      if (!drawing.current) return
+      if (!drawing.current || suppressInk.current) return
+      if (activePointerId.current != null && e.pointerId !== activePointerId.current) return
       if (!shouldInkCapture(tool, e.pointerType)) return
       e.preventDefault()
       const pt = toContentPoint(e)
@@ -221,9 +250,17 @@ function InkLayer({
     }
 
     const finish = (e) => {
+      const wasSuppressed = suppressInk.current
+      trackTouchPointer(e, false)
+      if (wasSuppressed) {
+        clearLive()
+        return
+      }
       if (!drawing.current) return
+      if (activePointerId.current != null && e.pointerId !== activePointerId.current) return
       drawing.current = false
-      try { el.releasePointerCapture?.(e.pointerId) } catch {}
+      try { el.releasePointerCapture?.(e.pointerId) } catch { /* ignore */ }
+      activePointerId.current = null
 
       if (isErasing(tool)) {
         livePoints.current = []
@@ -251,11 +288,8 @@ function InkLayer({
     }
 
     const cancelGesture = () => {
-      if (!drawing.current) return
-      drawing.current = false
-      livePoints.current = []
-      setLiveStroke(null)
-      liveAnchor.current = null
+      suppressInk.current = true
+      clearLive()
     }
 
     el.addEventListener('pointerdown', handleDown, { passive: false })

@@ -79,4 +79,17 @@ describe('useTwoFingerScroll', () => {
     expect(spy).toHaveBeenCalledTimes(1)
     unmount()
   })
+
+  it('stops the second finger pointerdown from reaching bubble listeners', () => {
+    const { el, unmount } = renderWithScroll(true)
+    const bubble = vi.fn()
+    el.addEventListener('pointerdown', bubble)
+
+    firePointer(el, 'pointerdown', { pointerId: 1, clientX: 10, clientY: 100 })
+    expect(bubble).toHaveBeenCalledTimes(1)
+
+    firePointer(el, 'pointerdown', { pointerId: 2, clientX: 40, clientY: 100 })
+    expect(bubble).toHaveBeenCalledTimes(1)
+    unmount()
+  })
 })
