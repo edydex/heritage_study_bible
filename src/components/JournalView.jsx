@@ -10,7 +10,14 @@ import { bookToSlug, slugToBook } from '../utils/bookSlug'
 import { translations, DEFAULT_TRANSLATION, loadTranslation } from '../data/translations'
 import { withPsalmSuperscriptionVerse } from '../utils/psalmSuperscriptions'
 import { setStoredValue, getStoredValue, STORAGE_KEYS } from '../services/persistentStorage'
-import { selectionToHighlightRanges, getCanonicalOffsetFromPoint } from '../utils/verseHighlightText'
+import {
+  pointsToHighlightRanges,
+  caretFromPoint,
+  rangeFromCarets,
+  setLiveSelectionRange,
+  clearLiveSelection,
+  getCanonicalOffsetFromPoint,
+} from '../utils/verseHighlightText'
 import { useHighlights, HIGHLIGHT_COLORS } from '../hooks/useHighlights'
 import { useJournal } from '../hooks/useJournal'
 import { useInk } from '../hooks/useInk'
@@ -202,12 +209,14 @@ function JournalView() {
 
   const highlightActive = tool === INK_TOOLS.highlight
   const penToolActive = tool === INK_TOOLS.pen
-  const touchDrawActive = penToolActive || tool === INK_TOOLS.erase
-  const inkBlockingText = touchDrawActive
+  const inkBlockingText = penToolActive || tool === INK_TOOLS.erase
+  // Highlight needs touch-none so finger/pen drag selects instead of scrolls.
+  const bibleTouchLocked = penToolActive || tool === INK_TOOLS.erase || highlightActive
+  const notesTouchLocked = penToolActive || tool === INK_TOOLS.erase
 
   const paneScrollClass = `relative flex-1 overflow-y-auto ${
     highlightActive ? 'select-text' : ''
-  } ${touchDrawActive ? 'touch-none' : ''}`
+  } ${bibleTouchLocked ? 'touch-none' : ''}`
 
   const hasInkOnGap = useCallback((gapId) => {
     return hasStrokesOnAnchor(book, chapter, 'bible', `gap-${gapId}`)
@@ -231,33 +240,76 @@ function JournalView() {
     removeGap(book, chapter, gapId)
   }, [book, chapter, removeGap])
 
+  // Custom highlight drag for mouse, finger, and Apple Pencil.
   useEffect(() => {
     if (!highlightActive) return
     const el = leftScrollRef.current
     if (!el) return
 
-    let lastApplyAt = 0
-    const applySelection = () => {
-      const now = Date.now()
-      if (now - lastApplyAt < 50) return
-      lastApplyAt = now
-      const selection = window.getSelection()
-      if (!selection || selection.isCollapsed) return
-      const ranges = selectionToHighlightRanges(selection, el, chapter)
+    let dragging = false
+    let startXY = null
+    let endXY = null
+    let pointerId = null
+
+    const isIgnorableTarget = (target) =>
+      target.closest?.('button, a, input, textarea, [data-testid^="gap-zone"], .journal-gap-zone')
+
+    const updateLiveSelection = () => {
+      if (!startXY || !endXY) return
+      const startCaret = caretFromPoint(document, startXY.x, startXY.y)
+      const endCaret = caretFromPoint(document, endXY.x, endXY.y)
+      const range = rangeFromCarets(document, startCaret, endCaret)
+      if (range) setLiveSelectionRange(range)
+    }
+
+    const finish = (e) => {
+      if (!dragging) return
+      if (pointerId != null && e.pointerId !== pointerId) return
+      dragging = false
+      try { el.releasePointerCapture?.(pointerId) } catch {}
+      pointerId = null
+
+      const ranges = pointsToHighlightRanges(el, chapter, startXY, endXY)
+      startXY = null
+      endXY = null
+      clearLiveSelection()
       if (!ranges.length) return
       addHighlightRanges(
         book,
         chapter,
         ranges.map(r => ({ ...r, color: highlightColor }))
       )
-      selection.removeAllRanges()
     }
 
-    el.addEventListener('mouseup', applySelection)
-    el.addEventListener('pointerup', applySelection)
+    const handleDown = (e) => {
+      if (isIgnorableTarget(e.target)) return
+      if (!e.target.closest?.('[data-verse-text]')) return
+      e.preventDefault()
+      dragging = true
+      pointerId = e.pointerId
+      startXY = { x: e.clientX, y: e.clientY }
+      endXY = startXY
+      try { el.setPointerCapture?.(e.pointerId) } catch {}
+    }
+
+    const handleMove = (e) => {
+      if (!dragging) return
+      if (pointerId != null && e.pointerId !== pointerId) return
+      e.preventDefault()
+      endXY = { x: e.clientX, y: e.clientY }
+      updateLiveSelection()
+    }
+
+    el.addEventListener('pointerdown', handleDown, { passive: false })
+    el.addEventListener('pointermove', handleMove, { passive: false })
+    el.addEventListener('pointerup', finish)
+    el.addEventListener('pointercancel', finish)
     return () => {
-      el.removeEventListener('mouseup', applySelection)
-      el.removeEventListener('pointerup', applySelection)
+      el.removeEventListener('pointerdown', handleDown)
+      el.removeEventListener('pointermove', handleMove)
+      el.removeEventListener('pointerup', finish)
+      el.removeEventListener('pointercancel', finish)
+      clearLiveSelection()
     }
   }, [highlightActive, book, chapter, highlightColor, addHighlightRanges])
 
@@ -378,7 +430,7 @@ function JournalView() {
 
         <div className="flex items-center gap-1.5">
           {toolButton(INK_TOOLS.scroll, '✋', 'Scroll (finger scrolls; Apple Pencil always draws)')}
-          {toolButton(INK_TOOLS.highlight, '🖍', 'Highlight text (drag to select)')}
+          {toolButton(INK_TOOLS.highlight, '🖍', 'Highlight text (drag with mouse, finger, or pencil)')}
           {toolButton(INK_TOOLS.pen, '✒️', 'Pen (finger/mouse draw)')}
           {toolButton(INK_TOOLS.erase, '🧽', 'Erase ink and highlights')}
         </div>
@@ -508,7 +560,7 @@ function JournalView() {
           <div
             ref={rightScrollRef}
             className={`relative flex-1 min-h-0 overflow-y-auto ${
-              touchDrawActive ? 'touch-none' : ''
+              notesTouchLocked ? 'touch-none' : ''
             }`}
           >
             <InkLayer

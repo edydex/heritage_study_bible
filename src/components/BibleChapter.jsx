@@ -105,7 +105,7 @@ function BibleChapter({
   }
 
   const textInteractionClass = highlightMode
-    ? 'select-text cursor-text'
+    ? 'select-text cursor-text highlight-select'
     : 'cursor-pointer hover:text-gray-900 dark:hover:text-gray-100'
 
   return (

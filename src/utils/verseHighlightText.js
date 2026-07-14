@@ -140,12 +140,10 @@ function intersectRangeWithNode(range, node) {
   return result
 }
 
-/** Convert a browser Selection into per-verse canonical highlight ranges (cross-verse). */
-export function selectionToHighlightRanges(selection, rootEl, chapterNumber) {
-  if (!selection || selection.isCollapsed || selection.rangeCount === 0) return []
-  if (!rootEl) return []
+/** Convert a DOM Range into per-verse canonical highlight ranges (cross-verse). */
+export function rangeToHighlightRanges(range, rootEl, chapterNumber) {
+  if (!range || range.collapsed || !rootEl) return []
 
-  const range = selection.getRangeAt(0)
   const verseEls = rootEl.querySelectorAll(`[data-verse-text][data-chapter="${chapterNumber}"]`)
   const results = []
 
@@ -165,20 +163,80 @@ export function selectionToHighlightRanges(selection, rootEl, chapterNumber) {
   return results
 }
 
+/** Convert a browser Selection into per-verse canonical highlight ranges (cross-verse). */
+export function selectionToHighlightRanges(selection, rootEl, chapterNumber) {
+  if (!selection || selection.isCollapsed || selection.rangeCount === 0) return []
+  return rangeToHighlightRanges(selection.getRangeAt(0), rootEl, chapterNumber)
+}
+
+/** Resolve a caret position from screen coordinates. */
+export function caretFromPoint(doc, clientX, clientY) {
+  if (!doc) return null
+  if (doc.caretRangeFromPoint) {
+    const range = doc.caretRangeFromPoint(clientX, clientY)
+    if (!range) return null
+    return { node: range.startContainer, offset: range.startOffset }
+  }
+  if (doc.caretPositionFromPoint) {
+    const pos = doc.caretPositionFromPoint(clientX, clientY)
+    if (!pos) return null
+    return { node: pos.offsetNode, offset: pos.offset }
+  }
+  return null
+}
+
+/** Build a DOM Range between two caret positions (order-agnostic). */
+export function rangeFromCarets(doc, startCaret, endCaret) {
+  if (!doc || !startCaret?.node || !endCaret?.node) return null
+  const forward = doc.createRange()
+  const reverse = doc.createRange()
+  try {
+    forward.setStart(startCaret.node, startCaret.offset)
+    forward.setEnd(endCaret.node, endCaret.offset)
+    if (!forward.collapsed) return forward
+  } catch {
+    // Boundaries may be reversed; try the opposite order below.
+  }
+  try {
+    reverse.setStart(endCaret.node, endCaret.offset)
+    reverse.setEnd(startCaret.node, startCaret.offset)
+    if (!reverse.collapsed) return reverse
+  } catch {
+    return null
+  }
+  return null
+}
+
+/**
+ * Convert two screen points into per-verse highlight ranges.
+ * startXY / endXY: { x, y } in client coordinates.
+ */
+export function pointsToHighlightRanges(rootEl, chapterNumber, startXY, endXY) {
+  if (!rootEl || !startXY || !endXY) return []
+  const doc = rootEl.ownerDocument
+  const startCaret = caretFromPoint(doc, startXY.x, startXY.y)
+  const endCaret = caretFromPoint(doc, endXY.x, endXY.y)
+  const range = rangeFromCarets(doc, startCaret, endCaret)
+  if (!range) return []
+  return rangeToHighlightRanges(range, rootEl, chapterNumber)
+}
+
 /** Map a screen point to a canonical offset inside a verse text element. */
 export function getCanonicalOffsetFromPoint(verseTextEl, clientX, clientY) {
-  const doc = verseTextEl.ownerDocument
-  let range = null
-  if (doc.caretRangeFromPoint) {
-    range = doc.caretRangeFromPoint(clientX, clientY)
-  } else if (doc.caretPositionFromPoint) {
-    const pos = doc.caretPositionFromPoint(clientX, clientY)
-    if (pos) {
-      range = doc.createRange()
-      range.setStart(pos.offsetNode, pos.offset)
-      range.collapse(true)
-    }
-  }
-  if (!range || !verseTextEl.contains(range.startContainer)) return null
-  return getCanonicalOffset(verseTextEl, range.startContainer, range.startOffset)
+  const caret = caretFromPoint(verseTextEl.ownerDocument, clientX, clientY)
+  if (!caret || !verseTextEl.contains(caret.node)) return null
+  return getCanonicalOffset(verseTextEl, caret.node, caret.offset)
+}
+
+/** Apply a live selection Range for visual feedback during highlight drag. */
+export function setLiveSelectionRange(range) {
+  const selection = typeof window !== 'undefined' ? window.getSelection() : null
+  if (!selection || !range) return
+  selection.removeAllRanges()
+  selection.addRange(range)
+}
+
+export function clearLiveSelection() {
+  const selection = typeof window !== 'undefined' ? window.getSelection() : null
+  selection?.removeAllRanges()
 }

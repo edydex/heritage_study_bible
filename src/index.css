@@ -11,6 +11,12 @@
   -webkit-box-decoration-break: clone;
 }
 
+.highlight-select {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: none;
+}
+
 .journal-note-text {
   font-family: inherit;
   font-size: 0.875rem;

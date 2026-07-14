@@ -36,7 +36,7 @@ test.describe('Journaling mode', () => {
   test('highlights selected text and persists across reload', async ({ page }) => {
     await openJournal(page)
 
-    await page.getByTitle('Highlight text (drag to select)').click()
+    await page.getByTitle('Highlight text (drag with mouse, finger, or pencil)').click()
     await page.getByTitle('Yellow').click()
 
     const verseText = page.locator('#verse-1-1 [data-verse-text]')
@@ -51,6 +51,42 @@ test.describe('Journaling mode', () => {
 
     await page.reload({ waitUntil: 'networkidle' })
     await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 20_000 })
+  })
+
+  test('highlights text via touch pointer drag', async ({ page }) => {
+    await openJournal(page)
+
+    await page.getByTitle('Highlight text (drag with mouse, finger, or pencil)').click()
+    await page.getByTitle('Yellow').click()
+
+    const verseText = page.locator('#verse-1-1 [data-verse-text]')
+    const box = await verseText.boundingBox()
+    expect(box).toBeTruthy()
+
+    const startX = box.x + 8
+    const endX = box.x + box.width * 0.45
+    const y = box.y + box.height / 2
+
+    await page.evaluate(({ startX, endX, y }) => {
+      const target = document.querySelector('#verse-1-1 [data-verse-text]')
+      const pane = target.closest('.overflow-y-auto') || target
+      const fire = (type, x, on) => {
+        on.dispatchEvent(new PointerEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          clientX: x,
+          clientY: y,
+          pointerId: 1,
+          pointerType: 'touch',
+          buttons: type === 'pointerup' ? 0 : 1,
+        }))
+      }
+      fire('pointerdown', startX, target)
+      fire('pointermove', endX, pane)
+      fire('pointerup', endX, pane)
+    }, { startX, endX, y })
+
+    await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 10_000 })
   })
 
   test('inserts inline gap on double-tap and saves typed margin notes', async ({ page }) => {
