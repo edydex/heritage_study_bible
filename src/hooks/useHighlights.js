@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { getStoredJson, setStoredJson, STORAGE_KEYS } from '../services/persistentStorage'
 
@@ -44,9 +44,64 @@ function migrateHighlight(entry) {
   }
 }
 
+export function rangesOverlapOrTouch(a, b) {
+  return a.start <= b.end && b.start <= a.end
+}
+
+/**
+ * Merge incoming ranges into existing highlights, coalescing same-color
+ * overlapping/adjacent spans on the same verse.
+ */
+export function mergeNewHighlightRanges(prev, book, chapter, ranges, now, idFactory = uuidv4) {
+  let next = [...prev]
+  const ids = []
+  const replaced = []
+  const prevIds = new Set(prev.map(h => h.id))
+
+  for (const range of ranges) {
+    const overlapping = next.filter(h =>
+      h.book === book
+      && h.chapter === chapter
+      && h.verse === range.verse
+      && h.color === range.color
+      && rangesOverlapOrTouch(h, range)
+    )
+
+    let start = range.start
+    let end = range.end
+    for (const h of overlapping) {
+      start = Math.min(start, h.start)
+      end = Math.max(end, h.end)
+      if (prevIds.has(h.id)) replaced.push(h)
+      const createdIdx = ids.indexOf(h.id)
+      if (createdIdx >= 0) ids.splice(createdIdx, 1)
+    }
+
+    const overlapIds = new Set(overlapping.map(h => h.id))
+    next = next.filter(h => !overlapIds.has(h.id))
+
+    const entry = {
+      id: idFactory(),
+      book,
+      chapter,
+      verse: range.verse,
+      start,
+      end,
+      color: range.color,
+      dateCreated: now,
+    }
+    ids.push(entry.id)
+    next.push(entry)
+  }
+
+  return { next, ids, replaced }
+}
+
 export function useHighlights() {
   const [highlights, setHighlights] = useState([])
   const [hydrated, setHydrated] = useState(false)
+  const highlightsRef = useRef(highlights)
+  highlightsRef.current = highlights
 
   useEffect(() => {
     let cancelled = false
@@ -55,6 +110,7 @@ export function useHighlights() {
         const stored = await getStoredJson(STORAGE_KEY, [])
         if (cancelled) return
         const list = Array.isArray(stored) ? stored.map(migrateHighlight) : []
+        highlightsRef.current = list
         setHighlights(list)
       } catch (e) {
         console.error('Error loading highlights:', e)
@@ -76,30 +132,36 @@ export function useHighlights() {
   }, [highlights])
 
   const addHighlightRanges = useCallback((book, chapter, ranges) => {
-    if (!ranges.length) return []
+    if (!ranges.length) return { ids: [], replaced: [] }
     const now = new Date().toISOString()
-    const created = ranges.map((range) => ({
-      id: uuidv4(),
-      book,
-      chapter,
-      verse: range.verse,
-      start: range.start,
-      end: range.end,
-      color: range.color,
-      dateCreated: now,
-    }))
-    setHighlights(prev => [...prev, ...created])
-    return created.map(h => h.id)
+    const result = mergeNewHighlightRanges(highlightsRef.current, book, chapter, ranges, now)
+    highlightsRef.current = result.next
+    setHighlights(result.next)
+    return { ids: result.ids, replaced: result.replaced }
   }, [])
 
   const removeHighlight = useCallback((id) => {
-    setHighlights(prev => prev.filter(h => h.id !== id))
+    const next = highlightsRef.current.filter(h => h.id !== id)
+    highlightsRef.current = next
+    setHighlights(next)
   }, [])
 
   const removeHighlights = useCallback((ids) => {
     if (!ids?.length) return
     const remove = new Set(ids)
-    setHighlights(prev => prev.filter(h => !remove.has(h.id)))
+    const next = highlightsRef.current.filter(h => !remove.has(h.id))
+    highlightsRef.current = next
+    setHighlights(next)
+  }, [])
+
+  const restoreHighlights = useCallback((entries) => {
+    if (!entries?.length) return
+    const existing = new Set(highlightsRef.current.map(h => h.id))
+    const toAdd = entries.filter(h => h?.id && !existing.has(h.id))
+    if (!toAdd.length) return
+    const next = [...highlightsRef.current, ...toAdd]
+    highlightsRef.current = next
+    setHighlights(next)
   }, [])
 
   const findHighlightAt = useCallback((book, chapter, verse, offset) => {
@@ -119,6 +181,7 @@ export function useHighlights() {
     addHighlightRanges,
     removeHighlight,
     removeHighlights,
+    restoreHighlights,
     findHighlightAt,
   }
 }

@@ -10,7 +10,12 @@ vi.mock('uuid', () => ({
   v4: vi.fn(() => `test-uuid-${++uuidCounter}`),
 }))
 
-import { useHighlights, HIGHLIGHT_COLORS, getHighlightColor } from './useHighlights'
+import {
+  useHighlights,
+  HIGHLIGHT_COLORS,
+  getHighlightColor,
+  mergeNewHighlightRanges,
+} from './useHighlights'
 import { STORAGE_KEYS } from '../services/persistentStorage'
 
 describe('useHighlights', () => {
@@ -43,16 +48,69 @@ describe('useHighlights', () => {
     const { result } = renderHook(() => useHighlights())
     await waitFor(() => expect(result.current.highlights).toEqual([]))
 
-    let ids
+    let out
     act(() => {
-      ids = result.current.addHighlightRanges('John', 3, [
+      out = result.current.addHighlightRanges('John', 3, [
         { verse: 16, start: 0, end: 4, color: 'yellow' },
         { verse: 16, start: 10, end: 20, color: 'green' },
       ])
     })
 
-    expect(ids).toEqual(['test-uuid-1', 'test-uuid-2'])
+    expect(out.ids).toEqual(['test-uuid-1', 'test-uuid-2'])
+    expect(out.replaced).toEqual([])
     expect(result.current.getVerseHighlights('John', 3, 16)).toHaveLength(2)
+  })
+
+  it('coalesces overlapping same-color highlights and keeps different colors', async () => {
+    const { result } = renderHook(() => useHighlights())
+    await waitFor(() => expect(result.current.highlights).toEqual([]))
+
+    act(() => {
+      result.current.addHighlightRanges('John', 3, [
+        { verse: 16, start: 0, end: 4, color: 'yellow' },
+      ])
+    })
+
+    let out
+    act(() => {
+      out = result.current.addHighlightRanges('John', 3, [
+        { verse: 16, start: 3, end: 8, color: 'yellow' },
+        { verse: 16, start: 10, end: 12, color: 'green' },
+      ])
+    })
+
+    const verse = result.current.getVerseHighlights('John', 3, 16)
+    expect(verse).toHaveLength(2)
+    const yellow = verse.find(h => h.color === 'yellow')
+    expect(yellow).toMatchObject({ start: 0, end: 8 })
+    expect(out.replaced).toHaveLength(1)
+    expect(out.replaced[0].id).toBe('test-uuid-1')
+  })
+
+  it('mergeNewHighlightRanges restores cleanly for undo', () => {
+    const prev = [{
+      id: 'old',
+      book: 'John',
+      chapter: 3,
+      verse: 16,
+      start: 0,
+      end: 4,
+      color: 'yellow',
+      dateCreated: 't0',
+    }]
+    let n = 0
+    const { next, ids, replaced } = mergeNewHighlightRanges(
+      prev,
+      'John',
+      3,
+      [{ verse: 16, start: 2, end: 6, color: 'yellow' }],
+      't1',
+      () => `new-${++n}`
+    )
+    expect(replaced).toEqual([prev[0]])
+    expect(ids).toEqual(['new-1'])
+    expect(next).toHaveLength(1)
+    expect(next[0]).toMatchObject({ start: 0, end: 6, color: 'yellow' })
   })
 
   it('finds and removes a highlight at an offset', async () => {
@@ -76,15 +134,44 @@ describe('useHighlights', () => {
     const { result } = renderHook(() => useHighlights())
     await waitFor(() => expect(result.current.highlights).toEqual([]))
 
-    let ids
+    let out
     act(() => {
-      ids = result.current.addHighlightRanges('John', 3, [
+      out = result.current.addHighlightRanges('John', 3, [
         { verse: 16, start: 0, end: 4, color: 'yellow' },
         { verse: 16, start: 10, end: 20, color: 'green' },
       ])
     })
 
-    act(() => result.current.removeHighlights(ids))
+    act(() => result.current.removeHighlights(out.ids))
     expect(result.current.getVerseHighlights('John', 3, 16)).toHaveLength(0)
+  })
+
+  it('restores replaced highlights for undo', async () => {
+    const { result } = renderHook(() => useHighlights())
+    await waitFor(() => expect(result.current.highlights).toEqual([]))
+
+    let first
+    act(() => {
+      first = result.current.addHighlightRanges('John', 3, [
+        { verse: 16, start: 0, end: 4, color: 'yellow' },
+      ])
+    })
+
+    let second
+    act(() => {
+      second = result.current.addHighlightRanges('John', 3, [
+        { verse: 16, start: 2, end: 8, color: 'yellow' },
+      ])
+    })
+
+    act(() => {
+      result.current.removeHighlights(second.ids)
+      result.current.restoreHighlights(second.replaced)
+    })
+
+    const verse = result.current.getVerseHighlights('John', 3, 16)
+    expect(verse).toHaveLength(1)
+    expect(verse[0].id).toBe(first.ids[0])
+    expect(verse[0]).toMatchObject({ start: 0, end: 4 })
   })
 })

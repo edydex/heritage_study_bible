@@ -17,6 +17,7 @@ import {
   setLiveSelectionRange,
   clearLiveSelection,
   getCanonicalOffsetFromPoint,
+  snapHighlightRanges,
 } from '../utils/verseHighlightText'
 import { useHighlights, HIGHLIGHT_COLORS } from '../hooks/useHighlights'
 import { useJournal } from '../hooks/useJournal'
@@ -75,6 +76,7 @@ function JournalView() {
   const [penSize, setPenSize] = useState(PEN_SIZES[1].value)
   const [highlightColor, setHighlightColor] = useState(HIGHLIGHT_COLORS[0].id)
   const [undoStack, setUndoStack] = useState([])
+  const [liveHighlightRanges, setLiveHighlightRanges] = useState(null)
   const [showJournalTips, setShowJournalTips] = useState(false)
   const [showClearInkConfirm, setShowClearInkConfirm] = useState(false)
 
@@ -83,6 +85,7 @@ function JournalView() {
     addHighlightRanges,
     removeHighlight,
     removeHighlights,
+    restoreHighlights,
     findHighlightAt,
   } = useHighlights()
   const {
@@ -183,7 +186,7 @@ function JournalView() {
     removeGap(book, chapter, gapId)
   }, [book, chapter, removeGap])
 
-  // Custom highlight drag for mouse, finger, and Apple Pencil.
+  // Custom highlight drag: mouse uses native selection preview; touch/pen use mark preview.
   useEffect(() => {
     if (!highlightActive) return
     const el = journalScrollRef.current
@@ -193,48 +196,78 @@ function JournalView() {
     let startXY = null
     let endXY = null
     let pointerId = null
+    let pointerType = 'mouse'
+    let rafId = 0
 
     const isIgnorableTarget = (target) =>
       target.closest?.('button, a, input, textarea, [data-testid^="gap-zone"], .journal-gap-zone')
 
-    const updateLiveSelection = () => {
+    const usesMarkPreview = (type) => type === 'touch' || type === 'pen'
+
+    const clearPreviews = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId)
+        rafId = 0
+      }
+      clearLiveSelection()
+      setLiveHighlightRanges(null)
+    }
+
+    const updatePreview = () => {
       if (!startXY || !endXY) return
+      if (usesMarkPreview(pointerType)) {
+        const raw = pointsToHighlightRanges(el, chapter, startXY, endXY)
+        const snapped = snapHighlightRanges(raw, el, chapter)
+        setLiveHighlightRanges(
+          snapped.map(r => ({ ...r, color: highlightColor }))
+        )
+        return
+      }
       const startCaret = caretFromPoint(document, startXY.x, startXY.y)
       const endCaret = caretFromPoint(document, endXY.x, endXY.y)
       const range = rangeFromCarets(document, startCaret, endCaret)
       if (range) setLiveSelectionRange(range)
     }
 
+    const schedulePreview = () => {
+      if (rafId) cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        rafId = 0
+        updatePreview()
+      })
+    }
+
     const finish = (e) => {
       if (!dragging) return
       if (pointerId != null && e.pointerId !== pointerId) return
       dragging = false
-      try { el.releasePointerCapture?.(pointerId) } catch {}
+      try { el.releasePointerCapture?.(pointerId) } catch { /* ignore */ }
       pointerId = null
 
       const ranges = pointsToHighlightRanges(el, chapter, startXY, endXY)
+      const snapped = snapHighlightRanges(ranges, el, chapter)
       startXY = null
       endXY = null
-      clearLiveSelection()
-      if (!ranges.length) return
-      const ids = addHighlightRanges(
+      clearPreviews()
+      if (!snapped.length) return
+      const { ids, replaced } = addHighlightRanges(
         book,
         chapter,
-        ranges.map(r => ({ ...r, color: highlightColor }))
+        snapped.map(r => ({ ...r, color: highlightColor }))
       )
       if (ids.length) {
-        setUndoStack(prev => [...prev, { type: 'highlights', ids }])
+        setUndoStack(prev => [...prev, { type: 'highlights', ids, replaced }])
       }
     }
 
     const cancelGesture = () => {
       if (!dragging) return
       dragging = false
-      try { el.releasePointerCapture?.(pointerId) } catch {}
+      try { el.releasePointerCapture?.(pointerId) } catch { /* ignore */ }
       pointerId = null
       startXY = null
       endXY = null
-      clearLiveSelection()
+      clearPreviews()
     }
 
     const handleDown = (e) => {
@@ -243,9 +276,11 @@ function JournalView() {
       e.preventDefault()
       dragging = true
       pointerId = e.pointerId
+      pointerType = e.pointerType || 'mouse'
       startXY = { x: e.clientX, y: e.clientY }
       endXY = startXY
-      try { el.setPointerCapture?.(e.pointerId) } catch {}
+      try { el.setPointerCapture?.(e.pointerId) } catch { /* ignore */ }
+      schedulePreview()
     }
 
     const handleMove = (e) => {
@@ -253,7 +288,7 @@ function JournalView() {
       if (pointerId != null && e.pointerId !== pointerId) return
       e.preventDefault()
       endXY = { x: e.clientX, y: e.clientY }
-      updateLiveSelection()
+      schedulePreview()
     }
 
     el.addEventListener('pointerdown', handleDown, { passive: false })
@@ -267,7 +302,7 @@ function JournalView() {
       el.removeEventListener('pointerup', finish)
       el.removeEventListener('pointercancel', finish)
       el.removeEventListener(TWO_FINGER_SCROLL_START, cancelGesture)
-      clearLiveSelection()
+      clearPreviews()
     }
   }, [highlightActive, book, chapter, highlightColor, addHighlightRanges])
 
@@ -314,6 +349,7 @@ function JournalView() {
       const last = prev[prev.length - 1]
       if (last.type === 'highlights') {
         removeHighlights(last.ids)
+        if (last.replaced?.length) restoreHighlights(last.replaced)
       } else {
         eraseStroke(book, chapter, last.pane, last.strokeId)
       }
@@ -327,7 +363,10 @@ function JournalView() {
     setShowClearInkConfirm(false)
   }
 
-  useEffect(() => { setUndoStack([]) }, [book, chapter])
+  useEffect(() => {
+    setUndoStack([])
+    setLiveHighlightRanges(null)
+  }, [book, chapter])
 
   const toolButton = (id, label, title) => (
     <button
@@ -504,6 +543,7 @@ function JournalView() {
               loadError={loadError}
               translationId={translationId}
               getVerseHighlights={(ch, v) => getVerseHighlights(book, ch, v)}
+              previewHighlights={liveHighlightRanges || []}
               highlightMode={highlightActive}
               gaps={gaps}
               onGapTextChange={handleGapTextChange}

@@ -9,6 +9,8 @@ import {
   rangeFromCarets,
   caretFromPoint,
   pointsToHighlightRanges,
+  snapRangeToWords,
+  snapHighlightRanges,
 } from './verseHighlightText'
 
 describe('verseHighlightText', () => {
@@ -34,6 +36,39 @@ describe('verseHighlightText', () => {
     const json = JSON.stringify(rendered)
     expect(json).toContain('verse-highlight')
     expect(json).toContain('the')
+  })
+
+  it('renders preview marks without dropping committed highlights', () => {
+    const rendered = applyHighlightRanges('In the beginning God', [
+      { start: 0, end: 2, color: 'yellow' },
+    ], [
+      { start: 3, end: 6, color: 'green' },
+    ])
+    const json = JSON.stringify(rendered)
+    expect(json).toContain('verse-highlight-preview')
+    expect(json).toContain('In')
+    expect(json).toContain('the')
+  })
+
+  it('snaps mid-word ranges to whole words', () => {
+    const text = 'In the beginning God'
+    // "he beg" inside "the beginning"
+    expect(snapRangeToWords(text, 4, 10)).toEqual({ start: 3, end: 16 })
+    expect(snapRangeToWords(text, 3, 6)).toEqual({ start: 3, end: 6 })
+    expect(snapRangeToWords(text, 7, 10)).toEqual({ start: 7, end: 16 })
+  })
+
+  it('snapHighlightRanges uses verse DOM text', () => {
+    const root = document.createElement('div')
+    root.innerHTML = '<p class="verse-text" data-verse-text data-verse="1" data-chapter="1">In the beginning</p>'
+    document.body.appendChild(root)
+    const snapped = snapHighlightRanges(
+      [{ verse: 1, start: 4, end: 10, color: 'yellow' }],
+      root,
+      1
+    )
+    document.body.removeChild(root)
+    expect(snapped).toEqual([{ verse: 1, start: 3, end: 16, color: 'yellow' }])
   })
 
   it('maps DOM positions to canonical offsets', () => {

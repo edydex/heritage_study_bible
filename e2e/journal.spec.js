@@ -74,7 +74,7 @@ test.describe('Journaling mode', () => {
     await expect(page.locator('#verse-1-1 mark.verse-highlight')).toHaveCount(0)
   })
 
-  test('highlights text via touch pointer drag', async ({ page }) => {
+  test('highlights text via touch pointer drag with live preview', async ({ page }) => {
     await openJournal(page)
 
     await page.getByTitle('Highlight text (drag with mouse, finger, or pencil)').click()
@@ -99,15 +99,32 @@ test.describe('Journaling mode', () => {
           clientY: y,
           pointerId: 1,
           pointerType: 'touch',
+          isPrimary: true,
           buttons: type === 'pointerup' ? 0 : 1,
         }))
       }
       fire('pointerdown', startX, target)
       fire('pointermove', endX, pane)
-      fire('pointerup', endX, pane)
     }, { startX, endX, y })
 
+    await expect(page.locator('#verse-1-1 mark.verse-highlight-preview')).toBeVisible({ timeout: 10_000 })
+
+    await page.evaluate(({ endX, y }) => {
+      const pane = document.querySelector('[data-testid="journal-scroll"]')
+      pane.dispatchEvent(new PointerEvent('pointerup', {
+        bubbles: true,
+        cancelable: true,
+        clientX: endX,
+        clientY: y,
+        pointerId: 1,
+        pointerType: 'touch',
+        isPrimary: true,
+        buttons: 0,
+      }))
+    }, { endX, y })
+
     await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 10_000 })
+    await expect(page.locator('#verse-1-1 mark.verse-highlight-preview')).toHaveCount(0)
   })
 
   test('highlights text spanning multiple verses in one drag', async ({ page }) => {
@@ -141,21 +158,38 @@ test.describe('Journaling mode', () => {
       const pane = document.querySelector('[data-testid="journal-scroll"]')
       if (!pane) return false
       pane.scrollTop = 0
-      const fire = (type, pointerId, clientY) => {
-        pane.dispatchEvent(new PointerEvent(type, {
-          bubbles: true,
-          cancelable: true,
-          pointerId,
-          pointerType: 'touch',
-          clientX: 40 + pointerId * 20,
-          clientY,
-          buttons: type === 'pointerup' ? 0 : 1,
-        }))
-      }
-      fire('pointerdown', 1, 200)
-      fire('pointerdown', 2, 200)
-      fire('pointermove', 1, 120)
-      fire('pointermove', 2, 120)
+
+      const touch = (id, clientY) => new Touch({
+        identifier: id,
+        target: pane,
+        clientX: 40 + id * 20,
+        clientY,
+        pageX: 40 + id * 20,
+        pageY: clientY,
+        screenX: 40 + id * 20,
+        screenY: clientY,
+      })
+
+      const t1 = touch(1, 200)
+      const t2 = touch(2, 200)
+      pane.dispatchEvent(new TouchEvent('touchstart', {
+        bubbles: true,
+        cancelable: true,
+        touches: [t1, t2],
+        targetTouches: [t1, t2],
+        changedTouches: [t1, t2],
+      }))
+
+      const t1b = touch(1, 120)
+      const t2b = touch(2, 120)
+      pane.dispatchEvent(new TouchEvent('touchmove', {
+        bubbles: true,
+        cancelable: true,
+        touches: [t1b, t2b],
+        targetTouches: [t1b, t2b],
+        changedTouches: [t1b, t2b],
+      }))
+
       return pane.scrollTop > 0
     })
 

@@ -12,6 +12,7 @@ function JournalBiblePane({
   loadError,
   translationId,
   getVerseHighlights,
+  previewHighlights = [],
   highlightMode = false,
   gaps = [],
   onGapTextChange,
@@ -90,6 +91,7 @@ function JournalBiblePane({
           isBookmarked={() => false}
           onBookmarkToggle={() => {}}
           getVerseHighlights={getVerseHighlights}
+          previewHighlights={previewHighlights}
           highlightMode={highlightMode}
           renderAfterVerse={renderAfterVerse}
           textSize={18}

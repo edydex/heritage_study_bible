@@ -26,10 +26,11 @@ function renderVerseText(text) {
   })
 }
 
-function renderVerseBody(verse, getVerseHighlights, chapterNumber) {
+function renderVerseBody(verse, getVerseHighlights, chapterNumber, previewHighlights = []) {
   const ranges = getVerseHighlights?.(chapterNumber, verse.number) || []
-  if (ranges.length > 0) {
-    const highlighted = applyHighlightRanges(verse.text, ranges)
+  const preview = previewHighlights.filter(h => h.verse === verse.number)
+  if (ranges.length > 0 || preview.length > 0) {
+    const highlighted = applyHighlightRanges(verse.text, ranges, preview)
     if (highlighted) return highlighted
   }
   return renderVerseText(verse.text)
@@ -45,6 +46,7 @@ function BibleChapter({
   onVersePosition,
   isVerseSelected,
   getVerseHighlights,
+  previewHighlights = [],
   highlightMode = false,
   renderAfterVerse,
   textSize = 18,
@@ -146,7 +148,7 @@ function BibleChapter({
                   data-chapter={chapter.number}
                   onClick={() => handleVerseTextClick(chapter.number, verse.number, verse.text)}
                 >
-                  {renderVerseBody(verse, getVerseHighlights, chapter.number)}
+                  {renderVerseBody(verse, getVerseHighlights, chapter.number, previewHighlights)}
                 </p>
 
                 <button
@@ -202,7 +204,7 @@ function BibleChapter({
                   data-chapter={chapter.number}
                   onClick={() => handleVerseTextClick(chapter.number, verse.number, verse.text)}
                 >
-                  {renderVerseBody(verse, getVerseHighlights, chapter.number)}
+                  {renderVerseBody(verse, getVerseHighlights, chapter.number, previewHighlights)}
                 </span>
                 <button
                   data-testid={`verse-bookmark-${verse.number}`}

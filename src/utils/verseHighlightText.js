@@ -15,19 +15,28 @@ export function clampHighlightRange(range, length) {
   return { ...range, start, end }
 }
 
-function renderLineSegments(lineText, lineCanonicalStart, colorAtOffset) {
+function segmentKey(meta) {
+  if (!meta?.color) return ''
+  return `${meta.color}:${meta.preview ? 'p' : 'c'}`
+}
+
+function renderLineSegments(lineText, lineCanonicalStart, metaAtOffset) {
   if (!lineText) return null
   const segments = []
   let i = 0
   while (i < lineText.length) {
-    const color = colorAtOffset(lineCanonicalStart + i)
+    const meta = metaAtOffset(lineCanonicalStart + i)
+    const key = segmentKey(meta)
     let j = i + 1
-    while (j < lineText.length && colorAtOffset(lineCanonicalStart + j) === color) j++
+    while (j < lineText.length && segmentKey(metaAtOffset(lineCanonicalStart + j)) === key) j++
     const text = lineText.slice(i, j)
-    const markClass = color ? getHighlightColor(color)?.markClass : null
+    const markClass = meta?.color ? getHighlightColor(meta.color)?.markClass : null
     if (markClass) {
+      const className = meta.preview
+        ? `verse-highlight verse-highlight-preview ${markClass}`
+        : `verse-highlight ${markClass}`
       segments.push(
-        createElement('mark', { key: `${lineCanonicalStart}-${i}`, className: `verse-highlight ${markClass}` }, text)
+        createElement('mark', { key: `${lineCanonicalStart}-${i}`, className }, text)
       )
     } else {
       segments.push(text)
@@ -37,21 +46,32 @@ function renderLineSegments(lineText, lineCanonicalStart, colorAtOffset) {
   return segments
 }
 
-/** Render verse body with inline highlight marks aligned to canonical offsets. */
-export function applyHighlightRanges(raw, ranges) {
+/**
+ * Render verse body with inline highlight marks aligned to canonical offsets.
+ * previewRanges paint over committed colors and use verse-highlight-preview.
+ */
+export function applyHighlightRanges(raw, ranges, previewRanges = []) {
   const canonical = toCanonicalVerseText(raw)
   const len = canonical.length
-  const colorAt = new Array(len).fill(null)
+  const metaAt = new Array(len).fill(null)
 
   for (const range of ranges) {
     const clamped = clampHighlightRange(range, len)
     if (!clamped) continue
     for (let i = clamped.start; i < clamped.end; i++) {
-      colorAt[i] = clamped.color
+      metaAt[i] = { color: clamped.color, preview: false }
     }
   }
 
-  const hasHighlight = colorAt.some(Boolean)
+  for (const range of previewRanges) {
+    const clamped = clampHighlightRange(range, len)
+    if (!clamped) continue
+    for (let i = clamped.start; i < clamped.end; i++) {
+      metaAt[i] = { color: clamped.color, preview: true }
+    }
+  }
+
+  const hasHighlight = metaAt.some(Boolean)
   if (!hasHighlight) return null
 
   const lines = canonical.split('\n')
@@ -59,7 +79,7 @@ export function applyHighlightRanges(raw, ranges) {
   return lines.map((line, li) => {
     const lineStart = offset
     offset += line.length + 1
-    const lineContent = renderLineSegments(line, lineStart, (idx) => colorAt[idx] ?? null)
+    const lineContent = renderLineSegments(line, lineStart, (idx) => metaAt[idx] ?? null)
     if (li === 0) {
       return createElement('span', { key: `l${li}` }, lineContent)
     }
@@ -71,6 +91,88 @@ export function applyHighlightRanges(raw, ranges) {
       lineContent
     )
   })
+}
+
+/** Letters, numbers, and apostrophes count as word characters for snap. */
+export function isWordChar(ch) {
+  if (!ch) return false
+  return /[\p{L}\p{N}']/u.test(ch)
+}
+
+/** Expand [start, end) to whole-word boundaries in canonical verse text. */
+export function snapRangeToWords(text, start, end) {
+  const value = String(text ?? '')
+  const len = value.length
+  let s = Math.max(0, Math.min(start, len))
+  let e = Math.max(0, Math.min(end, len))
+  if (e < s) [s, e] = [e, s]
+
+  if (e === s) {
+    if (s < len && isWordChar(value[s])) {
+      while (s > 0 && isWordChar(value[s - 1])) s--
+      e = s
+      while (e < len && isWordChar(value[e])) e++
+      return e > s ? { start: s, end: e } : null
+    }
+    if (s > 0 && isWordChar(value[s - 1])) {
+      e = s
+      while (s > 0 && isWordChar(value[s - 1])) s--
+      return e > s ? { start: s, end: e } : null
+    }
+    return null
+  }
+
+  while (s < e && /\s/.test(value[s])) s++
+  while (e > s && /\s/.test(value[e - 1])) e--
+  if (e <= s) return null
+
+  if (isWordChar(value[s])) {
+    while (s > 0 && isWordChar(value[s - 1])) s--
+  }
+  if (e > 0 && isWordChar(value[e - 1])) {
+    while (e < len && isWordChar(value[e])) e++
+  }
+  return e > s ? { start: s, end: e } : null
+}
+
+/** Reconstruct canonical verse text from rendered verse DOM. */
+export function canonicalTextFromVerseEl(verseTextEl) {
+  if (!verseTextEl) return ''
+  let out = ''
+  const walk = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      out += node.textContent
+      return
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return
+    if (node.nodeName === 'BR') {
+      out += '\n'
+      return
+    }
+    if (node.classList?.contains('inline-block')) return
+    for (const child of node.childNodes) walk(child)
+  }
+  walk(verseTextEl)
+  return out
+}
+
+/** Snap per-verse highlight ranges to word boundaries using verse DOM text. */
+export function snapHighlightRanges(ranges, rootEl, chapterNumber) {
+  if (!ranges?.length || !rootEl) return []
+  const out = []
+  for (const range of ranges) {
+    const verseEl = rootEl.querySelector(
+      `[data-verse-text][data-chapter="${chapterNumber}"][data-verse="${range.verse}"]`
+    )
+    if (!verseEl) {
+      out.push(range)
+      continue
+    }
+    const snapped = snapRangeToWords(canonicalTextFromVerseEl(verseEl), range.start, range.end)
+    if (!snapped) continue
+    out.push({ ...range, start: snapped.start, end: snapped.end })
+  }
+  return out
 }
 
 /** Canonical length of a DOM subtree (text + BR newlines; skip indent spacers). */
