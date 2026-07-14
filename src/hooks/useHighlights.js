@@ -76,25 +76,30 @@ export function useHighlights() {
   }, [highlights])
 
   const addHighlightRanges = useCallback((book, chapter, ranges) => {
-    if (!ranges.length) return
+    if (!ranges.length) return []
     const now = new Date().toISOString()
-    setHighlights(prev => [
-      ...prev,
-      ...ranges.map((range) => ({
-        id: uuidv4(),
-        book,
-        chapter,
-        verse: range.verse,
-        start: range.start,
-        end: range.end,
-        color: range.color,
-        dateCreated: now,
-      })),
-    ])
+    const created = ranges.map((range) => ({
+      id: uuidv4(),
+      book,
+      chapter,
+      verse: range.verse,
+      start: range.start,
+      end: range.end,
+      color: range.color,
+      dateCreated: now,
+    }))
+    setHighlights(prev => [...prev, ...created])
+    return created.map(h => h.id)
   }, [])
 
   const removeHighlight = useCallback((id) => {
     setHighlights(prev => prev.filter(h => h.id !== id))
+  }, [])
+
+  const removeHighlights = useCallback((ids) => {
+    if (!ids?.length) return
+    const remove = new Set(ids)
+    setHighlights(prev => prev.filter(h => !remove.has(h.id)))
   }, [])
 
   const findHighlightAt = useCallback((book, chapter, verse, offset) => {
@@ -113,6 +118,7 @@ export function useHighlights() {
     getVerseHighlights,
     addHighlightRanges,
     removeHighlight,
+    removeHighlights,
     findHighlightAt,
   }
 }

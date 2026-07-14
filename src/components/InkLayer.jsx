@@ -250,15 +250,25 @@ function InkLayer({
       liveAnchor.current = null
     }
 
+    const cancelGesture = () => {
+      if (!drawing.current) return
+      drawing.current = false
+      livePoints.current = []
+      setLiveStroke(null)
+      liveAnchor.current = null
+    }
+
     el.addEventListener('pointerdown', handleDown, { passive: false })
     el.addEventListener('pointermove', handleMove, { passive: false })
     el.addEventListener('pointerup', finish)
     el.addEventListener('pointercancel', finish)
+    el.addEventListener('journal-two-finger-scroll', cancelGesture)
     return () => {
       el.removeEventListener('pointerdown', handleDown)
       el.removeEventListener('pointermove', handleMove)
       el.removeEventListener('pointerup', finish)
       el.removeEventListener('pointercancel', finish)
+      el.removeEventListener('journal-two-finger-scroll', cancelGesture)
     }
   }, [scrollContainerRef, tool, color, size, toContentPoint, eraseAt, onCommitStroke])
 

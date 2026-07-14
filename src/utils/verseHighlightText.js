@@ -73,6 +73,18 @@ export function applyHighlightRanges(raw, ranges) {
   })
 }
 
+/** Canonical length of a DOM subtree (text + BR newlines; skip indent spacers). */
+export function canonicalLengthOfNode(node) {
+  if (!node) return 0
+  if (node.nodeType === Node.TEXT_NODE) return node.textContent.length
+  if (node.nodeType !== Node.ELEMENT_NODE) return 0
+  if (node.nodeName === 'BR') return 1
+  if (node.classList?.contains('inline-block')) return 0
+  let total = 0
+  for (const child of node.childNodes) total += canonicalLengthOfNode(child)
+  return total
+}
+
 /** Walk verse DOM and map a boundary point to a canonical text offset. */
 export function getCanonicalOffset(verseTextEl, container, offset) {
   let canonicalOffset = 0
@@ -84,7 +96,7 @@ export function getCanonicalOffset(verseTextEl, container, offset) {
     if (node.nodeType === Node.TEXT_NODE) {
       const len = node.textContent.length
       if (node === container) {
-        found = canonicalOffset + Math.min(offset, len)
+        found = canonicalOffset + Math.min(Math.max(0, offset), len)
         return
       }
       canonicalOffset += len
@@ -95,7 +107,7 @@ export function getCanonicalOffset(verseTextEl, container, offset) {
 
     if (node.nodeName === 'BR') {
       if (node === container) {
-        found = canonicalOffset + Math.min(offset, 1)
+        found = canonicalOffset + Math.min(Math.max(0, offset), 1)
         return
       }
       canonicalOffset += 1
@@ -103,6 +115,18 @@ export function getCanonicalOffset(verseTextEl, container, offset) {
     }
 
     if (node.classList?.contains('inline-block')) {
+      return
+    }
+
+    // Element boundary: offset is a child index (Range selectNodeContents style).
+    if (node === container) {
+      const childCount = node.childNodes.length
+      const clamped = Math.min(Math.max(0, offset), childCount)
+      let extra = 0
+      for (let i = 0; i < clamped; i++) {
+        extra += canonicalLengthOfNode(node.childNodes[i])
+      }
+      found = canonicalOffset + extra
       return
     }
 
@@ -116,28 +140,37 @@ export function getCanonicalOffset(verseTextEl, container, offset) {
   return found
 }
 
-function rangeIntersectsNode(range, node) {
-  try {
-    const intersection = intersectRangeWithNode(range, node)
-    return !intersection.collapsed
-  } catch {
-    return false
+function nodeTouchesRange(range, node) {
+  if (!range || !node) return false
+  if (typeof range.intersectsNode === 'function') {
+    try {
+      return range.intersectsNode(node)
+    } catch {
+      // Fall through to containment checks.
+    }
   }
+  return node === range.startContainer
+    || node === range.endContainer
+    || node.contains?.(range.startContainer)
+    || node.contains?.(range.endContainer)
 }
 
-function intersectRangeWithNode(range, node) {
-  const doc = node.ownerDocument
-  const result = range.cloneRange()
-  const nodeRange = doc.createRange()
-  nodeRange.selectNodeContents(node)
+function boundaryInsideNode(node, container) {
+  return node === container || node.contains?.(container)
+}
 
-  if (result.compareBoundaryPoints(Range.START_TO_START, nodeRange) < 0) {
-    result.setStart(nodeRange.startContainer, nodeRange.startOffset)
+function rangeEnclosesNodeContents(range, node) {
+  try {
+    const probe = node.ownerDocument.createRange()
+    probe.selectNodeContents(node)
+    if (typeof range.isPointInRange === 'function') {
+      return range.isPointInRange(probe.startContainer, probe.startOffset)
+        && range.isPointInRange(probe.endContainer, probe.endOffset)
+    }
+  } catch {
+    // Fall through.
   }
-  if (result.compareBoundaryPoints(Range.END_TO_END, nodeRange) > 0) {
-    result.setEnd(nodeRange.endContainer, nodeRange.endOffset)
-  }
-  return result
+  return nodeTouchesRange(range, node)
 }
 
 /** Convert a DOM Range into per-verse canonical highlight ranges (cross-verse). */
@@ -148,10 +181,28 @@ export function rangeToHighlightRanges(range, rootEl, chapterNumber) {
   const results = []
 
   verseEls.forEach((verseTextEl) => {
-    if (!rangeIntersectsNode(range, verseTextEl)) return
-    const intersection = intersectRangeWithNode(range, verseTextEl)
-    const start = getCanonicalOffset(verseTextEl, intersection.startContainer, intersection.startOffset)
-    const end = getCanonicalOffset(verseTextEl, intersection.endContainer, intersection.endOffset)
+    const startsInside = boundaryInsideNode(verseTextEl, range.startContainer)
+    const endsInside = boundaryInsideNode(verseTextEl, range.endContainer)
+
+    if (!startsInside && !endsInside) {
+      if (!rangeEnclosesNodeContents(range, verseTextEl)) return
+      const length = canonicalLengthOfNode(verseTextEl)
+      if (length <= 0) return
+      results.push({
+        verse: Number(verseTextEl.dataset.verse),
+        start: 0,
+        end: length,
+      })
+      return
+    }
+
+    const start = startsInside
+      ? getCanonicalOffset(verseTextEl, range.startContainer, range.startOffset)
+      : 0
+    const end = endsInside
+      ? getCanonicalOffset(verseTextEl, range.endContainer, range.endOffset)
+      : canonicalLengthOfNode(verseTextEl)
+
     if (start == null || end == null || end <= start) return
     results.push({
       verse: Number(verseTextEl.dataset.verse),

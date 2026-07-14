@@ -54,6 +54,26 @@ test.describe('Journaling mode', () => {
     await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 20_000 })
   })
 
+  test('undo removes the last highlight', async ({ page }) => {
+    await openJournal(page)
+
+    await page.getByTitle('Highlight text (drag with mouse, finger, or pencil)').click()
+    await page.getByTitle('Yellow').click()
+
+    const verseText = page.locator('#verse-1-1 [data-verse-text]')
+    const box = await verseText.boundingBox()
+    expect(box).toBeTruthy()
+    await page.mouse.move(box.x + 8, box.y + box.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(box.x + box.width * 0.45, box.y + box.height / 2)
+    await page.mouse.up()
+
+    await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 10_000 })
+
+    await page.getByRole('button', { name: '↶ Undo' }).click()
+    await expect(page.locator('#verse-1-1 mark.verse-highlight')).toHaveCount(0)
+  })
+
   test('highlights text via touch pointer drag', async ({ page }) => {
     await openJournal(page)
 
@@ -88,6 +108,58 @@ test.describe('Journaling mode', () => {
     }, { startX, endX, y })
 
     await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 10_000 })
+  })
+
+  test('highlights text spanning multiple verses in one drag', async ({ page }) => {
+    await openJournal(page)
+
+    await page.getByTitle('Highlight text (drag with mouse, finger, or pencil)').click()
+    await page.getByTitle('Yellow').click()
+
+    const v1 = page.locator('#verse-1-1 [data-verse-text]')
+    const v2 = page.locator('#verse-1-2 [data-verse-text]')
+    await expect(v2).toBeVisible()
+    const startBox = await v1.boundingBox()
+    const endBox = await v2.boundingBox()
+    expect(startBox).toBeTruthy()
+    expect(endBox).toBeTruthy()
+
+    await page.mouse.move(startBox.x + 8, startBox.y + startBox.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(endBox.x + endBox.width * 0.4, endBox.y + endBox.height / 2, { steps: 8 })
+    await page.mouse.up()
+
+    await expect(page.locator('#verse-1-1 mark.verse-highlight')).toBeVisible({ timeout: 10_000 })
+    await expect(page.locator('#verse-1-2 mark.verse-highlight')).toBeVisible({ timeout: 10_000 })
+  })
+
+  test('two-finger drag scrolls when highlight mode locks one-finger pan', async ({ page }) => {
+    await openJournal(page)
+    await page.getByTitle('Highlight text (drag with mouse, finger, or pencil)').click()
+
+    const scrolled = await page.evaluate(() => {
+      const pane = document.querySelector('[data-testid="journal-scroll"]')
+      if (!pane) return false
+      pane.scrollTop = 0
+      const fire = (type, pointerId, clientY) => {
+        pane.dispatchEvent(new PointerEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          pointerId,
+          pointerType: 'touch',
+          clientX: 40 + pointerId * 20,
+          clientY,
+          buttons: type === 'pointerup' ? 0 : 1,
+        }))
+      }
+      fire('pointerdown', 1, 200)
+      fire('pointerdown', 2, 200)
+      fire('pointermove', 1, 120)
+      fire('pointermove', 2, 120)
+      return pane.scrollTop > 0
+    })
+
+    expect(scrolled).toBe(true)
   })
 
   test('inserts inline gap on double-tap and saves typed margin notes', async ({ page }) => {

@@ -21,6 +21,7 @@ import {
 import { useHighlights, HIGHLIGHT_COLORS } from '../hooks/useHighlights'
 import { useJournal } from '../hooks/useJournal'
 import { useInk, INK_PANES } from '../hooks/useInk'
+import { useTwoFingerScroll } from '../hooks/useTwoFingerScroll'
 
 const PEN_COLORS = [
   { id: 'black', value: '#111827' },
@@ -77,7 +78,13 @@ function JournalView() {
   const [showJournalTips, setShowJournalTips] = useState(false)
   const [showClearInkConfirm, setShowClearInkConfirm] = useState(false)
 
-  const { getVerseHighlights, addHighlightRanges, removeHighlight, findHighlightAt } = useHighlights()
+  const {
+    getVerseHighlights,
+    addHighlightRanges,
+    removeHighlight,
+    removeHighlights,
+    findHighlightAt,
+  } = useHighlights()
   const {
     getBibleGaps,
     addGap,
@@ -152,6 +159,8 @@ function JournalView() {
   const inkBlockingText = penToolActive || tool === INK_TOOLS.erase
   const touchLocked = penToolActive || tool === INK_TOOLS.erase || highlightActive
 
+  useTwoFingerScroll(journalScrollRef, touchLocked)
+
   const hasInkOnGap = useCallback((gapId) => {
     return hasStrokesOnAnchor(book, chapter, INK_PANES.page, `gap-${gapId}`)
   }, [hasStrokesOnAnchor, book, chapter])
@@ -208,11 +217,24 @@ function JournalView() {
       endXY = null
       clearLiveSelection()
       if (!ranges.length) return
-      addHighlightRanges(
+      const ids = addHighlightRanges(
         book,
         chapter,
         ranges.map(r => ({ ...r, color: highlightColor }))
       )
+      if (ids.length) {
+        setUndoStack(prev => [...prev, { type: 'highlights', ids }])
+      }
+    }
+
+    const cancelGesture = () => {
+      if (!dragging) return
+      dragging = false
+      try { el.releasePointerCapture?.(pointerId) } catch {}
+      pointerId = null
+      startXY = null
+      endXY = null
+      clearLiveSelection()
     }
 
     const handleDown = (e) => {
@@ -238,11 +260,13 @@ function JournalView() {
     el.addEventListener('pointermove', handleMove, { passive: false })
     el.addEventListener('pointerup', finish)
     el.addEventListener('pointercancel', finish)
+    el.addEventListener('journal-two-finger-scroll', cancelGesture)
     return () => {
       el.removeEventListener('pointerdown', handleDown)
       el.removeEventListener('pointermove', handleMove)
       el.removeEventListener('pointerup', finish)
       el.removeEventListener('pointercancel', finish)
+      el.removeEventListener('journal-two-finger-scroll', cancelGesture)
       clearLiveSelection()
     }
   }, [highlightActive, book, chapter, highlightColor, addHighlightRanges])
@@ -261,6 +285,11 @@ function JournalView() {
       const hit = findHighlightAt(book, chapter, verse, offset)
       if (hit) {
         removeHighlight(hit.id)
+        setUndoStack(prev => prev
+          .map(u => (u.type === 'highlights'
+            ? { ...u, ids: u.ids.filter(id => id !== hit.id) }
+            : u))
+          .filter(u => u.type !== 'highlights' || u.ids.length > 0))
         e.preventDefault()
       }
     }
@@ -271,19 +300,23 @@ function JournalView() {
 
   const commitStroke = (stroke) => {
     addStroke(book, chapter, INK_PANES.page, stroke)
-    setUndoStack(prev => [...prev, { pane: INK_PANES.page, strokeId: stroke.id }])
+    setUndoStack(prev => [...prev, { type: 'stroke', pane: INK_PANES.page, strokeId: stroke.id }])
   }
 
   const handleErase = (strokeId) => {
     eraseStroke(book, chapter, INK_PANES.page, strokeId)
-    setUndoStack(prev => prev.filter(u => u.strokeId !== strokeId))
+    setUndoStack(prev => prev.filter(u => !(u.type === 'stroke' && u.strokeId === strokeId)))
   }
 
   const undo = () => {
     setUndoStack(prev => {
       if (prev.length === 0) return prev
       const last = prev[prev.length - 1]
-      eraseStroke(book, chapter, last.pane, last.strokeId)
+      if (last.type === 'highlights') {
+        removeHighlights(last.ids)
+      } else {
+        eraseStroke(book, chapter, last.pane, last.strokeId)
+      }
       return prev.slice(0, -1)
     })
   }
@@ -421,7 +454,7 @@ function JournalView() {
             onClick={undo}
             disabled={undoStack.length === 0}
             className="px-2.5 py-1.5 rounded-lg text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40"
-            title="Undo last stroke"
+            title="Undo last stroke or highlight"
           >↶ Undo</button>
           <button
             onClick={() => setShowClearInkConfirm(true)}

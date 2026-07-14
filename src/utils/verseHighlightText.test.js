@@ -67,6 +67,63 @@ describe('verseHighlightText', () => {
     expect(ranges).toEqual([{ verse: 1, start: 0, end: 5 }])
   })
 
+  it('splits a cross-verse range into per-verse offsets', () => {
+    const root = document.createElement('div')
+    root.innerHTML = `
+      <p class="verse-text" data-verse-text data-verse="1" data-chapter="1">First verse</p>
+      <div class="gap">gap</div>
+      <p class="verse-text" data-verse-text data-verse="2" data-chapter="1">Second verse</p>
+    `
+    document.body.appendChild(root)
+    const v1 = root.querySelector('[data-verse="1"]')
+    const v2 = root.querySelector('[data-verse="2"]')
+    const range = document.createRange()
+    range.setStart(v1.firstChild, 6)
+    range.setEnd(v2.firstChild, 6)
+
+    expect(rangeToHighlightRanges(range, root, 1)).toEqual([
+      { verse: 1, start: 6, end: 11 },
+      { verse: 2, start: 0, end: 6 },
+    ])
+    document.body.removeChild(root)
+  })
+
+  it('includes fully enclosed middle verses in a multi-verse range', () => {
+    const root = document.createElement('div')
+    root.innerHTML = `
+      <p data-verse-text data-verse="1" data-chapter="1">AAA</p>
+      <p data-verse-text data-verse="2" data-chapter="1">BBB</p>
+      <p data-verse-text data-verse="3" data-chapter="1">CCC</p>
+    `
+    document.body.appendChild(root)
+    const v1 = root.querySelector('[data-verse="1"]')
+    const v3 = root.querySelector('[data-verse="3"]')
+    const range = document.createRange()
+    range.setStart(v1.firstChild, 0)
+    range.setEnd(v3.firstChild, 3)
+
+    expect(rangeToHighlightRanges(range, root, 1)).toEqual([
+      { verse: 1, start: 0, end: 3 },
+      { verse: 2, start: 0, end: 3 },
+      { verse: 3, start: 0, end: 3 },
+    ])
+    document.body.removeChild(root)
+  })
+
+  it('maps element-boundary offsets from selectNodeContents', () => {
+    const root = document.createElement('div')
+    root.innerHTML = '<p data-verse-text data-verse="1" data-chapter="1"><span>Hello</span><span>world</span></p>'
+    document.body.appendChild(root)
+    const v1 = root.querySelector('[data-verse="1"]')
+    const nodeRange = document.createRange()
+    nodeRange.selectNodeContents(v1)
+    const start = getCanonicalOffset(v1, nodeRange.startContainer, nodeRange.startOffset)
+    const end = getCanonicalOffset(v1, nodeRange.endContainer, nodeRange.endOffset)
+    document.body.removeChild(root)
+    expect(start).toBe(0)
+    expect(end).toBe(10)
+  })
+
   it('rangeToHighlightRanges maps a DOM Range to per-verse offsets', () => {
     const root = document.createElement('div')
     root.innerHTML = '<p class="verse-text" data-verse-text data-verse="1" data-chapter="1">First verse</p>'

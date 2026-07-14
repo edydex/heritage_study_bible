@@ -39,17 +39,19 @@ describe('useHighlights', () => {
     expect(h.end).toBe(Number.MAX_SAFE_INTEGER)
   })
 
-  it('adds multiple text ranges per verse', async () => {
+  it('adds multiple text ranges per verse and returns their ids', async () => {
     const { result } = renderHook(() => useHighlights())
     await waitFor(() => expect(result.current.highlights).toEqual([]))
 
+    let ids
     act(() => {
-      result.current.addHighlightRanges('John', 3, [
+      ids = result.current.addHighlightRanges('John', 3, [
         { verse: 16, start: 0, end: 4, color: 'yellow' },
         { verse: 16, start: 10, end: 20, color: 'green' },
       ])
     })
 
+    expect(ids).toEqual(['test-uuid-1', 'test-uuid-2'])
     expect(result.current.getVerseHighlights('John', 3, 16)).toHaveLength(2)
   })
 
@@ -67,6 +69,22 @@ describe('useHighlights', () => {
     expect(hit?.color).toBe('blue')
 
     act(() => result.current.removeHighlight(hit.id))
+    expect(result.current.getVerseHighlights('John', 3, 16)).toHaveLength(0)
+  })
+
+  it('removes a batch of highlights by id', async () => {
+    const { result } = renderHook(() => useHighlights())
+    await waitFor(() => expect(result.current.highlights).toEqual([]))
+
+    let ids
+    act(() => {
+      ids = result.current.addHighlightRanges('John', 3, [
+        { verse: 16, start: 0, end: 4, color: 'yellow' },
+        { verse: 16, start: 10, end: 20, color: 'green' },
+      ])
+    })
+
+    act(() => result.current.removeHighlights(ids))
     expect(result.current.getVerseHighlights('John', 3, 16)).toHaveLength(0)
   })
 })
