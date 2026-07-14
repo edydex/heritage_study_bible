@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useRef } from 'react'
-import { useTwoFingerScroll } from './useTwoFingerScroll'
+import {
+  useTwoFingerScroll,
+  TWO_FINGER_SCROLL_END,
+  TWO_FINGER_SCROLL_START,
+} from './useTwoFingerScroll'
 
 function renderWithScroll(enabled = true) {
   const el = document.createElement('div')
@@ -68,15 +72,21 @@ describe('useTwoFingerScroll', () => {
     unmount()
   })
 
-  it('dispatches cancel event when the second finger lands', () => {
+  it('dispatches start and end events around a two-finger gesture', () => {
     const { el, unmount } = renderWithScroll(true)
-    const spy = vi.fn()
-    el.addEventListener('journal-two-finger-scroll', spy)
+    const start = vi.fn()
+    const end = vi.fn()
+    el.addEventListener(TWO_FINGER_SCROLL_START, start)
+    el.addEventListener(TWO_FINGER_SCROLL_END, end)
 
     firePointer(el, 'pointerdown', { pointerId: 1, clientX: 10, clientY: 100 })
     firePointer(el, 'pointerdown', { pointerId: 2, clientX: 40, clientY: 100 })
+    expect(start).toHaveBeenCalledTimes(1)
+    expect(end).not.toHaveBeenCalled()
 
-    expect(spy).toHaveBeenCalledTimes(1)
+    firePointer(el, 'pointerup', { pointerId: 2, clientX: 40, clientY: 100 })
+    expect(end).toHaveBeenCalledTimes(1)
+
     unmount()
   })
 
@@ -90,6 +100,22 @@ describe('useTwoFingerScroll', () => {
 
     firePointer(el, 'pointerdown', { pointerId: 2, clientX: 40, clientY: 100 })
     expect(bubble).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
+  it('does not stay in two-finger mode after fingers lift', () => {
+    const { el, unmount } = renderWithScroll(true)
+    el.scrollTop = 80
+
+    firePointer(el, 'pointerdown', { pointerId: 1, clientX: 10, clientY: 100 })
+    firePointer(el, 'pointerdown', { pointerId: 2, clientX: 40, clientY: 100 })
+    firePointer(el, 'pointerup', { pointerId: 1, clientX: 10, clientY: 100 })
+    firePointer(el, 'pointerup', { pointerId: 2, clientX: 40, clientY: 100 })
+
+    const before = el.scrollTop
+    firePointer(el, 'pointerdown', { pointerId: 3, clientX: 10, clientY: 100 })
+    firePointer(el, 'pointermove', { pointerId: 3, clientX: 10, clientY: 40 })
+    expect(el.scrollTop).toBe(before)
     unmount()
   })
 })

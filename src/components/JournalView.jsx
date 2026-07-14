@@ -21,7 +21,7 @@ import {
 import { useHighlights, HIGHLIGHT_COLORS } from '../hooks/useHighlights'
 import { useJournal } from '../hooks/useJournal'
 import { useInk, INK_PANES } from '../hooks/useInk'
-import { useTwoFingerScroll } from '../hooks/useTwoFingerScroll'
+import { useTwoFingerScroll, TWO_FINGER_SCROLL_START } from '../hooks/useTwoFingerScroll'
 
 const PEN_COLORS = [
   { id: 'black', value: '#111827' },
@@ -260,13 +260,13 @@ function JournalView() {
     el.addEventListener('pointermove', handleMove, { passive: false })
     el.addEventListener('pointerup', finish)
     el.addEventListener('pointercancel', finish)
-    el.addEventListener('journal-two-finger-scroll', cancelGesture)
+    el.addEventListener(TWO_FINGER_SCROLL_START, cancelGesture)
     return () => {
       el.removeEventListener('pointerdown', handleDown)
       el.removeEventListener('pointermove', handleMove)
       el.removeEventListener('pointerup', finish)
       el.removeEventListener('pointercancel', finish)
-      el.removeEventListener('journal-two-finger-scroll', cancelGesture)
+      el.removeEventListener(TWO_FINGER_SCROLL_START, cancelGesture)
       clearLiveSelection()
     }
   }, [highlightActive, book, chapter, highlightColor, addHighlightRanges])

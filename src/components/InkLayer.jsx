@@ -7,6 +7,10 @@ import {
   toAnchorRelativePoints,
   toAbsolutePoints,
 } from '../utils/inkAnchors'
+import {
+  TWO_FINGER_SCROLL_END,
+  TWO_FINGER_SCROLL_START,
+} from '../hooks/useTwoFingerScroll'
 
 // scroll = read/scroll; pen = finger/mouse draw; pen pointer always inks
 export const INK_TOOLS = {
@@ -107,7 +111,6 @@ function InkLayer({
   const liveAnchor = useRef(null)
   const activePointerId = useRef(null)
   const suppressInk = useRef(false)
-  const activeTouchPointers = useRef(new Set())
 
   const measureAnchors = useCallback(() => {
     const el = scrollContainerRef.current
@@ -191,17 +194,7 @@ function InkLayer({
       }
     }
 
-    const trackTouchPointer = (e, down) => {
-      if (e.pointerType !== 'touch' && e.pointerType !== 'mouse') return
-      if (down) activeTouchPointers.current.add(e.pointerId)
-      else activeTouchPointers.current.delete(e.pointerId)
-      if (activeTouchPointers.current.size === 0) {
-        suppressInk.current = false
-      }
-    }
-
     const handleDown = (e) => {
-      trackTouchPointer(e, true)
       if (suppressInk.current) return
       // Second+ finger must not start a new stroke (two-finger scroll).
       if (e.pointerType === 'touch' && !e.isPrimary) return
@@ -250,9 +243,7 @@ function InkLayer({
     }
 
     const finish = (e) => {
-      const wasSuppressed = suppressInk.current
-      trackTouchPointer(e, false)
-      if (wasSuppressed) {
+      if (suppressInk.current) {
         clearLive()
         return
       }
@@ -292,17 +283,24 @@ function InkLayer({
       clearLive()
     }
 
+    const resumeInk = () => {
+      suppressInk.current = false
+      clearLive()
+    }
+
     el.addEventListener('pointerdown', handleDown, { passive: false })
     el.addEventListener('pointermove', handleMove, { passive: false })
     el.addEventListener('pointerup', finish)
     el.addEventListener('pointercancel', finish)
-    el.addEventListener('journal-two-finger-scroll', cancelGesture)
+    el.addEventListener(TWO_FINGER_SCROLL_START, cancelGesture)
+    el.addEventListener(TWO_FINGER_SCROLL_END, resumeInk)
     return () => {
       el.removeEventListener('pointerdown', handleDown)
       el.removeEventListener('pointermove', handleMove)
       el.removeEventListener('pointerup', finish)
       el.removeEventListener('pointercancel', finish)
-      el.removeEventListener('journal-two-finger-scroll', cancelGesture)
+      el.removeEventListener(TWO_FINGER_SCROLL_START, cancelGesture)
+      el.removeEventListener(TWO_FINGER_SCROLL_END, resumeInk)
     }
   }, [scrollContainerRef, tool, color, size, toContentPoint, eraseAt, onCommitStroke])
 
