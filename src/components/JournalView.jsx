@@ -89,6 +89,45 @@ function JournalView() {
   const rightScrollRef = useRef(null)
   const gapSaveTimers = useRef({})
   const scrollNotesToY = useRef(null)
+  const syncingScroll = useRef(false)
+
+  // Keep Bible and notes panes at the same relative scroll position.
+  useEffect(() => {
+    const left = leftScrollRef.current
+    const right = rightScrollRef.current
+    if (!left || !right) return
+
+    const scrollRatio = (el) => {
+      const max = el.scrollHeight - el.clientHeight
+      return max > 0 ? el.scrollTop / max : 0
+    }
+
+    const applyRatio = (source, target) => {
+      const max = target.scrollHeight - target.clientHeight
+      if (max <= 0) return
+      const next = scrollRatio(source) * max
+      if (Math.abs(target.scrollTop - next) < 1) return
+      syncingScroll.current = true
+      target.scrollTop = next
+      requestAnimationFrame(() => { syncingScroll.current = false })
+    }
+
+    const onLeftScroll = () => {
+      if (syncingScroll.current) return
+      applyRatio(left, right)
+    }
+    const onRightScroll = () => {
+      if (syncingScroll.current) return
+      applyRatio(right, left)
+    }
+
+    left.addEventListener('scroll', onLeftScroll, { passive: true })
+    right.addEventListener('scroll', onRightScroll, { passive: true })
+    return () => {
+      left.removeEventListener('scroll', onLeftScroll)
+      right.removeEventListener('scroll', onRightScroll)
+    }
+  }, [book, chapter, loading])
 
   useEffect(() => {
     if (!book) navigate(`/genesis/1`, { replace: true })
