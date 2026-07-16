@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { RESOURCE_CATEGORIES } from '../data/resources'
 import {
-  COMMENTS_ITEM_TYPE,
   PLAN_NOTE_ITEM_TYPE,
   clearActiveReadingPlan,
   getFirstIncompleteItem,
@@ -13,6 +12,7 @@ import {
   getPlanModeLabel,
   getPlanNotePath,
   getReadingItems,
+  isPlanDayComplete,
   isPlanItemComplete,
   loadPlanGroups,
   loadPlanProgress,
@@ -102,6 +102,7 @@ function BottomNav({
   const [planShortcutBusy, setPlanShortcutBusy] = useState(false)
   const [groupState, setGroupState] = useState(null)
   const [commentText, setCommentText] = useState('')
+  const [reflectionExpanded, setReflectionExpanded] = useState(false)
   const [commentAnswerText, setCommentAnswerText] = useState('')
   const [planPanelMessage, setPlanPanelMessage] = useState('')
   const [planPanelBusy, setPlanPanelBusy] = useState(false)
@@ -167,11 +168,6 @@ function BottomNav({
         itemId: targetItem.id,
         groupId: groupRecord?.groupId || storedProgress.groupId || null,
       })
-
-      if (targetItem.type === COMMENTS_ITEM_TYPE) {
-        closeBottomOverlayForNavigation(() => setShowPlanPanel(true))
-        return
-      }
 
       if (targetItem.type === PLAN_NOTE_ITEM_TYPE) {
         const notePath = getPlanNotePath(shortcut.planId, targetReading.day, targetItem.id)
@@ -413,9 +409,13 @@ function BottomNav({
     () => getPlanItemNeighbor(activePlanReading, currentPlanItem?.id, 'next'),
     [activePlanReading, currentPlanItem?.id]
   )
-  const currentItemDone = activePlanProgress && currentPlanItem
-    ? isPlanItemComplete(activePlanProgress, activePlan.day, currentPlanItem.id)
-    : false
+  const activePlanDayComplete = Boolean(
+    activePlanProgress && activePlanReading && isPlanDayComplete(activePlanProgress, activePlanReading)
+  )
+  const followingPlanDay = useMemo(
+    () => getNextPlanDay(activePlanData, activePlan?.day),
+    [activePlan?.day, activePlanData]
+  )
   const selectedQuestions = useMemo(() => {
     const questions = groupState?.questions || []
     return questions.filter(question => Number(question.day) === Number(activePlan?.day))
@@ -424,14 +424,18 @@ function BottomNav({
     const answers = groupState?.answers || []
     return answers.filter(answer => Number(answer.day) === Number(activePlan?.day))
   }, [activePlan?.day, groupState])
+  const hasActivePlanProgress = Boolean(activePlanProgress)
+  const savedActivePlanReflection = activePlanProgress?.dayNotes?.[activePlan?.day] || ''
 
   useEffect(() => {
-    if (!activePlan?.day || !activePlanProgress) {
+    if (!activePlan?.day || !hasActivePlanProgress) {
       setCommentText('')
+      setReflectionExpanded(false)
       return
     }
-    setCommentText(activePlanProgress.dayNotes?.[activePlan.day] || '')
-  }, [activePlan?.day, activePlanProgress])
+    setCommentText(savedActivePlanReflection)
+    setReflectionExpanded(Boolean(savedActivePlanReflection.trim()))
+  }, [activePlan?.day, hasActivePlanProgress, savedActivePlanReflection])
 
   const updateActivePlanProgress = (updater) => {
     if (!activePlan?.planId) return
@@ -447,7 +451,7 @@ function BottomNav({
     updateActivePlanProgress(prev => markPlanItemComplete(prev, activePlanReading, currentPlanItem.id))
   }
 
-  const openPlanItem = (item, { showPanelForComments = true } = {}) => {
+  const openPlanItem = (item) => {
     if (!activePlan?.planId || !activePlanReading || !item) return
     saveActiveReadingPlan({
       ...activePlan,
@@ -455,11 +459,6 @@ function BottomNav({
       day: activePlanReading.day,
       itemId: item.id,
     })
-
-    if (item.type === COMMENTS_ITEM_TYPE) {
-      if (showPanelForComments) setShowPlanPanel(true)
-      return
-    }
 
     if (item.type === PLAN_NOTE_ITEM_TYPE) {
       const notePath = getPlanNotePath(activePlan.planId, activePlanReading.day, item.id)
@@ -498,20 +497,20 @@ function BottomNav({
       onNext()
       return
     }
-    if (currentPlanItem?.type === COMMENTS_ITEM_TYPE) {
-      setShowPlanPanel(true)
-      return
-    }
     if (currentPlanItem?.type === 'chapter') completeCurrentChapterItem()
     if (currentPlanItem?.type === PLAN_NOTE_ITEM_TYPE) {
       updateActivePlanProgress(prev => markPlanItemComplete(prev, activePlanReading, currentPlanItem.id))
     }
-    if (followingPlanItem) openPlanItem(followingPlanItem)
+    if (followingPlanItem) {
+      openPlanItem(followingPlanItem)
+      return
+    }
+    setShowPlanPanel(true)
   }
 
   nativeVolumeNextHandlerRef.current = () => {
     if (activePlan?.planId) {
-      if (!followingPlanItem && currentPlanItem?.type !== COMMENTS_ITEM_TYPE) return
+      if (!currentPlanItem) return
       handlePlanNext()
       return
     }
@@ -535,12 +534,8 @@ function BottomNav({
 
   const handleSaveComments = () => {
     if (!activePlan?.planId || !activePlanReading) return
-    const commentsItem = activePlanItems.find(item => item.type === COMMENTS_ITEM_TYPE)
-    updateActivePlanProgress(prev => {
-      const withNote = setPlanDayNote(prev, activePlan.day, commentText)
-      return commentsItem ? markPlanItemComplete(withNote, activePlanReading, commentsItem.id) : withNote
-    })
-    setPlanPanelMessage('Comments saved.')
+    updateActivePlanProgress(prev => setPlanDayNote(prev, activePlan.day, commentText))
+    setPlanPanelMessage(commentText.trim() ? 'Reflection saved.' : 'Reflection cleared.')
   }
 
   const handleNextPlanDay = () => {
@@ -555,10 +550,6 @@ function BottomNav({
       day: nextDay.day,
       itemId: nextItem?.id || null,
     })
-    if (nextItem?.type === COMMENTS_ITEM_TYPE) {
-      setShowPlanPanel(true)
-      return
-    }
     if (nextItem?.type === PLAN_NOTE_ITEM_TYPE) {
       const notePath = getPlanNotePath(activePlan.planId, nextDay.day, nextItem.id)
       if (notePath && typeof onPlanNavigate === 'function') {
@@ -635,7 +626,7 @@ function BottomNav({
           {/* Next Button */}
           <button
             onClick={handlePlanNext}
-            disabled={activePlan?.planId ? (!followingPlanItem && currentPlanItem?.type !== COMMENTS_ITEM_TYPE) : !hasNext}
+            disabled={activePlan?.planId ? !currentPlanItem : !hasNext}
             className="flex items-center justify-center w-14 h-full text-primary dark:text-blue-400 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
             aria-label={activePlan?.planId ? 'Next plan item' : 'Next chapter'}
           >
@@ -844,7 +835,7 @@ function BottomNav({
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-start gap-3 py-4 border-b border-gray-100 dark:border-gray-700 ${active ? 'bg-primary/5 dark:bg-blue-500/10 -mx-3 px-3 rounded-lg border-b-transparent' : ''} ${isPlanNote && !active ? 'bg-amber-50/60 dark:bg-amber-900/10 -mx-3 px-3 rounded-lg border-b-transparent' : ''}`}
+                    className={`flex items-start gap-3 py-3 border-b border-gray-100 dark:border-gray-700 ${active ? 'bg-primary/5 dark:bg-blue-500/10 -mx-3 px-3 rounded-lg border-b-transparent' : ''} ${isPlanNote && !active ? 'bg-amber-50/60 dark:bg-amber-900/10 -mx-3 px-3 rounded-lg border-b-transparent' : ''}`}
                   >
                     <button
                       onClick={() => updateActivePlanProgress(prev => togglePlanItem(prev, activePlanReading, item.id))}
@@ -869,12 +860,12 @@ function BottomNav({
                           {item.label}
                         </span>
                         {isPlanNote && item.note && (
-                          <span className="mt-1 block text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                          <span className="mt-1 block text-sm leading-relaxed text-gray-600 dark:text-gray-300 line-clamp-2">
                             {item.note}
                           </span>
                         )}
                         <span className="block text-xs text-gray-500 dark:text-gray-400">
-                          {item.type === COMMENTS_ITEM_TYPE ? (done ? 'Finished' : 'Talk it over') : isPlanNote ? (done ? 'Finished' : 'Plan note') : (done ? 'Finished' : 'Tap to read')}
+                          {isPlanNote ? (done ? 'Finished' : 'Plan note') : (done ? 'Finished' : 'Tap to read')}
                         </span>
                       </button>
                       {isPlanNote && getPlanNoteSources(item).length > 0 && (
@@ -905,16 +896,27 @@ function BottomNav({
                 )
               })}
 
-              {currentPlanItem?.type === COMMENTS_ITEM_TYPE && (
-                <div className="py-5 space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                      Comments
-                    </label>
+              <section className="my-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-700/30 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setReflectionExpanded(value => !value)}
+                  className="w-full flex items-center justify-between gap-3 px-3 py-3 text-left"
+                  aria-expanded={reflectionExpanded}
+                >
+                  <span>
+                    <span className="block text-sm font-semibold text-gray-900 dark:text-gray-100">Reflection</span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400">
+                      Optional{commentText.trim() ? ' · saved locally' : ' · notes or prayer points'}
+                    </span>
+                  </span>
+                  <span className={`text-gray-500 transition-transform ${reflectionExpanded ? 'rotate-180' : ''}`}>⌄</span>
+                </button>
+                {reflectionExpanded && (
+                  <div className="border-t border-gray-200 dark:border-gray-700 px-3 py-3">
                     <textarea
                       value={commentText}
                       onChange={event => setCommentText(event.target.value)}
-                      rows={4}
+                      rows={3}
                       autoComplete="on"
                       autoCorrect="on"
                       spellCheck={true}
@@ -923,20 +925,24 @@ function BottomNav({
                     />
                     <button
                       onClick={handleSaveComments}
-                      className="mt-2 w-full py-2 rounded-lg bg-primary text-white font-semibold"
+                      className="mt-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold"
                     >
-                      Mark Comments Done
+                      Save Reflection
                     </button>
                   </div>
+                )}
+              </section>
 
+              {(selectedQuestions.length > 0 || selectedAnswers.length > 0) && (
+                <section className="my-4 space-y-3 rounded-xl border border-primary/20 dark:border-blue-500/30 p-3">
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Community discussion</h4>
+                  {selectedQuestions.map(question => (
+                    <div key={question.id || question.text} className="rounded-lg bg-gray-50 dark:bg-gray-700/60 p-3">
+                      <p className="text-sm text-gray-900 dark:text-gray-100">{question.text}</p>
+                    </div>
+                  ))}
                   {selectedQuestions.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Questions</h4>
-                      {selectedQuestions.map(question => (
-                        <div key={question.id || question.text} className="rounded-lg bg-gray-50 dark:bg-gray-700/60 p-3">
-                          <p className="text-sm text-gray-900 dark:text-gray-100">{question.text}</p>
-                        </div>
-                      ))}
+                    <>
                       <textarea
                         value={commentAnswerText}
                         onChange={event => setCommentAnswerText(event.target.value)}
@@ -944,7 +950,7 @@ function BottomNav({
                         autoComplete="on"
                         autoCorrect="on"
                         spellCheck={true}
-                        placeholder="Answer for the group"
+                        placeholder="Answer for the community"
                         className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       />
                       <button
@@ -954,43 +960,15 @@ function BottomNav({
                       >
                         Share Answer
                       </button>
-                    </div>
+                    </>
                   )}
-
-                  {selectedAnswers.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Group Answers</h4>
-                      {selectedAnswers.map(answer => (
-                        <div key={answer.id || `${answer.memberId}-${answer.createdAt}`} className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-                          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{answer.displayName || 'Reader'}</p>
-                          <p className="text-sm text-gray-800 dark:text-gray-100">{answer.text}</p>
-                        </div>
-                      ))}
+                  {selectedAnswers.map(answer => (
+                    <div key={answer.id || `${answer.memberId}-${answer.createdAt}`} className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{answer.displayName || 'Reader'}</p>
+                      <p className="text-sm text-gray-800 dark:text-gray-100">{answer.text}</p>
                     </div>
-                  )}
-
-                  {currentItemDone && (
-                    <div className="rounded-lg border border-primary/30 dark:border-blue-500/30 bg-primary/5 dark:bg-blue-500/10 p-3">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                        Day {activePlan.day} is done.
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <button
-                          onClick={handleNextPlanDay}
-                          className="py-2 rounded-lg bg-primary text-white font-semibold"
-                        >
-                          Next Plan Day
-                        </button>
-                        <button
-                          onClick={handleClosePlanMode}
-                          className="py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold"
-                        >
-                          Exit Plan Mode
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  ))}
+                </section>
               )}
 
               {planPanelMessage && (
@@ -1001,13 +979,23 @@ function BottomNav({
             <div className="p-4 border-t border-gray-100 dark:border-gray-700">
               <button
                 onClick={() => {
-                  if (currentPlanItem?.type === 'chapter') completeCurrentChapterItem()
-                  openPlanItem(nextPlanItem || activePlanItems[0])
+                  if (nextPlanItem) {
+                    if (currentPlanItem?.type === 'chapter' && currentPlanItem.id !== nextPlanItem.id) completeCurrentChapterItem()
+                    openPlanItem(nextPlanItem)
+                    return
+                  }
+                  handleNextPlanDay()
                 }}
-                disabled={!activePlanItems.length}
+                disabled={!activePlanItems.length && !followingPlanDay}
                 className="w-full py-3 rounded-full bg-gray-950 dark:bg-gray-100 text-white dark:text-gray-950 font-bold disabled:opacity-50"
               >
-                {nextPlanItem?.type === COMMENTS_ITEM_TYPE ? 'Talk It Over' : 'Continue Reading'}
+                {nextPlanItem
+                  ? 'Continue Reading'
+                  : followingPlanDay
+                    ? 'Next Plan Day'
+                    : activePlanDayComplete
+                      ? 'Finish Plan'
+                      : 'Return to Reading'}
               </button>
             </div>
           </div>

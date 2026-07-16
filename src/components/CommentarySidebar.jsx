@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react'
+import { useState, useEffect, useRef, useCallback, useLayoutEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import CompareModal from './CompareModal'
-import { localizeBookName } from '../utils/localizedBookNames'
 import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptions'
+import { formatVersesForCopy, writeTextToClipboard } from '../utils/verseSelection'
 import { addNativeBackListener } from '../services/androidControls'
 
 // Regex fallback for entries without <vq> markup (older data or books CCEL didn't tag)
@@ -458,88 +458,6 @@ function renderTextWithEditorBadges(text, keyPrefix) {
   })
 }
 
-function buildContiguousRanges(verses) {
-  if (!Array.isArray(verses) || verses.length === 0) return []
-  const sorted = [...verses].sort((a, b) => a.verse - b.verse)
-  const ranges = []
-  let current = [sorted[0]]
-
-  for (let i = 1; i < sorted.length; i += 1) {
-    const item = sorted[i]
-    const prev = current[current.length - 1]
-    if (item.verse === prev.verse + 1) {
-      current.push(item)
-    } else {
-      ranges.push(current)
-      current = [item]
-    }
-  }
-  ranges.push(current)
-  return ranges
-}
-
-function getVerseTextFromData(data, book, chapter, verse, translationId) {
-  return getVerseTextWithPsalmSuperscription(data, book, chapter, verse, translationId)
-}
-
-function formatVersesForCopy({
-  verses,
-  fallbackBookName,
-  primaryTranslationId,
-  primaryBibleData,
-  secondaryTranslationId,
-  secondaryBibleData,
-  includeParallel = false,
-}) {
-  if (!Array.isArray(verses) || verses.length === 0) return ''
-
-  const byKey = new Map()
-  verses.forEach(item => {
-    const book = item.book || fallbackBookName
-    const key = `${book}|||${item.chapter}`
-    if (!byKey.has(key)) byKey.set(key, [])
-    byKey.get(key).push(item)
-  })
-
-  const sections = []
-  for (const [key, group] of byKey.entries()) {
-    const [book, chapterRaw] = key.split('|||')
-    const chapter = Number(chapterRaw)
-    const ranges = buildContiguousRanges(group)
-
-    for (const range of ranges) {
-      const startVerse = range[0].verse
-      const endVerse = range[range.length - 1].verse
-      const primaryBookName = localizeBookName(book, primaryTranslationId)
-      const primaryRef = startVerse === endVerse
-        ? `${primaryBookName} ${chapter}:${startVerse}`
-        : `${primaryBookName} ${chapter}:${startVerse}-${endVerse}`
-
-      const primaryLines = range.map(v => {
-        const bookName = v.book || fallbackBookName
-        const text = v.text || getVerseTextFromData(primaryBibleData, bookName, v.chapter, v.verse, primaryTranslationId)
-        return `(${v.verse}) ${text || '[Verse unavailable]'}`
-      })
-      sections.push(`${primaryRef} (${primaryTranslationId}) - ${primaryLines.join('\n')}`)
-
-      if (includeParallel && secondaryTranslationId && secondaryBibleData) {
-        const secondaryBookName = localizeBookName(book, secondaryTranslationId)
-        const secondaryRef = startVerse === endVerse
-          ? `${secondaryBookName} ${chapter}:${startVerse}`
-          : `${secondaryBookName} ${chapter}:${startVerse}-${endVerse}`
-        const secondaryLines = range.map(v => {
-          const bookName = v.book || fallbackBookName
-          const text = getVerseTextFromData(secondaryBibleData, bookName, v.chapter, v.verse, secondaryTranslationId)
-          return `(${v.verse}) ${text || '[Verse unavailable]'}`
-        })
-        sections.push(`${secondaryRef} (${secondaryTranslationId}) - ${secondaryLines.join('\n')}`)
-      }
-    }
-  }
-
-  return sections.join('\n\n')
-}
-
 /**
  * Render a Calvin commentary paragraph with structural markup:
  *   <vq>...</vq>  → bold verse quote
@@ -708,7 +626,7 @@ function CommentarySidebar({
 
   // Get commentaries for current chapter from current work.
   // Keep chapter introductions (verse 0) first, then verse-order.
-  const chapterCommentaries = (
+  const chapterCommentaries = useMemo(() => (
     currentWorkData?.book === bookName
       ? currentWorkData.commentaries.filter(c => c.chapter === chapter)
       : []
@@ -722,7 +640,7 @@ function CommentarySidebar({
     if (aStart !== bStart) return aStart - bStart
 
     return String(a.reference || '').localeCompare(String(b.reference || ''))
-  })
+  }), [bookName, chapter, currentWorkData])
 
   // Get introduction sections
   const introductionSections = (currentWorkData?.book === bookName && currentWorkData?.introduction) || []
@@ -778,7 +696,7 @@ function CommentarySidebar({
     if (isNewClick) {
       // New verse click — clear collapsed flag and expand
       userCollapsed.current.delete(verseKey)
-      setExpandedVerses(prev => ({ ...prev, [verseKey]: true }))
+      setExpandedVerses(prev => prev[verseKey] ? prev : ({ ...prev, [verseKey]: true }))
 
       // Scroll the commentary tile into view
       requestAnimationFrame(() => {
@@ -792,7 +710,7 @@ function CommentarySidebar({
     } else {
       // Same verse re-selected — only expand if user hasn't collapsed it
       if (!userCollapsed.current.has(verseKey)) {
-        setExpandedVerses(prev => ({ ...prev, [verseKey]: true }))
+        setExpandedVerses(prev => prev[verseKey] ? prev : ({ ...prev, [verseKey]: true }))
       }
     }
   }, [selectedVerse, chapterCommentaries])
@@ -879,8 +797,9 @@ function CommentarySidebar({
         secondaryTranslationId: parallelTranslationId,
         secondaryBibleData: parallelBibleData,
         includeParallel: Boolean(parallelMode && parallelTranslationId && parallelBibleData),
+        verseTextResolver: getVerseTextWithPsalmSuperscription,
       })
-      await navigator.clipboard.writeText(text)
+      await writeTextToClipboard(text)
       onShowToast?.(
         activeVerses.length > 1
           ? `Copied ${activeVerses.length} verses`
@@ -1024,10 +943,10 @@ function CommentarySidebar({
               className={`flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-r border-gray-300 dark:border-gray-600 ${
                 multiSelectMode ? 'bg-blue-100 dark:bg-blue-900/40' : ''
               }`}
-              title={multiSelectMode ? 'Stop selecting multiple verses' : 'Select multiple verses'}
+              title={multiSelectMode ? 'Finish selecting verses' : 'Enter verse selection mode'}
             >
               <span className="text-xl">{multiSelectMode ? '✅' : '☑️'}</span>
-              <span className="text-[11px] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 mt-0.5">Select More</span>
+              <span className="text-[11px] text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 mt-0.5">Select Verses</span>
             </button>
           )}
           <button

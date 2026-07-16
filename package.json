@@ -1,6 +1,6 @@
 {
   "name": "bible-study-tool",
-  "private": false,
+  "private": true,
   "version": "1.1.13",
   "type": "module",
   "engines": {
@@ -8,8 +8,10 @@
   },
   "scripts": {
     "dev": "vite",
+    "test": "npm run test:unit && npm run test:protocol",
+    "test:unit": "vitest run",
+    "test:protocol": "node --test tests/*.test.mjs",
     "build": "vite build",
-    "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",

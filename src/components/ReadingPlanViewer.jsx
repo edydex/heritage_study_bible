@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES } from '../data/resources'
 import {
-  COMMENTS_ITEM_TYPE,
+  PLAN_PROGRESS_VERSION,
   PLAN_NOTE_ITEM_TYPE,
   PLAN_NOTES_BASE_URL,
   bookToSlug,
@@ -21,13 +21,14 @@ import {
   parsePassageStart,
   planNotesApi,
   saveActiveReadingPlan,
-  savePlanGroups,
   savePlanProgress,
+  setPlanDayNote,
   setPlanDayComplete,
   todayIsoDate,
   togglePlanItem,
 } from '../services/readingPlanProgress'
 import { addNativeBackListener } from '../services/androidControls'
+import { getRemoteContentItem } from '../services/contentServers'
 
 const PLAN_CACHE_VERSION = 1
 const DAY_STRIP_RADIUS = 7
@@ -47,32 +48,6 @@ function writeJson(key, value) {
   } catch {
     // no-op
   }
-}
-
-function parseJoinLink(value) {
-  const text = String(value || '').trim()
-  if (!text) return null
-
-  try {
-    const url = new URL(text)
-    const params = new URLSearchParams(url.search)
-    if (!params.get('group') && url.hash.includes('?')) {
-      url.hash.slice(url.hash.indexOf('?') + 1).split('&').forEach(part => {
-        const [rawKey, rawValue] = part.split('=')
-        if (rawKey && rawValue) params.set(decodeURIComponent(rawKey), decodeURIComponent(rawValue))
-      })
-    }
-    const groupId = params.get('group') || params.get('groupId')
-    const inviteToken = params.get('invite') || params.get('inviteToken')
-    const planId = params.get('plan') || params.get('planId')
-    if (groupId && inviteToken) return { groupId, inviteToken, planId }
-  } catch {
-    // Fall through to compact token parsing.
-  }
-
-  const match = text.match(/group[=:]([a-z0-9_-]+).+invite[=:]([a-z0-9_-]+)/i)
-  if (match) return { groupId: match[1], inviteToken: match[2], planId: null }
-  return null
 }
 
 function formatDateForDay(startedOn, day) {
@@ -113,19 +88,21 @@ function ReadingPlanViewer() {
   const [showMoreSettings, setShowMoreSettings] = useState(false)
   const [showDayMenu, setShowDayMenu] = useState(false)
   const [selectedDay, setSelectedDay] = useState(null)
-  const [joinLink, setJoinLink] = useState('')
   const [groupBusy, setGroupBusy] = useState(false)
   const [groupMessage, setGroupMessage] = useState('')
   const [groupState, setGroupState] = useState(null)
   const [answerText, setAnswerText] = useState('')
   const [showMethodology, setShowMethodology] = useState(false)
+  const [reflectionExpanded, setReflectionExpanded] = useState(false)
+  const [reflectionText, setReflectionText] = useState('')
   const dayStripRef = useRef(null)
   const dayMenuHistoryRef = useRef(false)
   const dayMenuClosingFromBackRef = useRef(false)
   const pendingDayMenuCallbackRef = useRef(null)
 
   const category = RESOURCE_CATEGORIES.find(c => c.id === 'reading-plans')
-  const meta = category?.items.find(i => i.id === itemId)
+  const remotePlan = getRemoteContentItem(itemId)
+  const meta = category?.items.find(i => i.id === itemId) || remotePlan
   const [progressState, setProgressState] = useState(() => loadPlanProgress(itemId))
   const [groups, setGroups] = useState(() => loadPlanGroups())
 
@@ -159,7 +136,10 @@ function ReadingPlanViewer() {
       }
 
       try {
-        const response = await fetch(`${import.meta.env.BASE_URL}data/reading-plans/${itemId}.json`)
+        const planUrl = remotePlan?.contentType === 'readingPlans'
+          ? remotePlan.content.url
+          : `${import.meta.env.BASE_URL}data/reading-plans/${itemId}.json`
+        const response = await fetch(planUrl, remotePlan ? { credentials: 'omit', referrerPolicy: 'no-referrer' } : undefined)
         if (!response.ok) throw new Error('Plan not found')
         const data = await response.json()
         if (cancelled) return
@@ -188,7 +168,7 @@ function ReadingPlanViewer() {
 
     loadPlan()
     return () => { cancelled = true }
-  }, [itemId])
+  }, [itemId, remotePlan?.content?.url, remotePlan?.contentType])
 
   useEffect(() => {
     if (!plan) return
@@ -247,7 +227,7 @@ function ReadingPlanViewer() {
     return readings.find(reading => Number(reading.day) === Number(nextUnreadDay)) || selectedReading
   }, [nextUnreadDay, readings, selectedDayComplete, selectedReading])
   const primaryActionItem = useMemo(
-    () => getFirstIncompleteItem(primaryActionReading, progressState),
+    () => getFirstIncompleteItem(primaryActionReading, progressState) || getReadingItems(primaryActionReading)[0] || null,
     [primaryActionReading, progressState]
   )
   const primaryActionAdvancesDay = Boolean(
@@ -264,6 +244,14 @@ function ReadingPlanViewer() {
     const answers = groupState?.answers || []
     return answers.filter(answer => Number(answer.day) === Number(selectedReading?.day))
   }, [groupState, selectedReading?.day])
+  const savedReflection = selectedReading
+    ? (progressState.dayNotes?.[selectedReading.day] || '')
+    : ''
+
+  useEffect(() => {
+    setReflectionText(savedReflection)
+    setReflectionExpanded(Boolean(savedReflection.trim()))
+  }, [savedReflection, selectedReading?.day])
 
   useEffect(() => {
     if (!plan?.readings?.length) return
@@ -357,29 +345,6 @@ function ReadingPlanViewer() {
     refreshGroupState()
   }, [refreshGroupState])
 
-  useEffect(() => {
-    const groupId = searchParams.get('group')
-    const inviteToken = searchParams.get('invite')
-    if (groupId && inviteToken) {
-      setJoinLink(`${PLAN_NOTES_BASE_URL}/join?group=${encodeURIComponent(groupId)}&invite=${encodeURIComponent(inviteToken)}&plan=${encodeURIComponent(itemId)}`)
-      setShowMoreSettings(true)
-    }
-  }, [itemId, searchParams])
-
-  const saveGroupRecord = (record) => {
-    const next = {
-      ...groups,
-      [itemId]: {
-        ...(groups[itemId] || {}),
-        ...record,
-        planId: itemId,
-        updatedAt: new Date().toISOString(),
-      },
-    }
-    setGroups(next)
-    savePlanGroups(next)
-  }
-
   const updateProgress = (updater) => {
     setProgressState(prev => {
       const next = updater(prev)
@@ -406,14 +371,6 @@ function ReadingPlanViewer() {
       groupId: groupRecord?.groupId || null,
     })
 
-    if (targetItem.type === COMMENTS_ITEM_TYPE) {
-      const firstBibleItem = getReadingItems(targetReading).find(row => row.type === 'chapter')
-      if (firstBibleItem?.book && firstBibleItem?.chapter) {
-        navigate(`/${bookToSlug(firstBibleItem.book)}/${firstBibleItem.chapter}`)
-      }
-      return
-    }
-
     if (targetItem.type === PLAN_NOTE_ITEM_TYPE) {
       const notePath = getPlanNotePath(itemId, targetReading.day, targetItem.id)
       if (notePath) navigate(notePath)
@@ -430,7 +387,7 @@ function ReadingPlanViewer() {
   const openDay = (reading) => {
     if (!reading) return
     setSelectedDay(reading.day)
-    openPlanItem(reading, getFirstIncompleteItem(reading, progressState))
+    openPlanItem(reading, getFirstIncompleteItem(reading, progressState) || getReadingItems(reading)[0])
   }
 
   const toggleItem = (reading, itemIdToToggle) => {
@@ -440,6 +397,11 @@ function ReadingPlanViewer() {
   const toggleSelectedDay = () => {
     if (!selectedReading) return
     updateProgress(prev => setPlanDayComplete(prev, selectedReading, !selectedDayComplete))
+  }
+
+  const saveSelectedReflection = () => {
+    if (!selectedReading) return
+    updateProgress(prev => setPlanDayNote(prev, selectedReading.day, reflectionText))
   }
 
   const handleStartDateChange = (value) => {
@@ -457,7 +419,7 @@ function ReadingPlanViewer() {
   const resetProgress = () => {
     if (!confirm('Reset all progress for this reading plan?')) return
     const next = {
-      version: 3,
+      version: PLAN_PROGRESS_VERSION,
       completedItems: {},
       completedDays: [],
       startedOn,
@@ -483,67 +445,6 @@ function ReadingPlanViewer() {
   useEffect(() => {
     dayStripRef.current?.scrollTo?.({ left: 0, behavior: 'auto' })
   }, [dayStripStart, itemId])
-
-  const handleCreateGroup = async () => {
-    if (!plan) return
-    const displayName = prompt('Your display name for this plan group?', 'Leader')
-    if (!displayName) return
-
-    setGroupBusy(true)
-    setGroupMessage('')
-    try {
-      const result = await planNotesApi.createGroup({
-        planId: itemId,
-        planTitle: plan.title,
-        displayName,
-      })
-      saveGroupRecord({
-        groupId: result.groupId,
-        inviteToken: result.inviteToken,
-        leaderToken: result.leaderToken,
-        participantToken: result.participantToken || result.leaderToken,
-        displayName,
-      })
-      setGroupMessage('Group created. Share the invite link with your people.')
-      setGroupState(result.state || null)
-    } catch (error) {
-      setGroupMessage('Could not create the group yet. The plan notes server may not be live.')
-    } finally {
-      setGroupBusy(false)
-    }
-  }
-
-  const handleJoinGroup = async () => {
-    const parsed = parseJoinLink(joinLink)
-    if (!parsed?.groupId || !parsed?.inviteToken) {
-      setGroupMessage('Paste a valid group invite link first.')
-      return
-    }
-
-    const displayName = prompt('Your display name for this group?', 'Reader')
-    if (!displayName) return
-
-    setGroupBusy(true)
-    setGroupMessage('')
-    try {
-      const result = await planNotesApi.joinGroup(parsed.groupId, parsed.inviteToken, {
-        planId: parsed.planId || itemId,
-        displayName,
-      })
-      saveGroupRecord({
-        groupId: parsed.groupId,
-        inviteToken: parsed.inviteToken,
-        participantToken: result.participantToken,
-        displayName,
-      })
-      setGroupMessage('Joined the plan group.')
-      setGroupState(result.state || null)
-    } catch (error) {
-      setGroupMessage('Could not join the group yet. Check the link or server status.')
-    } finally {
-      setGroupBusy(false)
-    }
-  }
 
   const handleCopyInvite = async () => {
     if (!groupRecord?.groupId || !groupRecord?.inviteToken) return
@@ -683,7 +584,6 @@ function ReadingPlanViewer() {
                 const date = formatDateForDay(startedOn, reading.day)
                 const items = getReadingItems(reading)
                 const summary = items
-                  .filter(item => item.type !== COMMENTS_ITEM_TYPE)
                   .map(item => item.label)
                   .join(', ')
 
@@ -821,7 +721,7 @@ function ReadingPlanViewer() {
                   return (
                     <div
                       key={item.id}
-                      className={`flex items-start gap-3 py-4 border-b border-gray-200 dark:border-gray-700 ${isPlanNote ? 'bg-amber-50/60 dark:bg-amber-900/10 -mx-3 px-3 rounded-lg border-b-transparent' : ''}`}
+                    className={`flex items-start gap-3 py-3 border-b border-gray-200 dark:border-gray-700 ${isPlanNote ? 'bg-amber-50/60 dark:bg-amber-900/10 -mx-3 px-3 rounded-lg border-b-transparent' : ''}`}
                     >
                       <button
                         onClick={() => toggleItem(selectedReading, item.id)}
@@ -843,12 +743,12 @@ function ReadingPlanViewer() {
                             {item.label}
                           </span>
                           {isPlanNote && item.note && (
-                            <span className="mt-1 block text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                            <span className="mt-1 block text-sm leading-relaxed text-gray-600 dark:text-gray-300 line-clamp-2">
                               {item.note}
                             </span>
                           )}
                           <span className="block text-xs text-gray-500 dark:text-gray-400">
-                            {item.type === COMMENTS_ITEM_TYPE ? (done ? 'Finished' : 'Talk it over') : isPlanNote ? (done ? 'Finished' : 'Plan note') : (done ? 'Finished' : 'Tap to read')}
+                            {isPlanNote ? (done ? 'Finished' : 'Plan note') : (done ? 'Finished' : 'Tap to read')}
                           </span>
                         </button>
                         {isPlanNote && getPlanNoteSources(item).length > 0 && (
@@ -881,12 +781,49 @@ function ReadingPlanViewer() {
               </div>
             </section>
 
+            <section className="mb-6 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setReflectionExpanded(value => !value)}
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
+                aria-expanded={reflectionExpanded}
+              >
+                <span>
+                  <span className="block text-base font-semibold text-gray-900 dark:text-gray-100">Reflection</span>
+                  <span className="block text-xs text-gray-500 dark:text-gray-400">
+                    Optional{savedReflection.trim() ? ' · saved locally' : ' · notes or prayer points'}
+                  </span>
+                </span>
+                <span className={`text-gray-500 transition-transform ${reflectionExpanded ? 'rotate-180' : ''}`}>⌄</span>
+              </button>
+              {reflectionExpanded && (
+                <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-4">
+                  <textarea
+                    value={reflectionText}
+                    onChange={event => setReflectionText(event.target.value)}
+                    rows={3}
+                    autoComplete="on"
+                    autoCorrect="on"
+                    spellCheck={true}
+                    placeholder="Write thoughts, notes, or prayer points from today's reading."
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  />
+                  <button
+                    onClick={saveSelectedReflection}
+                    className="mt-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold"
+                  >
+                    Save Reflection
+                  </button>
+                </div>
+              )}
+            </section>
+
             <section className="mb-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
               <div className="flex items-center justify-between gap-3 mb-3">
                 <div>
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Group Plan</h3>
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Community Plan</h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {groupRecord ? 'Shared progress and answers for this plan.' : 'Join by link or create a shared plan when the server is live.'}
+                    {groupRecord ? 'Shared progress and answers for this legacy plan group.' : 'Church-hosted plans, events, and shared resources live in Communities.'}
                   </p>
                 </div>
                 {groupRecord && (
@@ -901,30 +838,12 @@ function ReadingPlanViewer() {
               </div>
 
               {!groupRecord ? (
-                <div className="space-y-3">
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input
-                      value={joinLink}
-                      onChange={event => setJoinLink(event.target.value)}
-                      placeholder="Paste group invite link"
-                      className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                    />
-                    <button
-                      onClick={handleJoinGroup}
-                      disabled={groupBusy}
-                      className="px-4 py-2 rounded-lg bg-primary text-white disabled:opacity-60"
-                    >
-                      Join
-                    </button>
-                  </div>
-                  <button
-                    onClick={handleCreateGroup}
-                    disabled={groupBusy}
-                    className="w-full py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
-                  >
-                    Create Group Plan
-                  </button>
-                </div>
+                <button
+                  onClick={() => navigate('/community')}
+                  className="w-full py-2.5 rounded-lg border border-primary/40 text-primary dark:text-blue-300 font-semibold"
+                >
+                  Open Community Home
+                </button>
               ) : (
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center gap-2">

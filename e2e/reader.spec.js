@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 
-async function openReader(page, path = '/#/genesis/1') {
+async function openReader(page, path = '/#/genesis/1', expectedVerse = '#verse-1-1') {
   await page.goto(path, { waitUntil: 'networkidle' })
-  await expect(page.locator('#verse-1-1')).toBeVisible({ timeout: 20_000 })
+  await expect(page.locator(expectedVerse)).toBeVisible({ timeout: 20_000 })
 }
 
 async function submitSearch(page, query) {
@@ -59,5 +59,38 @@ test.describe('Heritage reader', () => {
 
     await page.getByTestId('open-bookmarks').click()
     await expect(page.getByText('No bookmarks yet. Click the star on any verse or commentary to bookmark it!')).toBeVisible()
+  })
+
+  test('selects multiple verses with the phone action bar', async ({ page }) => {
+    const reactUpdateErrors = []
+    page.on('console', message => {
+      if (message.type() === 'error' && message.text().includes('Maximum update depth exceeded')) {
+        reactUpdateErrors.push(message.text())
+      }
+    })
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await openReader(page, '/#/jeremiah/20', '#verse-20-1')
+
+    await page.locator('#verse-20-13 .verse-text').click()
+    const enterSelection = page.getByRole('button', { name: /Select Verses/ })
+    await expect(enterSelection).toBeVisible()
+    await enterSelection.click()
+
+    const actions = page.getByRole('region', { name: 'Verse selection actions' })
+    await expect(actions).toBeVisible()
+    await expect(enterSelection).toBeHidden()
+    await expect(page.locator('#verse-20-13')).toHaveAttribute('aria-pressed', 'true')
+
+    await page.locator('#verse-20-14').click()
+    await expect(page.locator('#verse-20-14')).toHaveAttribute('aria-pressed', 'true')
+    await expect(actions.getByText('2 verses selected')).toBeVisible()
+    await expect(actions.getByRole('button', { name: /Copy/ })).toBeVisible()
+    await expect(actions.getByRole('button', { name: /Compare/ })).toBeVisible()
+
+    await actions.getByRole('button', { name: 'Done' }).click()
+    await expect(actions).toBeHidden()
+    await expect(page.getByRole('button', { name: /Select Verses/ })).toBeVisible()
+    expect(reactUpdateErrors).toEqual([])
   })
 })

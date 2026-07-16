@@ -18,6 +18,27 @@ export const RESOURCE_CATEGORIES = [
     ]
   },
   {
+    id: 'songs',
+    title: 'Songs & Hymns',
+    icon: '🎵',
+    color: 'bg-rose-50 dark:bg-rose-900/30 border-rose-200 dark:border-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900/50',
+    items: [],
+  },
+  {
+    id: 'sermons',
+    title: 'Sermons',
+    icon: '🎙️',
+    color: 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900/50',
+    items: [],
+  },
+  {
+    id: 'commentaries',
+    title: 'Commentaries',
+    icon: '📝',
+    color: 'bg-cyan-50 dark:bg-cyan-900/30 border-cyan-200 dark:border-cyan-700 hover:bg-cyan-100 dark:hover:bg-cyan-900/50',
+    items: [],
+  },
+  {
     id: 'confessions',
     title: 'Confessions & Creeds',
     icon: '⛪',

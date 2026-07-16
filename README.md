@@ -1,119 +1,120 @@
 # Heritage Study Bible
 
-A modern, responsive web application for reading and studying the Bible with commentary support.
+Heritage is a Bible-reading and church-resource app for the web and Android.
+It is designed to work well as a useful standalone study Bible while also
+letting a church turn the same app into its own library and community hub.
 
-## Features
+## Product model
 
-- 📖 **Complete Bible** - All 66 books of the Bible (World English Bible translation - public domain)
-- **Commentary Support** - Includes John Calvin's commentaries (48 books) and Gavin Ortlund on Revelation
-- 🔍 **Full-text Search** - Search across all Bible verses and available commentary
-- ⭐ **Bookmarks** - Save verses and commentary with personal notes
-- 📱 **Mobile-first Design** - Responsive interface with touch-friendly navigation
-- 🎨 **Clean UI** - Modern, distraction-free reading experience
+Heritage has three deliberately separate layers:
 
-## Live Demo
+1. **The app and bundled library** provide Scripture, commentary, search,
+   bookmarks, notes, reading plans, and offline-friendly reading without an
+   account.
+2. **Content Servers** are public, read-only static sites. A user reviews one
+   before adding it, then its Bible plans, songs, sermons, books, and
+   commentaries appear alongside bundled resources. Static servers cannot read
+   personal notes or sign users in.
+3. **Communities** are optional church-hosted services. They include a Content
+   Server plus email sign-in, memberships, shared plan cohorts and notes,
+   events, RSVPs, calendar export, and storage for client-encrypted sync data.
 
-Visit: [https://edydex.github.io/bible_study_tool/](https://edydex.github.io/bible_study_tool/)
+The static Content Server contract lives in [`protocol/`](protocol/). The
+reference dynamic service is the separate deployable in
+[`community-server/`](community-server/).
 
-## Getting Started
+## Current features
 
-### Prerequisites
+- Six Bible translations with parallel reading and versification support.
+- Source-backed paragraph and poetry layout where the translation source
+  publishes it; the BSB metadata is generated from its USFM source.
+- Commentary, library, transcript, Bible, and book search.
+- Verse and commentary bookmarks, notes, progress persistence, import/export,
+  and Android-native storage support.
+- A 365-day chronological plan with stable progress migration, contextual plan
+  notes, optional reflections, and compact plan-day navigation.
+- Android volume-button scrolling with configurable distance and animation.
+- Installable public Content Servers with preview, validation, metadata
+  refresh, on-demand resource loading, and explicit offline saves.
+- Multiple Community registrations with one primary community, email magic
+  links, events, RSVPs, reminders in exported calendar files, and public
+  content installation.
 
-- Node.js 18+
-- npm
+## App development
 
-### Installation
+Use Node.js 22 or newer.
 
-```bash
-# Clone the repository
-git clone https://github.com/edydex/bible_study_tool.git
-cd bible_study_tool
-
-# Install dependencies
+```sh
 npm install
-
-# Start development server
 npm run dev
 ```
 
-### Build for Production
+Validation:
 
-```bash
+```sh
+npm test
 npm run build
+git diff --check
 ```
 
-### Deploy to GitHub Pages
+The web app uses React 19, Vite 6, Tailwind CSS 4, and a hash router so the same
+build can be hosted statically and embedded in Capacitor. Android build and
+debug instructions are in [`ANDROID.md`](ANDROID.md).
 
-```bash
-npm run deploy
+## Content Server development
+
+A static server publishes `/heritage-content.json`, one catalog per supported
+resource type, and the files referenced by those catalogs. URLs may be
+relative, but the host must allow cross-origin `GET` requests.
+
+The companion `foolish-and-weak` repository is the reference static server. It
+uses Eleventy and Decap CMS, including structured editors for Bible plans,
+songs and attachments, sermons, books, and commentary. Its local Decap proxy
+works without a GitLab account:
+
+```sh
+npm install
+npm run dev:cms
+# open http://localhost:8080/admin/
 ```
 
-## Project Structure
+The first screen may still say **Login**; clicking it enters the credential-free
+local proxy and writes edits into that working tree.
 
-```
-src/
-├── components/       # React components
-│   ├── Header.jsx
-│   ├── BibleChapter.jsx
-│   ├── CommentarySidebar.jsx
-│   ├── BookmarkManager.jsx
-│   ├── SearchResults.jsx
-│   └── MobileBottomNav.jsx
-├── data/
-│   ├── bible-web.json      # Complete WEB Bible (66 books)
-│   ├── bible-books.js      # Book metadata
-│   ├── ortlund-commentary.json
-│   └── authors.js          # Commentary author management
-├── hooks/
-│   └── useBookmarks.js     # Bookmark persistence
-└── App.jsx                 # Main application
+## Community server development
+
+The reference server uses Payload, Next.js, and PostgreSQL and is deployed
+independently from the static app.
+
+```sh
+cd community-server
+cp .env.example .env
+docker compose up -d postgres
+npm install --legacy-peer-deps
+npm run dev
 ```
 
-## Tech Stack
+Open `http://localhost:3000/admin`, create the first system administrator, then
+create a Community and its initial owner Membership. Development uses a local
+JSON mail transport and returns a test magic link. Public/member-enabled
+production requires HTTPS and SMTP; every production server requires a strong
+Payload secret and backups. See
+[`community-server/README.md`](community-server/README.md) for the deployment
+contract.
 
-- **React 18** - UI framework
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **React Router** - Navigation (HashRouter for GitHub Pages)
-- **localStorage** - Bookmark persistence
+For production on a fresh Debian headless laptop, the guided installer handles
+Docker, secrets, PostgreSQL migrations, first-user/community setup, Cloudflare
+Tunnel, SMTP testing, backups, updates, restores, and closed-lid operation;
+Cloudflare and SMTP may both be skipped for local/SSH testing.
+Follow [`community-server/docs/SELF_HOSTING.md`](community-server/docs/SELF_HOSTING.md).
 
-## Bible Translation
+## Data and provenance
 
-This app uses the **World English Bible (WEB)** translation, which is in the public domain. The WEB is a modern English translation that is freely available for use without copyright restrictions.
+Bundled and remote resources retain source, rights, attribution, and revision
+metadata. Reading-plan item IDs are stable across day rebalancing so an updated
+plan does not silently discard completed chapters. Personal Community session
+tokens are intentionally excluded from Heritage backup exports.
 
-## Contributing
-
-Contributions are welcome! Feel free to:
-
-- Add commentary from other authors/sources
-- Improve the UI/UX
-- Add new features (cross-references, parallel translations, etc.)
-- Fix bugs or improve performance
-
-### Adding New Commentary
-
-Commentary data is stored in JSON format. To add new commentary:
-
-1. Create a JSON file following the structure in `src/data/ortlund-commentary.json`
-2. Register the author in `src/data/authors.js`
-3. The sidebar will automatically pick up new authors and their works
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- **World English Bible** - Public domain Bible translation
-- **Gavin Ortlund** - Revelation commentary content
-- Bible data sourced from [bolls.life API](https://bolls.life/)
-
-## Roadmap
-
-- [ ] Add more commentary sources
-- [ ] Cross-reference support
-- [ ] Reading plans
-- [ ] Audio Bible integration
-- [ ] Offline support (PWA)
-- [ ] Notes and highlighting
-- [ ] Share verses
+Heritage is MIT licensed. Individual Bible translations, books, commentaries,
+sermons, songs, and other resources retain their own stated licenses and
+attribution requirements.

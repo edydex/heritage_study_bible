@@ -1,5 +1,14 @@
 import { Capacitor } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
+import {
+  normalizeContentServerManifestUrl,
+  validateContentCatalog,
+  validateContentServerManifest,
+} from '../utils/contentProtocol.js'
+import {
+  normalizeCommunityManifestUrl,
+  validateCommunityManifest,
+} from '../utils/communityProtocol.js'
 
 export const STORAGE_KEYS = {
   bookmarks: 'bible-study-bookmarks',
@@ -20,6 +29,8 @@ export const STORAGE_KEYS = {
   readingPlanPrefix: 'heritage-reading-plan:',
   activeReadingPlan: 'heritage-reading-plan:active',
   readingPlanGroups: 'heritage-reading-plan:groups',
+  contentServers: 'heritage-content-servers-v2',
+  communities: 'heritage-communities-v1',
 }
 
 export const EXPORTABLE_EXACT_KEYS = [
@@ -40,6 +51,8 @@ export const EXPORTABLE_EXACT_KEYS = [
   STORAGE_KEYS.resourceBookmarks,
   STORAGE_KEYS.activeReadingPlan,
   STORAGE_KEYS.readingPlanGroups,
+  STORAGE_KEYS.contentServers,
+  STORAGE_KEYS.communities,
 ]
 
 export function isNativePlatform() {
@@ -103,6 +116,211 @@ function getAllLocalStorageKeys() {
   }
 }
 
+function parseRegistryArray(value) {
+  try {
+    const parsed = typeof value === 'string' ? JSON.parse(value) : value
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+function requireHttpUrl(value, label) {
+  const url = new URL(String(value || ''))
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
+    throw new Error(`${label} must use HTTP or HTTPS without embedded credentials.`)
+  }
+  url.hash = ''
+  return url.href
+}
+
+function safeOptionalString(value, maxLength = 500) {
+  return typeof value === 'string' ? value.slice(0, maxLength) : ''
+}
+
+function safeTimestamp(value) {
+  if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) return null
+  return value
+}
+
+function sanitizeCatalogItem(item) {
+  const result = {
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    content: {
+      url: requireHttpUrl(item.content.url, 'Content item URL'),
+      mediaType: safeOptionalString(item.content.mediaType, 150) || 'application/octet-stream',
+    },
+  }
+
+  if (item.artwork) result.artwork = requireHttpUrl(item.artwork, 'Content artwork URL')
+
+  for (const key of ['author', 'speaker', 'language', 'license', 'revision', 'updatedAt']) {
+    if (typeof item[key] === 'string') result[key] = safeOptionalString(item[key])
+  }
+  for (const key of ['year', 'publishedYear', 'totalDays']) {
+    if (Number.isFinite(Number(item[key]))) result[key] = Number(item[key])
+  }
+  for (const key of ['authors', 'tags', 'scripture']) {
+    if (Array.isArray(item[key])) {
+      result[key] = item[key]
+        .filter(value => typeof value === 'string')
+        .slice(0, 100)
+        .map(value => safeOptionalString(value, 200))
+    }
+  }
+  for (const key of ['sha256', 'etag']) {
+    if (typeof item.content?.[key] === 'string') result.content[key] = safeOptionalString(item.content[key], 200)
+  }
+  if (Number.isFinite(Number(item.content?.bytes))) result.content.bytes = Number(item.content.bytes)
+
+  return result
+}
+
+function sanitizeContentServerRecord(record, includeSubscriptionMetadata = true) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) {
+    throw new Error('Content server record must be an object.')
+  }
+
+  const manifestUrl = normalizeContentServerManifestUrl(requireHttpUrl(record.manifestUrl, 'Content manifest URL'))
+  const manifest = validateContentServerManifest(record.manifest, manifestUrl)
+  requireHttpUrl(manifestUrl, 'Content manifest URL')
+  if (manifest.website) requireHttpUrl(manifest.website, 'Content server website')
+  if (manifest.icon) requireHttpUrl(manifest.icon, 'Content server icon')
+
+  const catalogs = {}
+  for (const [contentType, catalogUrl] of Object.entries(manifest.catalogs)) {
+    requireHttpUrl(catalogUrl, `${contentType} catalog URL`)
+    const validated = validateContentCatalog(record.catalogs?.[contentType], contentType, catalogUrl)
+    catalogs[contentType] = {
+      schemaVersion: validated.schemaVersion,
+      contentType: validated.contentType,
+      updatedAt: safeTimestamp(validated.updatedAt),
+      items: validated.items.map(sanitizeCatalogItem),
+    }
+  }
+
+  const sanitized = {
+    manifestUrl,
+    manifest,
+    catalogs,
+    counts: Object.fromEntries(Object.entries(catalogs).map(([type, catalog]) => [type, catalog.items.length])),
+  }
+
+  if (includeSubscriptionMetadata) {
+    sanitized.addedAt = safeTimestamp(record.addedAt) || new Date(0).toISOString()
+    sanitized.lastCheckedAt = safeTimestamp(record.lastCheckedAt)
+    sanitized.enabled = record.enabled !== false
+  }
+  return sanitized
+}
+
+export function sanitizeContentServerRegistry(value) {
+  const result = []
+  const seen = new Set()
+  for (const record of parseRegistryArray(value)) {
+    try {
+      const sanitized = sanitizeContentServerRecord(record)
+      if (seen.has(sanitized.manifest.id)) continue
+      seen.add(sanitized.manifest.id)
+      result.push(sanitized)
+    } catch {
+      // Imported remote registries are untrusted. Invalid records are omitted.
+    }
+  }
+  return result
+}
+
+function sanitizeMember(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const member = {}
+  for (const key of ['id', 'name', 'displayName', 'email', 'role']) {
+    if (typeof value[key] === 'string') member[key] = safeOptionalString(value[key], 320)
+  }
+  return Object.keys(member).length ? member : null
+}
+
+function sanitizeCapabilities(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key, enabled]) => /^[a-z][a-zA-Z0-9]{0,63}$/.test(key) && typeof enabled === 'boolean'))
+}
+
+export function sanitizeCommunityRegistry(value) {
+  const result = []
+  const seen = new Set()
+
+  for (const record of parseRegistryArray(value)) {
+    try {
+      if (!record || typeof record !== 'object' || Array.isArray(record)) throw new Error('Invalid community record.')
+      const manifestUrl = normalizeCommunityManifestUrl(requireHttpUrl(record.manifestUrl, 'Community manifest URL'))
+      const storedAuth = record.manifest?.auth || {}
+      const manifest = validateCommunityManifest({
+        ...record.manifest,
+        auth: {
+          method: storedAuth.method,
+          requestPath: storedAuth.requestPath || storedAuth.requestUrl,
+          sessionPath: storedAuth.sessionPath || storedAuth.sessionUrl,
+        },
+      }, manifestUrl)
+
+      for (const [label, endpoint] of [
+        ['Community manifest URL', manifestUrl],
+        ['Community website', manifest.website],
+        ['Community content server URL', manifest.contentServerUrl],
+        ['Community API URL', manifest.apiBaseUrl],
+        ['Community sign-in URL', manifest.auth.requestUrl],
+        ['Community session URL', manifest.auth.sessionUrl],
+      ]) {
+        if (endpoint) requireHttpUrl(endpoint, label)
+      }
+
+      const contentPreview = sanitizeContentServerRecord(record.contentPreview, false)
+      const expectedContentUrl = normalizeContentServerManifestUrl(manifest.contentServerUrl)
+      if (contentPreview.manifestUrl !== expectedContentUrl) {
+        throw new Error('Community content server does not match its manifest.')
+      }
+      if (seen.has(manifest.id)) continue
+      seen.add(manifest.id)
+
+      manifest.capabilities = sanitizeCapabilities(manifest.capabilities)
+      const sanitized = {
+        manifestUrl,
+        manifest,
+        contentPreview,
+        status: record.status === 'joined' ? 'joined' : 'email-sent',
+        email: safeOptionalString(record.email, 320),
+        addedAt: safeTimestamp(record.addedAt) || new Date(0).toISOString(),
+        primary: record.primary === true,
+      }
+      const member = sanitizeMember(record.member)
+      if (member) sanitized.member = member
+      result.push(sanitized)
+    } catch {
+      // Imported remote registries are untrusted. Invalid records are omitted.
+    }
+  }
+
+  let keptPrimary = false
+  result.forEach(record => {
+    if (record.primary && !keptPrimary) keptPrimary = true
+    else if (record.primary) record.primary = false
+  })
+  if (result.length && !keptPrimary) result[0].primary = true
+  return result
+}
+
+function sanitizeImportedValue(key, value) {
+  if (key === STORAGE_KEYS.contentServers) {
+    return JSON.stringify(sanitizeContentServerRegistry(value))
+  }
+  if (key === STORAGE_KEYS.communities) {
+    return JSON.stringify(sanitizeCommunityRegistry(value))
+  }
+  return value
+}
+
 export async function exportHeritageData() {
   const keys = new Set(EXPORTABLE_EXACT_KEYS)
   for (const key of getAllLocalStorageKeys()) {
@@ -132,7 +350,7 @@ export async function importHeritageData(payload) {
   for (const [key, value] of entries) {
     if (typeof value !== 'string') continue
     const allowed = EXPORTABLE_EXACT_KEYS.includes(key) || key.startsWith(STORAGE_KEYS.readingPlanPrefix)
-    if (allowed) await setStoredValue(key, value)
+    if (allowed) await setStoredValue(key, sanitizeImportedValue(key, value))
   }
 
   return entries.length

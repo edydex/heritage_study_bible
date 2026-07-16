@@ -75,6 +75,7 @@ export const DEFAULT_TRANSLATION = 'BSB'
 // Module-level cache for loaded translations
 const translationCache = new Map()
 const versificationCache = new Map()
+const verseLayoutCache = new Map()
 
 export function getTranslationById(translationId) {
   return translations.find(t => t.id === translationId) || null
@@ -96,6 +97,34 @@ export async function loadTranslation(translationId) {
   const data = await resp.json()
   translationCache.set(translationId, data)
   return data
+}
+
+/**
+ * Load optional source-backed paragraph/poetry metadata. Translation text files
+ * intentionally stay compact, so richer USFM layout is stored separately.
+ */
+export async function loadTranslationLayout(translationId) {
+  if (verseLayoutCache.has(translationId)) {
+    return verseLayoutCache.get(translationId)
+  }
+
+  const url = `${import.meta.env.BASE_URL}data/verse-layout/${translationId}.json`
+  try {
+    const resp = await fetch(url)
+    if (resp.status === 404) {
+      verseLayoutCache.set(translationId, null)
+      return null
+    }
+    if (!resp.ok) throw new Error(`Failed to load ${translationId} layout: ${resp.status}`)
+    const data = await resp.json()
+    const verses = data?.verses || null
+    verseLayoutCache.set(translationId, verses)
+    return verses
+  } catch (error) {
+    console.warn(`Optional verse layout unavailable for ${translationId}:`, error)
+    verseLayoutCache.set(translationId, null)
+    return null
+  }
 }
 
 /**

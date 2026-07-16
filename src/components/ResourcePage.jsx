@@ -4,6 +4,10 @@ import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
 import { DEFAULT_TRANSLATION, loadTranslation } from '../data/translations'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from '../utils/librarySearch'
 import SearchResults from './SearchResults'
+import {
+  CONTENT_SERVERS_CHANGE_EVENT,
+  getRemoteContentItemsForCategory,
+} from '../services/contentServers'
 
 function ResourceTag({ tag }) {
   const colors = TAG_COLORS[tag]
@@ -69,7 +73,7 @@ function matchesFilters(item, filters) {
   return true
 }
 
-const CLICKABLE_CATEGORIES = ['confessions', 'books', 'reading-plans', 'tools']
+const CLICKABLE_CATEGORIES = ['confessions', 'books', 'reading-plans', 'tools', 'songs', 'sermons', 'commentaries']
 
 function ResourcePage() {
   const { categoryId } = useParams()
@@ -88,6 +92,14 @@ function ResourcePage() {
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchResults, setSearchResults] = useState(null)
   const [bibleSearchData, setBibleSearchData] = useState(null)
+  const [remoteItems, setRemoteItems] = useState(() => getRemoteContentItemsForCategory(categoryId))
+
+  useEffect(() => {
+    const refresh = () => setRemoteItems(getRemoteContentItemsForCategory(categoryId))
+    refresh()
+    window.addEventListener(CONTENT_SERVERS_CHANGE_EVENT, refresh)
+    return () => window.removeEventListener(CONTENT_SERVERS_CHANGE_EVENT, refresh)
+  }, [categoryId])
 
   useEffect(() => {
     let cancelled = false
@@ -129,14 +141,15 @@ function ResourcePage() {
   const trimmedQuery = searchQuery.trim()
 
   const items = useMemo(() => {
-    if (!isConfessions && !isBooks) return category.items
-    return [...category.items].sort((a, b) => {
+    const combined = [...category.items, ...remoteItems]
+    if (!isConfessions && !isBooks) return combined
+    return combined.sort((a, b) => {
       const ay = Number.isFinite(a.year) ? a.year : Number.POSITIVE_INFINITY
       const by = Number.isFinite(b.year) ? b.year : Number.POSITIVE_INFINITY
       if (ay !== by) return ay - by
       return a.title.localeCompare(b.title)
     })
-  }, [category.items, isBooks, isConfessions])
+  }, [category.items, isBooks, isConfessions, remoteItems])
 
   const availableTags = useMemo(() => {
     if (!isBooks) return []
@@ -246,6 +259,14 @@ function ResourcePage() {
   }
 
   const handleItemClick = (item) => {
+    if (item.remote) {
+      if (categoryId === 'reading-plans') {
+        navigate(`/resources/reading-plans/${encodeURIComponent(item.contentKey)}`)
+      } else {
+        navigate(`/resources/content/${encodeURIComponent(item.contentKey)}`)
+      }
+      return
+    }
     if (isClickable) {
       navigate(`/resources/${categoryId}/${item.id}`)
     }
@@ -464,6 +485,11 @@ function ResourcePage() {
                             {item.title}
                           </h3>
                           {(isConfessions || isBooks) && item.tag && <ResourceTag tag={item.tag} />}
+                          {item.remote && (
+                            <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-primary dark:text-blue-300 font-medium">
+                              {item.sourceServerName}
+                            </span>
+                          )}
                         </div>
                         {isBooks && item.author && (
                           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{item.author}</p>
@@ -490,6 +516,13 @@ function ResourcePage() {
                 )
               })}
             </div>
+
+            {(isClickable && items.length === 0) && (
+              <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 text-center">
+                <p className="text-sm text-gray-600 dark:text-gray-300">No resources in this category yet.</p>
+                <button onClick={() => navigate('/settings/content-servers')} className="mt-2 text-sm font-semibold text-primary dark:text-blue-300 underline underline-offset-2">Add a Content Server</button>
+              </div>
+            )}
 
             {isBooks && (
               <div className="mt-5 text-center">

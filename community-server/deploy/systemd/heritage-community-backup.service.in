@@ -1,0 +1,28 @@
+[Unit]
+Description=Back up Heritage Community PostgreSQL and media
+Documentation=https://github.com/edydex/heritage_study_bible
+Requires=docker.service
+After=docker.service network-online.target
+ConditionPathExists=@INSTALL_DIR@/docker-compose.production.yml
+ConditionPathExists=@INSTALL_DIR@/.env.production
+
+[Service]
+Type=oneshot
+TimeoutStartSec=6h
+Environment=HERITAGE_INSTALL_DIR=@INSTALL_DIR@
+Environment=HERITAGE_BACKUP_DIR=@BACKUP_DIR@
+Environment=HERITAGE_BACKUP_RETENTION_DAYS=@RETENTION_DAYS@
+EnvironmentFile=-/etc/default/heritage-community
+ExecStart=@INSTALL_DIR@/deploy/backup.sh --scheduled --quiesce
+UMask=0077
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true

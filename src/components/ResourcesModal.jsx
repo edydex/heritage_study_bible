@@ -1,8 +1,17 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RESOURCE_CATEGORIES } from '../data/resources'
+import { CONTENT_SERVERS_CHANGE_EVENT, getRemoteContentItemsForCategory } from '../services/contentServers'
 
 function ResourcesModal({ onClose }) {
   const navigate = useNavigate()
+  const [catalogRevision, setCatalogRevision] = useState(0)
+
+  useEffect(() => {
+    const refresh = () => setCatalogRevision(value => value + 1)
+    window.addEventListener(CONTENT_SERVERS_CHANGE_EVENT, refresh)
+    return () => window.removeEventListener(CONTENT_SERVERS_CHANGE_EVENT, refresh)
+  }, [])
 
   const handleCategoryClick = (categoryId) => {
     onClose()
@@ -37,9 +46,15 @@ function ResourcesModal({ onClose }) {
             >
               {cat.icon && <span className="text-2xl">{cat.icon}</span>}
               <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm text-center">{cat.title}</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">{cat.items.length} items</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {cat.items.length + getRemoteContentItemsForCategory(cat.id).length} items
+              </span>
             </button>
           ))}
+        </div>
+        <div className="px-4 pb-4 -mt-1 grid grid-cols-2 gap-2" data-catalog-revision={catalogRevision}>
+          <button onClick={() => { onClose(); navigate('/settings/content-servers') }} className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200">Content Servers</button>
+          <button onClick={() => { onClose(); navigate('/community') }} className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200">Community Home</button>
         </div>
       </div>
     </div>

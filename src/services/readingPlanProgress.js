@@ -1,6 +1,6 @@
-import { STORAGE_KEYS } from './persistentStorage'
+import { STORAGE_KEYS } from './persistentStorage.js'
 
-export const PLAN_PROGRESS_VERSION = 4
+export const PLAN_PROGRESS_VERSION = 5
 export const PLAN_NOTES_BASE_URL = 'https://plannotes.heritage.faith'
 export const COMMENTS_ITEM_TYPE = 'comments'
 export const PLAN_NOTE_ITEM_TYPE = 'plan-note'
@@ -45,11 +45,11 @@ export function parseIsoDate(dateText) {
 }
 
 export function parsePassageStart(passage) {
-  const match = String(passage || '').match(/^(.+?)\s+(\d+)(?::\d+)?(?:-\d+(?::\d+)?)?$/)
-  if (!match) return null
+  const parsed = parsePassageReference(passage)
+  if (!parsed) return null
   return {
-    book: match[1],
-    chapter: Number(match[2]),
+    book: parsed.book,
+    chapter: parsed.startChapter,
   }
 }
 
@@ -57,23 +57,57 @@ export function bookToSlug(bookName) {
   return String(bookName || '').toLowerCase().replace(/\s+/g, '-')
 }
 
-export function parsePassageChapters(passage) {
-  const match = String(passage || '').trim().match(/^(.+?)\s+(\d+)(?::\d+)?(?:-(\d+)(?::\d+)?)?$/)
-  if (!match) return []
+export function parsePassageReference(passage) {
+  const match = String(passage || '').trim().match(
+    /^(.+?)\s+(\d+)(?::(\d+))?(?:-(?:(\d+):)?(\d+))?$/
+  )
+  if (!match) return null
 
   const book = match[1]
-  const start = Number(match[2])
-  const end = Number(match[3] || match[2])
-  if (!Number.isInteger(start) || !Number.isInteger(end)) return []
+  const startChapter = Number(match[2])
+  const startVerse = match[3] ? Number(match[3]) : null
+  const explicitEndChapter = match[4] ? Number(match[4]) : null
+  const rangeEnd = match[5] ? Number(match[5]) : null
 
-  const first = Math.min(start, end)
-  const last = Math.max(start, end)
-  return Array.from({ length: last - first + 1 }, (_, index) => {
-    const chapter = first + index
+  let endChapter = startChapter
+  let endVerse = null
+  if (rangeEnd != null) {
+    if (explicitEndChapter != null) {
+      endChapter = explicitEndChapter
+      endVerse = rangeEnd
+    } else if (startVerse != null) {
+      // A range such as 22:1-2 stays inside chapter 22.
+      endVerse = rangeEnd
+    } else {
+      // Without a starting verse, 22-23 is a chapter range.
+      endChapter = rangeEnd
+    }
+  } else if (startVerse != null) {
+    endVerse = startVerse
+  }
+
+  if (![startChapter, endChapter].every(value => Number.isInteger(value) && value > 0)) return null
+  if (endChapter < startChapter) return null
+
+  return {
+    book,
+    startChapter,
+    startVerse,
+    endChapter,
+    endVerse,
+  }
+}
+
+export function parsePassageChapters(passage) {
+  const parsed = parsePassageReference(passage)
+  if (!parsed) return []
+
+  return Array.from({ length: parsed.endChapter - parsed.startChapter + 1 }, (_, index) => {
+    const chapter = parsed.startChapter + index
     return {
-      book,
+      book: parsed.book,
       chapter,
-      label: `${book} ${chapter}`,
+      label: `${parsed.book} ${chapter}`,
       passage,
     }
   })
@@ -88,7 +122,7 @@ export function getLegacyPlanItemId(day, index) {
 }
 
 export function getPlanItemId(day, book, chapter) {
-  return `day-${Number(day)}-chapter-${bookToSlug(book)}-${Number(chapter)}`
+  return `chapter-${bookToSlug(book)}-${Number(chapter)}`
 }
 
 export function getCommentsItemId(day) {
@@ -96,7 +130,7 @@ export function getCommentsItemId(day) {
 }
 
 export function getPlanNoteItemId(day, noteId, index) {
-  return `day-${Number(day)}-note-${String(noteId || index + 1).toLowerCase().replace(/[^a-z0-9_-]+/g, '-')}`
+  return `note-${String(noteId || index + 1).toLowerCase().replace(/[^a-z0-9_-]+/g, '-')}`
 }
 
 export function getPlanNotePath(planId, day, itemId) {
@@ -157,18 +191,7 @@ export function getBibleReadingItems(reading) {
 
 export function getReadingItems(reading) {
   if (!reading?.passages?.length && !reading?.items?.length) return []
-  const bibleItems = getBibleReadingItems(reading)
-  return [
-    ...bibleItems,
-    {
-      id: getCommentsItemId(reading.day),
-      day: reading.day,
-      type: COMMENTS_ITEM_TYPE,
-      label: 'Comments',
-      passage: null,
-      index: bibleItems.length,
-    },
-  ]
+  return getBibleReadingItems(reading)
 }
 
 export function normalizeCompletedDays(days, totalDays = Number.POSITIVE_INFINITY) {
@@ -201,6 +224,7 @@ function emptyProgress(extra = {}) {
     startedOn: null,
     updatedAt: null,
     dayNotes: {},
+    planRevision: null,
     ...extra,
   }
 }
@@ -215,6 +239,7 @@ export function loadPlanProgress(planId) {
       updatedAt: saved.updatedAt || null,
       groupId: saved.groupId || null,
       dayNotes: saved.dayNotes && typeof saved.dayNotes === 'object' ? saved.dayNotes : {},
+      planRevision: saved.planRevision || null,
     })
   }
 
@@ -244,14 +269,28 @@ export function savePlanProgress(planId, progress) {
     updatedAt: progress?.updatedAt || new Date().toISOString(),
     groupId: progress?.groupId || null,
     dayNotes: progress?.dayNotes && typeof progress.dayNotes === 'object' ? progress.dayNotes : {},
+    planRevision: progress?.planRevision || null,
   })
+}
+
+function legacyIdMatchesItem(id, item) {
+  const value = String(id || '')
+  if (item.type === 'chapter') {
+    return new RegExp(`^day-\\d+-chapter-${bookToSlug(item.book)}-${Number(item.chapter)}$`).test(value)
+  }
+  if (item.type === PLAN_NOTE_ITEM_TYPE) {
+    return new RegExp(`^day-\\d+-${item.id.replace(/^note-/, 'note-')}$`).test(value)
+  }
+  return false
 }
 
 export function normalizeProgressForPlan(progress, plan) {
   if (!plan?.readings?.length) return emptyProgress(progress)
 
-  const completedItems = normalizeCompletedItems(progress?.completedItems)
+  const savedCompletedItems = normalizeCompletedItems(progress?.completedItems)
+  const completedItems = {}
   const completedDays = normalizeCompletedDays(progress?.completedDays, plan.totalDays || Number.POSITIVE_INFINITY)
+  const allSavedIds = Object.values(savedCompletedItems).flat().map(String)
 
   for (const day of completedDays) {
     const reading = plan.readings.find(row => Number(row.day) === day)
@@ -261,10 +300,9 @@ export function normalizeProgressForPlan(progress, plan) {
 
   for (const reading of plan.readings) {
     const day = Number(reading.day)
-    const previousIds = new Set(completedItems[day] || [])
-    if (!previousIds.size) continue
+    const previousIds = new Set(savedCompletedItems[day] || [])
 
-    const nextIds = new Set(previousIds)
+    const nextIds = new Set(completedItems[day] || [])
     reading.passages?.forEach((passage, index) => {
       if (!previousIds.has(getLegacyPlanItemId(day, index))) return
       parsePassageChapters(passage).forEach(chapterRef => {
@@ -272,7 +310,18 @@ export function normalizeProgressForPlan(progress, plan) {
       })
       nextIds.delete(getLegacyPlanItemId(day, index))
     })
-    completedItems[day] = [...nextIds]
+
+    for (const item of getReadingItems(reading)) {
+      if (previousIds.has(item.id) || allSavedIds.some(id => id === item.id || legacyIdMatchesItem(id, item))) {
+        nextIds.add(item.id)
+      }
+    }
+
+    // Completion is scoped to the current plan contents. This drops the old
+    // required Comments item and stale IDs while retaining chapter/note work.
+    const validIds = new Set(getReadingItems(reading).map(item => item.id))
+    completedItems[day] = [...nextIds].filter(id => validIds.has(id))
+    if (!completedItems[day].length) delete completedItems[day]
   }
 
   return emptyProgress({
@@ -282,6 +331,7 @@ export function normalizeProgressForPlan(progress, plan) {
     startedOn: progress?.startedOn || null,
     updatedAt: progress?.updatedAt || null,
     dayNotes: progress?.dayNotes && typeof progress.dayNotes === 'object' ? progress.dayNotes : {},
+    planRevision: plan.revision || plan.generatorVersion || null,
   })
 }
 
@@ -317,7 +367,7 @@ export function getFirstIncompleteItem(reading, progress) {
   const items = getReadingItems(reading)
   if (!items.length) return null
   const completed = getCompletedItemSet(progress, reading.day)
-  return items.find(item => !completed.has(item.id)) || items[0]
+  return items.find(item => !completed.has(item.id)) || null
 }
 
 export function getPlanItemById(reading, itemId) {

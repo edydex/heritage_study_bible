@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
-  COMMENTS_ITEM_TYPE,
   getBibleReadingItems,
   getCompletedDayNumbers,
   getLegacyPlanItemId,
@@ -51,12 +50,8 @@ describe('parsePassageChapters', () => {
     ])
   })
 
-  it('expands chapter ranges in either order', () => {
-    expect(parsePassageChapters('Genesis 3-1')).toEqual([
-      { book: 'Genesis', chapter: 1, label: 'Genesis 1', passage: 'Genesis 3-1' },
-      { book: 'Genesis', chapter: 2, label: 'Genesis 2', passage: 'Genesis 3-1' },
-      { book: 'Genesis', chapter: 3, label: 'Genesis 3', passage: 'Genesis 3-1' },
-    ])
+  it('rejects descending chapter ranges', () => {
+    expect(parsePassageChapters('Genesis 3-1')).toEqual([])
   })
 
   it('returns an empty array for invalid passages', () => {
@@ -92,16 +87,13 @@ describe('normalizeCompletedDays', () => {
 
 describe('reading plan items', () => {
   it('builds stable chapter item ids', () => {
-    expect(getPlanItemId(5, '1 Corinthians', 13)).toBe('day-5-chapter-1-corinthians-13')
+    expect(getPlanItemId(5, '1 Corinthians', 13)).toBe('chapter-1-corinthians-13')
   })
 
-  it('expands passages into chapter items and appends comments', () => {
+  it('expands passages into chapter items without making reflection required', () => {
     const items = getReadingItems(sampleReading)
-    expect(items.filter(item => item.type === 'chapter')).toHaveLength(3)
-    expect(items.at(-1)).toMatchObject({
-      type: COMMENTS_ITEM_TYPE,
-      label: 'Comments',
-    })
+    expect(items).toHaveLength(3)
+    expect(items.every(item => item.type === 'chapter')).toBe(true)
   })
 
   it('supports structured reading items with notes and passages', () => {
@@ -193,11 +185,12 @@ describe('reading plan progress', () => {
   })
 
   it('returns neighboring plan items', () => {
-    const items = getReadingItems({ day: 1, passages: ['John 1'] })
+    const reading = { day: 1, passages: ['John 1-2'] }
+    const items = getReadingItems(reading)
     const first = items[0].id
     const second = items[1].id
-    expect(getPlanItemNeighbor({ day: 1, passages: ['John 1'] }, first, 'next')?.id).toBe(second)
-    expect(getPlanItemNeighbor({ day: 1, passages: ['John 1'] }, second, 'previous')?.id).toBe(first)
+    expect(getPlanItemNeighbor(reading, first, 'next')?.id).toBe(second)
+    expect(getPlanItemNeighbor(reading, second, 'previous')?.id).toBe(first)
   })
 
   it('persists and clears the active reading plan context', () => {
@@ -205,7 +198,7 @@ describe('reading plan progress', () => {
       planId: 'chronological-bible',
       planTitle: 'Chronological Bible',
       day: 5,
-      itemId: 'day-5-chapter-genesis-1',
+      itemId: 'chapter-genesis-1',
     })
 
     expect(saved.planId).toBe('chronological-bible')

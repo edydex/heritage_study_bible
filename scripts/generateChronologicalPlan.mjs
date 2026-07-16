@@ -3,7 +3,8 @@ import path from 'node:path'
 import { bibleBooks } from '../src/data/bible-books.js'
 
 const totalDays = 365
-const generatorVersion = 2
+const generatorVersion = 4
+const planRevision = '2026-07-late-judah-history-first'
 
 const sourceNotes = [
   {
@@ -34,6 +35,13 @@ const sourceNotes = [
     title: 'Josiah-era reform passages',
     use: '2 Kings 22-23 and 2 Chronicles 34-35 for Josiah, the book of the law, Huldah, and Judah\'s covenant reform.',
     url: 'https://www.biblegateway.com/passage/?search=2%20Kings%2022-23%3B%202%20Chronicles%2034-35&version=WEB',
+    rightsNote: 'Primary biblical reference data; translation text remains separately licensed.',
+  },
+  {
+    id: 'late_judah_biblical_timeline',
+    title: 'Late-Judah history and Jeremiah date notices',
+    use: '2 Kings 23:29-25:30 and 2 Chronicles 36 provide the controlling royal timeline; Jeremiah 21-52 supplies explicit reign, exile, siege, and aftermath notices within that frame.',
+    url: 'https://www.biblegateway.com/passage/?search=2%20Kings%2023%3A29-25%3A30%3B%202%20Chronicles%2036%3B%20Jeremiah%2021-52&version=WEB',
     rightsNote: 'Primary biblical reference data; translation text remains separately licensed.',
   },
   {
@@ -447,6 +455,14 @@ const chronologicalSections = [
         ['biblical_superscriptions', 'josiah_reform_context', 'nahum_nineveh_context', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
       note(
+        'josiah-context-before-jeremiah',
+        'Context first: Josiah\'s reform before Jeremiah',
+        'Jeremiah begins during Josiah\'s reign, so this plan first reads the complete Josiah reform overview in 2 Kings 22-23 and 2 Chronicles 34-35. That lets the discovery of the book of the law, Huldah\'s warning, the covenant renewal, the Passover, and Josiah\'s death establish the setting before Jeremiah 1 opens. This is a contextual overview: Jeremiah\'s ministry overlaps these events, so the placement is meant to orient the reader rather than claim that every event happened before Jeremiah spoke.',
+        ['biblical_superscriptions', 'josiah_reform_context', 'townsend_ot_nt', 'merrill_kings_prophets']
+      ),
+      '2 Kings 22-23',
+      '2 Chronicles 34-35',
+      note(
         'nahum-zephaniah-late-judah-setting',
         'Why Nahum and Zephaniah are here',
         'Zephaniah 1:1 explicitly places his ministry in Josiah\'s reign. Nahum is not dated by a king, but Nineveh is still the living object of the oracle, so the plan places Nahum in the late Assyrian period before Nineveh\'s fall. This is a writing-setting placement, not a jump forward to the fulfillment of the prophecy.',
@@ -456,25 +472,17 @@ const chronologicalSections = [
       'Zephaniah 1-3',
       note(
         'jeremiah-fall-of-jerusalem',
-        'Why Jeremiah begins before Jerusalem falls',
-        'Jeremiah 1:1-3 dates his ministry from Josiah\'s thirteenth year through the fall of Jerusalem. Jeremiah is not arranged like a simple diary, so the plan begins him in Josiah\'s reign and then keeps most of the book in larger era bands instead of trying to reshuffle every dated chapter into a perfect timeline.',
-        ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
+        'Jeremiah 1-20: the Josiah-era opening',
+        'Jeremiah 1:2 dates the prophet\'s call to Josiah\'s thirteenth year, while Jeremiah 1:3 says his ministry continued through Jehoiakim and Zedekiah. Chapters 1-20 contain the book\'s opening covenant warnings, but most individual units—including chapter 20—do not name a king or year. The plan therefore keeps this opening band readable after the Josiah history without claiming that every chapter happened before Josiah died.',
+        ['biblical_superscriptions', 'josiah_reform_context', 'late_judah_biblical_timeline', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
       'Jeremiah 1-20',
-      '2 Kings 22',
-      '2 Chronicles 34',
-      '2 Kings 23',
-      '2 Chronicles 35',
       note(
         'jeremiah-era-band-compromise',
-        'Why Jeremiah is not sorted chapter by chapter',
-        'Some Jeremiah chapters have very specific dates, but the book also collects sermons, narratives, restoration promises, and oracles in a non-linear shape. A strictly sorted Jeremiah would bounce back and forth so much that it becomes harder to read. This plan makes a tradeoff: it respects the clearest Josiah, Jehoiakim, Zedekiah, and fall-of-Jerusalem anchors, but keeps the middle of Jeremiah in broad late-monarchy bands.',
-        ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
+        'Historical frame after Jeremiah 20',
+        'Jeremiah is not a simple diary, and chapter 20 itself gives no king or year. Instead of inventing a date or scattering the book chapter by chapter, the plan now pauses for the late-Judah historical spine. 2 Kings 23:31-37 has already introduced Jehoahaz and Jehoiakim; after Habakkuk, 2 Kings 24 carries the narrative through Jehoiakim\'s Babylonian crisis, Jehoiachin\'s exile, and Zedekiah\'s accession before Jeremiah resumes. 2 Chronicles 36 covers the same kings but continues through Jerusalem\'s fall and Cyrus in one chapter, so it remains with the fall rather than pulling that whole later sequence forward.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
-      'Jeremiah 21-24',
-      'Jeremiah 25-26',
-      'Jeremiah 27-29',
-      'Jeremiah 30-36',
       note(
         'habakkuk-babylonian-rise-setting',
         'Why Habakkuk is here',
@@ -484,6 +492,34 @@ const chronologicalSections = [
       'Habakkuk 1-3',
       '2 Kings 24',
       note(
+        'jeremiah-last-kings-survey',
+        'Jeremiah 21-24: Zedekiah and the last kings',
+        'These chapters deliberately move within the historical frame just read. Jeremiah 21 opens during Zedekiah\'s Babylonian siege; chapter 22 looks back across Shallum or Jehoahaz, Jehoiakim, and Coniah or Jehoiachin; chapter 23 continues the royal-shepherd theme without a new date; and chapter 24 is explicitly after Jehoiachin and Jerusalem\'s leaders were deported. Compare 2 Kings 23:31-24:20 and 2 Chronicles 36:1-13. Keeping chapters 21-24 together preserves Jeremiah\'s royal unit while this note makes its internal backtracking visible.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
+      ),
+      'Jeremiah 21-24',
+      note(
+        'jeremiah-jehoiakim-fourth-year',
+        'Jeremiah 25-26: Jehoiakim',
+        'Jeremiah 25 is dated to Jehoiakim\'s fourth year, identified there as Nebuchadnezzar\'s first year, while Jeremiah 26 returns to the beginning of Jehoiakim\'s reign. Their royal setting corresponds broadly to 2 Kings 23:34-24:7 and 2 Chronicles 36:4-8. The order is not claiming that chapter 26 happened after chapter 25; these two Jehoiakim-era chapters stay together to avoid another unnecessary split.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
+      ),
+      'Jeremiah 25-26',
+      note(
+        'jeremiah-zedekiah-first-exiles',
+        'Jeremiah 27-29: Zedekiah and the first exiles',
+        'Jeremiah 27 addresses Zedekiah, chapter 28 is explicitly in Zedekiah\'s fourth year, and chapter 29 sends its letter after Jeconiah or Jehoiachin and Jerusalem\'s leaders had gone into exile. The controlling narrative is 2 Kings 24:10-20; 2 Chronicles 36:9-13 supplies the parallel summary. These chapters belong after the first deportation but before Jerusalem\'s final fall.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
+      ),
+      'Jeremiah 27-29',
+      note(
+        'jeremiah-consolation-siege-flashback',
+        'Jeremiah 30-36: promise, siege, then a Jehoiakim flashback',
+        'Jeremiah 30-31 gives an undated restoration promise. Chapters 32-34 then enter Zedekiah\'s final crisis—chapter 32 names his tenth year and the siege—before chapters 35-36 look back to Jehoiakim, with chapter 36 naming his fourth and fifth years. Compare the reign sequence in 2 Kings 24 and 2 Chronicles 36:4-13. The plan leaves 30-36 continuous because the promise-and-siege material is a coherent reading movement and splitting every dated flashback would make Jeremiah harder, not easier, to follow.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
+      ),
+      'Jeremiah 30-36',
+      note(
         'daniel-early-babylonian-exile',
         'Why Daniel begins here',
         'Daniel 1 opens in the third year of Jehoiakim and Daniel 2 is set in Nebuchadnezzar\'s second year. Those early Babylonian-court chapters belong with Judah\'s first Babylonian crisis rather than with the later Persian-era Daniel visions.',
@@ -492,21 +528,39 @@ const chronologicalSections = [
       'Daniel 1-2',
       note(
         'jeremiah-zedekiah-siege-anchors',
-        'Why these Jeremiah chapters follow the first exile',
-        'Jeremiah 37-38 sit in the last Zedekiah-era siege narrative, after Judah has already entered the Babylonian crisis but before Jerusalem finally falls. They are kept here as the clearest final-siege block before the fall is narrated in Kings, Chronicles, and Jeremiah itself.',
-        ['biblical_superscriptions', 'townsend_ot_nt', 'merrill_kings_prophets']
+        'Jeremiah 37-38: Zedekiah\'s final siege',
+        'Jeremiah 37-38 stays in Zedekiah\'s last siege, including the temporary Babylonian withdrawal when Pharaoh\'s army approaches and Jeremiah\'s confinement. 2 Kings 25:1-7 gives the controlling siege-and-capture sequence, and 2 Chronicles 36:11-20 gives its parallel summary. Those historical accounts are read before Jeremiah 39 narrates the city\'s fall.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
       'Jeremiah 37-38',
       note(
         'jeremiah-appendix-oracles',
-        'Why Jeremiah 45-51 stays together here',
-        'Jeremiah 45-51 is a Baruch-and-nations appendix near the end of the book. Some pieces point backward to Jehoiakim, and Jeremiah 51:59 links the Babylon scroll to Zedekiah\'s fourth year. Rather than scatter those chapters in several directions, the plan keeps the appendix together before Jerusalem falls and notes that its internal dates reach back across the late monarchy.',
-        ['biblical_superscriptions', 'townsend_ot_nt']
+        'Jeremiah 45-51: an appendix spanning two reigns',
+        'Jeremiah 45 and 46 are explicitly set in Jehoiakim\'s fourth year; chapter 47 is before Pharaoh struck Gaza; chapters 48-50 give no firm royal heading; and Jeremiah 51:59 reaches Zedekiah\'s fourth year. Rather than scatter this Baruch-and-nations appendix across several earlier days, the plan keeps it together before the fall and records its Jehoiakim-to-Zedekiah reach here.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'townsend_ot_nt']
       ),
       'Jeremiah 45-51',
+      note(
+        'late-judah-fall-history-first',
+        'History first: Jerusalem falls',
+        'Before returning to Jeremiah\'s fall narratives, the plan reads the historical anchors. 2 Kings 25 follows Zedekiah\'s siege and capture, the temple\'s destruction, Gedaliah\'s governorship and death, the remnant\'s flight to Egypt, and Jehoiachin\'s eventual release. 2 Chronicles 36 supplies the parallel Judah-and-temple summary and then reaches Cyrus. Reading Kings and Chronicles first makes their royal timeline the frame for Jeremiah 39-44 and 52, rather than making Jeremiah carry the chronology by itself.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'townsend_ot_nt', 'merrill_kings_prophets']
+      ),
       '2 Kings 25',
       '2 Chronicles 36',
+      note(
+        'jeremiah-fall-and-aftermath',
+        'Jeremiah 39-44: the fall and its aftermath',
+        'Jeremiah 39 expands Jerusalem\'s fall and Zedekiah\'s capture, paralleling 2 Kings 25:1-12 and 2 Chronicles 36:15-20. Jeremiah 40-41 expands the Gedaliah episode summarized in 2 Kings 25:22-25, and chapters 42-44 follow the surviving remnant into Egypt after the flight reported in 2 Kings 25:26. These chapters now follow the historical accounts they elaborate.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
+      ),
       'Jeremiah 39-44',
+      note(
+        'jeremiah-historical-appendix',
+        'Jeremiah 52: the historical appendix',
+        'Jeremiah 52 retells the final Zedekiah-era siege, destruction, deportations, and Jehoiachin\'s later release. It closely parallels the history already read in 2 Kings 24:18-25:30, with additional deportation details, so the plan keeps this appendix after Kings, Chronicles, and Jeremiah\'s own fall-and-aftermath narrative.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
+      ),
       'Jeremiah 52',
       'Lamentations 1-5',
       note(
@@ -1183,9 +1237,11 @@ const output = {
   attribution: 'Original generated plan for Heritage Study Bible. Built from public-domain-era chronology sources and bundled WEB character counts; not copied from a modern 365-day schedule.',
   licenseNote: 'The plan data is an original reference compilation generated by this project. Bible translation text remains separately licensed by translation module.',
   generatorVersion,
+  revision: planRevision,
   methodology: [
     'Build an ordered chapter sequence from independent chronology sections.',
     'Align historical narrative and retrospective books with the time period they describe, while noting when the placement is traditional rather than explicit.',
+    'During the monarchy, use Kings as the controlling reign-and-event sequence and Chronicles as its parallel Judah-and-temple frame; read those historical anchors before corresponding prophetic narratives when whole-chapter granularity permits, and use explicit cross-references when a single historical chapter spans too many eras to move cleanly.',
     'Align prophetic and other prospective books primarily by the prophet\'s ministry or likely writing setting, not by the later events being prophesied.',
     'When prophetic books give internal chapter-level date markers, split them at whole-chapter boundaries and keep undated adjacent material near the nearest anchored block.',
     'For long prophetic books whose internal order is mixed, prefer readable era bands over a brittle chapter-by-chapter reshuffle, and explain the compromise in a plan note.',

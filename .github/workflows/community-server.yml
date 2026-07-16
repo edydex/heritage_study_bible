@@ -1,0 +1,184 @@
+name: Community Server
+
+on:
+  pull_request:
+    paths:
+      - 'community-server/**'
+      - '.github/workflows/community-server.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'community-server/**'
+      - '.github/workflows/community-server.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: community-server
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Static validation
+        run: |
+          npm run test:deploy
+          npm run typecheck
+          npm run build
+
+      - name: Create isolated test configuration
+        run: |
+          cat >.env.production <<'EOF'
+          POSTGRES_DB=heritage_community
+          POSTGRES_USER=heritage
+          POSTGRES_PASSWORD=ci-database-password
+          DATABASE_URL=postgresql://heritage:ci-database-password@postgres:5432/heritage_community
+          PAYLOAD_SECRET=ci-payload-secret-at-least-thirty-two-characters
+          COMMUNITY_PUBLIC_URL=http://127.0.0.1:3300
+          COMMUNITY_ID=ci-church
+          COMMUNITY_NAME=CI Church
+          COMMUNITY_DESCRIPTION=Production stack integration test
+          COMMUNITY_TIME_ZONE=UTC
+          COMMUNITY_AUTH_ENABLED=true
+          HERITAGE_APP_URL=https://heritage.faith
+          HERITAGE_APP_ORIGINS=https://heritage.faith,https://localhost,capacitor://localhost,http://localhost
+          SMTP_HOST=smtp.invalid
+          SMTP_PORT=587
+          SMTP_USER=
+          SMTP_PASS="ci-$$-smtp-password"
+          SMTP_FROM=admin@example.org
+          SMTP_FROM_NAME=CI Church
+          COMMUNITY_LOCAL_PORT=3300
+          BACKUP_RETENTION_DAYS=2
+          TUNNEL_TOKEN=
+          BOOTSTRAP_ADMIN_NAME=CI Administrator
+          BOOTSTRAP_ADMIN_EMAIL=admin@example.org
+          BOOTSTRAP_ADMIN_PASSWORD="ci-$$-administrator-password"
+          EOF
+          chmod 600 .env.production
+
+      - name: Validate production Compose profiles
+        run: |
+          docker compose --env-file .env.production -f docker-compose.production.yml config --quiet
+          TUNNEL_TOKEN=ci-token docker compose --env-file .env.production -f docker-compose.production.yml \
+            --profile operations --profile cloudflare-token config --quiet
+
+      - name: Build, migrate, and start production containers
+        run: |
+          docker compose --env-file .env.production -f docker-compose.production.yml build community migrate
+          docker compose --env-file .env.production -f docker-compose.production.yml up -d postgres
+          docker compose --env-file .env.production -f docker-compose.production.yml \
+            --profile operations run --rm -T migrate
+          docker compose --env-file .env.production -f docker-compose.production.yml up -d community
+
+      - name: Verify bootstrap, isolation, and backup
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3300/.well-known/heritage-community.json >/dev/null; then
+              break
+            fi
+            if [ "$attempt" = 60 ]; then
+              docker compose --env-file .env.production -f docker-compose.production.yml logs
+              exit 1
+            fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:3300/ | grep -F 'CI Church'
+          jq -n --arg email admin@example.org --arg password 'ci-$-administrator-password' \
+            '{email: $email, password: $password}' >/tmp/heritage-ci-login.json
+          curl -fsS -c /tmp/heritage-ci-cookies.txt \
+            -H 'Origin: http://127.0.0.1:3300' -H 'Content-Type: application/json' \
+            --data-binary @/tmp/heritage-ci-login.json \
+            http://127.0.0.1:3300/api/users/login >/tmp/heritage-ci-login-response.json
+          jq -e '.user.systemRole == "system-admin"' /tmp/heritage-ci-login-response.json
+          jq -n '{displayName: "Second User", email: "second@example.org", password: "second-user-password", systemRole: "member"}' \
+            >/tmp/heritage-ci-second-user.json
+          curl -fsS -b /tmp/heritage-ci-cookies.txt \
+            -H 'Origin: http://127.0.0.1:3300' -H 'Content-Type: application/json' \
+            --data-binary @/tmp/heritage-ci-second-user.json \
+            http://127.0.0.1:3300/api/users >/tmp/heritage-ci-second-user-response.json
+          CROSS_ORIGIN_STATUS=$(curl -sS -o /tmp/heritage-ci-csrf-response.json -w '%{http_code}' \
+            -b /tmp/heritage-ci-cookies.txt \
+            -H 'Origin: https://heritage.faith' -H 'Content-Type: application/json' \
+            --data '{"name":"CSRF Probe","slug":"csrf-probe"}' \
+            http://127.0.0.1:3300/api/communities)
+          test "$CROSS_ORIGIN_STATUS" = 403
+          curl -fsS -b /tmp/heritage-ci-cookies.txt -H 'Origin: http://127.0.0.1:3300' \
+            'http://127.0.0.1:3300/api/communities?where%5Bslug%5D%5Bequals%5D=csrf-probe' \
+            | jq -e '.totalDocs == 0'
+          ADMIN_ID=$(jq -r '.user.id' /tmp/heritage-ci-login-response.json)
+          COMMUNITY_TOKEN_HASH=$(printf 'ci-community-token' | sha256sum | cut -d' ' -f1)
+          docker compose --env-file .env.production -f docker-compose.production.yml exec -T postgres \
+            psql -U heritage -d heritage_community -v ON_ERROR_STOP=1 \
+            -c "INSERT INTO community_sessions (user_id, token_hash, expires_at) VALUES (${ADMIN_ID}, '${COMMUNITY_TOKEN_HASH}', now() + interval '1 day')"
+          curl -fsS -H 'Authorization: Community ci-community-token' \
+            'http://127.0.0.1:3300/api/users?limit=10' \
+            | jq -e '.totalDocs == 1 and .docs[0].email == "admin@example.org"'
+          test "$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H 'Authorization: Community ci-community-token' -H 'Content-Type: application/json' \
+            --data '{"name":"Forbidden","slug":"forbidden"}' \
+            http://127.0.0.1:3300/api/communities)" = 403
+          docker compose --env-file .env.production -f docker-compose.production.yml exec -T community \
+            node -e 'process.exit(process.env.SMTP_PASS === "ci-$-smtp-password" ? 0 : 1)'
+          for attempt in $(seq 1 30); do
+            test "$(curl -sS -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' \
+              --data '{"token":"invalid"}' http://127.0.0.1:3300/api/community/auth/session)" = 401
+          done
+          test "$(curl -sS -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' \
+            --data '{"token":"invalid"}' http://127.0.0.1:3300/api/community/auth/session)" = 429
+          test -z "$(docker compose --env-file .env.production -f docker-compose.production.yml port postgres 5432)"
+          HERITAGE_BACKUP_DIR=/tmp/heritage-ci-backups deploy/backup.sh --online --label ci
+          HERITAGE_BACKUP_DIR=/tmp/heritage-ci-backups deploy/status.sh --verify-backup
+
+      - name: Verify local-only mode without SMTP
+        run: |
+          sed -i \
+            -e 's/^COMMUNITY_AUTH_ENABLED=true$/COMMUNITY_AUTH_ENABLED=false/' \
+            -e 's/^SMTP_HOST=.*/SMTP_HOST=/' \
+            -e 's/^SMTP_FROM=.*/SMTP_FROM=/' \
+            .env.production
+          docker compose --env-file .env.production -f docker-compose.production.yml \
+            up -d --force-recreate community
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3300/.well-known/heritage-community.json \
+              | jq -e 'has("auth") | not' >/dev/null; then
+              break
+            fi
+            if [ "$attempt" = 60 ]; then
+              docker compose --env-file .env.production -f docker-compose.production.yml logs
+              exit 1
+            fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:3300/.well-known/heritage-community.json \
+            | jq -e '(has("auth") | not) and (has("capabilities") | not)'
+          test "$(curl -sS -o /tmp/heritage-ci-disabled-auth.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' --data '{"email":"admin@example.org"}' \
+            http://127.0.0.1:3300/api/community/auth/magic-link)" = 503
+          jq -e '.code == "COMMUNITY_AUTH_DISABLED"' /tmp/heritage-ci-disabled-auth.json
+          HERITAGE_BACKUP_DIR=/tmp/heritage-ci-backups deploy/status.sh --verify-backup
+
+      - name: Container logs
+        if: always()
+        run: docker compose --env-file .env.production -f docker-compose.production.yml logs --tail 200
+
+      - name: Clean up
+        if: always()
+        run: docker compose --env-file .env.production -f docker-compose.production.yml down --volumes --remove-orphans

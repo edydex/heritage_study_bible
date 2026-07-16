@@ -1,32 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react'
-
-// Render verse text, converting:
-//   <b>...</b> tags to bold spans (used in Psalms headers etc.)
-//   || to poetic line breaks (used in LSV for poetry)
-function renderVerseText(text) {
-  // Preserve explicit line breaks and LSV poetry markers (||)
-  const lines = String(text).replace(/\s*\|\|\s*/g, '\n').split('\n')
-  if (lines.length === 1 && !text.includes('<b>')) return text
-
-  return lines.map((line, li) => {
-    // Handle <b> tags within each line segment
-    let rendered
-    if (line.includes('<b>')) {
-      const parts = line.split(/(<b>.*?<\/b>)/g)
-      rendered = parts.map((part, i) => {
-        const m = part.match(/^<b>(.*?)<\/b>$/)
-        if (m) return <strong key={`b${i}`} className="font-bold">{m[1]}</strong>
-        return part
-      })
-    } else {
-      rendered = line
-    }
-
-    if (li === 0) return <span key={li}>{rendered}</span>
-    // Each subsequent || segment starts on a new indented line
-    return <span key={li}><br /><span className="inline-block w-4" />{rendered}</span>
-  })
-}
+import VerseText from './VerseText'
+import { getVerseLayout } from '../utils/verseLayout'
 
 function BibleChapter({
   chapter,
@@ -39,6 +13,8 @@ function BibleChapter({
   isVerseSelected,
   textSize = 18,
   verseStacking = false,
+  verseLayout = null,
+  selectionMode = false,
 }) {
   const containerRef = useRef(null)
   const verseRefs = useRef({})
@@ -84,8 +60,17 @@ function BibleChapter({
     verseRefs.current[verseNumber] = el
   }, [])
 
+  const handleSelectionKeyDown = (event, verse) => {
+    if (!selectionMode || (event.key !== 'Enter' && event.key !== ' ')) return
+    event.preventDefault()
+    onVerseClick(chapter.number, verse.number, verse.text)
+  }
+
   return (
-    <div className="bg-white dark:bg-black rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8" ref={containerRef}>
+    <div
+      className={`bg-white dark:bg-black rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8 ${selectionMode ? 'verse-selection-mode' : ''}`}
+      ref={containerRef}
+    >
 
       {/* Verses */}
       {!verseStacking ? (
@@ -94,13 +79,20 @@ function BibleChapter({
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
             const selected = isVerseSelected?.(chapter.number, verse.number)
+            const layout = getVerseLayout(verseLayout, bookName, chapter.number, verse.number)
 
             return (
               <div
                 key={verse.number}
                 id={`verse-${chapter.number}-${verse.number}`}
                 ref={(el) => setVerseRef(verse.number, el)}
-                className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 ${
+                role={selectionMode ? 'button' : undefined}
+                tabIndex={selectionMode ? 0 : undefined}
+                aria-pressed={selectionMode ? Boolean(selected) : undefined}
+                aria-label={selectionMode ? `${selected ? 'Remove' : 'Select'} ${bookName} ${chapter.number}:${verse.number}` : undefined}
+                onClick={selectionMode ? () => onVerseClick(chapter.number, verse.number, verse.text) : undefined}
+                onKeyDown={event => handleSelectionKeyDown(event, verse)}
+                className={`group flex items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 ${selectionMode ? 'verse-selection-target cursor-pointer' : ''} ${layout?.breakBefore ? 'mt-3 sm:mt-4' : ''} ${
                   verse.isSuperscription ? 'mb-2 border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic' : ''
                 } ${
                   hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50' : ''
@@ -113,6 +105,19 @@ function BibleChapter({
                   {verse.number}
                 </span>
 
+                {selectionMode && (
+                  <span
+                    className={`mt-1 inline-flex h-5 w-5 flex-none items-center justify-center rounded-full border text-xs font-bold ${
+                      selected
+                        ? 'border-primary bg-primary text-white dark:border-blue-400 dark:bg-blue-500'
+                        : 'border-gray-300 text-transparent dark:border-gray-600'
+                    }`}
+                    aria-hidden="true"
+                  >
+                    ✓
+                  </span>
+                )}
+
                 {/* Verse Text */}
                 <p
                   className={`verse-text flex-1 cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 ${
@@ -121,13 +126,13 @@ function BibleChapter({
                       : hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
                   }`}
                   style={verseStyle}
-                  onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
+                  onClick={selectionMode ? undefined : () => onVerseClick(chapter.number, verse.number, verse.text)}
                 >
-                  {renderVerseText(verse.text)}
+                  <VerseText text={verse.text} layout={layout} />
                 </p>
 
                 {/* Bookmark Button */}
-                <button
+                {!selectionMode && <button
                   data-testid={`verse-bookmark-${verse.number}`}
                   onClick={(e) => {
                     e.stopPropagation()
@@ -141,7 +146,7 @@ function BibleChapter({
                   title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
                 >
                   {bookmarked ? '★' : '☆'}
-                </button>
+                </button>}
               </div>
             )
           })}
@@ -152,13 +157,21 @@ function BibleChapter({
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
             const selected = isVerseSelected?.(chapter.number, verse.number)
+            const layout = getVerseLayout(verseLayout, bookName, chapter.number, verse.number)
 
             return (
-              <span
-                key={verse.number}
-                id={`verse-${chapter.number}-${verse.number}`}
-                ref={(el) => setVerseRef(verse.number, el)}
-                className={`group/stack inline rounded-md px-0.5 sm:px-1 py-0.5 ${
+              <span key={verse.number}>
+                {layout?.breakBefore && verseIndex > 0 && <span className="block h-3 sm:h-4" aria-hidden="true" />}
+                <span
+                  id={`verse-${chapter.number}-${verse.number}`}
+                  ref={(el) => setVerseRef(verse.number, el)}
+                  role={selectionMode ? 'button' : undefined}
+                  tabIndex={selectionMode ? 0 : undefined}
+                  aria-pressed={selectionMode ? Boolean(selected) : undefined}
+                  aria-label={selectionMode ? `${selected ? 'Remove' : 'Select'} ${bookName} ${chapter.number}:${verse.number}` : undefined}
+                  onClick={selectionMode ? () => onVerseClick(chapter.number, verse.number, verse.text) : undefined}
+                  onKeyDown={event => handleSelectionKeyDown(event, verse)}
+                  className={`group/stack inline rounded-md px-0.5 sm:px-1 py-0.5 ${selectionMode ? 'verse-selection-target cursor-pointer' : ''} ${
                   verse.isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : ''
                 } ${
                   hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -169,17 +182,29 @@ function BibleChapter({
                 <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium select-none mr-1">
                   {verse.number}
                 </span>
+                {selectionMode && (
+                  <span
+                    className={`mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full border text-[10px] font-bold align-middle ${
+                      selected
+                        ? 'border-primary bg-primary text-white dark:border-blue-400 dark:bg-blue-500'
+                        : 'border-gray-300 text-transparent dark:border-gray-600'
+                    }`}
+                    aria-hidden="true"
+                  >
+                    ✓
+                  </span>
+                )}
                 <span
                   className={`cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 ${
                     verse.isSuperscription
                       ? 'text-gray-500 dark:text-gray-400'
                       : hasComment ? 'text-gray-800 dark:text-gray-200' : 'text-gray-700 dark:text-gray-300'
                   }`}
-                  onClick={() => onVerseClick(chapter.number, verse.number, verse.text)}
+                  onClick={selectionMode ? undefined : () => onVerseClick(chapter.number, verse.number, verse.text)}
                 >
-                  {renderVerseText(verse.text)}
+                  <VerseText text={verse.text} layout={layout} />
                 </span>
-                <button
+                {!selectionMode && <button
                   data-testid={`verse-bookmark-${verse.number}`}
                   onClick={(e) => {
                     e.stopPropagation()
@@ -193,8 +218,9 @@ function BibleChapter({
                   title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
                 >
                   {bookmarked ? '★' : '☆'}
-                </button>
-                {verseIndex < chapter.verses.length - 1 && ' '}
+                </button>}
+                  {verseIndex < chapter.verses.length - 1 && ' '}
+                </span>
               </span>
             )
           })}

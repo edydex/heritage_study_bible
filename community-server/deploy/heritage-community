@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SCRIPT_PATH=${BASH_SOURCE[0]}
+while [[ -L $SCRIPT_PATH ]]; do
+  LINK_DIR=$(cd -- "$(dirname -- "$SCRIPT_PATH")" && pwd -P)
+  LINK_TARGET=$(readlink "$SCRIPT_PATH")
+  if [[ $LINK_TARGET == /* ]]; then
+    SCRIPT_PATH=$LINK_TARGET
+  else
+    SCRIPT_PATH="${LINK_DIR}/${LINK_TARGET}"
+  fi
+done
+SCRIPT_DIR="$(cd -- "$(dirname -- "$SCRIPT_PATH")" && pwd -P)"
+INSTALL_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd -P)"
+ENV_FILE="${INSTALL_DIR}/.env.production"
+
+read_default() {
+  local key=$1 file=/etc/default/heritage-community
+  [[ -f $file ]] || return 1
+  awk -F= -v key="$key" '$1 == key { sub(/^[^=]*=/, ""); print; exit }' "$file"
+}
+
+export HERITAGE_INSTALL_DIR="${HERITAGE_INSTALL_DIR:-$(read_default HERITAGE_INSTALL_DIR || printf '%s' "$INSTALL_DIR")}"
+export HERITAGE_ENV_FILE="${HERITAGE_ENV_FILE:-$(read_default HERITAGE_ENV_FILE || printf '%s' "$ENV_FILE")}"
+export HERITAGE_BACKUP_DIR="${HERITAGE_BACKUP_DIR:-$(read_default HERITAGE_BACKUP_DIR || printf '/var/backups/heritage-community')}"
+
+manage_tunnel_service() {
+  local action=$1
+  systemctl list-unit-files heritage-community-tunnel.service --no-legend 2>/dev/null \
+    | grep -q '^heritage-community-tunnel.service' || return 0
+  if [[ ${EUID} -eq 0 ]]; then
+    systemctl "$action" heritage-community-tunnel.service
+  else
+    command -v sudo >/dev/null 2>&1 || { printf 'sudo is required to manage the host tunnel service.\n' >&2; return 1; }
+    sudo systemctl "$action" heritage-community-tunnel.service
+  fi
+}
+
+usage() {
+  cat <<'EOF'
+Manage a Heritage Community Server.
+
+Usage: heritage-community COMMAND [options]
+
+Commands:
+  status        Check containers, local/public endpoints, disk, and backups
+  doctor        Run the same full health check as status
+  logs          Show the last 200 application/database log lines (add -f to follow)
+  start         Start the configured services
+  stop          Stop the application and tunnel without deleting data
+  restart       Restart the application and configured tunnel
+  backup        Create a PostgreSQL and media backup
+  restore       Verify and restore a backup with typed confirmation
+  update        Back up, fast-forward source, build, migrate, and verify
+  reconfigure   Rerun the guided setup while preserving core secrets
+  uninstall     Remove services; data is preserved unless explicitly purged
+  help          Show this message
+EOF
+}
+
+command_name=${1:-help}
+[[ $# -eq 0 ]] || shift
+
+case "$command_name" in
+  status|doctor)
+    exec "${SCRIPT_DIR}/status.sh" --install-dir "$HERITAGE_INSTALL_DIR" --backup-dir "$HERITAGE_BACKUP_DIR" "$@"
+    ;;
+  logs)
+    # shellcheck source=lib/common.sh
+    source "${SCRIPT_DIR}/lib/common.sh"
+    heritage_init_context
+    heritage_init_docker
+    exec "${HERITAGE_DOCKER[@]}" compose --project-name "$HERITAGE_PROJECT_NAME" \
+      --env-file "$HERITAGE_ENV_FILE" --file "$HERITAGE_COMPOSE_FILE" \
+      "${HERITAGE_COMPOSE_PROFILE_ARGS[@]}" logs --tail 200 "$@"
+    ;;
+  start)
+    # shellcheck source=lib/common.sh
+    source "${SCRIPT_DIR}/lib/common.sh"
+    heritage_init_context
+    heritage_init_docker
+    heritage_compose up -d "$@"
+    manage_tunnel_service start
+    ;;
+  restart)
+    # shellcheck source=lib/common.sh
+    source "${SCRIPT_DIR}/lib/common.sh"
+    heritage_init_context
+    heritage_init_docker
+    heritage_compose restart "$@"
+    manage_tunnel_service restart
+    ;;
+  stop)
+    # shellcheck source=lib/common.sh
+    source "${SCRIPT_DIR}/lib/common.sh"
+    heritage_init_context
+    heritage_init_docker
+    heritage_compose stop "$@"
+    manage_tunnel_service stop
+    ;;
+  backup)
+    exec "${SCRIPT_DIR}/backup.sh" --install-dir "$HERITAGE_INSTALL_DIR" --output-dir "$HERITAGE_BACKUP_DIR" "$@"
+    ;;
+  restore)
+    exec "${SCRIPT_DIR}/restore.sh" --install-dir "$HERITAGE_INSTALL_DIR" --backup-dir "$HERITAGE_BACKUP_DIR" "$@"
+    ;;
+  update)
+    exec "${SCRIPT_DIR}/update.sh" --install-dir "$HERITAGE_INSTALL_DIR" --backup-dir "$HERITAGE_BACKUP_DIR" "$@"
+    ;;
+  reconfigure)
+    deployment_root=${HERITAGE_DEPLOYMENT_ROOT:-$(read_default HERITAGE_DEPLOYMENT_ROOT || printf '/opt/heritage-community')}
+    exec bash "${SCRIPT_DIR}/install.sh" --deployment-root "$deployment_root" --reconfigure "$@"
+    ;;
+  uninstall)
+    exec "${SCRIPT_DIR}/uninstall.sh" --install-dir "$HERITAGE_INSTALL_DIR" "$@"
+    ;;
+  help|-h|--help) usage ;;
+  *) printf 'Unknown command: %s\n\n' "$command_name" >&2; usage >&2; exit 2 ;;
+esac

@@ -1,0 +1,11 @@
+[Unit]
+Description=Nightly Heritage Community backup
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+RandomizedDelaySec=30m
+Persistent=true
+Unit=heritage-community-backup.service
+
+[Install]
+WantedBy=timers.target

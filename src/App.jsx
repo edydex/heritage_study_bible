@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } from 'react'
+import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import Header from './components/Header'
 import BibleChapter from './components/BibleChapter'
@@ -7,17 +7,11 @@ import CommentarySidebar from './components/CommentarySidebar'
 import BookmarkManager from './components/BookmarkManager'
 import SearchResults from './components/SearchResults'
 import BottomNav from './components/BottomNav'
-import TranscriptViewer from './components/TranscriptViewer'
+import VerseSelectionBar from './components/VerseSelectionBar'
 import ResourcesModal from './components/ResourcesModal'
-import ResourcePage from './components/ResourcePage'
-import ConfessionViewer from './components/ConfessionViewer'
-import BookViewer from './components/BookViewer'
-import ReadingPlanViewer from './components/ReadingPlanViewer'
-import ReadingPlanNoteViewer from './components/ReadingPlanNoteViewer'
-import ToolViewer from './components/ToolViewer'
 import { useBookmarks } from './hooks/useBookmarks'
 import { bibleBooks } from './data/bible-books.js'
-import { translations, DEFAULT_TRANSLATION, loadTranslation } from './data/translations'
+import { translations, DEFAULT_TRANSLATION, loadTranslation, loadTranslationLayout } from './data/translations'
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
 import { parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
@@ -25,8 +19,32 @@ import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNative
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
 import { getActiveReadingPlan } from './services/readingPlanProgress'
+import { refreshStaleContentServers } from './services/contentServers'
 import { checkForApkUpdate, openApkDownload } from './services/appUpdates'
 import { getVerseTextWithPsalmSuperscription, withPsalmSuperscriptionVerse } from './utils/psalmSuperscriptions'
+import { toggleVerseInSelection } from './utils/verseSelection'
+import {
+  DEFAULT_ADVANCED_SETTINGS,
+  DEFAULT_VOLUME_SCROLL_ANIMATION_MS,
+  MAX_VOLUME_SCROLL_ANIMATION_MS,
+  DEFAULT_VOLUME_SCROLL_DISTANCE_PERCENT,
+  MIN_VOLUME_SCROLL_DISTANCE_PERCENT,
+  MAX_VOLUME_SCROLL_DISTANCE_PERCENT,
+  normalizeAdvancedSettings,
+  scaleVolumeScrollDistance,
+} from './utils/advancedSettings'
+
+const TranscriptViewer = lazy(() => import('./components/TranscriptViewer'))
+const ResourcePage = lazy(() => import('./components/ResourcePage'))
+const ConfessionViewer = lazy(() => import('./components/ConfessionViewer'))
+const BookViewer = lazy(() => import('./components/BookViewer'))
+const ReadingPlanViewer = lazy(() => import('./components/ReadingPlanViewer'))
+const ReadingPlanNoteViewer = lazy(() => import('./components/ReadingPlanNoteViewer'))
+const ToolViewer = lazy(() => import('./components/ToolViewer'))
+const ContentServersPage = lazy(() => import('./components/ContentServersPage'))
+const RemoteResourceViewer = lazy(() => import('./components/RemoteResourceViewer'))
+const CommunityHomePage = lazy(() => import('./components/CommunityHomePage'))
+const CommunityCallbackPage = lazy(() => import('./components/CommunityCallbackPage'))
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
@@ -34,31 +52,8 @@ const NATIVE_VOLUME_NEXT_EVENT = 'heritage:native-volume-next'
 const NATIVE_VOLUME_NEXT_DOUBLE_PRESS_MS = 480
 const NATIVE_VOLUME_NEXT_SCROLL_BLOCK_MS = 500
 const NATIVE_SCROLL_BOTTOM_TOLERANCE_PX = 18
-const DEFAULT_VOLUME_SCROLL_ANIMATION_MS = 180
-const MAX_VOLUME_SCROLL_ANIMATION_MS = 600
-const DEFAULT_ADVANCED_SETTINGS = {
-  eInkLightBackground: false,
-  volumeScrollAnimationMs: DEFAULT_VOLUME_SCROLL_ANIMATION_MS,
-}
 let nativeScrollAnimationFrame = null
 let nativeScrollMarkerTimeout = null
-
-function clampVolumeScrollAnimationMs(value) {
-  const parsed = Number(value)
-  if (!Number.isFinite(parsed) || parsed <= 0) return 0
-  return Math.max(0, Math.min(MAX_VOLUME_SCROLL_ANIMATION_MS, Math.round(parsed)))
-}
-
-function normalizeAdvancedSettings(value) {
-  if (!value || typeof value !== 'object') return DEFAULT_ADVANCED_SETTINGS
-
-  return {
-    eInkLightBackground: value.eInkLightBackground === true,
-    volumeScrollAnimationMs: value.volumeScrollAnimationMs == null
-      ? DEFAULT_ADVANCED_SETTINGS.volumeScrollAnimationMs
-      : clampVolumeScrollAnimationMs(value.volumeScrollAnimationMs),
-  }
-}
 
 function loadAdvancedSettings() {
   try {
@@ -191,7 +186,7 @@ function getReaderLineHeight() {
   return Number.isFinite(fontSize) ? fontSize * 1.6 : 32
 }
 
-function getNativeReaderScrollDistance(target) {
+function getNativeReaderScrollDistance(target, distancePercent = DEFAULT_VOLUME_SCROLL_DISTANCE_PERCENT) {
   const viewport = window.innerHeight || target?.clientHeight || 700
   const targetViewport = target && target !== document.scrollingElement && target !== document.documentElement && target !== document.body
     ? target.clientHeight
@@ -199,7 +194,8 @@ function getNativeReaderScrollDistance(target) {
 
   const readableHeight = Math.max(180, targetViewport || viewport)
   const overlap = Math.max(28, Math.min(72, getReaderLineHeight() * 1.25))
-  return Math.max(160, Math.round(readableHeight - overlap))
+  const historicalPageStep = Math.max(160, Math.round(readableHeight - overlap))
+  return scaleVolumeScrollDistance(historicalPageStep, distancePercent)
 }
 
 function isDocumentScrollTarget(target) {
@@ -403,7 +399,7 @@ function isReaderRoute(pathname) {
   )
 }
 
-function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0 }) {
+function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0, volumeScrollDistancePercent = DEFAULT_VOLUME_SCROLL_DISTANCE_PERCENT }) {
   const location = useLocation()
   const lastBottomDownPressAtRef = useRef(0)
   const blockNativeScrollUntilRef = useRef(0)
@@ -445,7 +441,7 @@ function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0 }) {
         lastBottomDownPressAtRef.current = 0
       }
 
-      const distance = getNativeReaderScrollDistance(target)
+      const distance = getNativeReaderScrollDistance(target, volumeScrollDistancePercent)
       const delta = direction === 'up' ? -distance : distance
 
       if (direction === 'down') placeNativeScrollMarker(target)
@@ -453,7 +449,7 @@ function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0 }) {
 
       animateNativeReaderScroll(target, delta, volumeScrollAnimationMs)
     })
-  }, [enabled, location.pathname, volumeScrollAnimationMs])
+  }, [enabled, location.pathname, volumeScrollAnimationMs, volumeScrollDistancePercent])
 
   return null
 }
@@ -689,6 +685,84 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
               <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${normalized.eInkLightBackground ? 'translate-x-5' : 'translate-x-0'}`} />
             </div>
           </button>
+        </section>
+
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Content & Communities</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Add public church libraries, or join a community for shared plans, notes, and events.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 flex-shrink-0">
+              <button type="button" onClick={() => navigate('/settings/content-servers')} className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200">
+                Content Servers
+              </button>
+              <button type="button" onClick={() => navigate('/community')} className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white">
+                Community Home
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Volume Scroll Distance</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {normalized.volumeScrollDistancePercent}% of the current page step
+              </p>
+            </div>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={MIN_VOLUME_SCROLL_DISTANCE_PERCENT}
+              max={MAX_VOLUME_SCROLL_DISTANCE_PERCENT}
+              step="1"
+              value={normalized.volumeScrollDistancePercent}
+              onChange={(event) => updateSetting('volumeScrollDistancePercent', event.target.value)}
+              aria-label="Volume scroll distance percentage"
+              className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100"
+            />
+          </div>
+
+          <input
+            type="range"
+            min={MIN_VOLUME_SCROLL_DISTANCE_PERCENT}
+            max={MAX_VOLUME_SCROLL_DISTANCE_PERCENT}
+            step="1"
+            value={normalized.volumeScrollDistancePercent}
+            onChange={(event) => updateSetting('volumeScrollDistancePercent', event.target.value)}
+            aria-label="Volume scroll distance percentage"
+            className="mt-4 w-full accent-blue-700"
+          />
+
+          <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+            100% keeps the existing page distance. Lower values leave more of the previous screen visible, which can help around camera cutouts or other obstructed areas.
+          </p>
+
+          <div className="mt-3 grid grid-cols-4 gap-2">
+            {[
+              ['Short', 60],
+              ['Comfort', 75],
+              ['Near page', 90],
+              ['Current', DEFAULT_VOLUME_SCROLL_DISTANCE_PERCENT],
+            ].map(([label, value]) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => updateSetting('volumeScrollDistancePercent', value)}
+                className={`rounded-lg border px-2 py-2 text-xs sm:text-sm font-medium transition-colors ${
+                  normalized.volumeScrollDistancePercent === value
+                    ? 'border-primary bg-primary/10 text-primary dark:border-blue-400 dark:bg-blue-500/15 dark:text-blue-300'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </section>
 
         <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
@@ -937,6 +1011,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const [selectedVerse, setSelectedVerse] = useState(null) // Track selected verse
   const [selectedVerses, setSelectedVerses] = useState([])
   const [multiSelectMode, setMultiSelectMode] = useState(false)
+  const multiSelectSnapshotRef = useRef(null)
   const bibleContainerRef = useRef(null)
   const searchRequestRef = useRef(0)
   const [activeReadingPlan, setActiveReadingPlan] = useState(() => getActiveReadingPlan())
@@ -951,6 +1026,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     } catch { return DEFAULT_TRANSLATION }
   })
   const [bibleData, setBibleData] = useState(null)
+  const [bibleVerseLayout, setBibleVerseLayout] = useState(null)
   const [translationLoading, setTranslationLoading] = useState(false)
   const [translationLoadError, setTranslationLoadError] = useState('')
   const [translationReloadToken, setTranslationReloadToken] = useState(0)
@@ -963,6 +1039,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     return translations.find(t => t.id !== DEFAULT_TRANSLATION)?.id || null
   })
   const [parallelBibleData, setParallelBibleData] = useState(null)
+  const [parallelVerseLayout, setParallelVerseLayout] = useState(null)
   const [parallelLoading, setParallelLoading] = useState(false)
 
   // Load translation data when translationId changes
@@ -972,15 +1049,21 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       setTranslationLoading(true)
       setTranslationLoadError('')
       setBibleData(null)
+      setBibleVerseLayout(null)
       try {
-        const data = await loadTranslation(translationId)
+        const [data, layout] = await Promise.all([
+          loadTranslation(translationId),
+          loadTranslationLayout(translationId),
+        ])
         if (!cancelled) {
           setBibleData(data)
+          setBibleVerseLayout(layout)
         }
       } catch (err) {
         console.error('Failed to load translation:', err)
         if (!cancelled) {
-          setBibleData(null)
+        setBibleData(null)
+          setBibleVerseLayout(null)
           setTranslationLoadError(`Failed to load ${translationId}. Please retry.`)
         }
       } finally {
@@ -1020,21 +1103,27 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     const loadParallel = async () => {
       if (!parallelMode || !parallelTranslationId) {
         setParallelBibleData(null)
+        setParallelVerseLayout(null)
         setParallelLoading(false)
         return
       }
 
       setParallelLoading(true)
       try {
-        const data = await loadTranslation(parallelTranslationId)
+        const [data, layout] = await Promise.all([
+          loadTranslation(parallelTranslationId),
+          loadTranslationLayout(parallelTranslationId),
+        ])
         if (!cancelled) {
           setParallelBibleData(data)
+          setParallelVerseLayout(layout)
         }
       } catch (error) {
         console.error('Failed to load parallel translation:', error)
         if (!cancelled) {
           setParallelMode(false)
           setParallelBibleData(null)
+          setParallelVerseLayout(null)
         }
       } finally {
         if (!cancelled) setParallelLoading(false)
@@ -1099,6 +1188,16 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     setTranslationReloadToken(prev => prev + 1)
   }, [])
 
+  const cancelMultiSelectMode = useCallback(() => {
+    const snapshot = multiSelectSnapshotRef.current
+    setMultiSelectMode(false)
+    setSelectedVerse(snapshot?.selectedVerse || null)
+    setSelectedVerses(snapshot?.selectedVerses || [])
+    setIsSidebarOpen(Boolean(snapshot?.sidebarOpen))
+    setShowGoToPassageButton(Boolean(snapshot?.showGoToPassageButton))
+    multiSelectSnapshotRef.current = null
+  }, [])
+
   useEffect(() => {
     const handleActivePlanChange = (event) => {
       setActiveReadingPlan(event.detail || getActiveReadingPlan())
@@ -1117,6 +1216,8 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
   useEffect(() => {
     return addNativeBackListener(event => {
+      if (event?.defaultPrevented) return
+
       if (showBookmarkManager) {
         event?.preventDefault?.()
         setShowBookmarkManager(false)
@@ -1137,11 +1238,10 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
       if (multiSelectMode) {
         event?.preventDefault?.()
-        setMultiSelectMode(false)
-        setSelectedVerses(selectedVerse ? [selectedVerse] : [])
+        cancelMultiSelectMode()
       }
     })
-  }, [multiSelectMode, searchResults, selectedVerse, showBookmarkManager, showResources])
+  }, [cancelMultiSelectMode, multiSelectMode, searchResults, showBookmarkManager, showResources])
 
   // Lazy-load commentary data when book changes
   useEffect(() => {
@@ -1280,12 +1380,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     })
   }, [currentBook, currentChapter])
 
-  useEffect(() => {
-    if (multiSelectMode && selectedVerses.length === 0) {
-      setMultiSelectMode(false)
-    }
-  }, [multiSelectMode, selectedVerses.length])
-
   // Update URL when book/chapter changes (but avoid loops)
   useEffect(() => {
     const expectedSlug = bookToSlug(currentBook)
@@ -1399,45 +1493,51 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
     if (multiSelectMode) {
       setSelectedVerses(prev => {
-        const exists = prev.some(v => v.book === currentBook && v.chapter === chapter && v.verse === verse)
-        if (exists) {
-          const next = prev.filter(v => !(v.book === currentBook && v.chapter === chapter && v.verse === verse))
-          setSelectedVerse(next[next.length - 1] || null)
-          return next
-        }
-        const next = [...prev, clickedVerse]
-        setSelectedVerse(clickedVerse)
+        const next = toggleVerseInSelection(prev, clickedVerse)
+        const clickedIsSelected = next.some(item =>
+          item.book === clickedVerse.book
+          && item.chapter === clickedVerse.chapter
+          && item.verse === clickedVerse.verse
+        )
+        setSelectedVerse(clickedIsSelected ? clickedVerse : (next[next.length - 1] || null))
         return next
       })
+      setIsSidebarOpen(false)
     } else {
       setSelectedVerse(clickedVerse)
       setSelectedVerses([clickedVerse])
+      setIsSidebarOpen(true)
     }
 
-    setIsSidebarOpen(true)
     setShowGoToPassageButton(false)
   }
 
   const toggleMultiSelectMode = () => {
-    const nextMode = !multiSelectMode
-    setMultiSelectMode(nextMode)
-
-    if (nextMode) {
-      if (selectedVerses.length === 0 && selectedVerse) {
-        setSelectedVerses([selectedVerse])
+    if (multiSelectMode) {
+      if (selectedVerses.length === 0) {
+        showToast('Select at least one verse first')
+        return
       }
+      setMultiSelectMode(false)
+      setSelectedVerse(selectedVerses[selectedVerses.length - 1])
+      setIsSidebarOpen(true)
+      multiSelectSnapshotRef.current = null
       return
     }
 
-    if (selectedVerse) {
-      setSelectedVerses([selectedVerse])
-    } else if (selectedVerses.length > 0) {
-      const last = selectedVerses[selectedVerses.length - 1]
-      setSelectedVerse(last)
-      setSelectedVerses([last])
-    } else {
-      setSelectedVerses([])
+    const initialVerses = selectedVerses.length > 0
+      ? selectedVerses
+      : (selectedVerse ? [selectedVerse] : [])
+    multiSelectSnapshotRef.current = {
+      selectedVerse,
+      selectedVerses: initialVerses,
+      sidebarOpen: isSidebarOpen,
+      showGoToPassageButton,
     }
+    setSelectedVerses(initialVerses)
+    setMultiSelectMode(true)
+    setIsSidebarOpen(false)
+    setShowGoToPassageButton(false)
   }
 
   // Handle bookmark toggle
@@ -1700,7 +1800,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         <div className="flex">
           {/* Main Content */}
           <main
-            className="reader-main flex-1 px-0 sm:px-4 py-2 sm:py-6 transition-all duration-300"
+            className={`reader-main flex-1 px-0 sm:px-4 py-2 sm:py-6 transition-all duration-300 ${multiSelectMode ? 'reader-selecting' : ''}`}
             style={{ marginRight: isLargeScreen && isSidebarOpen ? `${sidebarWidth}px` : 0 }}
           >
             <div className="container mx-auto max-w-3xl" ref={bibleContainerRef}>
@@ -1773,6 +1873,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                   {!translationLoading && (!parallelMode || !parallelLoading) && currentChapterData && (
                     parallelMode ? (
                       <ParallelBibleChapter
+                        bookName={currentBook}
                         primaryChapter={currentChapterData}
                         secondaryChapter={secondaryChapterData}
                         primaryTranslationId={translationId}
@@ -1786,6 +1887,9 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                         onBookmarkToggle={handleBookmarkToggle}
                         onVersePosition={updateVersePosition}
                         textSize={textSize}
+                        primaryVerseLayout={bibleVerseLayout}
+                        secondaryVerseLayout={parallelVerseLayout}
+                        selectionMode={multiSelectMode}
                       />
                     ) : (
                       <BibleChapter 
@@ -1801,6 +1905,8 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                         onVersePosition={updateVersePosition}
                         textSize={textSize}
                         verseStacking={verseStacking}
+                        verseLayout={bibleVerseLayout}
+                        selectionMode={multiSelectMode}
                       />
                     )
                   )}
@@ -1812,7 +1918,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                   )}
 
                   {/* Toggle Sidebar Button (desktop only — phones use verse tap) */}
-                  {!isSidebarOpen && (
+                  {!isSidebarOpen && !multiSelectMode && (
                     <button 
                       onClick={() => setIsSidebarOpen(true)}
                       className="hidden lg:block fixed bottom-20 right-4 sm:right-6 p-3 bg-secondary text-white rounded-full shadow-lg hover:bg-amber-600 transition-all duration-300 z-40"
@@ -1838,7 +1944,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           </main>
 
           {/* Commentary Sidebar - All Screens */}
-          {isSidebarOpen && !searchResults && (
+          {isSidebarOpen && !multiSelectMode && !searchResults && (
             <CommentarySidebar
               bookName={currentBook}
               authors={authorsData}
@@ -1937,8 +2043,29 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           />
         )}
 
+        {multiSelectMode && !searchResults && !showBookmarkManager && !showResources && (
+          <VerseSelectionBar
+            bookName={currentBook}
+            selectedVerses={selectedVerses}
+            translationId={translationId}
+            bibleData={bibleData}
+            parallelMode={parallelMode}
+            parallelTranslationId={parallelTranslationId}
+            parallelBibleData={parallelBibleData}
+            notes={notes}
+            allBookmarked={selectedVerses.length > 0 && selectedVerses.every(item =>
+              isBookmarked(item.book || currentBook, item.chapter, item.verse)
+            )}
+            onBookmark={() => handleBookmarkMultiple(selectedVerses)}
+            onSaveNotes={handleSaveNotesForVerses}
+            onShowToast={showToast}
+            onCancel={cancelMultiSelectMode}
+            onDone={toggleMultiSelectMode}
+          />
+        )}
+
         {/* Bottom Navigation */}
-        {!searchResults && !showBookmarkManager && (
+        {!multiSelectMode && !searchResults && !showBookmarkManager && (
           <BottomNav
             currentBook={currentBook}
             currentChapter={currentChapter}
@@ -1957,7 +2084,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
         {/* Toast Notification */}
         {toast && (
-          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+          <div className={`fixed ${multiSelectMode ? 'bottom-40' : 'bottom-20'} left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-6 py-3 rounded-lg shadow-lg z-[70] animate-fade-in`}>
             {toast}
           </div>
         )}
@@ -1993,6 +2120,10 @@ function App() {
     document.documentElement.classList.toggle('eink-light', advancedSettings.eInkLightBackground)
   }, [advancedSettings.eInkLightBackground])
 
+  useEffect(() => {
+    refreshStaleContentServers().catch(() => {})
+  }, [])
+
   return (
     <Router>
       <ScrollToTopOnRouteChange />
@@ -2000,23 +2131,30 @@ function App() {
       <AndroidReaderControls
         enabled={sideButtonScroll}
         volumeScrollAnimationMs={advancedSettings.volumeScrollAnimationMs}
+        volumeScrollDistancePercent={advancedSettings.volumeScrollDistancePercent}
       />
-      <Routes>
-        <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />
-        <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />
-        <Route path="/resources/books/:itemId" element={<BookViewer />} />
-        <Route path="/reading-plan-join" element={<ReadingPlanInviteRedirect />} />
-        <Route path="/resources/reading-plans/:itemId/note/:day/:noteId" element={<ReadingPlanNoteViewer />} />
-        <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
-        <Route path="/resources/tools/:itemId" element={<ToolViewer />} />
-        <Route path="/resources/:categoryId" element={<ResourcePage />} />
-        <Route path="/settings/about" element={<AboutPage />} />
-        <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} />} />
-        <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
-        <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
-        <Route path="/" element={<HomeRedirect />} />
-        <Route path="*" element={<Navigate to="/genesis/1" replace />} />
-      </Routes>
+      <Suspense fallback={<div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">Loading…</div>}>
+        <Routes>
+          <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />
+          <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />
+          <Route path="/resources/books/:itemId" element={<BookViewer />} />
+          <Route path="/reading-plan-join" element={<ReadingPlanInviteRedirect />} />
+          <Route path="/resources/reading-plans/:itemId/note/:day/:noteId" element={<ReadingPlanNoteViewer />} />
+          <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
+          <Route path="/resources/tools/:itemId" element={<ToolViewer />} />
+          <Route path="/resources/content/:contentKey" element={<RemoteResourceViewer />} />
+          <Route path="/resources/:categoryId" element={<ResourcePage />} />
+          <Route path="/settings/about" element={<AboutPage />} />
+          <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} />} />
+          <Route path="/settings/content-servers" element={<ContentServersPage />} />
+          <Route path="/community/callback" element={<CommunityCallbackPage />} />
+          <Route path="/community" element={<CommunityHomePage />} />
+          <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
+          <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
+          <Route path="/" element={<HomeRedirect />} />
+          <Route path="*" element={<Navigate to="/genesis/1" replace />} />
+        </Routes>
+      </Suspense>
     </Router>
   )
 }

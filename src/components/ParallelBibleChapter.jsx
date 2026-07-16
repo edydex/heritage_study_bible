@@ -1,26 +1,6 @@
 import { useEffect, useMemo, useRef, useCallback } from 'react'
-
-function renderVerseText(text) {
-  const lines = String(text || '').replace(/\s*\|\|\s*/g, '\n').split('\n')
-  if (lines.length === 1 && !String(text || '').includes('<b>')) return text
-
-  return lines.map((line, lineIndex) => {
-    let rendered
-    if (line.includes('<b>')) {
-      const parts = line.split(/(<b>.*?<\/b>)/g)
-      rendered = parts.map((part, partIndex) => {
-        const match = part.match(/^<b>(.*?)<\/b>$/)
-        if (match) return <strong key={`b${partIndex}`} className="font-bold">{match[1]}</strong>
-        return part
-      })
-    } else {
-      rendered = line
-    }
-
-    if (lineIndex === 0) return <span key={lineIndex}>{rendered}</span>
-    return <span key={lineIndex}><br /><span className="inline-block w-4" />{rendered}</span>
-  })
-}
+import VerseText from './VerseText'
+import { getVerseLayout } from '../utils/verseLayout'
 
 function MissingVerse({ translationId }) {
   return (
@@ -42,6 +22,10 @@ function ParallelBibleChapter({
   onVersePosition,
   isVerseSelected,
   textSize = 18,
+  bookName,
+  primaryVerseLayout = null,
+  secondaryVerseLayout = null,
+  selectionMode = false,
 }) {
   const containerRef = useRef(null)
   const rowRefs = useRef({})
@@ -104,8 +88,17 @@ function ParallelBibleChapter({
     onVerseClick(primaryChapter.number, verseNumber, verseText)
   }
 
+  const handleSelectionKeyDown = (event, verseNumber) => {
+    if (!selectionMode || (event.key !== 'Enter' && event.key !== ' ')) return
+    event.preventDefault()
+    handleVerseClick(verseNumber)
+  }
+
   return (
-    <div className="bg-white dark:bg-black rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8" ref={containerRef}>
+    <div
+      className={`bg-white dark:bg-black rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8 ${selectionMode ? 'verse-selection-mode' : ''}`}
+      ref={containerRef}
+    >
       <div className="space-y-2">
         {verseNumbers.map((verseNumber) => {
           const primaryVerse = primaryVerseMap.get(verseNumber)
@@ -114,8 +107,11 @@ function ParallelBibleChapter({
           const hasComment = hasCommentary(primaryChapter.number, verseNumber)
           const bookmarked = isBookmarked(verseNumber)
           const selected = isVerseSelected?.(primaryChapter.number, verseNumber)
+          const primaryLayout = getVerseLayout(primaryVerseLayout, bookName, primaryChapter.number, verseNumber)
+          const secondaryLayout = getVerseLayout(secondaryVerseLayout, bookName, primaryChapter.number, verseNumber)
+          const startsParagraph = primaryLayout?.breakBefore || secondaryLayout?.breakBefore
 
-          const rowClassName = `rounded-lg border transition-all ${
+          const rowClassName = `relative rounded-lg border transition-all ${selectionMode ? 'verse-selection-target cursor-pointer' : ''} ${startsParagraph ? 'mt-4' : ''} ${
             selected
               ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700'
               : isSuperscription
@@ -132,15 +128,33 @@ function ParallelBibleChapter({
               key={verseNumber}
               id={`verse-${primaryChapter.number}-${verseNumber}`}
               ref={(element) => setRowRef(verseNumber, element)}
+              role={selectionMode ? 'button' : undefined}
+              tabIndex={selectionMode ? 0 : undefined}
+              aria-pressed={selectionMode ? Boolean(selected) : undefined}
+              aria-label={selectionMode ? `${selected ? 'Remove' : 'Select'} ${bookName} ${primaryChapter.number}:${verseNumber}` : undefined}
+              onClick={selectionMode ? () => handleVerseClick(verseNumber) : undefined}
+              onKeyDown={event => handleSelectionKeyDown(event, verseNumber)}
               className={rowClassName}
             >
+              {selectionMode && (
+                <span
+                  className={`absolute right-2 top-2 z-10 inline-flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold ${
+                    selected
+                      ? 'border-primary bg-primary text-white dark:border-blue-400 dark:bg-blue-500'
+                      : 'border-gray-300 bg-white text-transparent dark:border-gray-600 dark:bg-gray-800'
+                  }`}
+                  aria-hidden="true"
+                >
+                  ✓
+                </span>
+              )}
               <div className="hidden md:grid md:grid-cols-2 md:gap-3 md:p-2">
-                <div className="group flex items-start gap-2 rounded-md p-2 hover:bg-white/70 dark:hover:bg-gray-700 cursor-pointer" onClick={() => handleVerseClick(verseNumber)}>
+                <div className="group flex items-start gap-2 rounded-md p-2 hover:bg-white/70 dark:hover:bg-gray-700 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
                   <span className="text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[2rem] pt-0.5 select-none text-right">{verseNumber}</span>
                   <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`} style={verseStyle}>
-                    {primaryVerse ? renderVerseText(primaryVerse.text) : <MissingVerse translationId={primaryTranslationId} />}
+                    {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} /> : <MissingVerse translationId={primaryTranslationId} />}
                   </p>
-                  <button
+                  {!selectionMode && <button
                     onClick={(event) => {
                       event.stopPropagation()
                       onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || '')
@@ -153,26 +167,26 @@ function ParallelBibleChapter({
                     title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
                   >
                     {bookmarked ? '★' : '☆'}
-                  </button>
+                  </button>}
                 </div>
 
-                <div className="flex items-start gap-2 rounded-md p-2 hover:bg-white/60 dark:hover:bg-gray-700 cursor-pointer" onClick={() => handleVerseClick(verseNumber)}>
+                <div className="flex items-start gap-2 rounded-md p-2 hover:bg-white/60 dark:hover:bg-gray-700 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
                   <span className="text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[2rem] pt-0.5 select-none text-right">{verseNumber}</span>
                   <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`} style={verseStyle}>
-                    {secondaryVerse ? renderVerseText(secondaryVerse.text) : <MissingVerse translationId={secondaryTranslationId} />}
+                    {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} /> : <MissingVerse translationId={secondaryTranslationId} />}
                   </p>
                 </div>
               </div>
 
               <div className="md:hidden p-2 space-y-2">
-                <div className="rounded-md bg-white dark:bg-black p-2 cursor-pointer" onClick={() => handleVerseClick(verseNumber)}>
+                <div className="rounded-md bg-white dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
                   <div className="text-[11px] uppercase tracking-wide text-primary dark:text-blue-400 font-semibold mb-1">{primaryTranslationId}</div>
                   <div className="flex items-start gap-2 group">
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
                     <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`} style={verseStyle}>
-                      {primaryVerse ? renderVerseText(primaryVerse.text) : <MissingVerse translationId={primaryTranslationId} />}
+                      {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} /> : <MissingVerse translationId={primaryTranslationId} />}
                     </p>
-                    <button
+                    {!selectionMode && <button
                       onClick={(event) => {
                         event.stopPropagation()
                         onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || '')
@@ -185,16 +199,16 @@ function ParallelBibleChapter({
                       title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
                     >
                       {bookmarked ? '★' : '☆'}
-                    </button>
+                    </button>}
                   </div>
                 </div>
 
-                <div className="rounded-md bg-white/70 dark:bg-black p-2 cursor-pointer" onClick={() => handleVerseClick(verseNumber)}>
+                <div className="rounded-md bg-white/70 dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
                   <div className="text-[11px] uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-1">{secondaryTranslationId}</div>
                   <div className="flex items-start gap-2">
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
                     <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`} style={verseStyle}>
-                      {secondaryVerse ? renderVerseText(secondaryVerse.text) : <MissingVerse translationId={secondaryTranslationId} />}
+                      {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} /> : <MissingVerse translationId={secondaryTranslationId} />}
                     </p>
                   </div>
                 </div>
