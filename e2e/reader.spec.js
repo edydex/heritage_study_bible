@@ -11,6 +11,38 @@ async function submitSearch(page, query) {
   await page.getByRole('button', { name: 'Search' }).click()
 }
 
+async function selectTextSnippet(page, verseSelector, snippet) {
+  await page.evaluate(({ verseSelector, snippet }) => {
+    const root = document.querySelector(`${verseSelector} [data-verse-content]`)
+    if (!root) throw new Error(`Missing verse content for ${verseSelector}`)
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+    const nodes = []
+    let fullText = ''
+    while (walker.nextNode()) {
+      const node = walker.currentNode
+      if (node.parentElement?.closest('[data-selection-ignore]')) continue
+      nodes.push({ node, start: fullText.length, end: fullText.length + node.data.length })
+      fullText += node.data
+    }
+
+    const start = fullText.indexOf(snippet)
+    if (start < 0) throw new Error(`Could not find “${snippet}” in “${fullText}”`)
+    const end = start + snippet.length
+    const startNode = nodes.find(item => start >= item.start && start < item.end)
+    const endNode = nodes.find(item => end > item.start && end <= item.end)
+    if (!startNode || !endNode) throw new Error('Could not map snippet to text nodes')
+
+    const range = document.createRange()
+    range.setStart(startNode.node, start - startNode.start)
+    range.setEnd(endNode.node, end - endNode.start)
+    const selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
+    document.dispatchEvent(new Event('selectionchange'))
+  }, { verseSelector, snippet })
+}
+
 test.describe('Heritage reader', () => {
   test('loads a chapter from the hash route', async ({ page }) => {
     await openReader(page)
@@ -92,5 +124,40 @@ test.describe('Heritage reader', () => {
     await expect(actions).toBeHidden()
     await expect(page.getByRole('button', { name: /Select Verses/ })).toBeVisible()
     expect(reactUpdateErrors).toEqual([])
+  })
+
+  test('keeps a multi-snippet text selection alive while opening its note dialog', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await openReader(page, '/#/john/3', '#verse-3-16')
+
+    await selectTextSnippet(page, '#verse-3-16', 'God so loved')
+    const actions = page.getByRole('region', { name: 'Selected text actions' })
+    await expect(actions).toBeVisible()
+    await actions.getByRole('button', { name: 'Add text' }).click()
+
+    await selectTextSnippet(page, '#verse-3-18', 'is not condemned')
+    await expect(actions.getByText('2 text snippets')).toBeVisible()
+
+    await actions.getByRole('button', { name: 'Note' }).click()
+    await expect(page.getByRole('dialog', { name: 'Note on 2 selected snippets' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Commentary' })).toBeHidden()
+    await page.getByPlaceholder('Write your note...').fill('These phrases belong together.')
+    await page.getByLabel('Highlight the selected text').check()
+    await page.getByRole('button', { name: 'Blue highlight' }).click()
+    await page.getByRole('button', { name: 'Save Note' }).click()
+    await expect(actions).toBeHidden()
+  })
+
+  test('cancels text selection when a verse is tapped without opening commentary', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await openReader(page, '/#/john/3', '#verse-3-16')
+
+    await selectTextSnippet(page, '#verse-3-16', 'God so loved')
+    const actions = page.getByRole('region', { name: 'Selected text actions' })
+    await expect(actions).toBeVisible()
+
+    await page.locator('#verse-3-17 .verse-text').click()
+    await expect(actions).toBeHidden()
+    await expect(page.getByRole('heading', { name: 'Commentary' })).toBeHidden()
   })
 })

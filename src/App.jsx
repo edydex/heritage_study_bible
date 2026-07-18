@@ -16,7 +16,7 @@ import { translations, DEFAULT_TRANSLATION, loadTranslation, loadTranslationLayo
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
 import { parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
-import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, setNativeSideButtonScrollEnabled, setNativeSearchKeyboardCaptureInputEnabled } from './services/androidControls'
+import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, setNativeSideButtonScrollEnabled, setNativeSearchKeyboardCaptureInputEnabled, setNativeTextSelectionMenuSuppressed } from './services/androidControls'
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
 import { getActiveReadingPlan } from './services/readingPlanProgress'
@@ -24,7 +24,8 @@ import { refreshStaleContentServers } from './services/contentServers'
 import { checkForApkUpdate, openApkDownload } from './services/appUpdates'
 import { getVerseTextWithPsalmSuperscription, withPsalmSuperscriptionVerse } from './utils/psalmSuperscriptions'
 import { toggleVerseInSelection } from './utils/verseSelection'
-import { captureBibleTextSelection, clearBrowserTextSelection, textSelectionMatchesAnnotation } from './utils/textSelection'
+import { captureBibleTextSelection, clearBrowserTextSelection, combineBibleTextSelections, textSelectionMatchesAnnotation } from './utils/textSelection'
+import { DEFAULT_HIGHLIGHT_COLOR, normalizeHighlightColor } from './utils/highlightColors'
 import {
   DEFAULT_ADVANCED_SETTINGS,
   DEFAULT_VOLUME_SCROLL_ANIMATION_MS,
@@ -1013,10 +1014,41 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const [selectedVerse, setSelectedVerse] = useState(null) // Track selected verse
   const [selectedVerses, setSelectedVerses] = useState([])
   const [multiSelectMode, setMultiSelectMode] = useState(false)
-  const [textSelection, setTextSelection] = useState(null)
+  const [textSelectionSession, setTextSelectionSession] = useState(null)
+  const textSelection = useMemo(() => combineBibleTextSelections([
+    ...(textSelectionSession?.committed || []),
+    textSelectionSession?.draft,
+  ].filter(Boolean)), [textSelectionSession])
+  const nativeSelectionCollapsedRef = useRef(false)
   const clearTextSelection = useCallback(() => {
+    setTextSelectionSession(null)
+    nativeSelectionCollapsedRef.current = false
     clearBrowserTextSelection()
-    setTextSelection(null)
+  }, [])
+  const addAnotherTextSnippet = useCallback(() => {
+    setTextSelectionSession(previous => {
+      if (!previous?.draft) return previous
+      return {
+        committed: [...(previous.committed || []), previous.draft],
+        draft: null,
+        awaitingSnippet: true,
+      }
+    })
+    nativeSelectionCollapsedRef.current = false
+    clearBrowserTextSelection()
+  }, [])
+  const [highlightColor, setHighlightColor] = useState(() => {
+    try { return normalizeHighlightColor(localStorage.getItem(STORAGE_KEYS.highlightColor)) } catch { return DEFAULT_HIGHLIGHT_COLOR }
+  })
+  const rememberHighlightColor = useCallback(color => {
+    setHighlightColor(normalizeHighlightColor(color))
+  }, [])
+  useEffect(() => {
+    setStoredValue(STORAGE_KEYS.highlightColor, highlightColor).catch(() => {})
+  }, [highlightColor])
+  useEffect(() => {
+    setNativeTextSelectionMenuSuppressed(true).catch(() => {})
+    return () => { setNativeTextSelectionMenuSuppressed(false).catch(() => {}) }
   }, [])
   const multiSelectSnapshotRef = useRef(null)
   const bibleContainerRef = useRef(null)
@@ -1331,8 +1363,8 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     bookmarks, addBookmark, removeBookmark, updateBookmark, isBookmarked,
     commentaryBookmarks, isCommentaryBookmarked, toggleCommentaryBookmark,
     notes, saveNote, saveNotes, deleteNote, deleteNoteById,
-    addHighlight, removeHighlights, isHighlighted,
-    addTextHighlight, removeTextHighlight, isTextSelectionHighlighted,
+    addHighlight, removeHighlights, isHighlighted, getVerseHighlightColor,
+    addTextHighlight, removeTextHighlight, isTextSelectionHighlighted, getTextSelectionHighlight,
     getTextHighlights, saveTextNote,
   } = useBookmarks()
 
@@ -1342,16 +1374,41 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       : null
   ), [notes, textSelection])
 
+  const activeTextHighlight = textSelection ? getTextSelectionHighlight(textSelection) : null
+
   useEffect(() => {
     let frame = null
     const updateSelection = () => {
       if (frame != null) cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
         if (multiSelectMode) {
-          setTextSelection(null)
+          setTextSelectionSession(null)
           return
         }
-        setTextSelection(captureBibleTextSelection(window.getSelection(), bibleContainerRef.current))
+        const browserSelection = window.getSelection()
+        const captured = captureBibleTextSelection(browserSelection, bibleContainerRef.current)
+        if (!captured) {
+          if (browserSelection?.isCollapsed) nativeSelectionCollapsedRef.current = true
+          return
+        }
+
+        const startedAfterCollapse = nativeSelectionCollapsedRef.current
+        nativeSelectionCollapsedRef.current = false
+        setIsSidebarOpen(false)
+        setShowGoToPassageButton(false)
+        setTextSelectionSession(previous => {
+          if (!previous) return { committed: [], draft: captured, awaitingSnippet: false }
+          const startsAnotherSnippet = previous.awaitingSnippet || (startedAfterCollapse && previous.draft)
+          return startsAnotherSnippet
+            ? {
+                committed: previous.draft
+                  ? [...(previous.committed || []), previous.draft]
+                  : (previous.committed || []),
+                draft: captured,
+                awaitingSnippet: false,
+              }
+            : { ...previous, draft: captured, awaitingSnippet: false }
+        })
       })
     }
     document.addEventListener('selectionchange', updateSelection)
@@ -1360,6 +1417,10 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       if (frame != null) cancelAnimationFrame(frame)
     }
   }, [currentBook, currentChapter, multiSelectMode, parallelMode, translationId])
+
+  useEffect(() => {
+    clearTextSelection()
+  }, [clearTextSelection, currentBook, currentChapter, parallelMode, translationId])
 
   useEffect(() => {
     saveBibleProgress(currentBook, currentChapter).catch(() => {})
@@ -1530,6 +1591,13 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
   // Handle verse click - opens sidebar panel
   const handleVerseClick = (chapter, verse, verseText) => {
+    if (textSelection) {
+      clearTextSelection()
+      setIsSidebarOpen(false)
+      setShowGoToPassageButton(false)
+      return
+    }
+
     const clickedVerse = { book: currentBook, chapter, verse, text: verseText }
 
     if (multiSelectMode) {
@@ -1659,6 +1727,18 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     showToast(`Bookmarked ${addedCount} verse${addedCount === 1 ? '' : 's'}`)
   }
 
+  const handleSaveNoteForVerse = (book, chapter, verse, text, verseText = '', options = {}) => {
+    saveNote(book, chapter, verse, text, verseText, options)
+    const selected = [{ book, chapter, verse, text: verseText }]
+    if (options.highlight === true) {
+      const color = normalizeHighlightColor(options.highlightColor || highlightColor)
+      rememberHighlightColor(color)
+      addHighlight(selected, color)
+    } else if (isHighlighted(book, chapter, verse)) {
+      removeHighlights(selected)
+    }
+  }
+
   const handleSaveNotesForVerses = (verses, text, options = {}) => {
     if (!Array.isArray(verses) || verses.length === 0) {
       showToast('Select at least one verse first')
@@ -1678,6 +1758,14 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     })
     saveNotes(normalized, text, options)
 
+    if (options.highlight === true) {
+      const color = normalizeHighlightColor(options.highlightColor || highlightColor)
+      rememberHighlightColor(color)
+      addHighlight(normalized, color)
+    } else if (normalized.every(item => isHighlighted(item.book, item.chapter, item.verse))) {
+      removeHighlights(normalized)
+    }
+
     if (text.trim()) {
       showToast(verses.length === 1 ? 'Note saved' : `Saved one note for ${verses.length} verses`)
     } else {
@@ -1685,7 +1773,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     }
   }
 
-  const handleHighlightMultiple = (verses) => {
+  const handleHighlightMultiple = (verses, color = highlightColor, options = {}) => {
     if (!Array.isArray(verses) || verses.length === 0) {
       showToast('Select at least one verse first')
       return
@@ -1707,11 +1795,13 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       }
     })
     const allSelectedHighlighted = normalized.every(v => isHighlighted(v.book, v.chapter, v.verse))
-    if (allSelectedHighlighted) {
+    if (allSelectedHighlighted && options.force !== true) {
       removeHighlights(normalized)
       showToast(`Removed highlight from ${normalized.length} verse${normalized.length === 1 ? '' : 's'}`)
     } else {
-      addHighlight(normalized)
+      const normalizedColor = normalizeHighlightColor(color)
+      rememberHighlightColor(normalizedColor)
+      addHighlight(normalized, normalizedColor)
       showToast(`Highlighted ${normalized.length} verse${normalized.length === 1 ? '' : 's'}`)
     }
   }
@@ -1974,6 +2064,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                         }
                         isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
                         isVerseHighlighted={(ch, verse) => isHighlighted(currentBook, ch, verse)}
+                        getVerseHighlightColor={(ch, verse) => getVerseHighlightColor(currentBook, ch, verse)}
                         getTextHighlights={(ch, verse, selectedTranslationId, verseText) =>
                           getTextHighlights(currentBook, ch, verse, selectedTranslationId, verseText)
                         }
@@ -1996,6 +2087,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                         }
                         isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
                         isVerseHighlighted={(ch, verse) => isHighlighted(currentBook, ch, verse)}
+                        getVerseHighlightColor={(ch, verse) => getVerseHighlightColor(currentBook, ch, verse)}
                         getTextHighlights={(ch, verse, selectedTranslationId, verseText) =>
                           getTextHighlights(currentBook, ch, verse, selectedTranslationId, verseText)
                         }
@@ -2084,8 +2176,12 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                 showToast(added ? 'Commentary bookmarked!' : 'Bookmark removed')
               }}
               notes={notes}
-              onSaveNote={saveNote}
+              onSaveNote={handleSaveNoteForVerse}
               onSaveNotes={handleSaveNotesForVerses}
+              isVerseHighlighted={(book, chapter, verse) => isHighlighted(book, chapter, verse)}
+              getVerseHighlightColor={(book, chapter, verse) => getVerseHighlightColor(book, chapter, verse)}
+              highlightColor={highlightColor}
+              onChooseHighlightColor={rememberHighlightColor}
               onShowToast={showToast}
               onClose={() => {
                 setIsSidebarOpen(false)
@@ -2147,21 +2243,33 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         {textSelection && !multiSelectMode && !searchResults && !showBookmarkManager && !showResources && (
           <TextSelectionBar
             selection={textSelection}
-            highlighted={isTextSelectionHighlighted(textSelection)}
+            highlighted={Boolean(activeTextHighlight)}
             existingNote={existingTextSelectionNote}
-            onToggleHighlight={() => {
-              if (isTextSelectionHighlighted(textSelection)) {
+            highlightColor={activeTextHighlight?.color || highlightColor}
+            onChooseHighlightColor={rememberHighlightColor}
+            onToggleHighlight={(color, options = {}) => {
+              if (isTextSelectionHighlighted(textSelection) && options.force !== true) {
                 removeTextHighlight(textSelection)
                 showToast('Text highlight removed')
               } else {
-                addTextHighlight(textSelection)
-                showToast('Selected words highlighted')
+                const normalizedColor = normalizeHighlightColor(color || highlightColor)
+                rememberHighlightColor(normalizedColor)
+                addTextHighlight(textSelection, normalizedColor)
+                showToast(`${textSelection.snippetCount || 1} text snippet${textSelection.snippetCount === 1 ? '' : 's'} highlighted`)
               }
               clearTextSelection()
             }}
+            onAddSnippet={addAnotherTextSnippet}
             onSelectFullVerses={() => beginFullVerseSelection(textSelection.verses)}
             onSaveNote={(text, options) => {
               saveTextNote(textSelection, text, options)
+              if (options.highlight === true) {
+                const normalizedColor = normalizeHighlightColor(options.highlightColor || highlightColor)
+                rememberHighlightColor(normalizedColor)
+                addTextHighlight(textSelection, normalizedColor)
+              } else if (isTextSelectionHighlighted(textSelection)) {
+                removeTextHighlight(textSelection)
+              }
               showToast(text.trim() ? 'Note saved' : 'Note deleted')
               clearTextSelection()
             }}
@@ -2186,8 +2294,13 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
             allHighlighted={selectedVerses.length > 0 && selectedVerses.every(item =>
               isHighlighted(item.book || currentBook, item.chapter, item.verse)
             )}
+            highlightColor={selectedVerses
+              .map(item => getVerseHighlightColor(item.book || currentBook, item.chapter, item.verse))
+              .find(Boolean) || highlightColor}
             onBookmark={() => handleBookmarkMultiple(selectedVerses)}
-            onToggleHighlight={() => handleHighlightMultiple(selectedVerses)}
+            onToggleHighlight={(color) => handleHighlightMultiple(selectedVerses, color)}
+            onApplyHighlight={(color) => handleHighlightMultiple(selectedVerses, color, { force: true })}
+            onChooseHighlightColor={rememberHighlightColor}
             onSaveNotes={handleSaveNotesForVerses}
             onShowToast={showToast}
             onCancel={cancelMultiSelectMode}

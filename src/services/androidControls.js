@@ -28,6 +28,17 @@ export async function setNativeSearchKeyboardCaptureInputEnabled(enabled) {
   }
 }
 
+export async function setNativeTextSelectionMenuSuppressed(suppressed) {
+  if (!isNativeAndroid()) return false
+  try {
+    await HeritageControls.setTextSelectionMenuSuppressed({ suppressed: Boolean(suppressed) })
+    return true
+  } catch (error) {
+    console.warn('Heritage native text selection controls are not available yet', error)
+    return false
+  }
+}
+
 export async function setNativeReaderChromeHidden(hidden) {
   if (!isNativeAndroid()) return false
   try {

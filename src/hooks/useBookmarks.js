@@ -7,6 +7,7 @@ import {
   getAnnotationVerses,
 } from '../utils/verseAnnotations'
 import { resolveTextAnchor, textSelectionMatchesAnnotation } from '../utils/textSelection'
+import { normalizeHighlightColor } from '../utils/highlightColors'
 
 const STORAGE_KEY = STORAGE_KEYS.bookmarks
 const COMMENTARY_STORAGE_KEY = STORAGE_KEYS.commentaryBookmarks
@@ -231,19 +232,19 @@ export function useBookmarks() {
     if (!grouped) return null
     const now = new Date().toISOString()
     setHighlights(prev => {
-      const overlapping = prev.filter(highlight => annotationsOverlap(highlight, grouped))
+      const overlapping = prev.filter(highlight => !highlight.segments?.length && annotationsOverlap(highlight, grouped))
       const merged = buildGroupedAnnotation([
         ...grouped.verses,
         ...overlapping.flatMap(getAnnotationVerses),
       ])
       return [
-        ...prev.filter(highlight => !annotationsOverlap(highlight, grouped)),
+        ...prev.filter(highlight => highlight.segments?.length || !annotationsOverlap(highlight, grouped)),
         {
           ...merged,
           id: crypto.randomUUID(),
           type: 'highlight',
           kind: 'verses',
-          color,
+          color: normalizeHighlightColor(color),
           dateCreated: now,
           dateModified: now,
         },
@@ -257,6 +258,7 @@ export function useBookmarks() {
     if (!grouped) return
     const now = new Date().toISOString()
     setHighlights(prev => prev.flatMap(highlight => {
+      if (highlight.segments?.length) return [highlight]
       if (!annotationsOverlap(highlight, grouped)) return [highlight]
       const remaining = getAnnotationVerses(highlight).filter(item =>
         !annotationIncludesVerse(grouped, item.book, item.chapter, item.verse)
@@ -274,7 +276,13 @@ export function useBookmarks() {
       && annotationIncludesVerse(highlight, book, chapter, verse))
   }
 
-  const addTextHighlight = selection => {
+  const getVerseHighlightColor = (book, chapter, verse) => {
+    const highlight = highlights.find(item => !item.segments?.length
+      && annotationIncludesVerse(item, book, chapter, verse))
+    return highlight ? normalizeHighlightColor(highlight.color) : null
+  }
+
+  const addTextHighlight = (selection, color = 'yellow') => {
     if (!selection?.segments?.length || selection.mixedTranslations) return null
     const now = new Date().toISOString()
     const highlight = {
@@ -282,7 +290,7 @@ export function useBookmarks() {
       id: crypto.randomUUID(),
       type: 'highlight',
       kind: 'text',
-      color: 'yellow',
+      color: normalizeHighlightColor(color),
       dateCreated: now,
       dateModified: now,
     }
@@ -301,6 +309,10 @@ export function useBookmarks() {
     return highlights.some(item => textSelectionMatchesAnnotation(selection, item))
   }
 
+  const getTextSelectionHighlight = selection => {
+    return highlights.find(item => textSelectionMatchesAnnotation(selection, item)) || null
+  }
+
   const getTextHighlights = (book, chapter, verse, translationId, verseText) => {
     return highlights.flatMap(highlight => {
       if (highlight.translationId !== translationId || !Array.isArray(highlight.segments)) return []
@@ -310,7 +322,10 @@ export function useBookmarks() {
           && segment.chapter === Number(chapter)
           && segment.verse === Number(verse)
         )
-        .map(segment => resolveTextAnchor(segment, verseText))
+        .map(segment => {
+          const resolved = resolveTextAnchor(segment, verseText)
+          return resolved ? { ...resolved, color: normalizeHighlightColor(highlight.color) } : null
+        })
         .filter(Boolean)
     })
   }
@@ -361,9 +376,11 @@ export function useBookmarks() {
     addHighlight,
     removeHighlights,
     isHighlighted,
+    getVerseHighlightColor,
     addTextHighlight,
     removeTextHighlight,
     isTextSelectionHighlighted,
+    getTextSelectionHighlight,
     getTextHighlights,
     saveTextNote,
   }

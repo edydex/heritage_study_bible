@@ -113,13 +113,88 @@ export function captureBibleTextSelection(selection, root) {
     text: segment.verseText,
   })))
 
-  return {
+  const captured = {
     ...grouped,
     kind: 'text',
     segments,
     translationId: translations.length === 1 ? translations[0] : null,
     mixedTranslations: translations.length > 1,
     selectedText: segments.map(segment => segment.selectedText).join('\n'),
+  }
+  return {
+    ...captured,
+    snippets: [{
+      segments,
+      selectedText: captured.selectedText,
+      reference: captured.reference,
+    }],
+    snippetCount: 1,
+  }
+}
+
+function segmentKey(segment) {
+  return [
+    segment.translationId,
+    segment.book,
+    segment.chapter,
+    segment.verse,
+    segment.startOffset,
+    segment.endOffset,
+  ].join('\u0000')
+}
+
+function normalizeSnippets(selection) {
+  if (Array.isArray(selection?.snippets) && selection.snippets.length > 0) {
+    return selection.snippets.filter(snippet => Array.isArray(snippet?.segments) && snippet.segments.length > 0)
+  }
+  if (!Array.isArray(selection?.segments) || selection.segments.length === 0) return []
+  return [{
+    segments: selection.segments,
+    selectedText: selection.selectedText || selection.segments.map(segment => segment.selectedText).join('\n'),
+    reference: selection.reference || '',
+  }]
+}
+
+export function combineBibleTextSelections(selections) {
+  const snippets = []
+  const seenSnippets = new Set()
+
+  for (const selection of selections || []) {
+    for (const snippet of normalizeSnippets(selection)) {
+      const key = snippet.segments.map(segmentKey).join('\u0001')
+      if (!key || seenSnippets.has(key)) continue
+      seenSnippets.add(key)
+      snippets.push(snippet)
+    }
+  }
+
+  if (snippets.length === 0) return null
+
+  const seenSegments = new Set()
+  const segments = snippets.flatMap(snippet => snippet.segments).filter(segment => {
+    const key = segmentKey(segment)
+    if (seenSegments.has(key)) return false
+    seenSegments.add(key)
+    return true
+  })
+  const translations = [...new Set(segments.map(segment => segment.translationId).filter(Boolean))]
+  const grouped = buildGroupedAnnotation(segments.map(segment => ({
+    book: segment.book,
+    chapter: segment.chapter,
+    verse: segment.verse,
+    text: segment.verseText,
+  })))
+  if (!grouped) return null
+
+  return {
+    ...grouped,
+    kind: 'text',
+    snippets,
+    snippetCount: snippets.length,
+    segments,
+    translationId: translations.length === 1 ? translations[0] : null,
+    mixedTranslations: translations.length > 1,
+    selectedText: snippets.map(snippet => snippet.selectedText).filter(Boolean).join('\n…\n'),
   }
 }
 
