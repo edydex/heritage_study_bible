@@ -130,7 +130,7 @@ export default function TextSelectionBar({
                 />
               )}
             />
-            <SelectionAction icon="➕" label="Add text" onClick={onAddSnippet} disabled={disabled} />
+            <SelectionAction icon="➕" label="Select More" onClick={onAddSnippet} disabled={disabled} />
             <SelectionAction icon="☑️" label="Full verses" onClick={onSelectFullVerses} disabled={disabled} />
             <SelectionAction icon="📝" label="Note" onClick={() => setShowNote(true)} disabled={disabled} />
           </div>

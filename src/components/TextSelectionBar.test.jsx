@@ -52,7 +52,7 @@ describe('TextSelectionBar', () => {
       />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add text' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Select More' }))
     expect(onAddSnippet).toHaveBeenCalledOnce()
 
     fireEvent.click(screen.getByRole('button', { name: 'Note' }))

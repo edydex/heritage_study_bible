@@ -24,7 +24,7 @@ import { refreshStaleContentServers } from './services/contentServers'
 import { checkForApkUpdate, openApkDownload } from './services/appUpdates'
 import { getVerseTextWithPsalmSuperscription, withPsalmSuperscriptionVerse } from './utils/psalmSuperscriptions'
 import { toggleVerseInSelection } from './utils/verseSelection'
-import { captureBibleTextSelection, clearBrowserTextSelection, combineBibleTextSelections, textSelectionMatchesAnnotation } from './utils/textSelection'
+import { captureBibleTextSelection, clearBrowserTextSelection, combineBibleTextSelections, resolveTextAnchor, textSelectionMatchesAnnotation } from './utils/textSelection'
 import { DEFAULT_HIGHLIGHT_COLOR, normalizeHighlightColor } from './utils/highlightColors'
 import {
   DEFAULT_ADVANCED_SETTINGS,
@@ -1375,6 +1375,26 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   ), [notes, textSelection])
 
   const activeTextHighlight = textSelection ? getTextSelectionHighlight(textSelection) : null
+  const committedTextSelection = useMemo(
+    () => combineBibleTextSelections(textSelectionSession?.committed || []),
+    [textSelectionSession?.committed]
+  )
+  const getVisibleTextHighlights = useCallback((book, chapter, verse, selectedTranslationId, verseText) => {
+    const savedHighlights = getTextHighlights(book, chapter, verse, selectedTranslationId, verseText)
+    const selectionPreviews = (committedTextSelection?.segments || [])
+      .filter(segment =>
+        segment.book === book
+        && segment.chapter === Number(chapter)
+        && segment.verse === Number(verse)
+        && segment.translationId === selectedTranslationId
+      )
+      .map(segment => {
+        const resolved = resolveTextAnchor(segment, verseText)
+        return resolved ? { ...resolved, selectionPreview: true } : null
+      })
+      .filter(Boolean)
+    return [...savedHighlights, ...selectionPreviews]
+  }, [committedTextSelection, getTextHighlights])
 
   useEffect(() => {
     let frame = null
@@ -2066,7 +2086,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                         isVerseHighlighted={(ch, verse) => isHighlighted(currentBook, ch, verse)}
                         getVerseHighlightColor={(ch, verse) => getVerseHighlightColor(currentBook, ch, verse)}
                         getTextHighlights={(ch, verse, selectedTranslationId, verseText) =>
-                          getTextHighlights(currentBook, ch, verse, selectedTranslationId, verseText)
+                          getVisibleTextHighlights(currentBook, ch, verse, selectedTranslationId, verseText)
                         }
                         notes={notes}
                         onBookmarkToggle={handleBookmarkToggle}
@@ -2089,7 +2109,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                         isVerseHighlighted={(ch, verse) => isHighlighted(currentBook, ch, verse)}
                         getVerseHighlightColor={(ch, verse) => getVerseHighlightColor(currentBook, ch, verse)}
                         getTextHighlights={(ch, verse, selectedTranslationId, verseText) =>
-                          getTextHighlights(currentBook, ch, verse, selectedTranslationId, verseText)
+                          getVisibleTextHighlights(currentBook, ch, verse, selectedTranslationId, verseText)
                         }
                         notes={notes}
                         translationId={translationId}
