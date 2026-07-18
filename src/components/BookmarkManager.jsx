@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { formatVerseReference } from '../utils/verseAnnotations'
 
 function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onClose, onNavigate, onDelete, onUpdateNote, onDeleteCommentary, onNavigateToCommentary, onDeleteNote }) {
   const [viewMode, setViewMode] = useState('date') // 'date' or 'books'
@@ -56,10 +57,11 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
       )
     }
     if (b.type === 'note') {
+      const reference = b.reference || formatVerseReference(b)
       return (
         b.text?.toLowerCase().includes(query) ||
         b.verseText?.toLowerCase().includes(query) ||
-        `${b.book} ${b.chapter}:${b.verse}`.toLowerCase().includes(query)
+        reference.toLowerCase().includes(query)
       )
     }
     return (
@@ -336,6 +338,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onDe
 
   const isCommentary = bookmark.type === 'commentary'
   const isNote = bookmark.type === 'note'
+  const noteReference = isNote ? (bookmark.reference || formatVerseReference(bookmark)) : ''
 
   const handleClick = () => {
     if (isCommentary) {
@@ -349,7 +352,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onDe
     if (isCommentary) {
       onDeleteCommentary?.(bookmark.commentaryId)
     } else if (isNote) {
-      onDeleteNote?.(bookmark.book, bookmark.chapter, bookmark.verse)
+      onDeleteNote?.(bookmark.book, bookmark.chapter, bookmark.verse, bookmark.id)
     } else {
       onDelete(bookmark.id)
     }
@@ -380,7 +383,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onDe
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-green-500">📝</span>
                 <span className="font-medium text-green-700">
-                  {compact ? `Note on v${bookmark.verse}` : `${bookmark.book} ${bookmark.chapter}:${bookmark.verse}`}
+                  {compact ? `Note on ${noteReference.replace(`${bookmark.book} `, '')}` : noteReference}
                 </span>
                 <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Note</span>
                 <span className="text-xs text-gray-400">({formatDate(bookmark.dateCreated)})</span>

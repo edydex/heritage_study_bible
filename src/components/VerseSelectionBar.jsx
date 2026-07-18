@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import CompareModal from './CompareModal'
 import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptions'
 import { formatVersesForCopy, writeTextToClipboard } from '../utils/verseSelection'
+import { annotationIncludesVerse, getAnnotationVerses } from '../utils/verseAnnotations'
 
 function ActionButton({ icon, label, onClick, disabled = false, active = false }) {
   return (
@@ -31,7 +32,9 @@ function VerseSelectionBar({
   parallelBibleData = null,
   notes = [],
   allBookmarked = false,
+  allHighlighted = false,
   onBookmark,
+  onToggleHighlight,
   onSaveNotes,
   onShowToast,
   onCancel,
@@ -40,22 +43,26 @@ function VerseSelectionBar({
   const [showCompareModal, setShowCompareModal] = useState(false)
   const [showNotesModal, setShowNotesModal] = useState(false)
   const [noteText, setNoteText] = useState('')
+  const [noteInline, setNoteInline] = useState(false)
   const activeVerses = Array.isArray(selectedVerses) ? selectedVerses : []
   const primaryVerse = activeVerses[activeVerses.length - 1] || null
   const selectionCount = activeVerses.length
 
-  const existingSingleNote = useMemo(() => {
-    if (selectionCount !== 1 || !primaryVerse) return ''
-    return notes.find(note =>
-      (note.book || bookName) === (primaryVerse.book || bookName)
-      && note.chapter === primaryVerse.chapter
-      && note.verse === primaryVerse.verse
-    )?.text || ''
-  }, [bookName, notes, primaryVerse, selectionCount])
+  const existingSelectionNote = useMemo(() => {
+    if (selectionCount === 0) return null
+    return notes.find(note => {
+      if (note.kind === 'text' || note.segments?.length) return false
+      const noteVerses = getAnnotationVerses(note)
+      return noteVerses.length === selectionCount && activeVerses.every(verse =>
+        annotationIncludesVerse(note, verse.book || bookName, verse.chapter, verse.verse)
+      )
+    }) || null
+  }, [activeVerses, bookName, notes, selectionCount])
 
   useEffect(() => {
-    setNoteText(existingSingleNote)
-  }, [existingSingleNote])
+    setNoteText(existingSelectionNote?.text || '')
+    setNoteInline(existingSelectionNote?.inline === true)
+  }, [existingSelectionNote])
 
   useEffect(() => {
     const handleEscape = event => {
@@ -103,7 +110,7 @@ function VerseSelectionBar({
 
   const handleSaveNote = () => {
     if (selectionCount === 0) return
-    onSaveNotes?.(activeVerses, noteText)
+    onSaveNotes?.(activeVerses, noteText, { inline: noteInline })
     setShowNotesModal(false)
   }
 
@@ -153,9 +160,16 @@ function VerseSelectionBar({
             </button>
           </div>
 
-          <div className="grid grid-cols-4 px-2 py-1">
+          <div className="grid grid-cols-5 px-2 py-1">
             <ActionButton icon="📋" label="Copy" onClick={handleCopy} disabled={selectionCount === 0} />
             <ActionButton icon="🔄" label="Compare" onClick={() => setShowCompareModal(true)} disabled={selectionCount === 0} />
+            <ActionButton
+              icon="🖍️"
+              label={allHighlighted ? 'Unhighlight' : 'Highlight'}
+              onClick={onToggleHighlight}
+              disabled={selectionCount === 0}
+              active={allHighlighted}
+            />
             <ActionButton
               icon={allBookmarked ? '★' : '☆'}
               label={allBookmarked ? 'Unbookmark' : 'Bookmark'}
@@ -215,8 +229,17 @@ function VerseSelectionBar({
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-3">
               {selectionCount === 1
                 ? 'This note is saved with the selected verse.'
-                : 'This note will be applied to every selected verse.'}
+                : 'This note is saved once with the full verse selection.'}
             </p>
+            <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:text-gray-200">
+              <input
+                type="checkbox"
+                checked={noteInline}
+                onChange={event => setNoteInline(event.target.checked)}
+                className="h-4 w-4"
+              />
+              Show this note inline after the final selected verse
+            </label>
             <div className="flex gap-2">
               <button
                 type="button"

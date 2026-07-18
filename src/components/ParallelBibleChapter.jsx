@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useCallback } from 'react'
 import VerseText from './VerseText'
 import { getVerseLayout } from '../utils/verseLayout'
+import InlineVerseNotes, { getInlineNotesAfterVerse } from './InlineVerseNotes'
 
 function MissingVerse({ translationId }) {
   return (
@@ -18,6 +19,9 @@ function ParallelBibleChapter({
   hasCommentary,
   onVerseClick,
   isBookmarked,
+  isVerseHighlighted,
+  getTextHighlights,
+  notes = [],
   onBookmarkToggle,
   onVersePosition,
   isVerseSelected,
@@ -85,6 +89,7 @@ function ParallelBibleChapter({
     const primary = primaryVerseMap.get(verseNumber)
     const secondary = secondaryVerseMap.get(verseNumber)
     const verseText = primary?.text || secondary?.text || ''
+    if (!globalThis.window?.getSelection?.()?.isCollapsed) return
     onVerseClick(primaryChapter.number, verseNumber, verseText)
   }
 
@@ -107,13 +112,22 @@ function ParallelBibleChapter({
           const hasComment = hasCommentary(primaryChapter.number, verseNumber)
           const bookmarked = isBookmarked(verseNumber)
           const selected = isVerseSelected?.(primaryChapter.number, verseNumber)
+          const highlighted = isVerseHighlighted?.(primaryChapter.number, verseNumber)
           const primaryLayout = getVerseLayout(primaryVerseLayout, bookName, primaryChapter.number, verseNumber)
           const secondaryLayout = getVerseLayout(secondaryVerseLayout, bookName, primaryChapter.number, verseNumber)
           const startsParagraph = primaryLayout?.breakBefore || secondaryLayout?.breakBefore
 
+          const primaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, primaryTranslationId, primaryVerse?.text || '') || []
+          const secondaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, secondaryTranslationId, secondaryVerse?.text || '') || []
+          const inlineNotes = selectionMode ? [] : [
+            ...getInlineNotesAfterVerse(notes, bookName, primaryChapter.number, verseNumber, primaryTranslationId),
+            ...getInlineNotesAfterVerse(notes, bookName, primaryChapter.number, verseNumber, secondaryTranslationId),
+          ].filter((note, index, rows) => rows.findIndex(item => item.id === note.id) === index)
           const rowClassName = `relative rounded-lg border transition-all ${selectionMode ? 'verse-selection-target cursor-pointer' : ''} ${startsParagraph ? 'mt-4' : ''} ${
             selected
               ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700'
+              : highlighted
+                ? 'bg-yellow-100 dark:bg-yellow-900/35 border-yellow-300 dark:border-yellow-700'
               : isSuperscription
                 ? 'bg-white dark:bg-black border-gray-200 dark:border-gray-800'
               : 'bg-gray-50 dark:bg-gray-700/60 border-gray-200 dark:border-gray-700'
@@ -151,8 +165,16 @@ function ParallelBibleChapter({
               <div className="hidden md:grid md:grid-cols-2 md:gap-3 md:p-2">
                 <div className="group flex items-start gap-2 rounded-md p-2 hover:bg-white/70 dark:hover:bg-gray-700 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
                   <span className="text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[2rem] pt-0.5 select-none text-right">{verseNumber}</span>
-                  <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`} style={verseStyle}>
-                    {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} /> : <MissingVerse translationId={primaryTranslationId} />}
+                  <p
+                    className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}
+                    style={verseStyle}
+                    data-verse-content={primaryVerse ? '' : undefined}
+                    data-book={bookName}
+                    data-chapter={primaryChapter.number}
+                    data-verse={verseNumber}
+                    data-translation={primaryTranslationId}
+                  >
+                    {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} /> : <MissingVerse translationId={primaryTranslationId} />}
                   </p>
                   {!selectionMode && <button
                     onClick={(event) => {
@@ -172,8 +194,16 @@ function ParallelBibleChapter({
 
                 <div className="flex items-start gap-2 rounded-md p-2 hover:bg-white/60 dark:hover:bg-gray-700 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
                   <span className="text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[2rem] pt-0.5 select-none text-right">{verseNumber}</span>
-                  <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`} style={verseStyle}>
-                    {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} /> : <MissingVerse translationId={secondaryTranslationId} />}
+                  <p
+                    className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}
+                    style={verseStyle}
+                    data-verse-content={secondaryVerse ? '' : undefined}
+                    data-book={bookName}
+                    data-chapter={primaryChapter.number}
+                    data-verse={verseNumber}
+                    data-translation={secondaryTranslationId}
+                  >
+                    {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} /> : <MissingVerse translationId={secondaryTranslationId} />}
                   </p>
                 </div>
               </div>
@@ -183,8 +213,16 @@ function ParallelBibleChapter({
                   <div className="text-[11px] uppercase tracking-wide text-primary dark:text-blue-400 font-semibold mb-1">{primaryTranslationId}</div>
                   <div className="flex items-start gap-2 group">
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
-                    <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`} style={verseStyle}>
-                      {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} /> : <MissingVerse translationId={primaryTranslationId} />}
+                    <p
+                      className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}
+                      style={verseStyle}
+                      data-verse-content={primaryVerse ? '' : undefined}
+                      data-book={bookName}
+                      data-chapter={primaryChapter.number}
+                      data-verse={verseNumber}
+                      data-translation={primaryTranslationId}
+                    >
+                      {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} /> : <MissingVerse translationId={primaryTranslationId} />}
                     </p>
                     {!selectionMode && <button
                       onClick={(event) => {
@@ -207,12 +245,21 @@ function ParallelBibleChapter({
                   <div className="text-[11px] uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-1">{secondaryTranslationId}</div>
                   <div className="flex items-start gap-2">
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
-                    <p className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`} style={verseStyle}>
-                      {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} /> : <MissingVerse translationId={secondaryTranslationId} />}
+                    <p
+                      className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}
+                      style={verseStyle}
+                      data-verse-content={secondaryVerse ? '' : undefined}
+                      data-book={bookName}
+                      data-chapter={primaryChapter.number}
+                      data-verse={verseNumber}
+                      data-translation={secondaryTranslationId}
+                    >
+                      {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} /> : <MissingVerse translationId={secondaryTranslationId} />}
                     </p>
                   </div>
                 </div>
               </div>
+              <InlineVerseNotes notes={inlineNotes} />
             </div>
           )
         })}
