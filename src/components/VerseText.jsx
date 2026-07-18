@@ -15,11 +15,23 @@ function renderHighlightedText(text, startOffset, highlights, keyPrefix) {
   return points.slice(0, -1).map((start, index) => {
     const end = points[index + 1]
     const value = text.slice(start, end)
-    const highlight = highlights.find(item =>
+    const overlappingHighlights = highlights.filter(item =>
       item.startOffset < startOffset + end && item.endOffset > startOffset + start
     )
+    const highlight = overlappingHighlights.find(item => item.selectionPreview === true)
+      || overlappingHighlights[0]
     return highlight
-      ? <mark key={`${keyPrefix}-h${index}`} data-highlight-color={highlight.color || 'yellow'} className={`rounded-sm px-0 ${getTextHighlightClasses(highlight.color)}`}>{value}</mark>
+      ? highlight.selectionPreview
+        ? (
+          <mark
+            key={`${keyPrefix}-s${index}`}
+            data-selection-preview="true"
+            className="rounded-sm bg-blue-200/80 px-0 text-inherit ring-1 ring-inset ring-blue-400/70 dark:bg-blue-700/55 dark:text-blue-50 dark:ring-blue-400/70"
+          >
+            {value}
+          </mark>
+        )
+        : <mark key={`${keyPrefix}-h${index}`} data-highlight-color={highlight.color || 'yellow'} className={`rounded-sm px-0 ${getTextHighlightClasses(highlight.color)}`}>{value}</mark>
       : <span key={`${keyPrefix}-t${index}`}>{value}</span>
   })
 }

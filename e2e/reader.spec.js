@@ -133,7 +133,8 @@ test.describe('Heritage reader', () => {
     await selectTextSnippet(page, '#verse-3-16', 'God so loved')
     const actions = page.getByRole('region', { name: 'Selected text actions' })
     await expect(actions).toBeVisible()
-    await actions.getByRole('button', { name: 'Add text' }).click()
+    await actions.getByRole('button', { name: 'Select More' }).click()
+    await expect(page.locator('[data-selection-preview="true"]')).toContainText('God so loved')
 
     await selectTextSnippet(page, '#verse-3-18', 'is not condemned')
     await expect(actions.getByText('2 text snippets')).toBeVisible()

@@ -18,4 +18,21 @@ describe('VerseText', () => {
     expect(container.textContent).toContain('For God so loved')
     expect(container.textContent).toContain('the world.')
   })
+
+  it('renders a temporary selection preview over a saved highlight', () => {
+    const { container } = render(
+      <p>
+        <VerseText
+          text="For God so loved the world."
+          highlights={[
+            { startOffset: 4, endOffset: 16, color: 'pink' },
+            { startOffset: 4, endOffset: 16, selectionPreview: true },
+          ]}
+        />
+      </p>
+    )
+
+    expect(container.querySelector('[data-selection-preview="true"]')).toHaveTextContent('God so loved')
+    expect(container.querySelector('[data-highlight-color]')).not.toBeInTheDocument()
+  })
 })
