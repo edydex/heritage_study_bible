@@ -493,29 +493,29 @@ const chronologicalSections = [
       '2 Kings 24',
       note(
         'jeremiah-last-kings-survey',
-        'Jeremiah 21-24: Zedekiah and the last kings',
-        'These chapters deliberately move within the historical frame just read. Jeremiah 21 opens during Zedekiah\'s Babylonian siege; chapter 22 looks back across Shallum or Jehoahaz, Jehoiakim, and Coniah or Jehoiachin; chapter 23 continues the royal-shepherd theme without a new date; and chapter 24 is explicitly after Jehoiachin and Jerusalem\'s leaders were deported. Compare 2 Kings 23:31-24:20 and 2 Chronicles 36:1-13. Keeping chapters 21-24 together preserves Jeremiah\'s royal unit while this note makes its internal backtracking visible.',
+        'Jeremiah 21-24: the last kings of Judah',
+        'Jeremiah is not arranged as a straight timeline. Chapter 21 begins near the end, during Zedekiah\'s siege. Chapters 22-24 then look back over Jehoiakim, Jehoiachin, and Judah\'s other last kings, ending after the first exile. For the surrounding history, see 2 Kings 23:31-24:20 and 2 Chronicles 36:1-13.',
         ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
       ),
       'Jeremiah 21-24',
       note(
         'jeremiah-jehoiakim-fourth-year',
         'Jeremiah 25-26: Jehoiakim',
-        'Jeremiah 25 is dated to Jehoiakim\'s fourth year, identified there as Nebuchadnezzar\'s first year, while Jeremiah 26 returns to the beginning of Jehoiakim\'s reign. Their royal setting corresponds broadly to 2 Kings 23:34-24:7 and 2 Chronicles 36:4-8. The order is not claiming that chapter 26 happened after chapter 25; these two Jehoiakim-era chapters stay together to avoid another unnecessary split.',
+        'The reading moves backward several years: chapter 25 comes from Jehoiakim\'s fourth year, while chapter 26 returns to the beginning of his reign. For the surrounding history, see 2 Kings 23:34-24:7 and 2 Chronicles 36:4-8.',
         ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
       ),
       'Jeremiah 25-26',
       note(
         'jeremiah-zedekiah-first-exiles',
         'Jeremiah 27-29: Zedekiah and the first exiles',
-        'Jeremiah 27 addresses Zedekiah, chapter 28 is explicitly in Zedekiah\'s fourth year, and chapter 29 sends its letter after Jeconiah or Jehoiachin and Jerusalem\'s leaders had gone into exile. The controlling narrative is 2 Kings 24:10-20; 2 Chronicles 36:9-13 supplies the parallel summary. These chapters belong after the first deportation but before Jerusalem\'s final fall.',
+        'These chapters belong after the first group of exiles was taken to Babylon, but before Jerusalem\'s final fall. For the surrounding history, see 2 Kings 24:10-20 and 2 Chronicles 36:9-13.',
         ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
       ),
       'Jeremiah 27-29',
       note(
         'jeremiah-consolation-siege-flashback',
         'Jeremiah 30-36: promise, siege, then a Jehoiakim flashback',
-        'Jeremiah 30-31 gives an undated restoration promise. Chapters 32-34 then enter Zedekiah\'s final crisis—chapter 32 names his tenth year and the siege—before chapters 35-36 look back to Jehoiakim, with chapter 36 naming his fourth and fifth years. Compare the reign sequence in 2 Kings 24 and 2 Chronicles 36:4-13. The plan leaves 30-36 continuous because the promise-and-siege material is a coherent reading movement and splitting every dated flashback would make Jeremiah harder, not easier, to follow.',
+        'The reading begins with promises of restoration, moves into Jerusalem\'s final siege under Zedekiah, and then looks back to events under Jehoiakim. That backward step is part of Jeremiah\'s arrangement, so the chapters stay together here. For the reigns in view, see 2 Kings 24 and 2 Chronicles 36:4-13.',
         ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
       ),
       'Jeremiah 30-36',

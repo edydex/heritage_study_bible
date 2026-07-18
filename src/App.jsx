@@ -8,6 +8,7 @@ import BookmarkManager from './components/BookmarkManager'
 import SearchResults from './components/SearchResults'
 import BottomNav from './components/BottomNav'
 import VerseSelectionBar from './components/VerseSelectionBar'
+import TextSelectionBar from './components/TextSelectionBar'
 import ResourcesModal from './components/ResourcesModal'
 import { useBookmarks } from './hooks/useBookmarks'
 import { bibleBooks } from './data/bible-books.js'
@@ -23,6 +24,7 @@ import { refreshStaleContentServers } from './services/contentServers'
 import { checkForApkUpdate, openApkDownload } from './services/appUpdates'
 import { getVerseTextWithPsalmSuperscription, withPsalmSuperscriptionVerse } from './utils/psalmSuperscriptions'
 import { toggleVerseInSelection } from './utils/verseSelection'
+import { captureBibleTextSelection, clearBrowserTextSelection, textSelectionMatchesAnnotation } from './utils/textSelection'
 import {
   DEFAULT_ADVANCED_SETTINGS,
   DEFAULT_VOLUME_SCROLL_ANIMATION_MS,
@@ -1011,6 +1013,11 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const [selectedVerse, setSelectedVerse] = useState(null) // Track selected verse
   const [selectedVerses, setSelectedVerses] = useState([])
   const [multiSelectMode, setMultiSelectMode] = useState(false)
+  const [textSelection, setTextSelection] = useState(null)
+  const clearTextSelection = useCallback(() => {
+    clearBrowserTextSelection()
+    setTextSelection(null)
+  }, [])
   const multiSelectSnapshotRef = useRef(null)
   const bibleContainerRef = useRef(null)
   const searchRequestRef = useRef(0)
@@ -1236,12 +1243,18 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         return
       }
 
+      if (textSelection) {
+        event?.preventDefault?.()
+        clearTextSelection()
+        return
+      }
+
       if (multiSelectMode) {
         event?.preventDefault?.()
         cancelMultiSelectMode()
       }
     })
-  }, [cancelMultiSelectMode, multiSelectMode, searchResults, showBookmarkManager, showResources])
+  }, [cancelMultiSelectMode, clearTextSelection, multiSelectMode, searchResults, showBookmarkManager, showResources, textSelection])
 
   // Lazy-load commentary data when book changes
   useEffect(() => {
@@ -1317,8 +1330,36 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const { 
     bookmarks, addBookmark, removeBookmark, updateBookmark, isBookmarked,
     commentaryBookmarks, isCommentaryBookmarked, toggleCommentaryBookmark,
-    notes, saveNote, deleteNote
+    notes, saveNote, saveNotes, deleteNote, deleteNoteById,
+    addHighlight, removeHighlights, isHighlighted,
+    addTextHighlight, removeTextHighlight, isTextSelectionHighlighted,
+    getTextHighlights, saveTextNote,
   } = useBookmarks()
+
+  const existingTextSelectionNote = useMemo(() => (
+    textSelection
+      ? notes.find(note => textSelectionMatchesAnnotation(textSelection, note)) || null
+      : null
+  ), [notes, textSelection])
+
+  useEffect(() => {
+    let frame = null
+    const updateSelection = () => {
+      if (frame != null) cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        if (multiSelectMode) {
+          setTextSelection(null)
+          return
+        }
+        setTextSelection(captureBibleTextSelection(window.getSelection(), bibleContainerRef.current))
+      })
+    }
+    document.addEventListener('selectionchange', updateSelection)
+    return () => {
+      document.removeEventListener('selectionchange', updateSelection)
+      if (frame != null) cancelAnimationFrame(frame)
+    }
+  }, [currentBook, currentChapter, multiSelectMode, parallelMode, translationId])
 
   useEffect(() => {
     saveBibleProgress(currentBook, currentChapter).catch(() => {})
@@ -1512,6 +1553,22 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     setShowGoToPassageButton(false)
   }
 
+  const beginFullVerseSelection = (verses) => {
+    if (!Array.isArray(verses) || verses.length === 0) return
+    multiSelectSnapshotRef.current = {
+      selectedVerse,
+      selectedVerses,
+      sidebarOpen: isSidebarOpen,
+      showGoToPassageButton,
+    }
+    clearTextSelection()
+    setSelectedVerse(verses[verses.length - 1])
+    setSelectedVerses(verses)
+    setMultiSelectMode(true)
+    setIsSidebarOpen(false)
+    setShowGoToPassageButton(false)
+  }
+
   const toggleMultiSelectMode = () => {
     if (multiSelectMode) {
       if (selectedVerses.length === 0) {
@@ -1602,13 +1659,13 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     showToast(`Bookmarked ${addedCount} verse${addedCount === 1 ? '' : 's'}`)
   }
 
-  const handleSaveNotesForVerses = (verses, text) => {
+  const handleSaveNotesForVerses = (verses, text, options = {}) => {
     if (!Array.isArray(verses) || verses.length === 0) {
       showToast('Select at least one verse first')
       return
     }
 
-    verses.forEach(v => {
+    const normalized = verses.map(v => {
       const verseBook = v.book || currentBook
       const verseText = v.text || getVerseTextWithPsalmSuperscription(
         bibleData,
@@ -1617,13 +1674,45 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         v.verse,
         translationId
       )
-      saveNote(verseBook, v.chapter, v.verse, text, verseText)
+      return { book: verseBook, chapter: v.chapter, verse: v.verse, text: verseText }
     })
+    saveNotes(normalized, text, options)
 
     if (text.trim()) {
-      showToast(`Saved note to ${verses.length} verse${verses.length === 1 ? '' : 's'}`)
+      showToast(verses.length === 1 ? 'Note saved' : `Saved one note for ${verses.length} verses`)
     } else {
-      showToast(`Deleted note from ${verses.length} verse${verses.length === 1 ? '' : 's'}`)
+      showToast(verses.length === 1 ? 'Note deleted' : 'Grouped note deleted')
+    }
+  }
+
+  const handleHighlightMultiple = (verses) => {
+    if (!Array.isArray(verses) || verses.length === 0) {
+      showToast('Select at least one verse first')
+      return
+    }
+
+    const normalized = verses.map(v => {
+      const book = v.book || currentBook
+      return {
+        book,
+        chapter: v.chapter,
+        verse: v.verse,
+        text: v.text || getVerseTextWithPsalmSuperscription(
+          bibleData,
+          book,
+          v.chapter,
+          v.verse,
+          translationId
+        ),
+      }
+    })
+    const allSelectedHighlighted = normalized.every(v => isHighlighted(v.book, v.chapter, v.verse))
+    if (allSelectedHighlighted) {
+      removeHighlights(normalized)
+      showToast(`Removed highlight from ${normalized.length} verse${normalized.length === 1 ? '' : 's'}`)
+    } else {
+      addHighlight(normalized)
+      showToast(`Highlighted ${normalized.length} verse${normalized.length === 1 ? '' : 's'}`)
     }
   }
 
@@ -1800,7 +1889,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         <div className="flex">
           {/* Main Content */}
           <main
-            className={`reader-main flex-1 px-0 sm:px-4 py-2 sm:py-6 transition-all duration-300 ${multiSelectMode ? 'reader-selecting' : ''}`}
+            className={`reader-main flex-1 px-0 sm:px-4 py-2 sm:py-6 transition-all duration-300 ${(multiSelectMode || textSelection) ? 'reader-selecting' : ''}`}
             style={{ marginRight: isLargeScreen && isSidebarOpen ? `${sidebarWidth}px` : 0 }}
           >
             <div className="container mx-auto max-w-3xl" ref={bibleContainerRef}>
@@ -1884,6 +1973,11 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                           selectedVerses.some(row => row.book === currentBook && row.chapter === ch && row.verse === v)
                         }
                         isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
+                        isVerseHighlighted={(ch, verse) => isHighlighted(currentBook, ch, verse)}
+                        getTextHighlights={(ch, verse, selectedTranslationId, verseText) =>
+                          getTextHighlights(currentBook, ch, verse, selectedTranslationId, verseText)
+                        }
+                        notes={notes}
                         onBookmarkToggle={handleBookmarkToggle}
                         onVersePosition={updateVersePosition}
                         textSize={textSize}
@@ -1901,6 +1995,12 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                           selectedVerses.some(row => row.book === currentBook && row.chapter === ch && row.verse === v)
                         }
                         isBookmarked={(verse) => isBookmarked(currentBook, currentChapter, verse)}
+                        isVerseHighlighted={(ch, verse) => isHighlighted(currentBook, ch, verse)}
+                        getTextHighlights={(ch, verse, selectedTranslationId, verseText) =>
+                          getTextHighlights(currentBook, ch, verse, selectedTranslationId, verseText)
+                        }
+                        notes={notes}
+                        translationId={translationId}
                         onBookmarkToggle={handleBookmarkToggle}
                         onVersePosition={updateVersePosition}
                         textSize={textSize}
@@ -2023,8 +2123,9 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
               toggleCommentaryBookmark({ id: commentaryId })
               showToast('Commentary bookmark removed')
             }}
-            onDeleteNote={(book, chapter, verse) => {
-              deleteNote(book, chapter, verse)
+            onDeleteNote={(book, chapter, verse, noteId) => {
+              if (noteId) deleteNoteById(noteId)
+              else deleteNote(book, chapter, verse)
               showToast('Note deleted')
             }}
             onNavigateToCommentary={(chapter, commentaryId, book) => {
@@ -2043,6 +2144,32 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           />
         )}
 
+        {textSelection && !multiSelectMode && !searchResults && !showBookmarkManager && !showResources && (
+          <TextSelectionBar
+            selection={textSelection}
+            highlighted={isTextSelectionHighlighted(textSelection)}
+            existingNote={existingTextSelectionNote}
+            onToggleHighlight={() => {
+              if (isTextSelectionHighlighted(textSelection)) {
+                removeTextHighlight(textSelection)
+                showToast('Text highlight removed')
+              } else {
+                addTextHighlight(textSelection)
+                showToast('Selected words highlighted')
+              }
+              clearTextSelection()
+            }}
+            onSelectFullVerses={() => beginFullVerseSelection(textSelection.verses)}
+            onSaveNote={(text, options) => {
+              saveTextNote(textSelection, text, options)
+              showToast(text.trim() ? 'Note saved' : 'Note deleted')
+              clearTextSelection()
+            }}
+            onCancel={clearTextSelection}
+            onShowToast={showToast}
+          />
+        )}
+
         {multiSelectMode && !searchResults && !showBookmarkManager && !showResources && (
           <VerseSelectionBar
             bookName={currentBook}
@@ -2056,7 +2183,11 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
             allBookmarked={selectedVerses.length > 0 && selectedVerses.every(item =>
               isBookmarked(item.book || currentBook, item.chapter, item.verse)
             )}
+            allHighlighted={selectedVerses.length > 0 && selectedVerses.every(item =>
+              isHighlighted(item.book || currentBook, item.chapter, item.verse)
+            )}
             onBookmark={() => handleBookmarkMultiple(selectedVerses)}
+            onToggleHighlight={() => handleHighlightMultiple(selectedVerses)}
             onSaveNotes={handleSaveNotesForVerses}
             onShowToast={showToast}
             onCancel={cancelMultiSelectMode}
@@ -2065,7 +2196,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         )}
 
         {/* Bottom Navigation */}
-        {!multiSelectMode && !searchResults && !showBookmarkManager && (
+        {!multiSelectMode && !textSelection && !searchResults && !showBookmarkManager && (
           <BottomNav
             currentBook={currentBook}
             currentChapter={currentChapter}

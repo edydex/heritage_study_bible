@@ -4,6 +4,7 @@ import CompareModal from './CompareModal'
 import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptions'
 import { formatVersesForCopy, writeTextToClipboard } from '../utils/verseSelection'
 import { addNativeBackListener } from '../services/androidControls'
+import { annotationIncludesVerse, getAnnotationVerses } from '../utils/verseAnnotations'
 
 // Regex fallback for entries without <vq> markup (older data or books CCEL didn't tag)
 const CALVIN_QUOTE_RE1 = /^(\s*\d+\.?\s+\S+(?:\s+\S+){0,12}?(?:\betc\b\.?\s*(?:[\u2014-]\s*)?|[.]))\s+/
@@ -573,6 +574,7 @@ function CommentarySidebar({
   const [showCompareModal, setShowCompareModal] = useState(false)
   const [showNotesModal, setShowNotesModal] = useState(false)
   const [noteText, setNoteText] = useState('')
+  const [noteInline, setNoteInline] = useState(false)
   const [introductionExpanded, setIntroductionExpanded] = useState(false)
   const [expandedIntroSections, setExpandedIntroSections] = useState({})
   const sidebarRef = useRef(null)
@@ -654,19 +656,18 @@ function CommentarySidebar({
 
   // Load existing note for selected verse
   useEffect(() => {
-    if (selectedVerses.length > 1) {
-      setNoteText('')
-      return
-    }
-    if (selectedVerse) {
-      const existingNote = notes.find(n => 
-        n.book === bookName && 
-        n.chapter === selectedVerse.chapter && 
-        n.verse === selectedVerse.verse
+    const active = selectedVerses.length > 0 ? selectedVerses : (selectedVerse ? [selectedVerse] : [])
+    if (active.length === 0) return
+    const existingNote = notes.find(note => {
+      if (note.kind === 'text' || note.segments?.length) return false
+      const containsSelection = active.every(verse =>
+        annotationIncludesVerse(note, verse.book || bookName, verse.chapter, verse.verse)
       )
-      setNoteText(existingNote?.text || '')
-    }
-  }, [selectedVerse, selectedVerses.length, notes, bookName])
+      return containsSelection && (active.length === 1 || getAnnotationVerses(note).length === active.length)
+    })
+    setNoteText(existingNote?.text || '')
+    setNoteInline(existingNote?.inline === true)
+  }, [selectedVerse, selectedVerses, notes, bookName])
 
   // Filter authors based on search, prioritize those with content for this book
   const filteredAuthors = authors
@@ -1450,9 +1451,20 @@ function CommentarySidebar({
                 />
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 mb-3">
                   {isMultiSelection
-                    ? 'This note will be applied to every selected verse'
+                    ? 'This note is saved once with the full verse selection'
                     : 'Notes are automatically saved to your bookmarks'}
                 </p>
+                <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:text-gray-200">
+                  <input
+                    type="checkbox"
+                    checked={noteInline}
+                    onChange={event => setNoteInline(event.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  {isMultiSelection
+                    ? 'Show this note inline after the final selected verse'
+                    : 'Show this note inline after the verse'}
+                </label>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowNotesModal(false)}
@@ -1463,14 +1475,15 @@ function CommentarySidebar({
                   <button
                     onClick={() => {
                       if (isMultiSelection && onSaveNotes) {
-                        onSaveNotes(activeVerses, noteText)
+                        onSaveNotes(activeVerses, noteText, { inline: noteInline })
                       } else if (primaryVerse && onSaveNote) {
                         onSaveNote(
                           bookName,
                           primaryVerse.chapter,
                           primaryVerse.verse,
                           noteText,
-                          primaryVerse.text || ''
+                          primaryVerse.text || '',
+                          { inline: noteInline }
                         )
                         onShowToast?.(noteText.trim() ? 'Note saved!' : 'Note deleted')
                       }
@@ -1479,8 +1492,8 @@ function CommentarySidebar({
                     className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     {noteText.trim()
-                      ? (isMultiSelection ? `Save to ${activeVerses.length} verses` : 'Save Note')
-                      : (isMultiSelection ? `Delete from ${activeVerses.length} verses` : 'Delete Note')}
+                      ? (isMultiSelection ? 'Save Grouped Note' : 'Save Note')
+                      : (isMultiSelection ? 'Delete Grouped Note' : 'Delete Note')}
                   </button>
                 </div>
               </>

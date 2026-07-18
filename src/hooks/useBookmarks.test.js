@@ -82,6 +82,100 @@ describe('useBookmarks', () => {
     expect(result.current.hasNote('John', 3, 16)).toBe(false)
   })
 
+  it('stores a multi-verse note once and keeps the grouped reference when edited', async () => {
+    const { result } = renderHook(() => useBookmarks())
+
+    await waitFor(() => expect(result.current.notes).toEqual([]))
+
+    act(() => {
+      result.current.saveNotes([
+        { book: 'Jeremiah', chapter: 20, verse: 13, text: 'Verse thirteen.' },
+        { book: 'Jeremiah', chapter: 20, verse: 14, text: 'Verse fourteen.' },
+        { book: 'Jeremiah', chapter: 20, verse: 15, text: 'Verse fifteen.' },
+      ], 'One note for the passage')
+    })
+
+    expect(result.current.notes).toHaveLength(1)
+    expect(result.current.notes[0].reference).toBe('Jeremiah 20:13-15')
+    expect(result.current.getNote('Jeremiah', 20, 14)?.text).toBe('One note for the passage')
+
+    act(() => {
+      result.current.saveNote('Jeremiah', 20, 14, 'Edited from the middle verse')
+    })
+
+    expect(result.current.notes).toHaveLength(1)
+    expect(result.current.notes[0].verses).toHaveLength(3)
+    expect(result.current.notes[0].text).toBe('Edited from the middle verse')
+  })
+
+  it('adds and removes persistent verse highlights', async () => {
+    const { result } = renderHook(() => useBookmarks())
+
+    await waitFor(() => expect(result.current.highlights).toEqual([]))
+
+    act(() => {
+      result.current.addHighlight([
+        { book: 'John', chapter: 3, verse: 16 },
+        { book: 'John', chapter: 3, verse: 17 },
+      ])
+    })
+    expect(result.current.isHighlighted('John', 3, 16)).toBe(true)
+    expect(result.current.highlights[0].reference).toBe('John 3:16-17')
+
+    act(() => {
+      result.current.removeHighlights([{ book: 'John', chapter: 3, verse: 16 }])
+    })
+    expect(result.current.isHighlighted('John', 3, 16)).toBe(false)
+    expect(result.current.isHighlighted('John', 3, 17)).toBe(true)
+  })
+
+  it('stores translation-specific text highlights and inline excerpt notes', async () => {
+    const { result } = renderHook(() => useBookmarks())
+    await waitFor(() => expect(result.current.highlights).toEqual([]))
+    const selection = {
+      kind: 'text',
+      book: 'John',
+      chapter: 3,
+      verse: 16,
+      reference: 'John 3:16',
+      translationId: 'BSB',
+      selectedText: 'God so loved',
+      verses: [{ book: 'John', chapter: 3, verse: 16, text: 'For God so loved the world.' }],
+      segments: [{
+        book: 'John', chapter: 3, verse: 16, translationId: 'BSB',
+        startOffset: 4, endOffset: 16, selectedText: 'God so loved',
+      }],
+    }
+
+    act(() => result.current.addTextHighlight(selection))
+    expect(result.current.isTextSelectionHighlighted(selection)).toBe(true)
+    expect(result.current.getTextHighlights('John', 3, 16, 'BSB', 'For God so loved the world.')).toHaveLength(1)
+    expect(result.current.getTextHighlights('John', 3, 16, 'WEB', 'For God so loved the world.')).toHaveLength(0)
+
+    act(() => result.current.saveTextNote(selection, 'Love begins with God.', { inline: true }))
+    expect(result.current.notes).toHaveLength(1)
+    expect(result.current.notes[0]).toMatchObject({
+      kind: 'text',
+      translationId: 'BSB',
+      inline: true,
+      text: 'Love begins with God.',
+    })
+
+    act(() => result.current.saveNote('John', 3, 16, 'A separate whole-verse note.'))
+    expect(result.current.notes).toHaveLength(2)
+    expect(result.current.notes.filter(note => note.kind === 'text')).toHaveLength(1)
+
+    act(() => result.current.deleteNote('John', 3, 16))
+    expect(result.current.notes).toHaveLength(1)
+    expect(result.current.notes[0].kind).toBe('text')
+
+    act(() => result.current.deleteNoteById(result.current.notes[0].id))
+    expect(result.current.notes).toEqual([])
+
+    act(() => result.current.removeTextHighlight(selection))
+    expect(result.current.isTextSelectionHighlighted(selection)).toBe(false)
+  })
+
   it('toggles commentary bookmarks without duplicates', async () => {
     const { result } = renderHook(() => useBookmarks())
     const commentary = { id: 'c1', reference: 'John 3:16', chapter: 3, text: 'Commentary text' }

@@ -61,6 +61,7 @@ describe('persistentStorage', () => {
 
   it('documents exportable keys for backup tooling', () => {
     expect(EXPORTABLE_EXACT_KEYS).toContain(STORAGE_KEYS.bookmarks)
+    expect(EXPORTABLE_EXACT_KEYS).toContain(STORAGE_KEYS.highlights)
     expect(EXPORTABLE_EXACT_KEYS).toContain(STORAGE_KEYS.activeReadingPlan)
   })
 
@@ -70,9 +71,13 @@ describe('persistentStorage', () => {
         book: 'John',
         chapter: 3,
         verse: 16,
+        reference: 'John 3:16-17',
         verseText: 'For God so loved the world.',
         text: 'A personal note',
       },
+    ])
+    await setStoredJson(STORAGE_KEYS.highlights, [
+      { book: 'Psalms', chapter: 23, verse: 1, reference: 'Psalms 23:1-3' },
     ])
     await setStoredJson(STORAGE_KEYS.bookmarks, [
       { book: 'Psalms', chapter: 23, verse: 1, verseText: 'The LORD is my shepherd.' },
@@ -83,9 +88,11 @@ describe('persistentStorage', () => {
 
     const markdown = await exportNotesMarkdown()
     expect(markdown).toContain('## Verse Notes')
-    expect(markdown).toContain('John 3:16')
+    expect(markdown).toContain('John 3:16-17')
     expect(markdown).toContain('A personal note')
     expect(markdown).toContain('## Verse Bookmarks')
+    expect(markdown).toContain('## Highlights')
+    expect(markdown).toContain('Psalms 23:1-3')
     expect(markdown).toContain('Psalms 23:1')
     expect(markdown).toContain('## Commentary Bookmarks')
     expect(markdown).toContain('Calvin')

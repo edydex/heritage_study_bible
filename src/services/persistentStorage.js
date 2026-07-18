@@ -14,6 +14,7 @@ export const STORAGE_KEYS = {
   bookmarks: 'bible-study-bookmarks',
   commentaryBookmarks: 'bible-study-commentary-bookmarks',
   notes: 'bible-study-notes',
+  highlights: 'bible-study-highlights',
   translation: 'heritage-translation',
   parallelTranslation: 'heritage-parallel-translation',
   textSize: 'heritage-text-size',
@@ -37,6 +38,7 @@ export const EXPORTABLE_EXACT_KEYS = [
   STORAGE_KEYS.bookmarks,
   STORAGE_KEYS.commentaryBookmarks,
   STORAGE_KEYS.notes,
+  STORAGE_KEYS.highlights,
   STORAGE_KEYS.translation,
   STORAGE_KEYS.parallelTranslation,
   STORAGE_KEYS.textSize,
@@ -358,6 +360,7 @@ export async function importHeritageData(payload) {
 
 export async function exportNotesMarkdown() {
   const notes = await getStoredJson(STORAGE_KEYS.notes, [])
+  const highlights = await getStoredJson(STORAGE_KEYS.highlights, [])
   const bookmarks = await getStoredJson(STORAGE_KEYS.bookmarks, [])
   const commentaryBookmarks = await getStoredJson(STORAGE_KEYS.commentaryBookmarks, [])
   const lines = ['# Heritage Study Bible Export', '', `Exported: ${new Date().toISOString()}`, '']
@@ -365,10 +368,17 @@ export async function exportNotesMarkdown() {
   lines.push('## Verse Notes', '')
   if (notes.length === 0) lines.push('_No verse notes._', '')
   for (const note of notes) {
-    lines.push(`### ${note.book} ${note.chapter}:${note.verse}`, '')
+    lines.push(`### ${note.reference || `${note.book} ${note.chapter}:${note.verse}`}`, '')
     if (note.verseText) lines.push(`> ${note.verseText}`, '')
     lines.push(note.text || '', '')
   }
+
+  lines.push('## Highlights', '')
+  if (highlights.length === 0) lines.push('_No verse highlights._', '')
+  for (const highlight of highlights) {
+    lines.push(`- ${highlight.reference || `${highlight.book} ${highlight.chapter}:${highlight.verse}`}`)
+  }
+  lines.push('')
 
   lines.push('## Verse Bookmarks', '')
   if (bookmarks.length === 0) lines.push('_No verse bookmarks._', '')
