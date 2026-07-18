@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useCallback } from 'react'
 import VerseText from './VerseText'
 import { getVerseLayout } from '../utils/verseLayout'
 import InlineVerseNotes, { getInlineNotesAfterVerse } from './InlineVerseNotes'
+import { getVerseHighlightClasses } from '../utils/highlightColors'
 
 function BibleChapter({
   chapter,
@@ -10,6 +11,7 @@ function BibleChapter({
   onVerseClick,
   isBookmarked,
   isVerseHighlighted,
+  getVerseHighlightColor,
   getTextHighlights,
   notes = [],
   translationId,
@@ -89,7 +91,8 @@ function BibleChapter({
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
             const selected = isVerseSelected?.(chapter.number, verse.number)
-            const highlighted = isVerseHighlighted?.(chapter.number, verse.number)
+            const highlightColor = getVerseHighlightColor?.(chapter.number, verse.number)
+              || (isVerseHighlighted?.(chapter.number, verse.number) ? 'yellow' : null)
             const layout = getVerseLayout(verseLayout, bookName, chapter.number, verse.number)
             const textHighlights = getTextHighlights?.(chapter.number, verse.number, translationId, verse.text) || []
             const inlineNotes = selectionMode ? [] : getInlineNotesAfterVerse(
@@ -114,7 +117,7 @@ function BibleChapter({
                 } ${
                   selected
                     ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700'
-                    : highlighted ? 'bg-yellow-100 dark:bg-yellow-900/35 ring-1 ring-yellow-300 dark:ring-yellow-700' : ''
+                    : getVerseHighlightClasses(highlightColor)
                 }`}
               >
                 {/* Verse Number */}
@@ -180,7 +183,8 @@ function BibleChapter({
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
             const selected = isVerseSelected?.(chapter.number, verse.number)
-            const highlighted = isVerseHighlighted?.(chapter.number, verse.number)
+            const highlightColor = getVerseHighlightColor?.(chapter.number, verse.number)
+              || (isVerseHighlighted?.(chapter.number, verse.number) ? 'yellow' : null)
             const layout = getVerseLayout(verseLayout, bookName, chapter.number, verse.number)
             const textHighlights = getTextHighlights?.(chapter.number, verse.number, translationId, verse.text) || []
             const inlineNotes = selectionMode ? [] : getInlineNotesAfterVerse(
@@ -206,7 +210,7 @@ function BibleChapter({
                 } ${
                   selected
                     ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-200 dark:ring-blue-700'
-                    : highlighted ? 'bg-yellow-100 dark:bg-yellow-900/35 ring-1 ring-yellow-300 dark:ring-yellow-700' : ''
+                    : getVerseHighlightClasses(highlightColor)
                 }`}
               >
                 <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium select-none mr-1">

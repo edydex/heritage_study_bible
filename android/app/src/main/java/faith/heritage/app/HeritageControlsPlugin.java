@@ -63,6 +63,25 @@ public class HeritageControlsPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void setTextSelectionMenuSuppressed(PluginCall call) {
+        boolean suppressed = call.getBoolean("suppressed", false);
+        HeritageWebView.setTextSelectionMenuSuppressed(suppressed);
+
+        if (getActivity() != null && getBridge() != null) {
+            getActivity().runOnUiThread(() -> {
+                View webView = getBridge().getWebView();
+                if (webView instanceof HeritageWebView) {
+                    ((HeritageWebView) webView).applyTextSelectionMenuSuppressed(suppressed);
+                }
+            });
+        }
+
+        JSObject result = new JSObject();
+        result.put("suppressed", suppressed);
+        call.resolve(result);
+    }
+
+    @PluginMethod
     public void setReaderChromeHidden(PluginCall call) {
         boolean hidden = call.getBoolean("hidden", false);
 

@@ -3,18 +3,20 @@ import CompareModal from './CompareModal'
 import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptions'
 import { formatVersesForCopy, writeTextToClipboard } from '../utils/verseSelection'
 import { annotationIncludesVerse, getAnnotationVerses } from '../utils/verseAnnotations'
+import { HighlightColorPicker, HoldHighlightAction } from './HighlightColorPicker'
 
-function ActionButton({ icon, label, onClick, disabled = false, active = false }) {
+function ActionButton({ icon, label, disabled = false, active = false, ...buttonProps }) {
   return (
     <button
       type="button"
-      onClick={onClick}
       disabled={disabled}
+      aria-label={label}
       className={`min-h-12 rounded-lg px-1 py-1.5 flex flex-col items-center justify-center text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
         active
           ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
           : 'text-gray-700 dark:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700'
       }`}
+      {...buttonProps}
     >
       <span className="text-lg leading-none" aria-hidden="true">{icon}</span>
       <span className="mt-1">{label}</span>
@@ -33,8 +35,11 @@ function VerseSelectionBar({
   notes = [],
   allBookmarked = false,
   allHighlighted = false,
+  highlightColor = 'yellow',
   onBookmark,
   onToggleHighlight,
+  onApplyHighlight,
+  onChooseHighlightColor,
   onSaveNotes,
   onShowToast,
   onCancel,
@@ -44,6 +49,8 @@ function VerseSelectionBar({
   const [showNotesModal, setShowNotesModal] = useState(false)
   const [noteText, setNoteText] = useState('')
   const [noteInline, setNoteInline] = useState(false)
+  const [noteHighlight, setNoteHighlight] = useState(false)
+  const [noteHighlightColor, setNoteHighlightColor] = useState(highlightColor)
   const activeVerses = Array.isArray(selectedVerses) ? selectedVerses : []
   const primaryVerse = activeVerses[activeVerses.length - 1] || null
   const selectionCount = activeVerses.length
@@ -63,6 +70,14 @@ function VerseSelectionBar({
     setNoteText(existingSelectionNote?.text || '')
     setNoteInline(existingSelectionNote?.inline === true)
   }, [existingSelectionNote])
+
+  useEffect(() => {
+    setNoteHighlight(allHighlighted)
+  }, [allHighlighted, existingSelectionNote])
+
+  useEffect(() => {
+    setNoteHighlightColor(highlightColor)
+  }, [highlightColor])
 
   useEffect(() => {
     const handleEscape = event => {
@@ -110,7 +125,11 @@ function VerseSelectionBar({
 
   const handleSaveNote = () => {
     if (selectionCount === 0) return
-    onSaveNotes?.(activeVerses, noteText, { inline: noteInline })
+    onSaveNotes?.(activeVerses, noteText, {
+      inline: noteInline,
+      highlight: noteHighlight,
+      highlightColor: noteHighlightColor,
+    })
     setShowNotesModal(false)
   }
 
@@ -163,12 +182,23 @@ function VerseSelectionBar({
           <div className="grid grid-cols-5 px-2 py-1">
             <ActionButton icon="📋" label="Copy" onClick={handleCopy} disabled={selectionCount === 0} />
             <ActionButton icon="🔄" label="Compare" onClick={() => setShowCompareModal(true)} disabled={selectionCount === 0} />
-            <ActionButton
-              icon="🖍️"
-              label={allHighlighted ? 'Unhighlight' : 'Highlight'}
-              onClick={onToggleHighlight}
+            <HoldHighlightAction
+              highlighted={allHighlighted}
+              color={highlightColor}
               disabled={selectionCount === 0}
-              active={allHighlighted}
+              onClick={() => onToggleHighlight?.(highlightColor)}
+              onChooseColor={color => {
+                onChooseHighlightColor?.(color)
+                onApplyHighlight?.(color)
+              }}
+              renderButton={buttonProps => (
+                <ActionButton
+                  {...buttonProps}
+                  icon="🖍️"
+                  label={allHighlighted ? 'Unhighlight' : 'Highlight'}
+                  active={allHighlighted}
+                />
+              )}
             />
             <ActionButton
               icon={allBookmarked ? '★' : '☆'}
@@ -195,10 +225,10 @@ function VerseSelectionBar({
       )}
 
       {showNotesModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowNotesModal(false)} />
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <button type="button" aria-label="Close notes" className="absolute inset-0 bg-black/50" onClick={() => setShowNotesModal(false)} />
           <div
-            className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 animate-fade-in"
+            className="relative max-h-[calc(100vh-2rem)] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-2xl animate-fade-in dark:bg-gray-800"
             role="dialog"
             aria-modal="true"
             aria-labelledby="selection-note-title"
@@ -240,6 +270,26 @@ function VerseSelectionBar({
               />
               Show this note inline after the final selected verse
             </label>
+            <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:text-gray-200">
+              <input
+                type="checkbox"
+                checked={noteHighlight}
+                onChange={event => setNoteHighlight(event.target.checked)}
+                className="h-4 w-4"
+              />
+              Highlight the selected verse{selectionCount === 1 ? '' : 's'}
+            </label>
+            {noteHighlight && (
+              <div className="mb-3 rounded-lg border border-gray-200 p-3 dark:border-gray-600">
+                <HighlightColorPicker
+                  value={noteHighlightColor}
+                  onChange={color => {
+                    setNoteHighlightColor(color)
+                    onChooseHighlightColor?.(color)
+                  }}
+                />
+              </div>
+            )}
             <div className="flex gap-2">
               <button
                 type="button"

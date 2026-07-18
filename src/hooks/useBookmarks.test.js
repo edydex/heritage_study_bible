@@ -117,9 +117,10 @@ describe('useBookmarks', () => {
       result.current.addHighlight([
         { book: 'John', chapter: 3, verse: 16 },
         { book: 'John', chapter: 3, verse: 17 },
-      ])
+      ], 'green')
     })
     expect(result.current.isHighlighted('John', 3, 16)).toBe(true)
+    expect(result.current.getVerseHighlightColor('John', 3, 16)).toBe('green')
     expect(result.current.highlights[0].reference).toBe('John 3:16-17')
 
     act(() => {
@@ -147,10 +148,18 @@ describe('useBookmarks', () => {
       }],
     }
 
-    act(() => result.current.addTextHighlight(selection))
+    act(() => result.current.addTextHighlight(selection, 'pink'))
     expect(result.current.isTextSelectionHighlighted(selection)).toBe(true)
-    expect(result.current.getTextHighlights('John', 3, 16, 'BSB', 'For God so loved the world.')).toHaveLength(1)
+    expect(result.current.getTextSelectionHighlight(selection)?.color).toBe('pink')
+    expect(result.current.getTextHighlights('John', 3, 16, 'BSB', 'For God so loved the world.')).toMatchObject([{ color: 'pink' }])
     expect(result.current.getTextHighlights('John', 3, 16, 'WEB', 'For God so loved the world.')).toHaveLength(0)
+
+    act(() => result.current.addHighlight([{ book: 'John', chapter: 3, verse: 16 }], 'blue'))
+    expect(result.current.isTextSelectionHighlighted(selection)).toBe(true)
+    expect(result.current.getVerseHighlightColor('John', 3, 16)).toBe('blue')
+
+    act(() => result.current.removeHighlights([{ book: 'John', chapter: 3, verse: 16 }]))
+    expect(result.current.isTextSelectionHighlighted(selection)).toBe(true)
 
     act(() => result.current.saveTextNote(selection, 'Love begins with God.', { inline: true }))
     expect(result.current.notes).toHaveLength(1)

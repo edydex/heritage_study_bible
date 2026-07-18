@@ -5,6 +5,7 @@ import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptio
 import { formatVersesForCopy, writeTextToClipboard } from '../utils/verseSelection'
 import { addNativeBackListener } from '../services/androidControls'
 import { annotationIncludesVerse, getAnnotationVerses } from '../utils/verseAnnotations'
+import { HighlightColorPicker } from './HighlightColorPicker'
 
 // Regex fallback for entries without <vq> markup (older data or books CCEL didn't tag)
 const CALVIN_QUOTE_RE1 = /^(\s*\d+\.?\s+\S+(?:\s+\S+){0,12}?(?:\betc\b\.?\s*(?:[\u2014-]\s*)?|[.]))\s+/
@@ -562,6 +563,10 @@ function CommentarySidebar({
   onShowToast,
   onSaveNote,
   onSaveNotes,
+  isVerseHighlighted,
+  getVerseHighlightColor,
+  highlightColor = 'yellow',
+  onChooseHighlightColor,
   notes = [],
   showGoToButton = false,
   onGoToVerse
@@ -575,6 +580,8 @@ function CommentarySidebar({
   const [showNotesModal, setShowNotesModal] = useState(false)
   const [noteText, setNoteText] = useState('')
   const [noteInline, setNoteInline] = useState(false)
+  const [noteHighlight, setNoteHighlight] = useState(false)
+  const [noteHighlightColor, setNoteHighlightColor] = useState(highlightColor)
   const [introductionExpanded, setIntroductionExpanded] = useState(false)
   const [expandedIntroSections, setExpandedIntroSections] = useState({})
   const sidebarRef = useRef(null)
@@ -668,6 +675,18 @@ function CommentarySidebar({
     setNoteText(existingNote?.text || '')
     setNoteInline(existingNote?.inline === true)
   }, [selectedVerse, selectedVerses, notes, bookName])
+
+  useEffect(() => {
+    const active = selectedVerses.length > 0 ? selectedVerses : (selectedVerse ? [selectedVerse] : [])
+    const allHighlighted = active.length > 0 && active.every(verse =>
+      isVerseHighlighted?.(verse.book || bookName, verse.chapter, verse.verse)
+    )
+    const activeColor = active
+      .map(verse => getVerseHighlightColor?.(verse.book || bookName, verse.chapter, verse.verse))
+      .find(Boolean)
+    setNoteHighlight(allHighlighted)
+    setNoteHighlightColor(activeColor || highlightColor)
+  }, [bookName, getVerseHighlightColor, highlightColor, isVerseHighlighted, selectedVerse, selectedVerses])
 
   // Filter authors based on search, prioritize those with content for this book
   const filteredAuthors = authors
@@ -1420,16 +1439,21 @@ function CommentarySidebar({
 
       {/* Notes Modal */}
       {showNotesModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowNotesModal(false)} />
-          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 animate-fade-in">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <button type="button" aria-label="Close notes" className="absolute inset-0 bg-black/50" onClick={() => setShowNotesModal(false)} />
+          <div
+            className="relative max-h-[calc(100vh-2rem)] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-2xl animate-fade-in dark:bg-gray-800"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="commentary-note-title"
+          >
             <button 
               onClick={() => setShowNotesModal(false)}
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             >
               ✕
             </button>
-            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
+            <h3 id="commentary-note-title" className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
               {isMultiSelection
                 ? `Notes for ${activeVerses.length} selected verses`
                 : primaryVerse
@@ -1465,6 +1489,26 @@ function CommentarySidebar({
                     ? 'Show this note inline after the final selected verse'
                     : 'Show this note inline after the verse'}
                 </label>
+                <label className="mb-3 flex min-h-11 items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:text-gray-200">
+                  <input
+                    type="checkbox"
+                    checked={noteHighlight}
+                    onChange={event => setNoteHighlight(event.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  Highlight the selected verse{activeVerses.length === 1 ? '' : 's'}
+                </label>
+                {noteHighlight && (
+                  <div className="mb-3 rounded-lg border border-gray-200 p-3 dark:border-gray-600">
+                    <HighlightColorPicker
+                      value={noteHighlightColor}
+                      onChange={color => {
+                        setNoteHighlightColor(color)
+                        onChooseHighlightColor?.(color)
+                      }}
+                    />
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowNotesModal(false)}
@@ -1475,7 +1519,11 @@ function CommentarySidebar({
                   <button
                     onClick={() => {
                       if (isMultiSelection && onSaveNotes) {
-                        onSaveNotes(activeVerses, noteText, { inline: noteInline })
+                        onSaveNotes(activeVerses, noteText, {
+                          inline: noteInline,
+                          highlight: noteHighlight,
+                          highlightColor: noteHighlightColor,
+                        })
                       } else if (primaryVerse && onSaveNote) {
                         onSaveNote(
                           bookName,
@@ -1483,7 +1531,11 @@ function CommentarySidebar({
                           primaryVerse.verse,
                           noteText,
                           primaryVerse.text || '',
-                          { inline: noteInline }
+                          {
+                            inline: noteInline,
+                            highlight: noteHighlight,
+                            highlightColor: noteHighlightColor,
+                          }
                         )
                         onShowToast?.(noteText.trim() ? 'Note saved!' : 'Note deleted')
                       }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useCallback } from 'react'
 import VerseText from './VerseText'
 import { getVerseLayout } from '../utils/verseLayout'
 import InlineVerseNotes, { getInlineNotesAfterVerse } from './InlineVerseNotes'
+import { getParallelVerseHighlightClasses } from '../utils/highlightColors'
 
 function MissingVerse({ translationId }) {
   return (
@@ -20,6 +21,7 @@ function ParallelBibleChapter({
   onVerseClick,
   isBookmarked,
   isVerseHighlighted,
+  getVerseHighlightColor,
   getTextHighlights,
   notes = [],
   onBookmarkToggle,
@@ -112,7 +114,8 @@ function ParallelBibleChapter({
           const hasComment = hasCommentary(primaryChapter.number, verseNumber)
           const bookmarked = isBookmarked(verseNumber)
           const selected = isVerseSelected?.(primaryChapter.number, verseNumber)
-          const highlighted = isVerseHighlighted?.(primaryChapter.number, verseNumber)
+          const highlightColor = getVerseHighlightColor?.(primaryChapter.number, verseNumber)
+            || (isVerseHighlighted?.(primaryChapter.number, verseNumber) ? 'yellow' : null)
           const primaryLayout = getVerseLayout(primaryVerseLayout, bookName, primaryChapter.number, verseNumber)
           const secondaryLayout = getVerseLayout(secondaryVerseLayout, bookName, primaryChapter.number, verseNumber)
           const startsParagraph = primaryLayout?.breakBefore || secondaryLayout?.breakBefore
@@ -126,8 +129,8 @@ function ParallelBibleChapter({
           const rowClassName = `relative rounded-lg border transition-all ${selectionMode ? 'verse-selection-target cursor-pointer' : ''} ${startsParagraph ? 'mt-4' : ''} ${
             selected
               ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700'
-              : highlighted
-                ? 'bg-yellow-100 dark:bg-yellow-900/35 border-yellow-300 dark:border-yellow-700'
+              : highlightColor
+                ? getParallelVerseHighlightClasses(highlightColor)
               : isSuperscription
                 ? 'bg-white dark:bg-black border-gray-200 dark:border-gray-800'
               : 'bg-gray-50 dark:bg-gray-700/60 border-gray-200 dark:border-gray-700'

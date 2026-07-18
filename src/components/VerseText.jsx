@@ -1,4 +1,5 @@
 import { splitParagraphText } from '../utils/verseLayout'
+import { getTextHighlightClasses } from '../utils/highlightColors'
 
 function renderHighlightedText(text, startOffset, highlights, keyPrefix) {
   const boundaries = new Set([0, text.length])
@@ -14,11 +15,11 @@ function renderHighlightedText(text, startOffset, highlights, keyPrefix) {
   return points.slice(0, -1).map((start, index) => {
     const end = points[index + 1]
     const value = text.slice(start, end)
-    const highlighted = highlights.some(highlight =>
-      highlight.startOffset < startOffset + end && highlight.endOffset > startOffset + start
+    const highlight = highlights.find(item =>
+      item.startOffset < startOffset + end && item.endOffset > startOffset + start
     )
-    return highlighted
-      ? <mark key={`${keyPrefix}-h${index}`} className="rounded-sm bg-yellow-200 px-0 dark:bg-yellow-700/70 dark:text-yellow-50">{value}</mark>
+    return highlight
+      ? <mark key={`${keyPrefix}-h${index}`} data-highlight-color={highlight.color || 'yellow'} className={`rounded-sm px-0 ${getTextHighlightClasses(highlight.color)}`}>{value}</mark>
       : <span key={`${keyPrefix}-t${index}`}>{value}</span>
   })
 }
