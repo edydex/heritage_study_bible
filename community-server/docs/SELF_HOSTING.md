@@ -72,9 +72,24 @@ changing the host. The normal path then:
 10. enables nightly backups, unattended Debian security updates, and optional
     closed-lid laptop operation.
 
+After the health check passes, open the printed `/admin` address. The dashboard
+starts with four ordinary tasks: add a sermon, build a Bible plan, invite a
+person, or create an event. Invite people through **Member invitations** before
+sending them the sign-in address. The default policy does not create accounts
+for uninvited email addresses.
+
 It is safe to rerun the same bootstrap or installer after an interruption.
 Existing database and Payload secrets are preserved. A running deployment gets
 a safety backup before migrations.
+
+### Intel Surface USB path
+
+For a Surface Pro 7 or another Intel 64-bit PC, the repository also contains a
+guided Debian 13 appliance ISO builder. It bakes in the committed Heritage
+source and offers the server setup after first login, while deliberately
+leaving passwords, target-disk selection, and partition confirmation in
+Debian's hands. See [`../appliance/README.md`](../appliance/README.md). Do not
+use an ARM image for an Intel Surface.
 
 ## Daily operation
 

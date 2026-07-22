@@ -15,9 +15,10 @@ Heritage has three deliberately separate layers:
    before adding it, then its Bible plans, songs, sermons, books, and
    commentaries appear alongside bundled resources. Static servers cannot read
    personal notes or sign users in.
-3. **Communities** are optional church-hosted services. They include a Content
-   Server plus email sign-in, memberships, shared plan cohorts and notes,
-   events, RSVPs, calendar export, and storage for client-encrypted sync data.
+3. **Communities** are optional church-hosted services. The current supported
+   path adds invite-only email sign-in, memberships, events, RSVPs, calendar
+   export, and a public Content Server. Shared reading-plan collaboration and
+   personal-data sync are later phases and are not advertised by the server.
 
 The static Content Server contract lives in [`protocol/`](protocol/). The
 reference dynamic service is the separate deployable in
@@ -67,10 +68,10 @@ A static server publishes `/heritage-content.json`, one catalog per supported
 resource type, and the files referenced by those catalogs. URLs may be
 relative, but the host must allow cross-origin `GET` requests.
 
-The companion `foolish-and-weak` repository is the reference static server. It
-uses Eleventy and Decap CMS, including structured editors for Bible plans,
-songs and attachments, sermons, books, and commentary. Its local Decap proxy
-works without a GitLab account:
+The companion `heritage-content-server` repository is the clean static-server
+template. It uses Decap CMS and GitHub Pages, with structured editors for Bible
+plans, songs and attachments, sermons, books, and commentary. Its local Decap
+proxy works without a GitHub account:
 
 ```sh
 npm install
@@ -79,7 +80,9 @@ npm run dev:cms
 ```
 
 The first screen may still say **Login**; clicking it enters the credential-free
-local proxy and writes edits into that working tree.
+local proxy and writes edits into that working tree. The published editor needs
+a one-time GitHub OAuth helper because a static Pages site cannot safely store
+the GitHub client secret.
 
 ## Community server development
 
@@ -95,10 +98,11 @@ npm run dev
 ```
 
 Open `http://localhost:3000/admin`, create the first system administrator, then
-create a Community and its initial owner Membership. Development uses a local
-JSON mail transport and returns a test magic link. Public/member-enabled
-production requires HTTPS and SMTP; every production server requires a strong
-Payload secret and backups. See
+create a Community and its initial owner Membership. Add people through
+**Member invitations**; invite-only is the default, and an unknown email is not
+silently enrolled. Development uses a local JSON mail transport and returns a
+test magic link. Public/member-enabled production requires HTTPS and SMTP;
+every production server requires a strong Payload secret and backups. See
 [`community-server/README.md`](community-server/README.md) for the deployment
 contract.
 

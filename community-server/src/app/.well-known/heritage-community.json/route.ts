@@ -18,12 +18,9 @@ export function GET() {
             sessionPath: '/community/auth/session',
           },
           capabilities: {
-            sharedPlanNotes: true,
-            sharedPlanProgress: true,
             events: true,
             rsvps: true,
             calendarExport: true,
-            encryptedSync: true,
           },
         }
       : {}),

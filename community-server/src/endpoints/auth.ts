@@ -17,6 +17,64 @@ function normalizeEmail(value: unknown) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : ''
 }
 
+function htmlEscape(value: unknown) {
+  return String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
+}
+
+async function configuredCommunity(req: Parameters<Endpoint['handler']>[0]) {
+  return (await req.payload.find({
+    collection: 'communities',
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    where: { slug: { equals: communityPublicConfig.id } },
+  })).docs[0]
+}
+
+async function activeInvitation(
+  req: Parameters<Endpoint['handler']>[0],
+  communityID: string,
+  email: string,
+) {
+  return (await req.payload.find({
+    collection: 'community-invites',
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    where: {
+      and: [
+        { community: { equals: communityID } },
+        { email: { equals: email } },
+        { active: { equals: true } },
+      ],
+    },
+  })).docs[0]
+}
+
+async function existingMembership(
+  req: Parameters<Endpoint['handler']>[0],
+  communityID: string,
+  userID: string,
+) {
+  return (await req.payload.find({
+    collection: 'memberships',
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    where: {
+      and: [
+        { community: { equals: communityID } },
+        { user: { equals: userID } },
+      ],
+    },
+  })).docs[0]
+}
+
 function clientAddress(req: Parameters<Endpoint['handler']>[0]) {
   return req.headers.get('cf-connecting-ip')
     || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -90,6 +148,14 @@ export const authEndpoints: Endpoint[] = [
       const emailRetry = consumeRateLimit(`magic-link:email:${email}`, 5)
       if (emailRetry) return tooManyRequests(req, emailRetry)
 
+      const community = await configuredCommunity(req)
+      if (!community) {
+        return Response.json(
+          { error: 'This Community has not finished setup.' },
+          { status: 503, headers: cors(req) },
+        )
+      }
+
       let user = (await req.payload.find({
         collection: 'users',
         depth: 0,
@@ -98,13 +164,30 @@ export const authEndpoints: Endpoint[] = [
         where: { email: { equals: email } },
       })).docs[0]
 
+      const communityID = String(community.id)
+      const invitation = await activeInvitation(req, communityID, email)
+      const membership = user
+        ? await existingMembership(req, communityID, String(user.id))
+        : null
+      const mayJoin = community.joinPolicy === 'open' || Boolean(invitation || membership)
+
+      // Do not reveal whether an address was invited. The Heritage app shows
+      // the same "check your email" state either way, while an uninvited
+      // address receives no account, token, or message.
+      if (!mayJoin) {
+        return Response.json({
+          ok: true,
+          expiresAt: new Date(Date.now() + MAGIC_LINK_MINUTES * 60_000).toISOString(),
+        }, { headers: cors(req) })
+      }
+
       if (!user) {
         user = await req.payload.create({
           collection: 'users',
           overrideAccess: true,
           data: {
             email,
-            displayName: email.split('@')[0] || 'Reader',
+            displayName: invitation?.displayName || email.split('@')[0] || 'Reader',
             password: randomBytes(32).toString('base64url'),
             systemRole: 'member',
           },
@@ -122,11 +205,13 @@ export const authEndpoints: Endpoint[] = [
 
       const appUrl = (process.env.HERITAGE_APP_URL || 'https://heritage.faith').replace(/\/+$/, '')
       const link = `${appUrl}/#/community/callback?server=${encodeURIComponent(communityPublicConfig.publicUrl)}&token=${encodeURIComponent(token)}`
+      const escapedLink = htmlEscape(link)
+      const escapedName = htmlEscape(communityPublicConfig.name)
       await req.payload.sendEmail({
         to: email,
         subject: `Sign in to ${communityPublicConfig.name}`,
         text: `Use this one-time link within ${MAGIC_LINK_MINUTES} minutes:\n\n${link}\n\nIf you did not request this, you can ignore this email.`,
-        html: `<p>Use this one-time link within ${MAGIC_LINK_MINUTES} minutes:</p><p><a href="${link}">Sign in to ${communityPublicConfig.name}</a></p><p>If you did not request this, you can ignore this email.</p>`,
+        html: `<p>Use this one-time link within ${MAGIC_LINK_MINUTES} minutes:</p><p><a href="${escapedLink}">Sign in to ${escapedName}</a></p><p>If you did not request this, you can ignore this email.</p>`,
       })
 
       return Response.json({
@@ -165,6 +250,26 @@ export const authEndpoints: Endpoint[] = [
       const user = result.docs[0]
       if (!user) return Response.json({ error: 'Invalid or expired sign-in link.' }, { status: 401, headers: cors(req) })
 
+      const community = await configuredCommunity(req)
+      if (!community) {
+        return Response.json(
+          { error: 'This Community has not finished setup.' },
+          { status: 503, headers: cors(req) },
+        )
+      }
+      const communityID = String(community.id)
+      const membership = await existingMembership(req, communityID, String(user.id))
+      const invitation = await activeInvitation(req, communityID, String(user.email || '').toLowerCase())
+      if (community.joinPolicy !== 'open' && !membership && !invitation) {
+        await req.payload.update({
+          collection: 'users',
+          id: user.id,
+          overrideAccess: true,
+          data: { magicLinkTokenHash: null, magicLinkExpiresAt: null },
+        })
+        return Response.json({ error: 'Invalid or expired sign-in link.' }, { status: 401, headers: cors(req) })
+      }
+
       const sessionToken = createOpaqueToken()
       const sessionExpiresAt = new Date(Date.now() + SESSION_DAYS * 86_400_000).toISOString()
       await req.payload.delete({
@@ -193,40 +298,31 @@ export const authEndpoints: Endpoint[] = [
         data: { magicLinkTokenHash: null, magicLinkExpiresAt: null },
       })
 
-      const community = (await req.payload.find({
-        collection: 'communities',
-        depth: 0,
-        limit: 1,
-        overrideAccess: true,
-        where: { slug: { equals: communityPublicConfig.id } },
-      })).docs[0]
-      if (community) {
-        const membership = (await req.payload.find({
+      if (!membership) {
+        await req.payload.create({
           collection: 'memberships',
-          depth: 0,
-          limit: 1,
           overrideAccess: true,
-          where: {
-            and: [
-              { community: { equals: community.id } },
-              { user: { equals: user.id } },
-            ],
+          data: {
+            community: community.id,
+            user: user.id,
+            role: invitation?.role || 'member',
           },
-        })).docs[0]
-        if (!membership) {
-          await req.payload.create({
-            collection: 'memberships',
-            overrideAccess: true,
-            data: { community: community.id, user: user.id, role: 'member' },
-          })
-        }
+        })
+      }
+      if (invitation) {
+        await req.payload.update({
+          collection: 'community-invites',
+          id: invitation.id,
+          overrideAccess: true,
+          data: { active: false, acceptedAt: new Date().toISOString() },
+        })
       }
 
       return Response.json({
         token: sessionToken,
         expiresAt: sessionExpiresAt,
         member: { id: user.id, email: user.email, displayName: user.displayName },
-        communityId: community?.id || null,
+        communityId: community.id,
       }, { headers: cors(req) })
     },
   },

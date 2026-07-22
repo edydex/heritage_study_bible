@@ -4,7 +4,14 @@ import { validateRelatedCommunity } from '@/lib/communityRelationships'
 
 export const PlanCohorts: CollectionConfig = {
   slug: 'plan-cohorts',
-  admin: { useAsTitle: 'name', group: 'Community' },
+  labels: { singular: 'Reading group', plural: 'Reading groups' },
+  admin: {
+    useAsTitle: 'name',
+    group: 'Community',
+    description: 'A dated group of members reading the same church-hosted Bible plan.',
+    defaultColumns: ['name', 'plan', 'startsOn', 'active'],
+    hideAPIURL: true,
+  },
   access: {
     read: readMemberCommunityContent,
     create: createCommunityContent,

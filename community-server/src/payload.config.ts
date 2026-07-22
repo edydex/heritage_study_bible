@@ -8,6 +8,7 @@ import sharp from 'sharp'
 import { Books } from '@/collections/Books'
 import { Commentaries } from '@/collections/Commentaries'
 import { Communities } from '@/collections/Communities'
+import { CommunityInvites } from '@/collections/CommunityInvites'
 import { CommunitySessions } from '@/collections/CommunitySessions'
 import { EncryptedSync } from '@/collections/EncryptedSync'
 import { EventRsvps } from '@/collections/EventRsvps'
@@ -37,12 +38,19 @@ export default buildConfig({
   admin: {
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
+    components: {
+      beforeDashboard: ['@/components/AdminWelcome'],
+    },
+    meta: {
+      titleSuffix: ' — Heritage Community',
+    },
   },
   collections: [
     Users,
     CommunitySessions,
     Communities,
     Memberships,
+    CommunityInvites,
     Media,
     ReadingPlans,
     Songs,

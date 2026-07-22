@@ -17,7 +17,15 @@ const protectedCredentialFieldAccess = {
 
 export const Users: CollectionConfig = {
   slug: 'users',
-  admin: { useAsTitle: 'email' },
+  labels: { singular: 'Account', plural: 'Accounts' },
+  admin: {
+    useAsTitle: 'email',
+    group: 'People',
+    description: 'People who have signed in. Use Member invitations before their first sign-in; use Memberships to change an existing person’s church role.',
+    defaultColumns: ['displayName', 'email', 'systemRole', 'updatedAt'],
+    listSearchableFields: ['displayName', 'email'],
+    hideAPIURL: true,
+  },
   auth: {
     cookies: {
       sameSite: 'Lax',
@@ -78,9 +86,10 @@ export const Users: CollectionConfig = {
     delete: ({ req }) => req.user?.systemRole === 'system-admin',
   },
   fields: [
-    { name: 'displayName', type: 'text', required: true, defaultValue: 'Reader' },
+    { name: 'displayName', label: 'Name', type: 'text', required: true, defaultValue: 'Reader' },
     {
       name: 'systemRole',
+      label: 'Server access',
       type: 'select',
       required: true,
       defaultValue: 'member',
@@ -88,6 +97,7 @@ export const Users: CollectionConfig = {
         { label: 'System administrator', value: 'system-admin' },
         { label: 'Member', value: 'member' },
       ],
+      admin: { description: 'Most people should be Members. Church roles are managed separately under Memberships.' },
       access: {
         create: canSetInitialSystemRole,
         update: isSystemAdminField,

@@ -40,6 +40,7 @@ jobs:
       - name: Static validation
         run: |
           npm run test:deploy
+          npm run test:appliance
           npm run typecheck
           npm run build
 
