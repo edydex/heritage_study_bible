@@ -10,11 +10,12 @@ import BottomNav from './components/BottomNav'
 import VerseSelectionBar from './components/VerseSelectionBar'
 import TextSelectionBar from './components/TextSelectionBar'
 import ResourcesModal from './components/ResourcesModal'
+import BookReferenceChooser from './components/BookReferenceChooser'
 import { useBookmarks } from './hooks/useBookmarks'
 import { bibleBooks } from './data/bible-books.js'
 import { translations, DEFAULT_TRANSLATION, loadTranslation, loadTranslationLayout } from './data/translations'
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
-import { parseBibleReference } from './utils/parseBibleReference'
+import { getNumberedBookReferenceChoices, parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
 import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, setNativeSideButtonScrollEnabled, setNativeSearchKeyboardCaptureInputEnabled, setNativeTextSelectionMenuSuppressed } from './services/androidControls'
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
@@ -1006,6 +1007,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState(null)
   const [searchLoading, setSearchLoading] = useState(false)
+  const [bookReferenceChoices, setBookReferenceChoices] = useState([])
   const [toast, setToast] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false) // Start closed
   const [showGoToPassageButton, setShowGoToPassageButton] = useState(false)
@@ -1257,6 +1259,12 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     return addNativeBackListener(event => {
       if (event?.defaultPrevented) return
 
+      if (bookReferenceChoices.length) {
+        event?.preventDefault?.()
+        setBookReferenceChoices([])
+        return
+      }
+
       if (showBookmarkManager) {
         event?.preventDefault?.()
         setShowBookmarkManager(false)
@@ -1286,7 +1294,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         cancelMultiSelectMode()
       }
     })
-  }, [cancelMultiSelectMode, clearTextSelection, multiSelectMode, searchResults, showBookmarkManager, showResources, textSelection])
+  }, [bookReferenceChoices.length, cancelMultiSelectMode, clearTextSelection, multiSelectMode, searchResults, showBookmarkManager, showResources, textSelection])
 
   // Lazy-load commentary data when book changes
   useEffect(() => {
@@ -1836,10 +1844,29 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const handleSearch = async (query) => {
     const requestId = ++searchRequestRef.current
     const trimmedQuery = query.trim()
+    setBookReferenceChoices([])
 
     if (!trimmedQuery) {
       setSearchResults(null)
       setSearchLoading(false)
+      return
+    }
+
+    const numberedBookChoices = getNumberedBookReferenceChoices(trimmedQuery)
+    if (numberedBookChoices.length > 1) {
+      setSearchResults(null)
+      setSearchLoading(false)
+      setBookReferenceChoices(numberedBookChoices)
+      return
+    }
+
+    if (numberedBookChoices.length === 1) {
+      const [choice] = numberedBookChoices
+      setSearchQuery('')
+      setSearchResults(null)
+      setSearchLoading(false)
+      if (choice.verse != null) navigateToVerse(choice.book, choice.chapter, choice.verse)
+      else handleNavigate(choice.book, choice.chapter)
       return
     }
 
@@ -1995,6 +2022,20 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           onSearchKeyboardCaptureChange={setNativeSearchKeyboardCaptureInputEnabled}
           onAdvancedSettingsClick={() => navigate('/settings/advanced')}
         />
+
+        {bookReferenceChoices.length > 1 && (
+          <BookReferenceChooser
+            choices={bookReferenceChoices}
+            onChoose={(choice) => {
+              setBookReferenceChoices([])
+              setSearchQuery('')
+              setSearchResults(null)
+              if (choice.verse != null) navigateToVerse(choice.book, choice.chapter, choice.verse)
+              else handleNavigate(choice.book, choice.chapter)
+            }}
+            onCancel={() => setBookReferenceChoices([])}
+          />
+        )}
         
         <div className="flex">
           {/* Main Content */}

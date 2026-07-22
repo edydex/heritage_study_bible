@@ -64,6 +64,37 @@ test.describe('Heritage reader', () => {
     await expect(page.locator('#verse-3-16')).toContainText('For God so loved')
   })
 
+  test('accepts compact references for numbered books', async ({ page }) => {
+    await openReader(page)
+    await submitSearch(page, '1pet2')
+    await expect(page).toHaveURL(/#\/1-peter\/2/)
+    await expect(page.locator('#verse-2-1')).toBeVisible({ timeout: 20_000 })
+  })
+
+  test('accepts unique numbered-book prefixes without a registered alias', async ({ page }) => {
+    await openReader(page)
+    await submitSearch(page, '2thes 2')
+    await expect(page).toHaveURL(/#\/2-thessalonians\/2/)
+    await expect(page.locator('#verse-2-1')).toBeVisible({ timeout: 20_000 })
+
+    await submitSearch(page, '3 joh 1')
+    await expect(page).toHaveURL(/#\/3-john\/1/)
+    await expect(page.locator('#verse-1-1')).toBeVisible({ timeout: 20_000 })
+  })
+
+  test('offers numbered-book choices and accepts the first with Enter', async ({ page }) => {
+    await openReader(page)
+    await submitSearch(page, 'pet2')
+
+    const chooser = page.getByRole('dialog', { name: 'Which book did you mean?' })
+    await expect(chooser).toBeVisible()
+    await expect(chooser.getByRole('option', { name: /1 Peter 2/ })).toHaveAttribute('aria-selected', 'true')
+    await page.keyboard.press('Enter')
+
+    await expect(page).toHaveURL(/#\/1-peter\/2/)
+    await expect(page.locator('#verse-2-1')).toBeVisible({ timeout: 20_000 })
+  })
+
   test('shows bible search results', async ({ page }) => {
     await openReader(page)
     await submitSearch(page, 'shepherd')

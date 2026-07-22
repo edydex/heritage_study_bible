@@ -149,8 +149,39 @@ bibleBooks.forEach(b => {
   allAliases[b.abbr.toLowerCase()] = b.name
 })
 
+// Every spaced alias for a numbered book also works without spaces. This keeps
+// compact references such as "1pet2" and "2ch7:14" consistent without relying
+// on every possible spelling being repeated by hand above.
+Object.entries({ ...allAliases }).forEach(([alias, book]) => {
+  if (!/^\d\s/.test(alias)) return
+  allAliases[alias.replace(/\s+/g, '')] = book
+})
+
 // Pre-sort aliases by length (longest first) for greedy matching
 const sortedAliasKeys = Object.keys(allAliases).sort((a, b) => b.length - a.length)
+
+const unnumberedAliases = new Set(
+  Object.entries(allAliases)
+    .filter(([, book]) => !/^\d\s/.test(book))
+    .map(([alias]) => alias)
+)
+
+const numberedFamilyAliases = new Map()
+Object.entries(allAliases).forEach(([alias, book]) => {
+  const bookMatch = book.match(/^(\d)\s+(.+)$/)
+  const aliasMatch = alias.match(/^\d\s*(.+)$/)
+  if (!bookMatch || !aliasMatch) return
+
+  const familyAlias = aliasMatch[1].replace(/\s+/g, '')
+  if (!familyAlias || unnumberedAliases.has(familyAlias)) return
+
+  const entry = numberedFamilyAliases.get(familyAlias) || { books: new Set() }
+  entry.books.add(book)
+  numberedFamilyAliases.set(familyAlias, entry)
+})
+
+const sortedNumberedFamilyAliasKeys = [...numberedFamilyAliases.keys()]
+  .sort((a, b) => b.length - a.length)
 
 export function resolveBookAliasPrefix(input) {
   const trimmed = String(input || '').trim().toLowerCase()
@@ -191,6 +222,72 @@ function parseChapterVersePart(refPart, bookMeta, options = {}) {
   return { chapter, verse }
 }
 
+function getExplicitNumberedPrefixChoices(input) {
+  const trimmed = String(input || '').trim().toLowerCase()
+  const match = trimmed.match(/^([1-3])\s*([a-z]+)\s*(.*)$/)
+  if (!match) return []
+
+  const [, ordinal, bookPrefix, refPart] = match
+  const candidates = bibleBooks.filter(book => {
+    const numberedName = book.name.match(/^(\d)\s+(.+)$/)
+    return numberedName
+      && numberedName[1] === ordinal
+      && numberedName[2].toLowerCase().startsWith(bookPrefix)
+  })
+
+  return candidates
+    .map(bookMeta => {
+      const parsed = refPart
+        ? parseChapterVersePart(refPart, bookMeta, { requireWhole: true })
+        : { chapter: 1, verse: null }
+      return parsed ? { book: bookMeta.name, chapter: parsed.chapter, verse: parsed.verse } : null
+    })
+    .filter(Boolean)
+}
+
+/**
+ * Resolve a reference that leaves the leading number off a numbered-book
+ * family. For example, "pet2" offers 1 Peter 2 and 2 Peter 2. Exact numbered
+ * references are handled by parseBibleReference and do not come through here.
+ */
+export function getNumberedBookReferenceChoices(input) {
+  const trimmed = String(input || '').trim().toLowerCase()
+  if (!trimmed) return []
+
+  if (/^\d/.test(trimmed)) {
+    // Known aliases continue through the normal parser. If the alias is not
+    // known, accept any canonical-name prefix that identifies one numbered
+    // book, or return multiple choices when the prefix is genuinely ambiguous.
+    return resolveBookAliasPrefix(trimmed)
+      ? []
+      : getExplicitNumberedPrefixChoices(trimmed)
+  }
+
+  const compactInput = trimmed.replace(/\s+/g, '')
+  for (const alias of sortedNumberedFamilyAliasKeys) {
+    if (!compactInput.startsWith(alias)) continue
+
+    const refPart = compactInput.slice(alias.length)
+    if (refPart && !/^\d/.test(refPart)) continue
+
+    const family = numberedFamilyAliases.get(alias)
+    const choices = [...family.books]
+      .sort((a, b) => bibleBooks.findIndex(book => book.name === a) - bibleBooks.findIndex(book => book.name === b))
+      .map(bookName => {
+        const bookMeta = bibleBooks.find(book => book.name === bookName)
+        const parsed = refPart
+          ? parseChapterVersePart(refPart, bookMeta, { requireWhole: true })
+          : { chapter: 1, verse: null }
+        return parsed ? { book: bookName, chapter: parsed.chapter, verse: parsed.verse } : null
+      })
+      .filter(Boolean)
+
+    if (choices.length) return choices
+  }
+
+  return []
+}
+
 export function parseBibleReference(input, defaultBook = null) {
   const trimmed = input.trim().toLowerCase()
   if (!trimmed) return null
@@ -205,8 +302,12 @@ export function parseBibleReference(input, defaultBook = null) {
     if (!bookMeta) return null
 
     if (!refPart) {
-      // Just a book name with no chapter number → not a navigation reference
-      // (let it fall through to text search instead)
+      // An explicit numbered book by itself opens at chapter one. Unnumbered
+      // book words still fall through to text search so short aliases such as
+      // "is" and "am" do not unexpectedly navigate away.
+      if (/^\d\s/.test(bookName)) {
+        return { book: bookName, chapter: 1, verse: null }
+      }
       return null
     }
 
@@ -214,6 +315,9 @@ export function parseBibleReference(input, defaultBook = null) {
     if (!parsed) return null
     return { book: bookName, chapter: parsed.chapter, verse: parsed.verse }
   }
+
+  const numberedPrefixChoices = getExplicitNumberedPrefixChoices(trimmed)
+  if (numberedPrefixChoices.length === 1) return numberedPrefixChoices[0]
 
   // Fallback: use current/default book when user enters only chapter/verse (e.g. "10:4")
   if (defaultBook) {
