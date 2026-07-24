@@ -8,6 +8,8 @@ import {
   CONTENT_SERVERS_CHANGE_EVENT,
   getRemoteContentItemsForCategory,
 } from '../services/contentServers'
+import { COMMUNITIES_CHANGE_EVENT, getCommunities } from '../services/communities'
+import { mergeSongCatalog } from '../services/songCatalog'
 
 function ResourceTag({ tag }) {
   const colors = TAG_COLORS[tag]
@@ -98,7 +100,11 @@ function ResourcePage() {
     const refresh = () => setRemoteItems(getRemoteContentItemsForCategory(categoryId))
     refresh()
     window.addEventListener(CONTENT_SERVERS_CHANGE_EVENT, refresh)
-    return () => window.removeEventListener(CONTENT_SERVERS_CHANGE_EVENT, refresh)
+    window.addEventListener(COMMUNITIES_CHANGE_EVENT, refresh)
+    return () => {
+      window.removeEventListener(CONTENT_SERVERS_CHANGE_EVENT, refresh)
+      window.removeEventListener(COMMUNITIES_CHANGE_EVENT, refresh)
+    }
   }, [categoryId])
 
   useEffect(() => {
@@ -146,8 +152,13 @@ function ResourcePage() {
   const trimmedQuery = searchQuery.trim()
 
   const items = useMemo(() => {
+    if (isSongs) {
+      return mergeSongCatalog({
+        remoteItems,
+        communities: getCommunities(),
+      })
+    }
     const combined = [...category.items, ...remoteItems]
-    if (isSongs) return combined.sort((a, b) => a.title.localeCompare(b.title))
     if (!isConfessions && !isBooks) return combined
     return combined.sort((a, b) => {
       const ay = Number.isFinite(a.year) ? a.year : Number.POSITIVE_INFINITY
@@ -271,6 +282,10 @@ function ResourcePage() {
   }
 
   const handleItemClick = (item) => {
+    if (isSongs) {
+      navigate(`/resources/songs/${encodeURIComponent(item.id)}`)
+      return
+    }
     if (item.remote) {
       if (categoryId === 'reading-plans') {
         navigate(`/resources/reading-plans/${encodeURIComponent(item.contentKey)}`)
@@ -499,14 +514,15 @@ function ResourcePage() {
                             {item.title}
                           </h3>
                           {(isConfessions || isBooks) && item.tag && <ResourceTag tag={item.tag} />}
-                          {item.remote && (
+                          {item.remote && !isSongs && (
                             <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-primary dark:text-blue-300 font-medium">
                               {item.sourceServerName}
                             </span>
                           )}
-                          {isSongs && item.builtIn && (
+                          {isSongs && (
                             <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-medium">
-                              Heritage
+                              {item.sourceNames?.[0] || 'Song source'}
+                              {item.sourceCount > 1 ? ` + ${item.sourceCount - 1}` : ''}
                             </span>
                           )}
                         </div>
@@ -521,9 +537,9 @@ function ResourcePage() {
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
                           {item.description}
                         </p>
-                        {isSongs && item.rightsStatus === 'metadata-only' && (
+                        {isSongs && item.rightsStatus === 'metadata-only' && item.sourceCount === 1 && (
                           <p className="mt-2 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
-                            Listing only · lyrics and music not included
+                            Heritage listing · open for its specific rights explanation
                           </p>
                         )}
                       </div>

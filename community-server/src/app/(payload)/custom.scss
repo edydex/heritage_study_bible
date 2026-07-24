@@ -1,1 +1,50 @@
+.heritage-song-guide {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base);
+  margin-bottom: var(--base);
+  padding: var(--base);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--theme-elevation-50), var(--theme-bg));
+}
 
+.heritage-song-guide h2,
+.heritage-song-guide p {
+  margin: 0;
+}
+
+.heritage-song-guide h2 {
+  margin-top: 2px;
+  font-size: 1.25rem;
+}
+
+.heritage-song-guide p:last-child {
+  max-width: 52rem;
+  margin-top: 6px;
+  color: var(--theme-elevation-650);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.heritage-song-add {
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--theme-success-500);
+  color: var(--theme-success-0);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (max-width: 560px) {
+  .heritage-song-guide {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .heritage-song-add {
+    text-align: center;
+  }
+}
