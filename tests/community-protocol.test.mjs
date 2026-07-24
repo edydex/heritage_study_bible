@@ -7,6 +7,14 @@ test('community URLs use well-known discovery', () => {
     normalizeCommunityManifestUrl('https://community.example.church'),
     'https://community.example.church/.well-known/heritage-community.json'
   )
+  assert.equal(
+    normalizeCommunityManifestUrl('community.example.church'),
+    'https://community.example.church/.well-known/heritage-community.json'
+  )
+  assert.equal(
+    normalizeCommunityManifestUrl('localhost:3000'),
+    'https://localhost:3000/.well-known/heritage-community.json'
+  )
 })
 
 test('community manifests resolve API, auth, and content endpoints', () => {

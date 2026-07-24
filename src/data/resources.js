@@ -1,3 +1,5 @@
+import { HERITAGE_BUILT_IN_SONGS } from './builtInSongs'
+
 export const RESOURCE_CATEGORIES = [
   {
     id: 'reading-plans',
@@ -22,7 +24,16 @@ export const RESOURCE_CATEGORIES = [
     title: 'Songs & Hymns',
     icon: '🎵',
     color: 'bg-rose-50 dark:bg-rose-900/30 border-rose-200 dark:border-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900/50',
-    items: [],
+    items: HERITAGE_BUILT_IN_SONGS.map(song => ({
+      id: song.id,
+      title: song.title,
+      alternateTitle: song.russianTitle,
+      author: song.author,
+      year: song.year,
+      description: song.description,
+      rightsStatus: song.rightsStatus,
+      builtIn: true,
+    })),
   },
   {
     id: 'sermons',

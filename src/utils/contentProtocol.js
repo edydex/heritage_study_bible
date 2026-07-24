@@ -39,7 +39,9 @@ export function normalizeContentServerManifestUrl(value) {
   const raw = String(value || '').trim()
   if (!raw) throw new Error('Enter a content server URL.')
 
-  const withProtocol = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`
+  const withProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw)
+    ? raw
+    : `https://${raw.replace(/^\/\//, '')}`
   const url = new URL(withProtocol)
   if (!['http:', 'https:'].includes(url.protocol)) {
     throw new Error('Content server URLs must use HTTP or HTTPS.')

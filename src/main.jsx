@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 import { Capacitor } from '@capacitor/core'
+import { initializeNativeDeepLinks } from './services/nativeDeepLinks.js'
 
 const LEGACY_SW_CLEANUP_FLAG = 'heritage-sw-cleanup-v1'
 
@@ -100,6 +101,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </AppErrorBoundary>
   </React.StrictMode>,
 )
+
+initializeNativeDeepLinks().catch(error => {
+  console.warn('Native app-link startup failed', error)
+})
 
 // PWA/SW intentionally disabled for reliability; keep one-time cleanup for legacy registrations.
 window.addEventListener('load', () => {

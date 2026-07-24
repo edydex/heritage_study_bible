@@ -20,12 +20,30 @@ function writeRegistry(records) {
 }
 
 async function fetchJson(url, options = {}) {
-  const response = await fetch(url, {
-    credentials: 'omit',
-    referrerPolicy: 'no-referrer',
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-  })
+  let response
+  try {
+    const headers = { ...(options.headers || {}) }
+    if (options.body != null && !Object.keys(headers).some(name => name.toLowerCase() === 'content-type')) {
+      headers['Content-Type'] = 'application/json'
+    }
+    response = await fetch(url, {
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      ...options,
+      headers,
+    })
+  } catch (error) {
+    let destination = 'the Community server'
+    try {
+      destination = new URL(url).host || destination
+    } catch {
+      // Keep the generic destination for malformed or non-URL inputs.
+    }
+    const message = `Could not reach ${destination}. Check your connection. If this Community was just set up, wait a minute, reopen Heritage, and try the sign-in email again.`
+    const wrapped = new Error(message)
+    wrapped.cause = error
+    throw wrapped
+  }
   const body = await response.json().catch(() => ({}))
   if (!response.ok) throw new Error(body.error || `Community request failed with HTTP ${response.status}.`)
   return body

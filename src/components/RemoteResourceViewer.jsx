@@ -77,6 +77,14 @@ function readableText(value) {
   return lexicalPlainText(value).replace(/\n{3,}/g, '\n\n').trim()
 }
 
+function friendlyStatus(value) {
+  return String(value || '')
+    .split('-')
+    .filter(Boolean)
+    .map(word => word[0]?.toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 function assetFromValue(value, groupLabel, index, baseUrl) {
   const object = value && typeof value === 'object' && !Array.isArray(value) ? value : null
   const rawUrl = typeof value === 'string'
@@ -132,6 +140,8 @@ function getMetadata(document) {
   add('Published', document.publishedYear)
   add('Key', document.key)
   add('Tempo', document.tempo)
+  add('Rights status', friendlyStatus(document.rightsStatus))
+  add('CCLI song number', document.ccliNumber)
   add('License', document.license)
   add('Copyright', document.copyright)
   return entries
@@ -201,6 +211,7 @@ function RemoteResourceViewer() {
   const [cachedAssetUrls, setCachedAssetUrls] = useState({})
   const [cachedPrimaryUrl, setCachedPrimaryUrl] = useState('')
   const [preferCachedPrimary, setPreferCachedPrimary] = useState(false)
+  const [songLanguage, setSongLanguage] = useState('en')
   const mediaType = item?.content?.mediaType || 'application/octet-stream'
   const isText = isTextMediaType(mediaType)
   const baseUrl = typeof window === 'undefined' ? 'https://invalid.local/' : window.location.href
@@ -234,6 +245,7 @@ function RemoteResourceViewer() {
     setCachedAssetUrls({})
     setCachedPrimaryUrl('')
     setPreferCachedPrimary(typeof navigator !== 'undefined' && navigator.onLine === false)
+    setSongLanguage('en')
   }, [contentKey])
 
   useEffect(() => {
@@ -291,13 +303,14 @@ function RemoteResourceViewer() {
 
   const directSections = useMemo(() => {
     if (!contentDocument) return []
+    const russian = songLanguage === 'ru'
     return [
-      { title: 'Lyrics', value: readableText(contentDocument.lyrics), mono: false },
-      { title: 'Chord sheet', value: readableText(contentDocument.chordSheet), mono: true },
+      { title: russian ? 'Текст песни' : 'Lyrics', value: readableText(russian ? contentDocument.russianLyrics : contentDocument.lyrics), mono: false },
+      { title: russian ? 'Аккорды' : 'Chord sheet', value: readableText(russian ? contentDocument.russianChordSheet : contentDocument.chordSheet), mono: true },
       { title: 'Transcript', value: readableText(contentDocument.transcript), mono: false },
       { title: 'Text', value: readableText(contentDocument.body || contentDocument.richText), mono: false },
     ].filter(section => section.value)
-  }, [contentDocument])
+  }, [contentDocument, songLanguage])
 
   const hasStructuredContent = Boolean(
     contentDocument && (
@@ -374,6 +387,20 @@ function RemoteResourceViewer() {
   }
 
   const primaryMediaUrl = preferCachedPrimary && cachedPrimaryUrl ? cachedPrimaryUrl : contentUrl
+  const isSong = item.contentType === 'songs'
+  const hasRussianListing = Boolean(
+    contentDocument?.russianTitle
+    || contentDocument?.russianLyrics
+    || contentDocument?.russianChordSheet,
+  )
+  const displayTitle = songLanguage === 'ru' && contentDocument?.russianTitle
+    ? contentDocument.russianTitle
+    : item.title
+  const selectedSongHasContent = songLanguage === 'ru'
+    ? Boolean(readableText(contentDocument?.russianLyrics) || readableText(contentDocument?.russianChordSheet))
+    : Boolean(readableText(contentDocument?.lyrics) || readableText(contentDocument?.chordSheet))
+  const rightsSourceUrl = resolveHttpAssetUrl(contentDocument?.sourceUrl, contentUrl || baseUrl)
+  const permissionEvidenceUrl = resolveHttpAssetUrl(contentDocument?.permissionUrl, contentUrl || baseUrl)
 
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900">
@@ -381,9 +408,15 @@ function RemoteResourceViewer() {
         <div className="h-14 px-4 sm:px-6 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-white/20" aria-label="Back">←</button>
           <div className="min-w-0">
-            <h1 className="text-base sm:text-lg font-bold truncate">{item.title}</h1>
+            <h1 className="text-base sm:text-lg font-bold truncate">{displayTitle}</h1>
             <p className="text-[11px] text-blue-100 truncate">From {item.sourceServerName}</p>
           </div>
+          {isSong && hasRussianListing && (
+            <div className="ml-auto flex rounded-lg bg-white/15 p-0.5 text-xs font-semibold" aria-label="Song language">
+              <button onClick={() => setSongLanguage('en')} className={`rounded-md px-2 py-1 ${songLanguage === 'en' ? 'bg-white text-primary' : ''}`}>EN</button>
+              <button onClick={() => setSongLanguage('ru')} className={`rounded-md px-2 py-1 ${songLanguage === 'ru' ? 'bg-white text-primary' : ''}`}>RU</button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -404,6 +437,20 @@ function RemoteResourceViewer() {
               <p className="animate-pulse text-gray-500 dark:text-gray-400">Loading resource…</p>
             ) : hasStructuredContent ? (
               <div className="space-y-6 text-gray-800 dark:text-gray-200">
+                {isSong && contentDocument?.rightsStatus && (
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100">
+                    <strong>Rights record:</strong>{' '}
+                    {contentDocument.rightsStatus === 'metadata-only'
+                      ? 'This is a song listing; the church has not included the protected words or music.'
+                      : (contentDocument.rightsNotes || contentDocument.copyright || contentDocument.rightsStatus)}
+                    {(rightsSourceUrl || permissionEvidenceUrl) && (
+                      <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold">
+                        {rightsSourceUrl && <a href={rightsSourceUrl} target="_blank" rel="noreferrer" className="underline">Song/source information</a>}
+                        {permissionEvidenceUrl && <a href={permissionEvidenceUrl} target="_blank" rel="noreferrer" className="underline">License or permission record</a>}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {metadata.length > 0 && (
                   <dl className="grid gap-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 p-3 sm:grid-cols-2">
                     {metadata.map(entry => (
@@ -456,6 +503,14 @@ function RemoteResourceViewer() {
                     <p className={`mt-3 leading-relaxed whitespace-pre-wrap ${section.mono ? 'font-mono text-sm' : ''}`}>{section.value}</p>
                   </section>
                 ))}
+
+                {isSong && !selectedSongHasContent && (
+                  <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-600 dark:border-gray-600 dark:text-gray-300">
+                    {songLanguage === 'ru'
+                      ? 'This listing has a Russian title, but no Russian lyrics or chords have been published yet.'
+                      : 'This song is currently a listing only; no English lyrics or chords have been published.'}
+                  </div>
+                )}
 
                 {assets.length > 0 && (
                   <section>

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 
-const HYMNS = [
+export const HYMNS = [
   {
     id: 'before-the-throne',
     title: 'Before the Throne of God Above',

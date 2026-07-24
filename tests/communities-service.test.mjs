@@ -72,3 +72,100 @@ test('a valid community sign-in survives an unavailable optional content catalog
     globalThis.fetch = previous.fetch
   }
 })
+
+test('community sign-in explains an unreachable new server in plain language', async () => {
+  const previous = {
+    localStorage: globalThis.localStorage,
+    window: globalThis.window,
+    CustomEvent: globalThis.CustomEvent,
+    fetch: globalThis.fetch,
+  }
+  globalThis.localStorage = createStorage()
+  globalThis.CustomEvent = class CustomEvent {
+    constructor(type, init = {}) { this.type = type; this.detail = init.detail }
+  }
+  globalThis.window = {
+    dispatchEvent() {},
+    setTimeout,
+    clearTimeout,
+  }
+  globalThis.fetch = async () => {
+    throw new TypeError('NetworkError when attempting to fetch resource.')
+  }
+
+  try {
+    const { completeCommunitySignIn } = await import('../src/services/communities.js')
+    await assert.rejects(
+      completeCommunitySignIn('https://new-community.example', 'one-time-token'),
+      error => {
+        assert.match(error.message, /Could not reach new-community\.example/)
+        assert.match(error.message, /wait a minute, reopen Heritage/i)
+        assert.doesNotMatch(error.message, /NetworkError/)
+        return true
+      },
+    )
+  } finally {
+    globalThis.localStorage = previous.localStorage
+    globalThis.window = previous.window
+    globalThis.CustomEvent = previous.CustomEvent
+    globalThis.fetch = previous.fetch
+  }
+})
+
+test('checking a Community uses a simple GET without forcing a CORS preflight', async () => {
+  const previous = {
+    localStorage: globalThis.localStorage,
+    window: globalThis.window,
+    CustomEvent: globalThis.CustomEvent,
+    fetch: globalThis.fetch,
+  }
+  const requests = []
+  globalThis.localStorage = createStorage()
+  globalThis.CustomEvent = class CustomEvent {}
+  globalThis.window = { dispatchEvent() {}, setTimeout, clearTimeout }
+  globalThis.fetch = async (url, options = {}) => {
+    requests.push({ url: String(url), options })
+    if (String(url).endsWith('/.well-known/heritage-community.json')) {
+      return Response.json({
+        schemaVersion: 1,
+        kind: 'heritage-community',
+        id: 'test-church',
+        name: 'Test Church',
+        apiBaseUrl: '/api',
+        contentServerUrl: '/heritage-content.json',
+        auth: {
+          method: 'email-magic-link',
+          requestPath: '/community/auth/magic-link',
+          sessionPath: '/community/auth/session',
+        },
+      })
+    }
+    if (String(url).endsWith('/heritage-content.json')) {
+      return Response.json({
+        schemaVersion: 2,
+        kind: 'heritage-content-server',
+        id: 'test-church',
+        name: 'Test Church',
+        catalogs: { songs: '/catalogs/songs' },
+      })
+    }
+    if (String(url).endsWith('/catalogs/songs')) {
+      return Response.json({ schemaVersion: 2, contentType: 'songs', items: [] })
+    }
+    return Response.json({ error: 'Unexpected URL' }, { status: 404 })
+  }
+
+  try {
+    const { inspectCommunity } = await import('../src/services/communities.js')
+    await inspectCommunity('test-church.example')
+    const discovery = requests.find(request => request.url.includes('/.well-known/'))
+    assert.ok(discovery)
+    assert.equal(discovery.options.method, undefined)
+    assert.deepEqual(discovery.options.headers, {})
+  } finally {
+    globalThis.localStorage = previous.localStorage
+    globalThis.window = previous.window
+    globalThis.CustomEvent = previous.CustomEvent
+    globalThis.fetch = previous.fetch
+  }
+})

@@ -224,11 +224,12 @@ function CommunityHomePage() {
 
         <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5">
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Join a community</h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Checking first shows the community features and the public resources that will be added. Joining then sends a one-time email link.</p>
-          <form onSubmit={handleInspect} className="mt-4 flex flex-col sm:flex-row gap-2">
-            <input type="url" inputMode="url" value={joinUrl} onChange={event => { setJoinUrl(event.target.value); setPreview(null) }} placeholder="https://community.example.church" className="flex-1 min-w-0 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Checking first shows the community features and public resources. Most Communities require your email to be listed under Member invitations before they send a one-time sign-in link.</p>
+          <form noValidate onSubmit={handleInspect} className="mt-4 flex flex-col sm:flex-row gap-2">
+            <input type="text" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={joinUrl} onChange={event => { setJoinUrl(event.target.value); setPreview(null) }} placeholder="community.example.church" aria-label="Community server address" className="flex-1 min-w-0 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
             <button disabled={busy === 'inspect' || !joinUrl.trim()} className="rounded-lg bg-primary px-4 py-2.5 text-white font-semibold disabled:opacity-50">{busy === 'inspect' ? 'Checking…' : 'Check Community'}</button>
           </form>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">You can enter only the domain. Heritage adds https:// automatically.</p>
           {preview && (
             <div className="mt-4 rounded-xl border border-primary/30 dark:border-blue-500/40 bg-primary/5 dark:bg-blue-500/10 p-4">
               <h3 className="font-bold text-gray-900 dark:text-gray-100">{preview.manifest.name}</h3>
