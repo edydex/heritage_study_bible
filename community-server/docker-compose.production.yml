@@ -13,6 +13,7 @@ x-community-environment: &community-environment
   COMMUNITY_ID: ${COMMUNITY_ID:?Set COMMUNITY_ID in .env.production}
   COMMUNITY_NAME: ${COMMUNITY_NAME:?Set COMMUNITY_NAME in .env.production}
   COMMUNITY_DESCRIPTION: ${COMMUNITY_DESCRIPTION:-A Heritage church community.}
+  COMMUNITY_CCLI_LICENSE_NUMBER: ${COMMUNITY_CCLI_LICENSE_NUMBER:-}
   COMMUNITY_TIME_ZONE: ${COMMUNITY_TIME_ZONE:-UTC}
   COMMUNITY_AUTH_ENABLED: ${COMMUNITY_AUTH_ENABLED:-true}
   HERITAGE_APP_URL: ${HERITAGE_APP_URL:?Set HERITAGE_APP_URL in .env.production}
@@ -23,6 +24,7 @@ x-community-environment: &community-environment
   SMTP_PASS: ${SMTP_PASS:-}
   SMTP_FROM: ${SMTP_FROM:-heritage@example.church}
   SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Heritage Community}
+  COMMUNITY_COPYRIGHT_CONTACT_EMAIL: ${COMMUNITY_COPYRIGHT_CONTACT_EMAIL:-}
   # These are present only during the installer's first, verified boot. The
   # installer removes them and recreates the container immediately afterward.
   BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}

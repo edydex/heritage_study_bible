@@ -1,4 +1,9 @@
-import { addContentServer, getContentServerSubscriptions, inspectContentServer } from './contentServers.js'
+import {
+  addContentServer,
+  getContentServerSubscriptions,
+  inspectContentServer,
+  upsertContentServer,
+} from './contentServers.js'
 import { normalizeCommunityManifestUrl, validateCommunityManifest } from '../utils/communityProtocol.js'
 
 export const COMMUNITY_REGISTRY_KEY = 'heritage-communities-v1'
@@ -126,13 +131,14 @@ export async function completeCommunitySignIn(serverUrl, token) {
   let contentPreview = existing?.contentPreview || null
   let contentWarning = ''
   try {
-    const refreshedContent = await inspectContentServer(discovery.manifest.contentServerUrl)
+    const refreshedContent = await inspectContentServer(discovery.manifest.contentServerUrl, {
+      authorization: `Community ${session.token}`,
+      authorizationOrigin: new URL(discovery.manifest.contentServerUrl).origin,
+    })
     contentPreview = refreshedContent
-    if (!getContentServerSubscriptions().some(server => server.manifest.id === refreshedContent.manifest.id)) {
-      await addContentServer(refreshedContent)
-    }
+    await upsertContentServer(refreshedContent)
   } catch (error) {
-    contentWarning = `Signed in, but the public resource catalog could not be refreshed: ${error.message}`
+    contentWarning = `Signed in, but the Community resource catalog could not be refreshed: ${error.message}`
   }
 
   const record = {

@@ -2,7 +2,7 @@ import config from '@payload-config'
 import { getPayload } from 'payload'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
 import { relationshipId } from '@/lib/communityRelationships'
-import { publicJson } from '@/lib/publicConfig'
+import { communityPublicConfig, publicJson } from '@/lib/publicConfig'
 
 const typeToCollection = {
   readingPlans: 'reading-plans',
@@ -26,7 +26,29 @@ export async function GET(_request: Request, context: { params: Promise<{ type: 
       return publicJson({ error: 'Not found.' }, { status: 404 })
     }
     if (type === 'readingPlans' && 'planData' in doc) return publicJson(doc.planData)
-    return publicJson({ schemaVersion: 1, contentType: type, ...doc })
+    return publicJson(
+      {
+        schemaVersion: 1,
+        contentType: type,
+        ...doc,
+        communityRightsContact: type === 'songs'
+          ? {
+              communityName: communityPublicConfig.name,
+              communityUrl: communityPublicConfig.publicUrl,
+              ccliLicenseNumber: communityPublicConfig.ccliLicenseNumber,
+              email: communityPublicConfig.copyrightContactEmail,
+            }
+          : undefined,
+      },
+      type === 'songs'
+        ? {
+            headers: {
+              'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+              'X-Robots-Tag': 'noindex, nofollow, noarchive',
+            },
+          }
+        : {},
+    )
   } catch {
     return publicJson({ error: 'Not found.' }, { status: 404 })
   }

@@ -11,9 +11,12 @@ const sources = [
 ]
 
 const hymnarySources = [
+  ['before-the-throne', 'https://hymnary.org/text/before_the_throne_of_god_above_i_have_a_'],
+  ['come-thou-fount', 'https://hymnary.org/text/come_thou_fount_of_every_blessing'],
   ['give-me-jesus', 'https://hymnary.org/hymn/LUYH2013/423'],
   ['he-will-hold-me-fast', 'https://hymnary.org/hymn/CYBER/2678'],
   ['i-know-my-redeemer-lives', 'https://hymnary.org/hymn/VoP1873/683'],
+  ['it-is-well', 'https://hymnary.org/text/when_peace_like_a_river_attendeth_my_way'],
   ['just-as-i-am', 'https://hymnary.org/hymn/HRGC1892/606a'],
   ['o-come-all-ye-faithful', 'https://hymnary.org/hymn/HAGA1895/170'],
   ['o-come-o-come-emmanuel', 'https://hymnary.org/hymn/HPAG1933/108'],

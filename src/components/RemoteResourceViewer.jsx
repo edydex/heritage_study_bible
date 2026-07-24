@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getRemoteContentItem } from '../services/contentServers'
+import {
+  buildCommunitySongShareUrl,
+  communitySongItemFromUrl,
+} from '../utils/communitySongLinks'
+import { writeTextToClipboard } from '../utils/verseSelection'
+import SongRightsDisclosure from './SongRightsDisclosure'
 
 const REMOTE_CONTENT_CACHE = 'heritage-remote-content-v3'
 const TEXT_MEDIA_TYPES = new Set([
@@ -120,7 +126,7 @@ function collectAssets(document, baseUrl) {
   return assets
 }
 
-function getMetadata(document) {
+function getMetadata(document, includeRights = true) {
   if (!document || typeof document !== 'object' || Array.isArray(document)) return []
   const entries = []
   const add = (label, value) => {
@@ -140,10 +146,12 @@ function getMetadata(document) {
   add('Published', document.publishedYear)
   add('Key', document.key)
   add('Tempo', document.tempo)
-  add('Rights status', friendlyStatus(document.rightsStatus))
-  add('CCLI song number', document.ccliNumber)
-  add('License', document.license)
-  add('Copyright', document.copyright)
+  if (includeRights) {
+    add('Rights status', friendlyStatus(document.rightsStatus))
+    add('CCLI song number', document.ccliNumber)
+    add('License', document.license)
+    add('Copyright', document.copyright)
+  }
   return entries
 }
 
@@ -198,10 +206,16 @@ async function cacheRemoteUrl(cache, url) {
   }
 }
 
-function RemoteResourceViewer() {
+function RemoteResourceViewer({ directSong = false }) {
   const { contentKey } = useParams()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const item = getRemoteContentItem(contentKey)
+  const directContentUrl = directSong ? searchParams.get('url') : ''
+  const item = useMemo(
+    () => getRemoteContentItem(contentKey) || (directSong ? communitySongItemFromUrl(directContentUrl) : null),
+    [contentKey, directContentUrl, directSong],
+  )
+  const itemKey = item?.id || contentKey || directContentUrl
   const objectUrlsRef = useRef(new Map())
   const [content, setContent] = useState('')
   const [contentDocument, setContentDocument] = useState(null)
@@ -214,10 +228,14 @@ function RemoteResourceViewer() {
   const [songLanguage, setSongLanguage] = useState('en')
   const mediaType = item?.content?.mediaType || 'application/octet-stream'
   const isText = isTextMediaType(mediaType)
+  const isSong = item?.contentType === 'songs'
   const baseUrl = typeof window === 'undefined' ? 'https://invalid.local/' : window.location.href
   const contentUrl = resolveHttpAssetUrl(item?.content?.url, baseUrl)
   const assets = useMemo(() => collectAssets(contentDocument, contentUrl), [contentDocument, contentUrl])
-  const metadata = useMemo(() => getMetadata(contentDocument), [contentDocument])
+  const metadata = useMemo(
+    () => getMetadata(contentDocument, item?.contentType !== 'songs'),
+    [contentDocument, item?.contentType],
+  )
   const songSections = Array.isArray(contentDocument?.songSections) ? contentDocument.songSections : []
   const transcriptSections = Array.isArray(contentDocument?.transcriptSections) ? contentDocument.transcriptSections : []
   const chapters = Array.isArray(contentDocument?.chapters) ? contentDocument.chapters : []
@@ -246,7 +264,7 @@ function RemoteResourceViewer() {
     setCachedPrimaryUrl('')
     setPreferCachedPrimary(typeof navigator !== 'undefined' && navigator.onLine === false)
     setSongLanguage('en')
-  }, [contentKey])
+  }, [itemKey])
 
   useEffect(() => {
     if (!item || !isText) return
@@ -276,7 +294,7 @@ function RemoteResourceViewer() {
         setMessage(`Could not load this resource: ${error.message}`)
       })
     return () => { cancelled = true }
-  }, [contentKey, contentUrl, isText, mediaType])
+  }, [contentUrl, isText, item, itemKey, mediaType])
 
   useEffect(() => {
     if (!assets.length) return
@@ -299,7 +317,7 @@ function RemoteResourceViewer() {
       })
       .catch(() => {})
     return () => { cancelled = true }
-  }, [contentKey, contentUrl, isText])
+  }, [contentUrl, isText, item, itemKey])
 
   const directSections = useMemo(() => {
     if (!contentDocument) return []
@@ -320,6 +338,7 @@ function RemoteResourceViewer() {
       || directSections.length
       || assets.length
       || metadata.length
+      || isSong
     )
   )
 
@@ -374,20 +393,47 @@ function RemoteResourceViewer() {
     }
   }
 
+  const shareUrl = item?.contentType === 'songs'
+    ? buildCommunitySongShareUrl(contentUrl)
+    : ''
+  const shareSong = async () => {
+    if (!shareUrl) {
+      setMessage('This song does not have a valid share link.')
+      return
+    }
+    const title = contentDocument?.title || item.title || 'Community song'
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text: `${title} — Community song sheet`, url: shareUrl })
+        setMessage('Song link shared.')
+      } else {
+        await writeTextToClipboard(shareUrl)
+        setMessage('Unlisted song link copied.')
+      }
+    } catch (error) {
+      if (error?.name !== 'AbortError') setMessage(`Could not share this song: ${error.message}`)
+    }
+  }
+
   if (!item) {
     return (
       <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center p-6">
         <div className="max-w-md text-center">
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Resource unavailable</h1>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Its Content Server may have been removed or refreshed.</p>
-          <button onClick={() => navigate('/settings/content-servers')} className="mt-4 text-primary dark:text-blue-300 underline">Manage Content Servers</button>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            {directSong
+              ? 'This unlisted song link is incomplete or invalid.'
+              : 'Its Content Server may have been removed or refreshed.'}
+          </p>
+          <button onClick={() => navigate(directSong ? '/resources/songs' : '/settings/content-servers')} className="mt-4 text-primary dark:text-blue-300 underline">
+            {directSong ? 'Browse songs' : 'Manage Content Servers'}
+          </button>
         </div>
       </div>
     )
   }
 
   const primaryMediaUrl = preferCachedPrimary && cachedPrimaryUrl ? cachedPrimaryUrl : contentUrl
-  const isSong = item.contentType === 'songs'
   const hasRussianListing = Boolean(
     contentDocument?.russianTitle
     || contentDocument?.russianLyrics
@@ -395,12 +441,11 @@ function RemoteResourceViewer() {
   )
   const displayTitle = songLanguage === 'ru' && contentDocument?.russianTitle
     ? contentDocument.russianTitle
-    : item.title
+    : (contentDocument?.title || item.title)
   const selectedSongHasContent = songLanguage === 'ru'
     ? Boolean(readableText(contentDocument?.russianLyrics) || readableText(contentDocument?.russianChordSheet))
     : Boolean(readableText(contentDocument?.lyrics) || readableText(contentDocument?.chordSheet))
-  const rightsSourceUrl = resolveHttpAssetUrl(contentDocument?.sourceUrl, contentUrl || baseUrl)
-  const permissionEvidenceUrl = resolveHttpAssetUrl(contentDocument?.permissionUrl, contentUrl || baseUrl)
+  const sourceServerName = contentDocument?.communityRightsContact?.communityName || item.sourceServerName
 
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900">
@@ -409,7 +454,7 @@ function RemoteResourceViewer() {
           <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-white/20" aria-label="Back">←</button>
           <div className="min-w-0">
             <h1 className="text-base sm:text-lg font-bold truncate">{displayTitle}</h1>
-            <p className="text-[11px] text-blue-100 truncate">From {item.sourceServerName}</p>
+            <p className="text-[11px] text-blue-100 truncate">From {sourceServerName}</p>
           </div>
           {isSong && hasRussianListing && (
             <div className="ml-auto flex rounded-lg bg-white/15 p-0.5 text-xs font-semibold" aria-label="Song language">
@@ -421,7 +466,9 @@ function RemoteResourceViewer() {
       </header>
 
       <main className="container mx-auto max-w-3xl px-4 py-6 pb-20">
-        {item.description && <p className="mb-5 text-sm leading-relaxed text-gray-600 dark:text-gray-300">{item.description}</p>}
+        {(contentDocument?.description || item.description) && (
+          <p className="mb-5 text-sm leading-relaxed text-gray-600 dark:text-gray-300">{contentDocument?.description || item.description}</p>
+        )}
 
         {!contentUrl && (
           <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 text-sm text-red-700 dark:text-red-200">
@@ -437,20 +484,6 @@ function RemoteResourceViewer() {
               <p className="animate-pulse text-gray-500 dark:text-gray-400">Loading resource…</p>
             ) : hasStructuredContent ? (
               <div className="space-y-6 text-gray-800 dark:text-gray-200">
-                {isSong && contentDocument?.rightsStatus && (
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100">
-                    <strong>Rights record:</strong>{' '}
-                    {contentDocument.rightsStatus === 'metadata-only'
-                      ? 'This is a song listing; the church has not included the protected words or music.'
-                      : (contentDocument.rightsNotes || contentDocument.copyright || contentDocument.rightsStatus)}
-                    {(rightsSourceUrl || permissionEvidenceUrl) && (
-                      <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold">
-                        {rightsSourceUrl && <a href={rightsSourceUrl} target="_blank" rel="noreferrer" className="underline">Song/source information</a>}
-                        {permissionEvidenceUrl && <a href={permissionEvidenceUrl} target="_blank" rel="noreferrer" className="underline">License or permission record</a>}
-                      </div>
-                    )}
-                  </div>
-                )}
                 {metadata.length > 0 && (
                   <dl className="grid gap-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 p-3 sm:grid-cols-2">
                     {metadata.map(entry => (
@@ -512,6 +545,14 @@ function RemoteResourceViewer() {
                   </div>
                 )}
 
+                {isSong && (
+                  <SongRightsDisclosure
+                    document={contentDocument}
+                    songTitle={displayTitle}
+                    contentUrl={contentUrl}
+                  />
+                )}
+
                 {assets.length > 0 && (
                   <section>
                     <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Files and media</h2>
@@ -557,6 +598,11 @@ function RemoteResourceViewer() {
           {contentUrl && (
             <button disabled={savingOffline} onClick={makeAvailableOffline} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 disabled:opacity-50">
               {savingOffline ? 'Saving…' : 'Save offline'}
+            </button>
+          )}
+          {shareUrl && (
+            <button onClick={shareSong} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+              Share unlisted song link
             </button>
           )}
         </div>

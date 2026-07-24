@@ -4,7 +4,9 @@ const HERITAGE_APP_SCHEME = 'faith.heritage.app:'
 
 function isSupportedRoute(route) {
   const pathname = String(route || '').split(/[?#]/, 1)[0]
-  return pathname === '/community/callback' || pathname === '/reading-plan-join'
+  return pathname === '/community/callback'
+    || pathname === '/reading-plan-join'
+    || pathname === '/community-song'
 }
 
 export function getNativeRouteFromUrl(value) {

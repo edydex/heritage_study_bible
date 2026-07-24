@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { loadMergedSong } from '../services/songCatalog'
+import { buildCommunitySongShareUrl } from '../utils/communitySongLinks'
+import { writeTextToClipboard } from '../utils/verseSelection'
+import SongRightsDisclosure from './SongRightsDisclosure'
 
 function sourceNames(sources = []) {
   return sources.map(source => source.name).join(', ')
@@ -46,11 +49,13 @@ function BuiltInSongViewer() {
   const [song, setSong] = useState(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const [shareMessage, setShareMessage] = useState('')
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setLoadError('')
+    setShareMessage('')
     setLanguage('en')
     setVariantIndex(0)
 
@@ -90,6 +95,37 @@ function BuiltInSongViewer() {
     }))
   }, [language, song])
   const russian = language === 'ru'
+  const englishAvailable = Boolean(song?.languages?.en?.length || song?.pendingSourceCount)
+  const russianAvailable = Boolean(song?.languages?.ru?.length || song?.pendingSourceCount)
+  const selectedResult = selectedVariant
+    ? song?.loaded?.find(result => result.reference.source.id === selectedVariant.preferredSource.id)
+    : null
+  const selectedContentUrl = selectedResult?.reference?.item?.content?.url || ''
+  const shareUrl = buildCommunitySongShareUrl(selectedContentUrl)
+  const selectedRightsDocument = selectedResult?.document
+    ? {
+        ...selectedResult.document,
+        rightsNotes: selectedVariant?.rights?.label || selectedResult.document.rightsNotes,
+        sourceUrl: selectedVariant?.rights?.sourceUrl || selectedResult.document.sourceUrl,
+        permissionUrl: selectedVariant?.rights?.permissionUrl || selectedResult.document.permissionUrl,
+      }
+    : null
+
+  const shareSong = async () => {
+    if (!shareUrl) return
+    const title = russian && song.russianTitle ? song.russianTitle : song.title
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text: `${title} — Community song sheet`, url: shareUrl })
+        setShareMessage('Song link shared.')
+      } else {
+        await writeTextToClipboard(shareUrl)
+        setShareMessage('Unlisted song link copied.')
+      }
+    } catch (error) {
+      if (error?.name !== 'AbortError') setShareMessage(`Could not share this song: ${error.message}`)
+    }
+  }
 
   if (loading) {
     return (
@@ -122,10 +158,20 @@ function BuiltInSongViewer() {
             {russian && song.russianTitle ? song.russianTitle : song.title}
           </h1>
           <div className="flex rounded-lg bg-white/15 p-0.5 text-xs font-semibold" aria-label="Song language">
-            <button onClick={() => setLanguage('en')} className={`rounded-md px-2 py-1 ${!russian ? 'bg-white text-primary' : ''}`}>
+            <button
+              onClick={() => setLanguage('en')}
+              disabled={!englishAvailable}
+              title={englishAvailable ? 'Show English words' : 'No English words are available'}
+              className={`rounded-md px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 ${!russian ? 'bg-white text-primary' : ''}`}
+            >
               EN{song.languages.en.length ? ` ${song.languages.en.length}` : ''}
             </button>
-            <button onClick={() => setLanguage('ru')} className={`rounded-md px-2 py-1 ${russian ? 'bg-white text-primary' : ''}`}>
+            <button
+              onClick={() => setLanguage('ru')}
+              disabled={!russianAvailable}
+              title={russianAvailable ? 'Показать русский текст' : 'Русский текст пока не выбран'}
+              className={`rounded-md px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 ${russian ? 'bg-white text-primary' : ''}`}
+            >
               RU{song.languages.ru.length ? ` ${song.languages.ru.length}` : ''}
             </button>
           </div>
@@ -205,23 +251,24 @@ function BuiltInSongViewer() {
                 ))}
               </div>
 
-              {selectedVariant.rights?.label && (
-                <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-200">
-                  {selectedVariant.rights.label}
-                </div>
-              )}
-              <div className="mt-3 flex flex-wrap gap-4">
-                {selectedVariant.rights?.sourceUrl && (
-                  <a href={selectedVariant.rights.sourceUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary dark:text-blue-300 underline">
-                    Text/source record
-                  </a>
-                )}
-                {selectedVariant.rights?.permissionUrl && (
-                  <a href={selectedVariant.rights.permissionUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary dark:text-blue-300 underline">
-                    Permission record
-                  </a>
-                )}
+              <div className="mt-6">
+                <SongRightsDisclosure
+                  document={selectedRightsDocument}
+                  songTitle={russian && song.russianTitle ? song.russianTitle : song.title}
+                  contentUrl={selectedContentUrl || selectedVariant.rights?.sourceUrl || 'https://heritage.faith/'}
+                />
               </div>
+              {selectedVariant.rights?.sourceLabel && (
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Source: {selectedVariant.rights.sourceLabel}
+                </p>
+              )}
+              {shareUrl && (
+                <button onClick={shareSong} className="mt-3 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-200">
+                  Share unlisted song link
+                </button>
+              )}
+              {shareMessage && <p className="mt-2 text-sm text-gray-600 dark:text-gray-300" role="status">{shareMessage}</p>}
             </>
           ) : song.pendingSourceCount > 0 ? (
             <section className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100">
