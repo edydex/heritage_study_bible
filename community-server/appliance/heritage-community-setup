@@ -10,6 +10,22 @@ if [[ ${EUID} -ne 0 ]]; then
     printf 'Sign in as root and run: heritage-community-setup\n' >&2
     exit 1
   }
+  if ! id -nG | grep -qw sudo; then
+    current_user=$(id -un)
+    cat >&2 <<EOF
+This account does not have administrator access yet.
+
+Debian does this when a separate root password was created during installation.
+Fix it once with the root password you chose in the installer:
+
+  su -
+  adduser ${current_user} sudo
+  heritage-community-setup
+
+After setup, completely sign out and back in before using sudo as ${current_user}.
+EOF
+    exit 1
+  fi
   exec sudo bash "$0" "$@"
 fi
 

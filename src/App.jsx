@@ -47,6 +47,7 @@ const ReadingPlanNoteViewer = lazy(() => import('./components/ReadingPlanNoteVie
 const ToolViewer = lazy(() => import('./components/ToolViewer'))
 const ContentServersPage = lazy(() => import('./components/ContentServersPage'))
 const RemoteResourceViewer = lazy(() => import('./components/RemoteResourceViewer'))
+const BuiltInSongViewer = lazy(() => import('./components/BuiltInSongViewer'))
 const CommunityHomePage = lazy(() => import('./components/CommunityHomePage'))
 const CommunityCallbackPage = lazy(() => import('./components/CommunityCallbackPage'))
 
@@ -2448,6 +2449,7 @@ function App() {
           <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
           <Route path="/resources/tools/:itemId" element={<ToolViewer />} />
           <Route path="/resources/content/:contentKey" element={<RemoteResourceViewer />} />
+          <Route path="/resources/songs/:itemId" element={<BuiltInSongViewer />} />
           <Route path="/resources/:categoryId" element={<ResourcePage />} />
           <Route path="/settings/about" element={<AboutPage />} />
           <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} />} />

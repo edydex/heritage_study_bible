@@ -1,9 +1,8 @@
-import { randomBytes } from 'node:crypto'
 import { headersWithCors, type Endpoint } from 'payload'
+import { MAGIC_LINK_MINUTES, sendCommunityMagicLinkEmail } from '@/lib/communityMagicLinkEmail'
 import { communityAuthEnabled, communityPublicConfig } from '@/lib/publicConfig'
 import { createOpaqueToken, hashOpaqueToken } from '@/lib/tokens'
 
-const MAGIC_LINK_MINUTES = 15
 const SESSION_DAYS = 30
 const AUTH_RATE_LIMIT_WINDOW_MS = 15 * 60_000
 const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>()
@@ -15,15 +14,6 @@ function cors(req: Parameters<Endpoint['handler']>[0]) {
 function normalizeEmail(value: unknown) {
   const email = String(value || '').trim().toLowerCase()
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : ''
-}
-
-function htmlEscape(value: unknown) {
-  return String(value || '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;')
 }
 
 async function configuredCommunity(req: Parameters<Endpoint['handler']>[0]) {
@@ -181,37 +171,11 @@ export const authEndpoints: Endpoint[] = [
         }, { headers: cors(req) })
       }
 
-      if (!user) {
-        user = await req.payload.create({
-          collection: 'users',
-          overrideAccess: true,
-          data: {
-            email,
-            displayName: invitation?.displayName || email.split('@')[0] || 'Reader',
-            password: randomBytes(32).toString('base64url'),
-            systemRole: 'member',
-          },
-        })
-      }
-
-      const token = createOpaqueToken()
-      const expiresAt = new Date(Date.now() + MAGIC_LINK_MINUTES * 60_000).toISOString()
-      await req.payload.update({
-        collection: 'users',
-        id: user.id,
-        overrideAccess: true,
-        data: { magicLinkTokenHash: hashOpaqueToken(token), magicLinkExpiresAt: expiresAt },
-      })
-
-      const appUrl = (process.env.HERITAGE_APP_URL || 'https://heritage.faith').replace(/\/+$/, '')
-      const link = `${appUrl}/#/community/callback?server=${encodeURIComponent(communityPublicConfig.publicUrl)}&token=${encodeURIComponent(token)}`
-      const escapedLink = htmlEscape(link)
-      const escapedName = htmlEscape(communityPublicConfig.name)
-      await req.payload.sendEmail({
-        to: email,
-        subject: `Sign in to ${communityPublicConfig.name}`,
-        text: `Use this one-time link within ${MAGIC_LINK_MINUTES} minutes:\n\n${link}\n\nIf you did not request this, you can ignore this email.`,
-        html: `<p>Use this one-time link within ${MAGIC_LINK_MINUTES} minutes:</p><p><a href="${escapedLink}">Sign in to ${escapedName}</a></p><p>If you did not request this, you can ignore this email.</p>`,
+      const { expiresAt, link } = await sendCommunityMagicLinkEmail({
+        payload: req.payload,
+        email,
+        displayName: invitation?.displayName,
+        userID: user?.id,
       })
 
       return Response.json({

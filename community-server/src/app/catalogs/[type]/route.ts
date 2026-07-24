@@ -51,6 +51,10 @@ export async function GET(_request: Request, context: { params: Promise<{ type: 
       title: doc.title,
       description: doc.description || '',
       author: 'author' in doc ? doc.author : undefined,
+      authors: 'authors' in doc ? doc.authors : undefined,
+      alternateTitle: 'russianTitle' in doc ? doc.russianTitle : undefined,
+      russianTitle: 'russianTitle' in doc ? doc.russianTitle : undefined,
+      rightsStatus: 'rightsStatus' in doc ? doc.rightsStatus : undefined,
       content: {
         url: `/content/${type}/${doc.id}`,
         mediaType: mediaTypes[type as keyof typeof mediaTypes],

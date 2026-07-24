@@ -122,6 +122,33 @@ note() { printf '  %s\n' "$*"; }
 warn() { printf '\nWarning: %s\n' "$*" >&2; }
 fail() { printf '\nError during %s: %s\n' "$PHASE" "$*" >&2; exit 1; }
 
+cloudflared_login_with_qr() {
+  local login_log login_pid login_url='' attempt
+  login_log=$(mktemp "${STATE_DIR}/cloudflare-login.XXXXXX")
+  SECRET_TEMP_FILES+=("$login_log")
+
+  HOME=/root cloudflared tunnel login \
+    > >(tee -a "$login_log") \
+    2> >(tee -a "$login_log" >&2) &
+  login_pid=$!
+
+  for attempt in {1..100}; do
+    login_url=$(grep -Eo 'https://dash\.cloudflare\.com/argotunnel[^[:space:]]+' "$login_log" | tail -n 1 || true)
+    if [[ -n $login_url ]]; then
+      say "Scan this QR code with a phone camera instead of typing the address:"
+      if ! qrencode -t ANSIUTF8 -m 1 "$login_url"; then
+        warn "The QR code could not be drawn. Use the printed Cloudflare address above."
+      fi
+      note "The printed address remains available if scanning is not convenient."
+      break
+    fi
+    kill -0 "$login_pid" 2>/dev/null || break
+    sleep 0.1
+  done
+
+  wait "$login_pid"
+}
+
 on_error() {
   local code=$?
   printf '\nInstallation stopped during: %s\n' "$PHASE" >&2
@@ -139,13 +166,12 @@ cleanup_secret_files() {
 trap cleanup_secret_files EXIT
 
 tty_read() {
-  local __name=$1 prompt=$2 value=''
-  if [[ -r /dev/tty ]]; then
-    IFS= read -r -p "$prompt" value </dev/tty
+  local __name=$1 prompt=$2
+  if [[ -t 0 && -r /dev/tty ]]; then
+    IFS= read -r -p "$prompt" "$__name" </dev/tty
   else
-    IFS= read -r -p "$prompt" value
+    IFS= read -r -p "$prompt" "$__name"
   fi
-  printf -v "$__name" '%s' "$value"
 }
 
 ask_value() {
@@ -169,7 +195,7 @@ ask_secret() {
   if ! $NON_INTERACTIVE; then
     prompt="${label}: "
     [[ -z $value ]] || prompt="${label} (press Enter to keep the current value): "
-    if [[ -r /dev/tty ]]; then
+    if [[ -t 0 && -r /dev/tty ]]; then
       IFS= read -r -s -p "$prompt" entered </dev/tty
       printf '\n' >/dev/tty
     else
@@ -244,6 +270,14 @@ dotenv_quote() {
   value=${value//\"/\\\"}
   value=${value//\$/\$\$}
   printf '"%s"' "$value"
+}
+
+generate_secret() {
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -hex 32
+  else
+    od -An -N32 -tx1 /dev/urandom | tr -d ' \n'
+  fi
 }
 
 set_phase() {
@@ -455,17 +489,42 @@ else
     ADMIN_NAME=${HERITAGE_ADMIN_NAME:-}
     ask_value ADMIN_NAME "First administrator name" "${ADMIN_NAME:-Administrator}"
     ADMIN_EMAIL=${HERITAGE_ADMIN_EMAIL:-}
-    ask_value ADMIN_EMAIL "First administrator email" "$ADMIN_EMAIL"
-    validate_email "$ADMIN_EMAIL" || fail "Enter a valid administrator email address."
+    while :; do
+      ask_value ADMIN_EMAIL "First administrator email" "$ADMIN_EMAIL"
+      if validate_email "$ADMIN_EMAIL"; then
+        break
+      fi
+      if $NON_INTERACTIVE; then
+        fail "Enter a valid administrator email address."
+      fi
+      warn "That email address is not valid. Please try again."
+      ADMIN_EMAIL=''
+    done
     ADMIN_PASSWORD=${HERITAGE_ADMIN_PASSWORD:-}
-    ask_secret ADMIN_PASSWORD "First administrator password (12+ characters)"
-    ((${#ADMIN_PASSWORD} >= 12)) || fail "Administrator password must contain at least 12 characters."
-    if ! $NON_INTERACTIVE; then
+    while :; do
+      ask_secret ADMIN_PASSWORD "First administrator password (12+ characters)"
+      if ((${#ADMIN_PASSWORD} < 12)); then
+        if $NON_INTERACTIVE; then
+          fail "Administrator password must contain at least 12 characters."
+        fi
+        warn "That password is too short. Please use at least 12 characters."
+        ADMIN_PASSWORD=''
+        continue
+      fi
+      if $NON_INTERACTIVE; then
+        break
+      fi
       ADMIN_PASSWORD_CONFIRM=''
       ask_secret ADMIN_PASSWORD_CONFIRM "Confirm administrator password"
-      [[ $ADMIN_PASSWORD == "$ADMIN_PASSWORD_CONFIRM" ]] || fail "Administrator passwords did not match."
+      if [[ $ADMIN_PASSWORD != "$ADMIN_PASSWORD_CONFIRM" ]]; then
+        warn "Those passwords did not match. Please enter both again."
+        ADMIN_PASSWORD=''
+        unset ADMIN_PASSWORD_CONFIRM
+        continue
+      fi
       unset ADMIN_PASSWORD_CONFIRM
-    fi
+      break
+    done
   fi
 
   say "Public connection"
@@ -686,6 +745,85 @@ fi
 [[ -f $COMPOSE_FILE ]] || fail "Production Compose file is missing: ${COMPOSE_FILE}"
 [[ -f ${SOURCE_DIR}/Dockerfile ]] || fail "Community server Dockerfile is missing."
 
+set_phase "saving private configuration for safe resume"
+if ! $DRY_RUN && command -v docker >/dev/null 2>&1 \
+  && docker volume inspect heritage-community-postgres >/dev/null 2>&1; then
+  [[ -f $ENV_FILE ]] || fail "A Heritage PostgreSQL volume exists but ${ENV_FILE} is missing. Restore it from a recovery backup."
+  existing_database_password=$(env_value POSTGRES_PASSWORD || true)
+  existing_payload_secret=$(env_value PAYLOAD_SECRET || true)
+  [[ -n $existing_database_password ]] || fail "The existing PostgreSQL volume has no recoverable POSTGRES_PASSWORD in ${ENV_FILE}. Restore configuration before continuing."
+  [[ -n $existing_payload_secret ]] || fail "The existing installation has no PAYLOAD_SECRET in ${ENV_FILE}. Restore configuration before continuing."
+fi
+if ! $REUSE_CONFIG; then
+  old_postgres_password=''
+  old_payload_secret=''
+  if [[ -f $ENV_FILE ]]; then
+    old_postgres_password=$(env_value POSTGRES_PASSWORD || true)
+    old_payload_secret=$(env_value PAYLOAD_SECRET || true)
+  fi
+  POSTGRES_PASSWORD=${old_postgres_password:-$(generate_secret)}
+  PAYLOAD_SECRET=${old_payload_secret:-$(generate_secret)}
+
+  if $DRY_RUN; then
+    note "Would atomically write ${ENV_FILE} with mode 0600 before package installation so a retry can safely resume (generated secrets hidden)."
+  else
+    env_tmp=$(mktemp "${CONFIG_DIR}/community.env.XXXXXX")
+    SECRET_TEMP_FILES+=("$env_tmp")
+    {
+      printf '# Generated by Heritage installer %s. Keep this file private.\n' "$INSTALLER_VERSION"
+      printf 'POSTGRES_DB=heritage_community\n'
+      printf 'POSTGRES_USER=heritage\n'
+      printf 'POSTGRES_PASSWORD=%s\n' "$POSTGRES_PASSWORD"
+      printf 'DATABASE_URL=postgresql://heritage:%s@postgres:5432/heritage_community\n' "$POSTGRES_PASSWORD"
+      printf 'PAYLOAD_SECRET=%s\n' "$PAYLOAD_SECRET"
+      printf 'COMMUNITY_PUBLIC_URL=%s\n' "$(dotenv_quote "$COMMUNITY_PUBLIC_URL")"
+      printf 'COMMUNITY_ID=%s\n' "$COMMUNITY_ID"
+      printf 'COMMUNITY_NAME=%s\n' "$(dotenv_quote "$COMMUNITY_NAME")"
+      printf 'COMMUNITY_DESCRIPTION=%s\n' "$(dotenv_quote "$COMMUNITY_DESCRIPTION")"
+      printf 'COMMUNITY_TIME_ZONE=%s\n' "$(dotenv_quote "$COMMUNITY_TIME_ZONE")"
+      printf 'HERITAGE_APP_URL=%s\n' "$(dotenv_quote "$APP_URL")"
+      printf 'HERITAGE_APP_ORIGINS=%s\n' "$(dotenv_quote "$APP_ORIGINS")"
+      printf 'COMMUNITY_AUTH_ENABLED=%s\n' "$AUTH_ENABLED"
+      printf 'SMTP_HOST=%s\n' "$(dotenv_quote "$SMTP_HOST")"
+      printf 'SMTP_PORT=%s\n' "$SMTP_PORT"
+      printf 'SMTP_USER=%s\n' "$(dotenv_quote "$SMTP_USER")"
+      printf 'SMTP_PASS=%s\n' "$(dotenv_quote "$SMTP_PASSWORD")"
+      printf 'SMTP_FROM=%s\n' "$(dotenv_quote "$SMTP_FROM")"
+      printf 'SMTP_FROM_NAME=%s\n' "$(dotenv_quote "$SMTP_FROM_NAME")"
+      printf 'COMMUNITY_LOCAL_PORT=%s\n' "$LOCAL_PORT"
+      printf 'BACKUP_RETENTION_DAYS=%s\n' "$BACKUP_RETENTION_DAYS"
+      printf 'TUNNEL_TOKEN=%s\n' "$(dotenv_quote "$TUNNEL_TOKEN")"
+      if [[ -n $ADMIN_PASSWORD && ! -f ${STATE_DIR}/bootstrap-complete ]]; then
+        printf 'BOOTSTRAP_ADMIN_NAME=%s\n' "$(dotenv_quote "$ADMIN_NAME")"
+        printf 'BOOTSTRAP_ADMIN_EMAIL=%s\n' "$(dotenv_quote "$ADMIN_EMAIL")"
+        printf 'BOOTSTRAP_ADMIN_PASSWORD=%s\n' "$(dotenv_quote "$ADMIN_PASSWORD")"
+      fi
+    } >"$env_tmp"
+    chmod 0600 "$env_tmp"
+    mv -f "$env_tmp" "$ENV_FILE"
+  fi
+fi
+
+if ! $DRY_RUN; then
+  ln -sfn "$ENV_FILE" "${SOURCE_DIR}/.env.production"
+  preserved_tunnel_uuid=$(env_value TUNNEL_UUID "$STATE_FILE" 2>/dev/null || true)
+  preserved_tunnel_dns=$(env_value TUNNEL_DNS_CONFIGURED "$STATE_FILE" 2>/dev/null || true)
+  state_tmp=$(mktemp "${STATE_DIR}/install.env.XXXXXX")
+  {
+    printf 'INSTALLER_VERSION=%s\n' "$INSTALLER_VERSION"
+    printf 'TUNNEL_MODE=%s\n' "$TUNNEL_MODE"
+    printf 'TUNNEL_NAME=%s\n' "$TUNNEL_NAME"
+    printf 'BACKUP_SCHEDULE=%s\n' "$(dotenv_quote "$BACKUP_SCHEDULE")"
+    printf 'DISABLE_SLEEP=%s\n' "$DISABLE_SLEEP"
+    printf 'SOURCE_DIR=%s\n' "$(dotenv_quote "$SOURCE_DIR")"
+    printf 'BACKUP_DIR=%s\n' "$(dotenv_quote "$BACKUP_DIR")"
+    [[ -z $preserved_tunnel_uuid ]] || printf 'TUNNEL_UUID=%s\n' "$(dotenv_quote "$preserved_tunnel_uuid")"
+    [[ -z $preserved_tunnel_dns ]] || printf 'TUNNEL_DNS_CONFIGURED=%s\n' "$(dotenv_quote "$preserved_tunnel_dns")"
+  } >"$state_tmp"
+  chmod 0600 "$state_tmp"
+  mv -f "$state_tmp" "$STATE_FILE"
+fi
+
 set_phase "installing system dependencies"
 if $DRY_RUN; then
   note "Would install base tools, Docker Engine/Compose from Docker's official Debian repository, and enable Docker."
@@ -693,7 +831,7 @@ if $DRY_RUN; then
 else
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
-  apt-get install -y ca-certificates curl dnsutils git gnupg jq openssl unattended-upgrades util-linux
+  apt-get install -y ca-certificates curl dnsutils git gnupg jq openssl qrencode unattended-upgrades util-linux
 
   docker_ready=false
   if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
@@ -728,6 +866,7 @@ EOF
   if [[ $TUNNEL_MODE == local ]]; then
     install -d -m 0755 /usr/share/keyrings
     curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg -o /usr/share/keyrings/cloudflare-main.gpg
+    chmod a+r /usr/share/keyrings/cloudflare-main.gpg
     cat >/etc/apt/sources.list.d/cloudflared.list <<'EOF'
 deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main
 EOF
@@ -811,84 +950,6 @@ if ! $DRY_RUN && command -v ss >/dev/null 2>&1; then
   if [[ -n $port_in_use && ( -z $existing_community_id || $existing_local_port != "$LOCAL_PORT" ) ]]; then
     fail "127.0.0.1:${LOCAL_PORT} is already in use. Rerun with a different HERITAGE_LOCAL_PORT."
   fi
-fi
-
-set_phase "writing private configuration"
-if ! $DRY_RUN && docker volume inspect heritage-community-postgres >/dev/null 2>&1; then
-  [[ -f $ENV_FILE ]] || fail "A Heritage PostgreSQL volume exists but ${ENV_FILE} is missing. Restore it from a recovery backup."
-  existing_database_password=$(env_value POSTGRES_PASSWORD || true)
-  existing_payload_secret=$(env_value PAYLOAD_SECRET || true)
-  [[ -n $existing_database_password ]] || fail "The existing PostgreSQL volume has no recoverable POSTGRES_PASSWORD in ${ENV_FILE}. Restore configuration before continuing."
-  [[ -n $existing_payload_secret ]] || fail "The existing installation has no PAYLOAD_SECRET in ${ENV_FILE}. Restore configuration before continuing."
-fi
-if ! $REUSE_CONFIG; then
-  old_postgres_password=''
-  old_payload_secret=''
-  if [[ -f $ENV_FILE ]]; then
-    old_postgres_password=$(env_value POSTGRES_PASSWORD || true)
-    old_payload_secret=$(env_value PAYLOAD_SECRET || true)
-  fi
-  POSTGRES_PASSWORD=${old_postgres_password:-$(openssl rand -hex 32)}
-  PAYLOAD_SECRET=${old_payload_secret:-$(openssl rand -hex 32)}
-
-  if $DRY_RUN; then
-    note "Would atomically write ${ENV_FILE} with mode 0600 (generated secrets hidden)."
-  else
-    env_tmp=$(mktemp "${CONFIG_DIR}/community.env.XXXXXX")
-    SECRET_TEMP_FILES+=("$env_tmp")
-    {
-      printf '# Generated by Heritage installer %s. Keep this file private.\n' "$INSTALLER_VERSION"
-      printf 'POSTGRES_DB=heritage_community\n'
-      printf 'POSTGRES_USER=heritage\n'
-      printf 'POSTGRES_PASSWORD=%s\n' "$POSTGRES_PASSWORD"
-      printf 'DATABASE_URL=postgresql://heritage:%s@postgres:5432/heritage_community\n' "$POSTGRES_PASSWORD"
-      printf 'PAYLOAD_SECRET=%s\n' "$PAYLOAD_SECRET"
-      printf 'COMMUNITY_PUBLIC_URL=%s\n' "$(dotenv_quote "$COMMUNITY_PUBLIC_URL")"
-      printf 'COMMUNITY_ID=%s\n' "$COMMUNITY_ID"
-      printf 'COMMUNITY_NAME=%s\n' "$(dotenv_quote "$COMMUNITY_NAME")"
-      printf 'COMMUNITY_DESCRIPTION=%s\n' "$(dotenv_quote "$COMMUNITY_DESCRIPTION")"
-      printf 'COMMUNITY_TIME_ZONE=%s\n' "$(dotenv_quote "$COMMUNITY_TIME_ZONE")"
-      printf 'HERITAGE_APP_URL=%s\n' "$(dotenv_quote "$APP_URL")"
-      printf 'HERITAGE_APP_ORIGINS=%s\n' "$(dotenv_quote "$APP_ORIGINS")"
-      printf 'COMMUNITY_AUTH_ENABLED=%s\n' "$AUTH_ENABLED"
-      printf 'SMTP_HOST=%s\n' "$(dotenv_quote "$SMTP_HOST")"
-      printf 'SMTP_PORT=%s\n' "$SMTP_PORT"
-      printf 'SMTP_USER=%s\n' "$(dotenv_quote "$SMTP_USER")"
-      printf 'SMTP_PASS=%s\n' "$(dotenv_quote "$SMTP_PASSWORD")"
-      printf 'SMTP_FROM=%s\n' "$(dotenv_quote "$SMTP_FROM")"
-      printf 'SMTP_FROM_NAME=%s\n' "$(dotenv_quote "$SMTP_FROM_NAME")"
-      printf 'COMMUNITY_LOCAL_PORT=%s\n' "$LOCAL_PORT"
-      printf 'BACKUP_RETENTION_DAYS=%s\n' "$BACKUP_RETENTION_DAYS"
-      printf 'TUNNEL_TOKEN=%s\n' "$(dotenv_quote "$TUNNEL_TOKEN")"
-      if [[ -n $ADMIN_PASSWORD && ! -f ${STATE_DIR}/bootstrap-complete ]]; then
-        printf 'BOOTSTRAP_ADMIN_NAME=%s\n' "$(dotenv_quote "$ADMIN_NAME")"
-        printf 'BOOTSTRAP_ADMIN_EMAIL=%s\n' "$(dotenv_quote "$ADMIN_EMAIL")"
-        printf 'BOOTSTRAP_ADMIN_PASSWORD=%s\n' "$(dotenv_quote "$ADMIN_PASSWORD")"
-      fi
-    } >"$env_tmp"
-    chmod 0600 "$env_tmp"
-    mv -f "$env_tmp" "$ENV_FILE"
-  fi
-fi
-
-if ! $DRY_RUN; then
-  ln -sfn "$ENV_FILE" "${SOURCE_DIR}/.env.production"
-  preserved_tunnel_uuid=$(env_value TUNNEL_UUID "$STATE_FILE" 2>/dev/null || true)
-  preserved_tunnel_dns=$(env_value TUNNEL_DNS_CONFIGURED "$STATE_FILE" 2>/dev/null || true)
-  state_tmp=$(mktemp "${STATE_DIR}/install.env.XXXXXX")
-  {
-    printf 'INSTALLER_VERSION=%s\n' "$INSTALLER_VERSION"
-    printf 'TUNNEL_MODE=%s\n' "$TUNNEL_MODE"
-    printf 'TUNNEL_NAME=%s\n' "$TUNNEL_NAME"
-    printf 'BACKUP_SCHEDULE=%s\n' "$(dotenv_quote "$BACKUP_SCHEDULE")"
-    printf 'DISABLE_SLEEP=%s\n' "$DISABLE_SLEEP"
-    printf 'SOURCE_DIR=%s\n' "$(dotenv_quote "$SOURCE_DIR")"
-    printf 'BACKUP_DIR=%s\n' "$(dotenv_quote "$BACKUP_DIR")"
-    [[ -z $preserved_tunnel_uuid ]] || printf 'TUNNEL_UUID=%s\n' "$(dotenv_quote "$preserved_tunnel_uuid")"
-    [[ -z $preserved_tunnel_dns ]] || printf 'TUNNEL_DNS_CONFIGURED=%s\n' "$(dotenv_quote "$preserved_tunnel_dns")"
-  } >"$state_tmp"
-  chmod 0600 "$state_tmp"
-  mv -f "$state_tmp" "$STATE_FILE"
 fi
 
 compose() {
@@ -1006,7 +1067,7 @@ if [[ $TUNNEL_MODE == local ]]; then
         remove_origin_cert=true
         REMOVE_ORIGIN_CERT_ON_EXIT=true
       fi
-      HOME=/root cloudflared tunnel login
+      cloudflared_login_with_qr
 
       matching_tunnel=$(HOME=/root cloudflared tunnel list --output json \
         | jq -r --arg name "$TUNNEL_NAME" '[.[] | select(.name == $name and (.deletedAt == null))] | if length == 1 then .[0].id elif length > 1 then "duplicate" else "" end')
@@ -1218,6 +1279,8 @@ else
     test_email=''
   fi
   if [[ -n $test_email ]]; then
+    wait_for_local_server 120 \
+      || fail "The community app did not become ready after the initial backup. Inspect 'heritage-community logs', then rerun the installer."
     email_request=$(mktemp "${CONFIG_DIR}/email-test.XXXXXX")
     SECRET_TEMP_FILES+=("$email_request")
     jq -n --arg email "$test_email" '{email: $email}' >"$email_request"

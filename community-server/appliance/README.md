@@ -6,9 +6,11 @@ hybrid boot data, adds a **Heritage Community Server guided install** choice,
 and bakes the exact committed application source into the ISO.
 
 The media is intentionally guided rather than unattended. Debian still asks
-for the administrator/user password, displays the internal drive selection,
-and requires partition confirmation. Only after Debian finishes does it copy
-the Heritage source and offer the plain-language server setup wizard.
+you to create one normal administrator account and its password, displays the
+internal drive selection, and requires partition confirmation. The separate
+root login is disabled so the account you create receives `sudo` access. Only
+after Debian finishes does it copy the Heritage source and offer the
+plain-language server setup wizard.
 
 ## Build and verify on macOS
 
@@ -46,11 +48,17 @@ before ejecting it.
 3. Insert the Heritage USB, hold **Volume Down**, press and release **Power**,
    and keep holding Volume Down until spinning dots appear.
 4. Choose **Heritage Community Server guided install**.
-5. Follow Debian's user/password and disk screens. For a dedicated server, the
-   simplest choice is guided use of the entire internal disk, but read the
-   final partition summary before confirming it.
+5. Follow Debian's user-account/password and disk screens. For a dedicated
+   server, the simplest choice is guided use of the entire internal disk, but
+   read the final partition summary before confirming it.
 6. After reboot, sign in. Accept the prompt to start Heritage setup, or run
    `sudo heritage-community-setup` later.
+
+If an older appliance reports that your account “is not in the sudoers file,”
+do not reinstall. Run `su -`, enter the root password created during that
+installation, then run `adduser YOUR_USERNAME sudo` and
+`heritage-community-setup`. Completely sign out and back in afterward so the
+new group membership takes effect.
 
 Keep Secure Boot enabled initially. Debian's signed installer normally works
 with the Surface's third-party UEFI certificate option. If the USB is not

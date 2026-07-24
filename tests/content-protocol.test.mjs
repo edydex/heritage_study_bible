@@ -11,6 +11,14 @@ test('server URLs resolve to the conventional static manifest', () => {
     normalizeContentServerManifestUrl('https://church.example/resources/'),
     'https://church.example/resources/heritage-content.json'
   )
+  assert.equal(
+    normalizeContentServerManifestUrl('church.example/resources/'),
+    'https://church.example/resources/heritage-content.json'
+  )
+  assert.equal(
+    normalizeContentServerManifestUrl('localhost:3000'),
+    'https://localhost:3000/heritage-content.json'
+  )
 })
 
 test('manifest and catalogs resolve relative static URLs', () => {

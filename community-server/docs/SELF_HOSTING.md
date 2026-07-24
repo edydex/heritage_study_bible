@@ -87,9 +87,11 @@ a safety backup before migrations.
 For a Surface Pro 7 or another Intel 64-bit PC, the repository also contains a
 guided Debian 13 appliance ISO builder. It bakes in the committed Heritage
 source and offers the server setup after first login, while deliberately
-leaving passwords, target-disk selection, and partition confirmation in
-Debian's hands. See [`../appliance/README.md`](../appliance/README.md). Do not
-use an ARM image for an Intel Surface.
+leaving the normal administrator password, target-disk selection, and
+partition confirmation in Debian's hands. It disables the separate root login
+so the account created during installation receives `sudo` access. See
+[`../appliance/README.md`](../appliance/README.md). Do not use an ARM image for
+an Intel Surface.
 
 ## Daily operation
 

@@ -2,6 +2,11 @@ import { communityPublicConfig } from '@/lib/publicConfig'
 
 const actions = [
   {
+    href: '/admin/collections/songs/create',
+    title: 'Add a song',
+    text: 'Create one bilingual listing, then add the lyrics, chords, scores, or recordings you have.',
+  },
+  {
     href: '/admin/collections/sermons/create',
     title: 'Add a sermon',
     text: 'Publish a message, transcript, Scripture references, and recordings.',
@@ -14,7 +19,7 @@ const actions = [
   {
     href: '/admin/collections/community-invites/create',
     title: 'Invite a person',
-    text: 'Allow an email address to join the church in Heritage.',
+    text: 'Email a one-time join link and allow that address into the church Community.',
   },
   {
     href: '/admin/collections/events/create',

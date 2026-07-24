@@ -44,7 +44,7 @@ function toBookSlug(bookName) {
 function matchesCatalogQuery(item, query) {
   const q = normalizeText(query)
   if (!q) return true
-  const haystack = `${item?.title || ''} ${item?.author || ''}`.toLowerCase()
+  const haystack = `${item?.title || ''} ${item?.alternateTitle || ''} ${item?.russianTitle || ''} ${item?.author || ''} ${item?.authors || ''}`.toLowerCase()
   return haystack.includes(q)
 }
 
@@ -105,6 +105,10 @@ function ResourcePage() {
     let cancelled = false
 
     const loadBibleForSearch = async () => {
+      if (categoryId !== 'books' || !useFullSearch || !searchQuery.trim()) {
+        setBibleSearchData(null)
+        return
+      }
       try {
         const data = await loadTranslation(DEFAULT_TRANSLATION)
         if (!cancelled) setBibleSearchData(data)
@@ -116,7 +120,7 @@ function ResourcePage() {
 
     loadBibleForSearch()
     return () => { cancelled = true }
-  }, [])
+  }, [categoryId, searchQuery, useFullSearch])
 
   const category = RESOURCE_CATEGORIES.find(c => c.id === categoryId)
   if (!category) {
@@ -137,11 +141,13 @@ function ResourcePage() {
 
   const isConfessions = categoryId === 'confessions'
   const isBooks = categoryId === 'books'
+  const isSongs = categoryId === 'songs'
   const isClickable = CLICKABLE_CATEGORIES.includes(categoryId)
   const trimmedQuery = searchQuery.trim()
 
   const items = useMemo(() => {
     const combined = [...category.items, ...remoteItems]
+    if (isSongs) return combined.sort((a, b) => a.title.localeCompare(b.title))
     if (!isConfessions && !isBooks) return combined
     return combined.sort((a, b) => {
       const ay = Number.isFinite(a.year) ? a.year : Number.POSITIVE_INFINITY
@@ -149,7 +155,7 @@ function ResourcePage() {
       if (ay !== by) return ay - by
       return a.title.localeCompare(b.title)
     })
-  }, [category.items, isBooks, isConfessions, remoteItems])
+  }, [category.items, isBooks, isConfessions, isSongs, remoteItems])
 
   const availableTags = useMemo(() => {
     if (!isBooks) return []
@@ -176,6 +182,12 @@ function ResourcePage() {
       matchesFilters(item, { selectedTags, selectedAuthor, audiobookOnly, yearMin, yearMax })
     )
   }, [isBooks, items, trimmedQuery, selectedTags, selectedAuthor, audiobookOnly, yearMin, yearMax])
+
+  const filteredSongs = useMemo(
+    () => isSongs ? items.filter(item => matchesCatalogQuery(item, trimmedQuery)) : [],
+    [isSongs, items, trimmedQuery],
+  )
+  const visibleItems = isBooks ? filteredBooks : isSongs ? filteredSongs : items
 
   const isCatalogFiltered = isBooks && (trimmedQuery.length > 0 || activeFilterCount > 0)
   const isFullSearchMode = isBooks && useFullSearch && Boolean(trimmedQuery)
@@ -286,7 +298,7 @@ function ResourcePage() {
             {category.title}
           </h1>
 
-          {isBooks && (
+          {(isBooks || isSongs) && (
             <>
               <form
                 className="flex-1 min-w-0 max-w-xl"
@@ -301,7 +313,7 @@ function ResourcePage() {
                       setSearchQuery(event.target.value)
                       if (!event.target.value.trim()) setUseFullSearch(false)
                     }}
-                    placeholder="Search title or author..."
+                    placeholder={isSongs ? 'Search songs in English or Russian…' : 'Search title or author…'}
                     className="flex-1 bg-transparent px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base text-white placeholder-blue-200 focus:outline-none min-w-0"
                   />
                   <button type="submit" className="px-2 sm:px-3 py-1.5 sm:py-2 hover:bg-white/10 rounded-r-lg transition-colors">
@@ -310,12 +322,14 @@ function ResourcePage() {
                 </div>
               </form>
 
-              <button
-                onClick={() => setShowFilters(prev => !prev)}
-                className="px-3 py-1.5 sm:py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm"
-              >
-                Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-              </button>
+              {isBooks && (
+                <button
+                  onClick={() => setShowFilters(prev => !prev)}
+                  className="px-3 py-1.5 sm:py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm"
+                >
+                  Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+                </button>
+              )}
             </>
           )}
         </div>
@@ -466,7 +480,7 @@ function ResourcePage() {
             )}
 
             <div className="space-y-3">
-              {(isBooks ? filteredBooks : items).map(item => {
+              {visibleItems.map(item => {
                 const Wrapper = isClickable ? 'button' : 'div'
                 return (
                   <Wrapper
@@ -490,13 +504,28 @@ function ResourcePage() {
                               {item.sourceServerName}
                             </span>
                           )}
+                          {isSongs && item.builtIn && (
+                            <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-medium">
+                              Heritage
+                            </span>
+                          )}
                         </div>
                         {isBooks && item.author && (
                           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{item.author}</p>
                         )}
+                        {isSongs && (item.alternateTitle || item.russianTitle) && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            {item.alternateTitle || item.russianTitle}
+                          </p>
+                        )}
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
                           {item.description}
                         </p>
+                        {isSongs && item.rightsStatus === 'metadata-only' && (
+                          <p className="mt-2 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+                            Listing only · lyrics and music not included
+                          </p>
+                        )}
                       </div>
                       <div className="flex flex-col items-end gap-1 flex-shrink-0">
                         {item.year && <YearBadge year={item.year} />}
@@ -517,10 +546,12 @@ function ResourcePage() {
               })}
             </div>
 
-            {(isClickable && items.length === 0) && (
+            {(isClickable && visibleItems.length === 0) && (
               <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 text-center">
-                <p className="text-sm text-gray-600 dark:text-gray-300">No resources in this category yet.</p>
-                <button onClick={() => navigate('/settings/content-servers')} className="mt-2 text-sm font-semibold text-primary dark:text-blue-300 underline underline-offset-2">Add a Content Server</button>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  {trimmedQuery ? 'No songs match that search.' : 'No resources in this category yet.'}
+                </p>
+                {!trimmedQuery && <button onClick={() => navigate('/settings/content-servers')} className="mt-2 text-sm font-semibold text-primary dark:text-blue-300 underline underline-offset-2">Add a Content Server</button>}
               </div>
             )}
 

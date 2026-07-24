@@ -16,12 +16,23 @@ printf 'Start the Heritage setup now? [Y/n] '
 IFS= read -r answer
 case ${answer:-y} in
   y|Y|yes|YES|Yes)
-    if command -v sudo >/dev/null 2>&1; then
-      sudo heritage-community-setup
-    elif test "$(id -u)" -eq 0; then
+    if test "$(id -u)" -eq 0; then
       heritage-community-setup
+    elif command -v sudo >/dev/null 2>&1 && id -nG | grep -qw sudo; then
+      sudo heritage-community-setup
     else
-      printf 'Sign in as root and run: heritage-community-setup\n'
+      current_user=$(id -un)
+      cat <<EOF
+
+This account does not have administrator access yet.
+Run these commands with the root password you chose during Debian installation:
+
+  su -
+  adduser ${current_user} sudo
+  heritage-community-setup
+
+After setup, completely sign out and back in before using sudo.
+EOF
     fi
     ;;
   *) printf 'Later, run: sudo heritage-community-setup\n' ;;

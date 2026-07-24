@@ -22,7 +22,9 @@ export function publicCorsHeaders() {
 }
 
 export function publicJson(value: unknown, init: ResponseInit = {}) {
-  return new Response(JSON.stringify(value), {
+  const status = init.status || 200
+  const bodyless = status === 204 || status === 205 || status === 304
+  return new Response(bodyless ? null : JSON.stringify(value), {
     ...init,
     headers: { ...publicCorsHeaders(), ...(init.headers || {}) },
   })

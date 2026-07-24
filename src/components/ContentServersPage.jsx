@@ -113,20 +113,25 @@ function ContentServersPage() {
           </p>
           <form onSubmit={handleInspect} className="mt-4 flex flex-col sm:flex-row gap-2">
             <input
-              type="url"
+              type="text"
               inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               value={serverUrl}
               onChange={event => {
                 setServerUrl(event.target.value)
                 setPreview(null)
               }}
-              placeholder="https://resources.example.church"
+              placeholder="resources.example.church"
+              aria-label="Content server address"
               className="flex-1 min-w-0 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100"
             />
             <button disabled={busy === 'inspect' || !serverUrl.trim()} className="rounded-lg bg-primary px-4 py-2.5 text-white font-semibold disabled:opacity-50">
               {busy === 'inspect' ? 'Checking…' : 'Check Server'}
             </button>
           </form>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">You can enter only the domain. Heritage adds https:// automatically.</p>
 
           {preview && (
             <div className="mt-4 rounded-xl border border-primary/30 dark:border-blue-500/40 bg-primary/5 dark:bg-blue-500/10 p-4">

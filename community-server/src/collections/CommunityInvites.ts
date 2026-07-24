@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isSystemAdmin } from '@/access'
+import { sendInvitationEmail } from '@/lib/communityInvitationEmail'
 
 const invitationRoles = [
   { label: 'Member', value: 'member' },
@@ -13,8 +14,8 @@ export const CommunityInvites: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
     group: 'People',
-    description: 'Allow an email address to join this church in Heritage. The invitation is used automatically when that person requests a sign-in link.',
-    defaultColumns: ['email', 'role', 'active', 'acceptedAt'],
+    description: 'Email a one-time join link and allow that address to become a member of this church in Heritage.',
+    defaultColumns: ['email', 'role', 'active', 'emailSentAt', 'acceptedAt'],
     listSearchableFields: ['email', 'displayName'],
     hideAPIURL: true,
   },
@@ -29,6 +30,7 @@ export const CommunityInvites: CollectionConfig = {
     beforeValidate: [({ data }) => data
       ? { ...data, email: String(data.email || '').trim().toLowerCase() }
       : data],
+    afterChange: [sendInvitationEmail],
   },
   fields: [
     {
@@ -69,6 +71,21 @@ export const CommunityInvites: CollectionConfig = {
       defaultValue: true,
       required: true,
       index: true,
+    },
+    {
+      name: 'sendEmailNow',
+      label: 'Email this invitation now',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        description: 'Selected for a new invitation. Select it again later to send a fresh 15-minute join link.',
+      },
+    },
+    {
+      name: 'emailSentAt',
+      label: 'Invitation email sent',
+      type: 'date',
+      admin: { readOnly: true, date: { displayFormat: 'MMM d, yyyy h:mm a' } },
     },
     {
       name: 'acceptedAt',
