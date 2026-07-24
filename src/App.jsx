@@ -2449,6 +2449,7 @@ function App() {
           <Route path="/resources/reading-plans/:itemId" element={<ReadingPlanViewer />} />
           <Route path="/resources/tools/:itemId" element={<ToolViewer />} />
           <Route path="/resources/content/:contentKey" element={<RemoteResourceViewer />} />
+          <Route path="/community-song" element={<RemoteResourceViewer directSong />} />
           <Route path="/resources/songs/:itemId" element={<BuiltInSongViewer />} />
           <Route path="/resources/:categoryId" element={<ResourcePage />} />
           <Route path="/settings/about" element={<AboutPage />} />

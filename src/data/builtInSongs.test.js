@@ -3,28 +3,30 @@ import { HERITAGE_BUILT_IN_SONGS } from './builtInSongs'
 import { PUBLIC_DOMAIN_HYMN_TEXTS } from './publicDomainHymns.generated'
 
 describe('Heritage built-in songs', () => {
-  it('keeps the complete requested song list available offline', () => {
-    expect(HERITAGE_BUILT_IN_SONGS).toHaveLength(32)
-    expect(HERITAGE_BUILT_IN_SONGS.map(song => song.id)).toEqual(expect.arrayContaining([
-      'all-i-have-is-christ',
+  it('keeps only verified public-domain hymn texts in the universal offline library', () => {
+    expect(HERITAGE_BUILT_IN_SONGS.map(song => song.id)).toEqual([
       'amazing-grace',
+      'jesus-paid-it-all',
+      'be-thou-my-vision',
       'before-the-throne',
       'come-thou-fount',
-      'grace-alone',
+      'fairest-lord-jesus',
+      'give-me-jesus',
       'he-will-hold-me-fast',
-      'how-great-thou-art',
+      'i-know-my-redeemer-lives',
+      'i-surrender-all',
       'it-is-well',
+      'just-as-i-am',
       'nothing-but-the-blood',
+      'o-come-all-ye-faithful',
       'o-come-o-come-emmanuel',
-      'ten-thousand-reasons',
-    ]))
-  })
-
-  it('keeps modern copyrighted songs as metadata while allowing communities to supply a version', () => {
-    const song = HERITAGE_BUILT_IN_SONGS.find(item => item.id === 'how-great-thou-art')
-    expect(song.rightsStatus).toBe('metadata-only')
-    expect(song.sections).toEqual([])
-    expect(song.russianRightsLabel).toContain('Community may publish')
+      'o-my-soul-arise',
+      'rock-of-ages',
+      'turn-your-eyes',
+      'what-a-friend',
+    ])
+    expect(HERITAGE_BUILT_IN_SONGS.every(song => song.rightsStatus === 'public-domain-text')).toBe(true)
+    expect(HERITAGE_BUILT_IN_SONGS.every(song => song.sections.length > 0)).toBe(true)
   })
 
   it('separates the public-domain Before the Throne text from its modern tune', () => {
@@ -32,7 +34,8 @@ describe('Heritage built-in songs', () => {
     expect(song.rightsStatus).toBe('public-domain-text')
     expect(song.rightsLabel).toContain('1863 English words: public domain')
     expect(song.rightsLabel).toContain('Vikki Cook tune')
-    expect(song.russianStanzas.length).toBeGreaterThan(0)
+    expect(song.sections).toHaveLength(3)
+    expect(song.russianSections).toEqual([])
   })
 
   it('keeps mechanically imported public-domain text split into clean sections', () => {
@@ -42,9 +45,12 @@ describe('Heritage built-in songs', () => {
       'nothing-but-the-blood',
       'rock-of-ages',
       'what-a-friend',
+      'before-the-throne',
+      'come-thou-fount',
       'give-me-jesus',
       'he-will-hold-me-fast',
       'i-know-my-redeemer-lives',
+      'it-is-well',
       'just-as-i-am',
       'o-come-all-ye-faithful',
       'o-come-o-come-emmanuel',
@@ -62,22 +68,42 @@ describe('Heritage built-in songs', () => {
     ).toBe(true)
   })
 
-  it('provides a reviewed source path and a Heritage Russian draft for every public-domain record', () => {
+  it('exposes only established Russian texts with provenance', () => {
     const publicDomainSongs = HERITAGE_BUILT_IN_SONGS
       .filter(song => song.rightsStatus === 'public-domain-text')
     const englishFallbackIds = publicDomainSongs
       .filter(song => !(song.sections?.length || song.stanzas?.length))
       .map(song => song.id)
+    const russianSongIds = publicDomainSongs
+      .filter(song => song.russianSections?.length || song.russianStanzas?.length)
+      .map(song => song.id)
 
     expect(publicDomainSongs).toHaveLength(19)
-    expect(englishFallbackIds).toEqual([
-      'before-the-throne',
+    expect(englishFallbackIds).toEqual([])
+    expect(russianSongIds).toEqual([
+      'amazing-grace',
+      'jesus-paid-it-all',
       'come-thou-fount',
+      'i-surrender-all',
       'it-is-well',
+      'just-as-i-am',
+      'nothing-but-the-blood',
+      'o-come-o-come-emmanuel',
+      'rock-of-ages',
+      'turn-your-eyes',
+      'what-a-friend',
     ])
-    expect(publicDomainSongs.every(song => (
-      song.russianSections?.length || song.russianStanzas?.length
-    ))).toBe(true)
+    expect(publicDomainSongs
+      .filter(song => song.russianSections.length)
+      .every(song => song.russianSourceLabel && song.russianRightsLabel)).toBe(true)
+    expect(publicDomainSongs
+      .flatMap(song => [song.russianRightsLabel, song.russianSourceLabel])
+      .join(' ')
+      .toLowerCase()).not.toContain('heritage translation')
+    expect(publicDomainSongs
+      .flatMap(song => [song.russianRightsLabel, song.russianSourceLabel])
+      .join(' ')
+      .toLowerCase()).not.toContain('draft')
     expect(publicDomainSongs.every(song => song.sourceUrl)).toBe(true)
   })
 })

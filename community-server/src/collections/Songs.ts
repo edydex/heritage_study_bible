@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { createCommunityContent, manageCommunityContent, readPublishedOrMember } from '@/access'
+import { createCommunityContent, manageCommunityContent, readMemberCommunityContent } from '@/access'
 import { communityContentFields } from '@/fields/communityContentFields'
 import { fillContentSlug } from '@/lib/contentAdmin'
 
@@ -15,7 +15,7 @@ export const Songs: CollectionConfig = {
     components: { beforeList: ['@/components/SongListGuide'] },
     hideAPIURL: true,
   },
-  access: { read: readPublishedOrMember, create: createCommunityContent, update: manageCommunityContent, delete: manageCommunityContent },
+  access: { read: readMemberCommunityContent, create: createCommunityContent, update: manageCommunityContent, delete: manageCommunityContent },
   hooks: { beforeValidate: [fillContentSlug] },
   fields: [
     ...communityContentFields.filter(field => (
@@ -99,7 +99,12 @@ export const Songs: CollectionConfig = {
               ],
               admin: { description: 'Informational only. Choosing an option does not block or unlock publishing.' },
             },
-            { name: 'ccliNumber', label: 'CCLI song number', type: 'text' },
+            {
+              name: 'ccliNumber',
+              label: 'CCLI song number',
+              type: 'text',
+              admin: { description: 'The song’s CCLI ID, not your church’s CCLI license number. The church license number is configured once during server setup.' },
+            },
             { name: 'license', label: 'License or permission name', type: 'text' },
             { name: 'copyright', label: 'Copyright notice (if known)', type: 'textarea' },
             {

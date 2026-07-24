@@ -11,6 +11,8 @@ export const CONTENT_SERVERS_CHANGE_EVENT = 'heritage-content-servers-change'
 const MAX_METADATA_BYTES = 5 * 1024 * 1024
 const REQUEST_TIMEOUT_MS = 15000
 const AUTOMATIC_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000
+const COMMUNITY_REGISTRY_KEY = 'heritage-communities-v1'
+const COMMUNITY_SESSIONS_KEY = 'heritage-community-sessions-v1'
 
 function readSubscriptions() {
   try {
@@ -26,13 +28,40 @@ function writeSubscriptions(subscriptions) {
   window.dispatchEvent(new CustomEvent(CONTENT_SERVERS_CHANGE_EVENT, { detail: subscriptions }))
 }
 
-async function fetchJson(url) {
+function memberRequestOptionsForServer(server) {
+  try {
+    const communities = JSON.parse(localStorage.getItem(COMMUNITY_REGISTRY_KEY) || '[]')
+    const sessions = JSON.parse(localStorage.getItem(COMMUNITY_SESSIONS_KEY) || '{}')
+    const community = Array.isArray(communities)
+      ? communities.find(record => record?.contentPreview?.manifest?.id === server?.manifest?.id)
+      : null
+    const token = sessions?.[community?.manifest?.id]?.token
+    if (!token || !community?.manifest?.contentServerUrl) return {}
+    return {
+      authorization: `Community ${token}`,
+      authorizationOrigin: new URL(community.manifest.contentServerUrl).origin,
+    }
+  } catch {
+    return {}
+  }
+}
+
+async function fetchJson(url, options = {}) {
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   try {
+    const headers = {}
+    if (
+      options.authorization
+      && options.authorizationOrigin
+      && new URL(url).origin === options.authorizationOrigin
+    ) {
+      headers.Authorization = options.authorization
+    }
     const response = await fetch(url, {
       cache: 'no-store',
       credentials: 'omit',
+      headers,
       referrerPolicy: 'no-referrer',
       signal: controller.signal,
     })
@@ -57,14 +86,14 @@ export function getContentServerSubscriptions() {
   return readSubscriptions()
 }
 
-export async function inspectContentServer(inputUrl) {
+export async function inspectContentServer(inputUrl, options = {}) {
   const manifestUrl = normalizeContentServerManifestUrl(inputUrl)
-  const rawManifest = await fetchJson(manifestUrl)
+  const rawManifest = await fetchJson(manifestUrl, options)
   const manifest = validateContentServerManifest(rawManifest, manifestUrl)
   const catalogs = {}
 
   await Promise.all(Object.entries(manifest.catalogs).map(async ([contentType, catalogUrl]) => {
-    const rawCatalog = await fetchJson(catalogUrl)
+    const rawCatalog = await fetchJson(catalogUrl, options)
     catalogs[contentType] = validateContentCatalog(rawCatalog, contentType, catalogUrl)
   }))
 
@@ -92,11 +121,31 @@ export async function addContentServer(preview) {
   return record
 }
 
-export async function refreshContentServer(serverId) {
+export async function upsertContentServer(preview) {
+  if (!preview?.manifest?.id || !preview?.manifestUrl) throw new Error('Check the server before adding it.')
+  const subscriptions = readSubscriptions()
+  const existing = subscriptions.find(server => server.manifest.id === preview.manifest.id)
+  if (!existing) return addContentServer(preview)
+
+  const record = {
+    ...existing,
+    ...preview,
+    addedAt: existing.addedAt,
+    lastCheckedAt: new Date().toISOString(),
+    enabled: existing.enabled !== false,
+  }
+  writeSubscriptions(subscriptions.map(server => server.manifest.id === preview.manifest.id ? record : server))
+  return record
+}
+
+export async function refreshContentServer(serverId, options = null) {
   const subscriptions = readSubscriptions()
   const existing = subscriptions.find(server => server.manifest.id === serverId)
   if (!existing) throw new Error('Content server not found.')
-  const preview = await inspectContentServer(existing.manifestUrl)
+  const preview = await inspectContentServer(
+    existing.manifestUrl,
+    options || memberRequestOptionsForServer(existing),
+  )
   if (preview.manifest.id !== serverId) throw new Error('The server id changed; remove it and review it again.')
 
   const next = subscriptions.map(server => server.manifest.id === serverId
@@ -118,7 +167,7 @@ export async function refreshStaleContentServers() {
     const checkedAt = Date.parse(server.lastCheckedAt || server.addedAt || '') || 0
     if (now - checkedAt < AUTOMATIC_REFRESH_INTERVAL_MS) continue
     try {
-      refreshed.push(await refreshContentServer(server.manifest.id))
+      refreshed.push(await refreshContentServer(server.manifest.id, memberRequestOptionsForServer(server)))
     } catch {
       // A temporarily unavailable optional library must not block app startup.
     }

@@ -1,6 +1,6 @@
 import { HERITAGE_BUILT_IN_SONGS } from '../data/builtInSongs.js'
 import { HYMNS } from '../components/HymnsViewer.jsx'
-import { getCommunities } from './communities.js'
+import { getCommunities, getCommunitySessions } from './communities.js'
 import { getRemoteContentItemsForCategory } from './contentServers.js'
 
 const SONG_REQUEST_TIMEOUT_MS = 8000
@@ -208,10 +208,14 @@ function lyricsSignature(sections) {
 }
 
 function rightsForBuiltIn(song, language) {
+  const russian = language === 'ru'
   return {
     status: song.rightsStatus || '',
-    label: language === 'ru' ? song.russianRightsLabel : song.rightsLabel,
-    sourceUrl: song.sourceUrl || '',
+    label: russian ? song.russianRightsLabel : song.rightsLabel,
+    sourceLabel: russian ? song.russianSourceLabel || '' : '',
+    sourceUrl: russian
+      ? song.russianTextSourceUrl || ''
+      : song.textSourceUrl || song.sourceUrl || '',
     permissionUrl: song.permissionUrl || '',
   }
 }
@@ -279,12 +283,33 @@ function remoteLanguageVariants(reference, document) {
 async function fetchSongDocument(reference) {
   const url = reference.item?.content?.url
   if (!url) return null
+  const community = getCommunities().find(record => (
+    communityContentServerId(record) === reference.item?.sourceServerId
+  ))
+  let authorization = ''
+  if (community) {
+    try {
+      const destinationOrigin = new URL(url).origin
+      const allowedOrigins = [
+        community.manifest?.apiBaseUrl,
+        community.manifest?.contentServerUrl,
+      ].filter(Boolean).map(value => new URL(value).origin)
+      const token = getCommunitySessions()[community.manifest.id]?.token
+      if (token && allowedOrigins.includes(destinationOrigin)) {
+        authorization = `Community ${token}`
+      }
+    } catch {
+      // A malformed or cross-origin Community content URL must never receive
+      // the member session token. The ordinary fetch below will fail safely.
+    }
+  }
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), SONG_REQUEST_TIMEOUT_MS)
   try {
     const response = await fetch(url, {
       cache: 'no-store',
       credentials: 'omit',
+      headers: authorization ? { Authorization: authorization } : {},
       referrerPolicy: 'no-referrer',
       signal: controller.signal,
     })

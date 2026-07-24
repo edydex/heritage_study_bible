@@ -227,6 +227,101 @@ export const PUBLIC_DOMAIN_HYMN_TEXTS = {
       }
     ]
   },
+  "before-the-throne": {
+    "textSourceUrl": "https://hymnary.org/text/before_the_throne_of_god_above_i_have_a_",
+    "retrievedAt": "2026-07-24",
+    "sections": [
+      {
+        "label": "Verse 1",
+        "lines": [
+          "Before the throne of God above",
+          "I have a strong and perfect plea:",
+          "A great High Priest whose name is Love,",
+          "Who ever lives and pleads for me.",
+          "My name is graven on his hands,",
+          "My name is written on his heart.",
+          "I know that while in Heav'n he stands",
+          "No tongue can bid me thence depart,",
+          "No tongue can bid me thence depart."
+        ]
+      },
+      {
+        "label": "Verse 2",
+        "lines": [
+          "When Satan tempts me to despair",
+          "And tells me of the guilt within,",
+          "Upward I look and see him there,",
+          "Who made an end of all my sin.",
+          "Because the sinless Savior died,",
+          "My sinful soul is counted free,",
+          "For God the just is satisfied",
+          "To look on him and pardon me,",
+          "To look on him and pardon me."
+        ]
+      },
+      {
+        "label": "Verse 3",
+        "lines": [
+          "Behold him there, the risen Lamb,",
+          "My perfect, spotless righteousness,",
+          "The great unchangeable I AM,",
+          "The King of glory and of grace.",
+          "One with himself I cannot die;",
+          "My soul is purchased by his blood.",
+          "My life is hid with Christ on high,",
+          "With Christ, my Savior and my God,",
+          "With Christ, my Savior and my God."
+        ]
+      }
+    ]
+  },
+  "come-thou-fount": {
+    "textSourceUrl": "https://hymnary.org/text/come_thou_fount_of_every_blessing",
+    "retrievedAt": "2026-07-24",
+    "sections": [
+      {
+        "label": "Verse 1",
+        "lines": [
+          "Come, thou Fount of every blessing;",
+          "tune my heart to sing thy grace;",
+          "streams of mercy, never ceasing,",
+          "call for songs of loudest praise.",
+          "Teach me some melodious sonnet,",
+          "sung by flaming tongues above;",
+          "praise the mount! I’m fixed upon it,",
+          "mount of God’s unchanging love!"
+        ]
+      },
+      {
+        "label": "Verse 2",
+        "lines": [
+          "Here I raise my Ebenezer;",
+          "hither by thy help I’m come;",
+          "and I hope, by thy good pleasure,",
+          "safely to arrive at home.",
+          "Jesus sought me when a stranger,",
+          "wandering from the fold of God;",
+          "he, to rescue me from danger,",
+          "interposed his precious blood."
+        ]
+      },
+      {
+        "label": "Verse 3",
+        "lines": [
+          "O to grace how great a debtor",
+          "daily I’m constrained to be!",
+          "Let that grace now, like a fetter,",
+          "bind my wandering heart to thee.",
+          "Prone to wander, Lord, I feel it,",
+          "prone to leave the God I love;",
+          "here’s my heart; O take and seal it;",
+          "seal it for thy courts above.",
+          "Glory to God: the Presbyterian Hymnal (2003)",
+          "All representative texts • Compare texts • Text size: Regular | Large^ top"
+        ]
+      }
+    ]
+  },
   "give-me-jesus": {
     "textSourceUrl": "https://hymnary.org/hymn/LUYH2013/423",
     "retrievedAt": "2026-07-24",
@@ -367,6 +462,53 @@ export const PUBLIC_DOMAIN_HYMN_TEXTS = {
           "He lives--my Jesus, still the same;",
           "Oh, the sweet joy this sentence gives,",
           "I know that my Redeemer lives!"
+        ]
+      }
+    ]
+  },
+  "it-is-well": {
+    "textSourceUrl": "https://hymnary.org/text/when_peace_like_a_river_attendeth_my_way",
+    "retrievedAt": "2026-07-24",
+    "sections": [
+      {
+        "label": "Verse 1",
+        "lines": [
+          "When peace like a river attendeth my way,",
+          "when sorrows like sea billows roll;",
+          "whatever my lot, thou hast taught me to say,",
+          "\"It is well, it is well with my soul.\"",
+          "Refrain (may be sung after final stanza only):",
+          "It is well with my soul;",
+          "it is well, it is well with my soul."
+        ]
+      },
+      {
+        "label": "Verse 2",
+        "lines": [
+          "Though Satan should buffet, though trials should come,",
+          "let this blest assurance control:",
+          "that Christ has regarded my helpless estate,",
+          "and has shed his own blood for my soul. Refrain"
+        ]
+      },
+      {
+        "label": "Verse 3",
+        "lines": [
+          "My sin oh, the bliss of this glorious thought!",
+          "my sin, not in part, but the whole,",
+          "is nailed to the cross, and I bear it no more;",
+          "praise the Lord, praise the Lord, O my soul! Refrain"
+        ]
+      },
+      {
+        "label": "Verse 4",
+        "lines": [
+          "O Lord, haste the day when my faith shall be sight,",
+          "the clouds be rolled back as a scroll;",
+          "the trump shall resound and the Lord shall descend;",
+          "even so, it is well with my soul. Refrain",
+          "Psalter Hymnal, (Gray)",
+          "All representative texts • Compare texts • Text size: Regular | Large^ top"
         ]
       }
     ]

@@ -60,7 +60,7 @@ export const Users: CollectionConfig = {
           // still grant owner/admin/leader permissions within their church.
           return {
             user: user
-              ? { collection: 'users', ...user, systemRole: 'member' }
+              ? { ...user, collection: 'users', systemRole: 'member' }
               : null,
           }
         },

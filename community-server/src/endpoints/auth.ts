@@ -216,8 +216,14 @@ export const authEndpoints: Endpoint[] = [
         if (!membership) {
           await req.payload.create({
             collection: 'memberships',
+            draft: false,
             overrideAccess: true,
-            data: { community: community.id, user: user.id, role: 'member' },
+            data: {
+              community: community.id,
+              user: user.id,
+              role: 'member',
+              joinedAt: new Date().toISOString(),
+            },
           })
         }
       }
