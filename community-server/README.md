@@ -26,14 +26,17 @@ Every production deployment needs strong secrets and backups. Local-only
 production can explicitly set `COMMUNITY_AUTH_ENABLED=false` and omit SMTP.
 
 The public static-compatible endpoint is `/heritage-content.json`. Community
-discovery is `/.well-known/heritage-community.json`. Published song listings
-are returned only to current Community members, so the Community library is not
-publicly discoverable. A published song's exact content URL remains readable
-without a session so a congregant can open an unlisted Heritage share link
-without first joining the Community. Song responses send `X-Robots-Tag:
-noindex, nofollow, noarchive`. This is an unlisted-link boundary, not
-access-control or DRM. Use a separate Content Server for resources intended to
-be publicly browsable.
+discovery is `/.well-known/heritage-community.json`. Community song catalogs
+and exact song content require a current member session; anonymous requests do
+not expose them. Song responses also send `X-Robots-Tag: noindex, nofollow,
+noarchive`. Use a separate Content Server for resources intended to be
+anonymously browsable.
+
+SyncShow installations can connect to the same song library through a
+manager-approved, songs-only integration. See
+[the SyncShow integration and operator guide](docs/SYNCSHOW_INTEGRATION.md) for
+approval, scopes, visibility, expiry/reapproval, migrations, tests, and safe
+rollback.
 
 New Communities default to
 invite-only sign-in. Create a **Member invitation** before giving someone the
@@ -43,6 +46,7 @@ sign-in address; existing active members may continue to request links.
 
 ```sh
 npm run typecheck
+npm run test:syncshow
 npm run build
 ```
 
@@ -52,9 +56,9 @@ origins. Member-enabled servers also require SMTP settings. Run Payload
 migrations as part of the release process and back up both PostgreSQL and the
 media volume. Public catalog routes fail closed unless `COMMUNITY_ID` resolves
 to an existing Community, and only that community's published listings are
-exposed. Song catalog discovery requires a current member session. Published
-song documents are intentionally unlisted but link-accessible; their rights
-records should identify the church's license or permission basis. Set
+exposed. Song catalogs and exact song documents require a current member
+session; managers can additionally review private and scheduled songs. Song
+rights records should identify the church's license or permission basis. Set
 `COMMUNITY_CCLI_LICENSE_NUMBER` so CCLI-covered song sheets can display the
 church license number required by CCLI's attribution format. Set
 `COMMUNITY_COPYRIGHT_CONTACT_EMAIL` (it falls back to `SMTP_FROM`) so rights

@@ -26,8 +26,8 @@ export const communityPublicConfig = {
 
 export function publicCorsHeaders() {
   return {
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, If-Match, If-None-Match',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Origin': '*',
     'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
     'Content-Type': 'application/json; charset=utf-8',

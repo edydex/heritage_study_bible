@@ -1,7 +1,7 @@
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
-import { isCommunityMemberRequest } from '@/lib/communityMemberRequest'
+import { communityRequestAccess } from '@/lib/communityMemberRequest'
 import { publicJson } from '@/lib/publicConfig'
 
 const typeToCollection = {
@@ -30,9 +30,10 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
   if (communityId == null) {
     return publicJson({ error: 'The configured community does not exist.' }, { status: 503 })
   }
-  const songCatalogVisible = type !== 'songs'
-    || await isCommunityMemberRequest(payload, request.headers, communityId)
-  if (!songCatalogVisible) {
+  const songAccess = type === 'songs'
+    ? await communityRequestAccess(payload, request.headers, communityId)
+    : null
+  if (type === 'songs' && !songAccess?.authenticated) {
     return publicJson(
       {
         schemaVersion: 2,
@@ -49,6 +50,7 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
       },
     )
   }
+  const now = new Date().toISOString()
   const result = await payload.find({
     collection,
     depth: 0,
@@ -56,8 +58,23 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
     overrideAccess: true,
     where: {
       and: [
-        { status: { equals: 'published' } },
         { community: { equals: communityId } },
+        ...(type === 'songs' && songAccess?.manager
+          ? [{ status: { not_equals: 'archived' } }]
+          : [{ status: { equals: 'published' } }]),
+        ...(type === 'songs' && !songAccess?.manager
+          ? [{
+              or: [
+                { visibility: { equals: 'public' } },
+                {
+                  and: [
+                    { visibility: { equals: 'scheduled-public' } },
+                    { publishAt: { less_than_equal: now } },
+                  ],
+                },
+              ],
+            }]
+          : []),
       ],
     },
   })

@@ -1,26 +1,112 @@
 import type { CollectionConfig } from 'payload'
-import { createCommunityContent, manageCommunityContent, readMemberCommunityContent } from '@/access'
+import { createCommunityContent, manageCommunityContent, readSongsByVisibility } from '@/access'
 import { communityContentFields } from '@/fields/communityContentFields'
 import { fillContentSlug } from '@/lib/contentAdmin'
+import { normalizeSyncDocuments } from '@/lib/syncShowProtocol'
+import { prepareSongSyncFields } from '@/lib/syncShowSongHooks'
 
 export const Songs: CollectionConfig = {
   slug: 'songs',
-  indexes: [{ fields: ['community', 'slug'], unique: true }],
+  indexes: [
+    { fields: ['community', 'slug'], unique: true },
+    { fields: ['community', 'syncId'], unique: true },
+  ],
   admin: {
     useAsTitle: 'title',
     group: 'Content',
     description: 'Bilingual song listings, lyrics, chords, files, and a plain-language rights record.',
-    defaultColumns: ['title', 'russianTitle', 'rightsStatus', 'status', 'updatedAt'],
+    defaultColumns: ['title', 'russianTitle', 'visibility', 'rightsStatus', 'updatedAt'],
     listSearchableFields: ['title', 'russianTitle', 'alternateTitles', 'authors'],
     components: { beforeList: ['@/components/SongListGuide'] },
     hideAPIURL: true,
   },
-  access: { read: readMemberCommunityContent, create: createCommunityContent, update: manageCommunityContent, delete: manageCommunityContent },
-  hooks: { beforeValidate: [fillContentSlug] },
+  access: {
+    read: readSongsByVisibility,
+    create: createCommunityContent,
+    update: manageCommunityContent,
+    // Sync clients and administrators archive or make a song private. Hard
+    // deletion would make offline conflict resolution ambiguous.
+    delete: () => false,
+  },
+  hooks: { beforeValidate: [fillContentSlug, prepareSongSyncFields] },
   fields: [
     ...communityContentFields.filter(field => (
       'name' in field && ['community', 'status', 'slug'].includes(String(field.name))
     )),
+    {
+      name: 'syncId',
+      label: 'Sync identity',
+      type: 'text',
+      required: true,
+      index: true,
+      access: { update: () => false },
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Stable identity shared with SyncShow. It does not change when a title changes.',
+      },
+    },
+    {
+      name: 'visibility',
+      label: 'Community visibility',
+      type: 'select',
+      required: true,
+      defaultValue: 'private',
+      index: true,
+      options: [
+        { label: 'Private — church managers only', value: 'private' },
+        { label: 'Public to signed-in church members', value: 'public' },
+        { label: 'Scheduled — private until the set time', value: 'scheduled-public' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description: 'Songs are never anonymous. Scheduled songs use the Community server clock.',
+      },
+    },
+    {
+      name: 'publishAt',
+      label: 'Become visible at',
+      type: 'date',
+      index: true,
+      admin: {
+        position: 'sidebar',
+        condition: (_data, siblingData) => (
+          (siblingData as Record<string, unknown> | undefined)?.visibility === 'scheduled-public'
+        ),
+        description: 'Required for scheduled visibility.',
+      },
+      validate: (value, { siblingData }) => (
+        (siblingData as Record<string, unknown> | undefined)?.visibility !== 'scheduled-public'
+          || (value && Number.isFinite(Date.parse(String(value))))
+          ? true
+          : 'Choose a valid publication time for a scheduled song.'
+      ),
+    },
+    {
+      name: 'syncVersion',
+      label: 'Sync version',
+      type: 'number',
+      required: true,
+      defaultValue: 1,
+      min: 1,
+      index: true,
+      admin: { position: 'sidebar', readOnly: true },
+    },
+    {
+      name: 'syncDocuments',
+      type: 'json',
+      required: true,
+      defaultValue: [],
+      admin: { hidden: true },
+      validate: value => {
+        try {
+          normalizeSyncDocuments(value)
+          return true
+        } catch (error) {
+          return error instanceof Error ? error.message : 'Invalid SyncShow song documents.'
+        }
+      },
+    },
     {
       type: 'tabs',
       tabs: [

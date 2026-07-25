@@ -11,6 +11,8 @@
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "test:deploy": "bash deploy/tests/run.sh",
     "test:appliance": "bash appliance/tests/run.sh",
+    "test:syncshow": "node --import tsx --test tests/syncshow-protocol.test.ts tests/syncshow-endpoint.test.ts tests/syncshow-backfill.test.ts && node --test tests/syncshow-contract.test.mjs",
+    "preflight:syncshow": "node --import tsx scripts/syncshow-backfill-report.mjs",
     "typecheck": "tsc --noEmit",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
@@ -36,6 +38,7 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "autoprefixer": "10.4.24",
+    "tsx": "4.22.4",
     "typescript": "6.0.3"
   },
   "engines": {

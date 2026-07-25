@@ -1,7 +1,7 @@
 import type { Payload } from 'payload'
 import { communityPublicConfig } from '@/lib/publicConfig'
 
-export async function getConfiguredCommunityId(payload: Payload): Promise<number | string | null> {
+export async function getConfiguredCommunityId(payload: Payload): Promise<number | null> {
   const result = await payload.find({
     collection: 'communities',
     depth: 0,
