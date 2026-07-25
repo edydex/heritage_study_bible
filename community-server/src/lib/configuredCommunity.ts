@@ -9,5 +9,8 @@ export async function getConfiguredCommunityId(payload: Payload): Promise<number
     overrideAccess: true,
     where: { slug: { equals: communityPublicConfig.id } },
   })
-  return result.docs[0]?.id ?? null
+  const id = result.docs[0]?.id
+  if (id === undefined || id === null) return null
+  const numericId = typeof id === 'number' ? id : Number(id)
+  return Number.isSafeInteger(numericId) && numericId > 0 ? numericId : null
 }

@@ -225,8 +225,8 @@ function safeDocumentId(base: string, suffix = '') {
 
 function legacyAttribution(song: Record<string, unknown>) {
   return [
-    boundedText(song.copyright, 'Copyright', 5000),
-    boundedText(song.rightsNotes, 'Rights notes', 10_000),
+    boundedText(song.copyright ?? undefined, 'Copyright', 5000),
+    boundedText(song.rightsNotes ?? undefined, 'Rights notes', 10_000),
   ].filter(Boolean).join('\n')
 }
 
@@ -249,9 +249,11 @@ function synthesizeDocument(
     `language: ${language}`,
   ]
   if (translationOf) lines.push(`translationOf: ${yamlScalar(translationOf)}`)
-  const license = boundedText(song.license, 'License', 300)
-  const authors = textList(song.authors, 'Authors', 64, 120)
-  const source = optionalUrl(song.sourceUrl, 'Source URL')
+  // Payload/Postgres represents an unset optional field as null. Treat null
+  // as absent while keeping every other unexpected legacy shape fail-closed.
+  const license = boundedText(song.license ?? undefined, 'License', 300)
+  const authors = textList(song.authors ?? undefined, 'Authors', 64, 120)
+  const source = optionalUrl(song.sourceUrl ?? undefined, 'Source URL')
   const attribution = legacyAttribution(song)
   if (license) lines.push(`license: ${yamlScalar(license)}`)
   if (authors?.length) lines.push(`authors: ${JSON.stringify(authors)}`)

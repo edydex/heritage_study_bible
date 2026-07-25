@@ -133,6 +133,24 @@ test('legacy bilingual songs become deterministic linked SyncShow documents with
   assert.equal(normalizeSyncDocuments(documents)?.length, 2)
 })
 
+test('legacy songs treat null optional Payload fields as absent', () => {
+  const [document] = synthesizeLegacySyncDocuments({
+    id: 31,
+    syncId: 'legacy-null-rights',
+    title: 'Legacy Song',
+    lyrics: 'Verse one',
+    authors: null,
+    license: null,
+    copyright: null,
+    rightsNotes: null,
+    sourceUrl: null,
+  })
+
+  assert.ok(document)
+  assert.match(document.source, /title: "Legacy Song"/)
+  assert.doesNotMatch(document.source, /^(?:authors|license|attribution|source):/m)
+})
+
 test('legacy English-only songs remain one usable document and empty sync input cannot erase them', () => {
   const song = {
     id: 7,
