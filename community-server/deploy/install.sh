@@ -124,7 +124,7 @@ warn() { printf '\nWarning: %s\n' "$*" >&2; }
 fail() { printf '\nError during %s: %s\n' "$PHASE" "$*" >&2; exit 1; }
 
 cloudflared_login_with_qr() {
-  local login_log login_pid login_url='' attempt
+  local login_log login_pid login_url='' attempts=0
   login_log=$(mktemp "${STATE_DIR}/cloudflare-login.XXXXXX")
   SECRET_TEMP_FILES+=("$login_log")
 
@@ -133,7 +133,7 @@ cloudflared_login_with_qr() {
     2> >(tee -a "$login_log" >&2) &
   login_pid=$!
 
-  for attempt in {1..100}; do
+  while ((attempts < 100)); do
     login_url=$(grep -Eo 'https://dash\.cloudflare\.com/argotunnel[^[:space:]]+' "$login_log" | tail -n 1 || true)
     if [[ -n $login_url ]]; then
       say "Scan this QR code with a phone camera instead of typing the address:"
@@ -144,6 +144,7 @@ cloudflared_login_with_qr() {
       break
     fi
     kill -0 "$login_pid" 2>/dev/null || break
+    attempts=$((attempts + 1))
     sleep 0.1
   done
 
@@ -167,12 +168,13 @@ cleanup_secret_files() {
 trap cleanup_secret_files EXIT
 
 tty_read() {
-  local __name=$1 prompt=$2
+  local __name=$1 prompt=$2 reply=''
   if [[ -t 0 && -r /dev/tty ]]; then
-    IFS= read -r -p "$prompt" "$__name" </dev/tty
+    IFS= read -r -p "$prompt" reply </dev/tty
   else
-    IFS= read -r -p "$prompt" "$__name"
+    IFS= read -r -p "$prompt" reply
   fi
+  printf -v "$__name" '%s' "$reply"
 }
 
 ask_value() {
