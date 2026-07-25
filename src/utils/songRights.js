@@ -1,4 +1,4 @@
-export const CCLI_LICENSE_URL = 'https://ccli.com/us/en/church-copyright-license'
+export const CCLI_LICENSE_URL = 'https://ccli.com/us/en/church-copyright-license-summary'
 export const SOVEREIGN_GRACE_PERMISSIONS_URL = 'https://sovereigngracemusic.com/about/permissions/'
 
 function text(value) {

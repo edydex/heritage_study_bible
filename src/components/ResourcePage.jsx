@@ -159,6 +159,7 @@ function ResourcePage() {
       })
     }
     const combined = [...category.items, ...remoteItems]
+    if (isSongs) return combined.sort((a, b) => a.title.localeCompare(b.title))
     if (!isConfessions && !isBooks) return combined
     return combined.sort((a, b) => {
       const ay = Number.isFinite(a.year) ? a.year : Number.POSITIVE_INFINITY

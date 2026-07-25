@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+DEPLOYMENT_ROOT=/opt/heritage-community
+PENDING_FILE="${DEPLOYMENT_ROOT}/state/appliance-setup-pending"
+INSTALLER="${DEPLOYMENT_ROOT}/app/community-server/deploy/install.sh"
+
+if [[ ${EUID} -ne 0 ]]; then
+  command -v sudo >/dev/null 2>&1 || {
+    printf 'Sign in as root and run: heritage-community-setup\n' >&2
+    exit 1
+  }
+  if ! id -nG | grep -qw sudo; then
+    current_user=$(id -un)
+    cat >&2 <<EOF
+This account does not have administrator access yet.
+
+Debian does this when a separate root password was created during installation.
+Fix it once with the root password you chose in the installer:
+
+  su -
+  adduser ${current_user} sudo
+  heritage-community-setup
+
+After setup, completely sign out and back in before using sudo as ${current_user}.
+EOF
+    exit 1
+  fi
+  exec sudo bash "$0" "$@"
+fi
+
+[[ -f $INSTALLER ]] || {
+  printf 'The baked Heritage installer is missing from %s.\n' "$INSTALLER" >&2
+  exit 1
+}
+
+cat <<'EOF'
+
+Heritage Community Server — finish setup
+
+Debian is installed. This last wizard will ask for your church name, first
+administrator, public address, email provider, backups, and laptop sleep
+behavior. It explains every choice before changing the server.
+
+Internet access is required to install Docker and build the server. If this
+machine is not online yet, press Ctrl+C, connect it, then run this command
+again:
+
+  sudo heritage-community-setup
+
+EOF
+
+bash "$INSTALLER" --deployment-root "$DEPLOYMENT_ROOT" "$@"
+rm -f -- "$PENDING_FILE"
+
+cat <<'EOF'
+
+The appliance setup is complete.
+
+Useful commands:
+  sudo heritage-community status
+  sudo heritage-community backup
+  sudo heritage-community logs
+
+The normal editor is the /admin page printed by the setup wizard.
+EOF

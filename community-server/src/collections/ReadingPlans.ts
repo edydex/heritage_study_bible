@@ -2,6 +2,7 @@ import type { Block, CollectionConfig } from 'payload'
 import { ValidationError } from 'payload'
 import { createCommunityContent, manageCommunityContent, readPublishedOrMember } from '@/access'
 import { communityContentFields } from '@/fields/communityContentFields'
+import { fillContentSlug } from '@/lib/contentAdmin'
 
 type PlainObject = Record<string, unknown>
 type PublicPlanItem =
@@ -77,7 +78,16 @@ function cleanText(value: unknown): string {
 
 export const ReadingPlans: CollectionConfig = {
   slug: 'reading-plans',
-  admin: { useAsTitle: 'title', group: 'Content' },
+  indexes: [{ fields: ['community', 'slug'], unique: true }],
+  labels: { singular: 'Bible plan', plural: 'Bible plans' },
+  admin: {
+    useAsTitle: 'title',
+    group: 'Content',
+    description: 'Ordered reading days made from Bible passages and optional contextual notes.',
+    defaultColumns: ['title', 'totalDays', 'status', 'revision', 'updatedAt'],
+    listSearchableFields: ['title'],
+    hideAPIURL: true,
+  },
   access: {
     read: readPublishedOrMember,
     create: createCommunityContent,
@@ -85,7 +95,7 @@ export const ReadingPlans: CollectionConfig = {
     delete: manageCommunityContent,
   },
   hooks: {
-    beforeValidate: [({ data, originalDoc, req }) => {
+    beforeValidate: [fillContentSlug, ({ data, originalDoc, req }) => {
       const source = { ...asObject(originalDoc), ...asObject(data) }
       const days = Array.isArray(source.days) ? source.days.map(asObject) : []
       const errors: { message: string; path: string }[] = []

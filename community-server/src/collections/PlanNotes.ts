@@ -4,7 +4,7 @@ import { validateRelatedCommunity } from '@/lib/communityRelationships'
 
 export const PlanNotes: CollectionConfig = {
   slug: 'plan-notes',
-  admin: { useAsTitle: 'id', group: 'Community' },
+  admin: { hidden: true },
   access: {
     read: readSharedPlanNotes,
     create: createMemberCommunityContent,

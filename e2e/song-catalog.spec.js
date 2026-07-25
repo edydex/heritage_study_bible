@@ -206,7 +206,7 @@ test('an unlisted Community song opens without membership and explains its licen
   await expect(page.getByText(/small-group, home-group, and Bible-study worship/)).toBeVisible()
   await expect(page.getByRole('link', { name: 'CCLI license description' })).toHaveAttribute(
     'href',
-    'https://ccli.com/us/en/church-copyright-license',
+    'https://ccli.com/us/en/church-copyright-license-summary',
   )
   await expect(page.getByRole('link', { name: 'Sovereign Grace permissions' })).toHaveAttribute(
     'href',

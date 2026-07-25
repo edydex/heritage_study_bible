@@ -4,6 +4,7 @@ import { updateRelationAsSystemAdmin } from '@/access'
 export const communityContentFields: Field[] = [
   {
     name: 'community',
+    label: 'Church',
     type: 'relationship',
     relationTo: 'communities',
     required: true,
@@ -12,6 +13,7 @@ export const communityContentFields: Field[] = [
   },
   {
     name: 'status',
+    label: 'Publishing status',
     type: 'select',
     required: true,
     defaultValue: 'draft',
@@ -21,8 +23,16 @@ export const communityContentFields: Field[] = [
       { label: 'Published', value: 'published' },
       { label: 'Archived', value: 'archived' },
     ],
+    admin: { position: 'sidebar', description: 'Drafts stay in the admin. Published items appear in the public Heritage catalog.' },
   },
   { name: 'title', type: 'text', required: true },
-  { name: 'slug', type: 'text', required: true, index: true },
-  { name: 'description', type: 'textarea' },
+  {
+    name: 'slug',
+    label: 'Web address name',
+    type: 'text',
+    required: true,
+    index: true,
+    admin: { position: 'sidebar', description: 'Filled automatically from the title when left blank. Change it only if the public link needs a different short name.' },
+  },
+  { name: 'description', label: 'Short description', type: 'textarea' },
 ]

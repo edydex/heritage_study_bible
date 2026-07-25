@@ -20,6 +20,68 @@ if command -v shellcheck >/dev/null 2>&1; then
   pass "all operator scripts pass ShellCheck warnings"
 fi
 
+prompt_test=$(
+  printf 'Typed Church\nno\n' | bash -c '
+    set -u
+    NON_INTERACTIVE=false
+    ASSUME_YES=false
+    '"$(sed -n '/^tty_read() {/,/^}/p' "${DEPLOY_DIR}/install.sh")"'
+    '"$(sed -n '/^ask_value() {/,/^}/p' "${DEPLOY_DIR}/install.sh")"'
+    '"$(sed -n '/^confirm() {/,/^}/p' "${DEPLOY_DIR}/install.sh")"'
+    church=Default
+    ask_value church Church Default
+    if confirm Continue yes; then
+      confirmation=yes
+    else
+      confirmation=no
+    fi
+    printf "%s|%s\n" "$church" "$confirmation"
+  '
+)
+[[ $prompt_test == 'Typed Church|no' ]] \
+  || fail "interactive prompts ignored typed values and kept their defaults"
+pass "interactive prompts retain typed answers instead of silently using defaults"
+
+interactive_retry_output="${TMP_ROOT}/interactive-retry.out"
+printf '%s\n' \
+  'Typed Church' \
+  'typed-church' \
+  'Typed description' \
+  '' \
+  'UTC' \
+  'typed.example.org' \
+  'https://heritage.faith' \
+  'Typed Administrator' \
+  'not-an-email' \
+  'admin@example.org' \
+  'short' \
+  'first-long-password' \
+  'different-password' \
+  'second-long-password' \
+  'second-long-password' \
+  '3' \
+  '' \
+  '' \
+  '' \
+  '' \
+  | HERITAGE_DISABLE_SLEEP=false "${DEPLOY_DIR}/install.sh" \
+      --dry-run --yes --deployment-root "${TMP_ROOT}/interactive-retry" \
+      >"$interactive_retry_output" 2>&1
+grep -q 'That email address is not valid. Please try again.' "$interactive_retry_output" \
+  || fail "interactive setup did not re-prompt after an invalid administrator email"
+grep -q 'That password is too short. Please use at least 12 characters.' "$interactive_retry_output" \
+  || fail "interactive setup did not re-prompt after a short administrator password"
+grep -q 'Those passwords did not match. Please enter both again.' "$interactive_retry_output" \
+  || fail "interactive setup did not re-prompt after mismatched administrator passwords"
+grep -q 'Community:       Typed Church (typed-church)' "$interactive_retry_output" \
+  || fail "interactive setup did not retain corrected answers through the final summary"
+grep -q 'Dry run complete' "$interactive_retry_output" \
+  || fail "interactive setup did not finish after corrected administrator credentials"
+if grep -Eq 'first-long-password|second-long-password|different-password' "$interactive_retry_output"; then
+  fail "interactive setup printed an administrator password"
+fi
+pass "interactive setup re-prompts for invalid email and password entries without quitting"
+
 common_env=(
   HERITAGE_COMMUNITY_NAME="Test Church"
   HERITAGE_COMMUNITY_ID="test-church"
@@ -47,6 +109,25 @@ for mode in local token none; do
   fi
 done
 pass "all tunnel modes complete a non-interactive dry-run without leaking secrets"
+
+save_phase_line=$(grep -n 'saving private configuration for safe resume' "${TMP_ROOT}/local.out" | cut -d: -f1)
+dependency_phase_line=$(grep -n 'installing system dependencies' "${TMP_ROOT}/local.out" | cut -d: -f1)
+[[ -n $save_phase_line && -n $dependency_phase_line && $save_phase_line -lt $dependency_phase_line ]] \
+  || fail "private recovery configuration was not saved before package installation"
+grep -q 'chmod a+r /usr/share/keyrings/cloudflare-main.gpg' "${DEPLOY_DIR}/install.sh" \
+  || fail "Cloudflare signing key is not made readable by Debian's package verifier"
+grep -q 'apt-get install .* qrencode ' "${DEPLOY_DIR}/install.sh" \
+  || fail "the guided installer does not install its terminal QR-code renderer"
+grep -q 'qrencode -t ANSIUTF8 -m 1' "${DEPLOY_DIR}/install.sh" \
+  || fail "the guided Cloudflare login does not render its one-time URL as a QR code"
+grep -q 'cloudflared_login_with_qr' "${DEPLOY_DIR}/install.sh" \
+  || fail "the guided Cloudflare login bypasses the QR-code wrapper"
+email_test_phase_line=$(grep -n 'set_phase "testing email delivery"' "${DEPLOY_DIR}/install.sh" | cut -d: -f1)
+email_ready_line=$(tail -n "+${email_test_phase_line}" "${DEPLOY_DIR}/install.sh" \
+  | grep -n -m 1 'wait_for_local_server 120' | cut -d: -f1)
+[[ -n $email_ready_line ]] \
+  || fail "the real email test can race the app restart performed by the initial backup"
+pass "retries preserve answers, Cloudflare offers a QR code, and email waits for app restart"
 
 local_without_smtp_output="${TMP_ROOT}/local-without-smtp.out"
 env \

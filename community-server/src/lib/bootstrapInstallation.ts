@@ -64,10 +64,12 @@ export async function bootstrapInstallation(payload: Payload) {
   if (!community) {
     community = await payload.create({
       collection: 'communities',
+      draft: false,
       overrideAccess: true,
       data: {
         contentServerEnabled: true,
         description: process.env.COMMUNITY_DESCRIPTION || 'A Heritage church community.',
+        joinPolicy: 'invite',
         name: process.env.COMMUNITY_NAME || 'Local Church',
         slug: communitySlug,
         timeZone: process.env.COMMUNITY_TIME_ZONE || 'UTC',
@@ -91,6 +93,7 @@ export async function bootstrapInstallation(payload: Payload) {
   if (!membership) {
     await payload.create({
       collection: 'memberships',
+      draft: false,
       overrideAccess: true,
       data: {
         community: community.id,

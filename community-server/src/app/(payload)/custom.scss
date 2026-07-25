@@ -1,3 +1,74 @@
+// Keep the first admin screen task-oriented. Payload's generated collection
+// cards remain below this welcome panel for experienced administrators.
+.heritage-admin-welcome {
+  margin-bottom: var(--base);
+  padding: calc(var(--base) * 1.25);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--theme-elevation-50), var(--theme-bg));
+}
+
+.heritage-admin-welcome h1 {
+  margin: 2px 0 6px;
+  font-family: Georgia, serif;
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+}
+
+.heritage-admin-eyebrow {
+  margin: 0;
+  color: var(--theme-success-500);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.heritage-admin-intro {
+  max-width: 62rem;
+  margin: 0 0 var(--base);
+  color: var(--theme-elevation-700);
+}
+
+.heritage-admin-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: calc(var(--base) * 0.6);
+}
+
+.heritage-admin-actions a {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: calc(var(--base) * 0.7);
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 10px;
+  background: var(--theme-input-bg);
+  color: var(--theme-text);
+  text-decoration: none;
+}
+
+.heritage-admin-actions a:hover {
+  border-color: var(--theme-success-500);
+}
+
+.heritage-admin-actions span,
+.heritage-admin-links {
+  color: var(--theme-elevation-650);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.heritage-admin-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: var(--base);
+}
+
+.heritage-admin-links a {
+  font-weight: 600;
+}
+
 .heritage-song-guide {
   display: flex;
   align-items: center;
@@ -39,6 +110,10 @@
 }
 
 @media (max-width: 560px) {
+  .heritage-admin-welcome {
+    padding: var(--base);
+  }
+
   .heritage-song-guide {
     align-items: stretch;
     flex-direction: column;

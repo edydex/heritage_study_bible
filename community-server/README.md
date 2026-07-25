@@ -3,9 +3,11 @@
 This is the dynamic, self-hostable companion to the Heritage Study Bible app.
 It is a separate deployable built on Payload, Next.js, and PostgreSQL. Its
 Payload admin manages the same resource types as a static Content Server, plus
-memberships, shared plan cohorts and notes, events, RSVPs, and opaque encrypted
-sync blobs. Reading plans use an ordered day builder, so editors can interleave
-Bible passages and contextual notes without writing JSON.
+member invitations, memberships, events, and RSVPs. Reading plans use an
+ordered day builder, so editors can interleave Bible passages and contextual
+notes without writing JSON. Experimental cohort tables are retained for later
+client work, but the public manifest does not claim unfinished collaboration or
+sync features.
 
 ## Local development
 
@@ -14,7 +16,8 @@ Bible passages and contextual notes without writing JSON.
 3. Install packages with `npm install --legacy-peer-deps`.
 4. Run `npm run dev` and open `http://localhost:3000/admin`.
 5. Create the first Payload user, set its `systemRole` to `system-admin`, then
-   create a Community and its initial owner Membership.
+   create a Community and its initial owner Membership. The dashboard's
+   **Start here** cards link directly to content, invitations, and events.
 
 Without SMTP settings, development uses Nodemailer's local JSON transport and
 the magic-link response includes a `debugLink`; no real message is sent.
@@ -31,6 +34,10 @@ without first joining the Community. Song responses send `X-Robots-Tag:
 noindex, nofollow, noarchive`. This is an unlisted-link boundary, not
 access-control or DRM. Use a separate Content Server for resources intended to
 be publicly browsable.
+
+New Communities default to
+invite-only sign-in. Create a **Member invitation** before giving someone the
+sign-in address; existing active members may continue to request links.
 
 ## Validation and deployment
 
@@ -68,3 +75,6 @@ and secrets by default.
 
 See [the fresh-Debian self-hosting guide](docs/SELF_HOSTING.md). After setup,
 normal administration is through `sudo heritage-community <command>`.
+
+For an Intel Surface Pro 7, the pre-baked Debian installer and verified macOS
+USB writer are documented in [appliance/README.md](appliance/README.md).

@@ -4,7 +4,14 @@ import { validateRelatedCommunity } from '@/lib/communityRelationships'
 
 export const EventRsvps: CollectionConfig = {
   slug: 'event-rsvps',
-  admin: { useAsTitle: 'id', group: 'Community' },
+  labels: { singular: 'Event response', plural: 'Event responses' },
+  admin: {
+    useAsTitle: 'id',
+    group: 'Community',
+    description: 'Member responses recorded from the Heritage app.',
+    defaultColumns: ['event', 'user', 'response', 'guests', 'updatedAt'],
+    hideAPIURL: true,
+  },
   indexes: [{ fields: ['event', 'user'], unique: true }],
   access: {
     read: ({ req }) => req.user?.systemRole === 'system-admin' ? true : { user: { equals: req.user?.id } },
