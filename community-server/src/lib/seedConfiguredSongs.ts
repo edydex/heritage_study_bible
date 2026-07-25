@@ -28,9 +28,7 @@ export async function seedConfiguredSongs(payload: Payload) {
       data: {
         ...song,
         community: communityId,
-        description: song.rightsStatus === 'needs-review'
-          ? 'WOTBC songbook listing. Lyrics, chords, and files can be added after the church records its license or permission.'
-          : 'WOTBC songbook listing in English and Russian.',
+        description: 'WOTBC starter song listing. Open Admin → Songs to add church-reviewed words, chords, and files.',
         status: 'published',
       },
     })

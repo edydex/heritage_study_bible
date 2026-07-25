@@ -94,6 +94,7 @@ function BuiltInSongViewer() {
       error: Boolean(result.error),
     }))
   }, [language, song])
+  const failedSourceCount = sourceExplanations.filter(record => record.error).length
   const russian = language === 'ru'
   const englishAvailable = Boolean(song?.languages?.en?.length || song?.pendingSourceCount)
   const russianAvailable = Boolean(song?.languages?.ru?.length || song?.pendingSourceCount)
@@ -277,10 +278,14 @@ function BuiltInSongViewer() {
           ) : (
             <section className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950/30">
               <h2 className="font-semibold text-amber-950 dark:text-amber-100">
-                No {russian ? 'Russian' : 'English'} words are available from these sources
+                {failedSourceCount
+                  ? `No ${russian ? 'Russian' : 'English'} words could be loaded`
+                  : `No ${russian ? 'Russian' : 'English'} words have been entered`}
               </h2>
               <p className="mt-1 text-sm text-amber-900 dark:text-amber-200">
-                This is source-specific, not a blanket copyright block:
+                {failedSourceCount
+                  ? `${failedSourceCount} connected ${failedSourceCount === 1 ? 'source could' : 'sources could'} not be checked. See each source below.`
+                  : `Refresh finished successfully. These sources currently contain song listings, but no ${russian ? 'Russian' : 'English'} words for this version. Refreshing again will not add words until a Community editor enters them.`}
               </p>
               <div className="mt-3 space-y-3">
                 {sourceExplanations.map(record => (

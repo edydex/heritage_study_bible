@@ -181,12 +181,12 @@ function sectionsFromSongSections(sections) {
     .filter(section => section.lines.length)
 }
 
-function sectionsFromText(value) {
+export function sectionsFromText(value) {
   const text = plainText(value).replace(/\r\n?/g, '\n')
   if (!text) return []
   return text.split(/\n{2,}/).map((block, index) => {
     const lines = block.split('\n').map(plainText).filter(Boolean)
-    const heading = lines[0]?.match(/^(verse|stanza|chorus|refrain|bridge|ending)\s*(\d*)\s*:?\s*$/i)
+    const heading = lines[0]?.match(/^(verse|stanza|chorus|refrain|bridge|ending|куплет|припев|бридж|окончание)\s*(\d*)\s*:?\s*$/iu)
     return {
       label: heading ? `${heading[1]}${heading[2] ? ` ${heading[2]}` : ''}` : `Section ${index + 1}`,
       lines: heading ? lines.slice(1) : lines,

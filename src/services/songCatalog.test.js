@@ -3,6 +3,7 @@ import {
   collapseLanguageVariants,
   mergeSongCatalog,
   normalizeSongTitle,
+  sectionsFromText,
 } from './songCatalog.js'
 
 const builtInSong = {
@@ -139,5 +140,16 @@ describe('song catalog merging', () => {
 
     expect(variants).toHaveLength(2)
     expect(variants.map(variant => variant.preferredSource.id)).toEqual(['main', 'second'])
+  })
+
+  it('recognizes English and Russian song section headings from Community text', () => {
+    expect(sectionsFromText('VERSE 1\nFirst line\nSecond line\n\nCHORUS\nRefrain')).toEqual([
+      { label: 'VERSE 1', lines: ['First line', 'Second line'] },
+      { label: 'CHORUS', lines: ['Refrain'] },
+    ])
+    expect(sectionsFromText('КУПЛЕТ 1\nПервая строка\n\nПРИПЕВ\nСтрока припева')).toEqual([
+      { label: 'КУПЛЕТ 1', lines: ['Первая строка'] },
+      { label: 'ПРИПЕВ', lines: ['Строка припева'] },
+    ])
   })
 })
