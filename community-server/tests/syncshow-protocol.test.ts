@@ -16,6 +16,7 @@ import {
   synthesizeLegacySyncDocuments,
   SyncShowProtocolError,
 } from '../src/lib/syncShowProtocol.ts'
+import { privateAuthorizationJson } from '../src/lib/publicConfig.ts'
 
 function sourceDocument({
   id,
@@ -105,6 +106,26 @@ test('member visibility uses server time and never exposes draft/private songs',
   }, now), false)
   assert.equal(isSongVisibleToMember({ status: 'draft', visibility: 'public' }, now), false)
   assert.equal(isSongVisibleToMember({ status: 'published', visibility: 'private' }, now), false)
+})
+
+test('authorization-dependent responses override public caching even for denied content', async () => {
+  const response = privateAuthorizationJson(
+    { error: 'Not found.' },
+    {
+      status: 404,
+      headers: {
+        'Cache-Control': 'public, max-age=3600',
+        Vary: 'Accept',
+      },
+    },
+  )
+
+  assert.equal(response.status, 404)
+  assert.equal(response.headers.get('Cache-Control'), 'private, no-store')
+  assert.equal(response.headers.get('Vary'), 'Accept, Authorization')
+  assert.equal(response.headers.get('X-Robots-Tag'), 'noindex, nofollow, noarchive')
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), '*')
+  assert.deepEqual(await response.json(), { error: 'Not found.' })
 })
 
 test('legacy bilingual songs become deterministic linked SyncShow documents without losing rights', () => {

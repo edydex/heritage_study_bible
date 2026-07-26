@@ -2,7 +2,7 @@ import config from '@payload-config'
 import { getPayload } from 'payload'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
 import { communityRequestAccess } from '@/lib/communityMemberRequest'
-import { publicJson } from '@/lib/publicConfig'
+import { privateAuthorizationJson, publicJson } from '@/lib/publicConfig'
 
 const typeToCollection = {
   readingPlans: 'reading-plans',
@@ -24,29 +24,23 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
   const { type } = await context.params
   const collection = typeToCollection[type as keyof typeof typeToCollection]
   if (!collection) return publicJson({ error: 'Unknown catalog.' }, { status: 404 })
+  const catalogJson = type === 'songs' ? privateAuthorizationJson : publicJson
 
   const payload = await getPayload({ config })
   const communityId = await getConfiguredCommunityId(payload)
   if (communityId == null) {
-    return publicJson({ error: 'The configured community does not exist.' }, { status: 503 })
+    return catalogJson({ error: 'The configured community does not exist.' }, { status: 503 })
   }
   const songAccess = type === 'songs'
     ? await communityRequestAccess(payload, request.headers, communityId)
     : null
   if (type === 'songs' && !songAccess?.authenticated) {
-    return publicJson(
+    return catalogJson(
       {
         schemaVersion: 2,
         contentType: type,
         updatedAt: new Date().toISOString(),
         items: [],
-      },
-      {
-        headers: {
-          'Cache-Control': 'private, no-store',
-          Vary: 'Authorization',
-          'X-Robots-Tag': 'noindex, nofollow, noarchive',
-        },
       },
     )
   }
@@ -79,7 +73,7 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
     },
   })
 
-  return publicJson(
+  return catalogJson(
     {
       schemaVersion: 2,
       contentType: type,
@@ -99,15 +93,6 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
         },
       })),
     },
-    type === 'songs'
-      ? {
-          headers: {
-            'Cache-Control': 'private, no-store',
-            Vary: 'Authorization',
-            'X-Robots-Tag': 'noindex, nofollow, noarchive',
-          },
-        }
-      : {},
   )
 }
 

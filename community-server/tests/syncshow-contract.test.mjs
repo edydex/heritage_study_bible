@@ -110,10 +110,11 @@ test('DELETE is a CAS-protected archive tombstone and physical song deletion is 
 })
 
 test('ordinary song catalog/content routes require members and enforce scheduled server time', async () => {
-  const [catalog, content, access] = await Promise.all([
+  const [catalog, content, access, publicConfig] = await Promise.all([
     source('app/catalogs/[type]/route.ts'),
     source('app/content/[type]/[id]/route.ts'),
     source('access.ts'),
+    source('lib/publicConfig.ts'),
   ])
   assert.match(catalog, /communityRequestAccess/)
   assert.match(catalog, /!songAccess\?\.authenticated/)
@@ -122,10 +123,13 @@ test('ordinary song catalog/content routes require members and enforce scheduled
   assert.match(catalog, /type === 'songs' && !songAccess\?\.manager/)
   assert.match(catalog, /visibility: \{ equals: 'scheduled-public' \}/)
   assert.match(catalog, /publishAt: \{ less_than_equal: now \}/)
+  assert.match(catalog, /const catalogJson = type === 'songs' \? privateAuthorizationJson : publicJson/)
   assert.match(content, /!access\.authenticated/)
   assert.match(content, /isSongVisibleToMember/)
-  assert.match(content, /'Cache-Control': 'private, no-store'/)
-  assert.match(content, /Vary: 'Authorization'/)
+  assert.match(content, /const contentJson = type === 'songs' \? privateAuthorizationJson : publicJson/)
+  assert.doesNotMatch(content, /return publicJson\(\{ error: 'Not found\.'/)
+  assert.match(publicConfig, /headers\.set\('Cache-Control', 'private, no-store'\)/)
+  assert.match(publicConfig, /vary\.push\('Authorization'\)/)
   assert.match(access, /readSongsByVisibility/)
   assert.match(access, /publishAt: \{ less_than_equal: now \}/)
 })
