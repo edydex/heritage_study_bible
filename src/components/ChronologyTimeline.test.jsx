@@ -17,13 +17,15 @@ const sampleTimeline = {
       startYear: 605,
       endYear: 605,
       certainty: 'anchored',
+      group: 'Parallel accounts — Jehoiakim’s fourth year',
     },
     {
-      label: 'Jeremiah 27-29',
-      dateLabel: 'Zedekiah and the first exiles, c. 597-586 BC',
-      startYear: 597,
-      endYear: 586,
-      certainty: 'broad',
+      label: '2 Kings 24:1',
+      dateLabel: 'Jehoiakim’s fourth year, c. 605 BC',
+      startYear: 605,
+      endYear: 605,
+      certainty: 'anchored',
+      group: 'Parallel accounts — Jehoiakim’s fourth year',
     },
   ],
 }
@@ -49,9 +51,11 @@ describe('ChronologyTimeline', () => {
     expect(screen.getByRole('region', { name: 'Late Judah' })).toBeInTheDocument()
     expect(screen.getByText('Setting, not fulfillment')).toBeInTheDocument()
     expect(screen.getByText('Jeremiah 25')).toBeInTheDocument()
-    expect(screen.getByText('Jeremiah 27-29')).toBeInTheDocument()
-    expect(screen.getByText('Dated')).toBeInTheDocument()
-    expect(screen.getByText('Broad range')).toBeInTheDocument()
+    expect(screen.getByText('2 Kings 24:1')).toBeInTheDocument()
+    expect(screen.getByText('Parallel accounts — Jehoiakim’s fourth year')).toBeInTheDocument()
+    expect(screen.getAllByText('Dated')).toHaveLength(2)
+    expect(document.querySelectorAll('[data-timeline-group]')).toHaveLength(1)
+    expect(document.querySelectorAll('[data-timeline-bar]')).toHaveLength(2)
   })
 
   it('ignores malformed remote context rows', () => {

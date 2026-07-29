@@ -4,8 +4,8 @@ import { bibleBooks } from '../src/data/bible-books.js'
 import { chronologicalTimelineAids } from './chronologicalTimelineAids.mjs'
 
 const totalDays = 365
-const generatorVersion = 5
-const planRevision = '2026-07-chronology-timeline-aids'
+const generatorVersion = 6
+const planRevision = '2026-07-parallel-timeline-groups'
 
 const sourceNotes = [
   {
@@ -552,8 +552,8 @@ const chronologicalSections = [
       '2 Chronicles 36',
       note(
         'jeremiah-fall-and-aftermath',
-        'Jeremiah 39-44: the fall and its aftermath',
-        'Jeremiah 39 expands Jerusalem\'s fall and Zedekiah\'s capture, paralleling 2 Kings 25:1-12 and 2 Chronicles 36:15-20. Jeremiah 40-41 expands the Gedaliah episode summarized in 2 Kings 25:22-25, and chapters 42-44 follow the surviving remnant into Egypt after the flight reported in 2 Kings 25:26. These chapters now follow the historical accounts they elaborate.',
+        'Jeremiah 39-44 beside Kings and Chronicles',
+        'Jeremiah 39 and 40-41 belong to the same fall-and-immediate-aftermath window, so their timeline bars now use the same range. The chart places them directly beside 2 Kings 25:4-25 and 2 Chronicles 36:17-21 instead of leaving those parallels only in this paragraph. Jeremiah 42-43 then aligns with the flight reported in 2 Kings 25:26, while Jeremiah 44 continues the remnant\'s later life in Egypt.',
         ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
       ),
       'Jeremiah 39-44',
