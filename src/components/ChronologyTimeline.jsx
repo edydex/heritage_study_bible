@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 const CERTAINTY_LABELS = {
   anchored: 'Dated',
   approximate: 'Approx.',
@@ -139,37 +141,50 @@ function ChronologyTimeline({ timeline }) {
             const certainty = CERTAINTY_STYLES[context.certainty] ? context.certainty : 'broad'
             const styles = CERTAINTY_STYLES[certainty]
             const geometry = timelineBarGeometry(context, timeline.startYear, timeline.endYear)
+            const startsGroup = context.group && context.group !== contexts[index - 1]?.group
 
             return (
-              <li
-                key={`${context.label}-${context.dateLabel || index}`}
-                className="col-span-2 grid grid-cols-[minmax(7.75rem,10.5rem)_minmax(0,1fr)] gap-x-3 border-t border-amber-200/70 py-3 first:border-t-0 dark:border-amber-900/50 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-x-4"
-              >
-                <div className="min-w-0">
-                  <p className="text-xs font-bold leading-snug text-gray-900 dark:text-gray-100">
-                    {context.label}
-                  </p>
-                  <p className="mt-0.5 text-[11px] leading-snug text-gray-600 dark:text-gray-300">
-                    {context.dateLabel}
-                  </p>
-                  <span className={`mt-1 inline-flex rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${styles.badge}`}>
-                    {CERTAINTY_LABELS[certainty]}
-                  </span>
-                </div>
-                <div
-                  className="relative min-h-12"
-                  aria-label={`${context.label}: ${context.dateLabel}; ${CERTAINTY_LABELS[certainty]}`}
+              <Fragment key={`${context.label}-${context.dateLabel || index}`}>
+                {startsGroup && (
+                  <li
+                    className={`col-span-2 mt-2 rounded-lg bg-amber-100/80 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-amber-900 dark:bg-amber-900/35 dark:text-amber-200 ${index === 0 ? '' : 'border-t border-amber-200 dark:border-amber-800'}`}
+                    data-timeline-group={context.group}
+                  >
+                    {context.group}
+                  </li>
+                )}
+                <li
+                  className={`col-span-2 grid grid-cols-[minmax(7.75rem,10.5rem)_minmax(0,1fr)] gap-x-3 border-t border-amber-200/70 py-3 dark:border-amber-900/50 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-x-4 ${context.group ? 'border-l-2 border-l-amber-400 pl-2 dark:border-l-amber-600' : ''}`}
                 >
-                  <div className="absolute left-0 right-0 top-5 h-px bg-gray-300 dark:bg-gray-600" />
                   <div
-                    className={`absolute top-[1.0625rem] h-2.5 rounded-full shadow-sm ${styles.bar}`}
-                    style={{
-                      left: `${geometry.left}%`,
-                      width: `${geometry.width}%`,
-                    }}
-                  />
-                </div>
-              </li>
+                    className="min-w-0"
+                  >
+                    <p className="text-xs font-bold leading-snug text-gray-900 dark:text-gray-100">
+                      {context.label}
+                    </p>
+                    <p className="mt-0.5 text-[11px] leading-snug text-gray-600 dark:text-gray-300">
+                      {context.dateLabel}
+                    </p>
+                    <span className={`mt-1 inline-flex rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${styles.badge}`}>
+                      {CERTAINTY_LABELS[certainty]}
+                    </span>
+                  </div>
+                  <div
+                    className="relative min-h-12"
+                    aria-label={`${context.label}: ${context.dateLabel}; ${CERTAINTY_LABELS[certainty]}`}
+                  >
+                    <div className="absolute left-0 right-0 top-5 h-px bg-gray-300 dark:bg-gray-600" />
+                    <div
+                      className={`absolute top-[1.0625rem] h-2.5 rounded-full shadow-sm ${styles.bar}`}
+                      data-timeline-bar={context.label}
+                      style={{
+                        left: `${geometry.left}%`,
+                        width: `${geometry.width}%`,
+                      }}
+                    />
+                  </div>
+                </li>
+              </Fragment>
             )
           })}
         </ul>

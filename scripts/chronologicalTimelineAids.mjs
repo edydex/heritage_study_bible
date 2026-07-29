@@ -2,6 +2,14 @@ function context(label, dateLabel, startYear, endYear = startYear, certainty = '
   return { label, dateLabel, startYear, endYear, certainty }
 }
 
+function groupedContext(group, label, dateLabel, startYear, endYear = startYear, certainty = 'anchored') {
+  return { ...context(label, dateLabel, startYear, endYear, certainty), group }
+}
+
+function parallelContext(event, label, dateLabel, startYear, endYear = startYear, certainty = 'anchored') {
+  return groupedContext(`Parallel accounts — ${event}`, label, dateLabel, startYear, endYear, certainty)
+}
+
 function eraTimeline({
   heading,
   rangeLabel,
@@ -136,10 +144,10 @@ export const chronologicalTimelineAids = {
       { year: 753, label: 'Jeroboam II’s reign ends', shortLabel: 'c. 753' },
     ],
     contexts: [
-      context('Jeroboam II', 'Broad reign setting, c. 793-753 BC', 793, 753, 'broad'),
-      context('Jonah 1-4', 'Placed by Jonah son of Amittai’s Jeroboam II setting', 793, 753, 'broad'),
+      parallelContext('Jonah in Jeroboam II’s reign', '2 Kings 14:23-25', 'Jeroboam II and Jonah son of Amittai, c. 793-753 BC', 793, 753, 'broad'),
+      parallelContext('Jonah in Jeroboam II’s reign', 'Jonah 1-4', 'Placed in the same Jeroboam II setting, c. 793-753 BC', 793, 753, 'broad'),
     ],
-    caption: 'The matching bars show the prophetic setting supplied by 2 Kings 14:25. They do not claim a precise composition year for the narrative.',
+    caption: 'The grouped, matching bars put Jonah beside the Kings passage that supplies his historical setting. They do not claim a precise composition year for the narrative.',
   }),
 
   'amos-hosea-eighth-century': eraTimeline({
@@ -244,9 +252,11 @@ export const chronologicalTimelineAids = {
     ],
     contexts: [
       context('Isaiah 24-35', 'Grouped with the Assyrian-crisis material; not individually dated', 715, 701, 'broad'),
-      context('Isaiah 36-39', 'Hezekiah narrative centered on the 701 BC crisis', 701, 686, 'broad'),
+      parallelContext('Hezekiah and Sennacherib', 'Isaiah 36-39', 'Hezekiah narrative centered on the 701 BC crisis, c. 701-686 BC', 701, 686, 'broad'),
+      parallelContext('Hezekiah and Sennacherib', '2 Kings 18:13-20:19', 'Parallel Hezekiah narrative, c. 701-686 BC', 701, 686, 'broad'),
+      parallelContext('Hezekiah and Sennacherib', '2 Chronicles 32', 'Parallel Hezekiah summary, c. 701-686 BC', 701, 686, 'broad'),
     ],
-    caption: 'The bars show the chapters’ ministry and narrative setting. They do not treat the future horizons in Isaiah 24-35 as composition dates.',
+    caption: 'The grouped, equal bars align Isaiah’s Hezekiah narrative with its Kings and Chronicles parallels. The broader bar shows the surrounding ministry setting, not a fulfillment date.',
   }),
 
   'isaiah-comfort-prophecy': eraTimeline({
@@ -277,11 +287,13 @@ export const chronologicalTimelineAids = {
   }),
 
   'josiah-context-before-jeremiah': lateJudah([
-    context('Josiah overview', '2 Kings 22-23 and 2 Chronicles 34-35 • 640-609 BC', 640, 609, 'broad'),
+    parallelContext('Josiah’s reform and final years', '2 Kings 22-23', 'Josiah’s reform, Passover, and death, 640-609 BC', 640, 609, 'broad'),
+    parallelContext('Josiah’s reform and final years', '2 Chronicles 34-35', 'Parallel Josiah account, 640-609 BC', 640, 609, 'broad'),
     context('Jeremiah’s call', 'Josiah’s thirteenth year, c. 627 BC', 627),
     context('Jeremiah’s ministry', 'Josiah through Jerusalem’s fall, c. 627-586 BC', 627, 586),
   ], {
     heading: 'Josiah overlaps Jeremiah',
+    caption: 'The equal grouped bars align Kings and Chronicles as parallel accounts. Jeremiah’s shorter mark and longer ministry bar then show where his call and ministry fit inside that historical setting.',
   }),
 
   'nahum-zephaniah-late-judah-setting': lateJudah([
@@ -300,11 +312,12 @@ export const chronologicalTimelineAids = {
 
   'jeremiah-era-band-compromise': lateJudah([
     context('Jeremiah 1-20', 'Opening band; most units are not individually dated', 627, 586, 'broad'),
-    context('2 Kings 23:31-37', 'Jehoahaz and Jehoiakim, 609-598 BC', 609, 598),
-    context('2 Kings 24', 'Babylonian crisis through Zedekiah’s accession, c. 605-597 BC', 605, 597),
+    parallelContext('Judah’s last kings before the fall', '2 Kings 23:31-24:20', 'Jehoahaz through Zedekiah’s accession, 609-597 BC', 609, 597, 'broad'),
+    parallelContext('Judah’s last kings before the fall', '2 Chronicles 36:1-13', 'Parallel last-kings account, 609-597 BC', 609, 597, 'broad'),
     context('Jeremiah 21 onward', 'Late-kings material that repeatedly moves backward and forward', 609, 586, 'broad'),
   ], {
     heading: 'Why the history interrupts Jeremiah',
+    caption: 'Kings and Chronicles receive equal grouped bars because they cover the same last-kings setting. Jeremiah’s broader bars show why the book cannot be treated as a straight diary.',
   }),
 
   'habakkuk-babylonian-rise-setting': lateJudah([
@@ -315,35 +328,54 @@ export const chronologicalTimelineAids = {
   }),
 
   'jeremiah-last-kings-survey': lateJudah([
-    context('Jeremiah 21', 'Zedekiah’s final siege, c. 588-586 BC', 588, 586),
-    context('Jeremiah 22-23', 'Looks across Judah’s last kings, 609-586 BC', 609, 586, 'broad'),
-    context('Jeremiah 24', 'After Jehoiachin’s exile, c. 597 BC', 597),
+    parallelContext('Zedekiah’s final siege', 'Jeremiah 21', 'Zedekiah’s final siege, c. 588-586 BC', 588, 586),
+    parallelContext('Zedekiah’s final siege', '2 Kings 25:1-7', 'The same final siege and capture window, c. 588-586 BC', 588, 586),
+    parallelContext('Zedekiah’s final siege', '2 Chronicles 36:17-20', 'Parallel fall summary in the same siege window, c. 588-586 BC', 588, 586),
+    groupedContext('Historical frame — Judah’s last kings', 'Jeremiah 22-23', 'Looks across Judah’s last kings, 609-586 BC', 609, 586, 'broad'),
+    groupedContext('Historical frame — Judah’s last kings', '2 Kings 23:31-24:20', 'Jehoahaz through Zedekiah’s accession, 609-597 BC', 609, 597, 'broad'),
+    groupedContext('Historical frame — Judah’s last kings', '2 Chronicles 36:1-13', 'Parallel last-kings summary, 609-597 BC', 609, 597, 'broad'),
+    parallelContext('Jehoiachin’s first exile', 'Jeremiah 24', 'After Jehoiachin’s exile, c. 597 BC', 597),
+    parallelContext('Jehoiachin’s first exile', '2 Kings 24:10-17', 'Jehoiachin and Jerusalem’s first exiles, c. 597 BC', 597),
+    parallelContext('Jehoiachin’s first exile', '2 Chronicles 36:9-10', 'Parallel first-exile account, c. 597 BC', 597),
   ], {
     heading: 'Jeremiah 21-24 is not sequential',
+    caption: 'Grouped rows place Jeremiah beside the matching Kings and Chronicles setting. The middle group remains broader because Jeremiah 22-23 surveys more than one reign.',
   }),
 
   'jeremiah-jehoiakim-fourth-year': lateJudah([
-    context('Jeremiah 26', 'Beginning of Jehoiakim’s reign, c. 609 BC', 609),
+    groupedContext('Historical frame — Jehoiakim’s reign', 'Jeremiah 26', 'Beginning of Jehoiakim’s reign, c. 609 BC', 609),
+    groupedContext('Historical frame — Jehoiakim’s reign', '2 Kings 23:34-24:7', 'Jehoiakim’s reign and Babylonian crisis, 609-598 BC', 609, 598, 'broad'),
+    groupedContext('Historical frame — Jehoiakim’s reign', '2 Chronicles 36:4-8', 'Parallel Jehoiakim summary, 609-598 BC', 609, 598, 'broad'),
     context('Jeremiah 25', 'Jehoiakim’s fourth year, c. 605 BC', 605),
   ], {
     heading: 'Jeremiah 25-26 moves backward',
+    caption: 'The historical setting rows show Jehoiakim’s whole reign; the short Jeremiah marks identify the specific beginning-of-reign and fourth-year settings inside it.',
   }),
 
   'jeremiah-zedekiah-first-exiles': lateJudah([
-    context('First exile', 'Jehoiachin and others taken to Babylon, 597 BC', 597),
-    context('Jeremiah 27-29', 'Zedekiah’s reign after that exile, 597-586 BC', 597, 586, 'broad'),
+    parallelContext('Jehoiachin’s first exile', '2 Kings 24:10-17', 'Jehoiachin and others taken to Babylon, 597 BC', 597),
+    parallelContext('Jehoiachin’s first exile', '2 Chronicles 36:9-10', 'Parallel first-exile account, 597 BC', 597),
+    groupedContext('Same historical window — Zedekiah after the first exile', 'Jeremiah 27-29', 'Zedekiah’s reign after that exile, 597-586 BC', 597, 586, 'broad'),
+    groupedContext('Same historical window — Zedekiah after the first exile', '2 Kings 24:18-20', 'Zedekiah’s reign, 597-586 BC', 597, 586, 'broad'),
+    groupedContext('Same historical window — Zedekiah after the first exile', '2 Chronicles 36:11-14', 'Parallel Zedekiah setting, 597-586 BC', 597, 586, 'broad'),
     context('Jeremiah 28', 'Zedekiah’s fourth year, c. 594 BC', 594),
   ], {
     heading: 'Zedekiah and the first exiles',
+    caption: 'The paired exile marks and equal Zedekiah-era bars make the Kings and Chronicles setting visible instead of leaving it only in the note text.',
   }),
 
   'jeremiah-consolation-siege-flashback': lateJudah([
     context('Jeremiah 30-31', 'Promise section; not assigned a firm year', 627, 586, 'broad'),
-    context('Jeremiah 32-34', 'Zedekiah’s final siege, c. 588-586 BC', 588, 586),
-    context('Jeremiah 35', 'A flashback to Jehoiakim, 609-598 BC', 609, 598),
+    parallelContext('Zedekiah’s final siege', 'Jeremiah 32-34', 'Zedekiah’s final siege, c. 588-586 BC', 588, 586),
+    parallelContext('Zedekiah’s final siege', '2 Kings 25:1-7', 'The same final siege and capture window, c. 588-586 BC', 588, 586),
+    parallelContext('Zedekiah’s final siege', '2 Chronicles 36:17-20', 'Parallel fall summary in the same siege window, c. 588-586 BC', 588, 586),
+    groupedContext('Same historical window — Jehoiakim’s reign', 'Jeremiah 35', 'A flashback to Jehoiakim, 609-598 BC', 609, 598),
+    groupedContext('Same historical window — Jehoiakim’s reign', '2 Kings 23:34-24:7', 'Jehoiakim’s reign and Babylonian crisis, 609-598 BC', 609, 598, 'broad'),
+    groupedContext('Same historical window — Jehoiakim’s reign', '2 Chronicles 36:4-8', 'Parallel Jehoiakim summary, 609-598 BC', 609, 598, 'broad'),
     context('Jeremiah 36', 'Jehoiakim’s fourth year, c. 605 BC', 605),
   ], {
     heading: 'Promise, siege, then flashback',
+    caption: 'Equal grouped bars expose the historical setting: the siege passages align with one another, and the Jehoiakim flashback sits beside its Kings and Chronicles reign frame.',
   }),
 
   'daniel-early-babylonian-exile': {
@@ -367,9 +399,12 @@ export const chronologicalTimelineAids = {
 
   'jeremiah-zedekiah-siege-anchors': lateJudah([
     context('Zedekiah’s reign', '597-586 BC', 597, 586),
-    context('Jeremiah 37-38', 'The final siege and temporary Babylonian withdrawal, c. 588-586 BC', 588, 586),
+    parallelContext('Zedekiah’s final siege', 'Jeremiah 37-38', 'The final siege and temporary Babylonian withdrawal, c. 588-586 BC', 588, 586),
+    parallelContext('Zedekiah’s final siege', '2 Kings 25:1-7', 'The same final siege and capture window, c. 588-586 BC', 588, 586),
+    parallelContext('Zedekiah’s final siege', '2 Chronicles 36:17-20', 'Parallel fall summary in the same siege window, c. 588-586 BC', 588, 586),
   ], {
     heading: 'Jeremiah 37-38 stays near the end',
+    caption: 'The equal grouped bars align Jeremiah’s siege setting with the Kings sequence and the Chronicles summary. The longer bar above them is Zedekiah’s full reign.',
   }),
 
   'jeremiah-appendix-oracles': lateJudah([
@@ -382,33 +417,48 @@ export const chronologicalTimelineAids = {
   }),
 
   'late-judah-fall-history-first': fallAndExile([
-    context('2 Kings 25:1-26', 'Siege, fall, Gedaliah, and flight, c. 588-586 BC', 588, 586),
-    context('2 Kings 25:27-30', 'Jehoiachin released, c. 561 BC', 561),
-    context('2 Chronicles 36:11-21', 'Zedekiah through Jerusalem’s fall, 597-586 BC', 597, 586),
+    context('2 Kings 25:1-3', 'The final siege begins, c. 588-586 BC', 588, 586),
+    context('2 Chronicles 36:11-16', 'Zedekiah’s reign before the fall, 597-586 BC', 597, 586, 'broad'),
+    parallelContext('Jerusalem falls', '2 Kings 25:4-21', 'Jerusalem’s capture and destruction, c. 586 BC', 586, 585),
+    parallelContext('Jerusalem falls', '2 Chronicles 36:17-21', 'Parallel fall and destruction summary, c. 586 BC', 586, 585),
+    parallelContext('Jerusalem falls', 'Jeremiah 39', 'The same fall and immediate-aftermath window, c. 586 BC', 586, 585),
+    parallelContext('Gedaliah and the flight', '2 Kings 25:22-26', 'Gedaliah, his death, and the flight, c. 586 BC', 586, 585),
+    parallelContext('Gedaliah and the flight', 'Jeremiah 40-43', 'The same immediate-aftermath window, c. 586 BC', 586, 585),
+    parallelContext('Jehoiachin released', '2 Kings 25:27-30', 'Jehoiachin released, c. 561 BC', 561),
+    parallelContext('Jehoiachin released', 'Jeremiah 52:31-34', 'The same release retold, c. 561 BC', 561),
     context('2 Chronicles 36:22-23', 'Cyrus permits return, c. 539/538 BC', 539),
   ], {
     heading: 'The history reaches beyond the fall',
+    caption: 'Grouped rows align Kings and Chronicles with the Jeremiah passages that retell the same events. Equal bars mean the accounts share a historical setting; the ungrouped rows show the longer siege, reign, and return frame.',
   }),
 
   'jeremiah-fall-and-aftermath': fallAndExile([
-    context('Jeremiah 39', 'Jerusalem falls and Zedekiah is captured, 586 BC', 586),
-    context('Jeremiah 40-41', 'Gedaliah’s brief governorship and death, c. 586 BC', 586),
-    context('Jeremiah 42-44', 'The remnant flees to Egypt after the fall', 586, 580, 'broad'),
+    parallelContext('the fall and immediate aftermath', 'Jeremiah 39', 'Jerusalem falls and Zedekiah is captured, c. 586 BC', 586, 585),
+    parallelContext('the fall and immediate aftermath', 'Jeremiah 40-41', 'Gedaliah’s brief governorship and death, c. 586 BC', 586, 585),
+    parallelContext('the fall and immediate aftermath', '2 Kings 25:4-25', 'The matching fall and Gedaliah sequence, c. 586 BC', 586, 585),
+    parallelContext('the fall and immediate aftermath', '2 Chronicles 36:17-21', 'The matching fall summary, c. 586 BC', 586, 585),
+    parallelContext('the remnant flees to Egypt', 'Jeremiah 42-43', 'The remnant chooses Egypt, c. 586 BC', 586, 585),
+    parallelContext('the remnant flees to Egypt', '2 Kings 25:26', 'The same flight to Egypt, c. 586 BC', 586, 585),
+    context('Jeremiah 44', 'The remnant established in Egypt after the flight, broadly c. 585-580 BC', 585, 580, 'broad'),
   ], {
-    heading: 'Jerusalem’s fall and immediate aftermath',
-    rangeLabel: 'Final siege through the remnant in Egypt • c. 588-580 BC',
-    startYear: 588,
+    heading: 'Jeremiah beside Kings and Chronicles',
+    rangeLabel: 'Jerusalem’s fall through the remnant in Egypt • c. 586-580 BC',
+    startYear: 586,
     endYear: 580,
-    startLabel: '588 BC',
+    startLabel: '586 BC',
     endLabel: 'c. 580 BC',
     ticks: [
       { year: 586, label: 'Jerusalem falls', shortLabel: '586 • fall' },
     ],
+    caption: 'Rows in each group use identical one-year bars because they describe the same c. 586 BC historical setting. Jeremiah 39 and 40-41 now share the fall-and-immediate-aftermath range, with Kings and Chronicles directly beside them; Jeremiah 44 then continues later in Egypt.',
   }),
 
   'jeremiah-historical-appendix': fallAndExile([
-    context('Jeremiah 52:1-30', 'Zedekiah, siege, destruction, and deportations, 597-586 BC', 597, 586),
-    context('Jeremiah 52:31-34', 'Jehoiachin released, c. 561 BC', 561),
+    parallelContext('Zedekiah through Jerusalem’s fall', 'Jeremiah 52:1-30', 'Zedekiah, siege, destruction, and deportations, 597-586 BC', 597, 586),
+    parallelContext('Zedekiah through Jerusalem’s fall', '2 Kings 24:18-25:21', 'The matching Zedekiah-to-destruction account, 597-586 BC', 597, 586),
+    parallelContext('Zedekiah through Jerusalem’s fall', '2 Chronicles 36:11-21', 'The parallel Zedekiah and fall summary, 597-586 BC', 597, 586),
+    parallelContext('Jehoiachin released', 'Jeremiah 52:31-34', 'Jehoiachin released, c. 561 BC', 561),
+    parallelContext('Jehoiachin released', '2 Kings 25:27-30', 'The same release account, c. 561 BC', 561),
   ], {
     heading: 'Jeremiah 52 spans two endpoints',
     rangeLabel: 'Zedekiah’s accession through Jehoiachin’s release • 597-561 BC',
@@ -417,6 +467,7 @@ export const chronologicalTimelineAids = {
     ticks: [
       { year: 586, label: 'Jerusalem falls', shortLabel: '586 • fall' },
     ],
+    caption: 'The grouped bars expose both parallel endpoints: Jeremiah 52 aligns with Kings and Chronicles through the fall, then with Kings again when Jehoiachin is released.',
   }),
 
   'exilic-psalm-laments': fallAndExile([
