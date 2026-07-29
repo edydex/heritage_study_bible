@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES } from '../data/resources'
+import ChronologyTimeline from './ChronologyTimeline'
 import {
   COMMENTS_ITEM_TYPE,
   PLAN_NOTE_ITEM_TYPE,
@@ -236,6 +237,8 @@ function ReadingPlanNoteViewer() {
               <p className="mt-4 text-base leading-relaxed text-gray-700 dark:text-gray-200">
                 {noteItem.note}
               </p>
+
+              <ChronologyTimeline timeline={noteItem.timeline} />
 
               {sourceItems.length > 0 && (
                 <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
