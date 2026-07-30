@@ -170,6 +170,6 @@ networks:
 
 volumes:
   postgres-data:
-    name: heritage-community-postgres
+    name: ${HERITAGE_POSTGRES_VOLUME:-heritage-community-postgres}
   media:
-    name: heritage-community-media
+    name: ${HERITAGE_MEDIA_VOLUME:-heritage-community-media}

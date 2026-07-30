@@ -1,6 +1,7 @@
 import type { Payload } from 'payload'
 import { WOTBC_STARTER_SONGS } from '@/data/wotbcSongCatalog'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
+import { synthesizeLegacySyncDocuments } from '@/lib/syncShowProtocol'
 
 export async function seedConfiguredSongs(payload: Payload) {
   if ((process.env.COMMUNITY_ID || '').trim().toLowerCase() !== 'wotbc') return
@@ -21,6 +22,10 @@ export async function seedConfiguredSongs(payload: Payload) {
 
   for (const song of WOTBC_STARTER_SONGS) {
     if (existingSlugs.has(song.slug)) continue
+    const syncDocuments = synthesizeLegacySyncDocuments({
+      ...song,
+      syncId: song.slug,
+    })
     await payload.create({
       collection: 'songs',
       draft: false,
@@ -29,6 +34,10 @@ export async function seedConfiguredSongs(payload: Payload) {
         ...song,
         community: communityId,
         description: 'WOTBC starter song listing. Open Admin → Songs to add church-reviewed words, chords, and files.',
+        syncId: song.slug,
+        syncDocuments,
+        syncVersion: 1,
+        visibility: 'public',
         status: 'published',
       },
     })

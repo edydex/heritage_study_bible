@@ -152,6 +152,11 @@ heritage_compose exec -T postgres sh -ec \
   'exec pg_dump --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --format=custom --compress=9 --no-owner --no-privileges' \
   >"${partial}/database.dump"
 [[ -s "${partial}/database.dump" ]] || heritage_die "PostgreSQL produced an empty dump."
+heritage_info "Validating the PostgreSQL dump catalog."
+heritage_compose exec -T postgres sh -ec \
+  'exec pg_restore --list' \
+  <"${partial}/database.dump" >/dev/null \
+  || heritage_die "PostgreSQL produced an unreadable dump."
 
 heritage_info "Archiving uploaded media."
 heritage_compose run --rm --no-deps -T --entrypoint tar community \

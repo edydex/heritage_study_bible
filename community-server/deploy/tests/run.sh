@@ -9,11 +9,99 @@ trap 'rm -rf -- "$TMP_ROOT"' EXIT
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 pass() { printf 'ok - %s\n' "$*"; }
 
-scripts=("${DEPLOY_DIR}"/*.sh "${DEPLOY_DIR}/heritage-community" "${DEPLOY_DIR}/lib"/*.sh)
+scripts=(
+  "${DEPLOY_DIR}"/*.sh
+  "${DEPLOY_DIR}/heritage-community"
+  "${DEPLOY_DIR}/lib"/*.sh
+  "${DEPLOY_DIR}/tests"/*.sh
+)
 for script in "${scripts[@]}"; do
   bash -n "$script"
 done
 pass "all operator scripts pass bash syntax checking"
+
+backup_dump_check_line=$(grep -n -m 1 'pg_restore --list' "${DEPLOY_DIR}/backup.sh" | cut -d: -f1)
+backup_publish_line=$(grep -n -m 1 'mv -- "${partial}" "${destination}"' "${DEPLOY_DIR}/backup.sh" | cut -d: -f1)
+[[ -n $backup_dump_check_line && -n $backup_publish_line && $backup_dump_check_line -lt $backup_publish_line ]] \
+  || fail "a backup can be published before PostgreSQL validates its dump catalog"
+
+restore_dump_check_line=$(grep -n -m 1 'pg_restore postgres --list' "${DEPLOY_DIR}/restore.sh" | cut -d: -f1)
+restore_confirmation_line=$(grep -n -m 1 '^confirmation=' "${DEPLOY_DIR}/restore.sh" | cut -d: -f1)
+restore_drop_line=$(grep -n -m 1 'dropdb --maintenance-db' "${DEPLOY_DIR}/restore.sh" | cut -d: -f1)
+[[ -n $restore_dump_check_line \
+  && -n $restore_confirmation_line \
+  && -n $restore_drop_line \
+  && $restore_dump_check_line -lt $restore_confirmation_line \
+  && $restore_dump_check_line -lt $restore_drop_line ]] \
+  || fail "restore can prompt or replace live data before validating the PostgreSQL dump catalog"
+pass "backup and restore validate PostgreSQL dump catalogs before publication or replacement"
+
+tunnel_preservation_test="${DEPLOY_DIR}/tests/tunnel-preservation.sh"
+bash "${tunnel_preservation_test}" >/dev/null
+pass "update and restore preserve Cloudflare recovery transport during quiescence and failure"
+
+backup_restore_test="${DEPLOY_DIR}/tests/backup-restore-syncshow.sh"
+if env -u HERITAGE_DISPOSABLE_CI \
+  CI=true GITHUB_ACTIONS=true \
+  bash "${backup_restore_test}" >/dev/null 2>&1; then
+  fail "the destructive SyncShow restore regression ran without its exact disposable marker"
+fi
+if HERITAGE_DISPOSABLE_CI=wrong-marker \
+  CI=true GITHUB_ACTIONS=true \
+  bash "${backup_restore_test}" >/dev/null 2>&1; then
+  fail "the destructive SyncShow restore regression accepted the wrong marker"
+fi
+if HERITAGE_DISPOSABLE_CI=heritage-community-syncshow-backup-restore-v1 \
+  CI=false GITHUB_ACTIONS=true \
+  bash "${backup_restore_test}" >/dev/null 2>&1; then
+  fail "the destructive SyncShow restore regression accepted a non-CI host"
+fi
+grep -Fq "GITHUB_ACTIONS" "${backup_restore_test}" \
+  || fail "the destructive restore regression is not restricted to GitHub Actions"
+grep -Fq 'COMMUNITY_ID=ci-church' "${backup_restore_test}" \
+  || fail "the destructive restore regression does not require its disposable church identity"
+grep -Fq 'postgresql://heritage:ci-database-password@postgres:5432/heritage_community' \
+  "${backup_restore_test}" \
+  || fail "the destructive restore regression does not require a container-local CI database"
+grep -Fq 'HERITAGE_POSTGRES_VOLUME' "${backup_restore_test}" \
+  || fail "the destructive restore regression does not isolate PostgreSQL storage"
+grep -Fq 'HERITAGE_MEDIA_VOLUME' "${backup_restore_test}" \
+  || fail "the destructive restore regression does not isolate media storage"
+grep -Fq 'config --format json' "${backup_restore_test}" \
+  || fail "the destructive restore regression does not prove resolved storage names"
+grep -Fq -- '--quiesce' "${backup_restore_test}" \
+  || fail "the restore regression does not exercise a quiesced backup"
+if grep -Fq -- '--online' "${backup_restore_test}"; then
+  fail "the restore regression can use an online backup"
+fi
+grep -Fq -- '--skip-safety-backup' "${backup_restore_test}" \
+  || fail "the disposable restore regression can create a redundant safety backup"
+grep -Fq -- '--yes' "${backup_restore_test}" \
+  || fail "the disposable restore regression does not invoke the actual confirmed restore path"
+for retained_table in \
+  syncshow_sermon_changes \
+  syncshow_sermon_publications \
+  syncshow_sermon_publication_catalogs \
+  service_plans \
+  service_plans_entries \
+  syncshow_song_public_links \
+  media; do
+  grep -Fq "${retained_table}" "${backup_restore_test}" \
+    || fail "the restore regression omits ${retained_table} evidence"
+done
+grep -Fq 'syncshow-backup-restore-sentinel.txt' "${backup_restore_test}" \
+  || fail "the restore regression omits exact media bytes"
+grep -Fq 'cmp -- "${expected_db}" "${after_db}"' "${backup_restore_test}" \
+  || fail "the restore regression does not compare exact database evidence"
+grep -Fq 'assert_fixture_rows_absent' "${backup_restore_test}" \
+  || fail "the restore regression does not prove every fixture row was removed"
+grep -Fq '/.well-known/heritage-community.json' "${backup_restore_test}" \
+  || fail "the restore regression does not finish with an app health check"
+grep -Fq 'HERITAGE_POSTGRES_VOLUME' "${SERVER_DIR}/docker-compose.production.yml" \
+  || fail "production Compose cannot allocate a disposable PostgreSQL volume"
+grep -Fq 'HERITAGE_MEDIA_VOLUME' "${SERVER_DIR}/docker-compose.production.yml" \
+  || fail "production Compose cannot allocate a disposable media volume"
+pass "SyncShow recovery regression is fail-closed and covers exact database/media restore evidence"
 
 if command -v shellcheck >/dev/null 2>&1; then
   shellcheck -S warning "${scripts[@]}"

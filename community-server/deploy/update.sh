@@ -16,7 +16,8 @@ Options:
   --install-dir PATH       Deployment directory (default: script parent)
   --backup-dir PATH        Backup root (default: /var/backups/heritage-community)
   --no-pull                Build the code already on disk; do not contact Git
-  --include-infrastructure Also pull current PostgreSQL and cloudflared images
+  --include-infrastructure Also pull current PostgreSQL and cloudflared images;
+                           a running tunnel is staged but never restarted
   --skip-backup            Skip the required pre-update backup (dangerous)
   --yes                    Confirm --skip-backup without a typed phrase
   --wait SECONDS           Health-check timeout after deployment (default: 120)
@@ -33,6 +34,9 @@ Normal sequence:
 
 The script never resets code or automatically restores a database. On failure
 it prints the pre-update commit and backup so the operator can inspect first.
+The Cloudflare connector is never stopped by update, because it may also carry
+the operator's SSH recovery path. Public app requests can be unavailable while
+the community app is deliberately stopped.
 EOF
 }
 
@@ -144,18 +148,8 @@ on_error() {
   heritage_warn "No automatic reset or database rollback was attempted. Inspect 'docker compose logs' before restoring."
   if (( app_quiesced )); then
     heritage_compose stop --timeout 60 community >/dev/null 2>&1 || true
-    if heritage_service_running cloudflared; then
-      heritage_compose stop --timeout 60 cloudflared >/dev/null 2>&1 || true
-    fi
-    if command -v systemctl >/dev/null 2>&1 \
-      && systemctl is-active --quiet heritage-community-tunnel.service; then
-      if [[ ${EUID} -eq 0 ]]; then
-        systemctl stop heritage-community-tunnel.service >/dev/null 2>&1 || true
-      elif command -v sudo >/dev/null 2>&1; then
-        sudo systemctl stop heritage-community-tunnel.service >/dev/null 2>&1 || true
-      fi
-    fi
-    heritage_warn "The app and public connector remain stopped because the failure occurred after migration quiescence."
+    heritage_warn "The app remains stopped because the failure occurred after migration quiescence."
+    heritage_warn "The Cloudflare connector was left running to preserve remote recovery access; public app requests may report the origin as unavailable."
   fi
   exit "${status}"
 }
@@ -208,8 +202,19 @@ heritage_info "Running database migrations."
 heritage_compose run --rm -T migrate
 
 phase="service deployment"
-heritage_info "Replacing services with the updated images."
-heritage_compose up -d --remove-orphans
+heritage_info "Replacing the PostgreSQL and community services with the updated images."
+heritage_compose up -d postgres community
+
+# A running connector may be carrying the SSH session executing this update.
+# Never ask Compose to reconcile or restart it. If token mode is configured but
+# its connector was already absent, starting it after the app is safe and
+# preserves the existing `update` behavior without touching a live transport.
+if heritage_compose config --services | grep -qx cloudflared \
+  && ! heritage_service_running cloudflared; then
+  phase="public connector startup"
+  heritage_info "Starting the configured Cloudflare connector because it was not running."
+  heritage_compose up -d cloudflared
+fi
 
 phase="health verification"
 "${SCRIPT_DIR}/status.sh" \

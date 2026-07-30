@@ -11,6 +11,11 @@
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "test:deploy": "bash deploy/tests/run.sh",
     "test:appliance": "bash appliance/tests/run.sh",
+    "test:syncshow": "node --import tsx --test tests/disposable-live-database.test.ts tests/syncshow-protocol.test.ts tests/syncshow-endpoint.test.ts tests/syncshow-backfill.test.ts tests/syncshow-sermon-contract.test.ts tests/syncshow-sermon-endpoint.test.ts tests/syncshow-sermon-history-schema.test.ts tests/syncshow-sermon-publication-state-endpoint.test.ts tests/public-sermon-publication.test.ts tests/public-sermon-serving.test.ts tests/sermon-publication-endpoint.test.ts tests/sermon-publication-review.test.ts tests/manager-sermon-preparation.test.ts tests/community-content-access.test.ts tests/community-service-plan.test.ts tests/community-service-plan-endpoint.test.ts tests/song-public-link-contract.test.ts tests/song-public-link-endpoint.test.ts tests/song-member-sharing-contract.test.ts tests/song-member-sharing-store.test.ts && node --test tests/syncshow-contract.test.mjs tests/syncshow-sermon-migration.test.mjs tests/syncshow-sermon-publication-migration.test.mjs tests/sermon-publication-review-static.test.mjs tests/manager-sermon-preparation-static.test.mjs tests/community-service-plan-migration.test.mjs tests/song-public-link-migration.test.mjs tests/song-member-sharing-migration.test.mjs tests/syncshow-sermon-change-source-migration.test.mjs tests/syncshow-live-ci-wiring.test.mjs",
+    "test:syncshow:service-plan-live": "node --import tsx --test tests/community-service-plan-payload.test.ts",
+    "test:syncshow:song-link-live": "cross-env NODE_ENV=production node --import tsx --test tests/song-public-link-payload.test.ts",
+    "test:syncshow:sermon-history-live": "node --import tsx --test tests/syncshow-sermon-change-source-postgres.test.ts",
+    "preflight:syncshow": "node --import tsx scripts/syncshow-backfill-report.mjs",
     "typecheck": "tsc --noEmit",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
@@ -24,6 +29,7 @@
     "@payloadcms/richtext-lexical": "3.86.0",
     "@payloadcms/ui": "3.86.0",
     "cross-env": "10.1.0",
+    "drizzle-orm": "0.45.2",
     "graphql": "^16.8.1",
     "next": "16.2.10",
     "payload": "3.86.0",
@@ -33,9 +39,12 @@
   },
   "devDependencies": {
     "@types/node": "24.12.3",
+    "@types/pg": "8.20.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "autoprefixer": "10.4.24",
+    "pg": "8.20.0",
+    "tsx": "4.22.4",
     "typescript": "6.0.3"
   },
   "engines": {

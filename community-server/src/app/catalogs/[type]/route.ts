@@ -1,8 +1,9 @@
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
-import { isCommunityMemberRequest } from '@/lib/communityMemberRequest'
-import { publicJson } from '@/lib/publicConfig'
+import { communityRequestAccess } from '@/lib/communityMemberRequest'
+import { isSongVisibleToMember } from '@/lib/syncShowProtocol'
+import { privateAuthorizationJson, publicJson } from '@/lib/publicConfig'
 
 const typeToCollection = {
   readingPlans: 'reading-plans',
@@ -24,50 +25,86 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
   const { type } = await context.params
   const collection = typeToCollection[type as keyof typeof typeToCollection]
   if (!collection) return publicJson({ error: 'Unknown catalog.' }, { status: 404 })
+  const catalogJson = type === 'songs' ? privateAuthorizationJson : publicJson
 
   const payload = await getPayload({ config })
   const communityId = await getConfiguredCommunityId(payload)
   if (communityId == null) {
-    return publicJson({ error: 'The configured community does not exist.' }, { status: 503 })
+    return catalogJson({ error: 'The configured community does not exist.' }, { status: 503 })
   }
-  const songCatalogVisible = type !== 'songs'
-    || await isCommunityMemberRequest(payload, request.headers, communityId)
-  if (!songCatalogVisible) {
-    return publicJson(
+  const songAccess = type === 'songs'
+    ? await communityRequestAccess(payload, request.headers, communityId)
+    : null
+  if (type === 'songs' && !songAccess?.authenticated) {
+    return catalogJson(
       {
         schemaVersion: 2,
         contentType: type,
         updatedAt: new Date().toISOString(),
         items: [],
       },
-      {
-        headers: {
-          'Cache-Control': 'private, no-store',
-          Vary: 'Authorization',
-          'X-Robots-Tag': 'noindex, nofollow, noarchive',
-        },
-      },
     )
   }
+  const now = new Date().toISOString()
   const result = await payload.find({
     collection,
     depth: 0,
     limit: 1000,
     overrideAccess: true,
+    showHiddenFields: type === 'songs',
     where: {
       and: [
-        { status: { equals: 'published' } },
         { community: { equals: communityId } },
+        ...(type === 'songs' && songAccess?.manager
+          ? [{ status: { not_equals: 'archived' } }]
+          : [{ status: { equals: 'published' } }]),
+        ...(type === 'songs' && !songAccess?.manager
+          ? [{
+            or: [
+                {
+                  and: [
+                    { visibility: { equals: 'public' } },
+                    { memberShareVisibility: { equals: 'public' } },
+                  ],
+                },
+                {
+                  and: [
+                    { visibility: { equals: 'scheduled-public' } },
+                    { publishAt: { less_than_equal: now } },
+                    { memberShareVisibility: { equals: 'scheduled-public' } },
+                    { memberSharePublishAt: { less_than_equal: now } },
+                  ],
+                },
+              ],
+            }]
+          : []),
+        ...(type === 'songs' && !songAccess?.manager
+          ? [
+              { memberShareReceiptId: { exists: true } },
+              {
+                or: [
+                  { memberShareValidThrough: { exists: false } },
+                  { memberShareValidThrough: { greater_than_equal: now } },
+                ],
+              },
+            ]
+          : []),
       ],
     },
   })
+  const docs = type === 'songs' && !songAccess?.manager
+    ? result.docs.filter(doc => isSongVisibleToMember(
+        doc as unknown as Record<string, unknown>,
+        new Date(now),
+      ))
+    : result.docs
 
-  return publicJson(
+  return catalogJson(
     {
       schemaVersion: 2,
       contentType: type,
       updatedAt: new Date().toISOString(),
-      items: result.docs.map(doc => ({
+      items: docs.map(doc => ({
         id: String(doc.id),
         title: doc.title,
         description: doc.description || '',
@@ -75,22 +112,16 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
         authors: 'authors' in doc ? doc.authors : undefined,
         alternateTitle: 'russianTitle' in doc ? doc.russianTitle : undefined,
         russianTitle: 'russianTitle' in doc ? doc.russianTitle : undefined,
-        rightsStatus: 'rightsStatus' in doc ? doc.rightsStatus : undefined,
+        rightsStatus:
+          type !== 'songs' && 'rightsStatus' in doc
+            ? doc.rightsStatus
+            : undefined,
         content: {
           url: `/content/${type}/${doc.id}`,
           mediaType: mediaTypes[type as keyof typeof mediaTypes],
         },
       })),
     },
-    type === 'songs'
-      ? {
-          headers: {
-            'Cache-Control': 'private, no-store',
-            Vary: 'Authorization',
-            'X-Robots-Tag': 'noindex, nofollow, noarchive',
-          },
-        }
-      : {},
   )
 }
 

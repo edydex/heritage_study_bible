@@ -8,6 +8,166 @@
   background: linear-gradient(135deg, var(--theme-elevation-50), var(--theme-bg));
 }
 
+.heritage-sermon-preparation {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 68rem;
+  padding-bottom: 3rem;
+}
+
+.heritage-sermon-preparation__heading h1,
+.heritage-sermon-preparation__success h2 {
+  margin: 0.2rem 0 0.5rem;
+}
+
+.heritage-sermon-preparation__heading > p:last-child,
+.heritage-sermon-preparation__success p {
+  max-width: 60rem;
+  margin: 0;
+  color: var(--theme-elevation-650);
+  line-height: 1.55;
+}
+
+.heritage-sermon-preparation__boundary,
+.heritage-sermon-preparation__success {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 0.65rem;
+  background: var(--theme-elevation-50);
+}
+
+.heritage-sermon-preparation__boundary strong {
+  color: var(--theme-text);
+}
+
+.heritage-sermon-preparation__form {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.heritage-sermon-preparation__form fieldset {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: 1.1rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 0.65rem;
+}
+
+.heritage-sermon-preparation__form legend {
+  padding: 0 0.35rem;
+  font-weight: 700;
+}
+
+.heritage-sermon-preparation__grid,
+.heritage-sermon-preparation__passage {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.heritage-sermon-preparation__passage {
+  grid-template-columns: minmax(12rem, 1.5fr) repeat(4, minmax(7rem, 1fr));
+}
+
+.heritage-sermon-preparation__form label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.heritage-sermon-preparation__date-field {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.heritage-sermon-preparation__date-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+
+.heritage-sermon-preparation__date-control .btn {
+  width: auto;
+  white-space: nowrap;
+}
+
+.heritage-sermon-preparation__form label small,
+.heritage-sermon-preparation__help {
+  margin: 0;
+  color: var(--theme-elevation-600);
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.heritage-sermon-preparation__form input,
+.heritage-sermon-preparation__form select,
+.heritage-sermon-preparation__form textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.heritage-sermon-preparation__form textarea {
+  resize: vertical;
+  font: inherit;
+  line-height: 1.5;
+}
+
+.heritage-sermon-preparation__confirmation {
+  display: grid !important;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.75rem !important;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 0.65rem;
+  background: var(--theme-success-50);
+}
+
+.heritage-sermon-preparation__confirmation input {
+  width: auto;
+  margin-top: 0.2rem;
+}
+
+.heritage-sermon-preparation__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.heritage-sermon-preparation__error {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--theme-error-300);
+  border-radius: 0.5rem;
+  color: var(--theme-error-700);
+  background: var(--theme-error-50);
+}
+
+.heritage-sermon-preparation__success details code {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 800px) {
+  .heritage-sermon-preparation__grid,
+  .heritage-sermon-preparation__passage {
+    grid-template-columns: 1fr;
+  }
+
+  .heritage-sermon-preparation__date-control {
+    grid-template-columns: 1fr;
+  }
+}
+
 .heritage-admin-welcome h1 {
   margin: 2px 0 6px;
   font-family: Georgia, serif;
@@ -109,6 +269,598 @@
   text-decoration: none;
 }
 
+.heritage-sermon-review {
+  width: 100%;
+  padding: var(--gutter-h);
+}
+
+.heritage-sermon-review__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--base);
+  max-width: 1440px;
+  margin: 0 auto var(--base);
+}
+
+.heritage-sermon-review__header h1,
+.heritage-sermon-review__header p,
+.heritage-review-detail-heading h2,
+.heritage-review-detail-heading p {
+  margin: 0;
+}
+
+.heritage-sermon-review__header h1 {
+  margin: 2px 0 6px;
+  font-family: Georgia, serif;
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+}
+
+.heritage-sermon-review__header p:last-child {
+  max-width: 60rem;
+  color: var(--theme-elevation-650);
+  line-height: 1.5;
+}
+
+.heritage-sermon-review__header > a {
+  flex: 0 0 auto;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.heritage-sermon-review__layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--base);
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.heritage-sermon-review__list,
+.heritage-sermon-review__detail,
+.heritage-review-placeholder {
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 14px;
+  background: var(--theme-bg);
+}
+
+.heritage-sermon-review__list {
+  position: sticky;
+  top: calc(var(--base) * 0.75);
+  overflow: hidden;
+}
+
+.heritage-sermon-review__detail {
+  min-width: 0;
+  padding: calc(var(--base) * 1.1);
+}
+
+.heritage-review-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: calc(var(--base) * 0.75);
+  border-bottom: 1px solid var(--theme-elevation-150);
+  background: var(--theme-elevation-50);
+}
+
+.heritage-review-panel-heading h2,
+.heritage-review-panel-heading p {
+  margin: 0;
+}
+
+.heritage-review-panel-heading h2 {
+  font-size: 1.1rem;
+}
+
+.heritage-review-panel-heading p {
+  margin-top: 2px;
+  color: var(--theme-elevation-600);
+  font-size: 0.8rem;
+}
+
+.heritage-review-items {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+}
+
+.heritage-review-item {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 4px;
+  padding: calc(var(--base) * 0.7);
+  border: 0;
+  border-bottom: 1px solid var(--theme-elevation-100);
+  background: transparent;
+  color: var(--theme-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.heritage-review-item:hover,
+.heritage-review-item--selected {
+  background: var(--theme-elevation-50);
+}
+
+.heritage-review-item--selected {
+  box-shadow: inset 4px 0 0 var(--theme-success-500);
+}
+
+.heritage-review-item > span {
+  color: var(--theme-elevation-650);
+  font-size: 0.8rem;
+}
+
+.heritage-review-item__statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+}
+
+.heritage-review-item__statuses > span {
+  padding: 2px 7px;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 999px;
+  background: var(--theme-input-bg);
+  color: var(--theme-elevation-800);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.heritage-review-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid var(--theme-elevation-350);
+  border-radius: 8px;
+  background: var(--theme-elevation-800);
+  color: var(--theme-elevation-0);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.heritage-review-button--quiet {
+  min-height: 34px;
+  padding: 6px 10px;
+  background: var(--theme-input-bg);
+  color: var(--theme-text);
+  font-size: 0.8rem;
+}
+
+.heritage-review-button--publish {
+  margin-top: 4px;
+  border-color: var(--theme-success-600);
+  background: var(--theme-success-500);
+  color: var(--theme-success-0);
+}
+
+.heritage-review-button--danger {
+  border-color: var(--theme-error-600);
+  background: var(--theme-error-500);
+  color: var(--theme-error-0);
+}
+
+.heritage-review-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.heritage-review-button:focus-visible,
+.heritage-review-item:focus-visible,
+.heritage-review-choice input:focus-visible,
+.heritage-review-confirmation input:focus-visible {
+  outline: 3px solid var(--theme-success-300);
+  outline-offset: 2px;
+}
+
+.heritage-review-placeholder {
+  padding: calc(var(--base) * 1.25);
+  border-style: dashed;
+  background: var(--theme-elevation-50);
+}
+
+.heritage-review-placeholder h2,
+.heritage-review-placeholder p {
+  margin: 0;
+}
+
+.heritage-review-placeholder p {
+  margin-top: 6px;
+  color: var(--theme-elevation-650);
+}
+
+.heritage-review-empty {
+  margin: 0;
+  padding: calc(var(--base) * 0.75);
+  color: var(--theme-elevation-600);
+  line-height: 1.45;
+}
+
+.heritage-review-notice,
+.heritage-review-error,
+.heritage-review-warning,
+.heritage-review-conflict {
+  max-width: 1440px;
+  margin: 0 auto var(--base);
+  padding: 11px 13px;
+  border: 1px solid var(--theme-elevation-250);
+  border-radius: 9px;
+  line-height: 1.45;
+}
+
+.heritage-review-notice--success {
+  border-color: var(--theme-success-300);
+  background: var(--theme-success-50);
+}
+
+.heritage-review-notice--info {
+  background: var(--theme-elevation-50);
+}
+
+.heritage-review-error,
+.heritage-review-conflict {
+  border-color: var(--theme-error-300);
+  background: var(--theme-error-50);
+  color: var(--theme-error-800);
+}
+
+.heritage-review-warning {
+  margin: 12px 0;
+  border-color: var(--theme-warning-300);
+  background: var(--theme-warning-50);
+  color: var(--theme-warning-800);
+}
+
+.heritage-review-conflict p {
+  margin: 4px 0 10px;
+}
+
+.heritage-review-detail-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--base);
+  margin-bottom: var(--base);
+}
+
+.heritage-review-detail-heading h2 {
+  margin-top: 2px;
+  font-family: Georgia, serif;
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+}
+
+.heritage-review-detail-heading p:last-child {
+  margin-top: 5px;
+  color: var(--theme-elevation-650);
+}
+
+.heritage-review-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0 0 var(--base);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 10px;
+  background: var(--theme-elevation-150);
+}
+
+.heritage-review-summary > div {
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--theme-elevation-50);
+}
+
+.heritage-review-summary__wide {
+  grid-column: 1 / -1;
+}
+
+.heritage-review-summary dt {
+  color: var(--theme-elevation-600);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.heritage-review-summary dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.heritage-current-publication {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: var(--base);
+  padding: 12px 14px;
+  border: 1px solid var(--theme-success-300);
+  border-radius: 10px;
+  background: var(--theme-success-50);
+}
+
+.heritage-current-publication > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.heritage-current-publication details p {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.heritage-review-fieldset {
+  min-width: 0;
+  margin: 0 0 var(--base);
+  padding: calc(var(--base) * 0.85);
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 12px;
+}
+
+.heritage-review-fieldset > legend {
+  padding: 0 6px;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.heritage-review-fieldset > p:first-of-type {
+  margin: 0 0 12px;
+  color: var(--theme-elevation-650);
+  line-height: 1.45;
+}
+
+.heritage-review-inventory {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 10px;
+}
+
+.heritage-review-recording {
+  margin-bottom: 14px;
+  padding: 13px;
+  border: 1px dashed var(--theme-elevation-300);
+  border-radius: 10px;
+  background: var(--theme-elevation-50);
+}
+
+.heritage-review-recording h4,
+.heritage-review-recording p {
+  margin: 0;
+}
+
+.heritage-review-recording h4 {
+  font-size: 0.95rem;
+}
+
+.heritage-review-recording > div:first-child > p {
+  margin-top: 5px;
+  color: var(--theme-elevation-650);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.heritage-review-recording__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.heritage-review-recording__url {
+  grid-column: 1 / -1;
+}
+
+.heritage-review-control {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+  color: var(--theme-elevation-750);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.heritage-review-control input,
+.heritage-review-control select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--theme-elevation-300);
+  border-radius: 7px;
+  background: var(--theme-input-bg);
+  color: var(--theme-text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.heritage-review-control input:focus-visible,
+.heritage-review-control select:focus-visible {
+  outline: 3px solid var(--theme-success-300);
+  outline-offset: 2px;
+}
+
+.heritage-review-recording__preview {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--theme-elevation-200);
+}
+
+.heritage-review-recording__preview audio {
+  width: 100%;
+}
+
+.heritage-review-recording__preview a {
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+}
+
+.heritage-review-choice {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 9px;
+  background: var(--theme-input-bg);
+}
+
+.heritage-review-choice--unavailable {
+  background: var(--theme-elevation-50);
+  opacity: 0.75;
+}
+
+.heritage-review-choice__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.heritage-review-choice__heading input,
+.heritage-review-confirmation input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin: 2px 0 0;
+  accent-color: var(--theme-success-500);
+}
+
+.heritage-review-choice__heading label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+}
+
+.heritage-review-choice__heading label span,
+.heritage-review-choice__availability {
+  color: var(--theme-elevation-650);
+  font-size: 0.8rem;
+}
+
+.heritage-review-choice details {
+  margin-top: 10px;
+  border-top: 1px solid var(--theme-elevation-150);
+  padding-top: 8px;
+}
+
+.heritage-review-choice summary,
+.heritage-current-publication summary,
+.heritage-review-technical summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.heritage-review-choice pre {
+  max-height: 380px;
+  margin: 10px 0 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.heritage-review-choice__availability {
+  margin: 9px 0 3px;
+}
+
+.heritage-review-choice > a {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+}
+
+.heritage-review-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 10px 11px;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 8px;
+  background: var(--theme-elevation-50);
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.heritage-review-withdraw {
+  margin: calc(var(--base) * 1.25) 0 var(--base);
+  padding: calc(var(--base) * 0.85);
+  border: 1px solid var(--theme-error-250);
+  border-radius: 12px;
+}
+
+.heritage-review-withdraw h3,
+.heritage-review-withdraw > p {
+  margin: 0;
+}
+
+.heritage-review-withdraw > p {
+  margin-top: 5px;
+  color: var(--theme-elevation-650);
+}
+
+.heritage-review-technical {
+  margin-top: var(--base);
+  padding: 12px 14px;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 10px;
+  background: var(--theme-elevation-50);
+}
+
+.heritage-review-technical dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.heritage-review-technical dt {
+  color: var(--theme-elevation-600);
+  font-size: 0.75rem;
+}
+
+.heritage-review-technical dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.heritage-review-technical ul {
+  padding-left: 20px;
+}
+
+.heritage-review-technical li {
+  margin: 5px 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .heritage-sermon-review__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .heritage-sermon-review__list {
+    position: static;
+  }
+
+  .heritage-review-items {
+    max-height: 360px;
+  }
+}
+
 @media (max-width: 560px) {
   .heritage-admin-welcome {
     padding: var(--base);
@@ -121,5 +873,48 @@
 
   .heritage-song-add {
     text-align: center;
+  }
+
+  .heritage-sermon-review {
+    padding: var(--base);
+  }
+
+  .heritage-sermon-review__header,
+  .heritage-review-detail-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .heritage-sermon-review__header > a {
+    align-self: flex-start;
+  }
+
+  .heritage-sermon-review__detail {
+    padding: var(--base);
+  }
+
+  .heritage-review-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .heritage-review-summary__wide {
+    grid-column: auto;
+  }
+
+  .heritage-review-inventory {
+    grid-template-columns: 1fr;
+  }
+
+  .heritage-review-recording__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .heritage-review-recording__url {
+    grid-column: auto;
+  }
+
+  .heritage-review-button--publish,
+  .heritage-review-button--danger {
+    width: 100%;
   }
 }

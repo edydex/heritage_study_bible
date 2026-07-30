@@ -20,7 +20,8 @@ Options:
   --database-only          Restore PostgreSQL, leave uploaded media unchanged
   --media-only             Restore uploaded media, leave PostgreSQL unchanged
   --skip-safety-backup     Do not capture the current state first (dangerous)
-  --no-start               Leave application services stopped after restore
+  --no-start               Leave the community app stopped after restore;
+                           preserve the Cloudflare recovery transport
   --yes                    Skip the exact typed confirmation
   -h, --help               Show this help
 
@@ -28,12 +29,14 @@ Safety behavior:
   * SHA-256 checksums and the archive structure are verified before changes.
   * A full pre-restore backup is created by default.
   * The app is stopped before replacing the database or media.
+  * The Cloudflare connector stays running because it may carry SSH recovery.
   * Current forward database migrations run after a database restore.
 
 Restore is intentionally not automatic rollback. If it fails before live data
 changes, the script restarts only services that were running. If it fails after
-replacement starts, it prints the safety backup and keeps public/app services
-stopped for deliberate recovery.
+replacement starts, it prints the safety backup and keeps the app stopped for
+deliberate recovery while leaving the Cloudflare connector running. Public app
+requests can be unavailable while the app is deliberately stopped.
 EOF
 }
 
@@ -116,6 +119,7 @@ heritage_require_command sha256sum
 heritage_require_command tar
 heritage_acquire_operations_lock
 heritage_prepare_backup_root
+heritage_compose config --quiet || heritage_die "Production Compose configuration is invalid."
 
 if (( use_latest )); then
   backup_path="$(heritage_latest_backup)"
@@ -129,6 +133,10 @@ backup_path="$(cd -- "${backup_path}" 2>/dev/null && pwd -P)" || heritage_die "B
 
 heritage_info "Verifying backup checksums."
 heritage_verify_backup "${backup_path}"
+heritage_info "Validating the PostgreSQL dump catalog."
+heritage_compose run --rm --no-deps -T --entrypoint pg_restore postgres --list \
+  <"${backup_path}/database.dump" >/dev/null \
+  || heritage_die "The PostgreSQL dump is unreadable; live data was not changed."
 
 # Ensure the media archive can be listed and contains no absolute or parent
 # traversal paths before it is ever streamed into the media volume.
@@ -172,22 +180,8 @@ else
   safety_backup="$(heritage_latest_backup)"
 fi
 
-heritage_compose config --quiet || heritage_die "Production Compose configuration is invalid."
 community_was_running=0
-cloudflared_was_running=0
-host_tunnel_was_running=0
 destructive_started=0
-
-manage_host_tunnel() {
-  local action=$1
-  if [[ ${EUID} -eq 0 ]]; then
-    systemctl "$action" heritage-community-tunnel.service
-  elif command -v sudo >/dev/null 2>&1; then
-    sudo systemctl "$action" heritage-community-tunnel.service
-  else
-    heritage_die "sudo is required to ${action} the host Cloudflare tunnel during restore."
-  fi
-}
 
 cleanup() {
   local status=$?
@@ -198,27 +192,13 @@ cleanup() {
     heritage_warn "Restore did not finish. Safety backup: ${safety_backup}"
     if (( destructive_started )); then
       heritage_compose stop --timeout 60 community >/dev/null 2>&1 || true
-      if heritage_service_running cloudflared; then
-        heritage_compose stop --timeout 60 cloudflared >/dev/null 2>&1 || true
-      fi
-      if (( host_tunnel_was_running )); then
-        manage_host_tunnel stop >/dev/null 2>&1 || true
-      fi
       heritage_warn "Live data may be incomplete. The application remains stopped; inspect the error and restore the safety backup."
-    elif (( community_was_running || cloudflared_was_running )); then
-      heritage_warn "Attempting to restart the previously running services."
+      heritage_warn "The Cloudflare connector was left running to preserve remote recovery access; public app requests may report the origin as unavailable."
+    elif (( community_was_running )); then
+      heritage_warn "Attempting to restart the previously running community app."
       if (( community_was_running )); then
         heritage_compose up -d community >/dev/null
       fi
-      if (( cloudflared_was_running )); then
-        heritage_compose up -d cloudflared >/dev/null
-      fi
-      if (( host_tunnel_was_running )); then
-        manage_host_tunnel start >/dev/null
-      fi
-    elif (( host_tunnel_was_running )); then
-      heritage_warn "Attempting to restart the previously running host tunnel."
-      manage_host_tunnel start >/dev/null
     fi
   fi
 
@@ -231,23 +211,8 @@ trap 'exit 143' TERM
 if heritage_service_running community; then
   community_was_running=1
 fi
-if heritage_service_running cloudflared; then
-  cloudflared_was_running=1
-fi
-if command -v systemctl >/dev/null 2>&1 \
-  && systemctl is-active --quiet heritage-community-tunnel.service; then
-  host_tunnel_was_running=1
-fi
 
-heritage_info "Stopping the public tunnel and community app during restore."
-if (( cloudflared_was_running )); then
-  heritage_compose stop --timeout 60 cloudflared >/dev/null \
-    || heritage_die "Could not stop the token-based Cloudflare tunnel. No live data was changed."
-fi
-if (( host_tunnel_was_running )); then
-  manage_host_tunnel stop >/dev/null \
-    || heritage_die "Could not stop the host Cloudflare tunnel. No live data was changed."
-fi
+heritage_info "Stopping the community app during restore; the Cloudflare connector remains running for recovery access."
 heritage_compose stop --timeout 60 community >/dev/null \
   || heritage_die "Could not stop the Community app. No live data was changed."
 heritage_compose up -d postgres >/dev/null
@@ -285,16 +250,22 @@ fi
 
 if (( start_after )); then
   heritage_info "Starting Heritage Community."
-  heritage_compose up -d --remove-orphans
-  if (( host_tunnel_was_running )); then
-    manage_host_tunnel start >/dev/null
+  heritage_compose up -d postgres community
+  # Never reconcile a connector that is already running: it may carry this
+  # restore session's SSH transport. Start token mode only when no connector
+  # exists, after the application is available again.
+  if heritage_compose config --services | grep -qx cloudflared \
+    && ! heritage_service_running cloudflared; then
+    heritage_info "Starting the configured Cloudflare connector because it was not running."
+    heritage_compose up -d cloudflared
   fi
   "${SCRIPT_DIR}/status.sh" \
     --install-dir "${HERITAGE_INSTALL_DIR}" \
     --backup-dir "${HERITAGE_BACKUP_DIR}" \
     --wait 90
 else
-  heritage_info "Restore complete; application services were left stopped by request."
+  heritage_info "Restore complete; the community app was left stopped by request."
+  heritage_info "The Cloudflare connector remains running for recovery access, though public app requests will be unavailable."
 fi
 
 heritage_info "Restore complete. Safety backup: ${safety_backup}"

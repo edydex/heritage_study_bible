@@ -118,6 +118,16 @@ checks to pass. It never resets code or automatically rewinds a database.
 `restore` verifies checksums and archive paths, takes a pre-restore backup, and
 requires exact typed confirmation before replacing anything.
 
+Both commands deliberately leave an already-running Cloudflare connector
+alone. The public application can briefly report that its origin is unavailable
+while the Community app is stopped, but the connector itself stays up because
+it may also carry the administrator's Cloudflare Access SSH recovery route.
+The same protection applies after a failed migration or destructive restore:
+the app remains stopped when data safety requires it, while the connector
+remains available for diagnosis. `restore --no-start` also stops only the app.
+Restart or stop a tunnel only from a verified local console or a separate
+recovery path, never through the only SSH session that depends on that tunnel.
+
 `uninstall` preserves the database, media, configuration, source, tunnel
 credentials, and backups by default. Permanent deletion requires
 `--purge-data`, typing the community ID, and a separate `--purge-backups` flag

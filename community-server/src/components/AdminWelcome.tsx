@@ -2,14 +2,29 @@ import { communityPublicConfig } from '@/lib/publicConfig'
 
 const actions = [
   {
+    href: '/admin/collections/service-plans/create',
+    title: 'Plan a service',
+    text: 'Set the date and start time, then arrange sections, songs, Scripture readings, and the sermon in volunteer-ready order.',
+  },
+  {
+    href: '/admin/prepare-sermon',
+    title: 'Prepare a sermon',
+    text: 'Paste the pastor’s manuscript or slide notes, confirm the primary passage, and create one private Ready sermon for planning and SyncShow.',
+  },
+  {
+    href: '/admin/sermon-publications',
+    title: 'Review SyncShow sermons',
+    text: 'Choose the exact sermon text and media that may be published outside the private Community workspace.',
+  },
+  {
     href: '/admin/collections/songs/create',
     title: 'Add a song',
     text: 'Create one bilingual listing, then add the lyrics, chords, scores, or recordings you have.',
   },
   {
     href: '/admin/collections/sermons/create',
-    title: 'Add a sermon',
-    text: 'Publish a message, transcript, Scripture references, and recordings.',
+    title: 'Add an older sermon',
+    text: 'Create a legacy archive listing when there is no canonical SyncShow or service-planning record.',
   },
   {
     href: '/admin/collections/reading-plans/create',
@@ -34,7 +49,7 @@ export default function AdminWelcome() {
       <p className="heritage-admin-eyebrow">Heritage Community</p>
       <h1>{communityPublicConfig.name} admin</h1>
       <p className="heritage-admin-intro">
-        Start with one ordinary task. Draft content stays private until its status is changed to Published.
+        Start with one ordinary task: plan the next service, maintain church resources, or review what may be published.
       </p>
       <div className="heritage-admin-actions">
         {actions.map(action => (
