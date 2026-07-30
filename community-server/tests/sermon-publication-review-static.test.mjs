@@ -49,7 +49,10 @@ test('Payload wires a manager-only same-origin sermon review view into the norma
 })
 
 test('review is explicit, stale proposals clear, and technical hashes stay collapsed', async () => {
-  const client = await source('../src/components/SermonPublicationReviewClient.tsx')
+  const [client, model] = await Promise.all([
+    source('../src/components/SermonPublicationReviewClient.tsx'),
+    source('../src/components/sermonPublicationReviewModel.ts'),
+  ])
 
   assert.match(client, /Nothing is selected automatically/)
   assert.match(client, /including the choice\s+to publish none/)
@@ -62,6 +65,17 @@ test('review is explicit, stale proposals clear, and technical hashes stay colla
   assert.match(client, /before publishing the selected audio/)
   assert.match(client, /contains no private prayer, counseling, or minor-related/)
   assert.match(client, /does not fetch or verify the remote file/)
+  assert.match(client, /Passage discovery/)
+  assert.match(client, /Confirmed primary passages appear prominently/)
+  assert.match(client, /Confirmed mentioned passages power its small/)
+  assert.match(client, /This exact revision has no Scripture references to publish/)
+  assert.match(client, /reference\.enteredText \|\| formatBibleRange\(reference\.range\)/)
+  assert.match(client, /reference\.role === 'primary'/)
+  assert.match(client, /Mentioned passage/)
+  assert.match(model, /references:\s*parseReferences\(raw\.references\)/)
+  assert.match(model, /REFERENCE_ROLES = new Set\(\['primary', 'mentioned'\]\)/)
+  assert.match(model, /REFERENCE_REVIEW_STATUSES = new Set\(\['suggested', 'confirmed'\]\)/)
+  assert.match(model, /enteredText:[\s\S]*?\{ empty: true \}/)
   assert.match(client, /not\s+only signed-in Community members/)
   assert.match(client, /intentionally has no canonical website link/)
   assert.match(client, /I intend to withdraw this exact active publication/)

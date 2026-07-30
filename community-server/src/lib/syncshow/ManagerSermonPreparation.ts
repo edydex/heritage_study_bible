@@ -1,7 +1,9 @@
 import { createHash } from 'node:crypto'
 import {
   CANONICAL_BIBLE_BOOKS,
+  compareBibleRanges,
   normalizeBibleRange,
+  serializeBibleRange,
   type CanonicalBibleRange,
 } from './BibleRange.ts'
 import {
@@ -10,7 +12,9 @@ import {
 } from './SermonDocument.ts'
 import type { SermonWriteBody } from './CommunitySermonWire.ts'
 
-export const MANAGER_SERMON_PREPARATION_SCHEMA_VERSION = 1
+export const MANAGER_SERMON_PREPARATION_SCHEMA_VERSION = 2
+export const LEGACY_MANAGER_SERMON_PREPARATION_SCHEMA_VERSION = 1
+export const MAX_MANAGER_SERMON_MENTIONED_PASSAGES = 64
 export const MAX_MANAGER_SERMON_PREPARATION_REQUEST_BYTES = 2 * 1024 * 1024
 
 const REQUEST_ID_PATTERN =
@@ -19,26 +23,39 @@ const LANGUAGE_PATTERN = /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/
 
 type MutableRecord = Record<string, unknown>
 
-export type ManagerSermonPreparationIntent = Readonly<{
-  schemaVersion: typeof MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
+type ManagerSermonPreparationPassageIntent = Readonly<{
+  bookId: string
+  startChapter: number
+  startVerse: number
+  endChapter: number
+  endVerse: number
+}>
+
+type ManagerSermonPreparationIntentBase = Readonly<{
   requestId: string
   title: string
   speaker: string
   serviceDate: string
   language: string
-  primaryPassage: Readonly<{
-    bookId: string
-    startChapter: number
-    startVerse: number
-    endChapter: number
-    endVerse: number
-  }>
+  primaryPassage: ManagerSermonPreparationPassageIntent
   manuscript: string
   slideNotes: string
   reviewConfirmed: true
 }>
 
+export type ManagerSermonPreparationIntent =
+  | (ManagerSermonPreparationIntentBase & Readonly<{
+      schemaVersion: typeof LEGACY_MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
+    }>)
+  | (ManagerSermonPreparationIntentBase & Readonly<{
+      schemaVersion: typeof MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
+      mentionedPassages: readonly ManagerSermonPreparationPassageIntent[]
+    }>)
+
 export type PreparedManagerSermon = Readonly<{
+  schemaVersion:
+    | typeof LEGACY_MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
+    | typeof MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
   requestId: string
   idempotencyKey: string
   syncId: string
@@ -108,12 +125,12 @@ function bodyText(value: unknown, label: string): string {
   return value.replace(/\r\n?/g, '\n').normalize('NFC')
 }
 
-function passageIntent(value: unknown) {
-  const passage = record(value, 'Primary passage')
+function passageIntent(value: unknown, label: string) {
+  const passage = record(value, label)
   exactKeys(
     passage,
     ['bookId', 'startChapter', 'startVerse', 'endChapter', 'endVerse'],
-    'Primary passage',
+    label,
   )
   return {
     bookId: passage.bookId,
@@ -139,6 +156,71 @@ function passageLabel(range: CanonicalBibleRange): string {
       : `${book.name} ${range.start.chapter}:${range.start.verse}–${range.end.verse}`
   }
   return `${book.name} ${range.start.chapter}:${range.start.verse}–${range.end.chapter}:${range.end.verse}`
+}
+
+function exactPassageRange(
+  value: unknown,
+  label: string,
+  code: 'INVALID_PRIMARY_PASSAGE' | 'INVALID_MENTIONED_PASSAGE',
+): CanonicalBibleRange {
+  let range: CanonicalBibleRange
+  try {
+    range = normalizeBibleRange(passageIntent(value, label))
+  } catch {
+    fail(code, `${label} must be one valid Bible passage with exact verses.`)
+  }
+  if (range.start.verse === null || range.end.verse === null) {
+    fail(code, `${label} must identify exact verses.`)
+  }
+  return range
+}
+
+function mentionedPassageRanges(
+  value: unknown,
+  primaryRange: CanonicalBibleRange,
+): CanonicalBibleRange[] {
+  if (
+    !Array.isArray(value)
+    || value.length > MAX_MANAGER_SERMON_MENTIONED_PASSAGES
+  ) {
+    fail(
+      'INVALID_MENTIONED_PASSAGES',
+      `Other passages must contain at most ${MAX_MANAGER_SERMON_MENTIONED_PASSAGES} reviewed passages.`,
+    )
+  }
+
+  const seen = new Set([serializeBibleRange(primaryRange)])
+  const ranges: CanonicalBibleRange[] = []
+  value.forEach((item, index) => {
+    const range = exactPassageRange(
+      item,
+      `Other passage ${index + 1}`,
+      'INVALID_MENTIONED_PASSAGE',
+    )
+    const key = serializeBibleRange(range)
+    if (seen.has(key)) return
+    seen.add(key)
+    ranges.push(range)
+  })
+  return ranges.sort(compareBibleRanges)
+}
+
+function confirmedReference(
+  role: 'primary' | 'mentioned',
+  range: CanonicalBibleRange,
+) {
+  return {
+    id: `${role}-${range.bookId}-${range.start.chapter}-${range.start.verse}-${range.end.chapter}-${range.end.verse}`,
+    range,
+    role,
+    source: role === 'primary' ? 'pastor' as const : 'operator' as const,
+    reviewStatus: 'confirmed' as const,
+    enteredText: passageLabel(range),
+    sourceId: null,
+    sectionId: null,
+    startOffset: null,
+    endOffset: null,
+  }
 }
 
 function sourceAndBody(
@@ -181,6 +263,12 @@ export function prepareManagerSermon(
   value: unknown,
 ): PreparedManagerSermon {
   const input = record(value, 'Sermon preparation')
+  if (
+    input.schemaVersion !== LEGACY_MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
+    && input.schemaVersion !== MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
+  ) {
+    fail('INVALID_PREPARATION', 'This sermon preparation version is unsupported.')
+  }
   exactKeys(
     input,
     [
@@ -191,15 +279,15 @@ export function prepareManagerSermon(
       'serviceDate',
       'language',
       'primaryPassage',
+      ...(input.schemaVersion === MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
+        ? ['mentionedPassages']
+        : []),
       'manuscript',
       'slideNotes',
       'reviewConfirmed',
     ],
     'Sermon preparation',
   )
-  if (input.schemaVersion !== MANAGER_SERMON_PREPARATION_SCHEMA_VERSION) {
-    fail('INVALID_PREPARATION', 'This sermon preparation version is unsupported.')
-  }
   const requestId = singleLine(input.requestId, 'Preparation request ID', 36, {
     lowercase: true,
   })
@@ -227,15 +315,14 @@ export function prepareManagerSermon(
     )
   }
 
-  let range: CanonicalBibleRange
-  try {
-    range = normalizeBibleRange(passageIntent(input.primaryPassage))
-  } catch {
-    fail('INVALID_PRIMARY_PASSAGE', 'Enter one valid primary Bible passage with exact verses.')
-  }
-  if (range.start.verse === null || range.end.verse === null) {
-    fail('INVALID_PRIMARY_PASSAGE', 'The primary passage must identify exact verses.')
-  }
+  const range = exactPassageRange(
+    input.primaryPassage,
+    'Primary passage',
+    'INVALID_PRIMARY_PASSAGE',
+  )
+  const mentionedRanges = input.schemaVersion === MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
+    ? mentionedPassageRanges(input.mentionedPassages, range)
+    : []
   const label = passageLabel(range)
   const syncId = `sermon-${requestId}`
   const preparedEntries = [
@@ -257,18 +344,10 @@ export function prepareManagerSermon(
       outline: [],
       sources: preparedEntries.map(entry => entry.source),
       references: [
-        {
-          id: `primary-${range.bookId}-${range.start.chapter}-${range.start.verse}-${range.end.chapter}-${range.end.verse}`,
-          range,
-          role: 'primary',
-          source: 'pastor',
-          reviewStatus: 'confirmed',
-          enteredText: label,
-          sourceId: null,
-          sectionId: null,
-          startOffset: null,
-          endOffset: null,
-        },
+        confirmedReference('primary', range),
+        ...mentionedRanges.map(mentioned => (
+          confirmedReference('mentioned', mentioned)
+        )),
       ],
       media: [],
       publication: {
@@ -285,6 +364,7 @@ export function prepareManagerSermon(
   }
 
   return Object.freeze({
+    schemaVersion: input.schemaVersion,
     requestId,
     idempotencyKey: `manager-sermon-${requestId}`,
     syncId,

@@ -27,6 +27,7 @@ import {
   type SermonPublicationListItem,
   type SermonPublicationReviewTarget,
 } from './sermonPublicationReviewModel'
+import { formatBibleRange } from '@/lib/syncshow/BibleRange'
 
 const LIST_PATH = '/api/community/sermon-publications'
 
@@ -592,6 +593,42 @@ export default function SermonPublicationReviewClient({
                   </dd>
                 </div>
               </dl>
+
+              <section
+                className="heritage-review-references"
+                aria-labelledby="heritage-review-references-heading"
+              >
+                <div>
+                  <h3 id="heritage-review-references-heading">Passage discovery</h3>
+                  <p>
+                    Confirmed primary passages appear prominently in the Study Bible.
+                    Confirmed mentioned passages power its small “Appears in sermons”
+                    link. Suggested references stay private.
+                  </p>
+                </div>
+                {detail.sermon.document.references.length === 0 ? (
+                  <p className="heritage-review-references__empty" role="alert">
+                    This exact revision has no Scripture references to publish.
+                  </p>
+                ) : (
+                  <ul>
+                    {detail.sermon.document.references.map(reference => (
+                      <li key={reference.id}>
+                        <strong>
+                          {reference.enteredText || formatBibleRange(reference.range)}
+                        </strong>
+                        <span>
+                          {reference.role === 'primary'
+                            ? 'Primary passage'
+                            : 'Mentioned passage'}
+                          {' · '}
+                          {reference.reviewStatus}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
 
               {detail.publication?.active && (
                 <section className="heritage-current-publication">

@@ -7,7 +7,8 @@ import {
 } from '@/lib/syncshow/BibleRange'
 
 const ENDPOINT = '/api/community/sermon-preparations'
-const PENDING_IDENTITY_KEY = 'heritage:prepare-sermon:pending:v1'
+const PENDING_IDENTITY_KEY = 'heritage:prepare-sermon:pending:v2'
+const MAX_MENTIONED_PASSAGES = 64
 
 type PassageDraft = {
   bookId: string
@@ -17,12 +18,17 @@ type PassageDraft = {
   endVerse: string
 }
 
+type MentionedPassageDraft = PassageDraft & {
+  clientId: string
+}
+
 type PreparationDraft = {
   title: string
   speaker: string
   serviceDate: string
   language: string
   primaryPassage: PassageDraft
+  mentionedPassages: MentionedPassageDraft[]
   manuscript: string
   slideNotes: string
   reviewConfirmed: boolean
@@ -40,10 +46,11 @@ type PreparedSermon = {
   publicationStatus: string
   visibility: string
   bodyEntryCount: number
+  mentionedPassageCount: number
 }
 
 type PreparationResponse = {
-  schemaVersion: 1
+  schemaVersion: 2
   created: boolean
   sermon: PreparedSermon
 }
@@ -82,6 +89,7 @@ function emptyDraft(): PreparationDraft {
       endChapter: '1',
       endVerse: '1',
     },
+    mentionedPassages: [],
     manuscript: '',
     slideNotes: '',
     reviewConfirmed: false,
@@ -93,21 +101,26 @@ function positiveInteger(value: string): number {
   return Number.isSafeInteger(number) && number > 0 ? number : 0
 }
 
+function passageBody(passage: PassageDraft) {
+  return {
+    bookId: passage.bookId,
+    startChapter: positiveInteger(passage.startChapter),
+    startVerse: positiveInteger(passage.startVerse),
+    endChapter: positiveInteger(passage.endChapter),
+    endVerse: positiveInteger(passage.endVerse),
+  }
+}
+
 function preparationBody(draft: PreparationDraft, requestId: string) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     requestId,
     title: draft.title,
     speaker: draft.speaker,
     serviceDate: draft.serviceDate,
     language: draft.language,
-    primaryPassage: {
-      bookId: draft.primaryPassage.bookId,
-      startChapter: positiveInteger(draft.primaryPassage.startChapter),
-      startVerse: positiveInteger(draft.primaryPassage.startVerse),
-      endChapter: positiveInteger(draft.primaryPassage.endChapter),
-      endVerse: positiveInteger(draft.primaryPassage.endVerse),
-    },
+    primaryPassage: passageBody(draft.primaryPassage),
+    mentionedPassages: draft.mentionedPassages.map(passageBody),
     manuscript: draft.manuscript,
     slideNotes: draft.slideNotes,
     reviewConfirmed: draft.reviewConfirmed,
@@ -127,7 +140,7 @@ function pendingRequestId(fingerprint: string): string | null {
     const raw = globalThis.sessionStorage.getItem(PENDING_IDENTITY_KEY)
     const value = raw ? JSON.parse(raw) as Record<string, unknown> : null
     return value
-      && value.schemaVersion === 1
+      && value.schemaVersion === 2
       && value.fingerprint === fingerprint
       && typeof value.requestId === 'string'
       && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.requestId)
@@ -141,7 +154,7 @@ function pendingRequestId(fingerprint: string): string | null {
 function rememberPendingIdentity(fingerprint: string, requestId: string) {
   try {
     globalThis.sessionStorage.setItem(PENDING_IDENTITY_KEY, JSON.stringify({
-      schemaVersion: 1,
+      schemaVersion: 2,
       fingerprint,
       requestId,
     }))
@@ -159,6 +172,16 @@ function clearPendingIdentity() {
   }
 }
 
+function hasExactKeys(
+  value: Record<string, unknown>,
+  expected: readonly string[],
+): boolean {
+  const actual = Object.keys(value).sort()
+  const wanted = [...expected].sort()
+  return actual.length === wanted.length
+    && actual.every((key, index) => key === wanted[index])
+}
+
 function parsePreparationResponse(value: unknown): PreparationResponse {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('Sermon preparation response is invalid.')
@@ -166,9 +189,24 @@ function parsePreparationResponse(value: unknown): PreparationResponse {
   const response = value as Record<string, unknown>
   const sermon = response.sermon as Record<string, unknown> | undefined
   if (
-    response.schemaVersion !== 1
+    !hasExactKeys(response, ['schemaVersion', 'created', 'sermon'])
+    || response.schemaVersion !== 2
     || typeof response.created !== 'boolean'
     || !sermon
+    || !hasExactKeys(sermon, [
+      'recordId',
+      'syncId',
+      'syncVersion',
+      'currentRevision',
+      'title',
+      'speaker',
+      'serviceDate',
+      'passageLabel',
+      'publicationStatus',
+      'visibility',
+      'bodyEntryCount',
+      'mentionedPassageCount',
+    ])
     || !Number.isSafeInteger(sermon.recordId)
     || typeof sermon.syncId !== 'string'
     || !Number.isSafeInteger(sermon.syncVersion)
@@ -181,6 +219,8 @@ function parsePreparationResponse(value: unknown): PreparationResponse {
     || typeof sermon.publicationStatus !== 'string'
     || typeof sermon.visibility !== 'string'
     || !Number.isSafeInteger(sermon.bodyEntryCount)
+    || !Number.isSafeInteger(sermon.mentionedPassageCount)
+    || Number(sermon.mentionedPassageCount) < 0
   ) {
     throw new Error('Sermon preparation response is invalid.')
   }
@@ -261,7 +301,9 @@ export default function PrepareSermonClient() {
     setResult(null)
   }
 
-  function updateField<K extends keyof Omit<PreparationDraft, 'primaryPassage'>>(
+  function updateField<
+    K extends keyof Omit<PreparationDraft, 'primaryPassage' | 'mentionedPassages'>
+  >(
     field: K,
     value: PreparationDraft[K],
   ) {
@@ -277,6 +319,56 @@ export default function PrepareSermonClient() {
     setDraft(current => ({
       ...current,
       primaryPassage: { ...current.primaryPassage, [field]: value },
+      reviewConfirmed: false,
+    }))
+    invalidatePriorAttempt()
+  }
+
+  function addMentionedPassage() {
+    setDraft(current => {
+      if (current.mentionedPassages.length >= MAX_MENTIONED_PASSAGES) return current
+      return {
+        ...current,
+        mentionedPassages: [
+          ...current.mentionedPassages,
+          {
+            clientId: freshRequestId(),
+            bookId: current.primaryPassage.bookId,
+            startChapter: '1',
+            startVerse: '1',
+            endChapter: '1',
+            endVerse: '1',
+          },
+        ],
+        reviewConfirmed: false,
+      }
+    })
+    invalidatePriorAttempt()
+  }
+
+  function updateMentionedPassage(
+    clientId: string,
+    field: keyof PassageDraft,
+    value: string,
+  ) {
+    setDraft(current => ({
+      ...current,
+      mentionedPassages: current.mentionedPassages.map(passage => (
+        passage.clientId === clientId
+          ? { ...passage, [field]: value }
+          : passage
+      )),
+      reviewConfirmed: false,
+    }))
+    invalidatePriorAttempt()
+  }
+
+  function removeMentionedPassage(clientId: string) {
+    setDraft(current => ({
+      ...current,
+      mentionedPassages: current.mentionedPassages.filter(
+        passage => passage.clientId !== clientId,
+      ),
       reviewConfirmed: false,
     }))
     invalidatePriorAttempt()
@@ -345,6 +437,11 @@ export default function PrepareSermonClient() {
             Private {result.sermon.publicationStatus} record ·{' '}
             {result.sermon.bodyEntryCount}{' '}
             {result.sermon.bodyEntryCount === 1 ? 'written section' : 'written sections'}
+            {' · '}
+            {result.sermon.mentionedPassageCount}{' '}
+            {result.sermon.mentionedPassageCount === 1
+              ? 'confirmed other passage'
+              : 'confirmed other passages'}
           </p>
           <div className="heritage-sermon-preparation__actions">
             <a className="btn btn--style-primary" href="/admin/collections/service-plans/create">
@@ -489,6 +586,147 @@ export default function PrepareSermonClient() {
           </fieldset>
 
           <fieldset disabled={busy}>
+            <legend>Other passages used in this sermon</legend>
+            <p className="heritage-sermon-preparation__help">
+              Optional. Add only passages the sermon actually cites or explains.
+              Once reviewed and published, each one powers the Study Bible&apos;s
+              small “Appears in sermons” link for those verses. Exact duplicates,
+              including the primary passage, are safely collapsed.
+            </p>
+            {draft.mentionedPassages.length === 0 && (
+              <p className="heritage-sermon-preparation__empty">
+                No other passages have been added.
+              </p>
+            )}
+            <div className="heritage-sermon-preparation__mentioned-list">
+              {draft.mentionedPassages.map((passage, index) => {
+                const book = CANONICAL_BIBLE_BOOKS.find(
+                  candidate => candidate.id === passage.bookId,
+                ) || CANONICAL_BIBLE_BOOKS[0]
+                const mentionedStartVerseMaximum = canonicalBibleChapterVerseMaximum(
+                  book.id,
+                  positiveInteger(passage.startChapter),
+                ) ?? 0
+                const mentionedEndVerseMaximum = canonicalBibleChapterVerseMaximum(
+                  book.id,
+                  positiveInteger(passage.endChapter),
+                ) ?? 0
+                const labelPrefix = `Other passage ${index + 1}`
+                return (
+                  <section
+                    className="heritage-sermon-preparation__mentioned-row"
+                    aria-label={labelPrefix}
+                    key={passage.clientId}
+                  >
+                    <div className="heritage-sermon-preparation__mentioned-heading">
+                      <strong>{labelPrefix}</strong>
+                      <button
+                        className="btn"
+                        type="button"
+                        onClick={() => removeMentionedPassage(passage.clientId)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="heritage-sermon-preparation__passage">
+                      <label>
+                        <span>Book</span>
+                        <select
+                          value={passage.bookId}
+                          onChange={event => updateMentionedPassage(
+                            passage.clientId,
+                            'bookId',
+                            event.target.value,
+                          )}
+                        >
+                          {CANONICAL_BIBLE_BOOKS.map(candidate => (
+                            <option value={candidate.id} key={candidate.id}>
+                              {candidate.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Start chapter</span>
+                        <input
+                          required
+                          type="number"
+                          min={1}
+                          max={book.chapters}
+                          value={passage.startChapter}
+                          onChange={event => updateMentionedPassage(
+                            passage.clientId,
+                            'startChapter',
+                            event.target.value,
+                          )}
+                        />
+                      </label>
+                      <label>
+                        <span>Start verse</span>
+                        <input
+                          required
+                          type="number"
+                          min={1}
+                          max={mentionedStartVerseMaximum}
+                          value={passage.startVerse}
+                          onChange={event => updateMentionedPassage(
+                            passage.clientId,
+                            'startVerse',
+                            event.target.value,
+                          )}
+                        />
+                      </label>
+                      <label>
+                        <span>End chapter</span>
+                        <input
+                          required
+                          type="number"
+                          min={1}
+                          max={book.chapters}
+                          value={passage.endChapter}
+                          onChange={event => updateMentionedPassage(
+                            passage.clientId,
+                            'endChapter',
+                            event.target.value,
+                          )}
+                        />
+                      </label>
+                      <label>
+                        <span>End verse</span>
+                        <input
+                          required
+                          type="number"
+                          min={1}
+                          max={mentionedEndVerseMaximum}
+                          value={passage.endVerse}
+                          onChange={event => updateMentionedPassage(
+                            passage.clientId,
+                            'endVerse',
+                            event.target.value,
+                          )}
+                        />
+                      </label>
+                    </div>
+                  </section>
+                )
+              })}
+            </div>
+            <div className="heritage-sermon-preparation__mentioned-actions">
+              <button
+                className="btn"
+                type="button"
+                disabled={draft.mentionedPassages.length >= MAX_MENTIONED_PASSAGES}
+                onClick={addMentionedPassage}
+              >
+                Add another passage
+              </button>
+              <span aria-live="polite">
+                {draft.mentionedPassages.length} of {MAX_MENTIONED_PASSAGES} added
+              </span>
+            </div>
+          </fieldset>
+
+          <fieldset disabled={busy}>
             <legend>Reviewed sermon text</legend>
             <p className="heritage-sermon-preparation__help">
               Paste at least one source. Line breaks are preserved; nothing is
@@ -522,8 +760,9 @@ export default function PrepareSermonClient() {
               onChange={event => updateField('reviewConfirmed', event.target.checked)}
             />
             <span>
-              I reviewed the title, speaker, date, primary passage, and pasted
-              text. Create one private Ready sermon for service planning.
+              I reviewed the title, speaker, date, primary passage, every other
+              passage listed above, and the pasted text. Create one private Ready
+              sermon for service planning.
             </span>
           </label>
 

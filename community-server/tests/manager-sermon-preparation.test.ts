@@ -2,13 +2,21 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import test from 'node:test'
 import {
+  MAX_MANAGER_SERMON_MENTIONED_PASSAGES,
   ManagerSermonPreparationError,
   prepareManagerSermon,
 } from '../src/lib/syncshow/ManagerSermonPreparation.ts'
+import { buildManagerSermonPublicationTransition } from '../src/lib/syncshow/ManagerSermonPublication.ts'
+import {
+  buildPublicSermonCatalogFromItemSources,
+  buildPublicSermonPassageIndex,
+  serializePublicSermonCatalogItem,
+} from '../src/lib/syncshow/PublicSermonPublication.ts'
 import {
   parseSermonDocument,
   serializeSermonDocument,
 } from '../src/lib/syncshow/SermonDocument.ts'
+import { managerSermonPreparationResponse } from '../src/endpoints/sermonPreparations.ts'
 
 const requestId = '8fe3df49-48b7-47cc-aabe-cf56212b3189'
 
@@ -30,6 +38,21 @@ function intent(overrides: Record<string, unknown> = {}) {
     manuscript: 'First line.\r\n\r\nSecond line.',
     slideNotes: 'Pray for strength.\nKnow Christ’s love.',
     reviewConfirmed: true,
+    ...overrides,
+  }
+}
+
+function intentV2(overrides: Record<string, unknown> = {}) {
+  return {
+    ...intent(),
+    schemaVersion: 2,
+    mentionedPassages: [{
+      bookId: 'John',
+      startChapter: 15,
+      startVerse: 5,
+      endChapter: 15,
+      endVerse: 5,
+    }],
     ...overrides,
   }
 }
@@ -98,11 +121,173 @@ test('manager preparation creates one exact private Ready schema-v3 sermon', () 
   assert.equal(serializeSermonDocument(document), prepared.write.documentSource)
 })
 
+test('v2 preparation canonicalizes, sorts, and deduplicates confirmed mentioned passages', () => {
+  const prepared = prepareManagerSermon(intentV2({
+    mentionedPassages: [{
+      bookId: 'John',
+      startChapter: 15,
+      startVerse: 5,
+      endChapter: 15,
+      endVerse: 5,
+    }, {
+      // Same canonical range entered through a supported book alias.
+      bookId: 'JOHN',
+      startChapter: 15,
+      startVerse: 5,
+      endChapter: 15,
+      endVerse: 5,
+    }, {
+      bookId: 'Gen',
+      startChapter: 1,
+      startVerse: 1,
+      endChapter: 1,
+      endVerse: 2,
+    }, {
+      // A primary-range duplicate must not become a mentioned reference.
+      bookId: 'Ephesians',
+      startChapter: 3,
+      startVerse: 14,
+      endChapter: 3,
+      endVerse: 21,
+    }],
+  }))
+
+  assert.deepEqual(prepared.document.references.map(reference => ({
+    id: reference.id,
+    role: reference.role,
+    source: reference.source,
+    reviewStatus: reference.reviewStatus,
+    enteredText: reference.enteredText,
+  })), [{
+    id: 'primary-Eph-3-14-3-21',
+    role: 'primary',
+    source: 'pastor',
+    reviewStatus: 'confirmed',
+    enteredText: 'Ephesians 3:14–21',
+  }, {
+    id: 'mentioned-Gen-1-1-1-2',
+    role: 'mentioned',
+    source: 'operator',
+    reviewStatus: 'confirmed',
+    enteredText: 'Genesis 1:1–2',
+  }, {
+    id: 'mentioned-John-15-5-15-5',
+    role: 'mentioned',
+    source: 'operator',
+    reviewStatus: 'confirmed',
+    enteredText: 'John 15:5',
+  }])
+})
+
+test('response v1 preserves its exact legacy shape while response v2 reports mentioned passages', () => {
+  const legacy = prepareManagerSermon(intent())
+  const current = prepareManagerSermon(intentV2())
+  const stored = (prepared: typeof legacy) => ({
+    id: 27,
+    syncVersion: 1,
+    syncCurrentDocumentSource: prepared.write.documentSource,
+    syncCurrentRevision: prepared.write.revision,
+  })
+
+  const legacyResponse = managerSermonPreparationResponse(
+    stored(legacy),
+    true,
+    legacy.schemaVersion,
+  )
+  assert.equal(legacyResponse.schemaVersion, 1)
+  assert.deepEqual(Object.keys(legacyResponse), ['schemaVersion', 'created', 'sermon'])
+  assert.deepEqual(Object.keys(legacyResponse.sermon), [
+    'recordId',
+    'syncId',
+    'syncVersion',
+    'currentRevision',
+    'title',
+    'speaker',
+    'serviceDate',
+    'passageLabel',
+    'publicationStatus',
+    'visibility',
+    'bodyEntryCount',
+  ])
+  assert.equal('mentionedPassageCount' in legacyResponse.sermon, false)
+
+  const currentResponse = managerSermonPreparationResponse(
+    stored(current),
+    false,
+    current.schemaVersion,
+  )
+  assert.equal(currentResponse.schemaVersion, 2)
+  assert.deepEqual(Object.keys(currentResponse.sermon), [
+    ...Object.keys(legacyResponse.sermon),
+    'mentionedPassageCount',
+  ])
+  assert.equal(currentResponse.sermon.mentionedPassageCount, 1)
+})
+
+test('manager v2 mentioned passage survives projection, catalog, and passage index composition', () => {
+  const prepared = prepareManagerSermon(intentV2())
+  const transition = buildManagerSermonPublicationTransition({
+    documentSource: prepared.write.documentSource,
+    publishedAt: '2026-08-02T20:00:00.000Z',
+    selectedBodyEntryIds: (prepared.document.body || []).map(entry => entry.id),
+    selectedMediaIds: [],
+  })
+  const catalog = buildPublicSermonCatalogFromItemSources([
+    serializePublicSermonCatalogItem(transition.projection.catalogItem),
+  ])
+  const passageIndex = buildPublicSermonPassageIndex(catalog.catalog)
+  const expectedMention = {
+    role: 'mentioned',
+    range: {
+      schemaVersion: 1,
+      bookId: 'John',
+      start: { chapter: 15, verse: 5 },
+      end: { chapter: 15, verse: 5 },
+    },
+  }
+
+  assert.deepEqual(
+    transition.projection.detail.references.find(reference => (
+      reference.role === 'mentioned'
+    )),
+    expectedMention,
+  )
+  assert.deepEqual(
+    catalog.catalog.items[0].references.find(reference => (
+      reference.role === 'mentioned'
+    )),
+    expectedMention,
+  )
+  assert.deepEqual(
+    passageIndex.passageIndex.items[0].references.find(reference => (
+      reference.role === 'mentioned'
+    )),
+    expectedMention,
+  )
+})
+
 test('same reviewed intent produces the same write and idempotency identity', () => {
   const first = prepareManagerSermon(intent())
   const second = prepareManagerSermon(intent())
   assert.deepEqual(second.write, first.write)
   assert.equal(second.idempotencyKey, first.idempotencyKey)
+})
+
+test('mentioned passages participate in the exact idempotent write', () => {
+  const first = prepareManagerSermon(intentV2())
+  const changed = prepareManagerSermon(intentV2({
+    mentionedPassages: [{
+      bookId: 'Rom',
+      startChapter: 8,
+      startVerse: 1,
+      endChapter: 8,
+      endVerse: 2,
+    }],
+  }))
+
+  assert.equal(changed.idempotencyKey, first.idempotencyKey)
+  assert.notEqual(changed.write.revision, first.write.revision)
+  assert.notEqual(changed.write.documentSource, first.write.documentSource)
 })
 
 test('one pasted source is enough and remains explicitly source-bound', () => {
@@ -147,6 +332,44 @@ test('preparation fails closed for unreviewed, textless, imprecise, or shaped in
       endVerse: 2,
     } }), 'INVALID_PRIMARY_PASSAGE'],
     [{ ...intent(), unexpected: true }, 'INVALID_PREPARATION'],
+  ] as const) {
+    assert.throws(
+      () => prepareManagerSermon(value),
+      (error: unknown) => (
+        error instanceof ManagerSermonPreparationError
+        && error.code === code
+      ),
+    )
+  }
+})
+
+test('v2 preparation bounds and validates every mentioned passage while v1 stays strict', () => {
+  const tooMany = Array.from(
+    { length: MAX_MANAGER_SERMON_MENTIONED_PASSAGES + 1 },
+    () => ({
+      bookId: 'John',
+      startChapter: 1,
+      startVerse: 1,
+      endChapter: 1,
+      endVerse: 1,
+    }),
+  )
+  for (const [value, code] of [
+    [intentV2({ mentionedPassages: tooMany }), 'INVALID_MENTIONED_PASSAGES'],
+    [intentV2({ mentionedPassages: [{
+      bookId: 'John',
+      startChapter: 99,
+      startVerse: 1,
+      endChapter: 99,
+      endVerse: 2,
+    }] }), 'INVALID_MENTIONED_PASSAGE'],
+    [intentV2({ mentionedPassages: 'John 15:5' }), 'INVALID_MENTIONED_PASSAGES'],
+    [{ ...intent(), mentionedPassages: [] }, 'INVALID_PREPARATION'],
+    [(() => {
+      const value = intentV2()
+      delete (value as Record<string, unknown>).mentionedPassages
+      return value
+    })(), 'INVALID_PREPARATION'],
   ] as const) {
     assert.throws(
       () => prepareManagerSermon(value),

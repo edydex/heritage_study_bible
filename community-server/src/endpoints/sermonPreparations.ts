@@ -12,6 +12,8 @@ import {
   type CanonicalSermonTransactionDatabase,
 } from '@/lib/syncshow/CanonicalSermonStore'
 import {
+  LEGACY_MANAGER_SERMON_PREPARATION_SCHEMA_VERSION,
+  MANAGER_SERMON_PREPARATION_SCHEMA_VERSION,
   ManagerSermonPreparationError,
   MAX_MANAGER_SERMON_PREPARATION_REQUEST_BYTES,
   prepareManagerSermon,
@@ -219,9 +221,12 @@ async function assertLiveManager(
   }
 }
 
-function responseSermon(
+export function managerSermonPreparationResponse(
   sermon: CanonicalSermonRecord,
   created: boolean,
+  requestSchemaVersion:
+    | typeof LEGACY_MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
+    | typeof MANAGER_SERMON_PREPARATION_SCHEMA_VERSION,
 ) {
   const document = parseSermonDocument(String(sermon.syncCurrentDocumentSource || ''))
   const primary = document.references.find(reference => (
@@ -237,21 +242,36 @@ function responseSermon(
   ) {
     throw new Error('Stored manager-prepared sermon is invalid.')
   }
+  const responseSermon = {
+    recordId,
+    syncId: document.id,
+    syncVersion,
+    currentRevision: String(sermon.syncCurrentRevision || ''),
+    title: document.titles[document.defaultLanguage],
+    speaker: document.speaker.name,
+    serviceDate: document.serviceDate,
+    passageLabel: primary.enteredText,
+    publicationStatus: document.publication.status,
+    visibility: document.publication.visibility,
+    bodyEntryCount: document.body?.length || 0,
+  }
+  if (
+    requestSchemaVersion === LEGACY_MANAGER_SERMON_PREPARATION_SCHEMA_VERSION
+  ) {
+    return {
+      schemaVersion: 1 as const,
+      created,
+      sermon: responseSermon,
+    }
+  }
   return {
-    schemaVersion: 1,
+    schemaVersion: 2 as const,
     created,
     sermon: {
-      recordId,
-      syncId: document.id,
-      syncVersion,
-      currentRevision: String(sermon.syncCurrentRevision || ''),
-      title: document.titles[document.defaultLanguage],
-      speaker: document.speaker.name,
-      serviceDate: document.serviceDate,
-      passageLabel: primary.enteredText,
-      publicationStatus: document.publication.status,
-      visibility: document.publication.visibility,
-      bodyEntryCount: document.body?.length || 0,
+      ...responseSermon,
+      mentionedPassageCount: document.references.filter(reference => (
+        reference.role === 'mentioned' && reference.reviewStatus === 'confirmed'
+      )).length,
     },
   }
 }
@@ -289,7 +309,11 @@ const prepareSermon: Endpoint = {
       )
       return json(
         req,
-        responseSermon(result.sermon, result.created),
+        managerSermonPreparationResponse(
+          result.sermon,
+          result.created,
+          prepared.schemaVersion,
+        ),
         { status: result.created ? 201 : 200 },
       )
     } catch (error) {

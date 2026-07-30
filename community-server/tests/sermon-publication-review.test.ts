@@ -52,7 +52,39 @@ function canonicalDocument() {
       titles: { en: 'John', ru: 'Иоанн' },
     },
     outline: [],
-    references: [],
+    references: [{
+      id: 'primary-John-10-11-10-18',
+      range: {
+        schemaVersion: 1,
+        bookId: 'John',
+        start: { chapter: 10, verse: 11 },
+        end: { chapter: 10, verse: 18 },
+      },
+      role: 'primary',
+      source: 'pastor',
+      reviewStatus: 'confirmed',
+      enteredText: 'John 10:11–18',
+      sourceId: 'manuscript',
+      sectionId: null,
+      startOffset: null,
+      endOffset: null,
+    }, {
+      id: 'mentioned-Ps-23-1-23-4',
+      range: {
+        schemaVersion: 1,
+        bookId: 'Ps',
+        start: { chapter: 23, verse: 1 },
+        end: { chapter: 23, verse: 4 },
+      },
+      role: 'mentioned',
+      source: 'operator',
+      reviewStatus: 'confirmed',
+      enteredText: 'Psalms 23:1–4',
+      sourceId: null,
+      sectionId: null,
+      startOffset: null,
+      endOffset: null,
+    }],
     sources: [{
       id: 'manuscript',
       kind: 'manuscript',
@@ -301,6 +333,25 @@ test('detail opens exact current body and media while every proposal starts empt
     'First exact paragraph.\n\nWith preserved spacing.',
   )
   assert.equal(detail.sermon.document.media[0].url, 'https://media.example.church/sermon.mp3')
+  assert.deepEqual(detail.sermon.document.references.map(reference => ({
+    id: reference.id,
+    role: reference.role,
+    reviewStatus: reference.reviewStatus,
+    enteredText: reference.enteredText,
+    bookId: reference.range.bookId,
+  })), [{
+    id: 'primary-John-10-11-10-18',
+    role: 'primary',
+    reviewStatus: 'confirmed',
+    enteredText: 'John 10:11–18',
+    bookId: 'John',
+  }, {
+    id: 'mentioned-Ps-23-1-23-4',
+    role: 'mentioned',
+    reviewStatus: 'confirmed',
+    enteredText: 'Psalms 23:1–4',
+    bookId: 'Ps',
+  }])
   assert.deepEqual(detail.publication?.selectedBodyEntryIds, ['old-public-body'])
   assert.deepEqual(draft.selectedBodyEntryIds, [])
   assert.deepEqual(draft.selectedMediaIds, [])
@@ -316,6 +367,32 @@ test('detail opens exact current body and media while every proposal starts empt
     durationSeconds: '',
   })
   assert.equal(draft.recordingRightsAndPrivacyConfirmed, false)
+})
+
+test('review preserves empty entered text for legacy references and rejects unsupported states', () => {
+  const legacyDocument = canonicalDocument()
+  legacyDocument.references[1].enteredText = ''
+  const legacyDetail = parseSermonPublicationDetail(
+    detailResponse(pointer(), legacyDocument),
+  )
+  assert.equal(legacyDetail.sermon.document.references[1].enteredText, '')
+  assert.equal(legacyDetail.sermon.document.references[1].range.bookId, 'Ps')
+
+  const emptyReferences = canonicalDocument()
+  emptyReferences.references = []
+  assert.deepEqual(
+    parseSermonPublicationDetail(
+      detailResponse(pointer(), emptyReferences),
+    ).sermon.document.references,
+    [],
+  )
+
+  const unsupported = canonicalDocument()
+  unsupported.references[1].reviewStatus = 'rejected'
+  assert.throws(
+    () => parseSermonPublicationDetail(detailResponse(pointer(), unsupported)),
+    /reviewStatus is invalid/,
+  )
 })
 
 test('publish intent uses exact current CAS and only explicit, canonically ordered choices', () => {

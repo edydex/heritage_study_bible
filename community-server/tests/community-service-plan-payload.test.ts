@@ -12,6 +12,7 @@ import {
 } from '../src/lib/syncShowProtocol.ts'
 import { hashOpaqueToken } from '../src/lib/tokens.ts'
 import { validateCommunityServicePlanSource } from '../src/lib/syncshow/CommunityServicePlan.ts'
+import { parseSermonDocument } from '../src/lib/syncshow/SermonDocument.ts'
 import { assertDisposableLiveDatabase } from './lib/disposableLiveDatabase.ts'
 
 type AnyRecord = Record<string, any>
@@ -66,7 +67,7 @@ function sermonPreparationRequest(payload: Payload, user: AnyRecord) {
     routeParams: {},
     user,
     text: async () => JSON.stringify({
-      schemaVersion: 1,
+      schemaVersion: 2,
       requestId,
       title: 'Runtime manager-prepared sermon',
       speaker: 'Runtime Pastor',
@@ -79,6 +80,13 @@ function sermonPreparationRequest(payload: Payload, user: AnyRecord) {
         endChapter: 3,
         endVerse: 21,
       },
+      mentionedPassages: [{
+        bookId: 'John',
+        startChapter: 15,
+        startVerse: 5,
+        endChapter: 15,
+        endVerse: 5,
+      }],
       manuscript: 'A reviewed manager-prepared manuscript for the live service-plan contract.',
       slideNotes: 'Faithful prayer.\nStrength through the Spirit.\nThe love of Christ.',
       reviewConfirmed: true,
@@ -181,6 +189,7 @@ test('real Payload/Postgres leader lifecycle stays exact through scoped SyncShow
     assert.equal(preparedSermon.visibility, 'private')
     assert.equal(preparedSermon.passageLabel, 'Ephesians 3:14–21')
     assert.equal(preparedSermon.bodyEntryCount, 2)
+    assert.equal(preparedSermon.mentionedPassageCount, 1)
     const journal = await payload.find({
       collection: 'syncshow-sermon-changes',
       depth: 0,
@@ -215,6 +224,22 @@ test('real Payload/Postgres leader lifecycle stays exact through scoped SyncShow
     assert.ok(sermon?.syncId)
     assert.ok(sermon?.syncCurrentRevision)
     assert.ok(sermon?.syncCurrentDocumentSource)
+    const preparedDocument = parseSermonDocument(
+      String(sermon.syncCurrentDocumentSource),
+    )
+    assert.deepEqual(preparedDocument.references.map(reference => ({
+      id: reference.id,
+      role: reference.role,
+      reviewStatus: reference.reviewStatus,
+    })), [{
+      id: 'primary-Eph-3-14-3-21',
+      role: 'primary',
+      reviewStatus: 'confirmed',
+    }, {
+      id: 'mentioned-John-15-5-15-5',
+      role: 'mentioned',
+      reviewStatus: 'confirmed',
+    }])
 
     const songSyncId = `service-plan-runtime-${suffix}`
     const createdSong = await payload.create({

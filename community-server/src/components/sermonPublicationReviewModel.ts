@@ -1,9 +1,16 @@
+import {
+  normalizeBibleRange,
+  type CanonicalBibleRange,
+} from '@/lib/syncshow/BibleRange'
+
 const SHA256_PATTERN = /^[a-f0-9]{64}$/
 const PUBLICATION_STATUSES = new Set(['draft', 'ready', 'published', 'archived'])
 const VISIBILITIES = new Set(['private', 'members', 'unlisted', 'public'])
 const BODY_KINDS = new Set(['manuscript', 'slide-notes', 'transcript', 'other'])
 const MEDIA_KINDS = new Set(['audio', 'video', 'transcript', 'document'])
 const MEDIA_STATUSES = new Set(['pending', 'processing', 'ready', 'failed'])
+const REFERENCE_ROLES = new Set(['primary', 'mentioned'])
+const REFERENCE_REVIEW_STATUSES = new Set(['suggested', 'confirmed'])
 const DIRECT_AUDIO_MEDIA_TYPES = new Set([
   'audio/mpeg',
   'audio/mp4',
@@ -104,6 +111,14 @@ export type SermonSourceReviewEntry = Readonly<{
   sizeBytes: number
 }>
 
+export type SermonReferenceReviewEntry = Readonly<{
+  id: string
+  role: 'primary' | 'mentioned'
+  reviewStatus: 'suggested' | 'confirmed'
+  enteredText: string
+  range: CanonicalBibleRange
+}>
+
 export type CanonicalSermonReviewDocument = Readonly<{
   schemaVersion: 1 | 2 | 3
   id: string
@@ -113,6 +128,7 @@ export type CanonicalSermonReviewDocument = Readonly<{
   speaker: string
   serviceDate: string
   seriesTitle: string | null
+  references: readonly SermonReferenceReviewEntry[]
   body: readonly SermonBodyReviewEntry[]
   media: readonly SermonMediaReviewEntry[]
   sources: readonly SermonSourceReviewEntry[]
@@ -571,6 +587,35 @@ function parseSources(value: unknown): SermonSourceReviewEntry[] {
   })
 }
 
+function parseReferences(value: unknown): SermonReferenceReviewEntry[] {
+  if (!Array.isArray(value)) fail('Canonical sermon references are invalid.')
+  const seen = new Set<string>()
+  return value.map((item, index) => {
+    const label = `Canonical sermon reference ${index + 1}`
+    const raw = record(item, label)
+    const id = text(raw.id, `${label}.id`)
+    if (seen.has(id)) fail('Canonical sermon references repeat an ID.')
+    seen.add(id)
+    let range: CanonicalBibleRange
+    try {
+      range = normalizeBibleRange(raw.range)
+    } catch {
+      fail(`${label}.range is invalid.`)
+    }
+    return {
+      id,
+      role: oneOf(raw.role, REFERENCE_ROLES, `${label}.role`),
+      reviewStatus: oneOf(
+        raw.reviewStatus,
+        REFERENCE_REVIEW_STATUSES,
+        `${label}.reviewStatus`,
+      ),
+      enteredText: text(raw.enteredText, `${label}.enteredText`, { empty: true }),
+      range,
+    }
+  })
+}
+
 function parseSeriesTitle(
   value: unknown,
   defaultLanguage: string,
@@ -617,6 +662,7 @@ function parseCanonicalDocument(
     speaker: text(speaker.name, 'Canonical sermon speaker name'),
     serviceDate: text(raw.serviceDate, 'Canonical sermon service date'),
     seriesTitle: parseSeriesTitle(raw.series, defaultLanguage),
+    references: parseReferences(raw.references),
     body: parseBody(raw.body),
     media: parseMedia(raw.media),
     sources: parseSources(raw.sources),
