@@ -1,6 +1,10 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import ChronologyTimeline, { timelineBarGeometry, timelinePosition } from './ChronologyTimeline'
+import ChronologyTimeline, {
+  situationalBarGeometry,
+  timelineBarGeometry,
+  timelinePosition,
+} from './ChronologyTimeline'
 
 const sampleTimeline = {
   heading: 'Late Judah',
@@ -30,6 +34,21 @@ const sampleTimeline = {
   ],
 }
 
+const situationalTimeline = {
+  presentation: 'situational',
+  heading: 'Babylon’s siege and its aftermath',
+  phases: [
+    { id: 'siege', label: 'Final siege' },
+    { id: 'fall', label: 'Jerusalem falls' },
+    { id: 'gedaliah', label: 'Gedaliah' },
+    { id: 'flight', label: 'Flight to Egypt' },
+  ],
+  passages: [
+    { label: 'Jer 39–41', source: 'jeremiah', start: 'fall', end: 'gedaliah' },
+    { label: '2 Kin 25:1–26', source: 'kings', start: 'siege', end: 'flight' },
+  ],
+}
+
 describe('ChronologyTimeline', () => {
   it('positions years correctly even when BC years descend', () => {
     expect(timelinePosition(609, 609, 586)).toBe(0)
@@ -43,6 +62,42 @@ describe('ChronologyTimeline', () => {
     expect(timelineBarGeometry({ startYear: 605, endYear: 605 }, 609, 586)).toMatchObject({
       width: 2.25,
     })
+  })
+
+  it('positions passages against situations rather than years', () => {
+    expect(
+      situationalBarGeometry(
+        { start: 'fall', end: 'gedaliah' },
+        situationalTimeline.phases
+      )
+    ).toEqual({ left: 25, width: 50 })
+  })
+
+  it('keeps situational charts compact and moves explanation into More', () => {
+    render(
+      <ChronologyTimeline
+        detailsText="These passages describe the same historical crisis."
+        sources={[{ key: 'source', title: 'Timeline source', url: '' }]}
+        timeline={situationalTimeline}
+      />
+    )
+
+    expect(screen.getByRole('region', { name: 'Babylon’s siege and its aftermath' })).toBeInTheDocument()
+    expect(screen.getByText('Passage')).toBeInTheDocument()
+    expect(screen.getByText('Jer 39–41')).toBeInTheDocument()
+    expect(screen.getByText('2 Kin 25:1–26')).toBeInTheDocument()
+    expect(document.querySelector('[data-passage-column-header]')).toBeInTheDocument()
+    expect(document.querySelectorAll('[data-passage-column]')).toHaveLength(2)
+    expect(screen.queryByText('These passages describe the same historical crisis.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Dated')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'More' }))
+    expect(screen.getByRole('dialog', { name: 'Babylon’s siege and its aftermath' })).toBeInTheDocument()
+    expect(screen.getByText('These passages describe the same historical crisis.')).toBeInTheDocument()
+    expect(screen.getByText('Timeline source')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close timeline details' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('labels the chart as attributed setting rather than fulfillment', () => {

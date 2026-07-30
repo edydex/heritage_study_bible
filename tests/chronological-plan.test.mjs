@@ -42,7 +42,7 @@ test('late-Judah history frames Jeremiah without over-fragmenting it', async () 
   const items = flattenedItems(plan)
   const position = (book, chapter) => chapterPosition(items, book, chapter)
 
-  assert.equal(plan.revision, '2026-07-parallel-timeline-groups')
+  assert.equal(plan.revision, '2026-07-event-first-timeline-maps')
   assert.ok(position('2 Kings', 22) < position('Jeremiah', 1))
   assert.ok(position('2 Chronicles', 35) < position('Jeremiah', 1))
   assert.ok(position('Jeremiah', 20) < position('2 Kings', 24))
@@ -86,12 +86,17 @@ test('late-Judah reading notes name reigns and their Kings and Chronicles anchor
       `${id} should cite the primary late-Judah timeline source`
     )
     assert.ok(contextNote.timeline, `${id} should include a visual timeline aid`)
-    assert.ok(contextNote.timeline.contexts.length > 0, `${id} should include timeline context bars`)
-    assert.match(
-      contextNote.timeline.caption,
-      /setting|period|narrated|year notices|endpoints/i,
-      `${id} should explain what its bars mean`
-    )
+    if (contextNote.timeline.presentation === 'situational') {
+      assert.ok(contextNote.timeline.phases.length > 0, `${id} should include situation phases`)
+      assert.ok(contextNote.timeline.passages.length > 0, `${id} should include passage bars`)
+    } else {
+      assert.ok(contextNote.timeline.contexts.length > 0, `${id} should include timeline context bars`)
+      assert.match(
+        contextNote.timeline.caption,
+        /setting|period|narrated|year notices|endpoints/i,
+        `${id} should explain what its bars mean`
+      )
+    }
   }
 
   const royalSurvey = notes.get('jeremiah-last-kings-survey').text
@@ -108,7 +113,7 @@ test('late-Judah reading notes name reigns and their Kings and Chronicles anchor
   assert.match(mixedBand, /2 Chronicles 36:4-13/)
 })
 
-test('timeline aids are valid and distinguish attributed setting from fulfillment', async () => {
+test('every timeline aid uses a valid event-first situation track', async () => {
   const plan = await loadPlan()
   const timelineNotes = flattenedItems(plan).filter(item => item.type === 'note' && item.timeline)
 
@@ -116,69 +121,40 @@ test('timeline aids are valid and distinguish attributed setting from fulfillmen
 
   for (const note of timelineNotes) {
     const { timeline } = note
-    assert.ok(Number.isFinite(timeline.startYear), `${note.id} needs a numeric start year`)
-    assert.ok(Number.isFinite(timeline.endYear), `${note.id} needs a numeric end year`)
-    assert.notEqual(timeline.startYear, timeline.endYear, `${note.id} needs a usable range`)
-    assert.ok(Array.isArray(timeline.contexts) && timeline.contexts.length > 0)
-    assert.equal(
-      timeline.perspective,
-      'attributed-setting',
-      `${note.id} should identify the bars as attributed setting rather than fulfillment`
-    )
+    assert.equal(timeline.presentation, 'situational', `${note.id} should use an event-first track`)
+    assert.equal(timeline.perspective, 'historical-situation')
+    assert.ok(Array.isArray(timeline.phases) && timeline.phases.length > 0)
+    assert.ok(Array.isArray(timeline.passages) && timeline.passages.length > 0)
+    assert.equal('startYear' in timeline, false, `${note.id} should not use a year master bar`)
+    assert.equal('endYear' in timeline, false, `${note.id} should not use a year master bar`)
 
-    const minimum = Math.min(timeline.startYear, timeline.endYear)
-    const maximum = Math.max(timeline.startYear, timeline.endYear)
-    for (const row of timeline.contexts) {
-      assert.ok(row.label, `${note.id} has an unlabeled context row`)
-      assert.ok(row.dateLabel, `${note.id}/${row.label} needs a readable date label`)
-      assert.doesNotMatch(
-        `${row.label} ${row.dateLabel}`,
-        /\bfulfill(?:ed|ment)?\b|\blater event announced\b/i,
-        `${note.id}/${row.label} must plot attributed setting, not fulfillment`
-      )
-      assert.ok(row.startYear >= minimum && row.startYear <= maximum, `${note.id}/${row.label} starts outside its axis`)
-      assert.ok(row.endYear >= minimum && row.endYear <= maximum, `${note.id}/${row.label} ends outside its axis`)
+    const phaseIds = new Set(timeline.phases.map(phase => phase.id))
+    assert.equal(phaseIds.size, timeline.phases.length, `${note.id} needs unique situation phases`)
+    for (const passage of timeline.passages) {
+      assert.match(passage.label, /\d/, `${note.id} should label passage bars with references`)
+      assert.ok(phaseIds.has(passage.start), `${note.id}/${passage.label} has an unknown start phase`)
+      assert.ok(phaseIds.has(passage.end), `${note.id}/${passage.label} has an unknown end phase`)
+      assert.equal('dateLabel' in passage, false, `${note.id}/${passage.label} should not repeat dates inline`)
     }
   }
 })
 
-test('parallel-account groups use identical ranges and stay contiguous', async () => {
+test('every passage maps to a contiguous portion of its situation track', async () => {
   const plan = await loadPlan()
   const timelineNotes = flattenedItems(plan).filter(item => item.type === 'note' && item.timeline)
 
   for (const note of timelineNotes) {
-    const groupedRows = new Map()
-
-    note.timeline.contexts.forEach((row, index) => {
-      if (!row.group) return
-      if (!groupedRows.has(row.group)) groupedRows.set(row.group, [])
-      groupedRows.get(row.group).push({ ...row, index })
-    })
-
-    for (const [group, rows] of groupedRows) {
-      assert.ok(rows.length >= 2, `${note.id}/${group} should contain at least two related rows`)
-      const indexes = rows.map(row => row.index)
-      assert.equal(
-        Math.max(...indexes) - Math.min(...indexes) + 1,
-        rows.length,
-        `${note.id}/${group} rows should remain together`
+    const phaseIds = note.timeline.phases.map(phase => phase.id)
+    for (const passage of note.timeline.passages) {
+      assert.ok(
+        phaseIds.indexOf(passage.start) <= phaseIds.indexOf(passage.end),
+        `${note.id}/${passage.label} should run forward through the situation`
       )
-
-      if (/^(Parallel accounts|Same historical window)/.test(group)) {
-        const expectedRange = [rows[0].startYear, rows[0].endYear]
-        for (const row of rows.slice(1)) {
-          assert.deepEqual(
-            [row.startYear, row.endYear],
-            expectedRange,
-            `${note.id}/${group}/${row.label} should align to the same visible range`
-          )
-        }
-      }
     }
   }
 })
 
-test('Day 245 directly aligns Jeremiah with Kings and Chronicles', async () => {
+test('Day 245 uses one situational siege track for Jeremiah, Kings, and Chronicles', async () => {
   const plan = await loadPlan()
   const note = flattenedItems(plan).find(item =>
     item.day === 245 &&
@@ -187,44 +163,42 @@ test('Day 245 directly aligns Jeremiah with Kings and Chronicles', async () => {
 
   assert.ok(note)
   assert.match(note.title, /Kings and Chronicles/)
-
-  const rows = new Map(note.timeline.contexts.map(row => [row.label, row]))
-  const fallLabels = [
-    'Jeremiah 39',
-    'Jeremiah 40-41',
-    '2 Kings 25:4-25',
-    '2 Chronicles 36:17-21',
-  ]
-
-  for (const label of fallLabels) {
-    assert.ok(rows.has(label), `Day 245 should show ${label}`)
-    assert.deepEqual(
-      [rows.get(label).startYear, rows.get(label).endYear],
-      [586, 585],
-      `${label} should use the shared fall-and-immediate-aftermath range`
-    )
-  }
-
-  assert.equal(rows.get('Jeremiah 39').group, rows.get('Jeremiah 40-41').group)
+  assert.equal(note.timeline.presentation, 'situational')
+  assert.equal(note.timeline.heading, 'Babylon’s siege and its aftermath')
   assert.deepEqual(
-    [rows.get('Jeremiah 42-43').startYear, rows.get('Jeremiah 42-43').endYear],
-    [rows.get('2 Kings 25:26').startYear, rows.get('2 Kings 25:26').endYear]
+    note.timeline.phases.map(phase => phase.label),
+    ['Siege', 'Fall', 'Gedaliah', 'Flight', 'Egypt']
   )
-  assert.notEqual(rows.get('Jeremiah 44').group, rows.get('Jeremiah 39').group)
+  assert.deepEqual(
+    note.timeline.passages.map(passage => passage.label),
+    ['Jer 39–41', 'Jer 42–44', '2 Kin 25:1–26', '2 Chr 36:17–21']
+  )
+  assert.deepEqual(
+    note.timeline.passages.find(passage => passage.label === 'Jer 39–41'),
+    {
+      label: 'Jer 39–41',
+      source: 'jeremiah',
+      start: 'fall',
+      end: 'gedaliah',
+    }
+  )
 })
 
 test('other clear parallel notes also expose their historical accounts in the chart', async () => {
   const plan = await loadPlan()
   const notes = new Map(flattenedItems(plan)
     .filter(item => item.type === 'note' && item.timeline)
-    .map(item => [item.id, item.timeline.contexts.map(row => row.label)]))
+    .map(item => [
+      item.id,
+      (item.timeline.passages || item.timeline.contexts || []).map(row => row.label),
+    ]))
 
   const expectedRows = {
-    'jonah-jeroboam-ii': ['2 Kings 14:23-25', 'Jonah 1-4'],
-    'isaiah-hezekiah-assyrian-crisis': ['Isaiah 36-39', '2 Kings 18:13-20:19', '2 Chronicles 32'],
-    'josiah-context-before-jeremiah': ['2 Kings 22-23', '2 Chronicles 34-35'],
-    'jeremiah-zedekiah-siege-anchors': ['Jeremiah 37-38', '2 Kings 25:1-7', '2 Chronicles 36:17-20'],
-    'jeremiah-historical-appendix': ['Jeremiah 52:1-30', '2 Kings 24:18-25:21', '2 Chronicles 36:11-21'],
+    'jonah-jeroboam-ii': ['2 Kin 14:23–25', 'Jon 1–4'],
+    'isaiah-hezekiah-assyrian-crisis': ['Isa 36–39', '2 Kin 18:13–20:19', '2 Chr 32'],
+    'josiah-context-before-jeremiah': ['2 Kin 22–23', '2 Chr 34–35'],
+    'jeremiah-zedekiah-siege-anchors': ['Jer 37–38', '2 Kin 25:1–7', '2 Chr 36:17–20'],
+    'jeremiah-historical-appendix': ['Jer 52:1–30', '2 Kin 24:18–25:21', '2 Chr 36:11–21'],
   }
 
   for (const [noteId, labels] of Object.entries(expectedRows)) {

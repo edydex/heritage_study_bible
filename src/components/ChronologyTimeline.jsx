@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 
 const CERTAINTY_LABELS = {
   anchored: 'Dated',
@@ -26,6 +26,59 @@ const CERTAINTY_STYLES = {
   },
 }
 
+const PASSAGE_STYLES = {
+  jeremiah: {
+    dot: 'bg-amber-600 dark:bg-amber-400',
+    bar: 'bg-amber-600 dark:bg-amber-400',
+    text: 'text-amber-900 dark:text-amber-200',
+  },
+  kings: {
+    dot: 'bg-sky-600 dark:bg-sky-400',
+    bar: 'bg-sky-600 dark:bg-sky-400',
+    text: 'text-sky-900 dark:text-sky-200',
+  },
+  chronicles: {
+    dot: 'bg-violet-600 dark:bg-violet-400',
+    bar: 'bg-violet-600 dark:bg-violet-400',
+    text: 'text-violet-900 dark:text-violet-200',
+  },
+  wisdom: {
+    dot: 'bg-teal-600 dark:bg-teal-400',
+    bar: 'bg-teal-600 dark:bg-teal-400',
+    text: 'text-teal-900 dark:text-teal-200',
+  },
+  prophet: {
+    dot: 'bg-orange-600 dark:bg-orange-400',
+    bar: 'bg-orange-600 dark:bg-orange-400',
+    text: 'text-orange-900 dark:text-orange-200',
+  },
+  history: {
+    dot: 'bg-blue-600 dark:bg-blue-400',
+    bar: 'bg-blue-600 dark:bg-blue-400',
+    text: 'text-blue-900 dark:text-blue-200',
+  },
+  psalm: {
+    dot: 'bg-emerald-600 dark:bg-emerald-400',
+    bar: 'bg-emerald-600 dark:bg-emerald-400',
+    text: 'text-emerald-900 dark:text-emerald-200',
+  },
+  acts: {
+    dot: 'bg-cyan-600 dark:bg-cyan-400',
+    bar: 'bg-cyan-600 dark:bg-cyan-400',
+    text: 'text-cyan-900 dark:text-cyan-200',
+  },
+  letter: {
+    dot: 'bg-rose-600 dark:bg-rose-400',
+    bar: 'bg-rose-600 dark:bg-rose-400',
+    text: 'text-rose-900 dark:text-rose-200',
+  },
+  other: {
+    dot: 'bg-emerald-600 dark:bg-emerald-400',
+    bar: 'bg-emerald-600 dark:bg-emerald-400',
+    text: 'text-emerald-900 dark:text-emerald-200',
+  },
+}
+
 function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value))
 }
@@ -49,7 +102,218 @@ export function timelineBarGeometry(context, startYear, endYear) {
   }
 }
 
-function ChronologyTimeline({ timeline }) {
+export function situationalBarGeometry(passage, phases) {
+  const phaseIds = phases.map(phase => phase.id)
+  const first = phaseIds.indexOf(passage.start)
+  const last = phaseIds.indexOf(passage.end || passage.start)
+  if (first < 0 || last < 0 || phases.length === 0) return null
+
+  const start = Math.min(first, last)
+  const end = Math.max(first, last)
+  return {
+    left: (start / phases.length) * 100,
+    width: ((end - start + 1) / phases.length) * 100,
+  }
+}
+
+function TimelineDetails({ heading, text, sources, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end bg-black/50 p-0 sm:items-center sm:justify-center sm:p-6"
+      role="presentation"
+    >
+      <section
+        aria-labelledby="timeline-details-title"
+        aria-modal="true"
+        className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl dark:bg-gray-900 sm:max-w-xl sm:rounded-2xl sm:p-6"
+        role="dialog"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">
+              Timeline details
+            </p>
+            <h3 id="timeline-details-title" className="mt-1 text-xl font-bold text-gray-950 dark:text-gray-100">
+              {heading}
+            </h3>
+          </div>
+          <button
+            aria-label="Close timeline details"
+            className="rounded-full border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-200"
+            onClick={onClose}
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+
+        {text && (
+          <p className="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-200">
+            {text}
+          </p>
+        )}
+
+        {sources.length > 0 && (
+          <div className="mt-5 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Sources</h4>
+            <ul className="mt-2 space-y-2">
+              {sources.map(source => (
+                <li key={source.key} className="text-sm text-gray-600 dark:text-gray-300">
+                  {source.url ? (
+                    <a
+                      className="text-primary underline underline-offset-2 dark:text-blue-300"
+                      href={source.url}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {source.title}
+                    </a>
+                  ) : (
+                    source.title
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
+
+function SituationalTimeline({ timeline, detailsText, sources }) {
+  const [showDetails, setShowDetails] = useState(false)
+  const phases = Array.isArray(timeline?.phases)
+    ? timeline.phases.filter(phase => phase?.id && phase?.label)
+    : []
+  const passages = Array.isArray(timeline?.passages)
+    ? timeline.passages
+      .map(passage => ({
+        ...passage,
+        geometry: situationalBarGeometry(passage, phases),
+      }))
+      .filter(passage => passage?.label && passage.geometry)
+    : []
+
+  if (phases.length === 0 || passages.length === 0) return null
+
+  const hasDetails = Boolean(detailsText || sources.length)
+  const phaseGridStyle = {
+    gridTemplateColumns: `repeat(${phases.length}, minmax(0, 1fr))`,
+  }
+
+  return (
+    <>
+      <section
+        aria-label={timeline.heading || 'Historical situation'}
+        className="mt-2"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">
+              Historical situation
+            </p>
+            <h2 className="mt-1 text-2xl font-bold text-gray-950 dark:text-gray-100">
+              {timeline.heading}
+            </h2>
+          </div>
+          {hasDetails && (
+            <button
+              className="shrink-0 text-sm font-semibold text-primary underline underline-offset-4 dark:text-blue-300"
+              onClick={() => setShowDetails(true)}
+              type="button"
+            >
+              More
+            </button>
+          )}
+        </div>
+
+        <div className="mt-5 grid grid-cols-[6.75rem_minmax(0,1fr)] gap-x-2 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
+          <div
+            className="flex min-h-16 items-center rounded-l-lg border border-gray-300 bg-gray-100 px-2 text-[10px] font-bold uppercase tracking-wide text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            data-passage-column-header
+          >
+            Passage
+          </div>
+          <div
+            aria-label="Situation phases"
+            className="grid overflow-hidden rounded-r-lg border border-gray-300 bg-gray-100 dark:border-gray-700 dark:bg-gray-800"
+            style={phaseGridStyle}
+          >
+            {phases.map((phase, index) => (
+              <div
+                className={`flex min-h-16 items-center justify-center px-0.5 py-2 text-center text-[8px] font-semibold leading-tight tracking-[-0.02em] text-gray-800 dark:text-gray-100 sm:px-1 sm:text-[10px] sm:font-bold sm:tracking-normal ${index > 0 ? 'border-l border-gray-300 dark:border-gray-700' : ''}`}
+                key={phase.id}
+              >
+                {phase.label}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <ul className="mt-3 space-y-1.5">
+          {passages.map(passage => {
+            const styles = PASSAGE_STYLES[passage.source] || PASSAGE_STYLES.other
+            return (
+              <li
+                className="grid min-h-8 grid-cols-[6.75rem_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[8.5rem_minmax(0,1fr)]"
+                key={passage.label}
+              >
+                <div
+                  className={`flex h-full min-w-0 items-center gap-1.5 border-r border-gray-200 pr-2 text-[11px] font-bold leading-tight dark:border-gray-700 ${styles.text}`}
+                  data-passage-column={passage.label}
+                >
+                  <span className={`h-2 w-2 shrink-0 rounded-full ${styles.dot}`} />
+                  <span>{passage.label}</span>
+                </div>
+                <div className="relative h-6">
+                  <div className="absolute inset-0 grid" style={phaseGridStyle}>
+                    {phases.map((phase, index) => (
+                      <span
+                        className={index > 0 ? 'border-l border-gray-200 dark:border-gray-700/70' : ''}
+                        key={phase.id}
+                      />
+                    ))}
+                  </div>
+                  <div
+                    aria-label={`${passage.label} spans ${passage.start} through ${passage.end || passage.start}`}
+                    className={`absolute top-2 h-2 rounded-full shadow-sm ${styles.bar}`}
+                    data-situation-bar={passage.label}
+                    style={{
+                      left: `${passage.geometry.left}%`,
+                      width: `${passage.geometry.width}%`,
+                    }}
+                  />
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+
+      {showDetails && (
+        <TimelineDetails
+          heading={timeline.heading}
+          onClose={() => setShowDetails(false)}
+          sources={sources}
+          text={detailsText}
+        />
+      )}
+    </>
+  )
+}
+
+function ChronologyTimeline({ timeline, detailsText = '', sources = [] }) {
+  if (timeline?.presentation === 'situational') {
+    return (
+      <SituationalTimeline
+        detailsText={detailsText}
+        sources={Array.isArray(sources) ? sources : []}
+        timeline={timeline}
+      />
+    )
+  }
+
   const contexts = Array.isArray(timeline?.contexts)
     ? timeline.contexts.filter(context =>
         context &&
