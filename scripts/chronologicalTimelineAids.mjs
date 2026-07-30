@@ -10,6 +10,24 @@ function parallelContext(event, label, dateLabel, startYear, endYear = startYear
   return groupedContext(`Parallel accounts — ${event}`, label, dateLabel, startYear, endYear, certainty)
 }
 
+function situationPhase(id, label) {
+  return { id, label }
+}
+
+function situationPassage(label, source, start, end = start) {
+  return { label, source, start, end }
+}
+
+function situationalTimeline(heading, phases, passages) {
+  return {
+    presentation: 'situational',
+    perspective: 'historical-situation',
+    heading,
+    phases,
+    passages,
+  }
+}
+
 function eraTimeline({
   heading,
   rangeLabel,
@@ -327,20 +345,23 @@ export const chronologicalTimelineAids = {
     caption: 'The dashed bar marks Habakkuk’s likely speaking or writing setting. It intentionally does not plot the later events announced in the oracle.',
   }),
 
-  'jeremiah-last-kings-survey': lateJudah([
-    parallelContext('Zedekiah’s final siege', 'Jeremiah 21', 'Zedekiah’s final siege, c. 588-586 BC', 588, 586),
-    parallelContext('Zedekiah’s final siege', '2 Kings 25:1-7', 'The same final siege and capture window, c. 588-586 BC', 588, 586),
-    parallelContext('Zedekiah’s final siege', '2 Chronicles 36:17-20', 'Parallel fall summary in the same siege window, c. 588-586 BC', 588, 586),
-    groupedContext('Historical frame — Judah’s last kings', 'Jeremiah 22-23', 'Looks across Judah’s last kings, 609-586 BC', 609, 586, 'broad'),
-    groupedContext('Historical frame — Judah’s last kings', '2 Kings 23:31-24:20', 'Jehoahaz through Zedekiah’s accession, 609-597 BC', 609, 597, 'broad'),
-    groupedContext('Historical frame — Judah’s last kings', '2 Chronicles 36:1-13', 'Parallel last-kings summary, 609-597 BC', 609, 597, 'broad'),
-    parallelContext('Jehoiachin’s first exile', 'Jeremiah 24', 'After Jehoiachin’s exile, c. 597 BC', 597),
-    parallelContext('Jehoiachin’s first exile', '2 Kings 24:10-17', 'Jehoiachin and Jerusalem’s first exiles, c. 597 BC', 597),
-    parallelContext('Jehoiachin’s first exile', '2 Chronicles 36:9-10', 'Parallel first-exile account, c. 597 BC', 597),
-  ], {
-    heading: 'Jeremiah 21-24 is not sequential',
-    caption: 'Grouped rows place Jeremiah beside the matching Kings and Chronicles setting. The middle group remains broader because Jeremiah 22-23 surveys more than one reign.',
-  }),
+  'jeremiah-last-kings-survey': situationalTimeline(
+    'Judah’s last kings',
+    [
+      situationPhase('jehoiakim', 'Jehoiakim'),
+      situationPhase('jehoiachin', 'Jehoiachin'),
+      situationPhase('first-exile', 'First exile'),
+      situationPhase('zedekiah', 'Zedekiah'),
+      situationPhase('final-siege', 'Final siege'),
+    ],
+    [
+      situationPassage('Jer 21', 'jeremiah', 'final-siege'),
+      situationPassage('Jer 22–23', 'jeremiah', 'jehoiakim', 'zedekiah'),
+      situationPassage('Jer 24', 'jeremiah', 'first-exile'),
+      situationPassage('2 Kin 23:31–24:20', 'kings', 'jehoiakim', 'zedekiah'),
+      situationPassage('2 Chr 36:1–13', 'chronicles', 'jehoiakim', 'zedekiah'),
+    ]
+  ),
 
   'jeremiah-jehoiakim-fourth-year': lateJudah([
     groupedContext('Historical frame — Jehoiakim’s reign', 'Jeremiah 26', 'Beginning of Jehoiakim’s reign, c. 609 BC', 609),
@@ -397,15 +418,20 @@ export const chronologicalTimelineAids = {
     caption: 'Bars show the reign setting named by Daniel’s narrative. Approximate BC equivalents can vary with accession-year reckoning; they are not claims about the book’s final composition date.',
   },
 
-  'jeremiah-zedekiah-siege-anchors': lateJudah([
-    context('Zedekiah’s reign', '597-586 BC', 597, 586),
-    parallelContext('Zedekiah’s final siege', 'Jeremiah 37-38', 'The final siege and temporary Babylonian withdrawal, c. 588-586 BC', 588, 586),
-    parallelContext('Zedekiah’s final siege', '2 Kings 25:1-7', 'The same final siege and capture window, c. 588-586 BC', 588, 586),
-    parallelContext('Zedekiah’s final siege', '2 Chronicles 36:17-20', 'Parallel fall summary in the same siege window, c. 588-586 BC', 588, 586),
-  ], {
-    heading: 'Jeremiah 37-38 stays near the end',
-    caption: 'The equal grouped bars align Jeremiah’s siege setting with the Kings sequence and the Chronicles summary. The longer bar above them is Zedekiah’s full reign.',
-  }),
+  'jeremiah-zedekiah-siege-anchors': situationalTimeline(
+    'Babylon’s final siege of Jerusalem',
+    [
+      situationPhase('surrounded', 'Siege begins'),
+      situationPhase('withdrawal', 'Withdrawal'),
+      situationPhase('return', 'Siege resumes'),
+      situationPhase('fall', 'Fall'),
+    ],
+    [
+      situationPassage('Jer 37–38', 'jeremiah', 'surrounded', 'return'),
+      situationPassage('2 Kin 25:1–7', 'kings', 'surrounded', 'fall'),
+      situationPassage('2 Chr 36:17–20', 'chronicles', 'return', 'fall'),
+    ]
+  ),
 
   'jeremiah-appendix-oracles': lateJudah([
     context('Jeremiah 45-46', 'Jehoiakim’s fourth year, c. 605 BC', 605),
@@ -432,26 +458,22 @@ export const chronologicalTimelineAids = {
     caption: 'Grouped rows align Kings and Chronicles with the Jeremiah passages that retell the same events. Equal bars mean the accounts share a historical setting; the ungrouped rows show the longer siege, reign, and return frame.',
   }),
 
-  'jeremiah-fall-and-aftermath': fallAndExile([
-    parallelContext('the fall and immediate aftermath', 'Jeremiah 39', 'Jerusalem falls and Zedekiah is captured, c. 586 BC', 586, 585),
-    parallelContext('the fall and immediate aftermath', 'Jeremiah 40-41', 'Gedaliah’s brief governorship and death, c. 586 BC', 586, 585),
-    parallelContext('the fall and immediate aftermath', '2 Kings 25:4-25', 'The matching fall and Gedaliah sequence, c. 586 BC', 586, 585),
-    parallelContext('the fall and immediate aftermath', '2 Chronicles 36:17-21', 'The matching fall summary, c. 586 BC', 586, 585),
-    parallelContext('the remnant flees to Egypt', 'Jeremiah 42-43', 'The remnant chooses Egypt, c. 586 BC', 586, 585),
-    parallelContext('the remnant flees to Egypt', '2 Kings 25:26', 'The same flight to Egypt, c. 586 BC', 586, 585),
-    context('Jeremiah 44', 'The remnant established in Egypt after the flight, broadly c. 585-580 BC', 585, 580, 'broad'),
-  ], {
-    heading: 'Jeremiah beside Kings and Chronicles',
-    rangeLabel: 'Jerusalem’s fall through the remnant in Egypt • c. 586-580 BC',
-    startYear: 586,
-    endYear: 580,
-    startLabel: '586 BC',
-    endLabel: 'c. 580 BC',
-    ticks: [
-      { year: 586, label: 'Jerusalem falls', shortLabel: '586 • fall' },
+  'jeremiah-fall-and-aftermath': situationalTimeline(
+    'Babylon’s siege and its aftermath',
+    [
+      situationPhase('siege', 'Siege'),
+      situationPhase('fall', 'Fall'),
+      situationPhase('gedaliah', 'Gedaliah'),
+      situationPhase('flight', 'Flight'),
+      situationPhase('egypt', 'Egypt'),
     ],
-    caption: 'Rows in each group use identical one-year bars because they describe the same c. 586 BC historical setting. Jeremiah 39 and 40-41 now share the fall-and-immediate-aftermath range, with Kings and Chronicles directly beside them; Jeremiah 44 then continues later in Egypt.',
-  }),
+    [
+      situationPassage('Jer 39–41', 'jeremiah', 'fall', 'gedaliah'),
+      situationPassage('Jer 42–44', 'jeremiah', 'flight', 'egypt'),
+      situationPassage('2 Kin 25:1–26', 'kings', 'siege', 'flight'),
+      situationPassage('2 Chr 36:17–21', 'chronicles', 'fall'),
+    ]
+  ),
 
   'jeremiah-historical-appendix': fallAndExile([
     parallelContext('Zedekiah through Jerusalem’s fall', 'Jeremiah 52:1-30', 'Zedekiah, siege, destruction, and deportations, 597-586 BC', 597, 586),
@@ -686,3 +708,625 @@ export const chronologicalTimelineAids = {
     caption: 'These bars record the broad traditional arrangement used by the plan and explicitly preserve dating uncertainty. They are not fulfillment dates.',
   }),
 }
+
+// The reader-facing presentation is event-first. The date-axis definitions above
+// remain as legacy reference data, while every generated aid uses these compact
+// situation tracks and passage-only bars.
+const situationalTimelineOverrides = {
+  'job-patriarchal-placement': situationalTimeline(
+    'Job’s story setting',
+    [
+      situationPhase('household', 'Household'),
+      situationPhase('testing', 'Testing'),
+      situationPhase('debate', 'Debate'),
+      situationPhase('answer', 'God answers'),
+      situationPhase('restoration', 'Restoration'),
+    ],
+    [
+      situationPassage('Job 1–2', 'wisdom', 'household', 'testing'),
+      situationPassage('Job 3–31', 'wisdom', 'debate'),
+      situationPassage('Job 32–37', 'wisdom', 'debate'),
+      situationPassage('Job 38–42', 'wisdom', 'answer', 'restoration'),
+    ]
+  ),
+
+  'obadiah-traditional-placement': situationalTimeline(
+    'Obadiah’s proposed settings',
+    [
+      situationPhase('kingdom', 'Divided kingdom'),
+      situationPhase('fall', 'Jerusalem falls'),
+      situationPhase('exile', 'Exile'),
+      situationPhase('return', 'Return'),
+    ],
+    [
+      situationPassage('Obad 1', 'prophet', 'kingdom', 'exile'),
+    ]
+  ),
+
+  'joel-traditional-placement': situationalTimeline(
+    'Joel’s proposed settings',
+    [
+      situationPhase('monarchy', 'Monarchy'),
+      situationPhase('fall', 'Jerusalem falls'),
+      situationPhase('exile', 'Exile'),
+      situationPhase('post-exile', 'Post-exile'),
+    ],
+    [
+      situationPassage('Joel 1–3', 'prophet', 'monarchy', 'post-exile'),
+    ]
+  ),
+
+  'jonah-jeroboam-ii': situationalTimeline(
+    'Jonah during Jeroboam II’s reign',
+    [
+      situationPhase('jeroboam', 'Jeroboam II'),
+      situationPhase('sent', 'Jonah sent'),
+      situationPhase('nineveh', 'Nineveh'),
+      situationPhase('repentance', 'Repentance'),
+    ],
+    [
+      situationPassage('2 Kin 14:23–25', 'kings', 'jeroboam'),
+      situationPassage('Jon 1–4', 'prophet', 'sent', 'repentance'),
+    ]
+  ),
+
+  'amos-hosea-eighth-century': situationalTimeline(
+    'Israel’s final northern-kingdom crisis',
+    [
+      situationPhase('jeroboam', 'Jeroboam II'),
+      situationPhase('decline', 'Northern decline'),
+      situationPhase('samaria', 'Samaria falls'),
+      situationPhase('aftermath', 'Aftermath'),
+    ],
+    [
+      situationPassage('Amos 1–9', 'prophet', 'jeroboam', 'decline'),
+      situationPassage('Hos 1–14', 'prophet', 'jeroboam', 'aftermath'),
+      situationPassage('2 Kin 14–17', 'kings', 'jeroboam', 'aftermath'),
+    ]
+  ),
+
+  'isaiah-uzziah-transition': situationalTimeline(
+    'Isaiah across Judah’s kings',
+    [
+      situationPhase('uzziah', 'Uzziah'),
+      situationPhase('death', 'Uzziah dies'),
+      situationPhase('jotham', 'Jotham'),
+      situationPhase('ahaz', 'Ahaz'),
+      situationPhase('hezekiah', 'Hezekiah'),
+    ],
+    [
+      situationPassage('Isa 1–5', 'prophet', 'uzziah', 'hezekiah'),
+      situationPassage('Isa 6', 'prophet', 'death'),
+    ]
+  ),
+
+  'isaiah-ahaz-crisis': situationalTimeline(
+    'Ahaz and the Syria–Israel crisis',
+    [
+      situationPhase('threat', 'Syria–Israel threat'),
+      situationPhase('appeal', 'Ahaz seeks Assyria'),
+      situationPhase('damascus', 'Damascus falls'),
+      situationPhase('pressure', 'Assyrian pressure'),
+    ],
+    [
+      situationPassage('Isa 7', 'prophet', 'threat', 'damascus'),
+      situationPassage('Isa 8–12', 'prophet', 'threat', 'pressure'),
+      situationPassage('2 Kin 16', 'kings', 'threat', 'damascus'),
+      situationPassage('2 Chr 28', 'chronicles', 'threat', 'pressure'),
+    ]
+  ),
+
+  'micah-isaiah-overlap': situationalTimeline(
+    'Micah and Isaiah’s shared generation',
+    [
+      situationPhase('jotham', 'Jotham'),
+      situationPhase('ahaz', 'Ahaz'),
+      situationPhase('hezekiah', 'Hezekiah'),
+      situationPhase('invasion', 'Assyrian invasion'),
+    ],
+    [
+      situationPassage('Mic 1–7', 'prophet', 'jotham', 'invasion'),
+      situationPassage('Isa 1–39', 'prophet', 'jotham', 'invasion'),
+    ]
+  ),
+
+  'isaiah-burdens-ahaz-sargon': situationalTimeline(
+    'Isaiah’s nation oracles amid Assyrian pressure',
+    [
+      situationPhase('ahaz', 'Ahaz'),
+      situationPhase('ahaz-dies', 'Ahaz dies'),
+      situationPhase('ashdod', 'Ashdod campaign'),
+      situationPhase('crisis', 'Assyrian crisis'),
+    ],
+    [
+      situationPassage('Isa 13–19, 21–23', 'prophet', 'ahaz', 'crisis'),
+      situationPassage('Isa 14:28–32', 'prophet', 'ahaz-dies'),
+      situationPassage('Isa 20', 'prophet', 'ashdod'),
+    ]
+  ),
+
+  'isaiah-hezekiah-assyrian-crisis': situationalTimeline(
+    'Hezekiah and Sennacherib',
+    [
+      situationPhase('threat', 'Assyrian threat'),
+      situationPhase('jerusalem', 'Jerusalem threatened'),
+      situationPhase('deliverance', 'Rescue'),
+      situationPhase('illness', 'Hezekiah’s illness'),
+      situationPhase('envoys', 'Babylonian envoys'),
+    ],
+    [
+      situationPassage('Isa 24–35', 'prophet', 'threat', 'deliverance'),
+      situationPassage('Isa 36–39', 'prophet', 'threat', 'envoys'),
+      situationPassage('2 Kin 18:13–20:19', 'kings', 'threat', 'envoys'),
+      situationPassage('2 Chr 32', 'chronicles', 'threat', 'envoys'),
+    ]
+  ),
+
+  'isaiah-comfort-prophecy': situationalTimeline(
+    'Isaiah’s ministry and prophetic horizon',
+    [
+      situationPhase('ministry', 'Isaiah’s ministry'),
+      situationPhase('exile', 'Exile foreseen'),
+      situationPhase('comfort', 'Comfort promised'),
+      situationPhase('return', 'Return foreseen'),
+    ],
+    [
+      situationPassage('Isa 1–39', 'prophet', 'ministry'),
+      situationPassage('Isa 40–66', 'prophet', 'ministry', 'return'),
+    ]
+  ),
+
+  'josiah-prophetic-cluster': situationalTimeline(
+    'The prophetic crisis around Josiah',
+    [
+      situationPhase('reform', 'Josiah’s reform'),
+      situationPhase('assyria', 'Assyria collapses'),
+      situationPhase('babylon', 'Babylon rises'),
+      situationPhase('exile', 'Exile approaches'),
+    ],
+    [
+      situationPassage('Nah 1–3', 'prophet', 'assyria'),
+      situationPassage('Zeph 1–3', 'prophet', 'reform', 'exile'),
+      situationPassage('Jer 1:1–3', 'jeremiah', 'reform', 'exile'),
+      situationPassage('Hab 1–3', 'prophet', 'babylon', 'exile'),
+    ]
+  ),
+
+  'josiah-context-before-jeremiah': situationalTimeline(
+    'Josiah’s reform and Jeremiah’s call',
+    [
+      situationPhase('law', 'Law found'),
+      situationPhase('covenant', 'Covenant renewed'),
+      situationPhase('passover', 'Passover'),
+      situationPhase('death', 'Josiah dies'),
+      situationPhase('continues', 'Jeremiah continues'),
+    ],
+    [
+      situationPassage('2 Kin 22–23', 'kings', 'law', 'death'),
+      situationPassage('2 Chr 34–35', 'chronicles', 'law', 'death'),
+      situationPassage('Jer 1:1–3', 'jeremiah', 'law', 'continues'),
+    ]
+  ),
+
+  'nahum-zephaniah-late-judah-setting': situationalTimeline(
+    'Nahum and Zephaniah before Judah’s fall',
+    [
+      situationPhase('josiah', 'Josiah'),
+      situationPhase('nineveh-warned', 'Nineveh warned'),
+      situationPhase('nineveh-falls', 'Nineveh falls'),
+      situationPhase('judah-warned', 'Judah warned'),
+    ],
+    [
+      situationPassage('Nah 1–3', 'prophet', 'nineveh-warned', 'nineveh-falls'),
+      situationPassage('Zeph 1–3', 'prophet', 'josiah', 'judah-warned'),
+    ]
+  ),
+
+  'jeremiah-fall-of-jerusalem': situationalTimeline(
+    'Jeremiah’s ministry begins and continues',
+    [
+      situationPhase('josiah', 'Josiah'),
+      situationPhase('jehoiakim', 'Jehoiakim'),
+      situationPhase('first-exile', 'First exile'),
+      situationPhase('zedekiah', 'Zedekiah'),
+      situationPhase('fall', 'Jerusalem falls'),
+    ],
+    [
+      situationPassage('Jer 1:1–3', 'jeremiah', 'josiah', 'fall'),
+      situationPassage('Jer 1–20', 'jeremiah', 'josiah', 'zedekiah'),
+    ]
+  ),
+
+  'jeremiah-era-band-compromise': situationalTimeline(
+    'The historical frame interrupting Jeremiah',
+    [
+      situationPhase('josiah', 'Josiah'),
+      situationPhase('jehoiakim', 'Jehoiakim'),
+      situationPhase('first-exile', 'First exile'),
+      situationPhase('zedekiah', 'Zedekiah'),
+      situationPhase('siege', 'Final siege'),
+    ],
+    [
+      situationPassage('Jer 1–20', 'jeremiah', 'josiah', 'zedekiah'),
+      situationPassage('2 Kin 23:31–24:20', 'kings', 'jehoiakim', 'zedekiah'),
+      situationPassage('2 Chr 36:1–13', 'chronicles', 'jehoiakim', 'zedekiah'),
+      situationPassage('Jer 21 onward', 'jeremiah', 'jehoiakim', 'siege'),
+    ]
+  ),
+
+  'habakkuk-babylonian-rise-setting': situationalTimeline(
+    'Habakkuk as Babylon rises',
+    [
+      situationPhase('assyria', 'Assyria fades'),
+      situationPhase('babylon', 'Babylon rises'),
+      situationPhase('threat', 'Judah threatened'),
+    ],
+    [
+      situationPassage('Hab 1–3', 'prophet', 'assyria', 'threat'),
+    ]
+  ),
+
+  'jeremiah-last-kings-survey': situationalTimeline(
+    'Judah’s last kings',
+    [
+      situationPhase('jehoiakim', 'Jehoiakim'),
+      situationPhase('jehoiachin', 'Jehoiachin'),
+      situationPhase('first-exile', 'First exile'),
+      situationPhase('zedekiah', 'Zedekiah'),
+      situationPhase('final-siege', 'Final siege'),
+    ],
+    [
+      situationPassage('Jer 21', 'jeremiah', 'final-siege'),
+      situationPassage('Jer 22–23', 'jeremiah', 'jehoiakim', 'zedekiah'),
+      situationPassage('Jer 24', 'jeremiah', 'first-exile'),
+      situationPassage('2 Kin 23:31–24:20', 'kings', 'jehoiakim', 'zedekiah'),
+      situationPassage('2 Chr 36:1–13', 'chronicles', 'jehoiakim', 'zedekiah'),
+    ]
+  ),
+
+  'jeremiah-jehoiakim-fourth-year': situationalTimeline(
+    'Jeremiah during Jehoiakim’s reign',
+    [
+      situationPhase('accession', 'Jehoiakim begins'),
+      situationPhase('fourth-year', 'Fourth year'),
+      situationPhase('babylon', 'Babylon advances'),
+      situationPhase('end', 'Reign ends'),
+    ],
+    [
+      situationPassage('Jer 26', 'jeremiah', 'accession'),
+      situationPassage('Jer 25', 'jeremiah', 'fourth-year'),
+      situationPassage('2 Kin 23:34–24:7', 'kings', 'accession', 'end'),
+      situationPassage('2 Chr 36:4–8', 'chronicles', 'accession', 'end'),
+    ]
+  ),
+
+  'jeremiah-zedekiah-first-exiles': situationalTimeline(
+    'The first exile and Zedekiah’s reign',
+    [
+      situationPhase('first-exile', 'First exile'),
+      situationPhase('installed', 'Zedekiah installed'),
+      situationPhase('fourth-year', 'Fourth year'),
+      situationPhase('siege', 'Final siege'),
+    ],
+    [
+      situationPassage('Jer 27–29', 'jeremiah', 'installed', 'siege'),
+      situationPassage('Jer 28', 'jeremiah', 'fourth-year'),
+      situationPassage('2 Kin 24:10–20', 'kings', 'first-exile', 'installed'),
+      situationPassage('2 Chr 36:9–14', 'chronicles', 'first-exile', 'installed'),
+    ]
+  ),
+
+  'jeremiah-consolation-siege-flashback': situationalTimeline(
+    'Jeremiah moves between Jehoiakim and the siege',
+    [
+      situationPhase('jehoiakim', 'Jehoiakim'),
+      situationPhase('fourth-year', 'Fourth year'),
+      situationPhase('first-exile', 'First exile'),
+      situationPhase('zedekiah', 'Zedekiah'),
+      situationPhase('siege', 'Final siege'),
+    ],
+    [
+      situationPassage('Jer 30–31', 'jeremiah', 'jehoiakim', 'siege'),
+      situationPassage('Jer 32–34', 'jeremiah', 'siege'),
+      situationPassage('Jer 35', 'jeremiah', 'jehoiakim'),
+      situationPassage('Jer 36', 'jeremiah', 'fourth-year'),
+      situationPassage('2 Kin 24–25:7', 'kings', 'jehoiakim', 'siege'),
+      situationPassage('2 Chr 36:4–20', 'chronicles', 'jehoiakim', 'siege'),
+    ]
+  ),
+
+  'daniel-early-babylonian-exile': situationalTimeline(
+    'Daniel enters Babylonian service',
+    [
+      situationPhase('jehoiakim', 'Jehoiakim'),
+      situationPhase('babylon', 'Babylon triumphs'),
+      situationPhase('taken', 'Daniel taken'),
+      situationPhase('training', 'Court training'),
+      situationPhase('first-exile', 'First exile'),
+    ],
+    [
+      situationPassage('Dan 1', 'prophet', 'jehoiakim', 'training'),
+      situationPassage('Dan 2', 'prophet', 'training', 'first-exile'),
+      situationPassage('2 Kin 24:1–17', 'kings', 'babylon', 'first-exile'),
+      situationPassage('2 Chr 36:5–10', 'chronicles', 'babylon', 'first-exile'),
+    ]
+  ),
+
+  'jeremiah-zedekiah-siege-anchors': situationalTimeline(
+    'Babylon’s final siege of Jerusalem',
+    [
+      situationPhase('surrounded', 'Siege begins'),
+      situationPhase('withdrawal', 'Withdrawal'),
+      situationPhase('return', 'Siege resumes'),
+      situationPhase('fall', 'Fall'),
+    ],
+    [
+      situationPassage('Jer 37–38', 'jeremiah', 'surrounded', 'return'),
+      situationPassage('2 Kin 25:1–7', 'kings', 'surrounded', 'fall'),
+      situationPassage('2 Chr 36:17–20', 'chronicles', 'return', 'fall'),
+    ]
+  ),
+
+  'jeremiah-appendix-oracles': situationalTimeline(
+    'Jeremiah’s nations appendix spans two reigns',
+    [
+      situationPhase('fourth-year', 'Jehoiakim’s fourth year'),
+      situationPhase('nations', 'Nations oracles'),
+      situationPhase('zedekiah', 'Zedekiah’s fourth year'),
+      situationPhase('siege', 'Final siege'),
+    ],
+    [
+      situationPassage('Jer 45–46', 'jeremiah', 'fourth-year'),
+      situationPassage('Jer 47–50', 'jeremiah', 'nations', 'siege'),
+      situationPassage('Jer 51:1–58', 'jeremiah', 'nations', 'siege'),
+      situationPassage('Jer 51:59–64', 'jeremiah', 'zedekiah'),
+    ]
+  ),
+
+  'late-judah-fall-history-first': situationalTimeline(
+    'Judah falls and exile begins',
+    [
+      situationPhase('siege', 'Final siege'),
+      situationPhase('fall', 'Fall'),
+      situationPhase('gedaliah', 'Gedaliah / flight'),
+      situationPhase('release', 'Jehoiachin freed'),
+      situationPhase('return', 'Return decree'),
+    ],
+    [
+      situationPassage('2 Kin 25:1–26', 'kings', 'siege', 'gedaliah'),
+      situationPassage('2 Kin 25:27–30', 'kings', 'release'),
+      situationPassage('2 Chr 36:11–21', 'chronicles', 'siege', 'fall'),
+      situationPassage('2 Chr 36:22–23', 'chronicles', 'return'),
+      situationPassage('Jer 39–43', 'jeremiah', 'fall', 'gedaliah'),
+      situationPassage('Jer 52:31–34', 'jeremiah', 'release'),
+    ]
+  ),
+
+  'jeremiah-fall-and-aftermath': situationalTimeline(
+    'Babylon’s siege and its aftermath',
+    [
+      situationPhase('siege', 'Siege'),
+      situationPhase('fall', 'Fall'),
+      situationPhase('gedaliah', 'Gedaliah'),
+      situationPhase('flight', 'Flight'),
+      situationPhase('egypt', 'Egypt'),
+    ],
+    [
+      situationPassage('Jer 39–41', 'jeremiah', 'fall', 'gedaliah'),
+      situationPassage('Jer 42–44', 'jeremiah', 'flight', 'egypt'),
+      situationPassage('2 Kin 25:1–26', 'kings', 'siege', 'flight'),
+      situationPassage('2 Chr 36:17–21', 'chronicles', 'fall'),
+    ]
+  ),
+
+  'jeremiah-historical-appendix': situationalTimeline(
+    'Jeremiah 52 retells Judah’s final collapse',
+    [
+      situationPhase('zedekiah', 'Zedekiah'),
+      situationPhase('siege', 'Final siege'),
+      situationPhase('fall', 'Fall / deportation'),
+      situationPhase('release', 'Jehoiachin freed'),
+    ],
+    [
+      situationPassage('Jer 52:1–30', 'jeremiah', 'zedekiah', 'fall'),
+      situationPassage('2 Kin 24:18–25:21', 'kings', 'zedekiah', 'fall'),
+      situationPassage('2 Chr 36:11–21', 'chronicles', 'zedekiah', 'fall'),
+      situationPassage('Jer 52:31–34', 'jeremiah', 'release'),
+      situationPassage('2 Kin 25:27–30', 'kings', 'release'),
+    ]
+  ),
+
+  'exilic-psalm-laments': situationalTimeline(
+    'Songs of destruction, exile, and return',
+    [
+      situationPhase('destruction', 'Jerusalem destroyed'),
+      situationPhase('exile', 'Exile in Babylon'),
+      situationPhase('longing', 'Longing for return'),
+      situationPhase('return', 'Return begins'),
+    ],
+    [
+      situationPassage('Ps 74, 79, 89, 102', 'psalm', 'destruction', 'longing'),
+      situationPassage('Ps 137', 'psalm', 'exile', 'longing'),
+      situationPassage('Ps 85', 'psalm', 'longing', 'return'),
+    ]
+  ),
+
+  'ezekiel-dated-exile-visions': situationalTimeline(
+    'Ezekiel’s visions across the exile',
+    [
+      situationPhase('exile', 'Exile begins'),
+      situationPhase('warnings', 'Warnings'),
+      situationPhase('fall', 'Jerusalem falls'),
+      situationPhase('restoration', 'Restoration'),
+      situationPhase('temple', 'Temple vision'),
+    ],
+    [
+      situationPassage('Ezek 1–7', 'prophet', 'exile', 'warnings'),
+      situationPassage('Ezek 8–24', 'prophet', 'warnings', 'fall'),
+      situationPassage('Ezek 25–32', 'prophet', 'warnings', 'fall'),
+      situationPassage('Ezek 33–39', 'prophet', 'fall', 'restoration'),
+      situationPassage('Ezek 40–48', 'prophet', 'temple'),
+    ]
+  ),
+
+  'daniel-later-reign-markers': situationalTimeline(
+    'Daniel across Babylon and Persia',
+    [
+      situationPhase('babylon', 'Babylonian court'),
+      situationPhase('belshazzar', 'Belshazzar'),
+      situationPhase('fall', 'Babylon falls'),
+      situationPhase('darius', 'Darius'),
+      situationPhase('cyrus', 'Cyrus'),
+    ],
+    [
+      situationPassage('Dan 3–4', 'prophet', 'babylon'),
+      situationPassage('Dan 7–8', 'prophet', 'belshazzar'),
+      situationPassage('Dan 5', 'prophet', 'fall'),
+      situationPassage('Dan 6, 9', 'prophet', 'darius'),
+      situationPassage('Dan 10–12', 'prophet', 'cyrus'),
+    ]
+  ),
+
+  'haggai-zechariah-temple-rebuild': situationalTimeline(
+    'The prophets inside Ezra’s temple rebuild',
+    [
+      situationPhase('return', 'First return'),
+      situationPhase('stalls', 'Work stalls'),
+      situationPhase('prophets', 'Prophets call'),
+      situationPhase('resumes', 'Work resumes'),
+      situationPhase('completed', 'Temple completed'),
+    ],
+    [
+      situationPassage('Ezra 1–4', 'history', 'return', 'stalls'),
+      situationPassage('Hag 1–2', 'prophet', 'prophets', 'resumes'),
+      situationPassage('Zech 1–8', 'prophet', 'prophets', 'resumes'),
+      situationPassage('Ezra 5–6', 'history', 'resumes', 'completed'),
+    ]
+  ),
+
+  'return-and-pilgrimage-psalms': situationalTimeline(
+    'Return, rebuilding, and pilgrimage worship',
+    [
+      situationPhase('return', 'Return'),
+      situationPhase('temple', 'Temple rebuilt'),
+      situationPhase('jerusalem', 'Jerusalem rebuilt'),
+      situationPhase('pilgrimage', 'Pilgrimage worship'),
+    ],
+    [
+      situationPassage('Ezra 1–Neh 13', 'history', 'return', 'jerusalem'),
+      situationPassage('Ps 126', 'psalm', 'return', 'jerusalem'),
+      situationPassage('Ps 120–134', 'psalm', 'temple', 'pilgrimage'),
+    ]
+  ),
+
+  'malachi-post-exilic-close': situationalTimeline(
+    'Malachi in the restored community',
+    [
+      situationPhase('temple', 'Temple restored'),
+      situationPhase('ezra', 'Ezra’s reforms'),
+      situationPhase('nehemiah', 'Nehemiah’s reforms'),
+      situationPhase('warning', 'Post-exilic warning'),
+    ],
+    [
+      situationPassage('Ezra 7–10', 'history', 'ezra'),
+      situationPassage('Neh 13', 'history', 'nehemiah'),
+      situationPassage('Mal 1–4', 'prophet', 'ezra', 'warning'),
+    ]
+  ),
+
+  'james-early-church': situationalTimeline(
+    'James amid the early Jerusalem church',
+    [
+      situationPhase('jerusalem', 'Jerusalem church'),
+      situationPhase('persecution', 'Suffering'),
+      situationPhase('scattered', 'Believers scattered'),
+      situationPhase('gentiles', 'Gentile mission'),
+    ],
+    [
+      situationPassage('Acts 1–8', 'acts', 'jerusalem', 'scattered'),
+      situationPassage('Jas 1–5', 'letter', 'scattered', 'gentiles'),
+    ]
+  ),
+
+  'galatians-acts-mission': situationalTimeline(
+    'Galatians near Paul’s early missions',
+    [
+      situationPhase('mission', 'First mission'),
+      situationPhase('galatia', 'South Galatia'),
+      situationPhase('council', 'Jerusalem council'),
+      situationPhase('later', 'Later-date view'),
+    ],
+    [
+      situationPassage('Acts 13–14', 'acts', 'mission', 'galatia'),
+      situationPassage('Acts 15', 'acts', 'council'),
+      situationPassage('Gal 1–6', 'letter', 'mission', 'council'),
+    ]
+  ),
+
+  'thessalonians-corinth': situationalTimeline(
+    'The Thessalonian letters during Paul’s second mission',
+    [
+      situationPhase('macedonia', 'Macedonia'),
+      situationPhase('thessalonica', 'Thessalonica'),
+      situationPhase('athens', 'Athens'),
+      situationPhase('corinth', 'Corinth'),
+    ],
+    [
+      situationPassage('Acts 16–18', 'acts', 'macedonia', 'corinth'),
+      situationPassage('1 Thess 1–5', 'letter', 'thessalonica', 'corinth'),
+      situationPassage('2 Thess 1–3', 'letter', 'corinth'),
+    ]
+  ),
+
+  'corinthians-romans-acts-19-20': situationalTimeline(
+    'Corinthians and Romans across Paul’s travels',
+    [
+      situationPhase('ephesus', 'Ephesus'),
+      situationPhase('macedonia', 'Macedonia'),
+      situationPhase('greece', 'Greece'),
+      situationPhase('jerusalem', 'Jerusalem journey'),
+    ],
+    [
+      situationPassage('Acts 19', 'acts', 'ephesus'),
+      situationPassage('1 Cor 1–16', 'letter', 'ephesus'),
+      situationPassage('Acts 20', 'acts', 'macedonia', 'jerusalem'),
+      situationPassage('2 Cor 1–13', 'letter', 'macedonia'),
+      situationPassage('Rom 1–16', 'letter', 'greece', 'jerusalem'),
+    ]
+  ),
+
+  'prison-epistles-after-acts': situationalTimeline(
+    'Paul’s journey into Roman custody',
+    [
+      situationPhase('jerusalem', 'Jerusalem custody'),
+      situationPhase('voyage', 'Voyage to Rome'),
+      situationPhase('rome', 'Roman imprisonment'),
+    ],
+    [
+      situationPassage('Acts 21–28', 'acts', 'jerusalem', 'rome'),
+      situationPassage('Eph 1–6; Phil 1–4', 'letter', 'rome'),
+      situationPassage('Col 1–4; Phlm 1', 'letter', 'rome'),
+    ]
+  ),
+
+  'late-epistles-and-revelation': situationalTimeline(
+    'The New Testament’s closing decades',
+    [
+      situationPhase('after-acts', 'After Acts'),
+      situationPhase('pastoral', 'Pastoral ministry'),
+      situationPhase('persecution', 'Suffering'),
+      situationPhase('late', 'Late apostolic era'),
+      situationPhase('revelation', 'Revelation'),
+    ],
+    [
+      situationPassage('1 Tim 1–6; Titus 1–3', 'letter', 'pastoral'),
+      situationPassage('2 Tim 1–4', 'letter', 'persecution'),
+      situationPassage('1 Pet 1–5; Heb 1–13', 'letter', 'persecution'),
+      situationPassage('2 Pet 1–3; Jude 1', 'letter', 'persecution', 'late'),
+      situationPassage('1–3 John', 'letter', 'late'),
+      situationPassage('Rev 1–22', 'letter', 'revelation'),
+    ]
+  ),
+}
+
+Object.assign(chronologicalTimelineAids, situationalTimelineOverrides)
