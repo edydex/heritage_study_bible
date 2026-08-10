@@ -1,4 +1,5 @@
 import { communityAuthEnabled, communityPublicConfig, publicJson } from '@/lib/publicConfig'
+import { sermonMediaEnabled } from '@/lib/syncshow/SermonMedia'
 
 export function GET() {
   return publicJson({
@@ -53,6 +54,22 @@ export function GET() {
             endpoint: 'sermons',
             scopes: ['syncshow:sermons:read', 'syncshow:sermons:write'],
           },
+          ...(sermonMediaEnabled()
+            ? {
+                sermonMedia: {
+                  schemaVersion: 1,
+                  endpoint: 'sermon-media',
+                  scopes: [
+                    'syncshow:sermon-media:read',
+                    'syncshow:sermon-media:write',
+                  ],
+                  chunkSizeBytes: 8388608,
+                  maximumBytes: 1073741824,
+                  acceptedMediaTypes: ['audio/mpeg', 'audio/mp4'],
+                  sessionTtlSeconds: 604800,
+                },
+              }
+            : {}),
           sermonPublications: {
             schemaVersion: 1,
             endpoint: 'sermon-publications',

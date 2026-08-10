@@ -1,7 +1,8 @@
 # SyncShow and Heritage Community integration
 
 The Community server can hold the church-managed records that SyncShow uses
-while planning a service. Protocol v2 advertises five independent resources.
+while planning a service. Protocol v2 advertises five independent resources
+and can advertise one opt-in private recording resource.
 The `servicePlans` resource itself advertises schema 2 while retaining
 schema-v1 document compatibility:
 
@@ -10,6 +11,7 @@ schema-v1 document compatibility:
 - `sermons`
 - `sermonPublications`
 - `servicePlans`
+- `sermonMedia` (optional; disabled by default)
 
 Each resource has its own scopes and can be withdrawn without disabling the
 others. Community is not the live-show runtime: SyncShow's local songs,
@@ -53,6 +55,8 @@ scopes are:
 - `syncshow:sermons:write`
 - `syncshow:sermon-publications:read`
 - `syncshow:service-plans:read`
+- `syncshow:sermon-media:read` (only when managed recording is enabled)
+- `syncshow:sermon-media:write` (only when managed recording is enabled)
 
 Write scopes carry their documented read dependencies. SyncShow treats a
 capability as effective only when it is both advertised now and present in the
@@ -77,6 +81,110 @@ Token exchange is transactional and retryable. If a successful HTTP response
 is lost, SyncShow may retry the consumed grant during the short recovery
 window and receives the same token; the server does not create a second
 connection.
+
+## Private managed sermon recordings
+
+Managed recording upload is deliberately opt-in. Set
+`HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED=true` only after the dedicated private
+volume, quiesced format-2 backup, restore, and off-device retention policy are
+ready. The safe default is off: discovery omits `sermonMedia`, Payload
+registers no managed-media routes, and the handler implementation independently
+fails closed if invoked while disabled. Existing grants remain valid but do
+not inherit the two new scopes; reconnect and explicitly approve them.
+
+Capacity defaults are intentionally conservative: 8 active uploads per
+appliance, 4 per Community, 2 per SyncShow connection, and 1 concurrent
+finalization. Each Community may retain at most 50 GiB and 2,000 unique
+recording objects. The filesystem must preserve the larger of 5 GiB or 15% of
+its total capacity after pessimistic active-upload reservations and one
+largest-object assembly. These are configurable with
+`HERITAGE_SERMON_MEDIA_MAX_ACTIVE_GLOBAL`,
+`HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_COMMUNITY`,
+`HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_CONNECTION`,
+`HERITAGE_SERMON_MEDIA_MAX_FINALIZING_GLOBAL`,
+`HERITAGE_SERMON_MEDIA_MAX_RETAINED_BYTES_PER_COMMUNITY`,
+`HERITAGE_SERMON_MEDIA_MAX_RETAINED_OBJECTS_PER_COMMUNITY`, and
+`HERITAGE_SERMON_MEDIA_STORAGE_RESERVE_BYTES`. Invalid or zero values fail
+closed. Capacity responses are retryable `429` or `507` responses; `429`
+includes `Retry-After`.
+
+The schema-1 lane accepts only `.mp3` as `audio/mpeg` and `.m4a`/`.mp4` as
+`audio/mp4`, up to 1 GiB. An init request binds one upload to the exact current
+canonical sermon sync version, revision, and null-URL audio media slot. Every
+status, chunk, completion, and cancellation request rechecks the connection,
+manager role, tenant, sermon revision, and media slot. A stale binding becomes
+`superseded` and returns 412.
+
+Chunks are fixed at 8 MiB except the final chunk and require exact
+`Content-Length`, `Content-Range`, `X-Content-SHA256`, and
+`Idempotency-Key` headers. The server streams them to private staging, verifies
+each length/hash, then completion verifies the whole size/hash and bounded
+MP3 or MP4/M4A audio-container structure. Completion is asynchronous: the
+first exact `POST .../complete` durably claims a lease and returns `202` with
+the same bounded upload envelope in `finalizing` state. SyncShow polls the
+ordinary upload `GET`; an exact replay while that lease is live returns the
+same `202`, and a replay after completion returns `200` with `complete`.
+The single-capacity background worker installs an fsynced,
+content-addressed object in a stable, Community-specific namespace before the
+database records completion. A 30-second runtime poll reclaims an expired
+lease after process restart only while the feature is enabled and the
+original connection, scopes, and manager membership are still valid.
+Maintenance never finalizes while the feature is disabled, but it may still
+expire and clean a stale finalizing upload whose original connection has been
+revoked or expired so that quiesced backup cannot be blocked permanently.
+Completion never depends on a proxied request remaining open during a large
+assembly. No endpoint returns a storage key, file path, object ID,
+publication binding, playback URL, or file-serving route.
+
+The server accepts at most four chunk streams process-wide and one per
+connection. It acquires that slot before opening a database transaction,
+applies a five-second PostgreSQL lock timeout, aborts a stream after 45 seconds
+without byte progress, enforces a 15-minute whole-chunk ceiling, and holds the
+upload lock through the verified file rename and matching chunk row commit.
+Cancellation and replacement wait for that atomic boundary and cannot
+supersede an unexpired finalization lease.
+
+The original init key always replays its original session, including a
+cancelled session. The replay lookup precedes current binding validation, so a
+lost init response can still find and safely supersede/clean its accepted row
+after remote sermon drift. An explicit **Start again** action must persist a
+new attempt identity and reuse that key across retries. A different new key
+cannot adopt an active or finalizing upload; that would need a future durable
+alias protocol. It may recover the unique exact completed row, which can no
+longer be cancelled or expire. The server serializes attempts for one sermon
+media slot, so simultaneous different keys cannot fabricate a second live
+upload. Terminal completion, cancellation, expiry, supersession, or internal
+failure removes only that upload's symlink-safe staging tree while retaining
+database audit rows and any completed private object.
+The bounded runtime sweep commits expiry first and performs idempotent terminal
+staging cleanup in a second transaction. A crash can therefore leave cleanup
+pending for retry, but cannot revive an active row after deleting its chunks.
+
+Backups include completed `objects/*/sha256` bytes, an exact canonical
+path/size/digest inventory, and matching database state. Staging is neither
+backed up nor restored; quiesced backup runs supported maintenance and refuses
+while any nonexpired active or recent unknown staging remains. Finish or cancel
+uploads first. Format 2 restores are atomic and reject database-only or
+media-only selection. This slice does not
+publish, serve, transcode, or mutate a sermon publication. Publication from a
+managed private object requires a later, separate manager-reviewed contract.
+
+The supported appliance command is
+`sudo heritage-community sermon-media-maintenance`. Its wrapper stops only the
+application, sets the internal quiescence acknowledgement, validates the one
+JSON report, and restarts the app only after success. It expires due sessions,
+removes confined terminal and sufficiently old orphan staging, verifies every
+retained object, and garbage-collects only database-unreferenced,
+content-verified files older than the configured grace period. Use
+`--grace-seconds 3600..2592000` to override the 24-hour default.
+Backup-ready maintenance is the narrow exception: only after the app is
+stopped, the appliance operations lock is held, the recording tables are
+exclusively locked, and zero active/finalizing work is proved does it remove
+fresh verified unreferenced objects. This prevents a revoked or crashed
+finalizer from blocking exact database/filesystem backup inventory.
+`npm run maintenance:sermon-media` is an internal container entry point, not
+the normal appliance operator path. Normal runtime also performs bounded
+`FOR UPDATE SKIP LOCKED` expiry and staging cleanup without following symlinks.
 
 ## Song visibility
 
@@ -376,7 +484,7 @@ still lacking an exact source raises SQLSTATE `23514` transactionally before
 reconstructable from the current sermon. Empty or all-current journals can roll
 back; retained distinct history cannot be silently destroyed.
 
-The complete Community contract suite passes 202/202, including v1/v2
+The complete Community contract suite passes 264/264, including v1/v2
 service-plan conformance, manager editor behavior, migrations, ordinary manager
 sermon preparation/review and direct-recording publication tests, and
 disposable-database/CI guards. A local disposable

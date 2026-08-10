@@ -3,7 +3,8 @@ set -Eeuo pipefail
 
 # This is intentionally a destructive recovery regression. It may run only in
 # GitHub Actions with the exact disposable marker, and it creates a second
-# Compose project with unique database/media volumes before touching data.
+# Compose project with unique database, uploaded-media, and private-sermon
+# volumes before touching data.
 DISPOSABLE_MARKER='heritage-community-syncshow-backup-restore-v1'
 if [[ "${HERITAGE_DISPOSABLE_CI:-}" != "${DISPOSABLE_MARKER}" ]]; then
   printf 'ERROR: exact HERITAGE_DISPOSABLE_CI marker is required.\n' >&2
@@ -81,6 +82,7 @@ work_token="$(printf '%s' "${work_basename}" \
 project_name="ci-${work_token}"
 postgres_volume="${project_name}-postgres"
 media_volume="${project_name}-media"
+sermon_media_volume="${project_name}-sermon-media"
 test_port=3310
 test_public_url="http://127.0.0.1:${test_port}"
 test_env="${WORK_ROOT}/community.env"
@@ -90,6 +92,8 @@ expected_db="${WORK_ROOT}/database.expected"
 after_db="${WORK_ROOT}/database.after"
 expected_media="${WORK_ROOT}/media.expected"
 after_media="${WORK_ROOT}/media.after"
+expected_recording="${WORK_ROOT}/recording.expected"
+after_recording="${WORK_ROOT}/recording.after"
 expected_detail="${WORK_ROOT}/detail.expected"
 expected_catalog="${WORK_ROOT}/catalog.expected"
 expected_passage="${WORK_ROOT}/passage.expected"
@@ -145,6 +149,7 @@ set_env_value COMMUNITY_PUBLIC_URL "${test_public_url}"
 set_env_value COMMUNITY_LOCAL_PORT "${test_port}"
 set_env_value HERITAGE_POSTGRES_VOLUME "${postgres_volume}"
 set_env_value HERITAGE_MEDIA_VOLUME "${media_volume}"
+set_env_value HERITAGE_SERMON_MEDIA_VOLUME "${sermon_media_volume}"
 set_env_value TUNNEL_TOKEN ""
 
 export POSTGRES_DB=heritage_community
@@ -156,6 +161,7 @@ export COMMUNITY_PUBLIC_URL="${test_public_url}"
 export COMMUNITY_LOCAL_PORT="${test_port}"
 export HERITAGE_POSTGRES_VOLUME="${postgres_volume}"
 export HERITAGE_MEDIA_VOLUME="${media_volume}"
+export HERITAGE_SERMON_MEDIA_VOLUME="${sermon_media_volume}"
 export TUNNEL_TOKEN=""
 export HERITAGE_INSTALL_DIR="${SERVER_DIR}"
 export HERITAGE_COMPOSE_FILE="${SERVER_DIR}/docker-compose.production.yml"
@@ -171,13 +177,20 @@ heritage_compose --profile operations config --format json >"${resolved_compose}
 jq -e \
   --arg postgres "${postgres_volume}" \
   --arg media "${media_volume}" \
+  --arg sermon_media "${sermon_media_volume}" \
   --arg project "${project_name}" \
   '
     .name == $project
     and .volumes["postgres-data"].name == $postgres
     and .volumes.media.name == $media
+    and .volumes["sermon-media"].name == $sermon_media
     and (.services.postgres.volumes | any(.source == "postgres-data"))
     and (.services.community.volumes | any(.source == "media"))
+    and (.services.community.volumes | any(
+      .source == "sermon-media"
+      and .target == "/app/private/sermon-media"
+      and .type == "volume"
+    ))
     and .services.postgres.environment.POSTGRES_DB == "heritage_community"
     and .services.postgres.environment.POSTGRES_USER == "heritage"
     and .services.postgres.environment.POSTGRES_PASSWORD
@@ -188,6 +201,33 @@ jq -e \
       == "postgresql://heritage:ci-database-password@postgres:5432/heritage_community"
     and .services.community.environment.COMMUNITY_ID == "ci-church"
     and .services.migrate.environment.COMMUNITY_ID == "ci-church"
+    and .services.community.environment.HERITAGE_SERMON_MEDIA_PATH
+      == "/app/private/sermon-media"
+    and .services.community.environment.HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED
+      == "false"
+    and .services.community.environment.HERITAGE_SERMON_MEDIA_MAX_ACTIVE_GLOBAL
+      == "8"
+    and .services.community.environment.HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_COMMUNITY
+      == "4"
+    and .services.community.environment.HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_CONNECTION
+      == "2"
+    and .services.community.environment.HERITAGE_SERMON_MEDIA_MAX_FINALIZING_GLOBAL
+      == "1"
+    and .services.community.environment.HERITAGE_SERMON_MEDIA_MAX_RETAINED_BYTES_PER_COMMUNITY
+      == "53687091200"
+    and .services.community.environment.HERITAGE_SERMON_MEDIA_MAX_RETAINED_OBJECTS_PER_COMMUNITY
+      == "2000"
+    and .services.community.environment.HERITAGE_SERMON_MEDIA_STORAGE_RESERVE_BYTES
+      == "5368709120"
+    and .services["sermon-media-maintenance"].environment.HERITAGE_SERMON_MEDIA_MAINTENANCE_QUIESCED
+      == "false"
+    and .services["sermon-media-maintenance"].environment.HERITAGE_SERMON_MEDIA_MAINTENANCE_REQUIRE_BACKUP_READY
+      == "false"
+    and (.services["sermon-media-maintenance"].volumes | any(
+      .source == "sermon-media"
+      and .target == "/app/private/sermon-media"
+      and .type == "volume"
+    ))
     and .services.community.environment.COMMUNITY_PUBLIC_URL
       == "http://127.0.0.1:3310"
     and .services.migrate.environment.COMMUNITY_PUBLIC_URL
@@ -199,15 +239,34 @@ jq -e \
     ))
   ' "${resolved_compose}" >/dev/null \
   || heritage_die "Resolved Compose storage is not the unique disposable project."
+set_env_value HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED true
+heritage_compose --profile operations config --format json \
+  | jq -e '
+      .services.community.environment.HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED
+        == "true"
+      and .services["sermon-media-maintenance"].environment.HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED
+        == "true"
+    ' >/dev/null \
+  || heritage_die "Resolved Compose does not propagate explicit managed recording enablement."
+set_env_value HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED false
 [[ "${postgres_volume}" != "heritage-community-postgres" ]] || \
   heritage_die "Disposable PostgreSQL volume resolved to the production default."
 [[ "${media_volume}" != "heritage-community-media" ]] || \
   heritage_die "Disposable media volume resolved to the production default."
+[[ "${sermon_media_volume}" != "heritage-community-sermon-media" ]] || \
+  heritage_die "Disposable private-sermon volume resolved to the production default."
+[[ "${postgres_volume}" != "${media_volume}" \
+  && "${postgres_volume}" != "${sermon_media_volume}" \
+  && "${media_volume}" != "${sermon_media_volume}" ]] \
+  || heritage_die "Disposable storage names are not isolated from each other."
 if heritage_docker volume inspect "${postgres_volume}" >/dev/null 2>&1; then
   heritage_die "Refusing to reuse an existing disposable PostgreSQL volume."
 fi
 if heritage_docker volume inspect "${media_volume}" >/dev/null 2>&1; then
   heritage_die "Refusing to reuse an existing disposable media volume."
+fi
+if heritage_docker volume inspect "${sermon_media_volume}" >/dev/null 2>&1; then
+  heritage_die "Refusing to reuse an existing disposable private-sermon volume."
 fi
 if [[ -n "$(heritage_compose ps --all --quiet 2>/dev/null)" ]]; then
   heritage_die "Refusing to reuse an existing disposable Compose project."
@@ -231,6 +290,23 @@ for attempt in $(seq 1 60); do
   fi
   sleep 2
 done
+
+heritage_info "Proving online backup refuses explicit managed recording enablement even while empty."
+set_env_value HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED true
+if "${DEPLOY_DIR}/backup.sh" \
+  --install-dir "${SERVER_DIR}" \
+  --output-dir "${backup_root}" \
+  --retention-days 0 \
+  --label online-enabled-must-refuse \
+  --online >/dev/null 2>&1; then
+  heritage_die "Online backup accepted enabled managed recording upload."
+fi
+set_env_value HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED false
+if find "${backup_root}" -mindepth 1 -maxdepth 1 \
+  \( -type d -name 'backup-20*' -o -type d -name '.partial-*' \) \
+  -print -quit | grep -q .; then
+  heritage_die "Failed enabled online backup published or leaked a partial backup."
+fi
 
 FIXTURE_PATH="${SERVER_DIR}/../tests/fixtures/community-sermon-publication-conformance-v1.json" \
   node --import tsx --input-type=module >"${manifest_path}" <<'NODE'
@@ -391,6 +467,19 @@ const auditSource = JSON.stringify({
   ],
 })
 const mediaSource = 'heritage-syncshow-backup-restore-media-sentinel-v1\n'
+const recordingSource = Buffer.from([
+  0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x12, 0x48, 0x65, 0x72, 0x69, 0x74, 0x61,
+  0x67, 0x65, 0x20, 0x72, 0x65, 0x63, 0x6f, 0x72,
+  0x64, 0x69, 0x6e, 0x67, 0x0a,
+])
+const recordingChecksum = createHash('sha256')
+  .update(recordingSource)
+  .digest('hex')
+const recordingCommunityNamespace = createHash('sha256')
+  .update('heritage-sermon-media-community-v1\0', 'utf8')
+  .update('1', 'ascii')
+  .digest('hex')
 
 process.stdout.write(JSON.stringify({
   currentSermonSourceB64: b64(current.source),
@@ -457,6 +546,12 @@ process.stdout.write(JSON.stringify({
   mediaSourceB64: Buffer.from(mediaSource, 'utf8').toString('base64'),
   mediaBytes: Buffer.byteLength(mediaSource, 'utf8'),
   mediaChecksum: sha256(mediaSource),
+  recordingSourceB64: recordingSource.toString('base64'),
+  recordingBytes: recordingSource.length,
+  recordingChecksum,
+  recordingCommunityNamespace,
+  recordingRelativePath:
+    `objects/${recordingCommunityNamespace}/sha256/${recordingChecksum.slice(0, 2)}/${recordingChecksum}`,
 }))
 NODE
 
@@ -466,6 +561,11 @@ jq -e '
   and .currentSermonRevision != .previousSermonRevision
   and (.planRevision | test("^[a-f0-9]{64}$"))
   and (.mediaChecksum | test("^[a-f0-9]{64}$"))
+  and (.recordingChecksum | test("^[a-f0-9]{64}$"))
+  and (.recordingCommunityNamespace | test("^[a-f0-9]{64}$"))
+  and (.recordingRelativePath
+    == ("objects/" + .recordingCommunityNamespace + "/sha256/"
+      + (.recordingChecksum[0:2]) + "/" + .recordingChecksum))
   and (.linkId | length >= 32)
 ' "${manifest_path}" >/dev/null \
   || heritage_die "Generated recovery fixture manifest is invalid."
@@ -519,13 +619,29 @@ psql_cmd \
   -v issued_at="$(manifest_value '.issuedAt')" \
   -v revoked_at="$(manifest_value '.revokedAt')" \
   -v media_filename="$(manifest_value '.mediaFilename')" \
-  -v media_bytes="$(manifest_value '.mediaBytes')" <<'SQL'
+  -v media_bytes="$(manifest_value '.mediaBytes')" \
+  -v recording_checksum="$(manifest_value '.recordingChecksum')" \
+  -v recording_bytes="$(manifest_value '.recordingBytes')" \
+  -v recording_namespace="$(manifest_value '.recordingCommunityNamespace')" \
+  -v recording_relative_path="$(manifest_value '.recordingRelativePath')" <<'SQL'
 BEGIN;
 SELECT MIN("id") AS community_id
 FROM "communities"
 WHERE "slug" = 'ci-church'
 HAVING COUNT(*) = 1
 \gset
+
+SELECT encode(sha256(
+  convert_to('heritage-sermon-media-community-v1', 'UTF8')
+  || decode('00', 'hex')
+  || convert_to(:'community_id', 'UTF8')
+), 'hex') = :'recording_namespace' AS recording_namespace_matches
+\gset
+\if :recording_namespace_matches
+\else
+  \echo 'disposable community relation ID did not match the recording namespace'
+  \quit 3
+\endif
 
 SELECT (
   EXISTS (
@@ -697,6 +813,14 @@ INSERT INTO "media" (
   :community_id, 'published', 'Disposable recovery sentinel',
   :'media_filename', 'text/plain', :'media_bytes'::numeric
 );
+
+INSERT INTO "syncshow_sermon_media_objects" (
+  "community_id", "sha256", "size_bytes", "media_type", "storage_key",
+  "verified_at"
+) VALUES (
+  :community_id, :'recording_checksum', :'recording_bytes'::bigint,
+  'audio/mpeg', :'recording_relative_path', now()
+);
 COMMIT;
 SQL
 
@@ -705,6 +829,19 @@ manifest_value '.mediaSourceB64' | base64 --decode >"${expected_media}"
 heritage_compose run --rm --no-deps -T --entrypoint sh community -ec \
   'umask 077; exec dd of="/app/media/syncshow-backup-restore-sentinel.txt" status=none' \
   <"${expected_media}"
+
+recording_relative_path="$(manifest_value '.recordingRelativePath')"
+manifest_value '.recordingSourceB64' | base64 --decode >"${expected_recording}"
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+  relative="$1"
+  base="${HERITAGE_SERMON_MEDIA_PATH:?HERITAGE_SERMON_MEDIA_PATH is required}"
+  target="${base}/${relative}"
+  umask 077
+  mkdir -p "$(dirname -- "${target}")" "${base}/staging"
+  dd of="${target}" status=none
+  chmod 0600 "${target}"
+  [ "$(stat -c "%u:%g:%a" "${target}")" = "$(id -u):$(id -g):600" ]
+' sh "${recording_relative_path}" <"${expected_recording}"
 
 assert_database_invariants() {
   psql_cmd -At \
@@ -928,8 +1065,14 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'media sentinel database row is invalid';
   END IF;
-  IF (SELECT COUNT(*) FROM "payload_migrations") <> 13 THEN
-    RAISE EXCEPTION 'expected the complete 13-migration chain';
+  IF (SELECT COUNT(*) FROM "payload_migrations") <> 16 THEN
+    RAISE EXCEPTION 'expected the complete 16-migration chain';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM "payload_migrations"
+    WHERE "name" = '20260730_230000_sermon_media_staging'
+  ) THEN
+    RAISE EXCEPTION 'managed sermon-media migration is missing';
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM "pg_constraint"
@@ -951,6 +1094,7 @@ capture_database_evidence() {
     -v plan_sync_id="$(manifest_value '.planSyncId')" \
     -v link_id="$(manifest_value '.linkId')" \
     -v media_filename="$(manifest_value '.mediaFilename')" \
+    -v recording_relative_path="$(manifest_value '.recordingRelativePath')" \
     <<'SQL' >"${destination}"
 SET TIME ZONE 'UTC';
 SELECT jsonb_build_object(
@@ -1077,6 +1221,14 @@ WHERE "filename" = :'media_filename'
 ORDER BY "id";
 
 SELECT jsonb_build_object(
+  'table', 'syncshow_sermon_media_objects',
+  'row', to_jsonb(object)
+)::text
+FROM "syncshow_sermon_media_objects" AS object
+WHERE "storage_key" = :'recording_relative_path'
+ORDER BY "id";
+
+SELECT jsonb_build_object(
   'table', 'payload_migrations',
   'rows', jsonb_agg("name" ORDER BY "name")
 )::text
@@ -1102,6 +1254,7 @@ assert_fixture_rows_absent() {
     -v plan_entry_ids_b64="$(manifest_value '.planEntryIdsB64')" \
     -v link_id="$(manifest_value '.linkId')" \
     -v media_filename="$(manifest_value '.mediaFilename')" \
+    -v recording_relative_path="$(manifest_value '.recordingRelativePath')" \
     <<'SQL'
 SELECT jsonb_build_object(
   'songs', (
@@ -1143,12 +1296,16 @@ SELECT jsonb_build_object(
   ),
   'mediaRows', (
     SELECT COUNT(*) FROM "media" WHERE "filename" = :'media_filename'
+  ),
+  'sermonMediaObjects', (
+    SELECT COUNT(*) FROM "syncshow_sermon_media_objects"
+    WHERE "storage_key" = :'recording_relative_path'
   )
 )::text;
 SQL
 )"
   jq -e '
-    length == 9
+    length == 10
     and all(.[]; . == 0)
   ' <<<"${counts}" >/dev/null \
     || heritage_die "Destructive mutation left one or more exact fixture rows."
@@ -1163,6 +1320,41 @@ cmp -- "${expected_media}" "${after_media}" \
 [[ "$(sha256sum "${after_media}" | cut -d' ' -f1)" \
   == "$(manifest_value '.mediaChecksum')" ]] || \
   heritage_die "Seeded media sentinel checksum is not exact."
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec \
+  'exec cat "${HERITAGE_SERMON_MEDIA_PATH}/$1"' \
+  sh "${recording_relative_path}" >"${after_recording}"
+cmp -- "${expected_recording}" "${after_recording}" \
+  || heritage_die "Seeded private recording object bytes are not exact."
+[[ "$(sha256sum "${after_recording}" | cut -d' ' -f1)" \
+  == "$(manifest_value '.recordingChecksum')" ]] || \
+  heritage_die "Seeded private recording checksum is not exact."
+recording_identity_and_mode="$(heritage_compose run --rm --no-deps -T \
+  --entrypoint sh community -ec \
+  'stat -c "%u:%g:%a" "${HERITAGE_SERMON_MEDIA_PATH}/$1"; printf "%s:%s\n" "$(id -u)" "$(id -g)"' \
+  sh "${recording_relative_path}")"
+[[ "${recording_identity_and_mode}" == $'1001:1001:600\n1001:1001' ]] \
+  || heritage_die "Private recording object is not owned by the locked 1001:1001 service identity with mode 0600."
+
+for isolated_volume in \
+  "${postgres_volume}" \
+  "${media_volume}" \
+  "${sermon_media_volume}"; do
+  heritage_docker volume inspect "${isolated_volume}" >/dev/null \
+    || heritage_die "Expected disposable volume was not created: ${isolated_volume}"
+done
+postgres_mountpoint="$(heritage_docker volume inspect \
+  --format '{{.Mountpoint}}' "${postgres_volume}")"
+media_mountpoint="$(heritage_docker volume inspect \
+  --format '{{.Mountpoint}}' "${media_volume}")"
+sermon_mountpoint="$(heritage_docker volume inspect \
+  --format '{{.Mountpoint}}' "${sermon_media_volume}")"
+[[ -n "${postgres_mountpoint}" \
+  && -n "${media_mountpoint}" \
+  && -n "${sermon_mountpoint}" \
+  && "${postgres_mountpoint}" != "${media_mountpoint}" \
+  && "${postgres_mountpoint}" != "${sermon_mountpoint}" \
+  && "${media_mountpoint}" != "${sermon_mountpoint}" ]] \
+  || heritage_die "Disposable database, uploaded-media, and private-sermon mountpoints are not isolated."
 
 capture_database_evidence "${expected_db}"
 jq -s -e '
@@ -1179,13 +1371,182 @@ jq -s -e '
     "service_plans_entries": 4,
     "syncshow_song_public_links": 1,
     "media": 1,
+    "syncshow_sermon_media_objects": 1,
     "payload_migrations": 1,
     "pg_constraint": 1
   }
 ' "${expected_db}" >/dev/null || \
   heritage_die "Database evidence did not cover every expected fixture row."
 
+heritage_info "Proving supported maintenance cleans only old orphan staging and verified orphan objects."
+orphan_upload_id='orphanedRecordingMaintenance000001'
+orphan_payload='verified-old-orphan-object'
+orphan_digest="$(printf '%s' "${orphan_payload}" | sha256sum | cut -d' ' -f1)"
+orphan_relative_path="objects/$(manifest_value '.recordingCommunityNamespace')/sha256/${orphan_digest:0:2}/${orphan_digest}"
+printf '%s' "${orphan_payload}" \
+  | heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+      base="${HERITAGE_SERMON_MEDIA_PATH:?HERITAGE_SERMON_MEDIA_PATH is required}"
+      upload_id="$1"
+      object_key="$2"
+      umask 077
+      mkdir -p "${base}/staging/${upload_id}/chunks" \
+        "$(dirname -- "${base}/${object_key}")"
+      printf "old orphan staging\n" \
+        >"${base}/staging/${upload_id}/chunks/00000000.chunk"
+      dd of="${base}/${object_key}" status=none
+      chmod 0600 "${base}/${object_key}"
+      touch -t 202001010000 "${base}/${object_key}" \
+        "${base}/staging/${upload_id}" \
+        "${base}/staging/${upload_id}/chunks" \
+        "${base}/staging/${upload_id}/chunks/00000000.chunk"
+    ' sh "${orphan_upload_id}" "${orphan_relative_path}"
+maintenance_report="$("${DEPLOY_DIR}/heritage-community" \
+  sermon-media-maintenance --grace-seconds 3600)"
+jq -e '
+  .schemaVersion == 1
+  and .mode == "quiesced"
+  and .cleanedOrphanStaging == 1
+  and .removedOrphanObjects == 1
+  and .retained.objects == 1
+  and .stagingDirectories == 0
+' <<<"${maintenance_report}" >/dev/null \
+  || heritage_die "Supported maintenance did not report exact orphan cleanup."
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+  base="${HERITAGE_SERMON_MEDIA_PATH:?HERITAGE_SERMON_MEDIA_PATH is required}"
+  test ! -e "${base}/staging/$1"
+  test ! -e "${base}/$2"
+  test -f "${base}/$3"
+' sh "${orphan_upload_id}" "${orphan_relative_path}" "${recording_relative_path}"
+
+heritage_info "Proving prebackup content hashing rejects a corrupt retained object."
+printf 'corrupt-object-bytes\n' \
+  | heritage_compose run --rm --no-deps -T --entrypoint sh community -ec \
+    'exec dd of="${HERITAGE_SERMON_MEDIA_PATH}/$1" status=none' \
+    sh "${recording_relative_path}"
+if "${DEPLOY_DIR}/backup.sh" \
+  --install-dir "${SERVER_DIR}" \
+  --output-dir "${backup_root}" \
+  --retention-days 0 \
+  --label corrupt-object-must-refuse \
+  --quiesce >/dev/null 2>&1; then
+  heritage_die "Quiesced backup accepted a corrupt retained recording object."
+fi
+manifest_value '.recordingSourceB64' | base64 --decode \
+  | heritage_compose run --rm --no-deps -T --entrypoint sh community -ec \
+    'exec dd of="${HERITAGE_SERMON_MEDIA_PATH}/$1" status=none' \
+    sh "${recording_relative_path}"
+heritage_compose start community >/dev/null
+if find "${backup_root}" -mindepth 1 -maxdepth 1 \
+  \( -type d -name 'backup-20*' -o -type d -name '.partial-*' \) \
+  -print -quit | grep -q .; then
+  heritage_die "Failed corrupt-object backup published or leaked a partial backup."
+fi
+
+heritage_info "Proving backup fails closed while private recording staging is nonempty."
+active_staging_id='recentOrphanUploadForBackupTest01'
+printf 'orphaned-upload-staging-bytes\n' \
+  | heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+      base="${HERITAGE_SERMON_MEDIA_PATH:?HERITAGE_SERMON_MEDIA_PATH is required}"
+      upload_id="$1"
+      umask 077
+      mkdir -p "${base}/staging/${upload_id}/chunks"
+      dd of="${base}/staging/${upload_id}/chunks/00000000.chunk" status=none
+    ' sh "${active_staging_id}"
+if "${DEPLOY_DIR}/backup.sh" \
+  --install-dir "${SERVER_DIR}" \
+  --output-dir "${backup_root}" \
+  --retention-days 0 \
+  --label staging-must-refuse \
+  --quiesce >/dev/null 2>&1; then
+  heritage_die "Quiesced backup accepted nonempty private recording staging."
+fi
+if find "${backup_root}" -mindepth 1 -maxdepth 1 \
+  \( -type d -name 'backup-20*' -o -type d -name '.partial-*' \) \
+  -print -quit | grep -q .; then
+  heritage_die "Failed staging backup published or leaked a partial backup."
+fi
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+  base="${HERITAGE_SERMON_MEDIA_PATH:?HERITAGE_SERMON_MEDIA_PATH is required}"
+  upload_id="$1"
+  test -s "${base}/staging/${upload_id}/chunks/00000000.chunk"
+  rm -rf -- "${base}/staging/${upload_id}"
+  ! find "${base}/staging" -mindepth 1 -print -quit | grep -q .
+' sh "${active_staging_id}"
+heritage_compose start community >/dev/null
+
+heritage_info "Proving online backup refuses finalized managed recording objects."
+if "${DEPLOY_DIR}/backup.sh" \
+  --install-dir "${SERVER_DIR}" \
+  --output-dir "${backup_root}" \
+  --retention-days 0 \
+  --label online-must-refuse \
+  --online >/dev/null 2>&1; then
+  heritage_die "Online backup accepted finalized private recording objects."
+fi
+if find "${backup_root}" -mindepth 1 -maxdepth 1 \
+  \( -type d -name 'backup-20*' -o -type d -name '.partial-*' \) \
+  -print -quit | grep -q .; then
+  heritage_die "Failed online backup published or leaked a partial backup."
+fi
+
+heritage_info "Proving backup rejects an unsafe uploaded-media archive before publication."
+unsafe_public_link="/app/media/unsafe-backup-link"
+public_referent_before="$(
+  heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+    target="/app/media/syncshow-backup-restore-sentinel.txt"
+    test -f "${target}" && test ! -L "${target}"
+    stat -c "%u:%g:%a:%s" /app/media "${target}"
+    sha256sum "${target}"
+  '
+)"
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+  link="$1"
+  target="/app/media/syncshow-backup-restore-sentinel.txt"
+  test ! -e "${link}" && test ! -L "${link}"
+  ln -s "${target}" "${link}"
+' sh "${unsafe_public_link}"
+if "${DEPLOY_DIR}/backup.sh" \
+  --install-dir "${SERVER_DIR}" \
+  --output-dir "${backup_root}" \
+  --retention-days 0 \
+  --label unsafe-public-media-must-refuse \
+  --quiesce >/dev/null 2>&1; then
+  heritage_die "Quiesced backup published an uploaded-media archive containing a symlink."
+fi
+public_referent_after="$(
+  heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+    link="$1"
+    target="/app/media/syncshow-backup-restore-sentinel.txt"
+    test -L "${link}"
+    stat -c "%u:%g:%a:%s" /app/media "${target}"
+    sha256sum "${target}"
+    rm -- "${link}"
+  ' sh "${unsafe_public_link}"
+)"
+[[ "${public_referent_after}" == "${public_referent_before}" ]] \
+  || heritage_die "Rejected uploaded-media backup changed its symlink referent."
+if find "${backup_root}" -mindepth 1 -maxdepth 1 \
+  \( -type d -name 'backup-20*' -o -type d -name '.partial-*' \) \
+  -print -quit | grep -q .; then
+  heritage_die "Failed uploaded-media archive validation published or leaked a partial backup."
+fi
+heritage_compose start community >/dev/null
+
 heritage_info "Creating an actual quiesced database and media backup."
+fresh_orphan_payload='fresh-revoked-finalizer-orphan'
+fresh_orphan_digest="$(
+  printf '%s' "${fresh_orphan_payload}" | sha256sum | cut -d' ' -f1
+)"
+fresh_orphan_relative_path="objects/$(manifest_value '.recordingCommunityNamespace')/sha256/${fresh_orphan_digest:0:2}/${fresh_orphan_digest}"
+printf '%s' "${fresh_orphan_payload}" \
+  | heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+      base="${HERITAGE_SERMON_MEDIA_PATH:?HERITAGE_SERMON_MEDIA_PATH is required}"
+      target="${base}/$1"
+      umask 077
+      mkdir -p "$(dirname -- "${target}")"
+      dd of="${target}" status=none
+      chmod 0600 "${target}"
+    ' sh "${fresh_orphan_relative_path}"
 "${DEPLOY_DIR}/backup.sh" \
   --install-dir "${SERVER_DIR}" \
   --output-dir "${backup_root}" \
@@ -1195,8 +1556,151 @@ heritage_info "Creating an actual quiesced database and media backup."
 backup_path="$(heritage_latest_backup)"
 [[ -n "${backup_path}" && -d "${backup_path}" ]] || \
   heritage_die "Quiesced backup was not published."
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+  test ! -e "${HERITAGE_SERMON_MEDIA_PATH:?}/$1"
+' sh "${fresh_orphan_relative_path}" \
+  || heritage_die "Backup-ready maintenance retained a fresh unreferenced recording object."
 grep -qx 'QUIESCED=1' "${backup_path}/manifest.env" || \
   heritage_die "Recovery regression did not create a quiesced backup."
+grep -qx 'HERITAGE_BACKUP_FORMAT=2' "${backup_path}/manifest.env" || \
+  heritage_die "Private recording volume did not produce backup format 2."
+grep -qx 'SERMON_MEDIA_FILE=sermon-media.tar.gz' "${backup_path}/manifest.env" || \
+  heritage_die "Format 2 manifest omitted the private recording archive."
+grep -qx 'SERMON_MEDIA_LAYOUT=tenant-objects-sha256-v1' "${backup_path}/manifest.env" || \
+  heritage_die "Format 2 manifest omitted the locked private recording layout."
+grep -qx 'SERMON_MEDIA_INVENTORY_FILE=sermon-media.inventory' \
+  "${backup_path}/manifest.env" \
+  || heritage_die "Format 2 manifest omitted the canonical object inventory."
+grep -Fqx \
+  "${recording_relative_path}"$'\t'"$(manifest_value '.recordingBytes')"$'\t'"$(manifest_value '.recordingChecksum')" \
+  "${backup_path}/sermon-media.inventory" \
+  || heritage_die "Format 2 canonical inventory omitted the exact managed object."
+if grep -Fq "${fresh_orphan_relative_path}" \
+  "${backup_path}/sermon-media.inventory"; then
+  heritage_die "Format 2 inventory retained a fresh unreferenced recording object."
+fi
+heritage_verify_backup "${backup_path}"
+heritage_validate_tar_archive "${backup_path}/sermon-media.tar.gz" sermon-media \
+  || heritage_die "Published private recording archive failed structural validation."
+if tar -tzf "${backup_path}/sermon-media.tar.gz" | grep -Fq 'staging'; then
+  heritage_die "Published private recording archive included staging data."
+fi
+tar -xOzf "${backup_path}/sermon-media.tar.gz" \
+  "${recording_relative_path}" >"${after_recording}"
+cmp -- "${expected_recording}" "${after_recording}" \
+  || heritage_die "Format 2 archive did not preserve exact private recording bytes."
+[[ "$(sha256sum "${after_recording}" | cut -d' ' -f1)" \
+  == "$(manifest_value '.recordingChecksum')" ]] || \
+  heritage_die "Format 2 archive private recording checksum is not exact."
+
+status_output="${WORK_ROOT}/status-format2.out"
+"${DEPLOY_DIR}/status.sh" \
+  --install-dir "${SERVER_DIR}" \
+  --backup-dir "${backup_root}" \
+  --verify-backup \
+  --quiet >"${status_output}"
+grep -Fq "Finalized private recording bytes: $(manifest_value '.recordingBytes')" \
+  "${status_output}" \
+  || heritage_die "Status did not report exact finalized private recording bytes."
+grep -Fq 'Private recording staging bytes: 0' "${status_output}" \
+  || heritage_die "Status did not report empty private recording staging."
+grep -Fq 'Private recording filesystem headroom:' "${status_output}" \
+  || heritage_die "Status did not report private recording filesystem headroom."
+grep -Fq 'Latest format 2 backup inventory exactly covers 1 finalized private recording object(s)' \
+  "${status_output}" \
+  || heritage_die "Status did not report format 2 private recording coverage."
+
+for partial_mode in --database-only --media-only; do
+  if "${DEPLOY_DIR}/restore.sh" \
+    --install-dir "${SERVER_DIR}" \
+    --backup-dir "${backup_root}" \
+    "${partial_mode}" \
+    --skip-safety-backup \
+    --yes \
+    "${backup_path}" >/dev/null 2>&1; then
+    heritage_die "Format 2 restore accepted forbidden partial mode ${partial_mode}."
+  fi
+done
+
+legacy_backup="${WORK_ROOT}/legacy-format1"
+cp -R -- "${backup_path}" "${legacy_backup}"
+rm -f -- "${legacy_backup}/sermon-media.tar.gz" \
+  "${legacy_backup}/sermon-media.inventory"
+awk '
+  /^HERITAGE_BACKUP_FORMAT=/ { print "HERITAGE_BACKUP_FORMAT=1"; next }
+  /^SERMON_MEDIA_FILE=/ { next }
+  /^SERMON_MEDIA_LAYOUT=/ { next }
+  /^SERMON_MEDIA_INVENTORY_FILE=/ { next }
+  /^SERMON_MEDIA_INVENTORY_SHA256=/ { next }
+  /^SERMON_MEDIA_OBJECT_COUNT=/ { next }
+  /^SERMON_MEDIA_OBJECT_BYTES=/ { next }
+  { print }
+' "${legacy_backup}/manifest.env" >"${legacy_backup}/manifest.env.next"
+mv -- "${legacy_backup}/manifest.env.next" "${legacy_backup}/manifest.env"
+(
+  cd -- "${legacy_backup}"
+  sha256sum database.dump media.tar.gz recovery.tar.gz manifest.env >SHA256SUMS
+)
+heritage_verify_backup "${legacy_backup}"
+
+traversal_backup="${WORK_ROOT}/traversal-format2"
+cp -R -- "${backup_path}" "${traversal_backup}"
+MALICIOUS_ARCHIVE_PATH="${traversal_backup}/sermon-media.tar.gz" \
+  node --input-type=module <<'NODE'
+import { writeFileSync } from 'node:fs'
+import { gzipSync } from 'node:zlib'
+
+const payload = Buffer.from('must-never-extract\n', 'utf8')
+const header = Buffer.alloc(512)
+const writeString = (value, offset, length) => {
+  Buffer.from(value, 'ascii').copy(header, offset, 0, length)
+}
+const writeOctal = (value, offset, length) => {
+  const encoded = value.toString(8).padStart(length - 1, '0') + '\0'
+  writeString(encoded, offset, length)
+}
+writeString('../traversal-object', 0, 100)
+writeOctal(0o600, 100, 8)
+writeOctal(1001, 108, 8)
+writeOctal(1001, 116, 8)
+writeOctal(payload.length, 124, 12)
+writeOctal(0, 136, 12)
+header.fill(0x20, 148, 156)
+header[156] = '0'.charCodeAt(0)
+writeString('ustar\0', 257, 6)
+writeString('00', 263, 2)
+const checksum = header.reduce((total, byte) => total + byte, 0)
+writeString(checksum.toString(8).padStart(6, '0') + '\0 ', 148, 8)
+const padding = Buffer.alloc((512 - (payload.length % 512)) % 512)
+const archive = Buffer.concat([
+  header,
+  payload,
+  padding,
+  Buffer.alloc(1024),
+])
+writeFileSync(process.env.MALICIOUS_ARCHIVE_PATH, gzipSync(archive))
+NODE
+(
+  cd -- "${traversal_backup}"
+  sha256sum database.dump media.tar.gz recovery.tar.gz sermon-media.tar.gz \
+    sermon-media.inventory manifest.env >SHA256SUMS
+)
+heritage_verify_backup "${traversal_backup}"
+if "${DEPLOY_DIR}/restore.sh" \
+  --install-dir "${SERVER_DIR}" \
+  --backup-dir "${backup_root}" \
+  --media-only \
+  --skip-safety-backup \
+  --yes \
+  "${traversal_backup}" >/dev/null 2>&1; then
+  heritage_die "Restore accepted a checksummed traversal member in private sermon media."
+fi
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+  test ! -e /app/private/traversal-object
+  test ! -e /app/private/sermon-media/traversal-object
+  test -f "${HERITAGE_SERMON_MEDIA_PATH}/$1"
+' sh "${recording_relative_path}" \
+  || heritage_die "Traversal rejection changed live private recording data."
 
 # Stop the app before the deliberate database/media damage so no bootstrap or
 # request can race the exact expected snapshot.
@@ -1212,6 +1716,7 @@ psql_cmd \
   -v plan_sync_id="$(manifest_value '.planSyncId')" \
   -v link_id="$(manifest_value '.linkId')" \
   -v media_filename="$(manifest_value '.mediaFilename')" \
+  -v recording_relative_path="${recording_relative_path}" \
   <<'SQL'
 BEGIN;
 DELETE FROM "syncshow_song_public_links"
@@ -1233,6 +1738,8 @@ DELETE FROM "songs"
 WHERE "sync_id" = :'song_sync_id';
 DELETE FROM "media"
 WHERE "filename" = :'media_filename';
+DELETE FROM "syncshow_sermon_media_objects"
+WHERE "storage_key" = :'recording_relative_path';
 DELETE FROM "syncshow_sermon_publication_catalogs"
 WHERE "community_id" IN (
   SELECT "id" FROM "communities" WHERE "slug" = 'ci-church'
@@ -1240,7 +1747,9 @@ WHERE "community_id" IN (
 COMMIT;
 SQL
 heritage_compose run --rm --no-deps -T --entrypoint sh community -ec \
-  'rm -f -- "/app/media/syncshow-backup-restore-sentinel.txt"'
+  'rm -f -- "/app/media/syncshow-backup-restore-sentinel.txt" \
+    "${HERITAGE_SERMON_MEDIA_PATH}/$1"' \
+  sh "${recording_relative_path}"
 
 assert_fixture_rows_absent
 capture_database_evidence "${after_db}"
@@ -1256,18 +1765,33 @@ if heritage_compose run --rm --no-deps -T --entrypoint sh community -ec \
   'test -e "/app/media/syncshow-backup-restore-sentinel.txt"'; then
   heritage_die "Destructive mutation did not remove the media sentinel."
 fi
+if heritage_compose run --rm --no-deps -T --entrypoint sh community -ec \
+  'test -e "${HERITAGE_SERMON_MEDIA_PATH}/$1"' \
+  sh "${recording_relative_path}"; then
+  heritage_die "Destructive mutation did not remove the private recording object."
+fi
 
-heritage_info "Restoring the actual backup without a redundant safety backup."
+touch -t 202001010000 "${backup_path}"
+find "${backup_path}" -maxdepth 0 -mtime +30 -print -quit | grep -q . \
+  || heritage_die "Retention regression could not age the selected restore source."
+heritage_info "Restoring the actual backup with the default safety snapshot."
 "${DEPLOY_DIR}/restore.sh" \
   --install-dir "${SERVER_DIR}" \
   --backup-dir "${backup_root}" \
-  --skip-safety-backup \
   --yes \
   "${backup_path}"
 
 [[ "$(find "${backup_root}" -mindepth 1 -maxdepth 1 \
-  -type d -name 'backup-20*' | wc -l | tr -d ' ')" == "1" ]] || \
-  heritage_die "Restore unexpectedly created a redundant safety backup."
+  -type d -name 'backup-20*' | wc -l | tr -d ' ')" == "2" ]] || \
+  heritage_die "Restore did not create exactly one default safety backup."
+[[ -d "${backup_path}" ]] \
+  || heritage_die "Pre-restore safety backup pruned the selected aged restore source."
+latest_after_restore="$(heritage_latest_backup)"
+[[ "${latest_after_restore}" != "${backup_path}" ]] \
+  || heritage_die "Default safety backup did not become latest."
+grep -qx 'SERMON_MEDIA_OBJECT_COUNT=0' \
+  "${latest_after_restore}/manifest.env" \
+  || heritage_die "Default safety backup did not capture the deliberately empty current store."
 assert_database_invariants
 capture_database_evidence "${after_db}"
 cmp -- "${expected_db}" "${after_db}" \
@@ -1280,6 +1804,64 @@ cmp -- "${expected_media}" "${after_media}" \
 [[ "$(sha256sum "${after_media}" | cut -d' ' -f1)" \
   == "$(manifest_value '.mediaChecksum')" ]] || \
   heritage_die "Restored media checksum differs from the exact sentinel."
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec \
+  'exec cat "${HERITAGE_SERMON_MEDIA_PATH}/$1"' \
+  sh "${recording_relative_path}" >"${after_recording}"
+cmp -- "${expected_recording}" "${after_recording}" \
+  || heritage_die "Restored private recording bytes differ from the exact object."
+[[ "$(sha256sum "${after_recording}" | cut -d' ' -f1)" \
+  == "$(manifest_value '.recordingChecksum')" ]] || \
+  heritage_die "Restored private recording checksum differs from the exact object."
+restored_recording_mode="$(heritage_compose run --rm --no-deps -T \
+  --entrypoint sh community -ec \
+  'stat -c "%u:%g:%a" "${HERITAGE_SERMON_MEDIA_PATH}/$1"' \
+  sh "${recording_relative_path}")"
+[[ "${restored_recording_mode}" == "1001:1001:600" ]] \
+  || heritage_die "Restored private recording ownership or mode is unsafe."
+
+heritage_info "Proving a legacy format 1 media restore represents no private recordings."
+if "${DEPLOY_DIR}/restore.sh" \
+  --install-dir "${SERVER_DIR}" \
+  --backup-dir "${backup_root}" \
+  --media-only \
+  --skip-safety-backup \
+  --yes \
+  "${legacy_backup}" >/dev/null 2>&1; then
+  heritage_die "Legacy format 1 partial restore accepted nonempty current managed recordings."
+fi
+heritage_compose stop --timeout 60 community >/dev/null
+psql_cmd -v recording_relative_path="${recording_relative_path}" <<'SQL'
+DELETE FROM "syncshow_sermon_media_objects"
+WHERE "storage_key" = :'recording_relative_path';
+SQL
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec \
+  'rm -f -- "${HERITAGE_SERMON_MEDIA_PATH}/$1"' \
+  sh "${recording_relative_path}"
+"${DEPLOY_DIR}/restore.sh" \
+  --install-dir "${SERVER_DIR}" \
+  --backup-dir "${backup_root}" \
+  --media-only \
+  --skip-safety-backup \
+  --yes \
+  "${legacy_backup}"
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec '
+  test -d "${HERITAGE_SERMON_MEDIA_PATH}/objects"
+  ! find "${HERITAGE_SERMON_MEDIA_PATH}/objects" -type f -print -quit \
+    | grep -q .
+' || heritage_die "Legacy format 1 restore retained private recording objects."
+
+heritage_info "Restoring the atomic format 2 set again after the legacy compatibility proof."
+"${DEPLOY_DIR}/restore.sh" \
+  --install-dir "${SERVER_DIR}" \
+  --backup-dir "${backup_root}" \
+  --skip-safety-backup \
+  --yes \
+  "${backup_path}"
+heritage_compose run --rm --no-deps -T --entrypoint sh community -ec \
+  'exec cat "${HERITAGE_SERMON_MEDIA_PATH}/$1"' \
+  sh "${recording_relative_path}" >"${after_recording}"
+cmp -- "${expected_recording}" "${after_recording}" \
+  || heritage_die "Full format 2 restore did not recover exact private recording bytes."
 
 detail_response="${WORK_ROOT}/detail.response"
 catalog_response="${WORK_ROOT}/catalog.response"
@@ -1322,4 +1904,4 @@ grep -Fq 'This link is unavailable.' "${WORK_ROOT}/revoked.response" || \
 curl -fsS --max-time 10 \
   "${test_public_url}/.well-known/heritage-community.json" >/dev/null
 
-heritage_info "Disposable SyncShow database/media backup and restore regression passed."
+heritage_info "Disposable SyncShow database, uploaded-media, and private-recording backup and restore regression passed."

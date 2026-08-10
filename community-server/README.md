@@ -27,6 +27,32 @@ Public, member-enabled deployments must set real SMTP credentials and HTTPS.
 Every production deployment needs strong secrets and backups. Local-only
 production can explicitly set `COMMUNITY_AUTH_ENABLED=false` and omit SMTP.
 
+Managed sermon-recording storage is currently a private-only prototype. The
+server keeps it disabled unless
+`HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED=true`; when disabled, discovery omits
+the capability and no managed-media endpoint is registered. The
+production stack isolates finalized content-addressed objects in the dedicated
+`heritage-community-sermon-media` Docker volume, mounted read/write at
+`/app/private/sermon-media` while the application root filesystem stays
+read-only. Completion returns a durable `202 finalizing` claim and uses
+authoritative `GET` polling while a single background worker assembles the
+object; expired leases are reclaimed after restart only with live authority.
+If that original authority is revoked or expires, maintenance instead expires
+the stale upload and removes its private staging so backup is not blocked.
+Format 2 quiesced backups include those finalized bytes and refuse
+nonexpired active staging. Before database export they run supported quiesced
+maintenance, lock the recording tables, prove active/finalizing work is zero,
+and immediately remove verified unreferenced objects left by failed finalizers.
+They then hash every retained object against its tenant-scoped path and record
+a checksummed canonical inventory. Online backup is refused whenever
+managed upload is enabled or its database/private store is nonempty. Run
+`sudo heritage-community sermon-media-maintenance` for the same supported
+quiesced reconciliation outside backup; `status` remains read-only.
+Same-disk nightly backups and full-copy retention without deduplication are not
+production-ready for a real recording library. Configure verified encrypted
+off-device replication and deduplicated retention before relying on this lane
+for church recordings. See [the self-hosting guide](docs/SELF_HOSTING.md).
+
 The public static-compatible endpoint is `/heritage-content.json`. Community
 discovery is `/.well-known/heritage-community.json`. Community song catalogs
 and exact mutable song content require a current member session; anonymous
@@ -67,7 +93,7 @@ Production must provide `DATABASE_URL`, `PAYLOAD_SECRET`,
 `COMMUNITY_PUBLIC_URL`, `COMMUNITY_ID`, `HERITAGE_APP_URL`, and allowed app
 origins. Member-enabled servers also require SMTP settings. Run Payload
 migrations as part of the release process and back up both PostgreSQL and the
-media volume. Public catalog routes fail closed unless `COMMUNITY_ID` resolves
+uploaded-media and private-sermon volumes. Public catalog routes fail closed unless `COMMUNITY_ID` resolves
 to an existing Community, and only that community's published listings are
 exposed. Song catalogs and exact song documents require a current member
 session; managers can additionally review private and scheduled songs. Song
@@ -88,9 +114,11 @@ The SyncShow integration currently depends on these additive migrations:
 - `20260729_045710_syncshow_sermon_change_sources`
 - `20260729_130000_service_plan_sermon_readings`
 - `20260729_220000_canonical_sermon_preached_date_projection`
+- `20260730_120000_song_member_sharing`
+- `20260730_230000_sermon_media_staging`
 
-These are nine integration migrations after five earlier migrations, for a
-clean 14-migration chain. The sermon-history migration makes the private sermon
+These are eleven integration migrations after five earlier migrations, for a
+clean 16-migration chain. The sermon-history migration makes the private sermon
 change journal retain every version's exact canonical `documentSource`. Its backfill
 accepts only an exact current community/sermon/sync-ID/revision/archive match
 whose PostgreSQL 17 SHA-256, JSON identity/archive state, and shared canonical
@@ -105,7 +133,7 @@ migration/backup/repair boundary. PostgreSQL backups therefore contain private
 canonical sermon text and must be protected accordingly.
 
 Focused validation passes 14/14 sermon-publication endpoint tests and 5/5
-history migration tests; the complete Community contract suite passes 202/202, including the
+history migration tests; the complete Community contract suite passes 264/264, including the
 ordinary manager sermon-review tests and the disposable-database/CI wiring
 guards. Earlier disposable PostgreSQL 17 runs passed the three underlying live
 cases: service-plan lifecycle and scoped reads, song-link lifecycle and tenant

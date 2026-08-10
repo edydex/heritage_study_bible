@@ -2,7 +2,14 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
-const [workflow, packageSource, servicePlanTest, historyTest, guardSource] =
+const [
+  workflow,
+  packageSource,
+  servicePlanTest,
+  mediaConcurrencyTest,
+  historyTest,
+  guardSource,
+] =
   await Promise.all([
     readFile(
       new URL('../../.github/workflows/community-server.yml', import.meta.url),
@@ -11,6 +18,10 @@ const [workflow, packageSource, servicePlanTest, historyTest, guardSource] =
     readFile(new URL('../package.json', import.meta.url), 'utf8'),
     readFile(
       new URL('./community-service-plan-payload.test.ts', import.meta.url),
+      'utf8',
+    ),
+    readFile(
+      new URL('./sermon-media-postgres-concurrency.test.ts', import.meta.url),
       'utf8',
     ),
     readFile(
@@ -98,6 +109,13 @@ test('live checks are self-contained, guarded, and declare direct PostgreSQL too
     /tests\/syncshow-live-ci-wiring\.test\.mjs/,
   )
   assert.match(servicePlanTest, /push: false/)
+  assert.match(mediaConcurrencyTest, /push: false/)
+  assert.match(
+    packageJson.scripts['test:syncshow:service-plan-live'],
+    /sermon-media-postgres-concurrency\.test\.ts/,
+  )
+  assert.match(mediaConcurrencyTest, /SERVICE_PLAN_LIVE_DATABASE_URL/)
+  assert.match(mediaConcurrencyTest, /assertDisposableLiveDatabase/)
   assert.match(
     servicePlanTest,
     /managerSermonPreparationEndpoints\.find\(candidate =>/,

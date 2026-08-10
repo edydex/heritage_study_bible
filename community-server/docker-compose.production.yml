@@ -30,6 +30,15 @@ x-community-environment: &community-environment
   BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
   BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-}
   BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+  HERITAGE_SERMON_MEDIA_PATH: /app/private/sermon-media
+  HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED: ${HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED:-false}
+  HERITAGE_SERMON_MEDIA_MAX_ACTIVE_GLOBAL: ${HERITAGE_SERMON_MEDIA_MAX_ACTIVE_GLOBAL:-8}
+  HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_COMMUNITY: ${HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_COMMUNITY:-4}
+  HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_CONNECTION: ${HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_CONNECTION:-2}
+  HERITAGE_SERMON_MEDIA_MAX_FINALIZING_GLOBAL: ${HERITAGE_SERMON_MEDIA_MAX_FINALIZING_GLOBAL:-1}
+  HERITAGE_SERMON_MEDIA_MAX_RETAINED_BYTES_PER_COMMUNITY: ${HERITAGE_SERMON_MEDIA_MAX_RETAINED_BYTES_PER_COMMUNITY:-53687091200}
+  HERITAGE_SERMON_MEDIA_MAX_RETAINED_OBJECTS_PER_COMMUNITY: ${HERITAGE_SERMON_MEDIA_MAX_RETAINED_OBJECTS_PER_COMMUNITY:-2000}
+  HERITAGE_SERMON_MEDIA_STORAGE_RESERVE_BYTES: ${HERITAGE_SERMON_MEDIA_STORAGE_RESERVE_BYTES:-5368709120}
 
 services:
   postgres:
@@ -72,6 +81,7 @@ services:
       - "127.0.0.1:${COMMUNITY_LOCAL_PORT:-3000}:3000"
     volumes:
       - media:/app/media
+      - sermon-media:/app/private/sermon-media
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
       - /app/.next/cache:rw,noexec,nosuid,size=128m
@@ -117,6 +127,44 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
+
+  sermon-media-maintenance:
+    image: ${HERITAGE_MIGRATION_IMAGE:-heritage-community:migrations-local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrations
+    profiles:
+      - operations
+    init: true
+    user: "1001:1001"
+    environment:
+      <<: *community-environment
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      HERITAGE_SERMON_MEDIA_MAINTENANCE_QUIESCED: "false"
+      HERITAGE_SERMON_MEDIA_MAINTENANCE_REQUIRE_BACKUP_READY: "false"
+      HERITAGE_SERMON_MEDIA_ORPHAN_GRACE_SECONDS: ${HERITAGE_SERMON_MEDIA_ORPHAN_GRACE_SECONDS:-86400}
+    volumes:
+      - sermon-media:/app/private/sermon-media
+    networks:
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - node
+      - --import
+      - tsx
+      - scripts/sermon-media-maintenance.mjs
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
@@ -173,3 +221,5 @@ volumes:
     name: ${HERITAGE_POSTGRES_VOLUME:-heritage-community-postgres}
   media:
     name: ${HERITAGE_MEDIA_VOLUME:-heritage-community-media}
+  sermon-media:
+    name: ${HERITAGE_SERMON_MEDIA_VOLUME:-heritage-community-sermon-media}

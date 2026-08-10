@@ -15,6 +15,10 @@ export const SYNCSHOW_SONG_PUBLIC_LINK_READ_SCOPE =
   'syncshow:song-public-links:read'
 export const SYNCSHOW_SONG_PUBLIC_LINK_WRITE_SCOPE =
   'syncshow:song-public-links:write'
+export const SYNCSHOW_SERMON_MEDIA_READ_SCOPE =
+  'syncshow:sermon-media:read'
+export const SYNCSHOW_SERMON_MEDIA_WRITE_SCOPE =
+  'syncshow:sermon-media:write'
 export const SYNCSHOW_SCOPES = [
   SYNCSHOW_READ_SCOPE,
   SYNCSHOW_WRITE_SCOPE,
@@ -24,6 +28,8 @@ export const SYNCSHOW_SCOPES = [
   SYNCSHOW_SERVICE_PLAN_READ_SCOPE,
   SYNCSHOW_SONG_PUBLIC_LINK_READ_SCOPE,
   SYNCSHOW_SONG_PUBLIC_LINK_WRITE_SCOPE,
+  SYNCSHOW_SERMON_MEDIA_READ_SCOPE,
+  SYNCSHOW_SERMON_MEDIA_WRITE_SCOPE,
 ] as const
 export const SYNCSHOW_MAX_REQUEST_BYTES = 2 * 1024 * 1024
 export const SYNCSHOW_MAX_DOCUMENT_BYTES = 512 * 1024

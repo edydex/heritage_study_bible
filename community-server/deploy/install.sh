@@ -1231,7 +1231,14 @@ set_phase "installing backups and operator commands"
 if $DRY_RUN; then
   note "Would install the nightly backup timer and the heritage-community lifecycle command."
 else
-  for script in heritage-community backup.sh restore.sh status.sh update.sh uninstall.sh; do
+  for script in \
+    heritage-community \
+    backup.sh \
+    restore.sh \
+    sermon-media-maintenance.sh \
+    status.sh \
+    update.sh \
+    uninstall.sh; do
     [[ -f ${SCRIPT_DIR}/${script} ]] || fail "Operator tool is missing: ${SCRIPT_DIR}/${script}"
     chmod 0755 "${SCRIPT_DIR}/${script}"
   done

@@ -13,6 +13,7 @@ import * as migration_20260729_045710_syncshow_sermon_change_sources from './202
 import * as migration_20260729_130000_service_plan_sermon_readings from './20260729_130000_service_plan_sermon_readings';
 import * as migration_20260729_220000_canonical_sermon_preached_date_projection from './20260729_220000_canonical_sermon_preached_date_projection';
 import * as migration_20260730_120000_song_member_sharing from './20260730_120000_song_member_sharing';
+import * as migration_20260730_230000_sermon_media_staging from './20260730_230000_sermon_media_staging';
 
 export const migrations = [
   {
@@ -89,5 +90,10 @@ export const migrations = [
     up: migration_20260730_120000_song_member_sharing.up,
     down: migration_20260730_120000_song_member_sharing.down,
     name: '20260730_120000_song_member_sharing',
+  },
+  {
+    up: migration_20260730_230000_sermon_media_staging.up,
+    down: migration_20260730_230000_sermon_media_staging.down,
+    name: '20260730_230000_sermon_media_staging',
   },
 ];

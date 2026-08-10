@@ -68,7 +68,8 @@ changing the host. The normal path then:
 7. when public hosting is selected, opens the Cloudflare authorization flow,
    creates DNS and a dedicated tunnel service, and verifies HTTPS;
 8. when member sign-in is enabled, sends a real sign-in email through SMTP;
-9. creates and verifies the first PostgreSQL, media, and recovery backup;
+9. creates and verifies the first PostgreSQL, uploaded-media, private-sermon,
+   and recovery backup;
 10. enables nightly backups, unattended Debian security updates, and optional
     closed-lid laptop operation.
 
@@ -102,21 +103,42 @@ sudo heritage-community status
 sudo heritage-community logs
 sudo heritage-community logs -f
 sudo heritage-community backup
+sudo heritage-community sermon-media-maintenance
 sudo heritage-community update
 sudo heritage-community restore --latest
 sudo heritage-community reconfigure
 sudo heritage-community uninstall
 ```
 
-`status` also verifies that the nightly timer is enabled and warns when the
-latest backup is more than 48 hours old.
+`status` also verifies that the nightly timer is enabled, warns when the latest
+backup is more than 48 hours old, and reports finalized private-recording bytes,
+staging bytes, filesystem headroom, and whether the latest backup format covers
+those private recordings. It compares the exact canonical database, live-store,
+and latest-backup inventories using paths, sizes, and content-addressed
+digests, but deliberately does not reread and hash every recording byte.
+
+`sermon-media-maintenance` briefly stops the Community app, expires due upload
+rows, cleans confined terminal and sufficiently old orphan staging, verifies
+every retained database object, and removes only old content-verified objects
+absent from the database. It prints one JSON report. The Cloudflare connector
+stays running; after a maintenance failure the app stays stopped for deliberate
+inspection. Use `--grace-seconds 3600..2592000` to change the default 24-hour
+orphan grace.
 
 `update` refuses tracked local edits, makes a backup, fast-forwards Git, builds
 new images, applies migrations while the app is stopped, and requires health
 checks to pass. It never resets code or automatically rewinds a database.
 
 `restore` verifies checksums and archive paths, takes a pre-restore backup, and
-requires exact typed confirmation before replacing anything.
+requires exact typed confirmation before replacing anything. Format 2 private
+recordings are extracted into a distinct temporary Docker volume; traversal,
+links, devices, unexpected paths, content digests, ownership, and modes are
+checked before a complete objects tree replaces the old one. Legacy format 1
+backups are accepted as having no private recordings and restore an empty
+private objects tree when media restoration is selected. Format 2 is one atomic
+database/public-media/private-recording set, so `--database-only` and
+`--media-only` are rejected. A partial legacy format 1 restore is allowed only
+when both the current managed-object database and live private store are empty.
 
 Both commands deliberately leave an already-running Cloudflare connector
 alone. The public application can briefly report that its origin is unavailable
@@ -128,11 +150,13 @@ remains available for diagnosis. `restore --no-start` also stops only the app.
 Restart or stop a tunnel only from a verified local console or a separate
 recovery path, never through the only SSH session that depends on that tunnel.
 
-`uninstall` preserves the database, media, configuration, source, tunnel
-credentials, and backups by default. Permanent deletion requires
-`--purge-data`, typing the community ID, and a separate `--purge-backups` flag
-if backups should also be erased. Even then, it removes only recognized
-Heritage backup entries and preserves unrelated files in the selected root.
+`uninstall` preserves the database, uploaded media, private sermon recordings,
+configuration, source, tunnel credentials, and backups by default. Use
+`uninstall --dry-run` to see the resolved volume boundary without changing
+anything. Permanent deletion of all three data volumes requires `--purge-data`,
+typing the community ID, and a separate `--purge-backups` flag if backups
+should also be erased. Even then, it removes only recognized Heritage backup
+entries and preserves unrelated files in the selected root.
 
 The nightly timer starts at a randomized point within 30 minutes after the
 time selected in the wizard, which avoids every installation doing heavy disk
@@ -155,9 +179,32 @@ Every completed backup contains:
 
 - a PostgreSQL custom-format dump;
 - an archive of uploaded media;
+- for format 2, a checksummed `sermon-media.tar.gz` containing only finalized
+  immutable objects from
+  `objects/<community-namespace>/sha256/<prefix>/<digest>`;
+- for format 2, `sermon-media.inventory`, a canonical checksummed list of every
+  object path, byte length, and digest, with matching count/byte/digest fields
+  in `manifest.env`;
 - a root-only recovery archive containing private configuration and locally
   managed tunnel credentials when present;
 - release/migration metadata and SHA-256 checksums.
+
+The production Compose file mounts the dedicated
+`heritage-community-sermon-media` volume read/write at
+`/app/private/sermon-media` while the application root filesystem remains
+read-only. Set `HERITAGE_SERMON_MEDIA_VOLUME` only when an installation needs a
+different explicit Docker volume name. The container receives the fixed
+`HERITAGE_SERMON_MEDIA_PATH=/app/private/sermon-media`; do not point recording
+metadata at arbitrary host paths.
+
+Quiesced backup stops the app, invokes the supported maintenance command, and
+refuses while nonexpired active staging remains. It then hashes every finalized
+object against its content-addressed path and requires an exact row-for-row
+database inventory match before `pg_dump`. Old verified orphan residue can be
+collected; recent unknown staging remains fail-closed for operator review.
+Online backup is refused whenever
+`HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED=true`, any managed-object database row
+exists, or the private store is nonempty or changes during inspection.
 
 Because the recovery archive contains secrets, copy backups only to encrypted,
 access-controlled storage. To recover from total machine loss, install Debian
@@ -165,6 +212,14 @@ on another machine, run the wizard with the same stable community ID, copy a
 verified backup over, and use `heritage-community restore`. The recovery archive remains available for
 manual secret/tunnel recovery; normal data restores do not silently overwrite
 the new machine's secrets.
+
+Managed recording storage is still a prototype/test-only feature. The current
+nightly backups live on the same disk by default, and every format 2 backup
+retains another full copy of every recording without deduplication. That is not
+production-ready for a real sermon library. Before relying on it, configure and
+regularly verify encrypted off-device replication plus a deduplicated retention
+policy sized for the library. This release does not attempt to configure that
+off-device system automatically.
 
 ## Cloudflare alternatives
 

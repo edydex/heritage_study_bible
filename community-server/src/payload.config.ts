@@ -34,6 +34,8 @@ import { Users } from '@/collections/Users'
 import { authEndpoints } from '@/endpoints/auth'
 import { managerSermonPublicationEndpoints } from '@/endpoints/sermonPublications'
 import { managerSermonPreparationEndpoints } from '@/endpoints/sermonPreparations'
+import { sermonMediaEndpoints } from '@/endpoints/sermonMedia'
+import { startSermonMediaMaintenance } from '@/lib/syncshow/SermonMediaMaintenance'
 import { songPublicLinkEndpoints } from '@/endpoints/songPublicLinks'
 import { songMemberSharingEndpoints } from '@/endpoints/songMemberSharing'
 import { syncShowEndpoints } from '@/endpoints/syncShow'
@@ -196,6 +198,7 @@ export default buildConfig({
     ...songMemberSharingEndpoints,
     ...managerSermonPreparationEndpoints,
     ...managerSermonPublicationEndpoints,
+    ...sermonMediaEndpoints,
   ],
   onInit: async payload => {
     await bootstrapInstallation(payload)
@@ -203,6 +206,7 @@ export default buildConfig({
     if (communityId != null) await ensurePublicSermonCatalog(payload, communityId)
     await seedConfiguredSongs(payload)
     await backfillSongSyncDocuments(payload)
+    await startSermonMediaMaintenance(payload)
   },
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL: publicUrl,

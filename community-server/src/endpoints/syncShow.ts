@@ -31,6 +31,8 @@ import {
   SYNCSHOW_SCOPES,
   SYNCSHOW_SERVICE_PLAN_READ_SCOPE,
   SYNCSHOW_SERMON_PUBLICATION_READ_SCOPE,
+  SYNCSHOW_SERMON_MEDIA_READ_SCOPE,
+  SYNCSHOW_SERMON_MEDIA_WRITE_SCOPE,
   SYNCSHOW_SERMON_READ_SCOPE,
   SYNCSHOW_SERMON_WRITE_SCOPE,
   SYNCSHOW_SONG_PUBLIC_LINK_READ_SCOPE,
@@ -79,6 +81,7 @@ import {
   normalizeCommunityServicePlanPage,
   normalizeCommunityServicePlanSummary,
 } from '@/lib/syncshow/CommunityServicePlan'
+import { sermonMediaEnabled } from '@/lib/syncshow/SermonMedia'
 
 const DEVICE_GRANT_MINUTES = 10
 const CONNECTION_DAYS = 180
@@ -212,17 +215,35 @@ function displayUserCode(value: string) {
   return `${value.slice(0, 4)}-${value.slice(4)}`
 }
 
-function requestedScopes(value: unknown) {
+function requestedScopes(
+  value: unknown,
+  { allowDisabledMedia = false }: { allowDisabledMedia?: boolean } = {},
+) {
   if (!Array.isArray(value) || value.length < 1 || value.length > SYNCSHOW_SCOPES.length) {
     throw new SyncShowProtocolError('INVALID_SCOPE', 'Request at least one supported SyncShow resource scope.')
   }
   const scopes = [...new Set(value.map(String))].sort()
   if (scopes.some(scope => !SYNCSHOW_SCOPES.includes(scope as typeof SYNCSHOW_SCOPES[number]))
+    || (
+      !allowDisabledMedia
+      && !sermonMediaEnabled()
+      && (
+        scopes.includes(SYNCSHOW_SERMON_MEDIA_READ_SCOPE)
+        || scopes.includes(SYNCSHOW_SERMON_MEDIA_WRITE_SCOPE)
+      )
+    )
     || (scopes.includes(SYNCSHOW_WRITE_SCOPE) && !scopes.includes(SYNCSHOW_READ_SCOPE))
     || (scopes.includes(SYNCSHOW_SERMON_WRITE_SCOPE)
       && !scopes.includes(SYNCSHOW_SERMON_READ_SCOPE))
     || (scopes.includes(SYNCSHOW_SERMON_PUBLICATION_READ_SCOPE)
       && !scopes.includes(SYNCSHOW_SERMON_READ_SCOPE))
+    || (scopes.includes(SYNCSHOW_SERMON_MEDIA_READ_SCOPE)
+      && !scopes.includes(SYNCSHOW_SERMON_READ_SCOPE))
+    || (scopes.includes(SYNCSHOW_SERMON_MEDIA_WRITE_SCOPE)
+      && (
+        !scopes.includes(SYNCSHOW_SERMON_READ_SCOPE)
+        || !scopes.includes(SYNCSHOW_SERMON_MEDIA_READ_SCOPE)
+      ))
     || (scopes.includes(SYNCSHOW_SONG_PUBLIC_LINK_READ_SCOPE)
       && !scopes.includes(SYNCSHOW_READ_SCOPE))
     || (scopes.includes(SYNCSHOW_SONG_PUBLIC_LINK_WRITE_SCOPE)
@@ -1287,7 +1308,10 @@ const deviceToken: Endpoint = {
         String(grant.codeChallenge),
       )
       const tokenHash = hashOpaqueToken(accessToken)
-      const requestedGrantScopes = requestedScopes(grant.scopes)
+      const requestedGrantScopes = requestedScopes(
+        grant.scopes,
+        { allowDisabledMedia: true },
+      )
       const account = await req.payload.findByID({
         collection: 'users',
         id: userId,
@@ -1359,7 +1383,10 @@ const deviceToken: Endpoint = {
           if (Date.parse(expiresAt) <= Date.now()) {
             throw new SyncShowProtocolError('AUTHORIZATION_EXPIRED', 'This SyncShow connection expired.', 403)
           }
-          scopes = requestedScopes(existingConnection.scopes || requestedGrantScopes)
+          scopes = requestedScopes(
+            existingConnection.scopes || requestedGrantScopes,
+            { allowDisabledMedia: true },
+          )
           if (String(existingConnection.tokenHash) !== tokenHash) {
             // Recover an exchange left in the old one-shot state by rotating
             // that connection to the deterministic token held by this same

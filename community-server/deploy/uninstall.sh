@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/lib/common.sh"
 purge_data=0
 purge_backups=0
 assume_yes=0
+dry_run=0
 
 usage() {
   cat <<'EOF'
@@ -16,15 +17,19 @@ Stop and remove Heritage Community services.
 Usage: uninstall.sh [options]
 
 By default containers and system services are removed, while PostgreSQL,
-media, private configuration, source, tunnel credentials, and backups remain.
-Running the installer again reconnects them.
+uploaded media, private sermon recordings, private configuration, source,
+tunnel credentials, and backups remain. Running the installer again reconnects
+them.
 
 Options:
   --install-dir PATH  Community server source directory
-  --purge-data        Also delete PostgreSQL/media volumes and configuration
+  --purge-data        Also delete PostgreSQL, uploaded-media, private-sermon
+                      volumes, and configuration
   --purge-backups     Delete recognized Heritage backups (requires --purge-data;
                       unrelated files and a nonempty root are preserved)
   --yes               Skip confirmation only for the preserve-data default
+  --dry-run           Print the resolved preservation/deletion boundary only;
+                      do not stop services, delete data, or prompt
   -h, --help          Show this help
 EOF
 }
@@ -35,45 +40,76 @@ while (($#)); do
     --purge-data) purge_data=1; shift ;;
     --purge-backups) purge_backups=1; shift ;;
     --yes) assume_yes=1; shift ;;
+    --dry-run) dry_run=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) heritage_die "Unknown option: $1 (try --help)" ;;
   esac
 done
 
 ((purge_backups == 0 || purge_data == 1)) || heritage_die "--purge-backups requires --purge-data."
-[[ ${EUID} -eq 0 ]] || heritage_die "Run uninstall as root: sudo heritage-community uninstall"
+if (( ! dry_run )); then
+  [[ ${EUID} -eq 0 ]] || heritage_die "Run uninstall as root: sudo heritage-community uninstall"
+fi
 heritage_init_context
-heritage_init_docker
-heritage_acquire_operations_lock
 heritage_require_command realpath
+if (( ! dry_run )); then
+  heritage_init_docker
+  heritage_acquire_operations_lock
+fi
 
 community_id=$(heritage_env_value COMMUNITY_ID)
 [[ -n $community_id ]] || heritage_die "Cannot read COMMUNITY_ID from ${HERITAGE_ENV_FILE}."
+postgres_volume="$(heritage_volume_name HERITAGE_POSTGRES_VOLUME heritage-community-postgres)"
+media_volume="$(heritage_volume_name HERITAGE_MEDIA_VOLUME heritage-community-media)"
+sermon_media_volume="$(heritage_sermon_media_volume_name)"
 
 resolved_env=$(readlink -f "$HERITAGE_ENV_FILE" 2>/dev/null || printf '%s' "$HERITAGE_ENV_FILE")
-resolved_env=$(realpath -m -- "$resolved_env")
-config_dir=$(realpath -m -- "$(dirname "$resolved_env")")
+resolved_env=$(heritage_realpath_allow_missing "$resolved_env")
+config_dir=$(heritage_realpath_allow_missing "$(dirname "$resolved_env")")
 deployment_root=$(dirname "$config_dir")
 [[ $config_dir == */config && $deployment_root != / ]] \
   || heritage_die "Refusing to infer a safe configuration directory from ${resolved_env}."
 if ((purge_data)); then
   [[ $HERITAGE_BACKUP_DIR == /* ]] || heritage_die "Backup directory must be absolute before purging data."
-  HERITAGE_BACKUP_DIR=$(realpath -m -- "$HERITAGE_BACKUP_DIR")
+  HERITAGE_BACKUP_DIR=$(heritage_realpath_allow_missing "$HERITAGE_BACKUP_DIR")
   [[ $HERITAGE_BACKUP_DIR != / ]] || heritage_die "Refusing to use / as the backup directory."
   for removed_path in "$config_dir" "${deployment_root}/state"; do
-    removed_path=$(realpath -m -- "$removed_path")
+    removed_path=$(heritage_realpath_allow_missing "$removed_path")
     if [[ $HERITAGE_BACKUP_DIR == "$removed_path" || $HERITAGE_BACKUP_DIR == "$removed_path/"* ]]; then
       heritage_die "Backup directory overlaps ${removed_path}. Move the backups before purging live data."
     fi
   done
 fi
 
+if (( dry_run )); then
+  heritage_info "Dry run for Community ${community_id}."
+  if (( purge_data )); then
+    printf 'Would require typing the exact community ID before deleting:\n'
+    printf '  PostgreSQL volume: %s\n' "${postgres_volume}"
+    printf '  Uploaded-media volume: %s\n' "${media_volume}"
+    printf '  Private-sermon volume: %s\n' "${sermon_media_volume}"
+    printf '  Private configuration: %s and %s\n' "${config_dir}" "${deployment_root}/state"
+    if (( purge_backups )); then
+      printf '  Recognized Heritage backups under: %s\n' "${HERITAGE_BACKUP_DIR}"
+    else
+      printf 'Backups would be preserved: %s\n' "${HERITAGE_BACKUP_DIR}"
+    fi
+  else
+    printf 'Would preserve all three data volumes:\n'
+    printf '  %s\n  %s\n  %s\n' \
+      "${postgres_volume}" "${media_volume}" "${sermon_media_volume}"
+    printf 'Configuration and backups would also be preserved.\n'
+  fi
+  heritage_info "Dry run complete; no services or data were changed."
+  exit 0
+fi
+
 if ((purge_data)); then
   heritage_confirm_exact "$community_id" \
-    "This permanently deletes the live PostgreSQL database, uploaded media, and private configuration. Backups are $([[ $purge_backups == 1 ]] && printf 'also deleted' || printf 'preserved')."
+    "This permanently deletes the live PostgreSQL database, uploaded media, private sermon recordings, and private configuration. Backups are $([[ $purge_backups == 1 ]] && printf 'also deleted' || printf 'preserved')."
 elif (( ! assume_yes )); then
   heritage_confirm_exact "UNINSTALL" \
-    "Services will be removed, but database/media volumes, configuration, source, and backups will be preserved."
+    "Services will be removed, but all three data volumes, configuration, source, and backups will be preserved."
 fi
 
 heritage_info "Stopping containers without touching data."
@@ -123,9 +159,9 @@ rm -f /usr/local/sbin/heritage-community \
   /etc/default/heritage-community
 
 if ((purge_data)); then
-  heritage_info "Deleting explicit Heritage database and media volumes."
+  heritage_info "Deleting explicit Heritage database, uploaded-media, and private-sermon volumes."
   volume_removal_failed=0
-  for volume in heritage-community-postgres heritage-community-media; do
+  for volume in "${postgres_volume}" "${media_volume}" "${sermon_media_volume}"; do
     heritage_docker volume inspect "$volume" >/dev/null 2>&1 || continue
     if ! heritage_docker volume rm "$volume"; then
       heritage_warn "Could not delete Docker volume ${volume}. Private configuration will be preserved."
