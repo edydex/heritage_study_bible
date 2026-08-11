@@ -105,6 +105,72 @@ test.describe('Heritage reader', () => {
     await expect(timeline.getByRole('tooltip')).toContainText('After 586 BC (est.)')
   })
 
+  test('shows Day 239 Jeremiah context and dated anchors on a narrow phone', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/239/note-daniel-early-babylonian-exile', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Daniel enters Babylonian service' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+    await expect(timeline.getByText('Jer 25:1; 46:2')).toBeVisible()
+    await expect(timeline.getByText('Jer 24:1')).toBeVisible()
+    await expect(timeline.locator('[data-situation-bar="Dan 2"]')).toHaveAccessibleName(
+      /spans training through training/
+    )
+
+    await timeline.getByRole('button', { name: 'Babylon triumphs' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('605 BC (est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText('Jer 25:1; 46:2')
+
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      pageWidth: document.body.scrollWidth,
+      clippedAnchors: [...document.querySelectorAll('[data-timeline-anchor]')]
+        .filter(anchor => anchor.scrollWidth > anchor.clientWidth)
+        .map(anchor => anchor.textContent.trim()),
+    }))
+
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth)
+    expect(layout.clippedAnchors).toEqual([])
+  })
+
+  test('places Lamentations beside Jerusalem’s fall on a narrow phone', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/246/note-lamentations-after-jerusalem-falls', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Jerusalem falls, and Judah mourns' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+    await expect(timeline.getByText('Lam 1–2')).toBeVisible()
+    await expect(timeline.getByText('Lam 5')).toBeVisible()
+    await expect(timeline.getByText('2 Kin 25:1–21')).toBeVisible()
+    await expect(timeline.getByText('Jer 39; 52:1–30')).toBeVisible()
+    await expect(timeline.getByText('Jer 40–44')).toBeVisible()
+
+    await timeline.getByRole('button', { name: 'Communal mourning' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('586–539 BC (broad est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText(
+      'personified Jerusalem, an individual sufferer, and the surviving community'
+    )
+
+    await timeline.getByRole('button', { name: 'Flight to Egypt' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('After 586 BC (est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText('surviving remnant took Jeremiah to Egypt')
+
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      pageWidth: document.body.scrollWidth,
+      clippedAnchors: [...document.querySelectorAll('[data-timeline-anchor]')]
+        .filter(anchor => anchor.scrollWidth > anchor.clientWidth)
+        .map(anchor => anchor.textContent.trim()),
+    }))
+
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth)
+    expect(layout.clippedAnchors).toEqual([])
+  })
+
   test('accepts unique numbered-book prefixes without a registered alias', async ({ page }) => {
     await openReader(page)
     await submitSearch(page, '2thes 2')

@@ -4,8 +4,8 @@ import { bibleBooks } from '../src/data/bible-books.js'
 import { chronologicalTimelineAids } from './chronologicalTimelineAids.mjs'
 
 const totalDays = 365
-const generatorVersion = 8
-const planRevision = '2026-08-dated-anchor-tooltips'
+const generatorVersion = 9
+const planRevision = '2026-08-day239-lamentations-context'
 
 const sourceNotes = [
   {
@@ -44,6 +44,20 @@ const sourceNotes = [
     use: '2 Kings 23:29-25:30 and 2 Chronicles 36 provide the controlling royal timeline; Jeremiah 21-52 supplies explicit reign, exile, siege, and aftermath notices within that frame.',
     url: 'https://www.biblegateway.com/passage/?search=2%20Kings%2023%3A29-25%3A30%3B%202%20Chronicles%2036%3B%20Jeremiah%2021-52&version=WEB',
     rightsNote: 'Primary biblical reference data; translation text remains separately licensed.',
+  },
+  {
+    id: 'lamentations_authorship_setting',
+    title: 'Adele Berlin, “An Introduction to Lamentations”',
+    use: 'Ancient Jeremiah attribution, the poems’ post-destruction setting, and the uncertainty surrounding their exact author, date, and place of composition.',
+    url: 'https://www.thetorah.com/article/an-introduction-to-lamentations',
+    rightsNote: 'Used for high-level scholarly context only.',
+  },
+  {
+    id: 'lamentations_esv_study_bible',
+    title: 'ESV Study Bible, “Introduction to Lamentations”',
+    use: 'Conservative evangelical overview of the traditional Jeremiah attribution and the narrator, individual, Jerusalem, and communal voices within the poems.',
+    url: 'https://www.thegospelcoalition.org/course/lamentations/',
+    rightsNote: 'Used for high-level literary and authorship context only.',
   },
   {
     id: 'nahum_nineveh_context',
@@ -524,8 +538,8 @@ const chronologicalSections = [
       note(
         'daniel-early-babylonian-exile',
         'Why Daniel begins here',
-        'Daniel 1 opens in the third year of Jehoiakim and Daniel 2 is set in Nebuchadnezzar\'s second year. Those early Babylonian-court chapters belong with Judah\'s first Babylonian crisis rather than with the later Persian-era Daniel visions.',
-        ['biblical_superscriptions', 'townsend_ot_nt']
+        'Daniel 1 opens in Jehoiakim\'s third year; Jeremiah 25:1 and 46:2 place Babylon\'s victory at Carchemish in his fourth year, and Daniel 2 follows in Nebuchadnezzar\'s second year. Jeremiah 24:1 and 2 Kings 24:10-17 then mark Jehoiachin\'s later 597 BC exile, which closes the surrounding history but should not be confused with Daniel\'s earlier removal.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'townsend_ot_nt']
       ),
       'Daniel 1-2',
       note(
@@ -564,8 +578,14 @@ const chronologicalSections = [
         ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
       ),
       'Jeremiah 52',
-      'Jeremiah 40-44',
+      note(
+        'lamentations-after-jerusalem-falls',
+        'Lamentations beside Jerusalem’s fall',
+        'The poems give voice to personified Jerusalem, an individual sufferer, and the surviving community. Lamentations does not name its author or place of composition, though ancient Jewish and Christian tradition associates the book with Jeremiah. The plan therefore reads the poems beside Jerusalem’s 586 BC fall, before Jeremiah 40-44 follows the remnant toward Egypt; this placement describes their historical setting, not where Jeremiah wrote them.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'lamentations_authorship_setting', 'lamentations_esv_study_bible']
+      ),
       'Lamentations 1-5',
+      'Jeremiah 40-44',
       note(
         'exilic-psalm-laments',
         'Why these Psalms follow Jerusalem\'s fall',
