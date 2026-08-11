@@ -1046,17 +1046,34 @@ const situationalTimelineOverrides = {
   'daniel-early-babylonian-exile': situationalTimeline(
     'Daniel enters Babylonian service',
     [
-      situationPhase('jehoiakim', 'Jehoiakim'),
-      situationPhase('babylon', 'Babylon triumphs'),
-      situationPhase('taken', 'Daniel taken'),
-      situationPhase('training', 'Court training'),
-      situationPhase('first-exile', 'First exile'),
+      situationPhase('jehoiakim', 'Jehoiakim', timelineAnchor(
+        '609–598 BC (est.)',
+        'Daniel 1 opens during Jehoiakim’s reign, before the later exile of his son Jehoiachin (Dan 1:1; 2 Kin 23:36).'
+      )),
+      situationPhase('babylon', 'Babylon triumphs', timelineAnchor(
+        '605 BC (est.)',
+        'In Jehoiakim’s fourth year, Babylon defeated Egypt at Carchemish, the first year of Nebuchadnezzar (Jer 25:1; 46:2).'
+      )),
+      situationPhase('taken', 'Daniel taken', timelineAnchor(
+        '606/605 BC (est.)',
+        'Daniel 1 places Jerusalem’s siege and Daniel’s removal in Jehoiakim’s third year (Dan 1:1–6).'
+      )),
+      situationPhase('training', 'Court training', timelineAnchor(
+        'c. 605–602 BC (est.)',
+        'Daniel’s training and earliest court service belong to the opening years of Nebuchadnezzar’s reign (Dan 1:5, 18–20; 2:1).'
+      )),
+      situationPhase('jehoiachin-exile', 'Jehoiachin exiled', timelineAnchor(
+        '597 BC (est.)',
+        'Nebuchadnezzar later carried Jehoiachin and Jerusalem’s leaders to Babylon (2 Kin 24:10–17; Jer 24:1).'
+      )),
     ],
     [
       situationPassage('Dan 1', 'prophet', 'jehoiakim', 'training'),
-      situationPassage('Dan 2', 'prophet', 'training', 'first-exile'),
-      situationPassage('2 Kin 24:1–17', 'kings', 'babylon', 'first-exile'),
-      situationPassage('2 Chr 36:5–10', 'chronicles', 'babylon', 'first-exile'),
+      situationPassage('Dan 2', 'prophet', 'training'),
+      situationPassage('Jer 25:1; 46:2', 'jeremiah', 'babylon'),
+      situationPassage('2 Kin 24:1–17', 'kings', 'babylon', 'jehoiachin-exile'),
+      situationPassage('2 Chr 36:5–10', 'chronicles', 'babylon', 'jehoiachin-exile'),
+      situationPassage('Jer 24:1', 'jeremiah', 'jehoiachin-exile'),
     ]
   ),
 
@@ -1187,6 +1204,41 @@ const situationalTimelineOverrides = {
       situationPassage('2 Chr 36:11–21', 'chronicles', 'zedekiah', 'fall'),
       situationPassage('Jer 52:31–34', 'jeremiah', 'release'),
       situationPassage('2 Kin 25:27–30', 'kings', 'release'),
+    ]
+  ),
+
+  'lamentations-after-jerusalem-falls': situationalTimeline(
+    'Jerusalem falls, and Judah mourns',
+    [
+      situationPhase('fall', 'Jerusalem falls', timelineAnchor(
+        '586 BC (est.)',
+        'Babylon breached Jerusalem and burned the temple after the final siege (2 Kin 25:2–10).'
+      )),
+      situationPhase('ruins', 'City in ruins', timelineAnchor(
+        'After 586 BC (est.)',
+        'The poems speak from Jerusalem’s devastated aftermath, with the city emptied and grieving (Lam 1:1; 2:8–9).'
+      )),
+      situationPhase('mourning', 'Communal mourning', timelineAnchor(
+        '586–539 BC (broad est.)',
+        'The poems give voice to personified Jerusalem, an individual sufferer, and the surviving community.'
+      )),
+      situationPhase('hope', 'Restoration sought', timelineAnchor(
+        'After 586 BC (est.)',
+        'The collection ends by asking the Lord to restore his people, without narrating their return (Lam 5:19–22).'
+      )),
+      situationPhase('flight', 'Flight to Egypt', timelineAnchor(
+        'After 586 BC (est.)',
+        'After Gedaliah’s murder, the surviving remnant took Jeremiah to Egypt (Jer 41:16–43:7).'
+      )),
+    ],
+    [
+      situationPassage('Lam 1–2', 'other', 'ruins', 'mourning'),
+      situationPassage('Lam 3', 'other', 'mourning', 'hope'),
+      situationPassage('Lam 4', 'other', 'fall', 'mourning'),
+      situationPassage('Lam 5', 'other', 'mourning', 'hope'),
+      situationPassage('2 Kin 25:1–21', 'kings', 'fall'),
+      situationPassage('Jer 39; 52:1–30', 'jeremiah', 'fall'),
+      situationPassage('Jer 40–44', 'jeremiah', 'ruins', 'flight'),
     ]
   ),
 

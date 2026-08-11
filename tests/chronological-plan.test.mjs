@@ -42,7 +42,7 @@ test('late-Judah history frames Jeremiah without over-fragmenting it', async () 
   const items = flattenedItems(plan)
   const position = (book, chapter) => chapterPosition(items, book, chapter)
 
-  assert.equal(plan.revision, '2026-08-dated-anchor-tooltips')
+  assert.equal(plan.revision, '2026-08-day239-lamentations-context')
   assert.ok(position('2 Kings', 22) < position('Jeremiah', 1))
   assert.ok(position('2 Chronicles', 35) < position('Jeremiah', 1))
   assert.ok(position('Jeremiah', 20) < position('2 Kings', 24))
@@ -145,7 +145,7 @@ test('every timeline aid uses a valid event-first situation track', async () => 
   const plan = await loadPlan()
   const timelineNotes = flattenedItems(plan).filter(item => item.type === 'note' && item.timeline)
 
-  assert.equal(timelineNotes.length, 39)
+  assert.equal(timelineNotes.length, 40)
 
   for (const note of timelineNotes) {
     const { timeline } = note
@@ -243,6 +243,72 @@ test('Jeremiah 52 is explicitly retrospective and sits beside Jeremiah 39', asyn
     note.timeline.phases.map(phase => phase.anchor.dateLabel),
     ['597–586 BC (est.)', '588–586 BC (est.)', '586 BC (est.)', 'After 586 BC (est.)', '561 BC (est.)']
   )
+})
+
+test('Lamentations sits with Jerusalem’s fall without claiming an Egyptian composition', async () => {
+  const plan = await loadPlan()
+  const items = flattenedItems(plan)
+  const note = items.find(item => item.id === 'lamentations-after-jerusalem-falls')
+
+  assert.ok(note)
+  assert.equal(note.title, 'Lamentations beside Jerusalem’s fall')
+  assert.match(note.text, /does not name its author or place of composition/i)
+  assert.match(note.text, /personified Jerusalem, an individual sufferer, and the surviving community/i)
+  assert.match(note.text, /historical setting, not where Jeremiah wrote them/i)
+  assert.ok(note.sources.includes('lamentations_esv_study_bible'))
+  assert.ok(chapterPosition(items, 'Jeremiah', 52) < chapterPosition(items, 'Lamentations', 1))
+  assert.ok(chapterPosition(items, 'Lamentations', 5) < chapterPosition(items, 'Jeremiah', 40))
+  assert.deepEqual(
+    note.timeline.phases.map(phase => phase.label),
+    ['Jerusalem falls', 'City in ruins', 'Communal mourning', 'Restoration sought', 'Flight to Egypt']
+  )
+  assert.deepEqual(
+    note.timeline.passages.map(passage => passage.label),
+    ['Lam 1–2', 'Lam 3', 'Lam 4', 'Lam 5', '2 Kin 25:1–21', 'Jer 39; 52:1–30', 'Jer 40–44']
+  )
+  assert.deepEqual(
+    note.timeline.passages.find(passage => passage.label === 'Jer 40–44'),
+    {
+      label: 'Jer 40–44',
+      source: 'jeremiah',
+      start: 'ruins',
+      end: 'flight',
+    }
+  )
+  assert.equal(note.timeline.phases.every(phase => phase.anchor), true)
+})
+
+test('Day 239 dates its anchors and uses Jeremiah to distinguish Daniel from the later exile', async () => {
+  const plan = await loadPlan()
+  const note = flattenedItems(plan).find(item =>
+    item.day === 239 &&
+    item.id === 'daniel-early-babylonian-exile'
+  )
+
+  assert.ok(note)
+  assert.equal(note.timeline.phases.every(phase => phase.anchor), true)
+  assert.deepEqual(
+    note.timeline.phases.map(phase => phase.label),
+    ['Jehoiakim', 'Babylon triumphs', 'Daniel taken', 'Court training', 'Jehoiachin exiled']
+  )
+  assert.deepEqual(
+    note.timeline.passages.map(passage => passage.label),
+    ['Dan 1', 'Dan 2', 'Jer 25:1; 46:2', '2 Kin 24:1–17', '2 Chr 36:5–10', 'Jer 24:1']
+  )
+  assert.deepEqual(
+    note.timeline.passages.find(passage => passage.label === 'Dan 2'),
+    {
+      label: 'Dan 2',
+      source: 'prophet',
+      start: 'training',
+      end: 'training',
+    }
+  )
+  assert.equal(
+    note.timeline.phases.find(phase => phase.id === 'babylon').anchor.dateLabel,
+    '605 BC (est.)'
+  )
+  assert.match(note.text, /should not be confused with Daniel's earlier removal/i)
 })
 
 test('other clear parallel notes also expose their historical accounts in the chart', async () => {
