@@ -4,8 +4,8 @@ import { bibleBooks } from '../src/data/bible-books.js'
 import { chronologicalTimelineAids } from './chronologicalTimelineAids.mjs'
 
 const totalDays = 365
-const generatorVersion = 7
-const planRevision = '2026-07-event-first-timeline-maps'
+const generatorVersion = 8
+const planRevision = '2026-08-dated-anchor-tooltips'
 
 const sourceNotes = [
   {
@@ -556,14 +556,15 @@ const chronologicalSections = [
         'Jeremiah 39 narrates Jerusalem\'s fall; chapters 40-41 follow Gedaliah\'s brief governorship and death; and chapters 42-44 follow the remnant into Egypt. 2 Kings 25:1-26 supplies the siege-to-flight sequence, while 2 Chronicles 36:17-21 gives the parallel fall and destruction summary.',
         ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
       ),
-      'Jeremiah 39-44',
+      'Jeremiah 39',
       note(
         'jeremiah-historical-appendix',
-        'Jeremiah 52: the historical appendix',
-        'Jeremiah 52 retells the final Zedekiah-era siege, destruction, deportations, and Jehoiachin\'s later release. It closely parallels the history already read in 2 Kings 24:18-25:30, with additional deportation details, so the plan keeps this appendix after Kings, Chronicles, and Jeremiah\'s own fall-and-aftermath narrative.',
+        'Jeremiah 52 beside Jeremiah 39: a retrospective appendix',
+        'Jeremiah 52 is read beside Jeremiah 39 because verses 1-30 retell Zedekiah\'s reign, Jerusalem\'s siege and fall, and the deportations already framed by 2 Kings 24:18-25:21 and 2 Chronicles 36:11-21. It is not a second capture of Jerusalem; verses 31-34 then jump forward to Jehoiachin\'s release around 561 BC.',
         ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
       ),
       'Jeremiah 52',
+      'Jeremiah 40-44',
       'Lamentations 1-5',
       note(
         'exilic-psalm-laments',
@@ -1251,7 +1252,7 @@ const output = {
     'For long prophetic books whose internal order is mixed, prefer readable era bands over a brittle chapter-by-chapter reshuffle, and explain the compromise in a plan note.',
     'When a prophetic book lacks an explicit date, label the placement as inferred, tentative, or traditional instead of treating it like a fixed timestamp.',
     'Use plan notes to mark when a prophecy points forward to a later period or when a book-to-book connection is less obvious.',
-    'Give placement-focused editorial notes a visual historical axis with passage-setting bars; keep fulfillment dates off those bars and visibly distinguish dated, approximate, broad, and traditional placements.',
+    'Give placement-focused editorial notes an event-first historical situation track with passage bars; attach concise dates only to defensible anchor events, mark converted calendar years as estimated, and keep fulfillment dates off the track.',
     'Validate that every Protestant-canon Bible chapter appears exactly once.',
     'Keep event-titled Psalms near their named historical settings, place author- or guild-titled Psalms near the broad setting their headings suggest, and use clearly labeled undated Psalms as reading-rhythm pauses in dense sections without forcing false precision.',
     'Use bundled World English Bible character counts to balance daily readings; the generated metadata records whether the 20 percent target is feasible at whole-chapter granularity.',

@@ -26,56 +26,109 @@ const CERTAINTY_STYLES = {
   },
 }
 
+const PASSAGE_TEXTURES = {
+  diagonal: {
+    label: 'diagonal stripes',
+    backgroundImage: 'repeating-linear-gradient(135deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 7px)',
+  },
+  vertical: {
+    label: 'vertical stripes',
+    backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.28) 0 1px, transparent 1px 8px)',
+  },
+  dotted: {
+    label: 'dots',
+    backgroundImage: 'radial-gradient(circle at center, rgba(255,255,255,0.42) 0 0.75px, transparent 1px)',
+    backgroundPosition: 'center',
+    backgroundSize: '7px 100%',
+  },
+  horizontal: {
+    label: 'horizontal stripes',
+    backgroundImage: 'linear-gradient(to bottom, transparent 44%, rgba(255,255,255,0.3) 44% 56%, transparent 56%)',
+  },
+  reverseDiagonal: {
+    label: 'reverse diagonal stripes',
+    backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.3) 0 1px, transparent 1px 7px)',
+  },
+  crosshatch: {
+    label: 'crosshatch',
+    backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.22) 0 1px, transparent 1px 8px), repeating-linear-gradient(135deg, rgba(255,255,255,0.22) 0 1px, transparent 1px 8px)',
+  },
+  wideDiagonal: {
+    label: 'wide diagonal stripes',
+    backgroundImage: 'repeating-linear-gradient(135deg, rgba(255,255,255,0.28) 0 1px, transparent 1px 10px)',
+  },
+  dash: {
+    label: 'short dashes',
+    backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.3) 0 3px, transparent 3px 10px)',
+  },
+  sparseDots: {
+    label: 'sparse dots',
+    backgroundImage: 'radial-gradient(circle at center, rgba(255,255,255,0.36) 0 0.75px, transparent 1px)',
+    backgroundPosition: 'center',
+    backgroundSize: '10px 100%',
+  },
+}
+
 const PASSAGE_STYLES = {
   jeremiah: {
     dot: 'bg-amber-600 dark:bg-amber-400',
     bar: 'bg-amber-600 dark:bg-amber-400',
     text: 'text-amber-900 dark:text-amber-200',
+    texture: PASSAGE_TEXTURES.diagonal,
   },
   kings: {
     dot: 'bg-sky-600 dark:bg-sky-400',
     bar: 'bg-sky-600 dark:bg-sky-400',
     text: 'text-sky-900 dark:text-sky-200',
+    texture: PASSAGE_TEXTURES.vertical,
   },
   chronicles: {
     dot: 'bg-violet-600 dark:bg-violet-400',
     bar: 'bg-violet-600 dark:bg-violet-400',
     text: 'text-violet-900 dark:text-violet-200',
+    texture: PASSAGE_TEXTURES.dotted,
   },
   wisdom: {
     dot: 'bg-teal-600 dark:bg-teal-400',
     bar: 'bg-teal-600 dark:bg-teal-400',
     text: 'text-teal-900 dark:text-teal-200',
+    texture: PASSAGE_TEXTURES.horizontal,
   },
   prophet: {
     dot: 'bg-orange-600 dark:bg-orange-400',
     bar: 'bg-orange-600 dark:bg-orange-400',
     text: 'text-orange-900 dark:text-orange-200',
+    texture: PASSAGE_TEXTURES.reverseDiagonal,
   },
   history: {
     dot: 'bg-blue-600 dark:bg-blue-400',
     bar: 'bg-blue-600 dark:bg-blue-400',
     text: 'text-blue-900 dark:text-blue-200',
+    texture: PASSAGE_TEXTURES.crosshatch,
   },
   psalm: {
     dot: 'bg-emerald-600 dark:bg-emerald-400',
     bar: 'bg-emerald-600 dark:bg-emerald-400',
     text: 'text-emerald-900 dark:text-emerald-200',
+    texture: PASSAGE_TEXTURES.wideDiagonal,
   },
   acts: {
     dot: 'bg-cyan-600 dark:bg-cyan-400',
     bar: 'bg-cyan-600 dark:bg-cyan-400',
     text: 'text-cyan-900 dark:text-cyan-200',
+    texture: PASSAGE_TEXTURES.dash,
   },
   letter: {
     dot: 'bg-rose-600 dark:bg-rose-400',
     bar: 'bg-rose-600 dark:bg-rose-400',
     text: 'text-rose-900 dark:text-rose-200',
+    texture: PASSAGE_TEXTURES.sparseDots,
   },
   other: {
     dot: 'bg-emerald-600 dark:bg-emerald-400',
     bar: 'bg-emerald-600 dark:bg-emerald-400',
     text: 'text-emerald-900 dark:text-emerald-200',
+    texture: PASSAGE_TEXTURES.sparseDots,
   },
 }
 
@@ -183,8 +236,16 @@ function TimelineDetails({ heading, text, sources, onClose }) {
 
 function SituationalTimeline({ timeline, detailsText, sources }) {
   const [showDetails, setShowDetails] = useState(false)
+  const [activePhaseId, setActivePhaseId] = useState(null)
   const phases = Array.isArray(timeline?.phases)
-    ? timeline.phases.filter(phase => phase?.id && phase?.label)
+    ? timeline.phases
+      .filter(phase => phase?.id && phase?.label)
+      .map(phase => ({
+        ...phase,
+        anchor: phase?.anchor?.dateLabel && phase?.anchor?.summary
+          ? phase.anchor
+          : null,
+      }))
     : []
   const passages = Array.isArray(timeline?.passages)
     ? timeline.passages
@@ -201,6 +262,8 @@ function SituationalTimeline({ timeline, detailsText, sources }) {
   const phaseGridStyle = {
     gridTemplateColumns: `repeat(${phases.length}, minmax(0, 1fr))`,
   }
+  const activePhase = phases.find(phase => phase.id === activePhaseId && phase.anchor)
+  const activeTooltipId = activePhase ? `timeline-anchor-${activePhase.id}` : undefined
 
   return (
     <>
@@ -245,11 +308,48 @@ function SituationalTimeline({ timeline, detailsText, sources }) {
                 className={`flex min-h-16 items-center justify-center px-0.5 py-2 text-center text-[8px] font-semibold leading-tight tracking-[-0.02em] text-gray-800 dark:text-gray-100 sm:px-1 sm:text-[10px] sm:font-bold sm:tracking-normal ${index > 0 ? 'border-l border-gray-300 dark:border-gray-700' : ''}`}
                 key={phase.id}
               >
-                {phase.label}
+                {phase.anchor ? (
+                  <button
+                    aria-describedby={activePhaseId === phase.id ? activeTooltipId : undefined}
+                    aria-expanded={activePhaseId === phase.id}
+                    className="flex min-h-12 min-w-0 w-full cursor-help items-center justify-center text-[7px] [overflow-wrap:anywhere] underline decoration-dotted underline-offset-2 sm:text-[10px]"
+                    data-timeline-anchor={phase.id}
+                    onClick={() => setActivePhaseId(current => current === phase.id ? null : phase.id)}
+                    type="button"
+                  >
+                    {phase.label}
+                  </button>
+                ) : phase.label}
               </div>
             ))}
           </div>
         </div>
+
+        {activePhase && (
+          <div className="mt-2 grid grid-cols-[6.75rem_minmax(0,1fr)] gap-x-2 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
+            <div aria-hidden="true" />
+            <div
+              className="relative rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 pr-9 text-left shadow-sm dark:border-amber-700 dark:bg-amber-950/40"
+              id={activeTooltipId}
+              role="tooltip"
+            >
+              <p className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                {activePhase.anchor.dateLabel}
+              </p>
+              <p className="mt-0.5 text-xs leading-snug text-gray-700 dark:text-gray-200">
+                {activePhase.anchor.summary}
+              </p>
+              <button
+                aria-label="Close timeline anchor"
+                className="absolute right-2 top-2 rounded px-1.5 py-0.5 text-sm font-bold text-gray-500 dark:text-gray-300"
+                onClick={() => setActivePhaseId(null)}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
 
         <ul className="mt-3 space-y-1.5">
           {passages.map(passage => {
@@ -276,10 +376,14 @@ function SituationalTimeline({ timeline, detailsText, sources }) {
                     ))}
                   </div>
                   <div
-                    aria-label={`${passage.label} spans ${passage.start} through ${passage.end || passage.start}`}
+                    aria-label={`${passage.label}, ${styles.texture.label} pattern, spans ${passage.start} through ${passage.end || passage.start}`}
                     className={`absolute top-2 h-2 rounded-full shadow-sm ${styles.bar}`}
                     data-situation-bar={passage.label}
+                    data-timeline-texture={styles.texture.label}
                     style={{
+                      backgroundImage: styles.texture.backgroundImage,
+                      backgroundPosition: styles.texture.backgroundPosition,
+                      backgroundSize: styles.texture.backgroundSize,
                       left: `${passage.geometry.left}%`,
                       width: `${passage.geometry.width}%`,
                     }}

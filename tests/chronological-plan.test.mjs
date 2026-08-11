@@ -42,7 +42,7 @@ test('late-Judah history frames Jeremiah without over-fragmenting it', async () 
   const items = flattenedItems(plan)
   const position = (book, chapter) => chapterPosition(items, book, chapter)
 
-  assert.equal(plan.revision, '2026-07-event-first-timeline-maps')
+  assert.equal(plan.revision, '2026-08-dated-anchor-tooltips')
   assert.ok(position('2 Kings', 22) < position('Jeremiah', 1))
   assert.ok(position('2 Chronicles', 35) < position('Jeremiah', 1))
   assert.ok(position('Jeremiah', 20) < position('2 Kings', 24))
@@ -53,8 +53,9 @@ test('late-Judah history frames Jeremiah without over-fragmenting it', async () 
   const expectedJeremiahOrder = [
     ...Array.from({ length: 38 }, (_, index) => index + 1),
     ...Array.from({ length: 7 }, (_, index) => index + 45),
-    ...Array.from({ length: 6 }, (_, index) => index + 39),
+    39,
     52,
+    ...Array.from({ length: 5 }, (_, index) => index + 40),
   ]
   assert.deepEqual(expandBookChapters(plan, 'Jeremiah'), expectedJeremiahOrder)
 })
@@ -113,11 +114,38 @@ test('late-Judah reading notes name reigns and their Kings and Chronicles anchor
   assert.match(mixedBand, /2 Chronicles 36:4-13/)
 })
 
+test('the generated plan covers all 365 days and 1,189 chapters exactly once', async () => {
+  const plan = await loadPlan()
+  const seen = new Map()
+
+  assert.equal(plan.totalDays, 365)
+  assert.equal(plan.totalChapters, 1189)
+  assert.equal(plan.readings.length, 365)
+  assert.deepEqual(plan.readings.map(reading => reading.day), Array.from({ length: 365 }, (_, index) => index + 1))
+  assert.ok(plan.methodology.some(line => /event-first historical situation track/.test(line)))
+
+  for (const reading of plan.readings) {
+    for (const passage of reading.passages) {
+      const match = passage.match(/^(.+?)\s+(\d+)(?:-(\d+))?$/)
+      assert.ok(match, `unsupported generated passage ${passage}`)
+      const start = Number(match[2])
+      const end = Number(match[3] || match[2])
+      for (let chapter = start; chapter <= end; chapter += 1) {
+        const reference = `${match[1]} ${chapter}`
+        assert.equal(seen.has(reference), false, `${reference} repeats on days ${seen.get(reference)} and ${reading.day}`)
+        seen.set(reference, reading.day)
+      }
+    }
+  }
+
+  assert.equal(seen.size, 1189)
+})
+
 test('every timeline aid uses a valid event-first situation track', async () => {
   const plan = await loadPlan()
   const timelineNotes = flattenedItems(plan).filter(item => item.type === 'note' && item.timeline)
 
-  assert.ok(timelineNotes.length >= 35)
+  assert.equal(timelineNotes.length, 39)
 
   for (const note of timelineNotes) {
     const { timeline } = note
@@ -130,6 +158,14 @@ test('every timeline aid uses a valid event-first situation track', async () => 
 
     const phaseIds = new Set(timeline.phases.map(phase => phase.id))
     assert.equal(phaseIds.size, timeline.phases.length, `${note.id} needs unique situation phases`)
+    for (const phase of timeline.phases) {
+      if (!phase.anchor) continue
+      assert.match(phase.anchor.dateLabel, /\d/, `${note.id}/${phase.label} needs a dated anchor label`)
+      assert.ok(phase.anchor.summary.length <= 160, `${note.id}/${phase.label} anchor context should stay short`)
+      assert.doesNotMatch(phase.anchor.summary, /\n/, `${note.id}/${phase.label} anchor context should be one sentence`)
+      assert.match(phase.anchor.summary, /[.!?]$/, `${note.id}/${phase.label} anchor context should be a complete sentence`)
+      assert.equal((phase.anchor.summary.match(/[.!?]/g) || []).length, 1, `${note.id}/${phase.label} anchor context should be one sentence`)
+    }
     for (const passage of timeline.passages) {
       assert.match(passage.label, /\d/, `${note.id} should label passage bars with references`)
       assert.ok(phaseIds.has(passage.start), `${note.id}/${passage.label} has an unknown start phase`)
@@ -181,6 +217,31 @@ test('Day 245 uses one situational siege track for Jeremiah, Kings, and Chronicl
       start: 'fall',
       end: 'gedaliah',
     }
+  )
+  assert.equal(note.timeline.phases.every(phase => phase.anchor), true)
+  assert.equal(
+    note.timeline.phases.find(phase => phase.id === 'flight').anchor.dateLabel,
+    'After 586 BC (est.)'
+  )
+})
+
+test('Jeremiah 52 is explicitly retrospective and sits beside Jeremiah 39', async () => {
+  const plan = await loadPlan()
+  const items = flattenedItems(plan)
+  const note = items.find(item => item.id === 'jeremiah-historical-appendix')
+
+  assert.ok(note)
+  assert.match(note.title, /beside Jeremiah 39.*retrospective appendix/i)
+  assert.match(note.text, /not a second capture of Jerusalem/i)
+  assert.ok(chapterPosition(items, 'Jeremiah', 39) < chapterPosition(items, 'Jeremiah', 52))
+  assert.ok(chapterPosition(items, 'Jeremiah', 52) < chapterPosition(items, 'Jeremiah', 40))
+  assert.deepEqual(
+    note.timeline.phases.map(phase => phase.label),
+    ['Zedekiah', 'Final siege', 'Fall / deportation', 'Escape to Egypt', 'Jehoiachin freed']
+  )
+  assert.deepEqual(
+    note.timeline.phases.map(phase => phase.anchor.dateLabel),
+    ['597–586 BC (est.)', '588–586 BC (est.)', '586 BC (est.)', 'After 586 BC (est.)', '561 BC (est.)']
   )
 })
 
