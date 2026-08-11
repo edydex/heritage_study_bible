@@ -38,8 +38,22 @@ const situationalTimeline = {
   presentation: 'situational',
   heading: 'Babylon’s siege and its aftermath',
   phases: [
-    { id: 'siege', label: 'Final siege' },
-    { id: 'fall', label: 'Jerusalem falls' },
+    {
+      id: 'siege',
+      label: 'Final siege',
+      anchor: {
+        dateLabel: '588 BC (est.)',
+        summary: 'Babylon began its final siege in Zedekiah’s ninth year.',
+      },
+    },
+    {
+      id: 'fall',
+      label: 'Jerusalem falls',
+      anchor: {
+        dateLabel: '586 BC (est.)',
+        summary: 'Jerusalem was breached in Zedekiah’s eleventh year.',
+      },
+    },
     { id: 'gedaliah', label: 'Gedaliah' },
     { id: 'flight', label: 'Flight to Egypt' },
   ],
@@ -98,6 +112,36 @@ describe('ChronologyTimeline', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Close timeline details' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('reveals one short dated anchor tooltip on click', () => {
+    render(<ChronologyTimeline timeline={situationalTimeline} />)
+
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Final siege' }))
+    expect(screen.getByRole('tooltip')).toHaveTextContent('588 BC (est.)')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Babylon began its final siege in Zedekiah’s ninth year.')
+    expect(screen.getByRole('button', { name: 'Final siege' })).toHaveAttribute('aria-expanded', 'true')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Jerusalem falls' }))
+    expect(screen.getByRole('tooltip')).toHaveTextContent('586 BC (est.)')
+    expect(screen.queryByText('Babylon began its final siege in Zedekiah’s ninth year.')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close timeline anchor' }))
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('uses source-specific textures as a non-color cue', () => {
+    render(<ChronologyTimeline timeline={situationalTimeline} />)
+
+    const jeremiahBar = document.querySelector('[data-situation-bar="Jer 39–41"]')
+    const kingsBar = document.querySelector('[data-situation-bar="2 Kin 25:1–26"]')
+
+    expect(jeremiahBar).toHaveAttribute('data-timeline-texture', 'diagonal stripes')
+    expect(kingsBar).toHaveAttribute('data-timeline-texture', 'vertical stripes')
+    expect(jeremiahBar.style.backgroundImage).not.toBe('')
+    expect(kingsBar.style.backgroundImage).not.toBe(jeremiahBar.style.backgroundImage)
   })
 
   it('labels the chart as attributed setting rather than fulfillment', () => {

@@ -10,8 +10,16 @@ function parallelContext(event, label, dateLabel, startYear, endYear = startYear
   return groupedContext(`Parallel accounts — ${event}`, label, dateLabel, startYear, endYear, certainty)
 }
 
-function situationPhase(id, label) {
-  return { id, label }
+function timelineAnchor(dateLabel, summary) {
+  return { dateLabel, summary }
+}
+
+function situationPhase(id, label, anchor) {
+  return {
+    id,
+    label,
+    ...(anchor ? { anchor } : {}),
+  }
 }
 
 function situationPassage(label, source, start, end = start) {
@@ -1086,11 +1094,26 @@ const situationalTimelineOverrides = {
   'late-judah-fall-history-first': situationalTimeline(
     'Judah falls and exile begins',
     [
-      situationPhase('siege', 'Final siege'),
-      situationPhase('fall', 'Fall'),
-      situationPhase('gedaliah', 'Gedaliah / flight'),
-      situationPhase('release', 'Jehoiachin freed'),
-      situationPhase('return', 'Return decree'),
+      situationPhase('siege', 'Final siege', timelineAnchor(
+        '588 BC (est.)',
+        'Babylon began its final siege of Jerusalem in Zedekiah’s ninth year (2 Kin 25:1).'
+      )),
+      situationPhase('fall', 'Fall', timelineAnchor(
+        '586 BC (est.)',
+        'Jerusalem was breached and the temple was burned in Zedekiah’s eleventh year (2 Kin 25:2–10).'
+      )),
+      situationPhase('gedaliah', 'Gedaliah / flight', timelineAnchor(
+        'After 586 BC (est.)',
+        'After Gedaliah was killed, the remnant fled to Egypt because they feared Babylon (2 Kin 25:22–26).'
+      )),
+      situationPhase('release', 'Jehoiachin freed', timelineAnchor(
+        '561 BC (est.)',
+        'Evil-merodach released Jehoiachin in the thirty-seventh year of his exile (2 Kin 25:27).'
+      )),
+      situationPhase('return', 'Return decree', timelineAnchor(
+        '538 BC (est.)',
+        'Cyrus authorized the exiles to return and rebuild the temple (2 Chr 36:22–23).'
+      )),
     ],
     [
       situationPassage('2 Kin 25:1–26', 'kings', 'siege', 'gedaliah'),
@@ -1105,11 +1128,26 @@ const situationalTimelineOverrides = {
   'jeremiah-fall-and-aftermath': situationalTimeline(
     'Babylon’s siege and its aftermath',
     [
-      situationPhase('siege', 'Siege'),
-      situationPhase('fall', 'Fall'),
-      situationPhase('gedaliah', 'Gedaliah'),
-      situationPhase('flight', 'Flight'),
-      situationPhase('egypt', 'Egypt'),
+      situationPhase('siege', 'Siege', timelineAnchor(
+        '588 BC (est.)',
+        'Babylon began its final siege of Jerusalem in Zedekiah’s ninth year (Jer 39:1).'
+      )),
+      situationPhase('fall', 'Fall', timelineAnchor(
+        '586 BC (est.)',
+        'Jerusalem was breached in Zedekiah’s eleventh year, beginning the city’s final collapse (Jer 39:2).'
+      )),
+      situationPhase('gedaliah', 'Gedaliah', timelineAnchor(
+        'After 586 BC (est.)',
+        'Babylon appointed Gedaliah over the people left in Judah after Jerusalem fell (Jer 40:5–12).'
+      )),
+      situationPhase('flight', 'Flight', timelineAnchor(
+        'After 586 BC (est.)',
+        'After Gedaliah’s murder, the remnant went to Egypt despite Jeremiah’s warning (Jer 41:16–43:7).'
+      )),
+      situationPhase('egypt', 'Egypt', timelineAnchor(
+        'After 586 BC (est.)',
+        'Jeremiah addressed the Judean communities living in Egypt after the flight (Jer 44:1).'
+      )),
     ],
     [
       situationPassage('Jer 39–41', 'jeremiah', 'fall', 'gedaliah'),
@@ -1122,10 +1160,26 @@ const situationalTimelineOverrides = {
   'jeremiah-historical-appendix': situationalTimeline(
     'Jeremiah 52 retells Judah’s final collapse',
     [
-      situationPhase('zedekiah', 'Zedekiah'),
-      situationPhase('siege', 'Final siege'),
-      situationPhase('fall', 'Fall / deportation'),
-      situationPhase('release', 'Jehoiachin freed'),
+      situationPhase('zedekiah', 'Zedekiah', timelineAnchor(
+        '597–586 BC (est.)',
+        'Jeremiah 52 opens by looking back across Zedekiah’s eleven-year reign (Jer 52:1).'
+      )),
+      situationPhase('siege', 'Final siege', timelineAnchor(
+        '588–586 BC (est.)',
+        'The appendix retells Babylon’s siege from Zedekiah’s ninth through eleventh years (Jer 52:4–7).'
+      )),
+      situationPhase('fall', 'Fall / deportation', timelineAnchor(
+        '586 BC (est.)',
+        'Jeremiah 52 recounts Jerusalem’s destruction and the deportations that followed (Jer 52:12–30).'
+      )),
+      situationPhase('escape', 'Escape to Egypt', timelineAnchor(
+        'After 586 BC (est.)',
+        'After Gedaliah was killed, the remnant fled to Egypt; Jeremiah 52 skips this interval (Jer 41:16–43:7).'
+      )),
+      situationPhase('release', 'Jehoiachin freed', timelineAnchor(
+        '561 BC (est.)',
+        'The final verses jump forward to Jehoiachin’s release in the thirty-seventh year of his exile (Jer 52:31–34).'
+      )),
     ],
     [
       situationPassage('Jer 52:1–30', 'jeremiah', 'zedekiah', 'fall'),

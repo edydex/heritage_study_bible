@@ -71,6 +71,40 @@ test.describe('Heritage reader', () => {
     await expect(page.locator('#verse-2-1')).toBeVisible({ timeout: 20_000 })
   })
 
+  test('keeps textured chronology bars readable on a narrow phone', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/245/note-jeremiah-historical-appendix', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Jeremiah 52 retells Judah’s final collapse' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+
+    const bars = timeline.locator('[data-situation-bar]')
+    await expect(bars).toHaveCount(5)
+    await expect(bars.nth(0)).toHaveAttribute('data-timeline-texture', 'diagonal stripes')
+    await expect(bars.nth(1)).toHaveAttribute('data-timeline-texture', 'vertical stripes')
+    await expect(bars.nth(2)).toHaveAttribute('data-timeline-texture', 'dots')
+
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      pageWidth: document.body.scrollWidth,
+      clippedAnchors: [...document.querySelectorAll('[data-timeline-anchor]')]
+        .filter(anchor => anchor.scrollWidth > anchor.clientWidth)
+        .map(anchor => anchor.textContent.trim()),
+      barBackgrounds: [...document.querySelectorAll('[data-situation-bar]')]
+        .map(bar => getComputedStyle(bar).backgroundImage),
+    }))
+
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth)
+    expect(layout.clippedAnchors).toEqual([])
+    expect(layout.barBackgrounds.every(background => background !== 'none')).toBe(true)
+    expect(new Set(layout.barBackgrounds).size).toBeGreaterThanOrEqual(3)
+
+    await timeline.getByRole('button', { name: 'Escape to Egypt' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('After 586 BC (est.)')
+  })
+
   test('accepts unique numbered-book prefixes without a registered alias', async ({ page }) => {
     await openReader(page)
     await submitSearch(page, '2thes 2')
