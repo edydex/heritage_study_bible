@@ -4,8 +4,8 @@ import { bibleBooks } from '../src/data/bible-books.js'
 import { chronologicalTimelineAids } from './chronologicalTimelineAids.mjs'
 
 const totalDays = 365
-const generatorVersion = 9
-const planRevision = '2026-08-day239-lamentations-context'
+const generatorVersion = 10
+const planRevision = '2026-08-jeremiah-ezekiel-interweave'
 
 const sourceNotes = [
   {
@@ -58,6 +58,13 @@ const sourceNotes = [
     use: 'Conservative evangelical overview of the traditional Jeremiah attribution and the narrator, individual, Jerusalem, and communal voices within the poems.',
     url: 'https://www.thegospelcoalition.org/course/lamentations/',
     rightsNote: 'Used for high-level literary and authorship context only.',
+  },
+  {
+    id: 'ezekiel_esv_global_study_bible',
+    title: 'ESV Global Study Bible, “Introduction to Ezekiel”',
+    use: 'Ezekiel’s ministry among the 597 BC exiles while Zedekiah still ruled Jerusalem, overlapping Jeremiah’s final years in Judah.',
+    url: 'https://www.esv.org/resources/esv-global-study-bible/introduction-to-ezekiel/',
+    rightsNote: 'Used for high-level historical context only.',
   },
   {
     id: 'nahum_nineveh_context',
@@ -529,12 +536,20 @@ const chronologicalSections = [
       ),
       'Jeremiah 27-29',
       note(
+        'ezekiel-dated-exile-visions',
+        'Jeremiah in Judah, Ezekiel among the exiles',
+        'Ezekiel begins in Babylon in the fifth year of Jehoiachin’s exile, while Zedekiah still rules Jerusalem and Jeremiah is still preaching there. The plan therefore enters Ezekiel beside Jeremiah 27-29, returns to Ezekiel around the dated start of the final siege, and continues his post-fall messages afterward. Ezekiel 29:17 is a later dated addition within an earlier Egypt-oracle block, so that paragraph remains an acknowledged exception.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'townsend_ot_nt']
+      ),
+      'Ezekiel 1-7',
+      note(
         'jeremiah-consolation-siege-flashback',
         'Jeremiah 30-36: promise, siege, then a Jehoiakim flashback',
         'The reading begins with promises of restoration, moves into Jerusalem\'s final siege under Zedekiah, and then looks back to events under Jehoiakim. That backward step is part of Jeremiah\'s arrangement, so the chapters stay together here. For the reigns in view, see 2 Kings 24 and 2 Chronicles 36:4-13.',
         ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
       ),
       'Jeremiah 30-36',
+      'Ezekiel 8-23',
       note(
         'daniel-early-babylonian-exile',
         'Why Daniel begins here',
@@ -549,6 +564,8 @@ const chronologicalSections = [
         ['biblical_superscriptions', 'late_judah_biblical_timeline', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
       'Jeremiah 37-38',
+      'Ezekiel 24',
+      'Ezekiel 29-31',
       note(
         'jeremiah-appendix-oracles',
         'Jeremiah 45-51: an appendix spanning two reigns',
@@ -589,8 +606,8 @@ const chronologicalSections = [
       note(
         'exilic-psalm-laments',
         'Why these Psalms follow Jerusalem\'s fall',
-        'These Psalms are not all dated by a royal heading, but their contents fit the shock of exile, ruined sanctuary, threatened covenant, or Babylon more directly than a generic Davidic placement would. Psalm 137 is the clearest Babylon Psalm; Psalms 74, 79, 89, and 102 are kept nearby as destruction-and-restoration laments.',
-        ['biblical_superscriptions', 'townsend_ot_nt']
+        'These Psalms are not all dated by a royal heading, but their contents fit the shock of exile, ruined sanctuary, threatened covenant, or Babylon more directly than a generic Davidic placement would. Psalm 137 is the clearest Babylon Psalm; Psalms 74, 79, 89, and 102 are kept nearby as destruction-and-restoration laments. The timeline keeps Jeremiah, Kings, and Chronicles visible as the historical accounts continue from Jerusalem’s destruction into displacement, release, and return.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
       'Psalms 74',
       'Psalms 79',
@@ -606,18 +623,8 @@ const chronologicalSections = [
     confidence: 'medium',
     sources: ['townsend_ot_nt', 'merrill_kings_prophets'],
     passages: [
-      note(
-        'ezekiel-dated-exile-visions',
-        'Why Ezekiel is split into dated exile blocks',
-        'Ezekiel gives repeated year, month, and day markers from Jehoiachin\'s captivity. The plan keeps Ezekiel mostly in canonical order but splits the major blocks where the book itself gives clear chronological markers, including the siege date in Ezekiel 24 and the restoration vision in Ezekiel 40.',
-        ['biblical_superscriptions', 'townsend_ot_nt']
-      ),
-      'Ezekiel 1-7',
-      'Ezekiel 8-19',
-      'Ezekiel 20-24',
-      'Ezekiel 29-30',
       'Ezekiel 25-28',
-      'Ezekiel 31-32',
+      'Ezekiel 32',
       'Ezekiel 33-39',
       'Ezekiel 40-48',
       note(
