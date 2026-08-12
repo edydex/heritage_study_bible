@@ -1245,33 +1245,77 @@ const situationalTimelineOverrides = {
   'exilic-psalm-laments': situationalTimeline(
     'Songs of destruction, exile, and return',
     [
-      situationPhase('destruction', 'Jerusalem destroyed'),
-      situationPhase('exile', 'Exile in Babylon'),
-      situationPhase('longing', 'Longing for return'),
-      situationPhase('return', 'Return begins'),
+      situationPhase('destruction', 'Jerusalem destroyed', timelineAnchor(
+        '586 BC (est.)',
+        'Babylon burned Jerusalem and the temple after breaching the city (2 Kin 25:8–10).'
+      )),
+      situationPhase('displaced', 'Survivors displaced', timelineAnchor(
+        'After 586 BC (est.)',
+        'Survivors were deported to Babylon, scattered through Judah, or driven toward Egypt (2 Kin 25:11–26; Jer 43:4–7).'
+      )),
+      situationPhase('lament', 'Lament in exile', timelineAnchor(
+        '586–539 BC (broad est.)',
+        'The exile supplied the broad setting for grief over the ruined city and sanctuary (Ps 74; 79; 137).'
+      )),
+      situationPhase('hope', 'Hope for return', timelineAnchor(
+        '586–539 BC (broad est.)',
+        'Exilic prayers ask God to remember his covenant, restore his people, and rebuild Zion (Ps 89; 102).'
+      )),
+      situationPhase('return', 'Return begins', timelineAnchor(
+        '539/538 BC (est.)',
+        'Cyrus authorized the exiles to return and rebuild the house of the Lord (2 Chr 36:22–23; Ezra 1:1–4).'
+      )),
     ],
     [
-      situationPassage('Ps 74, 79, 89, 102', 'psalm', 'destruction', 'longing'),
-      situationPassage('Ps 137', 'psalm', 'exile', 'longing'),
-      situationPassage('Ps 85', 'psalm', 'longing', 'return'),
+      situationPassage('Ps 74, 79', 'psalm', 'destruction', 'lament'),
+      situationPassage('Ps 89, 102', 'psalm', 'displaced', 'hope'),
+      situationPassage('Ps 137', 'psalm', 'lament'),
+      situationPassage('Ps 85', 'psalm', 'hope', 'return'),
+      situationPassage('2 Kin 25', 'kings', 'destruction', 'hope'),
+      situationPassage('2 Chr 36:17–23', 'chronicles', 'destruction', 'return'),
+      situationPassage('Jer 39–44; 52', 'jeremiah', 'destruction', 'hope'),
     ]
   ),
 
   'ezekiel-dated-exile-visions': situationalTimeline(
-    'Ezekiel’s visions across the exile',
+    'Jeremiah in Judah, Ezekiel among the exiles',
     [
-      situationPhase('exile', 'Exile begins'),
-      situationPhase('warnings', 'Warnings'),
-      situationPhase('fall', 'Jerusalem falls'),
-      situationPhase('restoration', 'Restoration'),
-      situationPhase('temple', 'Temple vision'),
+      situationPhase('first-exile', 'Jehoiachin exiled', timelineAnchor(
+        '597 BC (est.)',
+        'Nebuchadnezzar took Jehoiachin, Ezekiel, and other leaders from Jerusalem to Babylon (2 Kin 24:10–17).'
+      )),
+      situationPhase('call', 'Ezekiel called', timelineAnchor(
+        '593 BC (est.)',
+        'Ezekiel received his call among the exiles while Zedekiah still ruled Jerusalem (Ezek 1:1–3).'
+      )),
+      situationPhase('warnings', 'Parallel warnings', timelineAnchor(
+        '593–588 BC (est.)',
+        'Jeremiah warned Judah from Jerusalem while Ezekiel warned the earlier exiles in Babylon (Jer 27–36; Ezek 4–23).'
+      )),
+      situationPhase('siege', 'Final siege', timelineAnchor(
+        '588–586 BC (est.)',
+        'Ezekiel 24 and 2 Kings 25 date Babylon’s siege to the same year, month, and day (Ezek 24:1–2; 2 Kin 25:1).'
+      )),
+      situationPhase('fall-news', 'Fall / news', timelineAnchor(
+        '586/585 BC (est.)',
+        'Jerusalem fell in 586 BC, and a survivor later brought the news to Ezekiel in Babylon (Ezek 33:21).'
+      )),
+      situationPhase('restoration', 'Restoration visions', timelineAnchor(
+        '585–573 BC (broad est.)',
+        'After the fall, Ezekiel’s message turns toward a restored people, land, and temple (Ezek 34–48).'
+      )),
     ],
     [
-      situationPassage('Ezek 1–7', 'prophet', 'exile', 'warnings'),
-      situationPassage('Ezek 8–24', 'prophet', 'warnings', 'fall'),
-      situationPassage('Ezek 25–32', 'prophet', 'warnings', 'fall'),
-      situationPassage('Ezek 33–39', 'prophet', 'fall', 'restoration'),
-      situationPassage('Ezek 40–48', 'prophet', 'temple'),
+      situationPassage('Jer 27–36', 'jeremiah', 'first-exile', 'warnings'),
+      situationPassage('Ezek 1–7', 'prophet', 'call', 'warnings'),
+      situationPassage('Ezek 8–23', 'prophet', 'warnings'),
+      situationPassage('Jer 37–39', 'jeremiah', 'siege', 'fall-news'),
+      situationPassage('Ezek 24; 29–31', 'prophet', 'siege'),
+      situationPassage('2 Kin 24:10–25:21', 'kings', 'first-exile', 'fall-news'),
+      situationPassage('2 Chr 36:9–21', 'chronicles', 'first-exile', 'fall-news'),
+      situationPassage('Jer 40–44; 52', 'jeremiah', 'fall-news'),
+      situationPassage('Ezek 25–39', 'prophet', 'fall-news', 'restoration'),
+      situationPassage('Ezek 40–48', 'prophet', 'restoration'),
     ]
   ),
 

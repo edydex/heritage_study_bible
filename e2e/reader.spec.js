@@ -73,7 +73,7 @@ test.describe('Heritage reader', () => {
 
   test('keeps textured chronology bars readable on a narrow phone', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('/#/resources/reading-plans/chronological-bible/note/245/note-jeremiah-historical-appendix', {
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/255/note-jeremiah-historical-appendix', {
       waitUntil: 'networkidle',
     })
 
@@ -105,9 +105,9 @@ test.describe('Heritage reader', () => {
     await expect(timeline.getByRole('tooltip')).toContainText('After 586 BC (est.)')
   })
 
-  test('shows Day 239 Jeremiah context and dated anchors on a narrow phone', async ({ page }) => {
+  test('shows Daniel’s Jeremiah context and dated anchors on a narrow phone', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('/#/resources/reading-plans/chronological-bible/note/239/note-daniel-early-babylonian-exile', {
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/248/note-daniel-early-babylonian-exile', {
       waitUntil: 'networkidle',
     })
 
@@ -137,7 +137,7 @@ test.describe('Heritage reader', () => {
 
   test('places Lamentations beside Jerusalem’s fall on a narrow phone', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('/#/resources/reading-plans/chronological-bible/note/246/note-lamentations-after-jerusalem-falls', {
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/255/note-lamentations-after-jerusalem-falls', {
       waitUntil: 'networkidle',
     })
 
@@ -158,6 +158,63 @@ test.describe('Heritage reader', () => {
     await timeline.getByRole('button', { name: 'Flight to Egypt' }).click()
     await expect(timeline.getByRole('tooltip')).toContainText('After 586 BC (est.)')
     await expect(timeline.getByRole('tooltip')).toContainText('surviving remnant took Jeremiah to Egypt')
+
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      pageWidth: document.body.scrollWidth,
+      clippedAnchors: [...document.querySelectorAll('[data-timeline-anchor]')]
+        .filter(anchor => anchor.scrollWidth > anchor.clientWidth)
+        .map(anchor => anchor.textContent.trim()),
+    }))
+
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth)
+    expect(layout.clippedAnchors).toEqual([])
+  })
+
+  test('shows Jeremiah and Ezekiel’s overlapping ministries on a narrow phone', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/237/note-ezekiel-dated-exile-visions', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Jeremiah in Judah, Ezekiel among the exiles' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+    await expect(timeline.getByText('Jer 27–36')).toBeVisible()
+    await expect(timeline.getByText('Ezek 1–7')).toBeVisible()
+    await expect(timeline.getByText('2 Kin 24:10–25:21')).toBeVisible()
+    await expect(timeline.getByText('2 Chr 36:9–21')).toBeVisible()
+
+    await timeline.getByRole('button', { name: 'Parallel warnings' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('593–588 BC (est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText('Jeremiah warned Judah from Jerusalem')
+
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      pageWidth: document.body.scrollWidth,
+      clippedAnchors: [...document.querySelectorAll('[data-timeline-anchor]')]
+        .filter(anchor => anchor.scrollWidth > anchor.clientWidth)
+        .map(anchor => anchor.textContent.trim()),
+    }))
+
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth)
+    expect(layout.clippedAnchors).toEqual([])
+  })
+
+  test('shows the historical accounts beside the exile Psalms on a narrow phone', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/258/note-exilic-psalm-laments', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Songs of destruction, exile, and return' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+    await expect(timeline.getByText('2 Kin 25')).toBeVisible()
+    await expect(timeline.getByText('2 Chr 36:17–23')).toBeVisible()
+    await expect(timeline.getByText('Jer 39–44; 52')).toBeVisible()
+
+    await timeline.getByRole('button', { name: 'Survivors displaced' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('After 586 BC (est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText('deported to Babylon')
 
     const layout = await page.evaluate(() => ({
       viewportWidth: document.documentElement.clientWidth,
