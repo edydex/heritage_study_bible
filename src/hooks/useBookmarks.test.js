@@ -22,7 +22,7 @@ describe('useBookmarks', () => {
 
   it('hydrates bookmarks, commentary bookmarks, and notes from storage', async () => {
     localStorage.setItem(STORAGE_KEYS.bookmarks, JSON.stringify([
-      { id: 'b1', book: 'John', chapter: 3, verse: 16 },
+      { id: 'b1', book: 'John', chapter: 3, verse: 16, hasCommentary: true },
     ]))
     localStorage.setItem(STORAGE_KEYS.notes, JSON.stringify([
       { id: 'n1', book: 'Psalms', chapter: 23, verse: 1, text: 'Saved note' },
@@ -34,6 +34,7 @@ describe('useBookmarks', () => {
       expect(result.current.bookmarks).toHaveLength(1)
       expect(result.current.notes).toHaveLength(1)
     })
+    expect(result.current.bookmarks[0]).not.toHaveProperty('hasCommentary')
   })
 
   it('adds and removes verse bookmarks', async () => {

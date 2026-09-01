@@ -1240,6 +1240,15 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     multiSelectSnapshotRef.current = null
   }, [])
 
+  const finishMultiSelectMode = useCallback(() => {
+    setMultiSelectMode(false)
+    setSelectedVerse(null)
+    setSelectedVerses([])
+    setIsSidebarOpen(false)
+    setShowGoToPassageButton(false)
+    multiSelectSnapshotRef.current = null
+  }, [])
+
   useEffect(() => {
     const handleActivePlanChange = (event) => {
       setActiveReadingPlan(event.detail || getActiveReadingPlan())
@@ -1672,10 +1681,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         showToast('Select at least one verse first')
         return
       }
-      setMultiSelectMode(false)
-      setSelectedVerse(selectedVerses[selectedVerses.length - 1])
-      setIsSidebarOpen(true)
-      multiSelectSnapshotRef.current = null
+      finishMultiSelectMode()
       return
     }
 
@@ -1705,7 +1711,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         chapter,
         verse,
         verseText: verseText.substring(0, 100),
-        hasCommentary: hasCommentary(chapter, verse),
         userNote: ''
       })
       showToast('Verse bookmarked!')
@@ -1748,7 +1753,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
         chapter: v.chapter,
         verse: v.verse,
         verseText: verseText.substring(0, 100),
-        hasCommentary: hasAnyCommentary(v.book, v.chapter, v.verse, authorsData),
         userNote: ''
       })
       addedCount += 1
@@ -2366,7 +2370,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
             onSaveNotes={handleSaveNotesForVerses}
             onShowToast={showToast}
             onCancel={cancelMultiSelectMode}
-            onDone={toggleMultiSelectMode}
+            onDone={finishMultiSelectMode}
           />
         )}
 

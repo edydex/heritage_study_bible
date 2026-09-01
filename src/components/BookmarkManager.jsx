@@ -1,6 +1,23 @@
 import { useState, useEffect } from 'react'
 import { formatVerseReference } from '../utils/verseAnnotations'
 
+function getBookFromReference(reference, fallback = '') {
+  const match = String(reference || '').match(/^(.+?)\s+\d/)
+  return match?.[1] || fallback
+}
+
+function getSavedItemReference(item) {
+  if (item.type === 'commentary') return item.reference || 'Commentary'
+  if (item.type === 'note') return item.reference || formatVerseReference(item)
+  return `${item.book} ${item.chapter}:${item.verse}`
+}
+
+function summarizeSavedItemReferences(items, limit = 3) {
+  const references = [...new Set(items.map(getSavedItemReference).filter(Boolean))]
+  if (references.length <= limit) return references.join(', ')
+  return `${references.slice(0, limit).join(', ')} +${references.length - limit}`
+}
+
 function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onClose, onNavigate, onDelete, onUpdateNote, onDeleteCommentary, onNavigateToCommentary, onDeleteNote }) {
   const [viewMode, setViewMode] = useState('date') // 'date' or 'books'
   const [searchQuery, setSearchQuery] = useState('')
@@ -22,7 +39,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
     ...cb,
     id: cb.id || cb.commentaryId,
     type: 'commentary',
-    book: 'Revelation',
+    book: cb.book || getBookFromReference(cb.reference, 'Commentary'),
     chapter: cb.chapter,
     verse: cb.startVerse || 0,
     verseText: cb.textSnippet || '',
@@ -78,9 +95,8 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
       const date = new Date(bookmark.dateCreated)
       const dateKey = formatDate(date)
       if (!groups[dateKey]) {
-        groups[dateKey] = { date: dateKey, books: new Set(), bookmarks: [] }
+        groups[dateKey] = { date: dateKey, bookmarks: [] }
       }
-      groups[dateKey].books.add(bookmark.book)
       groups[dateKey].bookmarks.push(bookmark)
     })
     // Sort bookmarks within each group by date (newest first)
@@ -168,7 +184,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
           <div className="flex items-center justify-between mb-4">
             <h3 className="heading-text text-xl font-bold flex items-center gap-2">
               <span>⭐</span>
-              Bookmarks ({bookmarks.length + commentaryBookmarks.length + notes.length})
+              Bookmarks &amp; Notes ({bookmarks.length + commentaryBookmarks.length + notes.length})
             </h3>
             <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
               ✕
@@ -206,7 +222,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
           {filteredBookmarks.length === 0 ? (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <p className="text-4xl mb-4">⭐</p>
-              <p>{allBookmarks.length === 0 ? 'No bookmarks yet. Click the star on any verse or commentary to bookmark it!' : 'No bookmarks match your search.'}</p>
+              <p>{allBookmarks.length === 0 ? 'No bookmarks or notes yet. Save a verse, commentary, or note to find it here.' : 'No saved items match your search.'}</p>
             </div>
           ) : viewMode === 'date' ? (
             /* Date View */
@@ -217,11 +233,13 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
                     onClick={() => toggleExpand(group.date)}
                     className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center justify-between transition-colors"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex items-center gap-2">
                       <span>📅</span>
                       <span className="font-medium">{group.date}</span>
-                      <span className="text-secondary">*{Array.from(group.books).join(', ')}*</span>
-                      <span className="text-gray-500 dark:text-gray-400">{group.bookmarks.length}</span>
+                      <span className="truncate text-xs text-gray-600 dark:text-gray-300 sm:text-sm">
+                        {summarizeSavedItemReferences(group.bookmarks)}
+                      </span>
+                      <span className="shrink-0 text-gray-500 dark:text-gray-400">({group.bookmarks.length})</span>
                     </div>
                     <span>{expandedItems[group.date] ? '▼' : '▶'}</span>
                   </button>
@@ -262,7 +280,7 @@ function BookmarkManager({ bookmarks, commentaryBookmarks = [], notes = [], onCl
                       <div className="flex items-center gap-2">
                         <span>📖</span>
                         <span className="font-medium">{book}</span>
-                        <span className="text-gray-500 dark:text-gray-400">({totalBookmarks} bookmarks)</span>
+                        <span className="text-gray-500 dark:text-gray-400">({totalBookmarks} saved items)</span>
                       </div>
                       <span>{expandedItems[book] ? '▼' : '▶'}</span>
                     </button>
@@ -383,7 +401,7 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onDe
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-green-500">📝</span>
                 <span className="font-medium text-green-700">
-                  {compact ? `Note on ${noteReference.replace(`${bookmark.book} `, '')}` : noteReference}
+                  Note on {noteReference}
                 </span>
                 <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Note</span>
                 <span className="text-xs text-gray-400">({formatDate(bookmark.dateCreated)})</span>
@@ -398,12 +416,9 @@ function BookmarkItem({ bookmark, onNavigate, onDelete, onDeleteCommentary, onDe
             <>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-medium text-primary">
-                  {compact ? `Verse ${bookmark.verse}` : `${bookmark.book} ${bookmark.chapter}:${bookmark.verse}`}
+                  {bookmark.book} {bookmark.chapter}:{bookmark.verse}
                 </span>
                 <span className="text-xs text-gray-400">({formatDate(bookmark.dateCreated)})</span>
-                {bookmark.hasCommentary && (
-                  <span className="text-xs bg-secondary/20 text-amber-700 px-1.5 py-0.5 rounded">Has commentary</span>
-                )}
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{bookmark.verseText}...</p>
               {bookmark.userNote && (

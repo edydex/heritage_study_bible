@@ -1019,6 +1019,7 @@ const situationalTimelineOverrides = {
     [
       situationPassage('Jer 27–29', 'jeremiah', 'installed', 'siege'),
       situationPassage('Jer 28', 'jeremiah', 'fourth-year'),
+      situationPassage('Ezek 1–23', 'prophet', 'fourth-year', 'siege'),
       situationPassage('2 Kin 24:10–20', 'kings', 'first-exile', 'installed'),
       situationPassage('2 Chr 36:9–14', 'chronicles', 'first-exile', 'installed'),
     ]
@@ -1038,6 +1039,7 @@ const situationalTimelineOverrides = {
       situationPassage('Jer 32–34', 'jeremiah', 'siege'),
       situationPassage('Jer 35', 'jeremiah', 'jehoiakim'),
       situationPassage('Jer 36', 'jeremiah', 'fourth-year'),
+      situationPassage('Ezek 1–23', 'prophet', 'zedekiah', 'siege'),
       situationPassage('2 Kin 24–25:7', 'kings', 'jehoiakim', 'siege'),
       situationPassage('2 Chr 36:4–20', 'chronicles', 'jehoiakim', 'siege'),
     ]
@@ -1066,6 +1068,10 @@ const situationalTimelineOverrides = {
         '597 BC (est.)',
         'Nebuchadnezzar later carried Jehoiachin and Jerusalem’s leaders to Babylon (2 Kin 24:10–17; Jer 24:1).'
       )),
+      situationPhase('ezekiel-call', 'Ezekiel called', timelineAnchor(
+        '593 BC (est.)',
+        'Ezekiel received his call among the exiles taken with Jehoiachin, several years after Daniel entered Babylonian service (Ezek 1:1–3).'
+      )),
     ],
     [
       situationPassage('Dan 1', 'prophet', 'jehoiakim', 'training'),
@@ -1074,19 +1080,33 @@ const situationalTimelineOverrides = {
       situationPassage('2 Kin 24:1–17', 'kings', 'babylon', 'jehoiachin-exile'),
       situationPassage('2 Chr 36:5–10', 'chronicles', 'babylon', 'jehoiachin-exile'),
       situationPassage('Jer 24:1', 'jeremiah', 'jehoiachin-exile'),
+      situationPassage('Ezek 1:1–3', 'prophet', 'ezekiel-call'),
     ]
   ),
 
   'jeremiah-zedekiah-siege-anchors': situationalTimeline(
     'Babylon’s final siege of Jerusalem',
     [
-      situationPhase('surrounded', 'Siege begins'),
-      situationPhase('withdrawal', 'Withdrawal'),
-      situationPhase('return', 'Siege resumes'),
-      situationPhase('fall', 'Fall'),
+      situationPhase('surrounded', 'Siege begins', timelineAnchor(
+        '588 BC (est.)',
+        'Ezekiel 24:1–2 and 2 Kings 25:1 date the siege’s beginning to the same year, month, and day.'
+      )),
+      situationPhase('withdrawal', 'Withdrawal', timelineAnchor(
+        'During 588–586 BC siege (est.)',
+        'Babylon temporarily withdrew from Jerusalem when Pharaoh’s army came out of Egypt (Jer 37:5–7).'
+      )),
+      situationPhase('return', 'Siege resumes', timelineAnchor(
+        'During 588–586 BC siege (est.)',
+        'Jeremiah warned that Babylon would return and burn Jerusalem after the Egyptian interruption (Jer 37:8–10).'
+      )),
+      situationPhase('fall', 'Fall', timelineAnchor(
+        '586 BC (est.)',
+        'Jerusalem was breached in Zedekiah’s eleventh year after the final siege resumed (2 Kin 25:2–4).'
+      )),
     ],
     [
       situationPassage('Jer 37–38', 'jeremiah', 'surrounded', 'return'),
+      situationPassage('Ezek 24', 'prophet', 'surrounded'),
       situationPassage('2 Kin 25:1–7', 'kings', 'surrounded', 'fall'),
       situationPassage('2 Chr 36:17–20', 'chronicles', 'return', 'fall'),
     ]
@@ -1099,12 +1119,14 @@ const situationalTimelineOverrides = {
       situationPhase('nations', 'Nations oracles'),
       situationPhase('zedekiah', 'Zedekiah’s fourth year'),
       situationPhase('siege', 'Final siege'),
+      situationPhase('fall-news', 'Fall / news'),
     ],
     [
       situationPassage('Jer 45–46', 'jeremiah', 'fourth-year'),
       situationPassage('Jer 47–50', 'jeremiah', 'nations', 'siege'),
       situationPassage('Jer 51:1–58', 'jeremiah', 'nations', 'siege'),
       situationPassage('Jer 51:59–64', 'jeremiah', 'zedekiah'),
+      situationPassage('Ezek 25–32', 'prophet', 'nations', 'fall-news'),
     ]
   ),
 
@@ -1139,6 +1161,8 @@ const situationalTimelineOverrides = {
       situationPassage('2 Chr 36:22–23', 'chronicles', 'return'),
       situationPassage('Jer 39–43', 'jeremiah', 'fall', 'gedaliah'),
       situationPassage('Jer 52:31–34', 'jeremiah', 'release'),
+      situationPassage('Ezek 24', 'prophet', 'siege'),
+      situationPassage('Ezek 33:21', 'prophet', 'gedaliah'),
     ]
   ),
 
@@ -1171,6 +1195,8 @@ const situationalTimelineOverrides = {
       situationPassage('Jer 42–44', 'jeremiah', 'flight', 'egypt'),
       situationPassage('2 Kin 25:1–26', 'kings', 'siege', 'flight'),
       situationPassage('2 Chr 36:17–21', 'chronicles', 'fall'),
+      situationPassage('Ezek 24', 'prophet', 'siege'),
+      situationPassage('Ezek 33:21', 'prophet', 'gedaliah'),
     ]
   ),
 
@@ -1204,6 +1230,8 @@ const situationalTimelineOverrides = {
       situationPassage('2 Chr 36:11–21', 'chronicles', 'zedekiah', 'fall'),
       situationPassage('Jer 52:31–34', 'jeremiah', 'release'),
       situationPassage('2 Kin 25:27–30', 'kings', 'release'),
+      situationPassage('Ezek 24', 'prophet', 'siege'),
+      situationPassage('Ezek 33:21', 'prophet', 'fall'),
     ]
   ),
 
@@ -1239,6 +1267,7 @@ const situationalTimelineOverrides = {
       situationPassage('2 Kin 25:1–21', 'kings', 'fall'),
       situationPassage('Jer 39; 52:1–30', 'jeremiah', 'fall'),
       situationPassage('Jer 40–44', 'jeremiah', 'ruins', 'flight'),
+      situationPassage('Ezek 33:21', 'prophet', 'ruins'),
     ]
   ),
 
@@ -1274,6 +1303,7 @@ const situationalTimelineOverrides = {
       situationPassage('2 Kin 25', 'kings', 'destruction', 'hope'),
       situationPassage('2 Chr 36:17–23', 'chronicles', 'destruction', 'return'),
       situationPassage('Jer 39–44; 52', 'jeremiah', 'destruction', 'hope'),
+      situationPassage('Ezek 33–37', 'prophet', 'displaced', 'hope'),
     ]
   ),
 
