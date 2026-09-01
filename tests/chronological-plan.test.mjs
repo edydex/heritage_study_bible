@@ -42,7 +42,7 @@ test('late-Judah history frames Jeremiah without over-fragmenting it', async () 
   const items = flattenedItems(plan)
   const position = (book, chapter) => chapterPosition(items, book, chapter)
 
-  assert.equal(plan.revision, '2026-08-jeremiah-ezekiel-interweave')
+  assert.equal(plan.revision, '2026-09-jeremiah-ezekiel-context')
   assert.ok(position('2 Kings', 22) < position('Jeremiah', 1))
   assert.ok(position('2 Chronicles', 35) < position('Jeremiah', 1))
   assert.ok(position('Jeremiah', 20) < position('2 Kings', 24))
@@ -190,12 +190,12 @@ test('every passage maps to a contiguous portion of its situation track', async 
   }
 })
 
-test('the fall note uses one situational siege track for Jeremiah, Kings, and Chronicles', async () => {
+test('the fall note uses one situational siege track for Jeremiah, Ezekiel, Kings, and Chronicles', async () => {
   const plan = await loadPlan()
   const note = flattenedItems(plan).find(item => item.id === 'jeremiah-fall-and-aftermath')
 
   assert.ok(note)
-  assert.match(note.title, /Kings and Chronicles/)
+  assert.match(note.title, /Ezekiel, Kings, and Chronicles/)
   assert.equal(note.timeline.presentation, 'situational')
   assert.equal(note.timeline.heading, 'Babylon’s siege and its aftermath')
   assert.deepEqual(
@@ -204,7 +204,7 @@ test('the fall note uses one situational siege track for Jeremiah, Kings, and Ch
   )
   assert.deepEqual(
     note.timeline.passages.map(passage => passage.label),
-    ['Jer 39–41', 'Jer 42–44', '2 Kin 25:1–26', '2 Chr 36:17–21']
+    ['Jer 39–41', 'Jer 42–44', '2 Kin 25:1–26', '2 Chr 36:17–21', 'Ezek 24', 'Ezek 33:21']
   )
   assert.deepEqual(
     note.timeline.passages.find(passage => passage.label === 'Jer 39–41'),
@@ -261,7 +261,7 @@ test('Lamentations sits with Jerusalem’s fall without claiming an Egyptian com
   )
   assert.deepEqual(
     note.timeline.passages.map(passage => passage.label),
-    ['Lam 1–2', 'Lam 3', 'Lam 4', 'Lam 5', '2 Kin 25:1–21', 'Jer 39; 52:1–30', 'Jer 40–44']
+    ['Lam 1–2', 'Lam 3', 'Lam 4', 'Lam 5', '2 Kin 25:1–21', 'Jer 39; 52:1–30', 'Jer 40–44', 'Ezek 33:21']
   )
   assert.deepEqual(
     note.timeline.passages.find(passage => passage.label === 'Jer 40–44'),
@@ -283,11 +283,11 @@ test('Daniel’s early-exile note dates its anchors and distinguishes the later 
   assert.equal(note.timeline.phases.every(phase => phase.anchor), true)
   assert.deepEqual(
     note.timeline.phases.map(phase => phase.label),
-    ['Jehoiakim', 'Babylon triumphs', 'Daniel taken', 'Court training', 'Jehoiachin exiled']
+    ['Jehoiakim', 'Babylon triumphs', 'Daniel taken', 'Court training', 'Jehoiachin exiled', 'Ezekiel called']
   )
   assert.deepEqual(
     note.timeline.passages.map(passage => passage.label),
-    ['Dan 1', 'Dan 2', 'Jer 25:1; 46:2', '2 Kin 24:1–17', '2 Chr 36:5–10', 'Jer 24:1']
+    ['Dan 1', 'Dan 2', 'Jer 25:1; 46:2', '2 Kin 24:1–17', '2 Chr 36:5–10', 'Jer 24:1', 'Ezek 1:1–3']
   )
   assert.deepEqual(
     note.timeline.passages.find(passage => passage.label === 'Dan 2'),
@@ -303,6 +303,25 @@ test('Daniel’s early-exile note dates its anchors and distinguishes the later 
     '605 BC (est.)'
   )
   assert.match(note.text, /should not be confused with Daniel's earlier removal/i)
+})
+
+test('Days 248 and 249 retain Ezekiel in their immediate historical context', async () => {
+  const plan = await loadPlan()
+  const readings = new Map(plan.readings.map(reading => [reading.day, reading]))
+  const day248 = readings.get(248)
+  const day249 = readings.get(249)
+  const danielNote = day248.items.find(item => item.id === 'daniel-early-babylonian-exile')
+  const siegeNote = day249.items.find(item => item.id === 'jeremiah-zedekiah-siege-anchors')
+
+  assert.deepEqual(day248.passages, ['Daniel 1-2'])
+  assert.ok(danielNote.timeline.passages.some(passage => passage.label === 'Ezek 1:1–3'))
+  assert.match(danielNote.text, /Ezekiel's dated call.*593 BC/i)
+
+  assert.deepEqual(day249.passages, ['Jeremiah 37-38', 'Ezekiel 24'])
+  assert.match(siegeNote.title, /Jeremiah 37-38 and Ezekiel 24/i)
+  assert.ok(siegeNote.timeline.passages.some(passage => passage.label === 'Ezek 24'))
+  assert.equal(siegeNote.timeline.phases.every(phase => phase.anchor), true)
+  assert.match(siegeNote.text, /same year, month, and day as 2 Kings 25:1/i)
 })
 
 test('Ezekiel’s dated ministry is interwoven with Jeremiah before and through Jerusalem’s fall', async () => {
@@ -344,19 +363,19 @@ test('Ezekiel’s dated ministry is interwoven with Jeremiah before and through 
   }
 })
 
-test('the exile-Psalms aid retains Jeremiah, Kings, and Chronicles as historical context', async () => {
+test('the exile-Psalms aid retains Jeremiah, Ezekiel, Kings, and Chronicles as historical context', async () => {
   const plan = await loadPlan()
   const note = flattenedItems(plan).find(item => item.id === 'exilic-psalm-laments')
 
   assert.ok(note)
   assert.ok(note.sources.includes('late_judah_biblical_timeline'))
-  assert.match(note.text, /Jeremiah, Kings, and Chronicles visible/i)
+  assert.match(note.text, /Jeremiah, Ezekiel, Kings, and Chronicles visible/i)
   assert.deepEqual(
     note.timeline.phases.map(phase => phase.label),
     ['Jerusalem destroyed', 'Survivors displaced', 'Lament in exile', 'Hope for return', 'Return begins']
   )
   assert.equal(note.timeline.phases.every(phase => phase.anchor), true)
-  for (const label of ['2 Kin 25', '2 Chr 36:17–23', 'Jer 39–44; 52']) {
+  for (const label of ['2 Kin 25', '2 Chr 36:17–23', 'Jer 39–44; 52', 'Ezek 33–37']) {
     assert.ok(note.timeline.passages.some(passage => passage.label === label), `missing exile-Psalms context row ${label}`)
   }
 })
@@ -374,9 +393,16 @@ test('other clear parallel notes also expose their historical accounts in the ch
     'jonah-jeroboam-ii': ['2 Kin 14:23–25', 'Jon 1–4'],
     'isaiah-hezekiah-assyrian-crisis': ['Isa 36–39', '2 Kin 18:13–20:19', '2 Chr 32'],
     'josiah-context-before-jeremiah': ['2 Kin 22–23', '2 Chr 34–35'],
-    'jeremiah-zedekiah-siege-anchors': ['Jer 37–38', '2 Kin 25:1–7', '2 Chr 36:17–20'],
-    'jeremiah-historical-appendix': ['Jer 52:1–30', '2 Kin 24:18–25:21', '2 Chr 36:11–21'],
-    'exilic-psalm-laments': ['2 Kin 25', '2 Chr 36:17–23', 'Jer 39–44; 52'],
+    'jeremiah-zedekiah-first-exiles': ['Jer 27–29', 'Ezek 1–23'],
+    'jeremiah-consolation-siege-flashback': ['Jer 30–31', 'Ezek 1–23'],
+    'daniel-early-babylonian-exile': ['Dan 1', 'Ezek 1:1–3'],
+    'jeremiah-zedekiah-siege-anchors': ['Jer 37–38', 'Ezek 24', '2 Kin 25:1–7', '2 Chr 36:17–20'],
+    'jeremiah-appendix-oracles': ['Jer 45–46', 'Ezek 25–32'],
+    'late-judah-fall-history-first': ['Jer 39–43', 'Ezek 24', 'Ezek 33:21'],
+    'jeremiah-fall-and-aftermath': ['Jer 39–41', 'Ezek 24', 'Ezek 33:21'],
+    'jeremiah-historical-appendix': ['Jer 52:1–30', 'Ezek 24', 'Ezek 33:21', '2 Kin 24:18–25:21', '2 Chr 36:11–21'],
+    'lamentations-after-jerusalem-falls': ['Lam 1–2', 'Ezek 33:21'],
+    'exilic-psalm-laments': ['2 Kin 25', '2 Chr 36:17–23', 'Jer 39–44; 52', 'Ezek 33–37'],
     'ezekiel-dated-exile-visions': ['Jer 27–36', 'Ezek 1–7', '2 Kin 24:10–25:21', '2 Chr 36:9–21'],
   }
 
