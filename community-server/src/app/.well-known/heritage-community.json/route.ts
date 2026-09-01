@@ -10,6 +10,23 @@ export function GET() {
     website: communityPublicConfig.publicUrl,
     contentServerUrl: `${communityPublicConfig.publicUrl}/heritage-content.json`,
     apiBaseUrl: `${communityPublicConfig.publicUrl}/api`,
+    integrations: {
+      syncShow: {
+        schemaVersion: 1,
+        apiBaseUrl: `${communityPublicConfig.publicUrl}/api/community/syncshow/v1`,
+        deviceAuthorization: true,
+        songLibrary: true,
+        scopes: ['syncshow:songs:read', 'syncshow:songs:write'],
+        endpoints: {
+          deviceStart: 'auth/device/start',
+          deviceStatus: 'auth/device/status',
+          deviceToken: 'auth/device/token',
+          deviceCancel: 'auth/device/cancel',
+          revoke: 'auth/revoke',
+          songs: 'songs',
+        },
+      },
+    },
     ...(communityAuthEnabled
       ? {
           auth: {

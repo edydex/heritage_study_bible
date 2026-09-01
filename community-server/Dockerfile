@@ -24,6 +24,7 @@ ENV NODE_ENV=production \
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY package.json package-lock.json next.config.ts tsconfig.json ./
 COPY src ./src
+COPY scripts ./scripts
 USER node
 CMD ["npm", "run", "migrate"]
 

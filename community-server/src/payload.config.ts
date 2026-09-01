@@ -20,8 +20,12 @@ import { PlanNotes } from '@/collections/PlanNotes'
 import { ReadingPlans } from '@/collections/ReadingPlans'
 import { Sermons } from '@/collections/Sermons'
 import { Songs } from '@/collections/Songs'
+import { SyncShowConnections } from '@/collections/SyncShowConnections'
+import { SyncShowDeviceGrants } from '@/collections/SyncShowDeviceGrants'
 import { Users } from '@/collections/Users'
 import { authEndpoints } from '@/endpoints/auth'
+import { syncShowEndpoints } from '@/endpoints/syncShow'
+import { backfillSongSyncDocuments } from '@/lib/backfillSongSyncDocuments'
 import { bootstrapInstallation } from '@/lib/bootstrapInstallation'
 import { communityAuthEnabled, publicUrl } from '@/lib/publicConfig'
 import { seedConfiguredSongs } from '@/lib/seedConfiguredSongs'
@@ -55,6 +59,8 @@ export default buildConfig({
     Media,
     ReadingPlans,
     Songs,
+    SyncShowDeviceGrants,
+    SyncShowConnections,
     Sermons,
     Books,
     Commentaries,
@@ -85,10 +91,11 @@ export default buildConfig({
         }
       : { jsonTransport: true },
   }),
-  endpoints: authEndpoints,
+  endpoints: [...authEndpoints, ...syncShowEndpoints],
   onInit: async payload => {
     await bootstrapInstallation(payload)
     await seedConfiguredSongs(payload)
+    await backfillSongSyncDocuments(payload)
   },
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL: publicUrl,
