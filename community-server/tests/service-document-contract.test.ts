@@ -309,6 +309,8 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.match(planner, /mode: 'derive-next-text'/)
   assert.match(planner, /channelId: 'media'/)
   assert.match(planner, /visibleBibleChapter/)
+  assert.match(planner, /visibleBibleBookId/)
+  assert.match(planner, /bibleBookInput\.current\?\.value/)
   assert.match(planner, /bibleChapterInput\.current\?\.value/)
   assert.doesNotMatch(planner, /__inspector/)
   assert.match(planner, /This service changed somewhere else/)

@@ -357,6 +357,7 @@ export default function PlanServiceClient() {
   const [bibleEndVerse, setBibleEndVerse] = useState(21)
   const [resourceTab, setResourceTab] = useState<ResourceTab>('songs')
   const [previewChannel, setPreviewChannel] = useState<ChannelId>('english')
+  const bibleBookInput = useRef<HTMLSelectElement>(null)
   const bibleChapterInput = useRef<HTMLInputElement>(null)
   const bibleStartVerseInput = useRef<HTMLInputElement>(null)
   const bibleEndVerseInput = useRef<HTMLInputElement>(null)
@@ -630,6 +631,7 @@ export default function PlanServiceClient() {
 
   async function addBiblePassage() {
     if (!draft || busy) return
+    const visibleBibleBookId = bibleBookInput.current?.value || bibleBookId
     const visibleBibleChapter = Number(bibleChapterInput.current?.value || bibleChapter)
     const visibleBibleStartVerse = Number(bibleStartVerseInput.current?.value || bibleStartVerse)
     const visibleBibleEndVerse = Number(bibleEndVerseInput.current?.value || bibleEndVerse)
@@ -640,7 +642,7 @@ export default function PlanServiceClient() {
         method: 'POST',
         body: JSON.stringify({
           schemaVersion: 1,
-          bookId: bibleBookId,
+          bookId: visibleBibleBookId,
           chapter: visibleBibleChapter,
           startVerse: visibleBibleStartVerse,
           endVerse: visibleBibleEndVerse,
@@ -1046,7 +1048,7 @@ export default function PlanServiceClient() {
               {selected?.kind === 'picture' ? CHANNEL_IDS.map(channelId => <button key={channelId} type="button" disabled={uploadingPicture} onClick={() => choosePicture(channelId)}>Replace {draft?.channels[channelId]?.label || channelId}</button>) : null}
             </> : null}
             {resourceTab === 'scripture' ? <>
-              <label><span>Book</span><select value={bibleBookId} onChange={event => { setBibleBookId(event.target.value); const chapters = bibleBooks.find(book => book.id === event.target.value)?.chapters || 1; setBibleChapter(current => Math.min(current, chapters)) }}>{bibleBooks.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
+              <label><span>Book</span><select ref={bibleBookInput} value={bibleBookId} onChange={event => { setBibleBookId(event.target.value); const chapters = bibleBooks.find(book => book.id === event.target.value)?.chapters || 1; setBibleChapter(current => Math.min(current, chapters)) }}>{bibleBooks.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
               <label><span>Chapter</span><input ref={bibleChapterInput} type="number" min={1} max={bibleBooks.find(book => book.id === bibleBookId)?.chapters || 200} value={bibleChapter} onChange={event => setBibleChapter(Number(event.target.value))} /></label>
               <label><span>From</span><input ref={bibleStartVerseInput} type="number" min={1} max={999} value={bibleStartVerse} onChange={event => setBibleStartVerse(Number(event.target.value))} /></label>
               <label><span>To</span><input ref={bibleEndVerseInput} type="number" min={1} max={999} value={bibleEndVerse} onChange={event => setBibleEndVerse(Number(event.target.value))} /></label>
