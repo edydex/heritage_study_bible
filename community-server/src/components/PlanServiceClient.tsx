@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import serviceCore from '../../packages/service-core/index.js'
+import { deletePlannerSlide, editablePreviewBlock, editPlannerSlide, movePlannerSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
 import {
   parsePlannerLibrarySongDocument,
   projectFromServiceEnvelope,
@@ -211,6 +212,18 @@ function previewBlockText(block: Record<string, any>) {
   return ''
 }
 
+function SlideText({ text, label, role, onCommit }: { text: string; label: string; role: string; onCommit: (value: string) => void }) {
+  const element = useRef<HTMLDivElement>(null)
+  useEffect(() => { if (element.current) element.current.innerText = text }, [text])
+  return <div ref={element} className="heritage-service-planner__editable-text" data-role={role}
+    contentEditable="plaintext-only" suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label={label}
+    onBlur={event => { const value = event.currentTarget.innerText; if (value !== text) onCommit(value); event.currentTarget.innerText = text }}
+    onKeyDown={event => {
+      if (event.key === 'Escape') { event.currentTarget.innerText = text; event.currentTarget.blur() }
+      if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); event.currentTarget.blur() }
+    }} />
+}
+
 function descendantIds(project: ServiceProject, itemId: string, found = new Set<string>()) {
   if (found.has(itemId)) return found
   found.add(itemId)
@@ -250,7 +263,7 @@ function today() {
   ].join('-')
 }
 
-function NewService({ onCreated }: { onCreated: (value: ServiceEnvelopeInput) => void }) {
+function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeInput) => void; onCopy?: () => void }) {
   const [title, setTitle] = useState('Sunday Morning Service')
   const [serviceDate, setServiceDate] = useState(today)
   const titleInput = useRef<HTMLInputElement>(null)
@@ -297,6 +310,7 @@ function NewService({ onCreated }: { onCreated: (value: ServiceEnvelopeInput) =>
         <button className="btn btn--style-primary" type="button" disabled={busy || !title.trim() || !serviceDate} onClick={create}>
           {busy ? 'Creating…' : 'Create service'}
         </button>
+        {onCopy ? <button type="button" onClick={onCopy}>Make a copy of the current service</button> : null}
         {error ? <p className="heritage-service-planner__error" role="alert">{error}</p> : null}
       </div>
     </details>
@@ -324,6 +338,11 @@ export default function PlanServiceClient() {
   const [resourceTab, setResourceTab] = useState<ResourceTab>('songs')
   const [previewChannel, setPreviewChannel] = useState<ChannelId>('english')
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0)
+  const [menu, setMenu] = useState<{ row: PlannerSlide; x: number; y: number } | null>(null)
+  const [dropTarget, setDropTarget] = useState<{ id: string; after: boolean } | null>(null)
+  const dragged = useRef<PlannerSlide | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const [undoStack, setUndoStack] = useState<ServiceProject[]>([])
   const bibleBookInput = useRef<HTMLSelectElement>(null)
   const bibleChapterInput = useRef<HTMLInputElement>(null)
   const bibleStartVerseInput = useRef<HTMLInputElement>(null)
@@ -334,23 +353,29 @@ export default function PlanServiceClient() {
   const [notice, setNotice] = useState('Choose a service or create the next one.')
   const rows = useMemo(() => draft ? flatten(draft) : [], [draft])
   const selected = selectedId && draft ? draft.items[selectedId] || null : null
-  const itemPreview = useMemo<{ cues: any[]; error: string }>(() => {
-    if (!draft || !selectedId || draft.items[selectedId]?.kind === 'group') return { cues: [], error: '' }
+  const slideList = useMemo<{ rows: PlannerSlide[]; error: string }>(() => {
+    if (!draft) return { rows: [], error: '' }
     try {
-      const timeline = serviceCore.compileServiceProject(draft, { allowEmpty: true })
-      return {
-        cues: timeline.cueIds.map((cueId: string) => timeline.cues[cueId]).filter((cue: any) => cue.itemId === selectedId),
-        error: '',
-      }
+      return { rows: plannerSlides(draft), error: '' }
     } catch (caught) {
-      return { cues: [], error: errorText(caught) }
+      return { rows: [], error: errorText(caught) }
     }
-  }, [draft, selectedId])
-  const activePreviewIndex = Math.min(previewSlideIndex, Math.max(0, itemPreview.cues.length - 1))
-  const activePreviewCue = itemPreview.cues[activePreviewIndex]
+  }, [draft])
+  const selectedSlides = slideList.rows.filter(row => row.itemId === selectedId && row.cue)
+  const activePreviewIndex = Math.min(previewSlideIndex, Math.max(0, selectedSlides.length - 1))
+  const activeSlide = selectedSlides[activePreviewIndex]
+  const activePreviewCue = activeSlide?.cue
   const activePreviewOutput = activePreviewCue?.channels?.[previewChannel]
-  const nextPreviewOutput = itemPreview.cues[activePreviewIndex + 1]?.channels?.[previewChannel]
-  useEffect(() => setPreviewSlideIndex(0), [selectedId])
+  const nextPreviewOutput = selectedSlides[activePreviewIndex + 1]?.cue?.channels?.[previewChannel]
+  useEffect(() => {
+    if (!menu) return
+    menuRef.current?.querySelector<HTMLButtonElement>('button')?.focus()
+    const close = (event: PointerEvent) => { if (!menuRef.current?.contains(event.target as Node)) setMenu(null) }
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenu(null) }
+    document.addEventListener('pointerdown', close)
+    document.addEventListener('keydown', escape)
+    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', escape) }
+  }, [menu])
   const selectedSermonDocumentId = sermonDocumentIdForItem(draft, selected)
   const selectedSongContentChannels = selected?.kind === 'song'
     ? CHANNEL_IDS.filter(channelId => selected.variants?.[channelId]?.mode === 'content')
@@ -389,7 +414,10 @@ export default function PlanServiceClient() {
     const normalized = { ...next, project } as ServiceEnvelope
     setEnvelope(normalized)
     setDraft(cloneProject(project))
-    setSelectedId(null)
+    setSelectedId(plannerSlides(project).find(row => row.cue)?.itemId || null)
+    setPreviewSlideIndex(0)
+    setUndoStack([])
+    setMenu(null)
     setDesiredStatus(next.status)
     setDirty(false)
     setError(null)
@@ -411,6 +439,34 @@ export default function PlanServiceClient() {
     }
   }
 
+  async function copyService() {
+    if (!draft || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      const syncId = `service-${draft.serviceDate}-${uuid().slice(0, 8)}`
+      const title = `${draft.title.slice(0, 190)} — copy`
+      const created = await jsonRequest(ENDPOINT, { method: 'POST', body: JSON.stringify({
+        schemaVersion: 1, requestId: uuid(), syncId, title, serviceDate: draft.serviceDate,
+      }) })
+      const project = cloneProject(draft)
+      project.id = syncId
+      project.title = title
+      project.revision = 2
+      project.createdAt = new Date().toISOString()
+      project.updatedAt = project.createdAt
+      delete project.planning
+      const result = await jsonRequest(`${ENDPOINT}/${encodeURIComponent(syncId)}`, { method: 'PUT', body: JSON.stringify({
+        schemaVersion: 1, requestId: uuid(), syncId,
+        baseSyncVersion: created.serviceDocument.syncVersion, baseRevision: created.serviceDocument.revision,
+        documentSource: serviceCore.serializeHeritageServiceDocument(serviceCore.createHeritageServiceDocument(project)), status: 'planning',
+      }) })
+      useEnvelope(result.serviceDocument)
+      setNotice('Service copied. The original service is unchanged.')
+    } catch (caught) { setError(errorText(caught)) }
+    finally { setBusy(false) }
+  }
+
   useEffect(() => {
     loadList()
     loadLibraries()
@@ -420,6 +476,7 @@ export default function PlanServiceClient() {
     if (!draft) return
     const next = cloneProject(draft)
     mutator(next)
+    setUndoStack(stack => [...stack.slice(-29), draft])
     setDraft(next)
     setDesiredStatus('planning')
     setDirty(true)
@@ -437,37 +494,51 @@ export default function PlanServiceClient() {
     })
   }
 
-  function siblings(row: Row, project: ServiceProject) {
-    return row.parentId === null
-      ? project.rootItemIds
-      : project.items[row.parentId].childIds as string[]
+  function selectSlide(row: PlannerSlide) {
+    setSelectedId(row.itemId)
+    setPreviewSlideIndex(Math.max(0, row.index))
   }
 
-  function move(row: Row, offset: -1 | 1) {
-    change(project => {
-      const ordered = siblings(row, project)
-      const index = ordered.indexOf(row.item.id)
-      const target = index + offset
-      if (index < 0 || target < 0 || target >= ordered.length) return
-      ;[ordered[index], ordered[target]] = [ordered[target], ordered[index]]
-    })
+  function slideMutation(operation: () => any, index = activePreviewIndex) {
+    if (!draft) return
+    try {
+      const next = operation() as ServiceProject
+      if (next === draft) return
+      setUndoStack(stack => [...stack.slice(-29), draft])
+      setDraft(cloneProject(next))
+      setPreviewSlideIndex(index)
+      setDirty(true)
+      setDesiredStatus('planning')
+      setError(null)
+      setNotice('Unsaved changes · Library originals are unchanged.')
+    } catch (caught) { setError(errorText(caught)) }
   }
 
-  function remove(row: Row) {
-    if (!globalThis.confirm(`Remove “${row.item.title}”${row.item.kind === 'group' ? ' and everything inside it' : ''}?`)) return
-    change(project => {
-      const ordered = siblings(row, project)
-      ordered.splice(ordered.indexOf(row.item.id), 1)
-      const removeIds: string[] = []
-      const collect = (itemId: string) => {
-        const item = project.items[itemId]
-        if (item?.kind === 'group') item.childIds.forEach(collect)
-        removeIds.push(itemId)
-      }
-      collect(row.item.id)
-      removeIds.forEach(itemId => delete project.items[itemId])
-    })
-    setSelectedId(null)
+  function removeSlide(row: PlannerSlide) {
+    setMenu(null)
+    const scope = row.kind === 'group' ? 'this section and all its slides' : row.kind === 'song' && row.index === 0 ? 'this song and all its slides' : 'this slide'
+    if (!globalThis.confirm(`Delete ${scope}: “${row.title}”? You can undo before saving.`)) return
+    slideMutation(() => deletePlannerSlide(draft!, row), Math.max(0, row.index - 1))
+  }
+
+  function moveSlide(from: PlannerSlide, to: PlannerSlide, after = false) {
+    slideMutation(() => movePlannerSlide(draft!, from, to, after), from.kind === 'song' && from.index > 0
+      ? Math.max(1, to.index + Number(after) - Number(from.index < to.index + Number(after))) : 0)
+    setSelectedId(from.itemId)
+    setDropTarget(null)
+    dragged.current = null
+    setMenu(null)
+  }
+
+  function undo() {
+    const previous = undoStack.at(-1)
+    if (!previous) return
+    setDraft(previous)
+    setUndoStack(stack => stack.slice(0, -1))
+    setDirty(true)
+    setDesiredStatus('planning')
+    setError(null)
+    setNotice('Change undone. Save when ready.')
   }
 
   function add(kind: 'group' | 'notice' | 'sermon' | 'blank') {
@@ -498,11 +569,14 @@ export default function PlanServiceClient() {
       else project.rootItemIds.push(id)
     })
     setSelectedId(id)
+    setPreviewSlideIndex(0)
   }
 
   function acceptCoreProject(project: ServiceProject, itemId: string, message: string) {
+    if (draft) setUndoStack(stack => [...stack.slice(-29), draft])
     setDraft(cloneProject(project))
     setSelectedId(itemId)
+    setPreviewSlideIndex(0)
     setDesiredStatus('planning')
     setDirty(true)
     setError(null)
@@ -910,7 +984,7 @@ export default function PlanServiceClient() {
             </label>
             <button type="button" aria-label="Refresh services" disabled={busy} onClick={loadList}>↻</button>
           </div>
-          <NewService onCreated={useEnvelope} />
+          <NewService onCreated={useEnvelope} onCopy={draft && !busy ? copyService : undefined} />
 
           <div className="heritage-service-planner__outline-heading">
             <h2>Service order</h2>
@@ -923,60 +997,65 @@ export default function PlanServiceClient() {
           </div>
 
           {draft ? <ol className="heritage-service-planner__rows">
-            {rows.map(row => {
-              const ordered = row.parentId === null ? draft.rootItemIds : draft.items[row.parentId].childIds
-              return <li key={row.item.id} style={{ '--service-depth': row.depth } as React.CSSProperties}>
-                <button className="heritage-service-planner__row" data-kind={row.item.kind} data-selected={selectedId === row.item.id || undefined} type="button" onClick={() => setSelectedId(row.item.id)}>
-                  <span className="heritage-service-planner__kind" aria-hidden="true">{row.item.kind === 'group' ? '▾' : '•'}</span>
-                  <span><strong>{row.item.title}</strong><small>{row.item.kind}</small></span>
+            {slideList.rows.map(row => {
+              const openMenu = (x: number, y: number) => { selectSlide(row); setMenu({ row, x: Math.min(x, window.innerWidth - 240), y: Math.min(y, window.innerHeight - 190) }) }
+              return <li key={row.id} style={{ '--service-depth': row.depth } as React.CSSProperties}
+                data-drop={dropTarget?.id === row.id ? (dropTarget.after ? 'after' : 'before') : undefined}>
+                <button className="heritage-service-planner__row" data-kind={row.kind}
+                  data-selected={selectedId === row.itemId && (row.index < 0 || activePreviewIndex === row.index) || undefined}
+                  type="button" draggable title={row.kind === 'song' && row.index === 0 ? `${row.title} · Drag to move the whole song` : row.title}
+                  onClick={() => selectSlide(row)}
+                  onContextMenu={event => { event.preventDefault(); openMenu(event.clientX, event.clientY) }}
+                  onKeyDown={event => {
+                    if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+                      event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect(); openMenu(rect.left, rect.bottom)
+                    }
+                  }}
+                  onDragStart={event => { dragged.current = row; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', row.id); setMenu(null) }}
+                  onDragEnd={() => { dragged.current = null; setDropTarget(null) }}
+                  onDragOver={event => { if (!dragged.current) return; event.preventDefault(); event.dataTransfer.dropEffect = 'move'; const rect = event.currentTarget.getBoundingClientRect(); setDropTarget({ id: row.id, after: event.clientY > rect.top + rect.height / 2 }) }}
+                  onDrop={event => { event.preventDefault(); if (dragged.current) moveSlide(dragged.current, row, dropTarget?.after) }}>
+                  <span className="heritage-service-planner__kind" aria-hidden="true">{row.kind === 'group' ? '▾' : row.number}</span>
+                  <span><strong>{row.title}</strong>{row.kind === 'group' ? <small>section</small> : row.kind === 'song' && row.index === 0 ? <small>song</small> : null}</span>
                 </button>
-                <div className="heritage-service-planner__row-actions">
-                  <button type="button" disabled={row.index === 0} aria-label={`Move ${row.item.title} up`} onClick={() => move(row, -1)}>↑</button>
-                  <button type="button" disabled={row.index === ordered.length - 1} aria-label={`Move ${row.item.title} down`} onClick={() => move(row, 1)}>↓</button>
-                  <button type="button" aria-label={`Remove ${row.item.title}`} onClick={() => remove(row)}>×</button>
-                </div>
               </li>
             })}
-            {!rows.length ? <li className="heritage-service-planner__empty">Add a section, song, reading, or slide.</li> : null}
+            {!slideList.rows.length ? <li className="heritage-service-planner__empty">{slideList.error || 'Add a section, song, reading, or slide.'}</li> : null}
           </ol> : <p className="heritage-service-planner__empty">No service open.</p>}
+          {menu ? <div ref={menuRef} className="heritage-service-planner__context-menu" role="menu" aria-label="Slide actions" style={{ left: menu.x, top: menu.y }}
+            onKeyDown={event => {
+              if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return
+              event.preventDefault()
+              const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')]
+              const index = buttons.indexOf(document.activeElement as HTMLButtonElement)
+              buttons[(index + (event.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length]?.focus()
+            }}>
+            <small>{menu.row.kind === 'song' && menu.row.index === 0 ? 'Whole song' : menu.row.kind === 'group' ? 'Whole section' : `Slide ${menu.row.number}`}</small>
+            {([-1, 1] as const).map(offset => {
+              const candidates = slideList.rows.filter(row => menu.row.kind === 'song' && menu.row.index > 0
+                ? row.itemId === menu.row.itemId && row.index > 0
+                : row.parentId === menu.row.parentId && row.index <= 0)
+              const target = candidates[candidates.findIndex(row => row.id === menu.row.id) + offset]
+              return <button key={offset} type="button" role="menuitem" disabled={!target} onClick={() => target && moveSlide(menu.row, target, offset > 0)}>Move {offset < 0 ? 'up' : 'down'}</button>
+            })}
+            <button type="button" role="menuitem" onClick={() => removeSlide(menu.row)}>Delete</button>
+          </div> : null}
         </aside>
 
         <main className="heritage-service-planner__editor">
           {selected ? <>
-            <div className="heritage-service-planner__editor-heading">
-              <span>{selected.kind}</span>
-              <label><span>Item name</span><input value={selected.title} maxLength={200} onChange={event => updateSelected({ title: event.target.value })} /></label>
-              <label><span>Notes for the operator</span><input value={selected.operatorNotes || ''} onChange={event => updateSelected({ operatorNotes: event.target.value })} /></label>
-            </div>
-
-            {selected.kind === 'group' ? <section className="heritage-service-planner__section-overview">
-              <p className="heritage-admin-eyebrow">Section overview</p>
-              <h2>{selected.title}</h2>
-              <p>A section organizes the service order. It is not projected. Choose an item below to preview or edit its slides.</p>
-              <strong>{selected.childIds.length} {selected.childIds.length === 1 ? 'item' : 'items'} in this section</strong>
-              {selected.childIds.length ? <ol>
-                {selected.childIds.map((childId: string, index: number) => {
-                  const child = draft?.items[childId]
-                  return child ? <li key={child.id}><button type="button" onClick={() => setSelectedId(child.id)}>
-                    <span>{index + 1}</span><strong>{child.title}</strong><small>{child.kind}</small><span aria-hidden="true">→</span>
-                  </button></li> : null
-                })}
-              </ol> : <p>Add items with the controls on the left or the resources below.</p>}
-            </section> : <section className="heritage-service-planner__preview">
+            <section className="heritage-service-planner__preview">
               <header className="heritage-service-planner__preview-heading">
-                <div><strong>Content preview</strong><span>{selected.title}</span></div>
-                <nav aria-label="Slides in selected item">
-                  <button type="button" aria-label="Previous slide" disabled={activePreviewIndex === 0} onClick={() => setPreviewSlideIndex(activePreviewIndex - 1)}>←</button>
-                  <span>Slide {itemPreview.cues.length ? activePreviewIndex + 1 : 0} of {itemPreview.cues.length}</span>
-                  <button type="button" aria-label="Next slide" disabled={activePreviewIndex >= itemPreview.cues.length - 1} onClick={() => setPreviewSlideIndex(activePreviewIndex + 1)}>→</button>
-                </nav>
+                <div><strong>{activeSlide ? `Preview · Slide ${activeSlide.number}` : selected.title}</strong></div>
+                <button type="button" disabled={!undoStack.length} onClick={undo}>Undo</button>
               </header>
               <div className="heritage-service-planner__output-tabs" role="tablist" aria-label="Preview output">
                 <span>Screen</span>
-                {CHANNEL_IDS.map(channelId => <button key={channelId} type="button" role="tab" aria-selected={previewChannel === channelId} onClick={() => setPreviewChannel(channelId)}>{draft?.channels[channelId]?.label || channelId}</button>)}
+                {CHANNEL_IDS.map(channelId => <button key={channelId} type="button" role="tab" aria-selected={previewChannel === channelId} onClick={() => setPreviewChannel(channelId)}>{channelId === 'media' ? 'Singers' : draft?.channels[channelId]?.label || channelId}</button>)}
               </div>
-              <div className="heritage-service-planner__stage" data-kind={selected.kind}>
-                {itemPreview.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {itemPreview.error}</p>
+              <div className="heritage-service-planner__canvas-space"><div className="heritage-service-planner__stage" data-kind={selected.kind}>
+                {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
+                  : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
                   : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
                     : selected.kind === 'blank' ? <p className="heritage-service-planner__stage-status">Intentional blank screen</p>
                       : (activePreviewOutput?.blocks || []).map((block: any, index: number) => {
@@ -987,26 +1066,28 @@ export default function PlanServiceClient() {
                             ? <img key={index} src={source} alt={block.altText || selected.title} />
                             : <video key={index} src={source} controls preload="metadata" muted={block.muted} />
                         }
-                        return <p key={index} data-role={block.role || 'scripture'}>{previewBlockText(block)}</p>
+                        return activeSlide && editablePreviewBlock(draft!, activeSlide, previewChannel, block)
+                          ? <SlideText key={`${activeSlide.id}:${previewChannel}:${index}`} text={previewBlockText(block)} role={block.role}
+                              label={`Slide ${activeSlide.number} ${previewChannel} ${block.role} — click to edit`}
+                              onCommit={text => slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text))} />
+                          : <p key={index} data-role={block.role || 'scripture'}>{previewBlockText(block)}</p>
                       })}
                 {activePreviewOutput?.mode === 'condensed' && nextPreviewOutput?.blocks?.length ? <aside className="heritage-service-planner__next-lines">
                   <span>Next</span><p>{nextPreviewOutput.blocks.map(previewBlockText).join('\n')}</p>
                 </aside> : null}
-              </div>
-              <p className="heritage-service-planner__preview-note">Actual slide content · final typography and screen layout are applied by SyncShow.</p>
-            </section>}
+              </div></div>
+              <p className="heritage-service-planner__preview-note">{activePreviewOutput?.mode === 'condensed'
+                ? 'Singers preview is generated automatically. Edit the source-language slide.'
+                : selected.kind === 'bible' ? 'Scripture text is source-locked. Choose a different passage from Resources.'
+                  : selected.kind === 'picture' ? 'Picture slide. Replace its image from Media below.'
+                    : 'Click the slide text to edit · Click outside to apply · Save service to keep changes'}<span>Preview layout · venue typography is applied by SyncShow.</span></p>
+            </section>
 
-            {(selected.kind === 'sermon' || selected.kind === 'notice') ? <div className="heritage-service-planner__text-editor">
-              {CHANNEL_IDS.map(channelId => <label key={channelId}>
-                <span>{draft?.channels[channelId]?.label || channelId} text</span>
-                <textarea rows={6} value={selected.textByChannel?.[channelId] || ''} placeholder="Leave empty to hide this output" onChange={event => {
-                  const textByChannel = { ...selected.textByChannel }
-                  if (event.target.value) textByChannel[channelId] = event.target.value
-                  else delete textByChannel[channelId]
-                  updateSelected({ textByChannel })
-                }} />
-              </label>)}
-            </div> : null}
+            <details className="heritage-service-planner__advanced">
+              <summary>Slide settings</summary>
+              <div>
+                <label><span>Item name</span><input value={selected.title} maxLength={200} onChange={event => updateSelected({ title: event.target.value })} /></label>
+                <label><span>Notes for the operator</span><input value={selected.operatorNotes || ''} onChange={event => updateSelected({ operatorNotes: event.target.value })} /></label>
 
             {selected.kind === 'picture' ? <div className="heritage-service-planner__picture-editor">
               <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('all')}>{uploadingPicture ? 'Uploading…' : 'Replace on every output'}</button>
@@ -1019,9 +1100,6 @@ export default function PlanServiceClient() {
               <label><span>Audio output</span><select value={selected.audioChannelId} onChange={event => updateSelected({ audioChannelId: event.target.value })}>{selected.channelIds.map((channelId: string) => <option key={channelId} value={channelId}>{draft?.channels[channelId]?.label || channelId}</option>)}</select></label>
             </div> : null}
 
-            <details className="heritage-service-planner__advanced">
-              <summary>Advanced item settings</summary>
-              <div>
                 {presetChoices(selected).length ? <label><span>Visual preset</span><select value={itemPreset(selected)} onChange={event => updateSelected(selected.kind === 'song' ? { lyricsPresetId: event.target.value } : { presetId: event.target.value })}>{presetChoices(selected).map(preset => <option key={preset} value={preset}>{preset}</option>)}</select></label> : null}
                 {selected.kind === 'group' ? <label><span>Section type</span><select value={selected.groupKind} onChange={event => updateSelected({ groupKind: event.target.value })}>{['service', 'section', 'sermon', 'point', 'subpoint', 'custom'].map(kind => <option key={kind}>{kind}</option>)}</select></label> : null}
                 {selected.kind === 'blank' ? CHANNEL_IDS.map(channelId => <label className="heritage-service-planner__check" key={channelId}><input type="checkbox" checked={selected.channelIds.includes(channelId)} onChange={event => updateSelected({ channelIds: event.target.checked ? [...new Set([...selected.channelIds, channelId])] : selected.channelIds.filter((id: string) => id !== channelId) })} /><span>Clear {draft?.channels[channelId]?.label || channelId}</span></label>) : null}
@@ -1049,15 +1127,7 @@ export default function PlanServiceClient() {
               </div>
             </details>
 
-            {selected.kind !== 'group' && itemPreview.cues.length > 1 ? <section className="heritage-service-planner__item-slides">
-              <header><strong>Slides in this item</strong><span>The service order stays on the left.</span></header>
-              <div className="heritage-service-planner__filmstrip" aria-label="Slides in selected item">
-                {itemPreview.cues.map((cue, index) => <button key={cue.id} data-selected={index === activePreviewIndex || undefined} type="button" onClick={() => setPreviewSlideIndex(index)}>
-                  <span>{index + 1}</span><strong>{cue.title}</strong><small>{(cue.channels?.[previewChannel]?.blocks || []).map(previewBlockText).join(' ').slice(0, 100) || 'Blank'}</small>
-                </button>)}
-              </div>
-            </section> : null}
-          </> : <div className="heritage-service-planner__editor-empty"><span aria-hidden="true">＋</span><h2>{draft ? 'Choose an item to edit' : 'Choose a service to begin'}</h2><p>The normal workspace has just the service order, this editor, and the resources below.</p></div>}
+          </> : <div className="heritage-service-planner__editor-empty"><h2>{draft ? 'Choose a slide on the left' : 'Choose a service to begin'}</h2></div>}
         </main>
 
         <section className="heritage-service-planner__resources">
