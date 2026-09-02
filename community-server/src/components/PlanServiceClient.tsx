@@ -201,48 +201,14 @@ function presetChoices(item: ProjectItem) {
   return []
 }
 
-function previewText(item: ProjectItem | null, channelId: string) {
-  if (!item) return 'Choose an item to preview it.'
-  if (item.kind === 'group') return 'Section heading — not projected'
-  if (item.kind === 'sermon' || item.kind === 'notice') {
-    return item.textByChannel?.[channelId] || 'Hidden on this output'
+function previewBlockText(block: Record<string, any>) {
+  if (typeof block.text === 'string') return block.text
+  if (Array.isArray(block.verses)) {
+    return [block.reference, ...block.verses.map((verse: any) => `${verse.number} ${verse.text}`)].filter(Boolean).join('\n')
   }
-  if (item.kind === 'blank') {
-    return item.channelIds?.includes(channelId) ? 'Intentional clear screen' : 'Hidden on this output'
-  }
-  if (item.kind === 'picture') {
-    const visible = item.assetIdsByChannel
-      ? Boolean(item.assetIdsByChannel[channelId])
-      : item.channelIds?.includes(channelId)
-    return visible ? item.altText || 'Picture' : 'Hidden on this output'
-  }
-  if (item.kind === 'video') {
-    return item.channelIds?.includes(channelId)
-      ? channelId === item.audioChannelId
-        ? 'Video · picture and audio'
-        : 'Video · picture only'
-      : 'Hidden on this output'
-  }
-  if (item.kind === 'song') {
-    const variant = item.variants?.[channelId]
-    return variant?.mode === 'content'
-      ? 'Pinned song lyrics'
-      : variant?.mode === 'inherit'
-        ? `Uses ${variant.from}`
-        : variant?.mode === 'derive'
-          ? `Current + next from ${variant.from}`
-          : 'Hidden on this output'
-  }
-  if (item.kind === 'bible') {
-    const passage = item.passagesByChannel?.[channelId]
-    return passage
-      ? `${passage.reference} · ${passage.translationId}\n${(passage.verses || [])
-          .slice(0, 3)
-          .map((verse: any) => `${verse.number} ${verse.text}`)
-          .join(' ')}`
-      : 'Hidden on this output'
-  }
-  return 'Projected content is retained exactly.'
+  if (block.type === 'image') return block.altText || 'Picture'
+  if (block.type === 'video') return 'Video'
+  return ''
 }
 
 function descendantIds(project: ServiceProject, itemId: string, found = new Set<string>()) {
@@ -357,6 +323,7 @@ export default function PlanServiceClient() {
   const [bibleEndVerse, setBibleEndVerse] = useState(21)
   const [resourceTab, setResourceTab] = useState<ResourceTab>('songs')
   const [previewChannel, setPreviewChannel] = useState<ChannelId>('english')
+  const [previewSlideIndex, setPreviewSlideIndex] = useState(0)
   const bibleBookInput = useRef<HTMLSelectElement>(null)
   const bibleChapterInput = useRef<HTMLInputElement>(null)
   const bibleStartVerseInput = useRef<HTMLInputElement>(null)
@@ -367,6 +334,23 @@ export default function PlanServiceClient() {
   const [notice, setNotice] = useState('Choose a service or create the next one.')
   const rows = useMemo(() => draft ? flatten(draft) : [], [draft])
   const selected = selectedId && draft ? draft.items[selectedId] || null : null
+  const itemPreview = useMemo<{ cues: any[]; error: string }>(() => {
+    if (!draft || !selectedId || draft.items[selectedId]?.kind === 'group') return { cues: [], error: '' }
+    try {
+      const timeline = serviceCore.compileServiceProject(draft, { allowEmpty: true })
+      return {
+        cues: timeline.cueIds.map((cueId: string) => timeline.cues[cueId]).filter((cue: any) => cue.itemId === selectedId),
+        error: '',
+      }
+    } catch (caught) {
+      return { cues: [], error: errorText(caught) }
+    }
+  }, [draft, selectedId])
+  const activePreviewIndex = Math.min(previewSlideIndex, Math.max(0, itemPreview.cues.length - 1))
+  const activePreviewCue = itemPreview.cues[activePreviewIndex]
+  const activePreviewOutput = activePreviewCue?.channels?.[previewChannel]
+  const nextPreviewOutput = itemPreview.cues[activePreviewIndex + 1]?.channels?.[previewChannel]
+  useEffect(() => setPreviewSlideIndex(0), [selectedId])
   const selectedSermonDocumentId = sermonDocumentIdForItem(draft, selected)
   const selectedSongContentChannels = selected?.kind === 'song'
     ? CHANNEL_IDS.filter(channelId => selected.variants?.[channelId]?.mode === 'content')
@@ -892,7 +876,7 @@ export default function PlanServiceClient() {
         <div>
           <p className="heritage-admin-eyebrow">Sunday service builder</p>
           <h1>{draft?.title || 'Plan a service'}</h1>
-          <p>{draft ? `${draft.serviceDate} · ${rows.length} service items` : 'Choose a service on the left or create the next Sunday.'}</p>
+          <p>{draft ? `${draft.serviceDate} · ${rows.filter(row => row.item.kind !== 'group').length} items in ${rows.filter(row => row.item.kind === 'group').length} sections` : 'Choose a service on the left or create the next Sunday.'}</p>
         </div>
         {draft ? <div className="heritage-service-planner__save-actions">
           <label>
@@ -942,7 +926,7 @@ export default function PlanServiceClient() {
             {rows.map(row => {
               const ordered = row.parentId === null ? draft.rootItemIds : draft.items[row.parentId].childIds
               return <li key={row.item.id} style={{ '--service-depth': row.depth } as React.CSSProperties}>
-                <button className="heritage-service-planner__row" data-selected={selectedId === row.item.id || undefined} type="button" onClick={() => setSelectedId(row.item.id)}>
+                <button className="heritage-service-planner__row" data-kind={row.item.kind} data-selected={selectedId === row.item.id || undefined} type="button" onClick={() => setSelectedId(row.item.id)}>
                   <span className="heritage-service-planner__kind" aria-hidden="true">{row.item.kind === 'group' ? '▾' : '•'}</span>
                   <span><strong>{row.item.title}</strong><small>{row.item.kind}</small></span>
                 </button>
@@ -965,16 +949,52 @@ export default function PlanServiceClient() {
               <label><span>Notes for the operator</span><input value={selected.operatorNotes || ''} onChange={event => updateSelected({ operatorNotes: event.target.value })} /></label>
             </div>
 
-            <section className="heritage-service-planner__preview">
+            {selected.kind === 'group' ? <section className="heritage-service-planner__section-overview">
+              <p className="heritage-admin-eyebrow">Section overview</p>
+              <h2>{selected.title}</h2>
+              <p>A section organizes the service order. It is not projected. Choose an item below to preview or edit its slides.</p>
+              <strong>{selected.childIds.length} {selected.childIds.length === 1 ? 'item' : 'items'} in this section</strong>
+              {selected.childIds.length ? <ol>
+                {selected.childIds.map((childId: string, index: number) => {
+                  const child = draft?.items[childId]
+                  return child ? <li key={child.id}><button type="button" onClick={() => setSelectedId(child.id)}>
+                    <span>{index + 1}</span><strong>{child.title}</strong><small>{child.kind}</small><span aria-hidden="true">→</span>
+                  </button></li> : null
+                })}
+              </ol> : <p>Add items with the controls on the left or the resources below.</p>}
+            </section> : <section className="heritage-service-planner__preview">
+              <header className="heritage-service-planner__preview-heading">
+                <div><strong>Content preview</strong><span>{selected.title}</span></div>
+                <nav aria-label="Slides in selected item">
+                  <button type="button" aria-label="Previous slide" disabled={activePreviewIndex === 0} onClick={() => setPreviewSlideIndex(activePreviewIndex - 1)}>←</button>
+                  <span>Slide {itemPreview.cues.length ? activePreviewIndex + 1 : 0} of {itemPreview.cues.length}</span>
+                  <button type="button" aria-label="Next slide" disabled={activePreviewIndex >= itemPreview.cues.length - 1} onClick={() => setPreviewSlideIndex(activePreviewIndex + 1)}>→</button>
+                </nav>
+              </header>
               <div className="heritage-service-planner__output-tabs" role="tablist" aria-label="Preview output">
+                <span>Screen</span>
                 {CHANNEL_IDS.map(channelId => <button key={channelId} type="button" role="tab" aria-selected={previewChannel === channelId} onClick={() => setPreviewChannel(channelId)}>{draft?.channels[channelId]?.label || channelId}</button>)}
               </div>
-              <div className="heritage-service-planner__stage">
-                <span>{draft?.channels[previewChannel]?.label || previewChannel}</span>
-                <h2>{selected.title}</h2>
-                <p>{previewText(selected, previewChannel)}</p>
+              <div className="heritage-service-planner__stage" data-kind={selected.kind}>
+                {itemPreview.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {itemPreview.error}</p>
+                  : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
+                    : selected.kind === 'blank' ? <p className="heritage-service-planner__stage-status">Intentional blank screen</p>
+                      : (activePreviewOutput?.blocks || []).map((block: any, index: number) => {
+                        if (block.type === 'image' || block.type === 'video') {
+                          if (!envelope?.project.assets?.[block.assetId]) return <p key={index} className="heritage-service-planner__stage-status">Save the service to preview this new media file.</p>
+                          const source = `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(block.assetId)}`
+                          return block.type === 'image'
+                            ? <img key={index} src={source} alt={block.altText || selected.title} />
+                            : <video key={index} src={source} controls preload="metadata" muted={block.muted} />
+                        }
+                        return <p key={index} data-role={block.role || 'scripture'}>{previewBlockText(block)}</p>
+                      })}
+                {activePreviewOutput?.mode === 'condensed' && nextPreviewOutput?.blocks?.length ? <aside className="heritage-service-planner__next-lines">
+                  <span>Next</span><p>{nextPreviewOutput.blocks.map(previewBlockText).join('\n')}</p>
+                </aside> : null}
               </div>
-            </section>
+              <p className="heritage-service-planner__preview-note">Actual slide content · final typography and screen layout are applied by SyncShow.</p>
+            </section>}
 
             {(selected.kind === 'sermon' || selected.kind === 'notice') ? <div className="heritage-service-planner__text-editor">
               {CHANNEL_IDS.map(channelId => <label key={channelId}>
@@ -1029,9 +1049,14 @@ export default function PlanServiceClient() {
               </div>
             </details>
 
-            <div className="heritage-service-planner__filmstrip" aria-label="Service item filmstrip">
-              {rows.filter(row => row.item.kind !== 'group').map((row, index) => <button key={row.item.id} data-selected={row.item.id === selected.id || undefined} type="button" onClick={() => setSelectedId(row.item.id)}><span>{index + 1}</span><strong>{row.item.title}</strong><small>{row.item.kind}</small></button>)}
-            </div>
+            {selected.kind !== 'group' && itemPreview.cues.length > 1 ? <section className="heritage-service-planner__item-slides">
+              <header><strong>Slides in this item</strong><span>The service order stays on the left.</span></header>
+              <div className="heritage-service-planner__filmstrip" aria-label="Slides in selected item">
+                {itemPreview.cues.map((cue, index) => <button key={cue.id} data-selected={index === activePreviewIndex || undefined} type="button" onClick={() => setPreviewSlideIndex(index)}>
+                  <span>{index + 1}</span><strong>{cue.title}</strong><small>{(cue.channels?.[previewChannel]?.blocks || []).map(previewBlockText).join(' ').slice(0, 100) || 'Blank'}</small>
+                </button>)}
+              </div>
+            </section> : null}
           </> : <div className="heritage-service-planner__editor-empty"><span aria-hidden="true">＋</span><h2>{draft ? 'Choose an item to edit' : 'Choose a service to begin'}</h2><p>The normal workspace has just the service order, this editor, and the resources below.</p></div>}
         </main>
 
