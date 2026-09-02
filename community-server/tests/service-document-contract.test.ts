@@ -17,7 +17,10 @@ import {
   serviceDocumentSummary,
 } from '../src/lib/syncshow/HeritageServiceDocumentServer.ts'
 import { legacyServicePlanToServiceDocument } from '../src/lib/syncshow/LegacyServicePlanToServiceDocument.ts'
-import { projectFromServiceEnvelope } from '../src/components/serviceDocumentPlannerModel.ts'
+import {
+  parsePlannerLibrarySongDocument,
+  projectFromServiceEnvelope,
+} from '../src/components/serviceDocumentPlannerModel.ts'
 
 type AnyRecord = Record<string, any>
 
@@ -93,6 +96,54 @@ test('Community accepts the exact shared source and builds SyncShow envelopes', 
     nextCursor: 'signed-checkpoint',
     hasMore: false,
   }, 50).nextCursor, 'signed-checkpoint')
+})
+
+test('planner turns identical repeated library sections into an arrangement', () => {
+  const parsed = parsePlannerLibrarySongDocument(`---
+id: repeated-chorus
+title: Repeated Chorus
+language: en
+---
+
+^1
+First verse
+
+^chorus
+Same chorus
+
+^2
+Second verse
+
+^chorus
+Same chorus
+`, { fileName: 'repeated-chorus.md' })
+
+  assert.deepEqual(
+    parsed.document.sections.map((section: AnyRecord) => section.id),
+    ['verse-1', 'chorus', 'verse-2'],
+  )
+  assert.deepEqual(
+    parsed.arrangementSectionIds,
+    ['verse-1', 'chorus', 'verse-2', 'chorus'],
+  )
+})
+
+test('planner does not discard repeated section markers with different lyrics', () => {
+  assert.throws(
+    () => parsePlannerLibrarySongDocument(`---
+id: changed-chorus
+title: Changed Chorus
+language: en
+---
+
+^chorus
+First wording
+
+^chorus
+Different wording
+`, { fileName: 'changed-chorus.md' }),
+    /appears more than once/i,
+  )
 })
 
 test('editing a ready revision creates a new planning revision', async () => {

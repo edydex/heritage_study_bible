@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import serviceCore from '../../packages/service-core/index.js'
-import { projectFromServiceEnvelope } from './serviceDocumentPlannerModel'
+import {
+  parsePlannerLibrarySongDocument,
+  projectFromServiceEnvelope,
+} from './serviceDocumentPlannerModel'
 
 const ENDPOINT = '/api/community/service-documents'
 const CHANNEL_IDS = ['english', 'russian', 'media'] as const
@@ -529,7 +532,7 @@ export default function PlanServiceClient() {
       const librarySong = response.item
       const documents = (librarySong.syncDocuments || []).map((value: any) => ({
         ...value,
-        document: serviceCore.parseSongDocument(value.source, {
+        ...parsePlannerLibrarySongDocument(value.source, {
           fileName: `${value.id}.md`,
         }),
       }))
@@ -566,6 +569,11 @@ export default function PlanServiceClient() {
         : resourceByChannel.russian === primary.resourceId
           ? 'russian'
           : 'media'
+      const arrangementSource = [primary, alignedEnglish, alignedRussian]
+        .filter(Boolean)
+        .sort((left: any, right: any) => (
+          right.arrangementSectionIds.length - left.arrangementSectionIds.length
+        ))[0]
       const itemId = `song-${uuid()}`
       project = serviceCore.addProjectItem(project, {
         id: itemId,
@@ -579,9 +587,9 @@ export default function PlanServiceClient() {
           mode: 'content',
           resourceId: resourceByChannel[channelId],
         }])),
-        arrangement: primary.document.sections.map((section: any) => ({
+        arrangement: arrangementSource.arrangementSectionIds.map((sectionId: string) => ({
           id: `arr-${uuid()}`,
-          sectionId: section.id,
+          sectionId,
         })),
         primaryChannelId,
         titlePresetId: 'song-title',
