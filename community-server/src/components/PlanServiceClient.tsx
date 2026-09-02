@@ -357,6 +357,9 @@ export default function PlanServiceClient() {
   const [bibleEndVerse, setBibleEndVerse] = useState(21)
   const [resourceTab, setResourceTab] = useState<ResourceTab>('songs')
   const [previewChannel, setPreviewChannel] = useState<ChannelId>('english')
+  const bibleChapterInput = useRef<HTMLInputElement>(null)
+  const bibleStartVerseInput = useRef<HTMLInputElement>(null)
+  const bibleEndVerseInput = useRef<HTMLInputElement>(null)
   const pictureInput = useRef<HTMLInputElement>(null)
   const videoInput = useRef<HTMLInputElement>(null)
   const pictureTarget = useRef<PictureUploadTarget>('new')
@@ -627,6 +630,9 @@ export default function PlanServiceClient() {
 
   async function addBiblePassage() {
     if (!draft || busy) return
+    const visibleBibleChapter = Number(bibleChapterInput.current?.value || bibleChapter)
+    const visibleBibleStartVerse = Number(bibleStartVerseInput.current?.value || bibleStartVerse)
+    const visibleBibleEndVerse = Number(bibleEndVerseInput.current?.value || bibleEndVerse)
     setBusy(true)
     setError(null)
     try {
@@ -635,9 +641,9 @@ export default function PlanServiceClient() {
         body: JSON.stringify({
           schemaVersion: 1,
           bookId: bibleBookId,
-          chapter: bibleChapter,
-          startVerse: bibleStartVerse,
-          endVerse: bibleEndVerse,
+          chapter: visibleBibleChapter,
+          startVerse: visibleBibleStartVerse,
+          endVerse: visibleBibleEndVerse,
         }),
       })
       const passage = response.passage
@@ -1041,9 +1047,9 @@ export default function PlanServiceClient() {
             </> : null}
             {resourceTab === 'scripture' ? <>
               <label><span>Book</span><select value={bibleBookId} onChange={event => { setBibleBookId(event.target.value); const chapters = bibleBooks.find(book => book.id === event.target.value)?.chapters || 1; setBibleChapter(current => Math.min(current, chapters)) }}>{bibleBooks.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
-              <label><span>Chapter</span><input type="number" min={1} max={bibleBooks.find(book => book.id === bibleBookId)?.chapters || 200} value={bibleChapter} onChange={event => setBibleChapter(Number(event.target.value))} /></label>
-              <label><span>From</span><input type="number" min={1} max={999} value={bibleStartVerse} onChange={event => setBibleStartVerse(Number(event.target.value))} /></label>
-              <label><span>To</span><input type="number" min={1} max={999} value={bibleEndVerse} onChange={event => setBibleEndVerse(Number(event.target.value))} /></label>
+              <label><span>Chapter</span><input ref={bibleChapterInput} type="number" min={1} max={bibleBooks.find(book => book.id === bibleBookId)?.chapters || 200} value={bibleChapter} onChange={event => setBibleChapter(Number(event.target.value))} /></label>
+              <label><span>From</span><input ref={bibleStartVerseInput} type="number" min={1} max={999} value={bibleStartVerse} onChange={event => setBibleStartVerse(Number(event.target.value))} /></label>
+              <label><span>To</span><input ref={bibleEndVerseInput} type="number" min={1} max={999} value={bibleEndVerse} onChange={event => setBibleEndVerse(Number(event.target.value))} /></label>
               <button className="btn btn--style-primary" type="button" disabled={!draft || busy || !bibleBookId} onClick={addBiblePassage}>Add reading</button>
             </> : null}
           </div>

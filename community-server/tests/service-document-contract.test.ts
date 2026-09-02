@@ -308,6 +308,8 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.match(planner, /Song library.*Media.*Scripture/s)
   assert.match(planner, /mode: 'derive-next-text'/)
   assert.match(planner, /channelId: 'media'/)
+  assert.match(planner, /visibleBibleChapter/)
+  assert.match(planner, /bibleChapterInput\.current\?\.value/)
   assert.doesNotMatch(planner, /__inspector/)
   assert.match(planner, /This service changed somewhere else/)
   assert.match(adminStyles, /\.heritage-admin-workspace\s*\{[^}]*place-items:\s*center/s)
