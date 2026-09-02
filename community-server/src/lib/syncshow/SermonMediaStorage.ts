@@ -221,6 +221,7 @@ async function verifyRegularFile(
   value: string,
   expectedSize: number,
   expectedSha256: string,
+  validateHead: ((head: Uint8Array) => boolean) | null = null,
 ) {
   const metadata = await lstat(value)
   if (metadata.isSymbolicLink() || !metadata.isFile()) {
@@ -230,6 +231,8 @@ async function verifyRegularFile(
   }
   if (metadata.size !== expectedSize) return false
   const hash = createHash('sha256')
+  const head = Buffer.alloc(Math.min(64, expectedSize))
+  let headSize = 0
   const handle = await open(
     value,
     constants.O_RDONLY | constants.O_NOFOLLOW,
@@ -245,13 +248,26 @@ async function verifyRegularFile(
         position,
       )
       if (!result.bytesRead) break
+      if (headSize < head.length) {
+        const retained = Math.min(result.bytesRead, head.length - headSize)
+        buffer.copy(head, headSize, 0, retained)
+        headSize += retained
+      }
       position += result.bytesRead
       hash.update(buffer.subarray(0, result.bytesRead))
     }
   } finally {
     await handle.close()
   }
-  return hash.digest('hex') === expectedSha256
+  if (hash.digest('hex') !== expectedSha256) return false
+  if (validateHead && !validateHead(head.subarray(0, headSize))) {
+    throw new SermonMediaError(
+      'INVALID_PRIVATE_OBJECT',
+      'The existing private service asset container is invalid.',
+      422,
+    )
+  }
+  return true
 }
 
 async function removeTemp(value: string) {
@@ -719,7 +735,12 @@ export async function storePrivateStreamObject({
   )
   const destination = absoluteStoragePath(root, storageKey)
   try {
-    const existing = await verifyRegularFile(destination, expectedSize, expectedSha256)
+    const existing = await verifyRegularFile(
+      destination,
+      expectedSize,
+      expectedSha256,
+      validateHead || null,
+    )
     if (!existing) throw storageError('A conflicting private service asset already exists.')
     return Object.freeze({ storageKey, sha256: expectedSha256, sizeBytes: expectedSize })
   } catch (error) {
@@ -806,7 +827,12 @@ export async function storePrivateStreamObject({
       await removeTemp(temporary.path)
     } catch (error) {
       if ((error as NodeJS.ErrnoException)?.code !== 'EEXIST') throw error
-      if (!await verifyRegularFile(destination, expectedSize, expectedSha256)) {
+      if (!await verifyRegularFile(
+        destination,
+        expectedSize,
+        expectedSha256,
+        validateHead || null,
+      )) {
         throw storageError('A conflicting private service asset already exists.')
       }
       await removeTemp(temporary.path)

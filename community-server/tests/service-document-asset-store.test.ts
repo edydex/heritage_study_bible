@@ -136,6 +136,15 @@ test('streams and reads an exact tenant-private service video', async () => {
       size: bytes.length,
     })
     assert.deepEqual(await readServiceDocumentAsset(17, stored), bytes)
+    await assert.rejects(
+      storeServiceDocumentAsset(
+        videoRequest(bytes, 'video/webm'),
+        17,
+        `sha256:${sha256}`,
+      ),
+      error => error instanceof ServiceDocumentAssetError
+        && error.code === 'INVALID_SERVICE_ASSET',
+    )
 
     const fake = Buffer.from('not an mp4 video')
     const fakeSha256 = (await import('node:crypto'))
