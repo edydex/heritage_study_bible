@@ -23,6 +23,7 @@ ENV NODE_ENV=production \
     XDG_CACHE_HOME=/tmp/.cache
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY package.json package-lock.json next.config.ts tsconfig.json ./
+COPY packages ./packages
 COPY src ./src
 COPY scripts ./scripts
 USER node
