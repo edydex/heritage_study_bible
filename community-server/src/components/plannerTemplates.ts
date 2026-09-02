@@ -137,9 +137,10 @@ export function editTemplateField(project: any, itemId: string, channelId: strin
       item.pendingPointChannels = (item.pendingPointChannels || []).filter((value: string) => value !== id)
     } else {
       item[target][id] = text; item[styles][id] = spans
+      if (field === 'body' && item.sermonTemplate === 'point') item.pendingPointChannels = (item.pendingPointChannels || []).filter((value: string)=>value!==id)
       if (field === 'heading' && !text) { delete item[target][id]; delete item[styles][id] }
     }
   }
-  if (text.trim() && (field === 'heading' || field === 'next' || item.sermonTemplate === 'quote')) item.title = text.trim().split('\n')[0].slice(0, 200)
+  if (text.trim() && (field === 'heading' || field === 'next' || item.sermonTemplate === 'quote' || (field === 'body' && item.sermonTemplate === 'point'))) item.title = text.trim().split('\n')[0].slice(0, 200)
   return core.normalizeServiceProject(next)
 }

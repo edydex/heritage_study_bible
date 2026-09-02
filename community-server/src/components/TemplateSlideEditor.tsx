@@ -1,6 +1,6 @@
 'use client'
 import SlideText from './SlideText'
-import { nextPointPrefix } from './plannerTemplates'
+import OutlineSlideEditor from './OutlineSlideEditor'
 
 export default function TemplateSlideEditor({ item, channelId, uploading, onImage, onEdit }: {
   item: Record<string, any>; channelId: string; uploading: boolean; onImage: () => void;
@@ -8,7 +8,6 @@ export default function TemplateSlideEditor({ item, channelId, uploading, onImag
 }) {
   const isTitle = item.sermonTemplate === 'title'
   const showText = !isTitle || item.sermonPresentation?.showText !== false
-  const pending = item.sermonTemplate === 'point' && item.pendingPointChannels?.includes(channelId)
   const body = item.textByChannel[channelId] || ''
   return <>
     {isTitle && !item.backgroundAssetId ? <button type="button" className="heritage-service-planner__image-placeholder" disabled={uploading} onClick={onImage}>
@@ -18,10 +17,8 @@ export default function TemplateSlideEditor({ item, channelId, uploading, onImag
       <SlideText text={item.titlesByChannel?.[channelId] || ''} spans={item.titleSpansByChannel?.[channelId]} role="title"
         label={`${channelId} ${isTitle ? 'sermon title' : 'heading'}`} placeholder={isTitle ? 'Sermon title' : 'Heading (optional)'} canFormat onCommit={(text, spans) => onEdit('heading', text, spans)} />
       <div className="heritage-service-planner__template-body" data-fit-text>
-        {body || !pending ? <SlideText text={body} spans={item.spansByChannel?.[channelId]} role={isTitle ? 'subtitle' : 'body'}
-          label={`${channelId} ${isTitle ? 'subtitle' : 'slide text'}`} placeholder={isTitle ? 'Subtitle (optional)' : 'Click to add your text'} canFormat onCommit={(text, spans) => onEdit('body', text, spans)} /> : null}
-        {pending ? <SlideText text="" role="next-point" label={`${channelId} next point`} placeholder={`${nextPointPrefix(body)}Add next point…`}
-          canFormat onCommit={(text, spans) => onEdit('next', text, spans)} /> : null}
+        {item.sermonTemplate === 'point' ? <OutlineSlideEditor text={body} spans={item.spansByChannel?.[channelId]} channelId={channelId} onCommit={(text,spans)=>onEdit('body',text,spans)} /> : <SlideText text={body} spans={item.spansByChannel?.[channelId]} role={isTitle ? 'subtitle' : 'body'}
+          label={`${channelId} ${isTitle ? 'subtitle' : 'slide text'}`} placeholder={isTitle ? 'Subtitle (optional)' : 'Click to add your text'} canFormat onCommit={(text, spans) => onEdit('body', text, spans)} />}
       </div>
     </> : null}
   </>

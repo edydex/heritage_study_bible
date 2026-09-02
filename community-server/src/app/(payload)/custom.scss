@@ -1406,11 +1406,19 @@
 .heritage-service-planner__stage[data-preset="wotbc-sermon-title"] .heritage-service-planner__editable-text { text-align: center; font-weight: 700; }
 .heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] .heritage-service-planner__editable-text { text-align: center; }
 .heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] [data-role="title"] { color: #ffc000; font-size: calc(var(--slide-text-size) * .68); }
-.heritage-service-planner__editable-text[data-placeholder]:empty::before { content: attr(data-placeholder); color: #aeb6b2; opacity: .75; pointer-events: none; }
-.heritage-service-planner__editable-text[data-placeholder]:empty { min-height: 1.13em; outline-color: #485650; }
+.heritage-service-planner__editable-text[data-placeholder] { position: relative; }
+.heritage-service-planner__editable-text[data-placeholder][data-empty="true"]::before { content: attr(data-placeholder); position: absolute; inset: 0; color: #aeb6b2; opacity: .6; pointer-events: none; user-select: none; }
+.heritage-service-planner__editable-text[data-placeholder][data-empty="true"]:focus::before { opacity: .22; }
+.heritage-service-planner__editable-text[data-placeholder][data-empty="true"] { min-height: 1.13em; outline-color: #485650; }
 .heritage-service-planner__template-body { width: 100%; min-height: 0; }
 .heritage-service-planner__stage[data-template="point"] .heritage-service-planner__template-body { position: absolute; top: 14%; max-height: 86%; }
-.heritage-service-planner__stage[data-template="point"] .heritage-service-planner__template-body .heritage-service-planner__editable-text { position: static; max-height: none; }
+.heritage-service-planner__stage[data-template="point"] .heritage-service-planner__template-body .heritage-service-planner__editable-text { position: relative; top: auto; max-height: none; }
+.heritage-service-planner__outline { width: 100%; text-align: left; font-size: var(--slide-text-size); line-height: 1.13; }
+.heritage-service-planner__outline-row { display: grid; grid-template-columns: max-content minmax(0,1fr); align-items: start; }
+.heritage-service-planner__outline-row[data-level="text"] { grid-template-columns: 0 minmax(0,1fr); }
+.heritage-service-planner__outline-marker { white-space: pre; user-select: none; }
+.heritage-service-planner__outline-row[data-empty="true"] .heritage-service-planner__outline-marker { color: #aeb6b2; }
+.heritage-service-planner__outline-row .heritage-service-planner__editable-text { min-width: 0; }
 .heritage-service-planner__stage[data-template="title"] [data-role="title"] { font-size: var(--slide-text-size); }
 .heritage-service-planner__stage[data-template="title"] [data-role="subtitle"] { font-size: calc(var(--slide-text-size) * .65); font-weight: 400; margin-top: 1.7em; }
 .heritage-service-planner__image-placeholder { align-self: center; display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: .7rem 1.2rem; margin-bottom: 1rem; color: #bdc8c1; background: #171a1a; border: 1px dashed #678273; border-radius: .3rem; font-size: .9rem; cursor: pointer; }
