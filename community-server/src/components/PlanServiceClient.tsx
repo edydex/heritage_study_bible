@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import serviceCore from '../../packages/service-core/index.js'
 import { plannerPreview } from './plannerPreview'
+import SermonTemplateDialog from './SermonTemplateDialog'
+import SlideText from './SlideText'
+import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
+import { SERMON_TEMPLATES, createTemplateSlide, insertionPoint, type SermonTemplateId, type TemplateText } from './plannerTemplates'
 import { preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
 import { deletePlannerSlide, editablePreviewBlock, editPlannerSlide, movePlannerSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
 import {
@@ -66,8 +70,8 @@ type BibleBookOption = {
   name: string
   chapters: number
 }
-type PictureUploadTarget = 'new' | 'all' | ChannelId
-type ResourceTab = 'songs' | 'media' | 'scripture'
+type PictureUploadTarget = 'new' | 'all' | 'background' | ChannelId
+type ResourceTab = 'songs' | 'media' | 'scripture' | 'templates'
 
 function uuid() {
   return globalThis.crypto.randomUUID()
@@ -174,8 +178,8 @@ function itemPreset(item: ProjectItem) {
 
 function presetChoices(item: ProjectItem) {
   if (item.kind === 'song') return ['wotbc-song-stacked', 'wotbc-song-lyrics', 'song-lyrics']
-  if (item.kind === 'bible') return ['wotbc-reading', 'scripture-large', 'scripture-text']
-  if (item.kind === 'sermon') return ['wotbc-sermon', 'sermon-point', 'sermon-notes']
+  if (item.kind === 'bible') return ['wotbc-reading', 'wotbc-sermon-verse', 'scripture-large', 'scripture-text']
+  if (item.kind === 'sermon') return ['wotbc-sermon-title', 'wotbc-sermon', 'wotbc-sermon-quote', 'sermon-point', 'sermon-notes']
   if (item.kind === 'notice') return ['notice-text', 'sermon-point']
   if (item.kind === 'picture') return ['picture-fullscreen']
   if (item.kind === 'video') return ['video-fullscreen']
@@ -193,43 +197,14 @@ function previewBlockText(block: Record<string, any>) {
   return ''
 }
 
-function SlideText({ text, label, role, spans = [], readOnly = false, onCommit }: { text: string; label: string; role: string; spans?: Record<string, any>[]; readOnly?: boolean; onCommit: (value: string) => void }) {
-  const element = useRef<HTMLDivElement>(null)
-  const paint = () => {
-    const node = element.current
-    if (!node) return
-    node.replaceChildren()
-    let offset = 0
-    for (const span of spans) {
-      node.append(document.createTextNode(text.slice(offset, span.start)))
-      const fragment = document.createElement('span')
-      fragment.textContent = text.slice(span.start, span.end)
-      if (span.foreground) fragment.style.color = span.foreground
-      if (span.weight) fragment.style.fontWeight = span.weight
-      if (span.fontScale) fragment.style.fontSize = `${span.fontScale}em`
-      node.append(fragment)
-      offset = span.end
-    }
-    node.append(document.createTextNode(text.slice(offset)))
-  }
-  useEffect(paint, [text, spans])
-  return <div ref={element} className="heritage-service-planner__editable-text" data-role={role}
-    data-fit-text
-    contentEditable={readOnly ? false : 'plaintext-only'} suppressContentEditableWarning role={readOnly ? undefined : 'textbox'} aria-multiline={readOnly ? undefined : true} aria-label={label}
-    onBlur={event => { const value = event.currentTarget.innerText; if (value !== text) onCommit(value); paint() }}
-    onKeyDown={event => {
-      if (event.key === 'Escape') { event.currentTarget.innerText = text; event.currentTarget.blur() }
-      if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); event.currentTarget.blur() }
-    }} />
-}
 
-function PreviewCanvas({ kind, presetId, titleCard, singer, next, children }: { kind: string; presetId?: string; titleCard?: boolean; singer?: boolean; next?: {state: string; text: string}; children: React.ReactNode }) {
+function PreviewCanvas({ kind, presetId, titleCard, singer, next, backgroundUrl, children }: { kind: string; presetId?: string; titleCard?: boolean; singer?: boolean; next?: {state: string; text: string}; backgroundUrl?: string; children: React.ReactNode }) {
   const stage = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const element = stage.current
     if (!element) return
     const fit = () => {
-      const logicalSize = titleCard ? 98 : kind === 'bible' ? 96 : kind === 'sermon' ? 82 : kind === 'song' ? (presetId === 'wotbc-song-lyrics' ? 106 : 98) : 76
+      const logicalSize = presetId === 'wotbc-sermon-title' ? 112 : presetId === 'wotbc-sermon-quote' ? 94 : presetId === 'wotbc-sermon-verse' ? 88 : titleCard ? 98 : kind === 'bible' ? 96 : kind === 'sermon' ? 82 : kind === 'song' ? (presetId === 'wotbc-song-lyrics' ? 106 : 98) : 76
       let size = element.clientWidth / 1920 * logicalSize
       element.style.setProperty('--slide-text-size', `${size}px`)
       const overflows = () => {
@@ -257,10 +232,11 @@ function PreviewCanvas({ kind, presetId, titleCard, singer, next, children }: { 
     const observer = new ResizeObserver(fit)
     observer.observe(element)
     element.addEventListener('input', fit)
+    element.addEventListener('input-fit', fit)
     fit()
-    return () => { observer.disconnect(); element.removeEventListener('input', fit) }
+    return () => { observer.disconnect(); element.removeEventListener('input', fit); element.removeEventListener('input-fit', fit) }
   }, [children, kind, presetId, titleCard, singer])
-  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind} data-preset={presetId} data-title-card={titleCard || undefined} data-singer={singer || undefined}><div className="heritage-service-planner__slide-content">{children}</div>
+  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind} data-preset={presetId} data-title-card={titleCard || undefined} data-singer={singer || undefined} style={backgroundUrl ? { backgroundImage: `linear-gradient(#0009, #0009), url("${backgroundUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}><div className="heritage-service-planner__slide-content">{children}</div>
     {singer && next ? <aside className="heritage-service-planner__next-lines" aria-label="Next slide cue" data-state={next.state}>
       <p>{next.state === 'end' ? 'End of presentation' : next.text}</p>
     </aside> : null}
@@ -379,6 +355,11 @@ export default function PlanServiceClient() {
   const [bibleStartVerse, setBibleStartVerse] = useState(14)
   const [bibleEndVerse, setBibleEndVerse] = useState(21)
   const [resourceTab, setResourceTab] = useState<ResourceTab>('songs')
+  const [template, setTemplate] = useState<Exclude<SermonTemplateId, 'passage'> | null>(null)
+  const [sermonPassage, setSermonPassage] = useState(false)
+  const [mediaPreviews, setMediaPreviews] = useState<Record<string, string>>({})
+  const localUrls = useRef<string[]>([])
+  useEffect(() => () => localUrls.current.forEach(url => URL.revokeObjectURL(url)), [])
   const [previewChannel, setPreviewChannel] = useState<ChannelId>('english')
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0)
   const [menu, setMenu] = useState<{ row: PlannerSlide; x: number; y: number } | null>(null)
@@ -594,33 +575,25 @@ export default function PlanServiceClient() {
     setNotice('Change undone. Save when ready.')
   }
 
-  function add(kind: 'group' | 'notice' | 'sermon' | 'blank') {
+  function add(kind: 'group' | 'blank') {
     if (!draft) return
     const now = new Date().toISOString()
     const id = `${kind}-${uuid()}`
-    const parentId = selected?.kind === 'group' ? selected.id : null
-    const text = kind === 'sermon' ? 'Sermon point' : 'Notice'
+    const { parentId, index } = insertionPoint(draft, selectedId)
     change(project => {
       const common = {
         id,
         kind,
-        title: kind === 'group' ? 'Section' : kind === 'blank' ? 'Blank' : text,
+        title: kind === 'group' ? 'Section' : 'Blank',
         operatorNotes: '',
         createdAt: now,
         updatedAt: now,
       }
       project.items[id] = kind === 'group'
         ? { ...common, groupKind: 'section', childIds: [] }
-        : kind === 'blank'
-          ? { ...common, channelIds: [...project.channelIds], presetId: 'blank-black' }
-          : {
-              ...common,
-              textByChannel: Object.fromEntries(project.channelIds.map(channelId => [channelId, text])),
-              presetId: kind === 'sermon' ? 'wotbc-sermon' : 'notice-text',
-              ...(kind === 'sermon' ? { titlesByChannel: { english: 'Sermon heading', russian: 'Тема проповеди', media: 'Тема проповеди' } } : {}),
-            }
-      if (parentId) project.items[parentId].childIds.push(id)
-      else project.rootItemIds.push(id)
+        : { ...common, channelIds: [...project.channelIds], presetId: 'blank-black' }
+      if (parentId) project.items[parentId].childIds.splice(index, 0, id)
+      else project.rootItemIds.splice(index, 0, id)
     })
     setSelectedId(id)
     setPreviewSlideIndex(0)
@@ -636,6 +609,25 @@ export default function PlanServiceClient() {
     setDirty(true)
     setError(null)
     setNotice(message)
+  }
+
+  async function addTemplate(english: TemplateText, russian: TemplateText, file?: File) {
+    if (!draft || !template) return
+    if (template === 'title' && (!file || !(english.heading.trim() || russian.heading.trim()))) throw new Error('Enter a sermon title and choose a title image.')
+    let asset: any
+    if (file) {
+      const uploaded = await uploadServiceMedia(file)
+      asset = { id: uploaded.assetId, kind: 'image', sha256: uploaded.sha256,
+        fileName: safeImageFileName(file.name, uploaded.metadata.mediaType).fileName,
+        storedName: `${uploaded.sha256}.${safeImageFileName(file.name, uploaded.metadata.mediaType).extension}`, size: uploaded.metadata.size,
+        width: uploaded.metadata.width, height: uploaded.metadata.height, orientation: uploaded.metadata.orientation,
+        mediaType: uploaded.metadata.mediaType, altText: file.name, attribution: '' }
+      const url = URL.createObjectURL(file); localUrls.current.push(url); setMediaPreviews(value => ({ ...value, [asset.id]: url }))
+    }
+    const id = `sermon-${uuid()}`
+    const next = createTemplateSlide(draft, { id, template, english, russian, selectedId, asset })
+    acceptCoreProject(next as ServiceProject, id, 'Slide added after your selection. Edit its text in the preview, then save.')
+    setTemplate(null)
   }
 
   async function addLibrarySong() {
@@ -713,7 +705,7 @@ export default function PlanServiceClient() {
         titlePresetId: 'song-title',
         lyricsPresetId: 'song-lyrics',
       }, {
-        parentId: selected?.kind === 'group' ? selected.id : null,
+        ...insertionPoint(draft, selectedId),
         now: new Date().toISOString(),
       })
       const singersSourceChannelId = alignedRussian
@@ -769,9 +761,9 @@ export default function PlanServiceClient() {
         title: `${passage.title} · BSB / SYNO-W`,
         range: passage.range,
         passagesByChannel: passage.passagesByChannel,
-        presetId: 'scripture-large',
+        presetId: sermonPassage ? 'wotbc-sermon-verse' : 'scripture-large',
         operatorNotes: 'Exact Bible text pinned from the configured Heritage reader data.',
-        parentId: selected?.kind === 'group' ? selected.id : null,
+        ...insertionPoint(draft, selectedId),
         now: new Date().toISOString(),
       })
       acceptCoreProject(
@@ -854,9 +846,10 @@ export default function PlanServiceClient() {
         attribution: '',
       }
       const target = pictureTarget.current
+      const previewUrl = URL.createObjectURL(file); localUrls.current.push(previewUrl); setMediaPreviews(value => ({ ...value, [asset.id]: previewUrl }))
       if (target === 'new') {
         const id = `picture-${uuid()}`
-        const parentId = selected?.kind === 'group' ? selected.id : null
+        const { parentId, index } = insertionPoint(draft, selectedId)
         change(project => {
           project.assets[asset.id] = asset
           project.items[id] = {
@@ -875,10 +868,12 @@ export default function PlanServiceClient() {
             attribution: '',
             presetId: 'picture-fullscreen',
           }
-          if (parentId) project.items[parentId].childIds.push(id)
-          else project.rootItemIds.push(id)
+          if (parentId) project.items[parentId].childIds.splice(index, 0, id)
+          else project.rootItemIds.splice(index, 0, id)
         })
         setSelectedId(id)
+      } else if (target === 'background' && selected?.kind === 'sermon') {
+        change(project => { project.assets[asset.id] = asset; project.items[selected.id].backgroundAssetId = asset.id })
       } else if (selected?.kind === 'picture') {
         change(project => {
           project.assets[asset.id] = asset
@@ -936,7 +931,8 @@ export default function PlanServiceClient() {
         attribution: '',
       }
       const id = `video-${uuid()}`
-      const parentId = selected?.kind === 'group' ? selected.id : null
+      const { parentId, index } = insertionPoint(draft, selectedId)
+      const previewUrl = URL.createObjectURL(file); localUrls.current.push(previewUrl); setMediaPreviews(value => ({ ...value, [asset.id]: previewUrl }))
       change(project => {
         project.assets[asset.id] = asset
         project.items[id] = {
@@ -952,8 +948,8 @@ export default function PlanServiceClient() {
           fit: 'fit',
           presetId: 'video-fullscreen',
         }
-        if (parentId) project.items[parentId].childIds.push(id)
-        else project.rootItemIds.push(id)
+        if (parentId) project.items[parentId].childIds.splice(index, 0, id)
+        else project.rootItemIds.splice(index, 0, id)
       })
       setSelectedId(id)
       setNotice('Video uploaded privately. Save the shared service to attach it to this revision.')
@@ -1058,12 +1054,6 @@ export default function PlanServiceClient() {
 
           <div className="heritage-service-planner__outline-heading">
             <h2>Service order</h2>
-            <div className="heritage-service-planner__add">
-              <button type="button" disabled={!draft} onClick={() => add('group')}>+ Section</button>
-              <button type="button" disabled={!draft} onClick={() => add('notice')}>+ Slide</button>
-              <button type="button" disabled={!draft} onClick={() => add('sermon')}>+ Sermon</button>
-              <button type="button" disabled={!draft} onClick={() => add('blank')}>+ Blank</button>
-            </div>
           </div>
 
           {draft ? <ol className="heritage-service-planner__rows">
@@ -1134,30 +1124,33 @@ export default function PlanServiceClient() {
                   {[selected.songPresentation.primaryChannelId, selected.songPresentation.secondaryChannelId].map((id: string) => <option key={id} value={id}>{draft?.channels[id]?.label || id}</option>)}
                 </select></label> : <span>{selected.songPresentation.secondaryChannelId ? 'One language per screen' : 'Single-language song'}</span>}
               </div> : null}
-              <PreviewCanvas kind={selected.kind} presetId={preview.presetId} titleCard={selected.kind === 'song' && activeSlide?.index === 0} singer={preview.singer} next={preview.next}>
+              <PreviewCanvas kind={selected.kind} presetId={preview.presetId} titleCard={selected.kind === 'song' && activeSlide?.index === 0} singer={preview.singer} next={preview.next} backgroundUrl={selected.backgroundAssetId ? mediaPreviews[selected.backgroundAssetId] || (envelope?.project.assets?.[selected.backgroundAssetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetId)}` : undefined) : undefined}>
                 {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
                   : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
                   : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
                     : selected.kind === 'blank' ? <p className="heritage-service-planner__stage-status">Intentional blank screen</p>
                       : (activePreviewOutput?.blocks || []).map((block: any, index: number) => {
+                        if (block.type === 'image' && block.role === 'background') return null
                         if (block.type === 'image' || block.type === 'video') {
-                          if (!envelope?.project.assets?.[block.assetId]) return <p key={index} className="heritage-service-planner__stage-status">Save the service to preview this new media file.</p>
-                          const source = `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(block.assetId)}`
+                          if (!envelope?.project.assets?.[block.assetId] && !mediaPreviews[block.assetId]) return <p key={index} className="heritage-service-planner__stage-status">Save the service to preview this new media file.</p>
+                          const source = mediaPreviews[block.assetId] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(block.assetId)}`
                           return block.type === 'image'
                             ? <img key={index} src={source} alt={block.altText || selected.title} />
                             : <video key={index} src={source} controls preload="metadata" muted={block.muted} />
                         }
                         if (block.type === 'bible') return <div key={index} className="heritage-service-planner__scripture-page" data-fit-text>
                           <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
-                          <p>{block.verses.map((verse: any, verseIndex: number) => <span key={verse.number}>{verseIndex > 0 ? ' ' : ''}<sup>{verse.number}</sup> {verse.text}</span>)}</p>
+                          <SlideText text={formatting.scriptureFlowText(block.verses)} spans={block.spans} label={`Slide ${activeSlide?.number} ${previewChannel} Scripture — select text to format`} role="body" readOnly canFormat={!preview.singer}
+                            onCommit={(text, spans) => activeSlide && slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text, spans))} />
                         </div>
                         return activeSlide && block.type === 'text'
                           ? <SlideText key={`${activeSlide.id}:${previewChannel}:${index}`} text={previewBlockText(block)} role={block.role}
                               readOnly={preview.singer || !editablePreviewBlock(draft!, activeSlide, previewChannel, block)}
                               spans={block.spans}
+                              canFormat={!preview.singer && ['sermon', 'notice'].includes(selected.kind)}
                               label={`Slide ${activeSlide.number} ${selected.kind === 'song' && selected.songPresentation?.stackedTranslation && block.role === 'lyrics'
                                 ? (index === 0 ? selected.songPresentation.primaryChannelId : selected.songPresentation.secondaryChannelId) : previewChannel} ${block.role} — click to edit`}
-                              onCommit={text => slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text))} />
+                              onCommit={(text, spans) => slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text, ['sermon','notice'].includes(selected.kind) ? spans : undefined))} />
                           : <p key={index} data-role={block.role || 'scripture'}>{previewBlockText(block)}</p>
                       })}
               </PreviewCanvas>
@@ -1165,9 +1158,9 @@ export default function PlanServiceClient() {
                 ? 'Full primary-language slide · Same-size next line, fitted to the available width.'
                 : selected.kind === 'bible' ? (activePreviewOutput?.blocks || []).some((block: any) => block.type === 'bible' && block.verses.reduce((count: number, verse: any) => count + scriptureLineCount(`${verse.number} ${verse.text}`), 0) > SCRIPTURE_PAGE_MAX_LINES)
                   ? 'This unusually long verse needs a shorter slide layout before projection.'
-                  : 'One reading page · English and Russian advance together · Exact source text preserved.'
+                  : 'Select verse text to format · English and Russian advance together · Scripture words stay unchanged.'
                   : selected.kind === 'song' && selected.songPresentation?.stackedTranslation ? 'Same stack on both audience screens · White primary language, orange translation · Click either to edit.'
-                  : selected.kind === 'sermon' ? 'One language per screen · Gold heading and references · Click heading or body to edit.'
+                  : selected.kind === 'sermon' ? 'One language per screen · Click text to edit · Select text for formatting.'
                   : selected.kind === 'picture' ? 'Picture slide. Replace its image from Media below.'
                     : 'Click the slide text to edit · Click outside to apply · Save to keep changes'}</p>
             </section>
@@ -1180,6 +1173,7 @@ export default function PlanServiceClient() {
                 {selected.kind === 'song' && selected.songPresentation ? <label><span>Song credit · bottom right of title slide</span><input aria-label="Song credit" value={selected.songPresentation.credits} maxLength={500}
                   onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, credits: event.target.value } })} /></label> : null}
 
+            {selected.backgroundAssetId ? <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>Replace title image</button> : null}
             {selected.kind === 'picture' ? <div className="heritage-service-planner__picture-editor">
               <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('all')}>{uploadingPicture ? 'Uploading…' : 'Replace on every output'}</button>
               <label><span>Image description</span><input value={selected.altText || ''} onChange={event => updateSelected({ altText: event.target.value })} /></label>
@@ -1222,10 +1216,13 @@ export default function PlanServiceClient() {
         </main>
 
         <section className="heritage-service-planner__resources">
-          <div className="heritage-service-planner__resource-tabs" role="tablist" aria-label="Resources">
-            {(['songs', 'media', 'scripture'] as ResourceTab[]).map(tab => <button key={tab} type="button" role="tab" aria-selected={resourceTab === tab} onClick={() => setResourceTab(tab)}>{tab === 'songs' ? 'Song library' : tab === 'media' ? 'Media' : 'Scripture'}</button>)}
+          <div className="heritage-service-planner__resource-tabs" role="tablist" aria-label="Add slides">
+            <strong>Add slides</strong>
+            {(['songs', 'media', 'scripture', 'templates'] as ResourceTab[]).map(tab => <button key={tab} type="button" role="tab" aria-selected={resourceTab === tab} onClick={() => { setResourceTab(tab); if (tab === 'scripture') setSermonPassage(false) }}>{tab === 'songs' ? 'Songs' : tab === 'media' ? 'Media' : tab === 'templates' ? 'Sermon templates' : 'Scripture'}</button>)}
+            <details className="heritage-service-planner__add-menu"><summary aria-label="More slide types" title="More slide types">＋</summary><div><button type="button" disabled={!draft} onClick={event => { add('group'); event.currentTarget.closest('details')!.open = false }}>Section divider</button><button type="button" disabled={!draft} onClick={event => { add('blank'); event.currentTarget.closest('details')!.open = false }}>Blank screen</button></div></details>
           </div>
           <div className="heritage-service-planner__resource-content">
+            {resourceTab === 'templates' ? <div className="heritage-service-planner__templates">{SERMON_TEMPLATES.map(value => <button key={value.id} type="button" disabled={!draft} onClick={() => { if (value.id === 'passage') { setResourceTab('scripture'); setSermonPassage(true) } else setTemplate(value.id) }}><span aria-hidden="true">{value.icon}</span><strong>{value.label}</strong><small>{value.hint}</small></button>)}</div> : null}
             {resourceTab === 'songs' ? <>
               <label><span>Reviewed Community song</span><select value={songChoice} onChange={event => setSongChoice(event.target.value)}>{songLibrary.map(song => <option key={song.syncId} value={song.syncId}>{song.title}{song.russianTitle && song.russianTitle !== song.title ? ` / ${song.russianTitle}` : ''}</option>)}</select></label>
               <button className="btn btn--style-primary" type="button" disabled={!draft || busy || !songChoice} onClick={addLibrarySong}>Add song to service</button>
@@ -1242,11 +1239,12 @@ export default function PlanServiceClient() {
               <label><span>Chapter</span><input ref={bibleChapterInput} type="number" min={1} max={bibleBooks.find(book => book.id === bibleBookId)?.chapters || 200} value={bibleChapter} onChange={event => setBibleChapter(Number(event.target.value))} /></label>
               <label><span>From</span><input ref={bibleStartVerseInput} type="number" min={1} max={999} value={bibleStartVerse} onChange={event => setBibleStartVerse(Number(event.target.value))} /></label>
               <label><span>To</span><input ref={bibleEndVerseInput} type="number" min={1} max={999} value={bibleEndVerse} onChange={event => setBibleEndVerse(Number(event.target.value))} /></label>
-              <button className="btn btn--style-primary" type="button" disabled={!draft || busy || !bibleBookId} onClick={addBiblePassage}>Add reading</button>
+              <button className="btn btn--style-primary" type="button" disabled={!draft || busy || !bibleBookId} onClick={addBiblePassage}>{sermonPassage ? 'Add sermon passage' : 'Add reading'}</button>
             </> : null}
           </div>
           <input ref={pictureInput} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={event => pictureChosen(event.target.files?.[0])} />
           <input ref={videoInput} type="file" accept="video/mp4,video/webm,.mp4,.webm" hidden onChange={event => videoChosen(event.target.files?.[0])} />
+          {template && draft ? <SermonTemplateDialog template={template} project={draft} onCancel={() => setTemplate(null)} onCreate={addTemplate} /> : null}
         </section>
       </div>
     </section>

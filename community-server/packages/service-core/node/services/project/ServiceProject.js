@@ -1,4 +1,5 @@
 'use strict';
+const { scriptureFlowText } = require('./SlideFormatting');
 
 const { normalizeSongPresentation, presentationTitleBlocks, presentationLyricBlocks } = require('./SongPresentation');
 
@@ -163,7 +164,7 @@ function normalizeTextSpans(raw, authoritativeText, field) {
       fail('INVALID_TEXT_SPANS', `${spanField} must be an object.`, { field: spanField });
     }
     const keys = Object.keys(candidate);
-    const unexpected = keys.filter(key => !['start', 'end', 'foreground', 'weight', 'fontScale'].includes(key));
+    const unexpected = keys.filter(key => !['start', 'end', 'foreground', 'weight', 'fontScale', 'italic', 'underline'].includes(key));
     if (unexpected.length > 0) {
       fail(
         'INVALID_TEXT_SPANS',
@@ -227,7 +228,13 @@ function normalizeTextSpans(raw, authoritativeText, field) {
       }
       span.fontScale = candidate.fontScale;
     }
-    if (span.foreground === undefined && span.weight === undefined && span.fontScale === undefined) {
+    for (const key of ['italic', 'underline']) {
+      if (candidate[key] !== undefined) {
+        if (typeof candidate[key] !== 'boolean') fail('INVALID_TEXT_SPANS', `${spanField}.${key} must be a boolean.`);
+        span[key] = candidate[key];
+      }
+    }
+    if (span.foreground === undefined && span.weight === undefined && span.fontScale === undefined && span.italic === undefined && span.underline === undefined) {
       fail(
         'INVALID_TEXT_SPANS',
         `${spanField} must set foreground, weight, or both.`,
@@ -356,6 +363,8 @@ function normalizeBlock(raw, field) {
         actual: normalized.contentSha256
       });
     }
+    const spans = normalizeTextSpans(raw.spans, scriptureFlowText(normalized.verses), `${field}.spans`);
+    if (spans.length) normalized.spans = spans;
     return normalized;
   }
   if (type === 'image') {
@@ -367,6 +376,7 @@ function normalizeBlock(raw, field) {
     return {
       type,
       assetId: raw.assetId,
+      ...(raw.role === 'background' ? { role: 'background' } : {}),
       fit,
       focalPoint: normalizeFocalPoint(raw.focalPoint, `${field}.focalPoint`),
       altText: text(raw.altText, `${field}.altText`, 500, { required: true }),
@@ -2505,6 +2515,11 @@ function normalizeProjectItem(raw, channelIds, now) {
       textByChannel,
       ...(spansByChannel ? { spansByChannel } : {}),
       ...(titlesByChannel ? { titlesByChannel } : {}),
+      ...(raw.titleSpansByChannel ? { titleSpansByChannel: Object.fromEntries(Object.entries(raw.titleSpansByChannel).map(([channelId, spans]) => {
+        if (!titlesByChannel?.[channelId]) fail('INVALID_TEXT_SPANS', 'Title formatting needs text on the same output.');
+        return [channelId, normalizeTextSpans(spans, titlesByChannel[channelId], `Item ${itemId} title spans`)];
+      })) } : {}),
+      ...(raw.backgroundAssetId ? { backgroundAssetId: ASSET_ID_PATTERN.test(raw.backgroundAssetId) ? raw.backgroundAssetId : fail('INVALID_ASSET_REFERENCE', 'Invalid slide background image.') } : {}),
       ...(raw.kind === 'sermon' ? normalizeSermonLinkFields(raw, `Sermon item ${itemId}`) : {}),
       ...(raw.kind === 'sermon' && raw.sourceBodyProjection
         ? {
@@ -3251,6 +3266,7 @@ function normalizeEditableServiceProject(raw, options = {}) {
   const index = validateProjectTree(normalized);
 
   for (const item of Object.values(items)) {
+    if (item.backgroundAssetId && assets[item.backgroundAssetId]?.kind !== 'image') fail('MISSING_ASSET', `Slide ${item.id} has no pinned background image.`);
     if (item.kind === 'bible' && item.sermonReading) {
       const resource = resources[item.sermonReading.sermonResourceId];
       if (!resource || resource.kind !== 'sermon') {
@@ -4330,8 +4346,9 @@ function compileServiceProject(rawProject, options = {}) {
                 ? 'condensed'
                 : 'content',
               blocks: [
+                ...(item.backgroundAssetId ? [{ type: 'image', role: 'background', assetId: item.backgroundAssetId, fit: 'fill', focalPoint: { x: 0.5, y: 0.5 }, altText: item.title, attribution: '' }] : []),
                 ...(item.titlesByChannel?.[channelId]
-                  ? [{ type: 'text', role: 'title', text: item.titlesByChannel[channelId] }]
+                  ? [{ type: 'text', role: 'title', text: item.titlesByChannel[channelId], ...(item.titleSpansByChannel?.[channelId] ? { spans: item.titleSpansByChannel[channelId] } : {}) }]
                   : []),
                 {
                   type: 'text',
@@ -4815,6 +4832,7 @@ function pruneUnreachableProjectRecords(rawProject, candidates = {}, {
   const reachableResources = new Set();
   const reachableAssets = new Set();
   for (const item of Object.values(project.items)) {
+    if (item.backgroundAssetId) reachableAssets.add(item.backgroundAssetId);
     if (item.sermonResourceId) reachableResources.add(item.sermonResourceId);
     if (item.kind === 'bible' && item.sermonReading) {
       reachableResources.add(item.sermonReading.sermonResourceId);
@@ -4879,6 +4897,7 @@ function removeProjectItemAndDescendants(rawProject, rawItemId) {
   const assetIds = new Set();
   const collect = currentId => {
     const item = project.items[currentId];
+    if (item.backgroundAssetId) assetIds.add(item.backgroundAssetId);
     if (item.kind === 'group') item.childIds.forEach(collect);
     if (item.sermonResourceId) resourceIds.add(item.sermonResourceId);
     if (item.kind === 'bible' && item.sermonReading) {

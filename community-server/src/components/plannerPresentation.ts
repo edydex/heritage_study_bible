@@ -1,4 +1,5 @@
 import core from '../../packages/service-core/index.js'
+import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 
 type RecordValue = Record<string, any>
 
@@ -96,13 +97,20 @@ export function preparePlannerPresentation(project: RecordValue) {
       const passagesByChannel = Object.fromEntries(Object.entries(item.passagesByChannel).map(([channelId, raw]) => {
         const passage = raw as RecordValue
         const { contentSha256: _oldHash, ...rest } = passage
+        const verses = passage.verses.filter((verse: RecordValue) => numbers.includes(verse.number))
+        const first = passage.verses.findIndex((verse: RecordValue) => verse.number === numbers[0])
+        const offset = first ? formatting.scriptureFlowText(passage.verses.slice(0, first)).length + 1 : 0
+        const length = formatting.scriptureFlowText(verses).length
+        const spans = (passage.spans || []).filter((span: any) => span.end > offset && span.start < offset + length)
+          .map((span: any) => ({ ...span, start: Math.max(0, span.start - offset), end: Math.min(length, span.end - offset) }))
+        delete rest.spans
         return [channelId, { ...rest, reference: pageReference(passage.reference, item, numbers),
-          verses: passage.verses.filter((verse: RecordValue) => numbers.includes(verse.number)) }]
+          verses, ...(spans.length ? { spans } : {}) }]
       }))
       const firstPassage = Object.values(passagesByChannel)[0] as RecordValue
       next.items[id] = { ...item, id, title: firstPassage.reference,
         range: { ...item.range, start: { ...item.range.start, verse: numbers[0] }, end: { ...item.range.end, verse: numbers.at(-1) } },
-        passagesByChannel, presetId: 'wotbc-reading' }
+        passagesByChannel, presetId: item.presetId }
     })
     next.items[item.id] = { id: item.id, kind: 'group', groupKind: 'section', title: item.title,
       createdAt: item.createdAt, updatedAt: item.updatedAt, operatorNotes: item.operatorNotes,

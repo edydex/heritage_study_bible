@@ -1,5 +1,6 @@
 import serviceCore from '../../packages/service-core/index.js'
 import { sermonTextSpans } from './plannerSermonStyle'
+import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 
 type RecordValue = Record<string, any>
 export type PlannerSlide = {
@@ -93,8 +94,14 @@ export function editablePreviewBlock(project: RecordValue, slide: PlannerSlide, 
   return ['lyrics', 'title', 'subtitle', 'credit'].includes(block.role)
 }
 
-export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, channelId: string, blockIndex: number, text: string) {
+export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, channelId: string, blockIndex: number, text: string, spans?: RecordValue[]) {
   const block = slide.cue?.channels[channelId]?.blocks[blockIndex]
+  if (block?.type === 'bible' && spans !== undefined) {
+    if (text !== formatting.scriptureFlowText(block.verses)) throw new Error('Scripture text stays pinned. Only its formatting can change.')
+    const next = copy(project)
+    next.items[slide.itemId].passagesByChannel[channelId].spans = spans
+    return copy(serviceCore.normalizeServiceProject(next))
+  }
   if (!text.trim() && block?.role !== 'credit') throw new Error('Slide text cannot be empty. Use Delete in the slide menu instead.')
   if (!block || !editablePreviewBlock(project, slide, channelId, block)) throw new Error('This content is generated from its source.')
   let next = copy(project)
@@ -131,6 +138,10 @@ export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, chan
       delete item.sourceBodyProjection
       if (item.presetId === 'wotbc-sermon') item.spansByChannel = { ...item.spansByChannel, [channelId]: sermonTextSpans(text) }
     }
+    if (spans !== undefined) {
+      const styles = field === 'titlesByChannel' ? 'titleSpansByChannel' : 'spansByChannel'
+      item[styles] = { ...item[styles], [channelId]: spans }
+    } else if (field === 'titlesByChannel') delete item.titleSpansByChannel?.[channelId]
   }
   next.items[slide.itemId].updatedAt = new Date().toISOString()
   return copy(serviceCore.normalizeServiceProject(next))
