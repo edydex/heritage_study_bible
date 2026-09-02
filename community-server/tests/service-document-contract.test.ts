@@ -3,7 +3,11 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import serviceCore from '../packages/service-core/index.js'
-import { prepareHeritageServiceDocument } from '../src/collections/ServiceDocuments.ts'
+import {
+  prepareHeritageServiceDocument,
+  ServiceDocuments,
+} from '../src/collections/ServiceDocuments.ts'
+import { SyncShowServiceDocumentChanges } from '../src/collections/SyncShowServiceDocumentChanges.ts'
 import { syncShowEndpoints } from '../src/endpoints/syncShow.ts'
 import {
   blankServiceDocument,
@@ -96,6 +100,15 @@ test('Community accepts the exact shared source and builds SyncShow envelopes', 
     nextCursor: 'signed-checkpoint',
     hasMore: false,
   }, 50).nextCursor, 'signed-checkpoint')
+})
+
+test('service documents and their append-only history accept real service-sized sources', () => {
+  for (const collection of [ServiceDocuments, SyncShowServiceDocumentChanges]) {
+    const field = collection.fields.find(candidate => (
+      'name' in candidate && candidate.name === 'documentSource'
+    )) as { maxLength?: number } | undefined
+    assert.equal(field?.maxLength, 16 * 1024 * 1024)
+  }
 })
 
 test('planner turns identical repeated library sections into an arrangement', () => {

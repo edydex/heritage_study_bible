@@ -94,6 +94,7 @@ export const SyncShowServiceDocumentChanges: CollectionConfig = {
       name: 'documentSource',
       type: 'textarea',
       required: true,
+      maxLength: 16 * 1024 * 1024,
       hidden: true,
       access: protectedFieldAccess,
     },

@@ -242,6 +242,7 @@ export const ServiceDocuments: CollectionConfig = {
       label: 'Shared service content',
       type: 'textarea',
       required: true,
+      maxLength: 16 * 1024 * 1024,
       admin: {
         rows: 24,
         description: 'Canonical HeritageServiceDocumentV1 source. The visual preparation editor replaces this technical view during the pilot.',
