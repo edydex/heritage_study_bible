@@ -4,11 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import serviceCore from '../../packages/service-core/index.js'
 import { plannerPreview } from './plannerPreview'
 import SermonTemplateDialog from './SermonTemplateDialog'
+import MoveSlidesDialog from './MoveSlidesDialog'
 import SlideText from './SlideText'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 import { SERMON_TEMPLATES, createTemplateSlide, insertionPoint, type SermonTemplateId, type TemplateText } from './plannerTemplates'
 import { preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
-import { deletePlannerSlide, editablePreviewBlock, editPlannerSlide, movePlannerSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
+import { editablePreviewBlock, editPlannerSlide, isSongTitleSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
+import { changePlannerSelection, plannerRangeSelection, selectedPlannerSlides, type SelectionResult } from './plannerSelection'
 import {
   parsePlannerLibrarySongDocument,
   projectFromServiceEnvelope,
@@ -362,9 +364,12 @@ export default function PlanServiceClient() {
   useEffect(() => () => localUrls.current.forEach(url => URL.revokeObjectURL(url)), [])
   const [previewChannel, setPreviewChannel] = useState<ChannelId>('english')
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0)
-  const [menu, setMenu] = useState<{ row: PlannerSlide; x: number; y: number } | null>(null)
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([])
+  const rangeAnchor = useRef<string | null>(null)
+  const [menu, setMenu] = useState<{ row: PlannerSlide; ids: string[]; x: number; y: number } | null>(null)
+  const [moveDialog, setMoveDialog] = useState<string[] | null>(null)
   const [dropTarget, setDropTarget] = useState<{ id: string; after: boolean } | null>(null)
-  const dragged = useRef<PlannerSlide | null>(null)
+  const dragged = useRef<string[] | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const workspaceMenuRef = useRef<HTMLDetailsElement>(null)
   const [undoStack, setUndoStack] = useState<ServiceProject[]>([])
@@ -391,6 +396,11 @@ export default function PlanServiceClient() {
   const activePreviewCue = activeSlide?.cue
   const preview = plannerPreview(slideList.rows, activeSlide, previewChannel)
   const activePreviewOutput = preview.output
+  const selectionIds = selectedRowIds.filter(id => slideList.rows.some(row => row.id === id))
+  if (!selectionIds.length && (activeSlide || selected?.kind === 'group')) selectionIds.push(activeSlide?.id || selected!.id)
+  const batchSlides = selectedPlannerSlides(slideList.rows, selectionIds)
+  const selectedKeys = new Set([...selectionIds, ...batchSlides.map(row => row.id)])
+  const dialogSlides = selectedPlannerSlides(slideList.rows, moveDialog || [])
   useEffect(() => {
     const close = (event: PointerEvent) => {
       if (workspaceMenuRef.current && !workspaceMenuRef.current.contains(event.target as Node)) workspaceMenuRef.current.open = false
@@ -450,6 +460,9 @@ export default function PlanServiceClient() {
     setPreviewSlideIndex(0)
     setUndoStack([])
     setMenu(null)
+    setSelectedRowIds([])
+    rangeAnchor.current = null
+    setMoveDialog(null)
     setDesiredStatus(next.status)
     setDirty(prepared.changed)
     setError(null)
@@ -528,9 +541,16 @@ export default function PlanServiceClient() {
     })
   }
 
-  function selectSlide(row: PlannerSlide) {
+  function selectSlide(row: PlannerSlide, modifiers: {shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean} = {}) {
     setSelectedId(row.itemId)
     setPreviewSlideIndex(Math.max(0, row.index))
+    if (modifiers.shiftKey) setSelectedRowIds(plannerRangeSelection(slideList.rows, rangeAnchor.current || activeSlide?.id || row.id, row.id))
+    else {
+      setSelectedRowIds(modifiers.metaKey || modifiers.ctrlKey
+        ? selectionIds.includes(row.id) ? selectionIds.filter(id => id !== row.id) : [...selectionIds, row.id]
+        : [row.id])
+      rangeAnchor.current = row.id
+    }
   }
 
   function slideMutation(operation: () => any, index = activePreviewIndex) {
@@ -548,26 +568,53 @@ export default function PlanServiceClient() {
     } catch (caught) { setError(errorText(caught)) }
   }
 
-  function removeSlide(row: PlannerSlide) {
-    setMenu(null)
-    const scope = row.kind === 'group' ? 'this section and all its slides' : row.kind === 'song' && row.index === 0 ? 'this song and all its slides' : 'this slide'
-    if (!globalThis.confirm(`Delete ${scope}: “${row.title}”? You can undo before saving.`)) return
-    slideMutation(() => deletePlannerSlide(draft!, row), Math.max(0, row.index - 1))
+  function applySelection(result: SelectionResult) {
+    if (!draft) return
+    setUndoStack(stack => [...stack.slice(-29), draft])
+    setDraft(result.project as ServiceProject)
+    setSelectedRowIds(result.selectedIds)
+    rangeAnchor.current = result.activeId
+    const active = plannerSlides(result.project).find(row => row.id === result.activeId)
+    setSelectedId(active?.itemId || null)
+    setPreviewSlideIndex(Math.max(0, active?.index || 0))
+    setDirty(true); setDesiredStatus('planning'); setError(null)
+    setNotice('Unsaved changes · Undo restores the whole operation.')
+    setMenu(null); setDropTarget(null); dragged.current = null
   }
 
-  function moveSlide(from: PlannerSlide, to: PlannerSlide, after = false) {
-    slideMutation(() => movePlannerSlide(draft!, from, to, after), from.kind === 'song' && from.index > 0
-      ? Math.max(1, to.index + Number(after) - Number(from.index < to.index + Number(after))) : 0)
-    setSelectedId(from.itemId)
-    setDropTarget(null)
-    dragged.current = null
+  function runSelection(ids: string[], operation: 'move' | 'duplicate' | 'delete', destination?: number) {
+    try { applySelection(changePlannerSelection(draft!, ids, operation, destination)) }
+    catch (caught) { setError(errorText(caught)); setMenu(null) }
+  }
+
+  function removeSelection(ids: string[]) {
     setMenu(null)
+    const count = selectedPlannerSlides(slideList.rows, ids).length
+    const sections = ids.some(id => slideList.rows.find(row => row.id === id)?.kind === 'group')
+    if (!globalThis.confirm(`Delete ${sections ? 'the selected section and its slides' : count === 1 ? 'this slide' : `these ${count} slides`}? You can undo before saving.`)) return
+    runSelection(ids, 'delete')
+  }
+
+  function dropSelection(ids: string[], target: PlannerSlide, after: boolean) {
+    const chosen = new Set(selectedPlannerSlides(slideList.rows, ids).map(row => row.id))
+    if (chosen.has(target.id) || ids.includes(target.id)) return
+    const all = slideList.rows.filter(row => row.cue)
+    const children = target.kind === 'group' ? selectedPlannerSlides(slideList.rows, [target.id]) : [target]
+    const boundary = children.length ? (after ? children.at(-1)!.number : children[0].number - 1)
+      : slideList.rows.slice(0, slideList.rows.indexOf(target)).filter(row => row.cue).length
+    runSelection(ids, 'move', all.slice(0, boundary).filter(row => !chosen.has(row.id)).length + 1)
   }
 
   function undo() {
     const previous = undoStack.at(-1)
     if (!previous) return
     setDraft(previous)
+    const rows = plannerSlides(previous).filter(row => row.cue)
+    const focus = rows[Math.min(Math.max(0, (activeSlide?.number || 1) - 1), rows.length - 1)]
+    setSelectedRowIds(focus ? [focus.id] : [])
+    setSelectedId(focus?.itemId || null)
+    setPreviewSlideIndex(focus?.index || 0)
+    rangeAnchor.current = focus?.id || null
     setUndoStack(stack => stack.slice(0, -1))
     setDirty(true)
     setDesiredStatus('planning')
@@ -577,6 +624,7 @@ export default function PlanServiceClient() {
 
   function add(kind: 'group' | 'blank') {
     if (!draft) return
+    setSelectedRowIds([])
     const now = new Date().toISOString()
     const id = `${kind}-${uuid()}`
     const { parentId, index } = insertionPoint(draft, selectedId)
@@ -600,6 +648,7 @@ export default function PlanServiceClient() {
   }
 
   function acceptCoreProject(project: ServiceProject, itemId: string, message: string) {
+    setSelectedRowIds([])
     if (draft) setUndoStack(stack => [...stack.slice(-29), draft])
     const prepared = preparePlannerPresentation(project).project as ServiceProject
     setDraft(cloneProject(prepared))
@@ -872,6 +921,8 @@ export default function PlanServiceClient() {
           else project.rootItemIds.splice(index, 0, id)
         })
         setSelectedId(id)
+        setSelectedRowIds([])
+        rangeAnchor.current = null
       } else if (target === 'background' && selected?.kind === 'sermon') {
         change(project => { project.assets[asset.id] = asset; project.items[selected.id].backgroundAssetId = asset.id })
       } else if (selected?.kind === 'picture') {
@@ -952,6 +1003,8 @@ export default function PlanServiceClient() {
         else project.rootItemIds.splice(index, 0, id)
       })
       setSelectedId(id)
+      setSelectedRowIds([])
+      rangeAnchor.current = null
       setNotice('Video uploaded privately. Save the shared service to attach it to this revision.')
     } catch (caught) {
       setError(errorText(caught))
@@ -1054,29 +1107,47 @@ export default function PlanServiceClient() {
 
           <div className="heritage-service-planner__outline-heading">
             <h2>Service order</h2>
+            <small aria-live="polite">{batchSlides.length > 1 ? `${batchSlides.length} selected` : 'Shift-click to select several'}</small>
           </div>
 
           {draft ? <ol className="heritage-service-planner__rows">
             {slideList.rows.map(row => {
-              const openMenu = (x: number, y: number) => { selectSlide(row); setMenu({ row, x: Math.min(x, window.innerWidth - 240), y: Math.min(y, window.innerHeight - 190) }) }
+              const rowSelected = selectedKeys.has(row.id)
+              const openMenu = (x: number, y: number) => {
+                const ids = rowSelected ? selectionIds : [row.id]
+                if (!rowSelected) selectSlide(row)
+                setMenu({ row, ids, x: Math.max(8, Math.min(x, window.innerWidth - 240)), y: Math.max(8, Math.min(y, window.innerHeight - 240)) })
+              }
               return <li key={row.id} style={{ '--service-depth': row.depth } as React.CSSProperties}
                 data-drop={dropTarget?.id === row.id ? (dropTarget.after ? 'after' : 'before') : undefined}>
                 <button className="heritage-service-planner__row" data-kind={row.kind}
-                  data-selected={selectedId === row.itemId && (row.index < 0 || activePreviewIndex === row.index) || undefined}
-                  type="button" draggable title={row.kind === 'song' && row.index === 0 ? `${row.title} · Drag to move the whole song` : row.title}
-                  onClick={() => selectSlide(row)}
+                  data-slide-id={row.id} data-selected={rowSelected || undefined} aria-pressed={rowSelected}
+                  data-active={activeSlide?.id === row.id || undefined}
+                  type="button" draggable title={`${row.title} · Shift-click to select a range · Right-click for actions`}
+                  onClick={event => selectSlide(row, event)}
                   onContextMenu={event => { event.preventDefault(); openMenu(event.clientX, event.clientY) }}
                   onKeyDown={event => {
                     if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
                       event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect(); openMenu(rect.left, rect.bottom)
+                    } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a') {
+                      event.preventDefault(); setSelectedRowIds(slideList.rows.filter(value => value.cue).map(value => value.id))
+                    } else if (event.key === 'Delete' || event.key === 'Backspace') {
+                      event.preventDefault(); removeSelection(rowSelected ? selectionIds : [row.id])
+                    } else if (event.shiftKey && ['ArrowUp', 'ArrowDown'].includes(event.key)) {
+                      const numbered = slideList.rows.filter(value => value.cue)
+                      const target = numbered[numbered.indexOf(row) + (event.key === 'ArrowDown' ? 1 : -1)]
+                      if (target) {
+                        event.preventDefault(); selectSlide(target, { shiftKey: true })
+                        event.currentTarget.closest('ol')?.querySelector<HTMLButtonElement>(`[data-slide-id="${CSS.escape(target.id)}"]`)?.focus()
+                      }
                     }
                   }}
-                  onDragStart={event => { dragged.current = row; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', row.id); setMenu(null) }}
+                  onDragStart={event => { dragged.current = rowSelected ? selectionIds : [row.id]; if (!rowSelected) selectSlide(row); event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', row.id); setMenu(null) }}
                   onDragEnd={() => { dragged.current = null; setDropTarget(null) }}
                   onDragOver={event => { if (!dragged.current) return; event.preventDefault(); event.dataTransfer.dropEffect = 'move'; const rect = event.currentTarget.getBoundingClientRect(); setDropTarget({ id: row.id, after: event.clientY > rect.top + rect.height / 2 }) }}
-                  onDrop={event => { event.preventDefault(); if (dragged.current) moveSlide(dragged.current, row, dropTarget?.after) }}>
+                  onDrop={event => { event.preventDefault(); if (dragged.current) dropSelection(dragged.current, row, Boolean(dropTarget?.after)) }}>
                   <span className="heritage-service-planner__kind" aria-hidden="true">{row.kind === 'group' ? '▾' : row.number}</span>
-                  <span><strong>{row.title}</strong>{row.kind === 'group' ? <small>section</small> : row.kind === 'song' && row.index === 0 ? <small>song</small> : null}</span>
+                  <span><strong>{row.title}</strong>{row.kind === 'group' ? <small>section</small> : isSongTitleSlide(row) ? <small>song</small> : null}</span>
                 </button>
               </li>
             })}
@@ -1090,15 +1161,16 @@ export default function PlanServiceClient() {
               const index = buttons.indexOf(document.activeElement as HTMLButtonElement)
               buttons[(index + (event.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length]?.focus()
             }}>
-            <small>{menu.row.kind === 'song' && menu.row.index === 0 ? 'Whole song' : menu.row.kind === 'group' ? 'Whole section' : `Slide ${menu.row.number}`}</small>
+            <small>{selectedPlannerSlides(slideList.rows, menu.ids).length > 1 ? `${selectedPlannerSlides(slideList.rows, menu.ids).length} selected slides` : menu.row.kind === 'group' ? 'Section' : `Slide ${menu.row.number}`}</small>
+            <button type="button" role="menuitem" onClick={() => runSelection(menu.ids, 'duplicate')}>Duplicate</button>
+            <button type="button" role="menuitem" onClick={() => { setMoveDialog(menu.ids); setMenu(null) }}>Move To…</button>
             {([-1, 1] as const).map(offset => {
-              const candidates = slideList.rows.filter(row => menu.row.kind === 'song' && menu.row.index > 0
-                ? row.itemId === menu.row.itemId && row.index > 0
-                : row.parentId === menu.row.parentId && row.index <= 0)
-              const target = candidates[candidates.findIndex(row => row.id === menu.row.id) + offset]
-              return <button key={offset} type="button" role="menuitem" disabled={!target} onClick={() => target && moveSlide(menu.row, target, offset > 0)}>Move {offset < 0 ? 'up' : 'down'}</button>
+              const chosen = selectedPlannerSlides(slideList.rows, menu.ids)
+              const target = (chosen[0]?.number || 1) + offset
+              const maximum = slideList.rows.filter(row => row.cue).length - chosen.length + 1
+              return <button key={offset} type="button" role="menuitem" disabled={!chosen.length || target < 1 || target > maximum} onClick={() => runSelection(menu.ids, 'move', target)}>Move {offset < 0 ? 'up' : 'down'}</button>
             })}
-            <button type="button" role="menuitem" onClick={() => removeSlide(menu.row)}>Delete</button>
+            <button type="button" role="menuitem" onClick={() => removeSelection(menu.ids)}>Delete</button>
           </div> : null}
         </aside>
 
@@ -1124,7 +1196,7 @@ export default function PlanServiceClient() {
                   {[selected.songPresentation.primaryChannelId, selected.songPresentation.secondaryChannelId].map((id: string) => <option key={id} value={id}>{draft?.channels[id]?.label || id}</option>)}
                 </select></label> : <span>{selected.songPresentation.secondaryChannelId ? 'One language per screen' : 'Single-language song'}</span>}
               </div> : null}
-              <PreviewCanvas kind={selected.kind} presetId={preview.presetId} titleCard={selected.kind === 'song' && activeSlide?.index === 0} singer={preview.singer} next={preview.next} backgroundUrl={selected.backgroundAssetId ? mediaPreviews[selected.backgroundAssetId] || (envelope?.project.assets?.[selected.backgroundAssetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetId)}` : undefined) : undefined}>
+              <PreviewCanvas kind={selected.kind} presetId={preview.presetId} titleCard={Boolean(activeSlide && isSongTitleSlide(activeSlide))} singer={preview.singer} next={preview.next} backgroundUrl={selected.backgroundAssetId ? mediaPreviews[selected.backgroundAssetId] || (envelope?.project.assets?.[selected.backgroundAssetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetId)}` : undefined) : undefined}>
                 {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
                   : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
                   : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
@@ -1212,7 +1284,7 @@ export default function PlanServiceClient() {
               </div>
             </details>
 
-          </> : <div className="heritage-service-planner__editor-empty"><h2>{draft ? 'Choose a slide on the left' : 'Choose a service to begin'}</h2></div>}
+          </> : <div className="heritage-service-planner__editor-empty"><h2>{draft ? 'Choose a slide on the left' : 'Choose a service to begin'}</h2>{undoStack.length ? <button type="button" onClick={undo}>Undo</button> : null}</div>}
         </main>
 
         <section className="heritage-service-planner__resources">
@@ -1245,6 +1317,9 @@ export default function PlanServiceClient() {
           <input ref={pictureInput} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={event => pictureChosen(event.target.files?.[0])} />
           <input ref={videoInput} type="file" accept="video/mp4,video/webm,.mp4,.webm" hidden onChange={event => videoChosen(event.target.files?.[0])} />
           {template && draft ? <SermonTemplateDialog template={template} project={draft} onCancel={() => setTemplate(null)} onCreate={addTemplate} /> : null}
+          {moveDialog && draft ? <MoveSlidesDialog count={dialogSlides.length} maximum={slideList.rows.filter(row => row.cue).length - dialogSlides.length + 1}
+            initial={dialogSlides[0]?.number || 1} onCancel={() => setMoveDialog(null)}
+            onMove={number => { applySelection(changePlannerSelection(draft, moveDialog, 'move', number)); setMoveDialog(null) }} /> : null}
         </section>
       </div>
     </section>

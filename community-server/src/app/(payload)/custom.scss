@@ -1215,6 +1215,8 @@
 
 .heritage-service-planner__row:hover { background: var(--theme-elevation-100); }
 .heritage-service-planner__row[data-selected] { border-color: var(--theme-success-400); background: var(--theme-success-100); box-shadow: inset 0.16rem 0 var(--theme-success-500); }
+.heritage-service-planner__row[data-active] { outline: 1px solid var(--theme-success-400); outline-offset: -1px; }
+.heritage-service-planner__outline-heading small { font-size: .68rem; color: var(--theme-elevation-600); }
 .heritage-service-planner__row[data-kind="group"] { margin-top: 0.3rem; background: var(--theme-elevation-100); }
 .heritage-service-planner__row > span:nth-child(2) { display: flex; min-width: 0; align-items: baseline; gap: 0.35rem; }
 .heritage-service-planner__row strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.78rem; }
@@ -1526,6 +1528,7 @@
 .heritage-service-planner__templates > button > small { font-size: .7rem; line-height: 1.3; }
 .heritage-slide-dialog { width: min(46rem, 94vw); max-height: 90dvh; padding: 1.2rem; overflow: auto; border: 1px solid var(--theme-elevation-250); border-radius: .75rem; color: var(--theme-text); background: var(--theme-bg); }
 .heritage-slide-dialog::backdrop { background: #0009; }
+.heritage-move-dialog { width: min(28rem, 94vw); }
 .heritage-slide-dialog header, .heritage-slide-dialog footer { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .heritage-slide-dialog h2 { margin: 0; font-size: 1.3rem; }
 .heritage-slide-dialog label { display: grid; gap: .4rem; margin-top: .8rem; }

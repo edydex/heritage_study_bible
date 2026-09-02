@@ -15,6 +15,10 @@ export type PlannerSlide = {
   cue?: RecordValue
 }
 
+export function isSongTitleSlide(slide: PlannerSlide) {
+  return slide.kind === 'song' && slide.cue?.sourceReference?.sectionId === null
+}
+
 const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value))
 
 /** The same compiler used by SyncShow is the only source of slide order. */
@@ -36,7 +40,7 @@ export function plannerSlides(project: RecordValue): PlannerSlide[] {
       result.push({
         id: cue.id, itemId, parentId, depth: depth + (item.kind === 'song' && index > 0 ? 1 : 0),
         index, number: ++number, kind: item.kind, cue,
-        title: item.kind === 'song' && index > 0
+        title: item.kind === 'song' && (item.showTitle === false || index > 0)
           ? firstLine?.text?.split('\n').find(Boolean) || cue.title
           : item.title,
       })
@@ -54,7 +58,7 @@ function contentChannel(item: RecordValue, channelId: string): string {
 
 /** Copy-on-write: expand occurrences to single-slide sections in service-local
  * resources. Repeated choruses and other uses of the library song stay intact. */
-function editableSong(project: RecordValue, itemId: string) {
+export function editableSong(project: RecordValue, itemId: string) {
   let next = copy(project)
   const item = next.items[itemId]
   const primaryId = item.primaryChannelId || Object.keys(item.variants).find(id => item.variants[id].mode === 'content')
@@ -111,21 +115,23 @@ export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, chan
       item.songPresentation.credits = text
       return copy(serviceCore.normalizeServiceProject(next))
     }
-    if (slide.index > 0) next = editableSong(next, item.id)
+    const titleSlide = isSongTitleSlide(slide)
+    const lyricIndex = slide.index - (item.showTitle === false ? 0 : 1)
+    if (!titleSlide) next = editableSong(next, item.id)
     item = next.items[slide.itemId]
     let sourceChannel = contentChannel(item, channelId)
-    if (item.songPresentation?.stackedTranslation && slide.index > 0) {
+    if (item.songPresentation?.stackedTranslation && !titleSlide) {
       sourceChannel = blockIndex === 0 ? item.songPresentation.primaryChannelId : item.songPresentation.secondaryChannelId
     }
     // Full title cards can display the other language's title as well.
-    if (slide.index === 0) {
+    if (titleSlide) {
       sourceChannel = Object.keys(item.variants).find(id => item.variants[id].mode === 'content'
         && next.resources[item.variants[id].resourceId].document.title === block.text) || sourceChannel
     }
     const original = next.resources[item.variants[sourceChannel].resourceId]
     const document = copy(original.document)
-    if (slide.index === 0) document.title = text
-    else document.sections[slide.index - 1].slides[0].lines = text.split('\n')
+    if (titleSlide) document.title = text
+    else document.sections[lyricIndex].slides[0].lines = text.split('\n')
     const added = (serviceCore.addSongResource as any)(next, document, { provider: 'local', itemId: item.id, revision: original.sha256 })
     next = copy(added.project)
     next.items[item.id].variants[sourceChannel].resourceId = added.resourceId
