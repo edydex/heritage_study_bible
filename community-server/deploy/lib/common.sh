@@ -507,35 +507,19 @@ heritage_sermon_media_schema_present() {
   esac
 }
 
-# Return the managed-object row count and retained bytes. A database from
-# before the recording migration represents a valid empty legacy store.
+# Derive totals from the same deduplicated inventory used by backup/restore.
+# Counting just the recording table omits saved service images and videos.
 heritage_sermon_media_database_summary() {
-  local summary
-
-  if heritage_sermon_media_schema_present; then
-    :
-  else
-    local schema_status=$?
-    if (( schema_status == 1 )); then
-      printf '0 0\n'
-      return 0
-    fi
-    return "${schema_status}"
+  local inventory digest count bytes
+  inventory="$(mktemp "${TMPDIR:-/tmp}/heritage-media-summary.XXXXXX")" || return 1
+  if ! (heritage_capture_sermon_database_inventory "${inventory}"); then
+    rm -f -- "${inventory}"
+    return 1
   fi
-  summary="$(heritage_compose exec -T postgres sh -ec '
-    exec psql \
-      --username="$POSTGRES_USER" \
-      --dbname="$POSTGRES_DB" \
-      --tuples-only \
-      --no-align \
-      --set=ON_ERROR_STOP=1 \
-      --field-separator=" " \
-      --command="SELECT count(*)::text, COALESCE(sum(size_bytes), 0)::text FROM public.syncshow_sermon_media_objects"
-  ' 2>/dev/null)" || return 1
-  summary="${summary//$'\r'/}"
-  summary="${summary//$'\n'/}"
-  [[ "${summary}" =~ ^[0-9]+\ [0-9]+$ ]] || return 1
-  printf '%s\n' "${summary}"
+  read -r digest count bytes < <(heritage_sermon_inventory_summary "${inventory}")
+  rm -f -- "${inventory}"
+  [[ "${count} ${bytes}" =~ ^[0-9]+\ [0-9]+$ ]] || return 1
+  printf '%s %s\n' "${count}" "${bytes}"
 }
 
 # Capture the database side of the same canonical inventory contract used for
