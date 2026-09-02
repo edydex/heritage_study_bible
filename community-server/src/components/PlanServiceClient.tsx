@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import serviceCore from '../../packages/service-core/index.js'
+import { projectFromServiceEnvelope } from './serviceDocumentPlannerModel'
 
 const ENDPOINT = '/api/community/service-documents'
 const CHANNEL_IDS = ['english', 'russian', 'media'] as const
@@ -30,8 +31,11 @@ type ServiceEnvelope = {
   documentSource: string
   status: 'planning' | 'ready' | 'archived' | 'cancelled'
   changedAt: string
-  document: { project: ServiceProject }
   project: ServiceProject
+}
+type ServiceEnvelopeInput = Omit<ServiceEnvelope, 'project'> & {
+  project?: ServiceProject
+  document?: { project?: ServiceProject }
 }
 type ServiceSummary = {
   syncId: string
@@ -277,7 +281,7 @@ function today() {
   ].join('-')
 }
 
-function NewService({ onCreated }: { onCreated: (value: ServiceEnvelope) => void }) {
+function NewService({ onCreated }: { onCreated: (value: ServiceEnvelopeInput) => void }) {
   const [title, setTitle] = useState('Sunday Morning Service')
   const [serviceDate, setServiceDate] = useState(today)
   const [busy, setBusy] = useState(false)
@@ -385,14 +389,16 @@ export default function PlanServiceClient() {
     }
   }
 
-  function useEnvelope(next: ServiceEnvelope) {
-    setEnvelope(next)
-    setDraft(cloneProject(next.project || next.document.project))
+  function useEnvelope(next: ServiceEnvelopeInput) {
+    const project = projectFromServiceEnvelope(next) as ServiceProject
+    const normalized = { ...next, project } as ServiceEnvelope
+    setEnvelope(normalized)
+    setDraft(cloneProject(project))
     setSelectedId(null)
     setDesiredStatus(next.status)
     setDirty(false)
     setError(null)
-    setNotice(`${next.project.title} is open at Community version ${next.syncVersion}.`)
+    setNotice(`${project.title} is open at Community version ${next.syncVersion}.`)
     loadList()
   }
 
@@ -578,6 +584,18 @@ export default function PlanServiceClient() {
         lyricsPresetId: 'song-lyrics',
       }, {
         parentId: selected?.kind === 'group' ? selected.id : null,
+        now: new Date().toISOString(),
+      })
+      const singersSourceChannelId = alignedRussian
+        ? 'russian'
+        : alignedEnglish
+          ? 'english'
+          : primaryChannelId
+      project = serviceCore.setSongChannelTreatment(project, {
+        itemId,
+        channelId: 'media',
+        mode: 'derive-next-text',
+        sourceChannelId: singersSourceChannelId,
         now: new Date().toISOString(),
       })
       const unaligned = Boolean((english && !alignedEnglish) || (russian && !alignedRussian))

@@ -17,6 +17,7 @@ import {
   serviceDocumentSummary,
 } from '../src/lib/syncshow/HeritageServiceDocumentServer.ts'
 import { legacyServicePlanToServiceDocument } from '../src/lib/syncshow/LegacyServicePlanToServiceDocument.ts'
+import { projectFromServiceEnvelope } from '../src/components/serviceDocumentPlannerModel.ts'
 
 type AnyRecord = Record<string, any>
 
@@ -74,6 +75,10 @@ test('Community accepts the exact shared source and builds SyncShow envelopes', 
     changedAt: NOW,
   }
   assert.equal(serviceDocumentResponse(row).documentSource, documentSource)
+  assert.equal(
+    projectFromServiceEnvelope(serviceDocumentResponse(row)).title,
+    'July 26 Service',
+  )
   assert.deepEqual(serviceDocumentSummary(row), {
     syncId: 'service-2026-07-26',
     syncVersion: 4,
@@ -250,6 +255,8 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.match(planner, /Add reading/)
   assert.match(planner, /Open sermon publication review/)
   assert.match(planner, /Song library.*Media.*Scripture/s)
+  assert.match(planner, /mode: 'derive-next-text'/)
+  assert.match(planner, /channelId: 'media'/)
   assert.doesNotMatch(planner, /__inspector/)
   assert.match(planner, /This service changed somewhere else/)
   assert.match(adminStyles, /\.heritage-admin-workspace\s*\{[^}]*place-items:\s*center/s)
