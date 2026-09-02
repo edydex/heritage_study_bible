@@ -561,6 +561,22 @@ heritage_capture_sermon_database_inventory() {
       || heritage_die "Could not determine whether managed sermon-media tables exist."
     : >"${destination}"
   fi
+  # Service media shares this object store but is not a recording-table row.
+  # Include immutable service history so saved revisions remain recoverable.
+  local service_table_count
+  service_table_count="$(heritage_compose exec -T postgres sh -ec '
+    exec psql --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" -At -v ON_ERROR_STOP=1 \
+      --command="SELECT COUNT(*) FROM pg_tables WHERE schemaname = '\''public'\'' AND tablename IN ('\''service_documents'\'', '\''syncshow_service_document_changes'\'')"
+  ')" || heritage_die "Could not inspect the service media schema."
+  if [[ "${service_table_count}" == "2" ]]; then
+    heritage_compose exec -T postgres sh -ec '
+      exec psql --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" -At -F "$(printf "\t")" -v ON_ERROR_STOP=1
+    ' <"${HERITAGE_DEPLOY_DIR}/../scripts/service-document-asset-inventory.sql" >>"${destination}" \
+      || heritage_die "Could not inventory saved service media."
+    LC_ALL=C sort -u -o "${destination}" "${destination}"
+  elif [[ "${service_table_count}" != "0" ]]; then
+    heritage_die "Service-document media schema is incomplete."
+  fi
   # Validate shape, ordering, totals, and digest even when the caller only
   # needs exact cmp semantics.
   heritage_sermon_inventory_summary "${destination}" >/dev/null

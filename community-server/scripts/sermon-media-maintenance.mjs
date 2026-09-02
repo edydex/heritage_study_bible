@@ -3,6 +3,7 @@ import { constants } from 'node:fs'
 import {
   lstat,
   open,
+  readFile,
   readdir,
   rmdir,
   stat,
@@ -298,11 +299,24 @@ try {
     FROM "syncshow_sermon_media_objects"
     ORDER BY "storage_key"
   `)
+  const serviceSchema = await client.query(`SELECT COUNT(*)::int AS count FROM pg_tables
+    WHERE schemaname = 'public' AND tablename IN ('service_documents', 'syncshow_service_document_changes')`)
+  const serviceTableCount = Number(serviceSchema.rows[0].count)
+  if (serviceTableCount !== 0 && serviceTableCount !== 2) throw new Error('The service-document media schema is incomplete.')
+  if (serviceTableCount === 2) {
+    if (requireBackupReady) await client.query('LOCK TABLE service_documents, syncshow_service_document_changes IN SHARE MODE')
+    const serviceAssets = await client.query(await readFile(new URL('./service-document-asset-inventory.sql', import.meta.url), 'utf8'))
+    retained.rows.push(...serviceAssets.rows)
+  }
   const retainedByKey = new Map()
   for (const row of retained.rows) {
     const key = String(row.storage_key)
     if (!OBJECT_KEY_PATTERN.test(key)) {
       throw new Error('The database contains an invalid private object key.')
+    }
+    const existing = retainedByKey.get(key)
+    if (existing && (existing.digest !== String(row.sha256) || existing.sizeBytes !== Number(row.size_bytes))) {
+      throw new Error('Two private media references disagree about the same object.')
     }
     retainedByKey.set(key, {
       digest: String(row.sha256),

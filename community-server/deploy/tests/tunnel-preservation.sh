@@ -146,6 +146,10 @@ case "$operation" in
     if [[ $joined == *" pg_isready "* ]]; then
       exit 0
     fi
+    if [[ $joined == *"tablename IN ('service_documents', 'syncshow_service_document_changes')"* ]]; then
+      printf '0\n'
+      exit 0
+    fi
     if [[ $joined == *"SELECT count(*) FROM (VALUES"* \
       && $joined == *"public.syncshow_sermon_media_objects"* \
       && $joined == *"public.syncshow_sermon_media_uploads"* \
