@@ -163,7 +163,7 @@ function normalizeTextSpans(raw, authoritativeText, field) {
       fail('INVALID_TEXT_SPANS', `${spanField} must be an object.`, { field: spanField });
     }
     const keys = Object.keys(candidate);
-    const unexpected = keys.filter(key => !['start', 'end', 'foreground', 'weight'].includes(key));
+    const unexpected = keys.filter(key => !['start', 'end', 'foreground', 'weight', 'fontScale'].includes(key));
     if (unexpected.length > 0) {
       fail(
         'INVALID_TEXT_SPANS',
@@ -221,7 +221,13 @@ function normalizeTextSpans(raw, authoritativeText, field) {
       }
       span.weight = candidate.weight;
     }
-    if (span.foreground === undefined && span.weight === undefined) {
+    if (candidate.fontScale !== undefined) {
+      if (!Number.isFinite(candidate.fontScale) || candidate.fontScale < 0.5 || candidate.fontScale > 2) {
+        fail('INVALID_TEXT_SPANS', `${spanField}.fontScale must be between 0.5 and 2.`);
+      }
+      span.fontScale = candidate.fontScale;
+    }
+    if (span.foreground === undefined && span.weight === undefined && span.fontScale === undefined) {
       fail(
         'INVALID_TEXT_SPANS',
         `${spanField} must set foreground, weight, or both.`,
@@ -419,6 +425,12 @@ function normalizeChannel(raw, field, channelId) {
     normalized.sourceChannelId = id(raw.sourceChannelId, `${field}.sourceChannelId`);
     if (normalized.sourceChannelId === channelId) {
       fail('CHANNEL_INHERITANCE_CYCLE', `${field} cannot derive from itself.`, { field });
+    }
+    if (raw.sourceBlocks !== undefined) {
+      if (!Array.isArray(raw.sourceBlocks) || raw.sourceBlocks.length > MAX_BLOCKS_PER_CHANNEL) {
+        fail('INVALID_BLOCKS', `${field}.sourceBlocks has invalid singer source content.`, { field });
+      }
+      normalized.sourceBlocks = raw.sourceBlocks.map((block, index) => normalizeBlock(block, `${field}.sourceBlocks[${index}]`));
     }
   }
   return normalized;
@@ -4196,7 +4208,8 @@ function compileServiceProject(rawProject, options = {}) {
         titleChannels[channelId] = {
           mode: resolved.mode === 'derive' ? 'condensed' : 'content',
           ...(resolved.mode === 'derive'
-            ? { sourceChannelId: resolved.sourceChannelId }
+            ? { sourceChannelId: item.songPresentation?.primaryChannelId || resolved.sourceChannelId,
+                sourceBlocks: [{ type: 'text', role: 'title', text: resolvedByChannel[item.songPresentation?.primaryChannelId || resolved.sourceChannelId].resource.document.title }] }
             : {}),
           blocks: presentationTitleBlocks(item, resolvedByChannel, channelId) || titleBlocks
         };
@@ -4233,7 +4246,8 @@ function compileServiceProject(rawProject, options = {}) {
             channels[channelId] = {
               mode: resolved.mode === 'derive' ? 'condensed' : 'content',
               ...(resolved.mode === 'derive'
-                ? { sourceChannelId: resolved.sourceChannelId }
+                ? { sourceChannelId: item.songPresentation?.primaryChannelId || resolved.sourceChannelId,
+                    sourceBlocks: [{ type: 'text', role: 'lyrics', text: resolvedByChannel[item.songPresentation?.primaryChannelId || resolved.sourceChannelId].resource.document.sections.find(candidate => candidate.id === entry.sectionId).slides[slideIndex].lines.join('\n') }] }
                 : {}),
               blocks: presentationLyricBlocks(item, resolvedByChannel, channelId, entry.sectionId, slideIndex)
                 || [{ type: 'text', role: 'lyrics', text: lines.join('\n') }]

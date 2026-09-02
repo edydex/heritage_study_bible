@@ -6,6 +6,7 @@ export default function PlanService(props: AdminViewServerProps) {
   const { initPageResult } = props
   return (
     <DefaultTemplate
+      className="heritage-planner-frame"
       i18n={props.i18n}
       locale={initPageResult.locale}
       params={props.params}

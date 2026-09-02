@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import serviceCore from '../../packages/service-core/index.js'
+import { plannerPreview } from './plannerPreview'
 import { preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
 import { deletePlannerSlide, editablePreviewBlock, editPlannerSlide, movePlannerSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
 import {
@@ -192,7 +193,7 @@ function previewBlockText(block: Record<string, any>) {
   return ''
 }
 
-function SlideText({ text, label, role, spans = [], onCommit }: { text: string; label: string; role: string; spans?: Record<string, any>[]; onCommit: (value: string) => void }) {
+function SlideText({ text, label, role, spans = [], readOnly = false, onCommit }: { text: string; label: string; role: string; spans?: Record<string, any>[]; readOnly?: boolean; onCommit: (value: string) => void }) {
   const element = useRef<HTMLDivElement>(null)
   const paint = () => {
     const node = element.current
@@ -205,6 +206,7 @@ function SlideText({ text, label, role, spans = [], onCommit }: { text: string; 
       fragment.textContent = text.slice(span.start, span.end)
       if (span.foreground) fragment.style.color = span.foreground
       if (span.weight) fragment.style.fontWeight = span.weight
+      if (span.fontScale) fragment.style.fontSize = `${span.fontScale}em`
       node.append(fragment)
       offset = span.end
     }
@@ -213,7 +215,7 @@ function SlideText({ text, label, role, spans = [], onCommit }: { text: string; 
   useEffect(paint, [text, spans])
   return <div ref={element} className="heritage-service-planner__editable-text" data-role={role}
     data-fit-text
-    contentEditable="plaintext-only" suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label={label}
+    contentEditable={readOnly ? false : 'plaintext-only'} suppressContentEditableWarning role={readOnly ? undefined : 'textbox'} aria-multiline={readOnly ? undefined : true} aria-label={label}
     onBlur={event => { const value = event.currentTarget.innerText; if (value !== text) onCommit(value); paint() }}
     onKeyDown={event => {
       if (event.key === 'Escape') { event.currentTarget.innerText = text; event.currentTarget.blur() }
@@ -221,7 +223,7 @@ function SlideText({ text, label, role, spans = [], onCommit }: { text: string; 
     }} />
 }
 
-function PreviewCanvas({ kind, presetId, titleCard, condensed, children }: { kind: string; presetId?: string; titleCard?: boolean; condensed?: boolean; children: React.ReactNode }) {
+function PreviewCanvas({ kind, presetId, titleCard, singer, next, children }: { kind: string; presetId?: string; titleCard?: boolean; singer?: boolean; next?: {state: string; text: string}; children: React.ReactNode }) {
   const stage = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const element = stage.current
@@ -248,7 +250,11 @@ function PreviewCanvas({ kind, presetId, titleCard, condensed, children }: { kin
     fit()
     return () => { observer.disconnect(); element.removeEventListener('input', fit) }
   }, [children, kind, presetId, titleCard])
-  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind} data-preset={presetId} data-title-card={titleCard || undefined} data-condensed={condensed || undefined}><div className="heritage-service-planner__slide-content">{children}</div></div></div>
+  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind} data-preset={presetId} data-title-card={titleCard || undefined} data-singer={singer || undefined}><div className="heritage-service-planner__slide-content">{children}</div>
+    {singer && next ? <aside className="heritage-service-planner__next-lines" aria-label="Next slide cue" data-state={next.state}>
+      <p>{next.state === 'end' ? 'End of presentation' : next.text}</p>
+    </aside> : null}
+  </div></div>
 }
 
 function descendantIds(project: ServiceProject, itemId: string, found = new Set<string>()) {
@@ -369,6 +375,7 @@ export default function PlanServiceClient() {
   const [dropTarget, setDropTarget] = useState<{ id: string; after: boolean } | null>(null)
   const dragged = useRef<PlannerSlide | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const workspaceMenuRef = useRef<HTMLDetailsElement>(null)
   const [undoStack, setUndoStack] = useState<ServiceProject[]>([])
   const bibleBookInput = useRef<HTMLSelectElement>(null)
   const bibleChapterInput = useRef<HTMLInputElement>(null)
@@ -391,8 +398,15 @@ export default function PlanServiceClient() {
   const activePreviewIndex = Math.min(previewSlideIndex, Math.max(0, selectedSlides.length - 1))
   const activeSlide = selectedSlides[activePreviewIndex]
   const activePreviewCue = activeSlide?.cue
-  const activePreviewOutput = activePreviewCue?.channels?.[previewChannel]
-  const nextPreviewOutput = selectedSlides[activePreviewIndex + 1]?.cue?.channels?.[previewChannel]
+  const preview = plannerPreview(slideList.rows, activeSlide, previewChannel)
+  const activePreviewOutput = preview.output
+  useEffect(() => {
+    const close = (event: PointerEvent) => {
+      if (workspaceMenuRef.current && !workspaceMenuRef.current.contains(event.target as Node)) workspaceMenuRef.current.open = false
+    }
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
+  }, [])
   useEffect(() => {
     if (!menu) return
     menuRef.current?.querySelector<HTMLButtonElement>('button')?.focus()
@@ -988,34 +1002,38 @@ export default function PlanServiceClient() {
 
   return (
     <section className="heritage-service-planner">
-      <header className="heritage-service-planner__heading">
-        <div>
-          <p className="heritage-admin-eyebrow">Sunday service builder</p>
-          <h1>{draft?.title || 'Plan a service'}</h1>
-          <p>{draft ? `${draft.serviceDate} · ${slideList.rows.filter(row => row.cue).length} slides` : 'Choose a service on the left or create the next Sunday.'}</p>
-        </div>
-        {draft ? <div className="heritage-service-planner__save-actions">
-          <label>
-            <span>Status</span>
-            <select value={desiredStatus} onChange={event => setDesiredStatus(event.target.value as ServiceEnvelope['status'])}>
-              <option value="planning">Planning</option>
-              <option value="ready">Ready</option>
-              <option value="archived">Archived</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </label>
-          <span>{dirty ? 'Unsaved changes' : `Saved · v${envelope?.syncVersion}`}</span>
-          <button className="btn btn--style-primary" type="button" disabled={busy || (!dirty && desiredStatus === envelope?.status)} onClick={save}>
-            {busy ? 'Saving…' : 'Save service'}
-          </button>
-        </div> : null}
-      </header>
-
       {error ? <p className="heritage-service-planner__error" role="alert">{error}</p> : null}
-      <p className="heritage-service-planner__notice" aria-live="polite">{notice}</p>
 
       <div className="heritage-service-planner__shell">
         <aside className="heritage-service-planner__navigation">
+          <div className="heritage-service-planner__toolbar">
+            <details ref={workspaceMenuRef} className="heritage-service-planner__app-menu" onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() } }}>
+              <summary aria-label="Workspace menu" title="Workspace menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg></summary>
+              <nav aria-label="Church workspace">
+                <strong>Church workspace</strong>
+                <a href="/admin">Workspace home</a>
+                <a href="/admin/prepare-sermon">Prepare a sermon</a>
+                <a href="/admin/sermon-publications">Publish sermons</a>
+                <a href="/admin/collections/songs">Song library</a>
+                <a href="/admin/collections/sermons">Sermon library</a>
+                <a href="/admin/collections/media">Media library</a>
+                <a href="/" target="_blank" rel="noreferrer">Church website ↗</a>
+                <a href="/admin/account">My account</a>
+                <a href="/admin/logout">Log out</a>
+                <small>{notice}</small>
+              </nav>
+            </details>
+            <label htmlFor="service-status">Status</label>
+            <select id="service-status" value={desiredStatus} disabled={!draft || busy} onChange={event => setDesiredStatus(event.target.value as ServiceEnvelope['status'])}>
+              <option value="planning">Planning</option><option value="ready">Ready</option>
+              <option value="archived">Archived</option><option value="cancelled">Cancelled</option>
+            </select>
+            <button type="button" aria-label="Save service" title={!draft ? 'Open a service to save' : busy ? 'Saving…' : dirty || desiredStatus !== envelope?.status ? 'Save service · unsaved changes' : `Saved · v${envelope?.syncVersion || ''}`}
+              disabled={!draft || busy || (!dirty && desiredStatus === envelope?.status)} onClick={save}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2zm2 0v7h10V3M7 21v-7h10v7" /></svg>
+            </button>
+          </div>
+          <p className="heritage-service-planner__save-state" aria-live="polite" title={notice}>{draft ? `${slideList.rows.filter(row => row.cue).length} slides · ${busy ? 'Working…' : dirty || desiredStatus !== envelope?.status ? 'Unsaved changes' : `Saved v${envelope?.syncVersion}`}` : notice}</p>
           <div className="heritage-service-planner__service-picker">
             <label>
               <span>Current service</span>
@@ -1088,14 +1106,14 @@ export default function PlanServiceClient() {
           {selected ? <>
             <section className="heritage-service-planner__preview">
               <header className="heritage-service-planner__preview-heading">
-                <div><strong>{activeSlide ? `Preview · Slide ${activeSlide.number}` : selected.title}</strong></div>
+                <div><strong>{activeSlide ? `Slide ${activeSlide.number}` : selected.title}</strong><span title={draft?.title}>{draft?.title}</span><time dateTime={draft?.serviceDate}>{draft?.serviceDate}</time></div>
                 <button type="button" disabled={!undoStack.length} onClick={undo}>Undo</button>
               </header>
               <div className="heritage-service-planner__output-tabs" role="tablist" aria-label="Preview output">
                 <span>Screen</span>
                 {CHANNEL_IDS.map(channelId => <button key={channelId} type="button" role="tab" aria-selected={previewChannel === channelId} onClick={() => setPreviewChannel(channelId)}>{channelId === 'media' ? 'Singers' : draft?.channels[channelId]?.label || channelId}</button>)}
               </div>
-              {selected.kind === 'song' && selected.songPresentation ? <div className="heritage-service-planner__song-layout">
+              {selected.kind === 'song' && selected.songPresentation && !preview.singer ? <div className="heritage-service-planner__song-layout">
                 <label><input type="checkbox" aria-label="Stacked translation" checked={selected.songPresentation.stackedTranslation}
                   disabled={!selected.songPresentation.secondaryChannelId}
                   onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, stackedTranslation: event.target.checked },
@@ -1106,7 +1124,7 @@ export default function PlanServiceClient() {
                   {[selected.songPresentation.primaryChannelId, selected.songPresentation.secondaryChannelId].map((id: string) => <option key={id} value={id}>{draft?.channels[id]?.label || id}</option>)}
                 </select></label> : <span>{selected.songPresentation.secondaryChannelId ? 'One language per screen' : 'Single-language song'}</span>}
               </div> : null}
-              <PreviewCanvas kind={selected.kind} presetId={activeSlide?.cue?.presetId} titleCard={selected.kind === 'song' && activeSlide?.index === 0} condensed={activePreviewOutput?.mode === 'condensed'}>
+              <PreviewCanvas kind={selected.kind} presetId={preview.presetId} titleCard={selected.kind === 'song' && activeSlide?.index === 0} singer={preview.singer} next={preview.next}>
                 {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
                   : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
                   : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
@@ -1123,27 +1141,25 @@ export default function PlanServiceClient() {
                           <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
                           <p>{block.verses.map((verse: any, verseIndex: number) => <span key={verse.number}>{verseIndex > 0 ? ' ' : ''}<sup>{verse.number}</sup> {verse.text}</span>)}</p>
                         </div>
-                        return activeSlide && editablePreviewBlock(draft!, activeSlide, previewChannel, block)
+                        return activeSlide && block.type === 'text'
                           ? <SlideText key={`${activeSlide.id}:${previewChannel}:${index}`} text={previewBlockText(block)} role={block.role}
+                              readOnly={preview.singer || !editablePreviewBlock(draft!, activeSlide, previewChannel, block)}
                               spans={block.spans}
                               label={`Slide ${activeSlide.number} ${selected.kind === 'song' && selected.songPresentation?.stackedTranslation && block.role === 'lyrics'
                                 ? (index === 0 ? selected.songPresentation.primaryChannelId : selected.songPresentation.secondaryChannelId) : previewChannel} ${block.role} — click to edit`}
                               onCommit={text => slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text))} />
                           : <p key={index} data-role={block.role || 'scripture'}>{previewBlockText(block)}</p>
                       })}
-                {activePreviewOutput?.mode === 'condensed' && nextPreviewOutput?.blocks?.length ? <aside className="heritage-service-planner__next-lines">
-                  <span>Next</span><p>{nextPreviewOutput.blocks.map(previewBlockText).join('\n')}</p>
-                </aside> : null}
               </PreviewCanvas>
-              <p className="heritage-service-planner__preview-note">{activePreviewOutput?.mode === 'condensed'
-                ? 'Singers preview is generated automatically. Edit the source-language slide.'
+              <p className="heritage-service-planner__preview-note">{preview.singer
+                ? 'Full primary-language slide · Next cue: first line, up to 70 characters.'
                 : selected.kind === 'bible' ? (activePreviewOutput?.blocks || []).some((block: any) => block.type === 'bible' && block.verses.reduce((count: number, verse: any) => count + scriptureLineCount(`${verse.number} ${verse.text}`), 0) > SCRIPTURE_PAGE_MAX_LINES)
                   ? 'This unusually long verse needs a shorter slide layout before projection.'
                   : 'One reading page · English and Russian advance together · Exact source text preserved.'
                   : selected.kind === 'song' && selected.songPresentation?.stackedTranslation ? 'Same stack on both audience screens · White primary language, orange translation · Click either to edit.'
                   : selected.kind === 'sermon' ? 'One language per screen · Gold heading and references · Click heading or body to edit.'
                   : selected.kind === 'picture' ? 'Picture slide. Replace its image from Media below.'
-                    : 'Click the slide text to edit · Click outside to apply · Save service to keep changes'}<span>Preview layout · venue typography is applied by SyncShow.</span></p>
+                    : 'Click the slide text to edit · Click outside to apply · Save to keep changes'}</p>
             </section>
 
             <details className="heritage-service-planner__advanced">
