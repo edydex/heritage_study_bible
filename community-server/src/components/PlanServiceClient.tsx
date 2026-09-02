@@ -284,10 +284,14 @@ function today() {
 function NewService({ onCreated }: { onCreated: (value: ServiceEnvelopeInput) => void }) {
   const [title, setTitle] = useState('Sunday Morning Service')
   const [serviceDate, setServiceDate] = useState(today)
+  const titleInput = useRef<HTMLInputElement>(null)
+  const serviceDateInput = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function create() {
+    const visibleTitle = titleInput.current?.value.trim() || title.trim()
+    const visibleServiceDate = serviceDateInput.current?.value || serviceDate
     setBusy(true)
     setError(null)
     try {
@@ -296,9 +300,9 @@ function NewService({ onCreated }: { onCreated: (value: ServiceEnvelopeInput) =>
         body: JSON.stringify({
           schemaVersion: 1,
           requestId: uuid(),
-          syncId: `service-${serviceDate}`,
-          title,
-          serviceDate,
+          syncId: `service-${visibleServiceDate}`,
+          title: visibleTitle,
+          serviceDate: visibleServiceDate,
         }),
       })
       onCreated(response.serviceDocument)
@@ -315,11 +319,11 @@ function NewService({ onCreated }: { onCreated: (value: ServiceEnvelopeInput) =>
       <div>
         <label>
           <span>Service title</span>
-          <input value={title} maxLength={200} onChange={event => setTitle(event.target.value)} />
+          <input ref={titleInput} value={title} maxLength={200} onChange={event => setTitle(event.target.value)} />
         </label>
         <label>
           <span>Service date</span>
-          <input type="date" value={serviceDate} onChange={event => setServiceDate(event.target.value)} />
+          <input ref={serviceDateInput} type="date" value={serviceDate} onChange={event => setServiceDate(event.target.value)} />
         </label>
         <button className="btn btn--style-primary" type="button" disabled={busy || !title.trim() || !serviceDate} onClick={create}>
           {busy ? 'Creating…' : 'Create service'}
