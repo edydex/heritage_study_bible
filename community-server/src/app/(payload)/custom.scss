@@ -1357,6 +1357,11 @@
 .heritage-service-planner__stage p { flex: 0 0 auto; max-width: 50rem; margin: 0; white-space: pre-wrap; color: #e9edeb; font-size: var(--slide-text-size, 1.5rem); line-height: 1.25; }
 .heritage-service-planner__stage p[data-role="title"] { font-size: clamp(1.5rem, 2.6vw, 2.5rem); font-weight: 750; }
 .heritage-service-planner__stage p[data-role="credit"] { color: #aeb6b2; font-size: 0.8rem; }
+.heritage-service-planner__scripture-page { width: 100%; text-align: left; }
+.heritage-service-planner__stage .heritage-service-planner__scripture-page p { max-width: none; margin: 0.45em 0; }
+.heritage-service-planner__stage .heritage-service-planner__scripture-page .heritage-service-planner__scripture-reference { font-size: calc(var(--slide-text-size, 1.5rem) * 0.82); color: #c3d3e6; margin: 0 0 0.65em; }
+.heritage-service-planner__scripture-reference small { font-size: 0.65em; margin-left: 0.6em; }
+.heritage-service-planner__scripture-page sup { font-size: 0.65em; color: #c3d3e6; }
 .heritage-service-planner__stage img,
 .heritage-service-planner__stage video { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; }
 .heritage-service-planner__stage .heritage-service-planner__stage-status { color: #aeb6b2; font-size: 0.9rem; }

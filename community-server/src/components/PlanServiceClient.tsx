@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import serviceCore from '../../packages/service-core/index.js'
+import { preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
 import { deletePlannerSlide, editablePreviewBlock, editPlannerSlide, movePlannerSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
 import {
   parsePlannerLibrarySongDocument,
@@ -172,7 +173,7 @@ function itemPreset(item: ProjectItem) {
 
 function presetChoices(item: ProjectItem) {
   if (item.kind === 'song') return ['song-lyrics']
-  if (item.kind === 'bible') return ['scripture-text']
+  if (item.kind === 'bible') return ['scripture-large', 'scripture-text']
   if (item.kind === 'sermon') return ['sermon-point', 'notice-text']
   if (item.kind === 'notice') return ['notice-text', 'sermon-point']
   if (item.kind === 'picture') return ['picture-fullscreen']
@@ -411,17 +412,20 @@ export default function PlanServiceClient() {
 
   function useEnvelope(next: ServiceEnvelopeInput) {
     const project = projectFromServiceEnvelope(next) as ServiceProject
+    const prepared = preparePlannerPresentation(project)
     const normalized = { ...next, project } as ServiceEnvelope
     setEnvelope(normalized)
-    setDraft(cloneProject(project))
-    setSelectedId(plannerSlides(project).find(row => row.cue)?.itemId || null)
+    setDraft(cloneProject(prepared.project as ServiceProject))
+    setSelectedId(plannerSlides(prepared.project).find(row => row.cue)?.itemId || null)
     setPreviewSlideIndex(0)
     setUndoStack([])
     setMenu(null)
     setDesiredStatus(next.status)
-    setDirty(false)
+    setDirty(prepared.changed)
     setError(null)
-    setNotice(`${project.title} is open at Community version ${next.syncVersion}.`)
+    setNotice(prepared.changed
+      ? 'Projector layout updated: short Scripture pages and minimal song titles. Save service to keep these changes.'
+      : `${project.title} is open at Community version ${next.syncVersion}.`)
     loadList()
   }
 
@@ -574,8 +578,9 @@ export default function PlanServiceClient() {
 
   function acceptCoreProject(project: ServiceProject, itemId: string, message: string) {
     if (draft) setUndoStack(stack => [...stack.slice(-29), draft])
-    setDraft(cloneProject(project))
-    setSelectedId(itemId)
+    const prepared = preparePlannerPresentation(project).project as ServiceProject
+    setDraft(cloneProject(prepared))
+    setSelectedId(prepared.items[itemId]?.kind === 'group' ? prepared.items[itemId].childIds[0] || itemId : itemId)
     setPreviewSlideIndex(0)
     setDesiredStatus('planning')
     setDirty(true)
@@ -644,10 +649,11 @@ export default function PlanServiceClient() {
           .filter(Boolean)
           .filter((value: string, index: number, values: string[]) => values.indexOf(value) === index)
           .join(' / '),
-        operatorNotes: `Pinned from Community song ${librarySong.syncId} v${librarySong.syncVersion}. Rights and access remain manager-controlled.`,
+        operatorNotes: `From Community song ${librarySong.syncId} v${librarySong.syncVersion}.`,
         variants: Object.fromEntries(CHANNEL_IDS.map(channelId => [channelId, {
           mode: 'content',
           resourceId: resourceByChannel[channelId],
+          titleCardMode: 'simple',
         }])),
         arrangement: arrangementSource.arrangementSectionIds.map((sectionId: string) => ({
           id: `arr-${uuid()}`,
@@ -713,7 +719,7 @@ export default function PlanServiceClient() {
         title: `${passage.title} · BSB / SYNO-W`,
         range: passage.range,
         passagesByChannel: passage.passagesByChannel,
-        presetId: 'scripture-text',
+        presetId: 'scripture-large',
         operatorNotes: 'Exact Bible text pinned from the configured Heritage reader data.',
         parentId: selected?.kind === 'group' ? selected.id : null,
         now: new Date().toISOString(),
@@ -721,7 +727,7 @@ export default function PlanServiceClient() {
       acceptCoreProject(
         project,
         itemId,
-        'Bible passage resolved and pinned for English, Russian, and Media. Save the shared service when the order is ready.',
+        'Reading added as short, synchronized Scripture slides. Save service when ready.',
       )
     } catch (caught) {
       setError(errorText(caught))
@@ -1066,6 +1072,10 @@ export default function PlanServiceClient() {
                             ? <img key={index} src={source} alt={block.altText || selected.title} />
                             : <video key={index} src={source} controls preload="metadata" muted={block.muted} />
                         }
+                        if (block.type === 'bible') return <div key={index} className="heritage-service-planner__scripture-page">
+                          <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
+                          <p>{block.verses.map((verse: any, verseIndex: number) => <span key={verse.number}>{verseIndex > 0 ? ' ' : ''}<sup>{verse.number}</sup> {verse.text}</span>)}</p>
+                        </div>
                         return activeSlide && editablePreviewBlock(draft!, activeSlide, previewChannel, block)
                           ? <SlideText key={`${activeSlide.id}:${previewChannel}:${index}`} text={previewBlockText(block)} role={block.role}
                               label={`Slide ${activeSlide.number} ${previewChannel} ${block.role} — click to edit`}
@@ -1078,7 +1088,9 @@ export default function PlanServiceClient() {
               </PreviewCanvas>
               <p className="heritage-service-planner__preview-note">{activePreviewOutput?.mode === 'condensed'
                 ? 'Singers preview is generated automatically. Edit the source-language slide.'
-                : selected.kind === 'bible' ? 'Scripture text is source-locked. Choose a different passage from Resources.'
+                : selected.kind === 'bible' ? (activePreviewOutput?.blocks || []).some((block: any) => block.type === 'bible' && block.verses.reduce((count: number, verse: any) => count + scriptureLineCount(`${verse.number} ${verse.text}`), 0) > SCRIPTURE_PAGE_MAX_LINES)
+                  ? 'This unusually long verse needs a shorter slide layout before projection.'
+                  : 'One reading page · English and Russian advance together · Exact source text preserved.'
                   : selected.kind === 'picture' ? 'Picture slide. Replace its image from Media below.'
                     : 'Click the slide text to edit · Click outside to apply · Save service to keep changes'}<span>Preview layout · venue typography is applied by SyncShow.</span></p>
             </section>
@@ -1138,7 +1150,7 @@ export default function PlanServiceClient() {
             {resourceTab === 'songs' ? <>
               <label><span>Reviewed Community song</span><select value={songChoice} onChange={event => setSongChoice(event.target.value)}>{songLibrary.map(song => <option key={song.syncId} value={song.syncId}>{song.title}{song.russianTitle && song.russianTitle !== song.title ? ` / ${song.russianTitle}` : ''}</option>)}</select></label>
               <button className="btn btn--style-primary" type="button" disabled={!draft || busy || !songChoice} onClick={addLibrarySong}>Add song to service</button>
-              <small>Uses the exact reviewed private song revision. It does not change public access.</small>
+              <small>Adds a service copy. Library lyrics stay unchanged.</small>
             </> : null}
             {resourceTab === 'media' ? <>
               <div><strong>Pictures and videos</strong><small>Media stays private inside this service until its exact revision is opened in SyncShow.</small></div>
