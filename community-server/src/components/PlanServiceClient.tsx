@@ -5,6 +5,7 @@ import serviceCore from '../../packages/service-core/index.js'
 import { plannerPreview } from './plannerPreview'
 import SermonTemplateDialog from './SermonTemplateDialog'
 import MoveSlidesDialog from './MoveSlidesDialog'
+import DeleteSlidesDialog from './DeleteSlidesDialog'
 import SlideText from './SlideText'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 import { SERMON_TEMPLATES, createTemplateSlide, insertionPoint, type SermonTemplateId, type TemplateText } from './plannerTemplates'
@@ -368,6 +369,7 @@ export default function PlanServiceClient() {
   const rangeAnchor = useRef<string | null>(null)
   const [menu, setMenu] = useState<{ row: PlannerSlide; ids: string[]; x: number; y: number } | null>(null)
   const [moveDialog, setMoveDialog] = useState<string[] | null>(null)
+  const [deleteDialog, setDeleteDialog] = useState<string[] | null>(null)
   const [dropTarget, setDropTarget] = useState<{ id: string; after: boolean } | null>(null)
   const dragged = useRef<string[] | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -463,6 +465,7 @@ export default function PlanServiceClient() {
     setSelectedRowIds([])
     rangeAnchor.current = null
     setMoveDialog(null)
+    setDeleteDialog(null)
     setDesiredStatus(next.status)
     setDirty(prepared.changed)
     setError(null)
@@ -589,10 +592,7 @@ export default function PlanServiceClient() {
 
   function removeSelection(ids: string[]) {
     setMenu(null)
-    const count = selectedPlannerSlides(slideList.rows, ids).length
-    const sections = ids.some(id => slideList.rows.find(row => row.id === id)?.kind === 'group')
-    if (!globalThis.confirm(`Delete ${sections ? 'the selected section and its slides' : count === 1 ? 'this slide' : `these ${count} slides`}? You can undo before saving.`)) return
-    runSelection(ids, 'delete')
+    setDeleteDialog(ids)
   }
 
   function dropSelection(ids: string[], target: PlannerSlide, after: boolean) {
@@ -1320,6 +1320,9 @@ export default function PlanServiceClient() {
           {moveDialog && draft ? <MoveSlidesDialog count={dialogSlides.length} maximum={slideList.rows.filter(row => row.cue).length - dialogSlides.length + 1}
             initial={dialogSlides[0]?.number || 1} onCancel={() => setMoveDialog(null)}
             onMove={number => { applySelection(changePlannerSelection(draft, moveDialog, 'move', number)); setMoveDialog(null) }} /> : null}
+          {deleteDialog && draft ? <DeleteSlidesDialog count={selectedPlannerSlides(slideList.rows, deleteDialog).length}
+            sections={deleteDialog.some(id => slideList.rows.find(row => row.id === id)?.kind === 'group')}
+            onCancel={() => setDeleteDialog(null)} onDelete={() => { runSelection(deleteDialog, 'delete'); setDeleteDialog(null) }} /> : null}
         </section>
       </div>
     </section>
