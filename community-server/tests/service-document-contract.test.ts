@@ -354,6 +354,7 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.match(adminStyles, /grid-template-rows:\s*minmax\(0, 1fr\) auto/)
   assert.match(adminStyles, /border-bottom:\s*1px dotted var\(--theme-elevation-200\)/)
   assert.match(adminStyles, /height:\s*1\.85rem/)
+  assert.match(adminStyles, /\.heritage-service-planner__rows\s*\{[^}]*align-content:\s*start/s)
 
   const routes = new Set(managerServiceDocumentEndpoints.map(endpoint =>
     `${endpoint.method.toUpperCase()} ${endpoint.path}`))
