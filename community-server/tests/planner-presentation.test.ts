@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import core from '../packages/service-core/index.js'
+import { plannerSlides, editPlannerSlide } from '../src/components/plannerSlides.ts'
 import { preparePlannerPresentation, scripturePages, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from '../src/components/plannerPresentation.ts'
 
 function fixture() {
@@ -32,33 +33,36 @@ test('long Scripture becomes real synchronized, projector-sized cues and survive
   assert.equal(prepared.readingsSplit, 1)
   const project = reopen(prepared.project)
   const pages = project.items.reading.childIds.map((id: string) => project.items[id])
-  assert.equal(pages.length, 10)
-  assert.equal(pages[0].title, 'Psalms 18:16–17')
-  assert.equal(pages.at(-1).title, 'Psalms 18:34–35')
+  assert.equal(pages.length, 5)
+  assert.equal(pages[0].title, 'Psalms 18:16–19')
+  assert.equal(pages.at(-1).title, 'Psalms 18:32–35')
   for (const channel of original.channelIds) {
     assert.deepEqual(pages.flatMap((item: any) => item.passagesByChannel[channel].verses), original.items.reading.passagesByChannel[channel].verses)
     pages.forEach((item: any) => {
       assert.equal(item.passagesByChannel[channel].attribution, 'Source credit')
       assert.ok(item.passagesByChannel[channel].contentSha256)
-      assert.equal(item.presetId, 'scripture-large')
-      assert.equal(item.passagesByChannel[channel].verses.length, 2)
+      assert.equal(item.presetId, 'wotbc-reading')
+      assert.equal(item.passagesByChannel[channel].verses.length, 4)
     })
   }
   const timeline = core.compileServiceProject(project)
-  assert.equal(timeline.cueIds.filter((id: string) => timeline.cues[id].kind === 'bible').length, 10)
+  assert.equal(timeline.cueIds.filter((id: string) => timeline.cues[id].kind === 'bible').length, 5)
   assert.equal(JSON.stringify(original), before)
   assert.equal(preparePlannerPresentation(project).changed, false)
   assert.deepEqual(preparePlannerPresentation(project).project, project)
 })
 
-test('minimal titles omit projected review notes while preserving author and attribution metadata', () => {
+test('compact titles credit authors without projecting import notes or changing library metadata', () => {
   const original = fixture()
   const project = reopen(preparePlannerPresentation(original).project)
   assert.deepEqual(project.resources, original.resources)
   const timeline = core.compileServiceProject(project)
   const title = timeline.cues[timeline.cueIds[0]]
   for (const channel of project.channelIds) {
-    assert.deepEqual(title.channels[channel].blocks, [{ type: 'text', role: 'title', text: 'A Song' }])
+    assert.deepEqual(title.channels[channel].blocks, [
+      { type: 'text', role: 'title', text: 'A Song' },
+      ...(channel !== 'media' ? [{ type: 'text', role: 'credit', text: 'A Writer' }] : []),
+    ])
   }
 })
 
@@ -70,7 +74,7 @@ test('explicit title choices are preserved; projection defaults do not override 
 
 test('the longest output controls verse boundaries; no translation is omitted or mismatched', () => {
   const item = JSON.parse(JSON.stringify(fixture().items.reading))
-  item.passagesByChannel.russian.verses[0].text = 'Длинная строка для чтения на экране. '.repeat(5)
+  item.passagesByChannel.russian.verses[0].text = 'Длинная строка для чтения на экране. '.repeat(11)
   const pages = scripturePages(item)
   assert.deepEqual(pages[0], [16])
   assert.deepEqual(pages.flat(), Array.from({ length: 20 }, (_, index) => 16 + index))
@@ -90,4 +94,39 @@ test('splitting keeps group placement, operator notes and total planned duration
   assert.equal(project.items.reading.plannedDurationSeconds, 300)
   assert.equal(project.items.reading.operatorNotes, 'Reader walks up before this passage.')
   for (const id of project.items.reading.childIds) assert.equal(project.items[id].plannedDurationSeconds, undefined)
+})
+
+test('stacked songs are identical on both audience screens; lower orange translation edits only its source', () => {
+  let project: any = JSON.parse(JSON.stringify(fixture()))
+  const ru = core.parseSongDocument('---\nid: song-ru\ntitle: Песня\nlanguage: ru\nauthors: A Writer\n---\n\n^1\nПервая строка\nВторая строка\n', { fileName: 'song-ru.md' })
+  const pinned = core.addSongResource(project, ru)
+  project = JSON.parse(JSON.stringify(pinned.project))
+  project.items.song.variants.russian = { mode: 'content', resourceId: pinned.resourceId }
+  project.items.song.variants.media.from = 'russian'
+  project = reopen(preparePlannerPresentation(project).project)
+  const rows = plannerSlides(project)
+  const title = rows.find(row => row.itemId === 'song' && row.index === 0)!
+  const lyrics = rows.find(row => row.itemId === 'song' && row.index === 1)!
+  assert.deepEqual(title.cue!.channels.english.blocks, title.cue!.channels.russian.blocks)
+  assert.equal(title.cue!.channels.english.blocks[0].text, 'Песня')
+  assert.deepEqual(lyrics.cue!.channels.english.blocks, lyrics.cue!.channels.russian.blocks)
+  assert.equal(lyrics.cue!.channels.english.blocks[0].text, 'Первая строка\nВторая строка')
+  assert.equal(lyrics.cue!.channels.english.blocks[1].spans[0].foreground, '#ffc000')
+  assert.equal(lyrics.cue!.channels.media.blocks.length, 1)
+  const edited = editPlannerSlide(project, lyrics, 'russian', 1, 'Edited English')
+  const after = plannerSlides(reopen(edited)).find(row => row.itemId === 'song' && row.index === 1)!
+  assert.equal(after.cue!.channels.english.blocks[0].text, lyrics.cue!.channels.english.blocks[0].text)
+  assert.equal(after.cue!.channels.english.blocks[1].text, 'Edited English')
+  assert.deepEqual(project.resources, preparePlannerPresentation(project).project.resources)
+  const off = JSON.parse(JSON.stringify(project))
+  off.items.song.songPresentation.stackedTranslation = false
+  const single = plannerSlides(reopen(off)).find(row => row.itemId === 'song' && row.index === 1)!
+  assert.equal(single.cue!.channels.english.blocks.length, 1)
+  assert.equal(single.cue!.channels.russian.blocks[0].text, 'Первая строка\nВторая строка')
+  assert.notEqual(single.cue!.channels.english.blocks[0].text, single.cue!.channels.russian.blocks[0].text)
+  const credited = editPlannerSlide(project, title, 'english', 2, 'Short credits')
+  assert.equal(credited.items.song.songPresentation.credits, 'Short credits')
+  assert.deepEqual(credited.resources, project.resources)
+  assert.throws(() => core.normalizeServiceProject({ ...project, items: { ...project.items, song: { ...project.items.song,
+    songPresentation: { ...project.items.song.songPresentation, primaryChannelId: 'media' } } } }), /Invalid song presentation/)
 })

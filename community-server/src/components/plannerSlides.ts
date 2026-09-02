@@ -1,4 +1,5 @@
 import serviceCore from '../../packages/service-core/index.js'
+import { sermonTextSpans } from './plannerSermonStyle'
 
 type RecordValue = Record<string, any>
 export type PlannerSlide = {
@@ -89,19 +90,26 @@ export function editablePreviewBlock(project: RecordValue, slide: PlannerSlide, 
   const item = project.items[slide.itemId]
   if (item.kind === 'notice' || item.kind === 'sermon') return block.type === 'text'
   if (item.kind !== 'song' || item.variants[channelId]?.mode === 'derive') return false
-  return block.role === 'lyrics' || block.role === 'title' || block.role === 'subtitle'
+  return ['lyrics', 'title', 'subtitle', 'credit'].includes(block.role)
 }
 
 export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, channelId: string, blockIndex: number, text: string) {
-  if (!text.trim()) throw new Error('Slide text cannot be empty. Use Delete in the slide menu instead.')
   const block = slide.cue?.channels[channelId]?.blocks[blockIndex]
+  if (!text.trim() && block?.role !== 'credit') throw new Error('Slide text cannot be empty. Use Delete in the slide menu instead.')
   if (!block || !editablePreviewBlock(project, slide, channelId, block)) throw new Error('This content is generated from its source.')
   let next = copy(project)
   let item = next.items[slide.itemId]
   if (item.kind === 'song') {
+    if (block.role === 'credit' && item.songPresentation) {
+      item.songPresentation.credits = text
+      return copy(serviceCore.normalizeServiceProject(next))
+    }
     if (slide.index > 0) next = editableSong(next, item.id)
     item = next.items[slide.itemId]
     let sourceChannel = contentChannel(item, channelId)
+    if (item.songPresentation?.stackedTranslation && slide.index > 0) {
+      sourceChannel = blockIndex === 0 ? item.songPresentation.primaryChannelId : item.songPresentation.secondaryChannelId
+    }
     // Full title cards can display the other language's title as well.
     if (slide.index === 0) {
       sourceChannel = Object.keys(item.variants).find(id => item.variants[id].mode === 'content'
@@ -121,6 +129,7 @@ export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, chan
     if (field === 'textByChannel') {
       delete item.spansByChannel?.[channelId]
       delete item.sourceBodyProjection
+      if (item.presetId === 'wotbc-sermon') item.spansByChannel = { ...item.spansByChannel, [channelId]: sermonTextSpans(text) }
     }
   }
   next.items[slide.itemId].updatedAt = new Date().toISOString()

@@ -2,11 +2,11 @@ import core from '../../packages/service-core/index.js'
 
 type RecordValue = Record<string, any>
 
-// Conservative 16:9 reading pages: never squeeze an entire passage into a cue.
+// Wide 16:9 reading pages, following the church's reference decks.
 // Both languages use the same verse boundaries, sized for the longer output.
-export const SCRIPTURE_PAGE_MAX_VERSES = 2
-export const SCRIPTURE_PAGE_MAX_LINES = 6
-const SCRIPTURE_LINE_CHARACTERS = 44
+export const SCRIPTURE_PAGE_MAX_VERSES = 4
+export const SCRIPTURE_PAGE_MAX_LINES = 10
+const SCRIPTURE_LINE_CHARACTERS = 48
 
 export function scriptureLineCount(text: string) {
   return text.split('\n').reduce((total, paragraph) => {
@@ -58,6 +58,22 @@ export function preparePlannerPresentation(project: RecordValue) {
   let readingsSplit = 0
   for (const item of Object.values(next.items) as RecordValue[]) {
     if (item.kind === 'song') {
+      if (!item.songPresentation) {
+        const direct = next.channelIds.filter((id: string) => item.variants[id]?.mode === 'content')
+        const primaryChannelId = direct.find((id: string) => next.channels[id]?.language === 'ru') || direct[0]
+        const primaryDocument = next.resources[item.variants[primaryChannelId].resourceId].document
+        const secondaryChannelId = direct.find((id: string) => id !== primaryChannelId
+          && next.resources[item.variants[id].resourceId].document.language !== primaryDocument.language) || null
+        const authors = direct.flatMap((id: string) => {
+          const document = next.resources[item.variants[id].resourceId].document
+          return [...(document.authors || []), ...(document.composers || []), ...(document.translators || [])]
+        })
+        item.songPresentation = { stackedTranslation: Boolean(secondaryChannelId), primaryChannelId, secondaryChannelId,
+          credits: [...new Set(authors)].join(' / ').slice(0, 500) }
+        item.titlePresetId = 'wotbc-song-title'
+        item.lyricsPresetId = secondaryChannelId ? 'wotbc-song-stacked' : 'wotbc-song-lyrics'
+        changed = true
+      }
       for (const variant of Object.values(item.variants) as RecordValue[]) {
         if (variant.mode !== 'hidden' && !variant.titleCardMode) {
           variant.titleCardMode = 'simple'
@@ -66,6 +82,10 @@ export function preparePlannerPresentation(project: RecordValue) {
       }
     }
     if (item.kind !== 'bible') continue
+    if (['scripture-large', 'scripture-text'].includes(item.presetId)) {
+      item.presetId = 'wotbc-reading'
+      changed = true
+    }
     const pages = scripturePages(item)
     if (pages.length <= 1) continue
     const childIds: string[] = []
@@ -82,7 +102,7 @@ export function preparePlannerPresentation(project: RecordValue) {
       const firstPassage = Object.values(passagesByChannel)[0] as RecordValue
       next.items[id] = { ...item, id, title: firstPassage.reference,
         range: { ...item.range, start: { ...item.range.start, verse: numbers[0] }, end: { ...item.range.end, verse: numbers.at(-1) } },
-        passagesByChannel, presetId: 'scripture-large' }
+        passagesByChannel, presetId: 'wotbc-reading' }
     })
     next.items[item.id] = { id: item.id, kind: 'group', groupKind: 'section', title: item.title,
       createdAt: item.createdAt, updatedAt: item.updatedAt, operatorNotes: item.operatorNotes,

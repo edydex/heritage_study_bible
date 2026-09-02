@@ -172,9 +172,9 @@ function itemPreset(item: ProjectItem) {
 }
 
 function presetChoices(item: ProjectItem) {
-  if (item.kind === 'song') return ['song-lyrics']
-  if (item.kind === 'bible') return ['scripture-large', 'scripture-text']
-  if (item.kind === 'sermon') return ['sermon-point', 'notice-text']
+  if (item.kind === 'song') return ['wotbc-song-stacked', 'wotbc-song-lyrics', 'song-lyrics']
+  if (item.kind === 'bible') return ['wotbc-reading', 'scripture-large', 'scripture-text']
+  if (item.kind === 'sermon') return ['wotbc-sermon', 'sermon-point', 'sermon-notes']
   if (item.kind === 'notice') return ['notice-text', 'sermon-point']
   if (item.kind === 'picture') return ['picture-fullscreen']
   if (item.kind === 'video') return ['video-fullscreen']
@@ -192,27 +192,52 @@ function previewBlockText(block: Record<string, any>) {
   return ''
 }
 
-function SlideText({ text, label, role, onCommit }: { text: string; label: string; role: string; onCommit: (value: string) => void }) {
+function SlideText({ text, label, role, spans = [], onCommit }: { text: string; label: string; role: string; spans?: Record<string, any>[]; onCommit: (value: string) => void }) {
   const element = useRef<HTMLDivElement>(null)
-  useEffect(() => { if (element.current) element.current.innerText = text }, [text])
+  const paint = () => {
+    const node = element.current
+    if (!node) return
+    node.replaceChildren()
+    let offset = 0
+    for (const span of spans) {
+      node.append(document.createTextNode(text.slice(offset, span.start)))
+      const fragment = document.createElement('span')
+      fragment.textContent = text.slice(span.start, span.end)
+      if (span.foreground) fragment.style.color = span.foreground
+      if (span.weight) fragment.style.fontWeight = span.weight
+      node.append(fragment)
+      offset = span.end
+    }
+    node.append(document.createTextNode(text.slice(offset)))
+  }
+  useEffect(paint, [text, spans])
   return <div ref={element} className="heritage-service-planner__editable-text" data-role={role}
+    data-fit-text
     contentEditable="plaintext-only" suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label={label}
-    onBlur={event => { const value = event.currentTarget.innerText; if (value !== text) onCommit(value); event.currentTarget.innerText = text }}
+    onBlur={event => { const value = event.currentTarget.innerText; if (value !== text) onCommit(value); paint() }}
     onKeyDown={event => {
       if (event.key === 'Escape') { event.currentTarget.innerText = text; event.currentTarget.blur() }
       if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); event.currentTarget.blur() }
     }} />
 }
 
-function PreviewCanvas({ kind, children }: { kind: string; children: React.ReactNode }) {
+function PreviewCanvas({ kind, presetId, titleCard, condensed, children }: { kind: string; presetId?: string; titleCard?: boolean; condensed?: boolean; children: React.ReactNode }) {
   const stage = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const element = stage.current
     if (!element) return
     const fit = () => {
-      let size = Math.min(32, element.clientWidth / 25)
+      const logicalSize = titleCard ? 98 : kind === 'bible' ? 96 : kind === 'sermon' ? 82 : kind === 'song' ? (presetId === 'wotbc-song-lyrics' ? 106 : 98) : 76
+      let size = element.clientWidth / 1920 * logicalSize
       element.style.setProperty('--slide-text-size', `${size}px`)
-      while (size > 6 && (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)) {
+      const overflows = () => {
+        const content = element.querySelector<HTMLElement>('.heritage-service-planner__slide-content')!
+        const textOverflow = [...element.querySelectorAll<HTMLElement>('[data-fit-text]')].some(node => node.scrollHeight > node.clientHeight + 1 || node.scrollWidth > node.clientWidth + 1)
+        // Credits deliberately sit outside the centered title region.
+        if (titleCard) return textOverflow || [...content.querySelectorAll<HTMLElement>('[data-role="title"], [data-role="subtitle"]')].reduce((height, node) => height + node.offsetHeight, 0) > content.clientHeight
+        return textOverflow || content.scrollHeight > content.clientHeight + 1 || content.scrollWidth > content.clientWidth + 1
+      }
+      while (size > 6 && overflows()) {
         size *= 0.92
         element.style.setProperty('--slide-text-size', `${size}px`)
       }
@@ -222,8 +247,8 @@ function PreviewCanvas({ kind, children }: { kind: string; children: React.React
     element.addEventListener('input', fit)
     fit()
     return () => { observer.disconnect(); element.removeEventListener('input', fit) }
-  }, [children])
-  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind}>{children}</div></div>
+  }, [children, kind, presetId, titleCard])
+  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind} data-preset={presetId} data-title-card={titleCard || undefined} data-condensed={condensed || undefined}><div className="heritage-service-planner__slide-content">{children}</div></div></div>
 }
 
 function descendantIds(project: ServiceProject, itemId: string, found = new Set<string>()) {
@@ -567,7 +592,8 @@ export default function PlanServiceClient() {
           : {
               ...common,
               textByChannel: Object.fromEntries(project.channelIds.map(channelId => [channelId, text])),
-              presetId: kind === 'sermon' ? 'sermon-point' : 'notice-text',
+              presetId: kind === 'sermon' ? 'wotbc-sermon' : 'notice-text',
+              ...(kind === 'sermon' ? { titlesByChannel: { english: 'Sermon heading', russian: 'Тема проповеди', media: 'Тема проповеди' } } : {}),
             }
       if (parentId) project.items[parentId].childIds.push(id)
       else project.rootItemIds.push(id)
@@ -1059,7 +1085,18 @@ export default function PlanServiceClient() {
                 <span>Screen</span>
                 {CHANNEL_IDS.map(channelId => <button key={channelId} type="button" role="tab" aria-selected={previewChannel === channelId} onClick={() => setPreviewChannel(channelId)}>{channelId === 'media' ? 'Singers' : draft?.channels[channelId]?.label || channelId}</button>)}
               </div>
-              <PreviewCanvas kind={selected.kind}>
+              {selected.kind === 'song' && selected.songPresentation ? <div className="heritage-service-planner__song-layout">
+                <label><input type="checkbox" aria-label="Stacked translation" checked={selected.songPresentation.stackedTranslation}
+                  disabled={!selected.songPresentation.secondaryChannelId}
+                  onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, stackedTranslation: event.target.checked },
+                    lyricsPresetId: event.target.checked ? 'wotbc-song-stacked' : 'wotbc-song-lyrics' })} /> Stacked translation</label>
+                {selected.songPresentation.stackedTranslation ? <label>Top language <select aria-label="Top language" value={selected.songPresentation.primaryChannelId}
+                  onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation,
+                    primaryChannelId: event.target.value, secondaryChannelId: selected.songPresentation.primaryChannelId } })}>
+                  {[selected.songPresentation.primaryChannelId, selected.songPresentation.secondaryChannelId].map((id: string) => <option key={id} value={id}>{draft?.channels[id]?.label || id}</option>)}
+                </select></label> : <span>{selected.songPresentation.secondaryChannelId ? 'One language per screen' : 'Single-language song'}</span>}
+              </div> : null}
+              <PreviewCanvas kind={selected.kind} presetId={activeSlide?.cue?.presetId} titleCard={selected.kind === 'song' && activeSlide?.index === 0} condensed={activePreviewOutput?.mode === 'condensed'}>
                 {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
                   : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
                   : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
@@ -1072,12 +1109,13 @@ export default function PlanServiceClient() {
                             ? <img key={index} src={source} alt={block.altText || selected.title} />
                             : <video key={index} src={source} controls preload="metadata" muted={block.muted} />
                         }
-                        if (block.type === 'bible') return <div key={index} className="heritage-service-planner__scripture-page">
+                        if (block.type === 'bible') return <div key={index} className="heritage-service-planner__scripture-page" data-fit-text>
                           <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
                           <p>{block.verses.map((verse: any, verseIndex: number) => <span key={verse.number}>{verseIndex > 0 ? ' ' : ''}<sup>{verse.number}</sup> {verse.text}</span>)}</p>
                         </div>
                         return activeSlide && editablePreviewBlock(draft!, activeSlide, previewChannel, block)
                           ? <SlideText key={`${activeSlide.id}:${previewChannel}:${index}`} text={previewBlockText(block)} role={block.role}
+                              spans={block.spans}
                               label={`Slide ${activeSlide.number} ${previewChannel} ${block.role} — click to edit`}
                               onCommit={text => slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text))} />
                           : <p key={index} data-role={block.role || 'scripture'}>{previewBlockText(block)}</p>
@@ -1091,6 +1129,8 @@ export default function PlanServiceClient() {
                 : selected.kind === 'bible' ? (activePreviewOutput?.blocks || []).some((block: any) => block.type === 'bible' && block.verses.reduce((count: number, verse: any) => count + scriptureLineCount(`${verse.number} ${verse.text}`), 0) > SCRIPTURE_PAGE_MAX_LINES)
                   ? 'This unusually long verse needs a shorter slide layout before projection.'
                   : 'One reading page · English and Russian advance together · Exact source text preserved.'
+                  : selected.kind === 'song' && selected.songPresentation?.stackedTranslation ? 'Same stack on both audience screens · White primary language, orange translation · Click either to edit.'
+                  : selected.kind === 'sermon' ? 'One language per screen · Gold heading and references · Click heading or body to edit.'
                   : selected.kind === 'picture' ? 'Picture slide. Replace its image from Media below.'
                     : 'Click the slide text to edit · Click outside to apply · Save service to keep changes'}<span>Preview layout · venue typography is applied by SyncShow.</span></p>
             </section>
@@ -1100,6 +1140,8 @@ export default function PlanServiceClient() {
               <div>
                 <label><span>Item name</span><input value={selected.title} maxLength={200} onChange={event => updateSelected({ title: event.target.value })} /></label>
                 <label><span>Notes for the operator</span><input value={selected.operatorNotes || ''} onChange={event => updateSelected({ operatorNotes: event.target.value })} /></label>
+                {selected.kind === 'song' && selected.songPresentation ? <label><span>Song credit · bottom right of title slide</span><input aria-label="Song credit" value={selected.songPresentation.credits} maxLength={500}
+                  onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, credits: event.target.value } })} /></label> : null}
 
             {selected.kind === 'picture' ? <div className="heritage-service-planner__picture-editor">
               <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('all')}>{uploadingPicture ? 'Uploading…' : 'Replace on every output'}</button>

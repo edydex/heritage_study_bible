@@ -1,5 +1,7 @@
 'use strict';
 
+const { normalizeSongPresentation, presentationTitleBlocks, presentationLyricBlocks } = require('./SongPresentation');
+
 const { Buffer, crypto } = require('../../runtime');
 const { isValidIsoDate } = require('../service-set/ServiceDate');
 const {
@@ -2396,6 +2398,8 @@ function normalizeProjectItem(raw, channelIds, now) {
       ...common,
       variants,
       arrangement,
+      ...(raw.songPresentation !== undefined
+        ? { songPresentation: normalizeSongPresentation(raw.songPresentation, channelIds, variants) } : {}),
       ...(primaryChannelId ? { primaryChannelId } : {}),
       titlePresetId: id(raw.titlePresetId || 'song-title', `Song item ${itemId} titlePresetId`),
       lyricsPresetId: id(raw.lyricsPresetId || 'song-lyrics', `Song item ${itemId} lyricsPresetId`),
@@ -4194,7 +4198,7 @@ function compileServiceProject(rawProject, options = {}) {
           ...(resolved.mode === 'derive'
             ? { sourceChannelId: resolved.sourceChannelId }
             : {}),
-          blocks: titleBlocks
+          blocks: presentationTitleBlocks(item, resolvedByChannel, channelId) || titleBlocks
         };
       }
       addCue(item, 'title', {
@@ -4231,7 +4235,8 @@ function compileServiceProject(rawProject, options = {}) {
               ...(resolved.mode === 'derive'
                 ? { sourceChannelId: resolved.sourceChannelId }
                 : {}),
-              blocks: [{ type: 'text', role: 'lyrics', text: lines.join('\n') }]
+              blocks: presentationLyricBlocks(item, resolvedByChannel, channelId, entry.sectionId, slideIndex)
+                || [{ type: 'text', role: 'lyrics', text: lines.join('\n') }]
             };
           }
           addCue(item, `${entry.id}/${sourceSlide.id}`, {
