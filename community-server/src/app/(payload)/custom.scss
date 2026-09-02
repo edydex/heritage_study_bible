@@ -1406,6 +1406,15 @@
 .heritage-service-planner__stage[data-preset="wotbc-sermon-title"] .heritage-service-planner__editable-text { text-align: center; font-weight: 700; }
 .heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] .heritage-service-planner__editable-text { text-align: center; }
 .heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] [data-role="title"] { color: #ffc000; font-size: calc(var(--slide-text-size) * .68); }
+.heritage-service-planner__editable-text[data-placeholder]:empty::before { content: attr(data-placeholder); color: #aeb6b2; opacity: .75; pointer-events: none; }
+.heritage-service-planner__editable-text[data-placeholder]:empty { min-height: 1.13em; outline-color: #485650; }
+.heritage-service-planner__template-body { width: 100%; min-height: 0; }
+.heritage-service-planner__stage[data-template="point"] .heritage-service-planner__template-body { position: absolute; top: 14%; max-height: 86%; }
+.heritage-service-planner__stage[data-template="point"] .heritage-service-planner__template-body .heritage-service-planner__editable-text { position: static; max-height: none; }
+.heritage-service-planner__stage[data-template="title"] [data-role="title"] { font-size: var(--slide-text-size); }
+.heritage-service-planner__stage[data-template="title"] [data-role="subtitle"] { font-size: calc(var(--slide-text-size) * .65); font-weight: 400; margin-top: 1.7em; }
+.heritage-service-planner__image-placeholder { align-self: center; display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: .7rem 1.2rem; margin-bottom: 1rem; color: #bdc8c1; background: #171a1a; border: 1px dashed #678273; border-radius: .3rem; font-size: .9rem; cursor: pointer; }
+.heritage-service-planner__image-placeholder span { font-size: 2rem; }
 .heritage-service-planner__stage[data-preset="wotbc-sermon-verse"] .heritage-service-planner__scripture-reference { font-size: calc(var(--slide-text-size) * .82); color: #ffc000; font-weight: 700; }
 .heritage-service-planner__scripture-page .heritage-service-planner__editable-text { white-space: normal; text-align: left; line-height: 1.08; }
 .heritage-slide-format { position: fixed; z-index: 2000; display: flex; align-items: center; gap: .25rem; padding: .3rem; color: var(--theme-text); background: var(--theme-elevation-50); border: 1px solid var(--theme-elevation-250); border-radius: .45rem; box-shadow: 0 .3rem 1rem #0006; font: 12px system-ui, sans-serif; }

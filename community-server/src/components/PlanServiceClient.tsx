@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import serviceCore from '../../packages/service-core/index.js'
 import { plannerPreview } from './plannerPreview'
-import SermonTemplateDialog from './SermonTemplateDialog'
+import TemplateSlideEditor from './TemplateSlideEditor'
 import MoveSlidesDialog from './MoveSlidesDialog'
 import DeleteSlidesDialog from './DeleteSlidesDialog'
 import SlideText from './SlideText'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
-import { SERMON_TEMPLATES, createTemplateSlide, insertionPoint, type SermonTemplateId, type TemplateText } from './plannerTemplates'
+import { SERMON_TEMPLATES, createTemplateDraft, editTemplateField, insertionPoint, type SermonTemplateId } from './plannerTemplates'
 import { preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
 import { editablePreviewBlock, editPlannerSlide, isSongTitleSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
 import { changePlannerSelection, plannerRangeSelection, selectedPlannerSlides, type SelectionResult } from './plannerSelection'
@@ -201,7 +201,7 @@ function previewBlockText(block: Record<string, any>) {
 }
 
 
-function PreviewCanvas({ kind, presetId, titleCard, singer, next, backgroundUrl, children }: { kind: string; presetId?: string; titleCard?: boolean; singer?: boolean; next?: {state: string; text: string}; backgroundUrl?: string; children: React.ReactNode }) {
+function PreviewCanvas({ kind, presetId, template, titleCard, singer, next, backgroundUrl, backgroundDimOpacity = 0.55, children }: { kind: string; presetId?: string; template?: string; titleCard?: boolean; singer?: boolean; next?: {state: string; text: string}; backgroundUrl?: string; backgroundDimOpacity?: number; children: React.ReactNode }) {
   const stage = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const element = stage.current
@@ -239,7 +239,7 @@ function PreviewCanvas({ kind, presetId, titleCard, singer, next, backgroundUrl,
     fit()
     return () => { observer.disconnect(); element.removeEventListener('input', fit); element.removeEventListener('input-fit', fit) }
   }, [children, kind, presetId, titleCard, singer])
-  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind} data-preset={presetId} data-title-card={titleCard || undefined} data-singer={singer || undefined} style={backgroundUrl ? { backgroundImage: `linear-gradient(#0009, #0009), url("${backgroundUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}><div className="heritage-service-planner__slide-content">{children}</div>
+  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind} data-preset={presetId} data-template={!singer ? template : undefined} data-title-card={titleCard || undefined} data-singer={singer || undefined} style={backgroundUrl ? { backgroundImage: `linear-gradient(rgba(0,0,0,${backgroundDimOpacity}), rgba(0,0,0,${backgroundDimOpacity})), url("${backgroundUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}><div className="heritage-service-planner__slide-content">{children}</div>
     {singer && next ? <aside className="heritage-service-planner__next-lines" aria-label="Next slide cue" data-state={next.state}>
       <p>{next.state === 'end' ? 'End of presentation' : next.text}</p>
     </aside> : null}
@@ -358,7 +358,6 @@ export default function PlanServiceClient() {
   const [bibleStartVerse, setBibleStartVerse] = useState(14)
   const [bibleEndVerse, setBibleEndVerse] = useState(21)
   const [resourceTab, setResourceTab] = useState<ResourceTab>('songs')
-  const [template, setTemplate] = useState<Exclude<SermonTemplateId, 'passage'> | null>(null)
   const [sermonPassage, setSermonPassage] = useState(false)
   const [mediaPreviews, setMediaPreviews] = useState<Record<string, string>>({})
   const localUrls = useRef<string[]>([])
@@ -452,14 +451,15 @@ export default function PlanServiceClient() {
     }
   }
 
-  function useEnvelope(next: ServiceEnvelopeInput) {
+  function useEnvelope(next: ServiceEnvelopeInput, keepSelection = false) {
     const project = projectFromServiceEnvelope(next) as ServiceProject
     const prepared = preparePlannerPresentation(project)
     const normalized = { ...next, project } as ServiceEnvelope
     setEnvelope(normalized)
     setDraft(cloneProject(prepared.project as ServiceProject))
-    setSelectedId(plannerSlides(prepared.project).find(row => row.cue)?.itemId || null)
-    setPreviewSlideIndex(0)
+    const retained = keepSelection && selectedId && prepared.project.items[selectedId]
+    setSelectedId(retained ? selectedId : plannerSlides(prepared.project).find(row => row.cue)?.itemId || null)
+    setPreviewSlideIndex(retained ? previewSlideIndex : 0)
     setUndoStack([])
     setMenu(null)
     setSelectedRowIds([])
@@ -660,23 +660,14 @@ export default function PlanServiceClient() {
     setNotice(message)
   }
 
-  async function addTemplate(english: TemplateText, russian: TemplateText, file?: File) {
-    if (!draft || !template) return
-    if (template === 'title' && (!file || !(english.heading.trim() || russian.heading.trim()))) throw new Error('Enter a sermon title and choose a title image.')
-    let asset: any
-    if (file) {
-      const uploaded = await uploadServiceMedia(file)
-      asset = { id: uploaded.assetId, kind: 'image', sha256: uploaded.sha256,
-        fileName: safeImageFileName(file.name, uploaded.metadata.mediaType).fileName,
-        storedName: `${uploaded.sha256}.${safeImageFileName(file.name, uploaded.metadata.mediaType).extension}`, size: uploaded.metadata.size,
-        width: uploaded.metadata.width, height: uploaded.metadata.height, orientation: uploaded.metadata.orientation,
-        mediaType: uploaded.metadata.mediaType, altText: file.name, attribution: '' }
-      const url = URL.createObjectURL(file); localUrls.current.push(url); setMediaPreviews(value => ({ ...value, [asset.id]: url }))
-    }
-    const id = `sermon-${uuid()}`
-    const next = createTemplateSlide(draft, { id, template, english, russian, selectedId, asset })
-    acceptCoreProject(next as ServiceProject, id, 'Slide added after your selection. Edit its text in the preview, then save.')
-    setTemplate(null)
+  function addTemplate(template: Exclude<SermonTemplateId, 'passage'>) {
+    if (!draft) return
+    try {
+      const id = `sermon-${uuid()}`
+      const next = createTemplateDraft(draft, { id, template, selectedId })
+      acceptCoreProject(next as ServiceProject, id, 'Slide added. Click the placeholders on the slide to edit; guides are never projected.')
+      if (previewChannel === 'media') setPreviewChannel('english')
+    } catch (caught) { setError(errorText(caught)) }
   }
 
   async function addLibrarySong() {
@@ -1042,7 +1033,7 @@ export default function PlanServiceClient() {
           }),
         },
       )
-      useEnvelope(response.serviceDocument)
+      useEnvelope(response.serviceDocument, true)
       setNotice(
         response.serviceDocument.status === 'ready'
           ? 'This exact revision is Ready.'
@@ -1196,9 +1187,16 @@ export default function PlanServiceClient() {
                   {[selected.songPresentation.primaryChannelId, selected.songPresentation.secondaryChannelId].map((id: string) => <option key={id} value={id}>{draft?.channels[id]?.label || id}</option>)}
                 </select></label> : <span>{selected.songPresentation.secondaryChannelId ? 'One language per screen' : 'Single-language song'}</span>}
               </div> : null}
-              <PreviewCanvas kind={selected.kind} presetId={preview.presetId} titleCard={Boolean(activeSlide && isSongTitleSlide(activeSlide))} singer={preview.singer} next={preview.next} backgroundUrl={selected.backgroundAssetId ? mediaPreviews[selected.backgroundAssetId] || (envelope?.project.assets?.[selected.backgroundAssetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetId)}` : undefined) : undefined}>
+              {selected.kind === 'sermon' && (selected.sermonTemplate === 'title' || selected.presetId === 'wotbc-sermon-title') && !preview.singer ? <div className="heritage-service-planner__song-layout">
+                <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>{uploadingPicture ? 'Uploading…' : selected.backgroundAssetId ? 'Replace image' : 'Choose image'}</button>
+                <label><input type="checkbox" checked={selected.sermonPresentation?.showText ?? true} onChange={event => updateSelected({ sermonPresentation: {darkenBackground: true, ...selected.sermonPresentation, showText: event.target.checked} })} /> Show title text</label>
+                <label><input type="checkbox" checked={selected.sermonPresentation?.darkenBackground ?? true} onChange={event => updateSelected({ sermonPresentation: {showText: true, ...selected.sermonPresentation, darkenBackground: event.target.checked} })} /> Darken image</label>
+              </div> : null}
+              <PreviewCanvas kind={selected.kind} presetId={preview.presetId} template={selected.sermonTemplate} titleCard={Boolean(activeSlide && isSongTitleSlide(activeSlide))} singer={preview.singer} next={preview.next} backgroundDimOpacity={selected.sermonPresentation?.darkenBackground === false ? 0 : 0.55} backgroundUrl={selected.backgroundAssetId ? mediaPreviews[selected.backgroundAssetId] || (envelope?.project.assets?.[selected.backgroundAssetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetId)}` : undefined) : undefined}>
                 {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
                   : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
+                  : selected.sermonTemplate && !preview.singer ? <TemplateSlideEditor key={`${selected.id}:${previewChannel}`} item={selected} channelId={previewChannel} uploading={uploadingPicture} onImage={() => choosePicture('background')}
+                      onEdit={(field, text, spans) => slideMutation(() => editTemplateField(draft!, selected.id, previewChannel, field, text, spans))} />
                   : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
                     : selected.kind === 'blank' ? <p className="heritage-service-planner__stage-status">Intentional blank screen</p>
                       : (activePreviewOutput?.blocks || []).map((block: any, index: number) => {
@@ -1232,7 +1230,7 @@ export default function PlanServiceClient() {
                   ? 'This unusually long verse needs a shorter slide layout before projection.'
                   : 'Select verse text to format · English and Russian advance together · Scripture words stay unchanged.'
                   : selected.kind === 'song' && selected.songPresentation?.stackedTranslation ? 'Same stack on both audience screens · White primary language, orange translation · Click either to edit.'
-                  : selected.kind === 'sermon' ? 'One language per screen · Click text to edit · Select text for formatting.'
+                  : selected.kind === 'sermon' ? 'Click directly on the slide to edit · Select text for formatting · Empty guides are not projected.'
                   : selected.kind === 'picture' ? 'Picture slide. Replace its image from Media below.'
                     : 'Click the slide text to edit · Click outside to apply · Save to keep changes'}</p>
             </section>
@@ -1294,7 +1292,7 @@ export default function PlanServiceClient() {
             <details className="heritage-service-planner__add-menu"><summary aria-label="More slide types" title="More slide types">＋</summary><div><button type="button" disabled={!draft} onClick={event => { add('group'); event.currentTarget.closest('details')!.open = false }}>Section divider</button><button type="button" disabled={!draft} onClick={event => { add('blank'); event.currentTarget.closest('details')!.open = false }}>Blank screen</button></div></details>
           </div>
           <div className="heritage-service-planner__resource-content">
-            {resourceTab === 'templates' ? <div className="heritage-service-planner__templates">{SERMON_TEMPLATES.map(value => <button key={value.id} type="button" disabled={!draft} onClick={() => { if (value.id === 'passage') { setResourceTab('scripture'); setSermonPassage(true) } else setTemplate(value.id) }}><span aria-hidden="true">{value.icon}</span><strong>{value.label}</strong><small>{value.hint}</small></button>)}</div> : null}
+            {resourceTab === 'templates' ? <div className="heritage-service-planner__templates">{SERMON_TEMPLATES.map(value => <button key={value.id} type="button" disabled={!draft} onClick={() => { if (value.id === 'passage') { setResourceTab('scripture'); setSermonPassage(true) } else addTemplate(value.id) }}><span aria-hidden="true">{value.icon}</span><strong>{value.label}</strong><small>{value.hint}</small></button>)}</div> : null}
             {resourceTab === 'songs' ? <>
               <label><span>Reviewed Community song</span><select value={songChoice} onChange={event => setSongChoice(event.target.value)}>{songLibrary.map(song => <option key={song.syncId} value={song.syncId}>{song.title}{song.russianTitle && song.russianTitle !== song.title ? ` / ${song.russianTitle}` : ''}</option>)}</select></label>
               <button className="btn btn--style-primary" type="button" disabled={!draft || busy || !songChoice} onClick={addLibrarySong}>Add song to service</button>
@@ -1316,7 +1314,6 @@ export default function PlanServiceClient() {
           </div>
           <input ref={pictureInput} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={event => pictureChosen(event.target.files?.[0])} />
           <input ref={videoInput} type="file" accept="video/mp4,video/webm,.mp4,.webm" hidden onChange={event => videoChosen(event.target.files?.[0])} />
-          {template && draft ? <SermonTemplateDialog template={template} project={draft} onCancel={() => setTemplate(null)} onCreate={addTemplate} /> : null}
           {moveDialog && draft ? <MoveSlidesDialog count={dialogSlides.length} maximum={slideList.rows.filter(row => row.cue).length - dialogSlides.length + 1}
             initial={dialogSlides[0]?.number || 1} onCancel={() => setMoveDialog(null)}
             onMove={number => { applySelection(changePlannerSelection(draft, moveDialog, 'move', number)); setMoveDialog(null) }} /> : null}

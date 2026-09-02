@@ -7,8 +7,8 @@ type Span = Record<string, any>
 const EMPTY_SPANS: Span[] = []
 type SelectionRange = { start: number; end: number; x: number; y: number }
 
-export default function SlideText({ text, label, role, spans = EMPTY_SPANS, readOnly = false, canFormat = false, onCommit }: {
-  text: string; label: string; role: string; spans?: Span[]; readOnly?: boolean; canFormat?: boolean;
+export default function SlideText({ text, label, role, placeholder, spans = EMPTY_SPANS, readOnly = false, canFormat = false, onCommit }: {
+  text: string; label: string; role: string; placeholder?: string; spans?: Span[]; readOnly?: boolean; canFormat?: boolean;
   onCommit: (text: string, spans: Span[]) => void
 }) {
   const element = useRef<HTMLDivElement>(null)
@@ -106,7 +106,7 @@ export default function SlideText({ text, label, role, spans = EMPTY_SPANS, read
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Could not format text.') }
   }
   function commit() { if (draft.current.text !== text || JSON.stringify(draft.current.spans) !== JSON.stringify(spans)) onCommit(draft.current.text, draft.current.spans) }
-  return <><div ref={element} className="heritage-service-planner__editable-text" data-role={role} data-fit-text
+  return <><div ref={element} className="heritage-service-planner__editable-text" data-role={role} data-fit-text data-placeholder={readOnly ? undefined : placeholder} aria-placeholder={readOnly ? undefined : placeholder}
     contentEditable={readOnly ? false : 'plaintext-only'} suppressContentEditableWarning
     role={!readOnly || canFormat ? 'textbox' : undefined} aria-readonly={readOnly && canFormat || undefined} aria-multiline={!readOnly || canFormat || undefined} aria-label={label} tabIndex={readOnly && canFormat ? 0 : undefined}
     onInput={input} onBlur={event => { if (!toolbar.current?.contains(event.relatedTarget as Node)) commit() }}
