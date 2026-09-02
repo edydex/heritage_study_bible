@@ -766,7 +766,17 @@ export default function PlanServiceClient() {
     if (!draft || selected?.kind !== 'song' || value === 'content') return
     try {
       const [mode, sourceChannelId] = value.split(':')
-      const project = serviceCore.setSongChannelTreatment(draft, {
+      const source = cloneProject(draft)
+      // Removing a direct translation also removes it from the visible stack.
+      // Keep the credit and fall back to the remaining actual content channel.
+      const presentation = source.items[selected.id].songPresentation
+      if (presentation && [presentation.primaryChannelId, presentation.secondaryChannelId].includes(channelId)) {
+        const remaining = Object.keys(selected.variants).filter(id => id !== channelId && selected.variants[id].mode === 'content')
+        source.items[selected.id].songPresentation = { ...presentation, stackedTranslation: false,
+          primaryChannelId: remaining[0], secondaryChannelId: remaining[1] || null }
+        source.items[selected.id].lyricsPresetId = 'wotbc-song-lyrics'
+      }
+      const project = serviceCore.setSongChannelTreatment(source, {
         itemId: selected.id,
         channelId,
         mode,
@@ -1116,7 +1126,8 @@ export default function PlanServiceClient() {
                         return activeSlide && editablePreviewBlock(draft!, activeSlide, previewChannel, block)
                           ? <SlideText key={`${activeSlide.id}:${previewChannel}:${index}`} text={previewBlockText(block)} role={block.role}
                               spans={block.spans}
-                              label={`Slide ${activeSlide.number} ${previewChannel} ${block.role} — click to edit`}
+                              label={`Slide ${activeSlide.number} ${selected.kind === 'song' && selected.songPresentation?.stackedTranslation && block.role === 'lyrics'
+                                ? (index === 0 ? selected.songPresentation.primaryChannelId : selected.songPresentation.secondaryChannelId) : previewChannel} ${block.role} — click to edit`}
                               onCommit={text => slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text))} />
                           : <p key={index} data-role={block.role || 'scripture'}>{previewBlockText(block)}</p>
                       })}
