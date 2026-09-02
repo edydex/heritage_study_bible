@@ -323,3 +323,18 @@ test('Community dashboard routes service planning through the visual shared edit
     'POST /community/service-documents/library/bible-passage',
   ]) assert.ok(routes.has(route), route)
 })
+
+test('service-document change locks have their required Payload relation column', () => {
+  const migration = readFileSync(
+    new URL('../src/migrations/20260902_053500_service_document_lock_relations.ts', import.meta.url),
+    'utf8',
+  )
+  const registry = readFileSync(
+    new URL('../src/migrations/index.ts', import.meta.url),
+    'utf8',
+  )
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS "syncshow_service_document_changes_id"/)
+  assert.match(migration, /payload_locked_documents_rels_service_document_changes_fk/)
+  assert.match(migration, /ON DELETE cascade/)
+  assert.match(registry, /20260902_053500_service_document_lock_relations/)
+})
