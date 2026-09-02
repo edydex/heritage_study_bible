@@ -64,12 +64,6 @@ type BibleBookOption = {
   name: string
   chapters: number
 }
-type Row = {
-  item: ProjectItem
-  parentId: string | null
-  index: number
-  depth: number
-}
 type PictureUploadTarget = 'new' | 'all' | ChannelId
 type ResourceTab = 'songs' | 'media' | 'scripture'
 
@@ -168,21 +162,6 @@ function safeVideoFileName(value: string, mediaType: string) {
   return { fileName: base || `service-video.${extension}`, extension }
 }
 
-function flatten(project: ServiceProject): Row[] {
-  const rows: Row[] = []
-  const visit = (itemId: string, parentId: string | null, index: number, depth: number) => {
-    const item = project.items[itemId]
-    if (!item) return
-    rows.push({ item, parentId, index, depth })
-    if (item.kind === 'group') {
-      item.childIds.forEach((childId: string, childIndex: number) =>
-        visit(childId, item.id, childIndex, depth + 1))
-    }
-  }
-  project.rootItemIds.forEach((itemId, index) => visit(itemId, null, index, 0))
-  return rows
-}
-
 function cloneProject(project: ServiceProject): ServiceProject {
   return JSON.parse(JSON.stringify(project)) as ServiceProject
 }
@@ -222,6 +201,28 @@ function SlideText({ text, label, role, onCommit }: { text: string; label: strin
       if (event.key === 'Escape') { event.currentTarget.innerText = text; event.currentTarget.blur() }
       if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); event.currentTarget.blur() }
     }} />
+}
+
+function PreviewCanvas({ kind, children }: { kind: string; children: React.ReactNode }) {
+  const stage = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const element = stage.current
+    if (!element) return
+    const fit = () => {
+      let size = Math.min(32, element.clientWidth / 25)
+      element.style.setProperty('--slide-text-size', `${size}px`)
+      while (size > 6 && (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)) {
+        size *= 0.92
+        element.style.setProperty('--slide-text-size', `${size}px`)
+      }
+    }
+    const observer = new ResizeObserver(fit)
+    observer.observe(element)
+    element.addEventListener('input', fit)
+    fit()
+    return () => { observer.disconnect(); element.removeEventListener('input', fit) }
+  }, [children])
+  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind}>{children}</div></div>
 }
 
 function descendantIds(project: ServiceProject, itemId: string, found = new Set<string>()) {
@@ -351,7 +352,6 @@ export default function PlanServiceClient() {
   const videoInput = useRef<HTMLInputElement>(null)
   const pictureTarget = useRef<PictureUploadTarget>('new')
   const [notice, setNotice] = useState('Choose a service or create the next one.')
-  const rows = useMemo(() => draft ? flatten(draft) : [], [draft])
   const selected = selectedId && draft ? draft.items[selectedId] || null : null
   const slideList = useMemo<{ rows: PlannerSlide[]; error: string }>(() => {
     if (!draft) return { rows: [], error: '' }
@@ -950,7 +950,7 @@ export default function PlanServiceClient() {
         <div>
           <p className="heritage-admin-eyebrow">Sunday service builder</p>
           <h1>{draft?.title || 'Plan a service'}</h1>
-          <p>{draft ? `${draft.serviceDate} · ${rows.filter(row => row.item.kind !== 'group').length} items in ${rows.filter(row => row.item.kind === 'group').length} sections` : 'Choose a service on the left or create the next Sunday.'}</p>
+          <p>{draft ? `${draft.serviceDate} · ${slideList.rows.filter(row => row.cue).length} slides` : 'Choose a service on the left or create the next Sunday.'}</p>
         </div>
         {draft ? <div className="heritage-service-planner__save-actions">
           <label>
@@ -1053,7 +1053,7 @@ export default function PlanServiceClient() {
                 <span>Screen</span>
                 {CHANNEL_IDS.map(channelId => <button key={channelId} type="button" role="tab" aria-selected={previewChannel === channelId} onClick={() => setPreviewChannel(channelId)}>{channelId === 'media' ? 'Singers' : draft?.channels[channelId]?.label || channelId}</button>)}
               </div>
-              <div className="heritage-service-planner__canvas-space"><div className="heritage-service-planner__stage" data-kind={selected.kind}>
+              <PreviewCanvas kind={selected.kind}>
                 {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
                   : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
                   : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
@@ -1075,7 +1075,7 @@ export default function PlanServiceClient() {
                 {activePreviewOutput?.mode === 'condensed' && nextPreviewOutput?.blocks?.length ? <aside className="heritage-service-planner__next-lines">
                   <span>Next</span><p>{nextPreviewOutput.blocks.map(previewBlockText).join('\n')}</p>
                 </aside> : null}
-              </div></div>
+              </PreviewCanvas>
               <p className="heritage-service-planner__preview-note">{activePreviewOutput?.mode === 'condensed'
                 ? 'Singers preview is generated automatically. Edit the source-language slide.'
                 : selected.kind === 'bible' ? 'Scripture text is source-locked. Choose a different passage from Resources.'
