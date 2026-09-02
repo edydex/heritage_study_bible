@@ -51,7 +51,11 @@ test('next cue follows the service, distinguishes blank from end and uses one bo
   assert.deepEqual(plannerPreview(rows, rows.at(-1), 'media').next, {state: 'end', text: ''})
   const next = {...rows[0], id: 'next-song', itemId: 'next-song'}
   assert.deepEqual(plannerPreview([...rows, next], rows.at(-1), 'media').next, {state: 'text', text: 'russian'})
-  assert.equal(singerPresentation.singerNextLine('\n' + 'я'.repeat(80) + '\nDo not show this'), 'я'.repeat(70) + '…')
-  assert.equal(singerPresentation.singerNextLine('😀'.repeat(71)), '😀'.repeat(70) + '…')
+  assert.equal(singerPresentation.singerNextLine('\n' + 'я'.repeat(80) + '\nDo not show this'), 'я'.repeat(80))
+  assert.equal(singerPresentation.singerNextLine('😀'.repeat(71)), '😀'.repeat(71))
+  assert.equal(singerPresentation.singerNextLine('i'.repeat(120)), 'i'.repeat(120))
+  const bounded = singerPresentation.singerNextLine('😀'.repeat(1200))
+  assert.ok(bounded.length <= 2000)
+  assert.match(bounded, /^(?:😀)+…$/u)
   assert.equal(singerPresentation.singerNextLine('abc\r\ndef'), 'abc')
 })

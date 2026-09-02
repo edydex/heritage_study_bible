@@ -1396,7 +1396,7 @@
 .heritage-service-planner__stage[data-singer][data-title-card] .heritage-service-planner__slide-content { top: 8%; height: 65%; }
 .heritage-service-planner__stage .heritage-service-planner__editable-text[contenteditable="false"] { cursor: default; outline: none; }
 .heritage-service-planner__stage .heritage-service-planner__next-lines { position: absolute; bottom: 0; left: 1.2%; width: 97.6%; max-width: none; height: 17%; padding: 0; box-sizing: border-box; display: grid; place-items: center; border-top: max(1px, 0.11em) dashed #22d3ee; font-size: var(--slide-text-size); }
-.heritage-service-planner__stage .heritage-service-planner__next-lines p { width: 94%; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #f8fafc; font-size: calc(var(--slide-text-size) * 0.42); font-weight: 400; }
+.heritage-service-planner__stage .heritage-service-planner__next-lines p { width: 94%; min-width: 0; max-width: none; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #f8fafc; font-size: var(--singer-next-font-size, var(--slide-text-size)); font-weight: var(--singer-next-font-weight, 600); font-family: var(--singer-next-font-family, inherit); line-height: 1.15; }
 .heritage-service-planner__stage .heritage-service-planner__next-lines[data-state="end"] p { color: #6b7280; font-style: italic; }
 .heritage-service-planner__song-layout { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; padding: 0.35rem 0.7rem; background: #171a1a; color: #bdc8c1; font-size: 0.7rem; }
 .heritage-service-planner__song-layout label { display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; }

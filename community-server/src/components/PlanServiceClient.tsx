@@ -243,13 +243,23 @@ function PreviewCanvas({ kind, presetId, titleCard, singer, next, children }: { 
         size *= 0.92
         element.style.setProperty('--slide-text-size', `${size}px`)
       }
+      // Match the text after fitting, including title/body preset overrides.
+      // The footer clips its prefix to one line; it must never shrink to fit.
+      const content = element.querySelector<HTMLElement>('.heritage-service-planner__slide-content')!
+      const primary = content.querySelector<HTMLElement>('[data-role="lyrics"], [data-role="body"]')
+        || content.querySelector<HTMLElement>('.heritage-service-planner__scripture-page p:not(.heritage-service-planner__scripture-reference)')
+        || content.querySelector<HTMLElement>('[data-role="title"], [data-fit-text]')
+      const typography = getComputedStyle(primary || content)
+      element.style.setProperty('--singer-next-font-size', primary ? typography.fontSize : `${size}px`)
+      element.style.setProperty('--singer-next-font-weight', typography.fontWeight)
+      element.style.setProperty('--singer-next-font-family', typography.fontFamily)
     }
     const observer = new ResizeObserver(fit)
     observer.observe(element)
     element.addEventListener('input', fit)
     fit()
     return () => { observer.disconnect(); element.removeEventListener('input', fit) }
-  }, [children, kind, presetId, titleCard])
+  }, [children, kind, presetId, titleCard, singer])
   return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind} data-preset={presetId} data-title-card={titleCard || undefined} data-singer={singer || undefined}><div className="heritage-service-planner__slide-content">{children}</div>
     {singer && next ? <aside className="heritage-service-planner__next-lines" aria-label="Next slide cue" data-state={next.state}>
       <p>{next.state === 'end' ? 'End of presentation' : next.text}</p>
@@ -1152,7 +1162,7 @@ export default function PlanServiceClient() {
                       })}
               </PreviewCanvas>
               <p className="heritage-service-planner__preview-note">{preview.singer
-                ? 'Full primary-language slide · Next cue: first line, up to 70 characters.'
+                ? 'Full primary-language slide · Same-size next line, fitted to the available width.'
                 : selected.kind === 'bible' ? (activePreviewOutput?.blocks || []).some((block: any) => block.type === 'bible' && block.verses.reduce((count: number, verse: any) => count + scriptureLineCount(`${verse.number} ${verse.text}`), 0) > SCRIPTURE_PAGE_MAX_LINES)
                   ? 'This unusually long verse needs a shorter slide layout before projection.'
                   : 'One reading page · English and Russian advance together · Exact source text preserved.'
