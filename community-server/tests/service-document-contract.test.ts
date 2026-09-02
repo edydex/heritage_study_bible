@@ -325,6 +325,8 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.match(planner, /visibleBibleBookId/)
   assert.match(planner, /bibleBookInput\.current\?\.value/)
   assert.match(planner, /bibleChapterInput\.current\?\.value/)
+  assert.match(planner, /selected\?\.kind === 'group' \? selected\.id : null/g)
+  assert.match(planner, /project\.items\[parentId\]\.childIds\.push\(id\)/g)
   assert.doesNotMatch(planner, /__inspector/)
   assert.match(planner, /This service changed somewhere else/)
   assert.match(adminStyles, /\.heritage-admin-workspace\s*\{[^}]*place-items:\s*center/s)

@@ -732,6 +732,7 @@ export default function PlanServiceClient() {
       const target = pictureTarget.current
       if (target === 'new') {
         const id = `picture-${uuid()}`
+        const parentId = selected?.kind === 'group' ? selected.id : null
         change(project => {
           project.assets[asset.id] = asset
           project.items[id] = {
@@ -750,7 +751,8 @@ export default function PlanServiceClient() {
             attribution: '',
             presetId: 'picture-fullscreen',
           }
-          project.rootItemIds.push(id)
+          if (parentId) project.items[parentId].childIds.push(id)
+          else project.rootItemIds.push(id)
         })
         setSelectedId(id)
       } else if (selected?.kind === 'picture') {
@@ -810,6 +812,7 @@ export default function PlanServiceClient() {
         attribution: '',
       }
       const id = `video-${uuid()}`
+      const parentId = selected?.kind === 'group' ? selected.id : null
       change(project => {
         project.assets[asset.id] = asset
         project.items[id] = {
@@ -825,7 +828,8 @@ export default function PlanServiceClient() {
           fit: 'fit',
           presetId: 'video-fullscreen',
         }
-        project.rootItemIds.push(id)
+        if (parentId) project.items[parentId].childIds.push(id)
+        else project.rootItemIds.push(id)
       })
       setSelectedId(id)
       setNotice('Video uploaded privately. Save the shared service to attach it to this revision.')
