@@ -1,5 +1,5 @@
-// Keep the first admin screen task-oriented. Payload's generated collection
-// cards remain below this welcome panel for experienced administrators.
+// Keep the first admin screen task-oriented. Detailed collections remain
+// reachable from the deliberately small navigation menu.
 .heritage-admin-welcome {
   margin-bottom: var(--base);
   padding: calc(var(--base) * 1.25);
@@ -999,4 +999,444 @@
   .heritage-review-button--danger {
     width: 100%;
   }
+}
+
+/* The service builder intentionally has only three working regions: the
+ * service tree, the selected-item editor, and the resource shelf. Advanced
+ * output treatment stays collapsed inside the selected item. */
+.heritage-service-planner {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: none;
+  padding: 0 0 5rem;
+}
+
+.heritage-service-planner__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  min-height: 5.5rem;
+  padding: 0.7rem 0;
+}
+
+.heritage-service-planner__heading h1,
+.heritage-service-planner__heading p {
+  margin: 0.12rem 0 0;
+}
+
+.heritage-service-planner__heading h1 {
+  font-size: clamp(1.8rem, 3vw, 2.65rem);
+  letter-spacing: -0.035em;
+}
+
+.heritage-service-planner__heading > div:first-child > p:last-child {
+  color: var(--theme-elevation-600);
+}
+
+.heritage-service-planner__save-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.7rem;
+}
+
+.heritage-service-planner__save-actions label {
+  min-width: 8rem;
+}
+
+.heritage-service-planner__save-actions > span {
+  align-self: center;
+  color: var(--theme-elevation-600);
+  font-size: 0.8rem;
+}
+
+.heritage-service-planner label {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 650;
+}
+
+.heritage-service-planner label > span,
+.heritage-service-planner__resource-content small {
+  color: var(--theme-elevation-650);
+  font-size: 0.74rem;
+}
+
+.heritage-service-planner input,
+.heritage-service-planner select,
+.heritage-service-planner textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 0.45rem;
+  background: var(--theme-input-bg);
+}
+
+.heritage-service-planner__error,
+.heritage-service-planner__notice {
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.heritage-service-planner__notice {
+  border: 1px solid var(--theme-elevation-150);
+  color: var(--theme-elevation-650);
+  background: var(--theme-elevation-50);
+}
+
+.heritage-service-planner__shell {
+  display: grid;
+  grid-template-columns: minmax(15rem, 18rem) minmax(32rem, 1fr);
+  grid-template-rows: minmax(40rem, auto) auto;
+  overflow: hidden;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 0.8rem;
+  background: var(--theme-bg);
+  box-shadow: 0 1rem 3rem color-mix(in srgb, var(--theme-elevation-900) 8%, transparent);
+}
+
+.heritage-service-planner__navigation {
+  min-width: 0;
+  padding: 0.9rem;
+  overflow: auto;
+  border-right: 1px solid var(--theme-elevation-150);
+  background: var(--theme-elevation-50);
+}
+
+.heritage-service-planner__service-picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.4rem;
+}
+
+.heritage-service-planner__service-picker > button,
+.heritage-service-planner__add button,
+.heritage-service-planner__row-actions button,
+.heritage-service-planner__picture-editor button,
+.heritage-service-planner__resource-content > button:not(.btn) {
+  min-height: 2.1rem;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 0.4rem;
+  color: var(--theme-text);
+  background: var(--theme-bg);
+  cursor: pointer;
+}
+
+.heritage-service-planner__new {
+  margin: 0.6rem 0 1rem;
+  border-bottom: 1px solid var(--theme-elevation-150);
+  padding-bottom: 0.8rem;
+}
+
+.heritage-service-planner__new > summary {
+  color: var(--theme-success-600);
+  font-weight: 750;
+  cursor: pointer;
+  list-style: none;
+}
+
+.heritage-service-planner__new > summary::-webkit-details-marker { display: none; }
+.heritage-service-planner__new > div { display: grid; gap: 0.55rem; padding-top: 0.65rem; }
+
+.heritage-service-planner__outline-heading {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+}
+
+.heritage-service-planner__outline-heading h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.heritage-service-planner__add {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem;
+}
+
+.heritage-service-planner__add button {
+  min-height: 1.9rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.73rem;
+}
+
+.heritage-service-planner__rows {
+  display: grid;
+  gap: 0.18rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.heritage-service-planner__rows > li {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.24rem;
+  padding-left: calc(var(--service-depth, 0) * 0.72rem);
+}
+
+.heritage-service-planner__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 0.45rem;
+  color: var(--theme-text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.heritage-service-planner__row:hover { background: var(--theme-elevation-100); }
+.heritage-service-planner__row[data-selected] { border-color: var(--theme-success-300); background: var(--theme-success-100); }
+.heritage-service-planner__row > span:nth-child(2) { display: grid; min-width: 0; gap: 0.1rem; }
+.heritage-service-planner__row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.83rem; }
+.heritage-service-planner__row small { color: var(--theme-elevation-550); font-size: 0.65rem; text-transform: capitalize; }
+.heritage-service-planner__kind { color: var(--theme-elevation-500); font-size: 0.68rem; }
+.heritage-service-planner__row-actions { display: none; align-items: center; gap: 0.15rem; }
+.heritage-service-planner__rows > li:hover .heritage-service-planner__row-actions,
+.heritage-service-planner__rows > li:focus-within .heritage-service-planner__row-actions { display: flex; }
+.heritage-service-planner__row-actions button { min-width: 1.65rem; min-height: 1.65rem; padding: 0; }
+
+.heritage-service-planner__editor {
+  display: grid;
+  grid-template-rows: auto auto auto auto 1fr;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.heritage-service-planner__editor-heading {
+  display: grid;
+  grid-template-columns: auto minmax(12rem, 0.65fr) minmax(15rem, 1fr);
+  align-items: end;
+  gap: 0.7rem;
+}
+
+.heritage-service-planner__editor-heading > span {
+  align-self: center;
+  padding: 0.28rem 0.48rem;
+  border-radius: 999px;
+  color: var(--theme-success-700);
+  background: var(--theme-success-100);
+  font-size: 0.7rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.heritage-service-planner__preview {
+  overflow: hidden;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 0.65rem;
+  background: #080a0a;
+}
+
+.heritage-service-planner__output-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.45rem;
+  border-bottom: 1px solid #303535;
+  background: #171a1a;
+}
+
+.heritage-service-planner__output-tabs button,
+.heritage-service-planner__resource-tabs button {
+  border: 0;
+  border-radius: 0.35rem;
+  cursor: pointer;
+}
+
+.heritage-service-planner__output-tabs button {
+  padding: 0.42rem 0.7rem;
+  color: #aeb6b2;
+  background: transparent;
+  font-size: 0.75rem;
+}
+
+.heritage-service-planner__output-tabs button[aria-selected="true"] { color: white; background: #315c49; }
+
+.heritage-service-planner__stage {
+  display: grid;
+  min-height: 21rem;
+  place-content: center;
+  padding: 2rem;
+  color: white;
+  text-align: center;
+}
+
+.heritage-service-planner__stage > span { color: #8aa897; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.heritage-service-planner__stage h2 { margin: 0.55rem 0 0.9rem; font-size: clamp(1.6rem, 3vw, 3rem); }
+.heritage-service-planner__stage p { max-width: 50rem; margin: 0; white-space: pre-wrap; color: #e9edeb; font-size: clamp(1rem, 1.6vw, 1.45rem); line-height: 1.5; }
+
+.heritage-service-planner__text-editor {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.heritage-service-planner__text-editor textarea { resize: vertical; line-height: 1.45; }
+.heritage-service-planner__picture-editor { display: grid; grid-template-columns: auto repeat(2, minmax(10rem, 1fr)); align-items: end; gap: 0.65rem; }
+
+.heritage-service-planner__advanced {
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 0.55rem;
+  background: var(--theme-elevation-50);
+}
+
+.heritage-service-planner__advanced > summary { padding: 0.75rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+.heritage-service-planner__advanced > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.7rem; padding: 0 0.75rem 0.75rem; }
+.heritage-service-planner__boundary { grid-column: 1 / -1; margin: 0; padding: 0.7rem; border-radius: 0.4rem; color: var(--theme-elevation-650); background: var(--theme-bg); font-size: 0.78rem; line-height: 1.4; }
+.heritage-service-planner__treatments { display: contents; }
+.heritage-service-planner__check { display: flex !important; align-items: center; gap: 0.45rem; }
+.heritage-service-planner__check input { width: auto; }
+
+.heritage-service-planner__filmstrip {
+  display: flex;
+  gap: 0.5rem;
+  align-self: end;
+  padding-top: 0.6rem;
+  overflow-x: auto;
+  border-top: 1px solid var(--theme-elevation-150);
+}
+
+.heritage-service-planner__filmstrip button {
+  display: grid;
+  flex: 0 0 8.5rem;
+  min-height: 4.6rem;
+  align-content: end;
+  padding: 0.5rem;
+  border: 1px solid var(--theme-elevation-200);
+  border-radius: 0.45rem;
+  color: var(--theme-text);
+  background: var(--theme-elevation-50);
+  text-align: left;
+  cursor: pointer;
+}
+
+.heritage-service-planner__filmstrip button[data-selected] { border-color: var(--theme-success-400); box-shadow: inset 0 -0.18rem var(--theme-success-400); }
+.heritage-service-planner__filmstrip span { color: var(--theme-elevation-500); font-size: 0.62rem; }
+.heritage-service-planner__filmstrip strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem; }
+.heritage-service-planner__filmstrip small { color: var(--theme-elevation-550); font-size: 0.62rem; }
+
+.heritage-service-planner__editor-empty {
+  display: grid;
+  place-content: center;
+  min-height: 35rem;
+  color: var(--theme-elevation-550);
+  text-align: center;
+}
+.heritage-service-planner__editor-empty > span { font-size: 3rem; }
+.heritage-service-planner__editor-empty h2 { margin: 0.5rem 0 0; color: var(--theme-text); }
+.heritage-service-planner__editor-empty p { max-width: 28rem; line-height: 1.5; }
+
+.heritage-service-planner__resources {
+  grid-column: 1 / -1;
+  min-width: 0;
+  border-top: 1px solid var(--theme-elevation-200);
+  background: var(--theme-elevation-50);
+}
+
+.heritage-service-planner__resource-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem 0.7rem 0;
+  border-bottom: 1px solid var(--theme-elevation-150);
+}
+
+.heritage-service-planner__resource-tabs button {
+  padding: 0.65rem 0.9rem;
+  color: var(--theme-elevation-650);
+  background: transparent;
+  font-weight: 700;
+}
+
+.heritage-service-planner__resource-tabs button[aria-selected="true"] {
+  color: var(--theme-success-700);
+  box-shadow: inset 0 -0.16rem var(--theme-success-500);
+}
+
+.heritage-service-planner__resource-content {
+  display: flex;
+  min-height: 6.6rem;
+  align-items: end;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  overflow-x: auto;
+}
+
+.heritage-service-planner__resource-content > label { flex: 1 0 9rem; max-width: 24rem; }
+.heritage-service-planner__resource-content > div { display: grid; flex: 1 0 17rem; gap: 0.25rem; }
+.heritage-service-planner__resource-content > small { flex: 1 0 16rem; align-self: center; line-height: 1.4; }
+.heritage-service-planner__empty { color: var(--theme-elevation-550); font-size: 0.8rem; line-height: 1.45; }
+
+@media (max-width: 1050px) {
+  .heritage-service-planner__heading { align-items: stretch; flex-direction: column; }
+  .heritage-service-planner__save-actions { flex-wrap: wrap; }
+  .heritage-service-planner__shell { grid-template-columns: minmax(13rem, 16rem) minmax(25rem, 1fr); }
+  .heritage-service-planner__text-editor { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .heritage-service-planner__shell { display: block; overflow: visible; }
+  .heritage-service-planner__navigation { max-height: 28rem; border-right: 0; border-bottom: 1px solid var(--theme-elevation-150); }
+  .heritage-service-planner__editor { min-height: 35rem; }
+  .heritage-service-planner__editor-heading { grid-template-columns: 1fr; }
+  .heritage-service-planner__stage { min-height: 16rem; }
+  .heritage-service-planner__picture-editor { grid-template-columns: 1fr; }
+}
+
+.heritage-admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem 0.75rem;
+  border-right: 1px solid var(--theme-elevation-150);
+  background: var(--theme-elevation-50);
+}
+
+.heritage-admin-nav a { text-decoration: none; }
+.heritage-admin-nav__brand { display: flex; align-items: center; gap: 0.55rem; padding: 0.35rem; }
+.heritage-admin-nav__brand > span { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 50%; color: white; background: #315c49; font-family: Georgia, serif; }
+.heritage-admin-nav__primary { display: grid; gap: 0.18rem; }
+.heritage-admin-nav__primary a,
+.heritage-admin-nav details a,
+.heritage-admin-nav__footer > a { padding: 0.55rem 0.65rem; border-radius: 0.4rem; color: var(--theme-text); font-size: 0.82rem; font-weight: 650; }
+.heritage-admin-nav__primary a:hover,
+.heritage-admin-nav details a:hover,
+.heritage-admin-nav__footer > a:hover { background: var(--theme-elevation-100); }
+.heritage-admin-nav details { display: grid; padding-top: 0.4rem; border-top: 1px solid var(--theme-elevation-150); }
+.heritage-admin-nav details summary { padding: 0.55rem 0.65rem; color: var(--theme-elevation-600); font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+.heritage-admin-nav details[open] { gap: 0.1rem; }
+.heritage-admin-nav details a { display: block; }
+.heritage-admin-nav__footer { display: grid; gap: 0.1rem; margin-top: auto; padding-top: 0.6rem; border-top: 1px solid var(--theme-elevation-150); }
+.heritage-admin-nav__footer .logout { padding: 0.55rem 0.65rem; font-size: 0.82rem; }
+.heritage-admin-nav__planner-note { margin: 0; padding: 0.65rem; color: var(--theme-elevation-550); font-size: 0.72rem; line-height: 1.4; }
+.heritage-admin-nav[data-planner] { width: 8.5rem; }
+.heritage-admin-nav[data-planner] .heritage-admin-nav__brand strong { display: none; }
+.heritage-admin-nav[data-planner] .heritage-admin-nav__primary a { font-size: 0.75rem; }
+
+.heritage-admin-welcome {
+  max-width: 70rem;
+  margin: 0;
+  padding: clamp(1.4rem, 4vw, 3rem);
+}
+
+.heritage-admin-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.heritage-admin-actions a:first-child { color: white; border-color: #315c49; background: #315c49; }
+.heritage-admin-actions a:first-child span { color: rgb(255 255 255 / 78%); }
+
+@media (max-width: 800px) {
+  .heritage-admin-actions { grid-template-columns: 1fr; }
+  .heritage-admin-nav[data-planner] { width: auto; }
 }

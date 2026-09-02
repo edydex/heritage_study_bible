@@ -29,6 +29,8 @@ import {
   SYNCSHOW_PROTOCOL_VERSION,
   SYNCSHOW_READ_SCOPE,
   SYNCSHOW_SCOPES,
+  SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
+  SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE,
   SYNCSHOW_SERVICE_PLAN_READ_SCOPE,
   SYNCSHOW_SERMON_PUBLICATION_READ_SCOPE,
   SYNCSHOW_SERMON_MEDIA_READ_SCOPE,
@@ -82,6 +84,28 @@ import {
   normalizeCommunityServicePlanSummary,
 } from '@/lib/syncshow/CommunityServicePlan'
 import { sermonMediaEnabled } from '@/lib/syncshow/SermonMedia'
+import {
+  HeritageServiceDocumentServerError,
+  MAX_SERVICE_DOCUMENT_CURSOR_BYTES,
+  MAX_SERVICE_DOCUMENT_PAGE_ITEMS,
+  MAX_SERVICE_DOCUMENT_TRANSFER_BYTES,
+  normalizeServiceDocumentWrite,
+  serviceDocumentChangePage,
+  serviceDocumentEtag,
+  serviceDocumentIdempotencyKey,
+  serviceDocumentListPage,
+  serviceDocumentResponse,
+  serviceDocumentRouteId,
+  serviceDocumentSummary,
+  type ServiceDocumentWrite,
+} from '@/lib/syncshow/HeritageServiceDocumentServer'
+import {
+  ServiceDocumentAssetError,
+  readServiceDocumentAsset,
+  serviceDocumentAssetId,
+  storeServiceDocumentAsset,
+} from '@/lib/syncshow/ServiceDocumentAssetStore'
+import serviceCore from '../../packages/service-core/node.js'
 
 const DEVICE_GRANT_MINUTES = 10
 const CONNECTION_DAYS = 180
@@ -115,6 +139,15 @@ function protocolError(req: PayloadRequest, error: unknown) {
   }
   if (error instanceof CommunitySermonWireError && error.code === 'INVALID_INPUT') {
     return json(req, { code: error.code, error: error.message }, { status: 400 })
+  }
+  if (error instanceof HeritageServiceDocumentServerError) {
+    return json(req, { code: error.code, error: error.message }, { status: error.status })
+  }
+  if (error instanceof ServiceDocumentAssetError) {
+    return json(req, { code: error.code, error: error.message }, {
+      status: error.status,
+      headers: error.retryable ? { 'Retry-After': '5' } : {},
+    })
   }
   req.payload.logger.error({ err: error }, 'SyncShow Community endpoint failed')
   return json(req, { code: 'SERVER_ERROR', error: 'The Community server could not complete the SyncShow request.' }, { status: 500 })
@@ -250,7 +283,9 @@ function requestedScopes(
       && (
         !scopes.includes(SYNCSHOW_READ_SCOPE)
         || !scopes.includes(SYNCSHOW_SONG_PUBLIC_LINK_READ_SCOPE)
-      ))) {
+      ))
+    || (scopes.includes(SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE)
+      && !scopes.includes(SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE))) {
     throw new SyncShowProtocolError('INVALID_SCOPE', 'The requested SyncShow scopes are invalid.')
   }
   return scopes
@@ -339,6 +374,11 @@ async function authorizeSyncShow(req: PayloadRequest, scope: string): Promise<Sy
       ? [SYNCSHOW_SERMON_READ_SCOPE, SYNCSHOW_SERMON_WRITE_SCOPE]
       : scope === SYNCSHOW_SERMON_PUBLICATION_READ_SCOPE
         ? [SYNCSHOW_SERMON_READ_SCOPE, SYNCSHOW_SERMON_PUBLICATION_READ_SCOPE]
+      : scope === SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE
+        ? [
+            SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
+            SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE,
+          ]
       : [scope]
   if (!connection || requiredScopes.some(requiredScope => !scopes.includes(requiredScope))) {
     throw new SyncShowProtocolError('UNAUTHORIZED', 'This SyncShow connection is invalid, expired, or lacks the required scope.', 401)
@@ -1167,6 +1207,286 @@ function servicePlanPageLimit(url: URL) {
     )
   }
   return limit
+}
+
+type ServiceDocumentCursor = {
+  changedAt: string
+  id: number
+}
+
+const SERVICE_DOCUMENT_LIST_LANE = 'service-documents-list'
+const SERVICE_DOCUMENT_CHANGE_LANE = 'service-documents-changes'
+const SERVICE_DOCUMENT_CURSOR_DOMAIN =
+  'heritage-syncshow-service-document-cursor-v1'
+
+function serviceDocumentCursorSignature(
+  req: PayloadRequest,
+  encodedPayload: string,
+) {
+  const secret = String(req.payload.secret || '')
+  if (Buffer.byteLength(secret, 'utf8') < 16) {
+    throw new SyncShowProtocolError(
+      'CURSOR_UNAVAILABLE',
+      'Signed service-document cursors are temporarily unavailable.',
+      503,
+    )
+  }
+  return createHmac('sha256', secret)
+    .update(SERVICE_DOCUMENT_CURSOR_DOMAIN, 'utf8')
+    .update('\0')
+    .update(encodedPayload, 'ascii')
+    .digest('base64url')
+}
+
+function encodeServiceDocumentCursor(
+  req: PayloadRequest,
+  communityId: number,
+  lane: string,
+  cursor: ServiceDocumentCursor,
+) {
+  const encoded = Buffer.from(JSON.stringify({
+    version: 1,
+    lane,
+    communityId,
+    changedAt: new Date(cursor.changedAt).toISOString(),
+    id: cursor.id,
+  }), 'utf8').toString('base64url')
+  return `${encoded}.${serviceDocumentCursorSignature(req, encoded)}`
+}
+
+function decodeServiceDocumentCursor(
+  req: PayloadRequest,
+  communityId: number,
+  lane: string,
+  value: string | null,
+  fallback: ServiceDocumentCursor | null,
+) {
+  if (!value) return fallback
+  if (Buffer.byteLength(value, 'utf8') > MAX_SERVICE_DOCUMENT_CURSOR_BYTES
+    || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value)) {
+    throw new SyncShowProtocolError(
+      'INVALID_CURSOR',
+      'The service-document cursor is invalid.',
+    )
+  }
+  try {
+    const [encoded, signature] = value.split('.')
+    const actual = Buffer.from(signature, 'base64url')
+    const expected = Buffer.from(
+      serviceDocumentCursorSignature(req, encoded),
+      'base64url',
+    )
+    if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
+      throw new Error('invalid')
+    }
+    const parsed = JSON.parse(
+      Buffer.from(encoded, 'base64url').toString('utf8'),
+    ) as RequestDoc
+    const changedAt = new Date(String(parsed.changedAt || '')).toISOString()
+    const id = Number(parsed.id)
+    if (parsed.version !== 1
+      || parsed.lane !== lane
+      || parsed.communityId !== communityId
+      || !Number.isSafeInteger(id)
+      || id < 0) throw new Error('invalid')
+    return { changedAt, id }
+  } catch {
+    throw new SyncShowProtocolError(
+      'INVALID_CURSOR',
+      'The service-document cursor is invalid.',
+    )
+  }
+}
+
+function serviceDocumentPageLimit(url: URL) {
+  const value = url.searchParams.get('limit')
+  if (value === null) return 50
+  if (!/^[1-9]\d*$/.test(value)) {
+    throw new SyncShowProtocolError(
+      'INVALID_LIMIT',
+      `Service-document limit must be 1-${MAX_SERVICE_DOCUMENT_PAGE_ITEMS}.`,
+    )
+  }
+  const limit = Number(value)
+  if (!Number.isSafeInteger(limit) || limit > MAX_SERVICE_DOCUMENT_PAGE_ITEMS) {
+    throw new SyncShowProtocolError(
+      'INVALID_LIMIT',
+      `Service-document limit must be 1-${MAX_SERVICE_DOCUMENT_PAGE_ITEMS}.`,
+    )
+  }
+  return limit
+}
+
+export async function findServiceDocument(
+  req: PayloadRequest,
+  communityId: number,
+  syncId: string,
+) {
+  const found = (await req.payload.find({
+    collection: 'service-documents' as never,
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    showHiddenFields: true,
+    req,
+    where: {
+      and: [
+        { community: { equals: communityId } },
+        { syncId: { equals: syncId } },
+      ],
+    },
+  })).docs[0]
+  return found ? requestDoc(found) : null
+}
+
+async function recordServiceDocumentChange(
+  req: PayloadRequest,
+  communityId: number,
+  document: RequestDoc,
+) {
+  const summary = serviceDocumentSummary(document)
+  await req.payload.create({
+    collection: 'syncshow-service-document-changes' as never,
+    overrideAccess: true,
+    context: { serviceDocumentChange: true },
+    req,
+    data: {
+      community: communityId,
+      serviceDocument: Number(document.id),
+      syncId: summary.syncId,
+      syncVersion: summary.syncVersion,
+      revision: summary.revision,
+      documentSource: String(document.documentSource),
+      status: summary.status,
+      title: summary.title,
+      serviceDate: summary.serviceDate,
+      changedAt: summary.changedAt,
+    } as never,
+  })
+}
+
+export async function mutateServiceDocument(
+  req: PayloadRequest,
+  communityId: number,
+  write: ServiceDocumentWrite,
+  idempotencyKey: string,
+) {
+  const adapter = req.payload.db as unknown as SermonTransactionAdapter
+  const transactionId = await adapter.beginTransaction()
+  if (!transactionId || !adapter.sessions?.[String(transactionId)]?.db) {
+    throw new SyncShowProtocolError(
+      'CAS_UNAVAILABLE',
+      'Atomic service-document updates are temporarily unavailable.',
+      503,
+    )
+  }
+  const db = adapter.sessions[String(transactionId)].db
+  const previousTransactionId = req.transactionID
+  let committed = false
+  try {
+    req.transactionID = transactionId
+    await db.execute(sql`
+      SELECT pg_advisory_xact_lock(
+        hashtext(${`service-document:${communityId}:${write.syncId}`})
+      );
+    `)
+    let current = await findServiceDocument(req, communityId, write.syncId)
+    if (current) {
+      await db.execute(sql`
+        SELECT "id"
+        FROM "service_documents"
+        WHERE "id" = ${Number(current.id)}
+        FOR UPDATE;
+      `)
+      current = await findServiceDocument(req, communityId, write.syncId)
+    }
+
+    if (write.baseSyncVersion === null) {
+      const exactRetry = current
+        && String(current.lastIdempotencyKey || '') === idempotencyKey
+        && String(current.revision || '') === write.revision
+        && String(current.documentSource || '') === write.documentSource
+        && String(current.status || '') === write.status
+      if (exactRetry) {
+        await adapter.commitTransaction(transactionId)
+        committed = true
+        return { document: current as RequestDoc, created: false }
+      }
+      if (current) {
+        throw new SyncShowProtocolError(
+          'SERVICE_DOCUMENT_EXISTS',
+          'This service document already exists. Open it before saving.',
+          409,
+        )
+      }
+      const created = requestDoc(await req.payload.create({
+        collection: 'service-documents' as never,
+        overrideAccess: true,
+        showHiddenFields: true,
+        context: { serviceDocumentChangedAt: new Date().toISOString() },
+        req,
+        data: {
+          community: communityId,
+          status: write.status,
+          documentSource: write.documentSource,
+          lastIdempotencyKey: idempotencyKey,
+        } as never,
+      }))
+      await recordServiceDocumentChange(req, communityId, created)
+      await adapter.commitTransaction(transactionId)
+      committed = true
+      return { document: created, created: true }
+    }
+
+    if (!current) {
+      throw new SyncShowProtocolError(
+        'SERVICE_DOCUMENT_NOT_FOUND',
+        'Service document not found.',
+        404,
+      )
+    }
+    const currentVersion = Number(current.syncVersion)
+    const exactRetry = String(current.lastIdempotencyKey || '') === idempotencyKey
+      && String(current.revision || '') === write.revision
+      && String(current.documentSource || '') === write.documentSource
+      && String(current.status || '') === write.status
+      && currentVersion === write.baseSyncVersion + 1
+    if (exactRetry) {
+      await adapter.commitTransaction(transactionId)
+      committed = true
+      return { document: current as RequestDoc, created: false }
+    }
+    if (currentVersion !== write.baseSyncVersion
+      || String(current.revision || '') !== write.baseRevision) {
+      throw new SyncShowProtocolError(
+        'VERSION_CONFLICT',
+        'The service document changed. Review both versions before saving.',
+        412,
+      )
+    }
+    const updated = requestDoc(await req.payload.update({
+      collection: 'service-documents' as never,
+      id: Number(current.id),
+      overrideAccess: true,
+      showHiddenFields: true,
+      context: { serviceDocumentChangedAt: new Date().toISOString() },
+      req,
+      data: {
+        status: write.status,
+        documentSource: write.documentSource,
+        lastIdempotencyKey: idempotencyKey,
+      } as never,
+    }))
+    await recordServiceDocumentChange(req, communityId, updated)
+    await adapter.commitTransaction(transactionId)
+    committed = true
+    return { document: updated, created: false }
+  } catch (error) {
+    if (!committed) await adapter.rollbackTransaction(transactionId)
+    throw error
+  } finally {
+    req.transactionID = previousTransactionId
+  }
 }
 
 const deviceStart: Endpoint = {
@@ -2196,6 +2516,359 @@ const servicePlanGet: Endpoint = {
   },
 }
 
+export {
+  serviceDocumentResponse,
+  serviceDocumentSummary,
+}
+
+const serviceDocumentsListGet: Endpoint = {
+  path: '/community/syncshow/v1/service-documents',
+  method: 'get',
+  handler: async req => {
+    try {
+      const auth = await authorizeSyncShow(
+        req,
+        SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
+      )
+      const url = new URL(req.url || communityPublicConfig.publicUrl)
+      const limit = serviceDocumentPageLimit(url)
+      const cursor = decodeServiceDocumentCursor(
+        req,
+        auth.communityId,
+        SERVICE_DOCUMENT_LIST_LANE,
+        url.searchParams.get('cursor'),
+        null,
+      )
+      const result = await req.payload.find({
+        collection: 'service-documents' as never,
+        depth: 0,
+        limit: limit + 1,
+        sort: ['-changedAt', '-id'],
+        overrideAccess: true,
+        showHiddenFields: true,
+        req,
+        where: {
+          and: [
+            { community: { equals: auth.communityId } },
+            ...(cursor
+              ? [{
+                  or: [
+                    { changedAt: { less_than: cursor.changedAt } },
+                    {
+                      and: [
+                        { changedAt: { equals: cursor.changedAt } },
+                        { id: { less_than: cursor.id } },
+                      ],
+                    },
+                  ],
+                }]
+              : []),
+          ],
+        },
+      })
+      const fetched = result.docs.map(requestDoc)
+      const hasMore = fetched.length > limit
+      const page = fetched.slice(0, limit)
+      const last = page[page.length - 1]
+      const nextCursor = hasMore && last
+        ? encodeServiceDocumentCursor(
+            req,
+            auth.communityId,
+            SERVICE_DOCUMENT_LIST_LANE,
+            {
+              changedAt: new Date(String(last.changedAt)).toISOString(),
+              id: Number(last.id),
+            },
+          )
+        : null
+      return json(req, serviceDocumentListPage({
+        items: page.map(serviceDocumentSummary),
+        nextCursor,
+        hasMore,
+      }, limit))
+    } catch (error) {
+      return protocolError(req, error)
+    }
+  },
+}
+
+const serviceDocumentChangesGet: Endpoint = {
+  path: '/community/syncshow/v1/service-documents/changes',
+  method: 'get',
+  handler: async req => {
+    try {
+      const auth = await authorizeSyncShow(
+        req,
+        SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
+      )
+      const url = new URL(req.url || communityPublicConfig.publicUrl)
+      const limit = serviceDocumentPageLimit(url)
+      const cursor = decodeServiceDocumentCursor(
+        req,
+        auth.communityId,
+        SERVICE_DOCUMENT_CHANGE_LANE,
+        url.searchParams.get('cursor'),
+        { changedAt: '1970-01-01T00:00:00.000Z', id: 0 },
+      ) as ServiceDocumentCursor
+      const result = await req.payload.find({
+        collection: 'service-documents' as never,
+        depth: 0,
+        limit: limit + 1,
+        sort: ['changedAt', 'id'],
+        overrideAccess: true,
+        showHiddenFields: true,
+        req,
+        where: {
+          and: [
+            { community: { equals: auth.communityId } },
+            {
+              or: [
+                { changedAt: { greater_than: cursor.changedAt } },
+                {
+                  and: [
+                    { changedAt: { equals: cursor.changedAt } },
+                    { id: { greater_than: cursor.id } },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      })
+      const fetched = result.docs.map(requestDoc)
+      const hasMore = fetched.length > limit
+      const page = fetched.slice(0, limit)
+      const last = page[page.length - 1]
+      const checkpoint = last
+        ? {
+            changedAt: new Date(String(last.changedAt)).toISOString(),
+            id: Number(last.id),
+          }
+        : cursor
+      return json(req, serviceDocumentChangePage({
+        items: page.map(serviceDocumentSummary),
+        nextCursor: encodeServiceDocumentCursor(
+          req,
+          auth.communityId,
+          SERVICE_DOCUMENT_CHANGE_LANE,
+          checkpoint,
+        ),
+        hasMore,
+      }, limit))
+    } catch (error) {
+      return protocolError(req, error)
+    }
+  },
+}
+
+const serviceDocumentsCreate: Endpoint = {
+  path: '/community/syncshow/v1/service-documents',
+  method: 'post',
+  handler: async req => {
+    try {
+      const auth = await authorizeSyncShow(
+        req,
+        SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE,
+      )
+      const idempotencyKey = serviceDocumentIdempotencyKey(
+        req.headers.get('idempotency-key'),
+      )
+      const write = normalizeServiceDocumentWrite(
+        await boundedJson(req, MAX_SERVICE_DOCUMENT_TRANSFER_BYTES),
+      )
+      const result = await mutateServiceDocument(
+        req,
+        auth.communityId,
+        write,
+        idempotencyKey,
+      )
+      const serviceDocument = serviceDocumentResponse(result.document)
+      return json(
+        req,
+        { serviceDocument },
+        {
+          status: result.created ? 201 : 200,
+          headers: {
+            ETag: serviceDocumentEtag(result.document),
+            Location: `/api/community/syncshow/v1/service-documents/${encodeURIComponent(serviceDocument.syncId)}`,
+          },
+        },
+      )
+    } catch (error) {
+      return protocolError(req, error)
+    }
+  },
+}
+
+const serviceDocumentAssetPut: Endpoint = {
+  path: '/community/syncshow/v1/service-documents/assets/:assetId',
+  method: 'put',
+  handler: async req => {
+    try {
+      const auth = await authorizeSyncShow(
+        req,
+        SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE,
+      )
+      const asset = await storeServiceDocumentAsset(
+        req,
+        auth.communityId,
+        req.routeParams?.assetId,
+      )
+      return new Response(null, {
+        status: 201,
+        headers: cors(req, {
+          ETag: `"${asset.sha256}"`,
+          Location: `/api/community/syncshow/v1/service-documents/assets/${encodeURIComponent(asset.id)}`,
+          'X-Content-Type-Options': 'nosniff',
+        }),
+      })
+    } catch (error) {
+      return protocolError(req, error)
+    }
+  },
+}
+
+const serviceDocumentAssetGet: Endpoint = {
+  path: '/community/syncshow/v1/service-documents/:syncId/assets/:assetId',
+  method: 'get',
+  handler: async req => {
+    try {
+      const auth = await authorizeSyncShow(
+        req,
+        SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
+      )
+      const syncId = serviceDocumentRouteId(req.routeParams?.syncId)
+      const identity = serviceDocumentAssetId(req.routeParams?.assetId)
+      const stored = await findServiceDocument(req, auth.communityId, syncId)
+      if (!stored) {
+        throw new SyncShowProtocolError(
+          'SERVICE_DOCUMENT_NOT_FOUND',
+          'Service document not found.',
+          404,
+        )
+      }
+      let document
+      try {
+        document = serviceCore.parseHeritageServiceDocumentSource(
+          String(stored.documentSource || ''),
+        )
+      } catch {
+        throw new SyncShowProtocolError(
+          'INVALID_SERVICE_DOCUMENT_STATE',
+          'Stored service document is invalid.',
+          500,
+        )
+      }
+      const asset = document.project.assets[identity.id]
+      if (!asset || asset.kind !== 'image') {
+        throw new ServiceDocumentAssetError(
+          'SERVICE_ASSET_NOT_FOUND',
+          'That image is not part of this service revision.',
+          404,
+        )
+      }
+      const bytes = await readServiceDocumentAsset(auth.communityId, asset)
+      return new Response(new Uint8Array(bytes), {
+        status: 200,
+        headers: cors(req, {
+          'Content-Type': asset.mediaType,
+          'Content-Length': String(asset.size),
+          ETag: `"${asset.sha256}"`,
+          'X-Content-Type-Options': 'nosniff',
+        }),
+      })
+    } catch (error) {
+      return protocolError(req, error)
+    }
+  },
+}
+
+const serviceDocumentGet: Endpoint = {
+  path: '/community/syncshow/v1/service-documents/:syncId',
+  method: 'get',
+  handler: async req => {
+    try {
+      const auth = await authorizeSyncShow(
+        req,
+        SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
+      )
+      const syncId = serviceDocumentRouteId(req.routeParams?.syncId)
+      const document = await findServiceDocument(req, auth.communityId, syncId)
+      if (!document) {
+        throw new SyncShowProtocolError(
+          'SERVICE_DOCUMENT_NOT_FOUND',
+          'Service document not found.',
+          404,
+        )
+      }
+      const etag = serviceDocumentEtag(document)
+      if (req.headers.get('if-none-match') === etag) {
+        return new Response(null, {
+          status: 304,
+          headers: cors(req, { ETag: etag }),
+        })
+      }
+      return json(
+        req,
+        { serviceDocument: serviceDocumentResponse(document) },
+        { headers: { ETag: etag } },
+      )
+    } catch (error) {
+      return protocolError(req, error)
+    }
+  },
+}
+
+const serviceDocumentPut: Endpoint = {
+  path: '/community/syncshow/v1/service-documents/:syncId',
+  method: 'put',
+  handler: async req => {
+    try {
+      const auth = await authorizeSyncShow(
+        req,
+        SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE,
+      )
+      const routeId = serviceDocumentRouteId(req.routeParams?.syncId)
+      const idempotencyKey = serviceDocumentIdempotencyKey(
+        req.headers.get('idempotency-key'),
+      )
+      const write = normalizeServiceDocumentWrite(
+        await boundedJson(req, MAX_SERVICE_DOCUMENT_TRANSFER_BYTES),
+        { update: true },
+      )
+      if (write.syncId !== routeId) {
+        throw new SyncShowProtocolError(
+          'IMMUTABLE_SYNC_ID',
+          'Service-document syncId cannot be changed.',
+          409,
+        )
+      }
+      if (req.headers.get('if-match') !== `"${write.baseRevision}"`
+        || req.headers.get('x-heritage-base-sync-version')
+          !== String(write.baseSyncVersion)) {
+        throw new SyncShowProtocolError(
+          'INVALID_SERVICE_DOCUMENT_BASE',
+          'The service-document base headers do not match the request body.',
+          412,
+        )
+      }
+      const result = await mutateServiceDocument(
+        req,
+        auth.communityId,
+        write,
+        idempotencyKey,
+      )
+      return json(
+        req,
+        { serviceDocument: serviceDocumentResponse(result.document) },
+        { headers: { ETag: serviceDocumentEtag(result.document) } },
+      )
+    } catch (error) {
+      return protocolError(req, error)
+    }
+  },
+}
+
 export const syncShowEndpoints: Endpoint[] = [
   deviceStart,
   deviceStatus,
@@ -2217,4 +2890,11 @@ export const syncShowEndpoints: Endpoint[] = [
   sermonPublicationGet,
   servicePlansListGet,
   servicePlanGet,
+  serviceDocumentsListGet,
+  serviceDocumentChangesGet,
+  serviceDocumentsCreate,
+  serviceDocumentAssetPut,
+  serviceDocumentAssetGet,
+  serviceDocumentGet,
+  serviceDocumentPut,
 ]

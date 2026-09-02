@@ -4,6 +4,7 @@ import {
 } from 'node:fs'
 import {
   lstat,
+  link,
   mkdir,
   open,
   readdir,
@@ -562,6 +563,263 @@ export function sermonMediaObjectKey(
   return `objects/${communityNamespace}/sha256/${sha256.slice(0, 2)}/${sha256}`
 }
 
+/**
+ * Stores a small, already-buffered private sermon object (pastor original or
+ * deterministic text extraction) in the same tenant-isolated,
+ * content-addressed store as recordings. Unlike recording finalization this
+ * deliberately performs no audio-container check; callers validate the source
+ * format before storage and supply the exact digest.
+ */
+export async function storePrivateSermonObject({
+  bytes,
+  communityNamespace,
+  expectedSha256,
+  maximumBytes = 32 * 1024 * 1024,
+}: {
+  bytes: Uint8Array
+  communityNamespace: string
+  expectedSha256: string
+  maximumBytes?: number
+}): Promise<StoredSermonMediaObject> {
+  assertDigest(expectedSha256)
+  if (
+    !(bytes instanceof Uint8Array)
+    || !Number.isSafeInteger(maximumBytes)
+    || maximumBytes < 1
+    || bytes.byteLength < 1
+    || bytes.byteLength > maximumBytes
+    || createHash('sha256').update(bytes).digest('hex') !== expectedSha256
+  ) {
+    throw new SermonMediaError(
+      'INVALID_PRIVATE_OBJECT',
+      'The private sermon source bytes are invalid.',
+      422,
+    )
+  }
+  const root = sermonMediaStorageRoot()
+  const storageKey = sermonMediaObjectKey(
+    communityNamespace,
+    expectedSha256,
+  )
+  const objectDirectory = await ensurePrivateDirectory(
+    root,
+    `objects/${communityNamespace}/sha256/${expectedSha256.slice(0, 2)}`,
+  )
+  const destination = absoluteStoragePath(root, storageKey)
+  try {
+    const existing = await verifyRegularFile(
+      destination,
+      bytes.byteLength,
+      expectedSha256,
+    )
+    if (!existing) {
+      throw storageError(
+        'A conflicting private sermon object already exists.',
+      )
+    }
+    return Object.freeze({
+      storageKey,
+      sha256: expectedSha256,
+      sizeBytes: bytes.byteLength,
+    })
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException)?.code !== 'ENOENT') throw error
+  }
+
+  const temporary = await exclusiveTempFile(objectDirectory)
+  let closed = false
+  try {
+    let offset = 0
+    while (offset < bytes.byteLength) {
+      const result = await temporary.handle.write(
+        bytes,
+        offset,
+        bytes.byteLength - offset,
+      )
+      if (result.bytesWritten < 1) {
+        throw storageError('The private sermon source could not be written completely.')
+      }
+      offset += result.bytesWritten
+    }
+    await temporary.handle.sync()
+    await temporary.handle.close()
+    closed = true
+    try {
+      // Hard-link publication is atomic and cannot replace an existing
+      // content-addressed object during a concurrent identical upload.
+      await link(temporary.path, destination)
+      await fsyncDirectory(objectDirectory)
+      await removeTemp(temporary.path)
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException)?.code !== 'EEXIST') throw error
+      if (!await verifyRegularFile(
+        destination,
+        bytes.byteLength,
+        expectedSha256,
+      )) {
+        throw storageError('A conflicting private sermon object already exists.')
+      }
+      await removeTemp(temporary.path)
+    }
+    return Object.freeze({
+      storageKey,
+      sha256: expectedSha256,
+      sizeBytes: bytes.byteLength,
+    })
+  } catch (error) {
+    if (!closed) await temporary.handle.close().catch(() => undefined)
+    await removeTemp(temporary.path).catch(() => undefined)
+    if (error instanceof SermonMediaError) throw error
+    throw storageError('The private sermon source could not be stored.', error)
+  }
+}
+
+/**
+ * Streams a larger private object into the tenant-isolated content-addressed
+ * store. Publication happens only after size, digest, and caller-supplied
+ * container-header validation all succeed, so an interrupted or disguised
+ * upload can never become a readable service asset.
+ */
+export async function storePrivateStreamObject({
+  body,
+  communityNamespace,
+  expectedSha256,
+  expectedSize,
+  maximumBytes,
+  validateHead,
+}: {
+  body: ReadableStream<Uint8Array> | null
+  communityNamespace: string
+  expectedSha256: string
+  expectedSize: number
+  maximumBytes: number
+  validateHead?: (head: Uint8Array) => boolean
+}): Promise<StoredSermonMediaObject> {
+  assertDigest(expectedSha256)
+  if (
+    !body
+    || !Number.isSafeInteger(expectedSize)
+    || expectedSize < 1
+    || !Number.isSafeInteger(maximumBytes)
+    || maximumBytes < 1
+    || expectedSize > maximumBytes
+  ) {
+    throw new SermonMediaError(
+      'INVALID_PRIVATE_OBJECT',
+      'The private service asset stream is invalid.',
+      422,
+    )
+  }
+
+  const root = sermonMediaStorageRoot()
+  const storageKey = sermonMediaObjectKey(communityNamespace, expectedSha256)
+  const objectDirectory = await ensurePrivateDirectory(
+    root,
+    `objects/${communityNamespace}/sha256/${expectedSha256.slice(0, 2)}`,
+  )
+  const destination = absoluteStoragePath(root, storageKey)
+  try {
+    const existing = await verifyRegularFile(destination, expectedSize, expectedSha256)
+    if (!existing) throw storageError('A conflicting private service asset already exists.')
+    return Object.freeze({ storageKey, sha256: expectedSha256, sizeBytes: expectedSize })
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException)?.code !== 'ENOENT') throw error
+  }
+
+  const temporary = await exclusiveTempFile(objectDirectory)
+  const hash = createHash('sha256')
+  const headChunks: Uint8Array[] = []
+  let headSize = 0
+  let sizeBytes = 0
+  let closed = false
+  try {
+    const reader = body.getReader()
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        if (!(value instanceof Uint8Array)) {
+          throw new SermonMediaError(
+            'INVALID_PRIVATE_OBJECT',
+            'The private service asset stream is invalid.',
+            422,
+          )
+        }
+        if (value.byteLength === 0) continue
+        sizeBytes += value.byteLength
+        if (sizeBytes > expectedSize || sizeBytes > maximumBytes) {
+          await reader.cancel('private service asset exceeded its declared size')
+            .catch(() => undefined)
+          throw new SermonMediaError(
+            'CONTENT_LENGTH_MISMATCH',
+            'The private service asset contains more bytes than declared.',
+            422,
+          )
+        }
+        hash.update(value)
+        if (headSize < 64) {
+          const retained = value.subarray(0, Math.min(value.byteLength, 64 - headSize))
+          headChunks.push(retained.slice())
+          headSize += retained.byteLength
+        }
+        let offset = 0
+        while (offset < value.byteLength) {
+          const result = await temporary.handle.write(value, offset, value.byteLength - offset)
+          if (result.bytesWritten < 1) {
+            throw storageError('The private service asset could not be written completely.')
+          }
+          offset += result.bytesWritten
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+    if (sizeBytes !== expectedSize) {
+      throw new SermonMediaError(
+        'CONTENT_LENGTH_MISMATCH',
+        'The private service asset size does not match its metadata.',
+        422,
+      )
+    }
+    if (hash.digest('hex') !== expectedSha256) {
+      throw new SermonMediaError(
+        'CHUNK_HASH_MISMATCH',
+        'The private service asset failed its content checksum.',
+        422,
+      )
+    }
+    if (validateHead && !validateHead(
+      Buffer.concat(headChunks.map(chunk => Buffer.from(chunk)), headSize),
+    )) {
+      throw new SermonMediaError(
+        'INVALID_PRIVATE_OBJECT',
+        'The private service asset container is invalid.',
+        422,
+      )
+    }
+    await temporary.handle.sync()
+    await temporary.handle.close()
+    closed = true
+    try {
+      await link(temporary.path, destination)
+      await fsyncDirectory(objectDirectory)
+      await removeTemp(temporary.path)
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException)?.code !== 'EEXIST') throw error
+      if (!await verifyRegularFile(destination, expectedSize, expectedSha256)) {
+        throw storageError('A conflicting private service asset already exists.')
+      }
+      await removeTemp(temporary.path)
+    }
+    return Object.freeze({ storageKey, sha256: expectedSha256, sizeBytes })
+  } catch (error) {
+    if (!closed) await temporary.handle.close().catch(() => undefined)
+    await removeTemp(temporary.path).catch(() => undefined)
+    if (error instanceof SermonMediaError) throw error
+    throw storageError('The private service asset could not be stored.', error)
+  }
+}
+
 export async function storeSermonMediaChunk({
   uploadId,
   headers,
@@ -997,6 +1255,175 @@ export async function verifySermonMediaObject(
     object.sizeBytes,
     object.sha256,
   )
+}
+
+/**
+ * Opens a completed private recording without exposing its absolute path.
+ *
+ * The descriptor is revalidated against the content-addressed namespace, each
+ * parent component is required to be a real directory, the final object is
+ * opened with O_NOFOLLOW, and the descriptor must still be a regular file of
+ * the exact finalized size. Finalization is the full-byte digest boundary;
+ * range playback does not rehash up to 1 GiB on every browser seek. Callers must either
+ * consume one createReadStream() result (which closes the descriptor) or call
+ * close() themselves.
+ */
+export async function openSermonMediaObjectForRead(
+  object: StoredSermonMediaObject,
+) {
+  if (
+    !OBJECT_KEY_PATTERN.test(object.storageKey)
+    || !SHA256_PATTERN.test(object.sha256)
+    || !Number.isSafeInteger(object.sizeBytes)
+    || object.sizeBytes < 1
+    || object.sizeBytes > SERMON_MEDIA_MAXIMUM_BYTES
+  ) {
+    throw storageError('A stored recording object descriptor is invalid.')
+  }
+  const keyDigest = object.storageKey.split('/').at(-1)
+  if (keyDigest !== object.sha256) {
+    throw storageError('A stored recording object key does not match its digest.')
+  }
+
+  const root = sermonMediaStorageRoot()
+  await ensureRoot(root)
+  const segments = object.storageKey.split('/')
+  let parent = root
+  try {
+    for (const segment of segments.slice(0, -1)) {
+      parent = path.join(parent, segment)
+      await assertDirectoryNotSymlink(parent)
+    }
+  } catch (error) {
+    if (error instanceof SermonMediaError) throw error
+    throw storageError(
+      'The private recording object directory is unavailable.',
+      error,
+    )
+  }
+
+  const value = absoluteStoragePath(root, object.storageKey)
+  let handle: Awaited<ReturnType<typeof open>> | null = null
+  try {
+    const linkMetadata = await lstat(value)
+    if (linkMetadata.isSymbolicLink() || !linkMetadata.isFile()) {
+      throw storageError(
+        'Sermon-media storage contains a symbolic link or non-file object.',
+      )
+    }
+    handle = await open(value, constants.O_RDONLY | constants.O_NOFOLLOW)
+    const metadata = await handle.stat()
+    if (
+      !metadata.isFile()
+      || metadata.size !== object.sizeBytes
+      || metadata.dev !== linkMetadata.dev
+      || metadata.ino !== linkMetadata.ino
+    ) {
+      throw storageError('The private recording object size is inconsistent.')
+    }
+
+    const opened = handle
+    handle = null
+    let claimed = false
+    let closed = false
+    let activeStream: ReturnType<typeof opened.createReadStream> | null = null
+    return Object.freeze({
+      sha256: object.sha256,
+      sizeBytes: object.sizeBytes,
+      createReadStream(startByte = 0, endByte = object.sizeBytes - 1) {
+        if (
+          claimed
+          || closed
+          || !Number.isSafeInteger(startByte)
+          || !Number.isSafeInteger(endByte)
+          || startByte < 0
+          || endByte < startByte
+          || endByte >= object.sizeBytes
+        ) {
+          throw storageError('The private recording byte range is invalid.')
+        }
+        const stream = opened.createReadStream({
+          start: startByte,
+          end: endByte,
+          autoClose: true,
+        })
+        claimed = true
+        activeStream = stream
+        stream.once('close', () => {
+          closed = true
+          activeStream = null
+        })
+        return stream
+      },
+      async close() {
+        if (closed) return
+        if (activeStream) {
+          const stream = activeStream
+          const didClose = stream.closed
+            ? null
+            : new Promise<void>(resolve => stream.once('close', resolve))
+          stream.destroy()
+          await didClose
+          activeStream = null
+          closed = true
+          return
+        }
+        claimed = true
+        closed = true
+        await opened.close()
+      },
+    })
+  } catch (error) {
+    await handle?.close().catch(() => undefined)
+    if (error instanceof SermonMediaError) throw error
+    throw storageError('The private recording object could not be opened.', error)
+  }
+}
+
+export async function readPrivateSermonObject(
+  object: StoredSermonMediaObject,
+  maximumBytes = 32 * 1024 * 1024,
+) {
+  if (
+    !Number.isSafeInteger(maximumBytes)
+    || maximumBytes < 1
+    || object.sizeBytes > maximumBytes
+  ) {
+    throw new SermonMediaError(
+      'PRIVATE_OBJECT_TOO_LARGE',
+      'The private sermon object is too large to read in one review request.',
+      413,
+    )
+  }
+  const opened = await openSermonMediaObjectForRead(object)
+  const chunks: Buffer[] = []
+  let sizeBytes = 0
+  try {
+    const stream = opened.createReadStream()
+    for await (const raw of stream) {
+      const chunk = Buffer.isBuffer(raw) ? raw : Buffer.from(raw)
+      sizeBytes += chunk.byteLength
+      if (sizeBytes > maximumBytes || sizeBytes > object.sizeBytes) {
+        stream.destroy()
+        throw new SermonMediaError(
+          'PRIVATE_OBJECT_TOO_LARGE',
+          'The private sermon object exceeded its reviewed size.',
+          413,
+        )
+      }
+      chunks.push(chunk)
+    }
+  } finally {
+    await opened.close()
+  }
+  const result = Buffer.concat(chunks)
+  if (
+    result.byteLength !== object.sizeBytes
+    || createHash('sha256').update(result).digest('hex') !== object.sha256
+  ) {
+    throw storageError('The private sermon object failed its final read check.')
+  }
+  return result
 }
 
 export async function sermonMediaFilesystemCapacity() {

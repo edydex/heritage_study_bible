@@ -20,12 +20,14 @@ import { Memberships } from '@/collections/Memberships'
 import { PlanCohorts } from '@/collections/PlanCohorts'
 import { PlanNotes } from '@/collections/PlanNotes'
 import { ReadingPlans } from '@/collections/ReadingPlans'
+import { ServiceDocuments } from '@/collections/ServiceDocuments'
 import { ServicePlans } from '@/collections/ServicePlans'
 import { Sermons } from '@/collections/Sermons'
 import { Songs } from '@/collections/Songs'
 import { SyncShowConnections } from '@/collections/SyncShowConnections'
 import { SyncShowDeviceGrants } from '@/collections/SyncShowDeviceGrants'
 import { SyncShowSermonChanges } from '@/collections/SyncShowSermonChanges'
+import { SyncShowServiceDocumentChanges } from '@/collections/SyncShowServiceDocumentChanges'
 import { SyncShowSermonPublicationCatalogs } from '@/collections/SyncShowSermonPublicationCatalogs'
 import { SyncShowSermonPublications } from '@/collections/SyncShowSermonPublications'
 import { SyncShowSongPublicLinks } from '@/collections/SyncShowSongPublicLinks'
@@ -35,6 +37,7 @@ import { authEndpoints } from '@/endpoints/auth'
 import { managerSermonPublicationEndpoints } from '@/endpoints/sermonPublications'
 import { managerSermonPreparationEndpoints } from '@/endpoints/sermonPreparations'
 import { sermonMediaEndpoints } from '@/endpoints/sermonMedia'
+import { managerServiceDocumentEndpoints } from '@/endpoints/serviceDocuments'
 import { startSermonMediaMaintenance } from '@/lib/syncshow/SermonMediaMaintenance'
 import { songPublicLinkEndpoints } from '@/endpoints/songPublicLinks'
 import { songMemberSharingEndpoints } from '@/endpoints/songMemberSharing'
@@ -118,8 +121,23 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
     components: {
-      beforeDashboard: ['@/components/AdminWelcome'],
+      Nav: '@/components/AdminNav',
       views: {
+        dashboard: {
+          Component: '@/components/AdminDashboard',
+          exact: true,
+          meta: {
+            title: 'Church workspace',
+          },
+        },
+        planService: {
+          Component: '@/components/PlanService',
+          exact: true,
+          meta: {
+            title: 'Plan a service',
+          },
+          path: '/plan-service',
+        },
         prepareSermon: {
           Component: '@/components/PrepareSermon',
           exact: true,
@@ -157,6 +175,8 @@ export default buildConfig({
     SyncShowConnections,
     Sermons,
     ServicePlans,
+    ServiceDocuments,
+    SyncShowServiceDocumentChanges,
     SyncShowSermonChanges,
     SyncShowSermonPublications,
     SyncShowSermonPublicationCatalogs,
@@ -199,6 +219,7 @@ export default buildConfig({
     ...managerSermonPreparationEndpoints,
     ...managerSermonPublicationEndpoints,
     ...sermonMediaEndpoints,
+    ...managerServiceDocumentEndpoints,
   ],
   onInit: async payload => {
     await bootstrapInstallation(payload)

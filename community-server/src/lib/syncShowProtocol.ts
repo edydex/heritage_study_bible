@@ -11,6 +11,10 @@ export const SYNCSHOW_SERMON_READ_SCOPE = 'syncshow:sermons:read'
 export const SYNCSHOW_SERMON_WRITE_SCOPE = 'syncshow:sermons:write'
 export const SYNCSHOW_SERMON_PUBLICATION_READ_SCOPE = 'syncshow:sermon-publications:read'
 export const SYNCSHOW_SERVICE_PLAN_READ_SCOPE = 'syncshow:service-plans:read'
+export const SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE =
+  'syncshow:service-documents:read'
+export const SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE =
+  'syncshow:service-documents:write'
 export const SYNCSHOW_SONG_PUBLIC_LINK_READ_SCOPE =
   'syncshow:song-public-links:read'
 export const SYNCSHOW_SONG_PUBLIC_LINK_WRITE_SCOPE =
@@ -26,6 +30,8 @@ export const SYNCSHOW_SCOPES = [
   SYNCSHOW_SERMON_WRITE_SCOPE,
   SYNCSHOW_SERMON_PUBLICATION_READ_SCOPE,
   SYNCSHOW_SERVICE_PLAN_READ_SCOPE,
+  SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
+  SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE,
   SYNCSHOW_SONG_PUBLIC_LINK_READ_SCOPE,
   SYNCSHOW_SONG_PUBLIC_LINK_WRITE_SCOPE,
   SYNCSHOW_SERMON_MEDIA_READ_SCOPE,
