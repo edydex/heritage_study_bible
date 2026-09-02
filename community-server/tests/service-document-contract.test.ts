@@ -230,11 +230,21 @@ test('Community dashboard routes service planning through the visual shared edit
     new URL('../src/components/AdminWelcome.tsx', import.meta.url),
     'utf8',
   )
+  const dashboard = readFileSync(
+    new URL('../src/components/AdminDashboard.tsx', import.meta.url),
+    'utf8',
+  )
   const planner = readFileSync(
     new URL('../src/components/PlanServiceClient.tsx', import.meta.url),
     'utf8',
   )
+  const adminStyles = readFileSync(
+    new URL('../src/app/(payload)/custom.scss', import.meta.url),
+    'utf8',
+  )
   assert.match(welcome, /href: '\/admin\/plan-service'/)
+  assert.match(dashboard, /heritage-admin-workspace/)
+  assert.doesNotMatch(dashboard, /DefaultTemplate/)
   assert.match(planner, /aria-label="Preview output"/)
   assert.match(planner, /Add song to service/)
   assert.match(planner, /Add reading/)
@@ -242,6 +252,9 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.match(planner, /Song library.*Media.*Scripture/s)
   assert.doesNotMatch(planner, /__inspector/)
   assert.match(planner, /This service changed somewhere else/)
+  assert.match(adminStyles, /\.heritage-admin-workspace\s*\{[^}]*place-items:\s*center/s)
+  assert.match(adminStyles, /\.heritage-service-planner\s*\{[^}]*height:\s*calc\(100svh - var\(--app-header-height\)\)[^}]*overflow:\s*hidden/s)
+  assert.match(adminStyles, /grid-template-rows:\s*minmax\(0, 1fr\) auto/)
 
   const routes = new Set(managerServiceDocumentEndpoints.map(endpoint =>
     `${endpoint.method.toUpperCase()} ${endpoint.path}`))

@@ -1005,11 +1005,15 @@
  * service tree, the selected-item editor, and the resource shelf. Advanced
  * output treatment stays collapsed inside the selected item. */
 .heritage-service-planner {
-  display: grid;
+  display: flex;
+  height: calc(100svh - var(--app-header-height));
+  min-height: 0;
+  flex-direction: column;
   gap: 0.75rem;
   width: 100%;
   max-width: none;
-  padding: 0 0 5rem;
+  padding: clamp(0.5rem, 1.2vh, 0.85rem);
+  overflow: hidden;
 }
 
 .heritage-service-planner__heading {
@@ -1017,8 +1021,9 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 2rem;
-  min-height: 5.5rem;
-  padding: 0.7rem 0;
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 0.25rem 0;
 }
 
 .heritage-service-planner__heading h1,
@@ -1090,8 +1095,10 @@
 
 .heritage-service-planner__shell {
   display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
   grid-template-columns: minmax(15rem, 18rem) minmax(32rem, 1fr);
-  grid-template-rows: minmax(40rem, auto) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   overflow: hidden;
   border: 1px solid var(--theme-elevation-200);
   border-radius: 0.8rem;
@@ -1100,6 +1107,7 @@
 }
 
 .heritage-service-planner__navigation {
+  min-height: 0;
   min-width: 0;
   padding: 0.9rem;
   overflow: auto;
@@ -1212,6 +1220,7 @@
   display: grid;
   grid-template-rows: auto auto auto auto 1fr;
   gap: 1rem;
+  min-height: 0;
   min-width: 0;
   padding: 1rem;
   overflow: auto;
@@ -1331,8 +1340,9 @@
 
 .heritage-service-planner__editor-empty {
   display: grid;
+  height: 100%;
   place-content: center;
-  min-height: 35rem;
+  min-height: 0;
   color: var(--theme-elevation-550);
   text-align: center;
 }
@@ -1388,6 +1398,12 @@
 }
 
 @media (max-width: 760px) {
+  .heritage-service-planner {
+    height: auto;
+    min-height: calc(100svh - var(--app-header-height));
+    padding-bottom: 3rem;
+    overflow: visible;
+  }
   .heritage-service-planner__shell { display: block; overflow: visible; }
   .heritage-service-planner__navigation { max-height: 28rem; border-right: 0; border-bottom: 1px solid var(--theme-elevation-150); }
   .heritage-service-planner__editor { min-height: 35rem; }
@@ -1427,9 +1443,17 @@
 .heritage-admin-nav[data-planner] .heritage-admin-nav__primary a { font-size: 0.75rem; }
 
 .heritage-admin-welcome {
+  width: min(70rem, 100%);
   max-width: 70rem;
   margin: 0;
   padding: clamp(1.4rem, 4vw, 3rem);
+}
+
+.heritage-admin-workspace {
+  display: grid;
+  min-height: calc(100svh - var(--app-header-height));
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
 }
 
 .heritage-admin-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
