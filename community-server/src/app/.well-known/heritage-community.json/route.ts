@@ -80,6 +80,15 @@ export function GET() {
             endpoint: 'service-plans',
             scopes: ['syncshow:service-plans:read'],
           },
+          serviceDocuments: {
+            schemaVersion: 1,
+            endpoint: 'service-documents',
+            changesEndpoint: 'service-documents/changes',
+            scopes: [
+              'syncshow:service-documents:read',
+              'syncshow:service-documents:write',
+            ],
+          },
         },
       },
     },

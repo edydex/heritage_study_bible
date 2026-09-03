@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import serviceCore from '../packages/service-core/index.js'
+import { GET as getDiscovery } from '../src/app/.well-known/heritage-community.json/route.ts'
 import {
   prepareHeritageServiceDocument,
   ServiceDocuments,
@@ -226,6 +227,20 @@ test('Community exposes list, change, create, read, and CAS update routes', () =
     'GET /community/syncshow/v1/service-documents/:syncId',
     'PUT /community/syncshow/v1/service-documents/:syncId',
   ]) assert.ok(routes.has(route), route)
+})
+
+test('Community advertises the canonical shared-service lane to SyncShow', async () => {
+  const response = getDiscovery()
+  const discovery = await response.json() as AnyRecord
+  assert.deepEqual(discovery.integrations.syncShow.resources.serviceDocuments, {
+    schemaVersion: 1,
+    endpoint: 'service-documents',
+    changesEndpoint: 'service-documents/changes',
+    scopes: [
+      'syncshow:service-documents:read',
+      'syncshow:service-documents:write',
+    ],
+  })
 })
 
 test('manager visual planning creates and updates the same canonical document', () => {
