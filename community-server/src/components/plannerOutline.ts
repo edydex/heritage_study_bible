@@ -66,6 +66,23 @@ export function outlineWithGuides(rows: OutlineRow[]) {
   return result
 }
 
+/** Earlier unused sub-point slots are controls, not space on the projected slide. */
+export function outlineEditorRows(rows: OutlineRow[], expandedId: string | null = null) {
+  const visible = outlineWithGuides(rows)
+  const result: { row: OutlineRow; addSubpoint?: OutlineRow }[] = []
+  for (let index = 0; index < visible.length; index++) {
+    const row = visible[index]
+    const laterPoint = visible.slice(index + 1).some(next => next.kind === 'point' && next.text.trim())
+    const laterChild = visible.slice(index + 1).some(next => next.kind === 'subpoint' && next.parentId === row.parentId && next.text.trim())
+    if (row.kind === 'subpoint' && !row.text.trim() && laterPoint && !laterChild && row.id !== expandedId) {
+      const anchor = [...result].reverse().find(entry => entry.row.id === row.parentId || entry.row.parentId === row.parentId)
+      if (anchor) { anchor.addSubpoint = row; continue }
+    }
+    result.push({row})
+  }
+  return result
+}
+
 export function updateOutlineRow(rows: OutlineRow[], id: string, text: string, spans: any[] = []) {
   const visible = outlineWithGuides(rows)
   if (!visible.some(row=>row.id===id)) throw new Error('This outline field is no longer available.')

@@ -59,3 +59,18 @@ test('next cue follows the service, distinguishes blank from end and uses one bo
   assert.match(bounded, /^(?:😀)+…$/u)
   assert.equal(singerPresentation.singerNextLine('abc\r\ndef'), 'abc')
 })
+
+test('previewing every output leaves the draft unchanged and includes deliberate blank slides',()=>{
+  const project=fixture()
+  const before=JSON.stringify(project)
+  const rows=plannerSlides(project)
+  for (const row of rows.filter(row=>row.cue)) {
+    for (const channel of ['english','russian','media']) {
+      const preview=plannerPreview(rows,row,channel)
+      assert.ok(preview.output)
+      if (row.kind==='blank') assert.deepEqual(preview.output.blocks,[{type:'blank'}])
+    }
+  }
+  assert.equal(JSON.stringify(project),before)
+  assert.equal(rows.filter(row=>row.cue).length,3)
+})

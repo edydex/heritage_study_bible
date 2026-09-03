@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import core from '../packages/service-core/index.js'
-import { parseOutline, outlineWithGuides, serializeOutline, updateOutlineRow, type OutlineRow } from '../src/components/plannerOutline.ts'
+import { parseOutline, outlineWithGuides, outlineEditorRows, serializeOutline, updateOutlineRow, type OutlineRow } from '../src/components/plannerOutline.ts'
 import { createTemplateDraft, editTemplateField } from '../src/components/plannerTemplates.ts'
 import { plannerSlides } from '../src/components/plannerSlides.ts'
 
@@ -11,6 +11,34 @@ function enter(rows: OutlineRow[], marker: string, text: string, spans: any[]=[]
   return updateOutlineRow(rows,row.id,text,spans)
 }
 const markers = (rows: OutlineRow[]) => outlineWithGuides(rows).map(row=>row.marker)
+
+test('unused sub-points collapse beside the prior point only after a later point is populated',()=>{
+  let rows=enter([],'I.','First point')
+  assert.deepEqual(outlineEditorRows(rows).map(entry=>entry.row.marker),['I.','A.','II.'])
+  rows=enter(rows,'II.','S')
+  let layout=outlineEditorRows(rows)
+  assert.deepEqual(layout.map(entry=>entry.row.marker),['I.','II.','A.','III.'])
+  const add=layout[0].addSubpoint!
+  assert.equal(add.marker,'A.')
+  assert.equal(add.parentId,rows[0].id)
+  assert.deepEqual(outlineEditorRows(rows,add.id).map(entry=>entry.row.marker),['I.','A.','II.','A.','III.'])
+  assert.equal(serializeOutline(rows).text,'I. First point\nII. S')
+  rows=updateOutlineRow(rows,add.id,'Retrospective child')
+  layout=outlineEditorRows(rows)
+  assert.deepEqual(layout.map(entry=>entry.row.marker),['I.','A.','II.','A.','III.'])
+  assert.equal(layout[1].addSubpoint?.marker,'B.')
+  assert.equal(serializeOutline(rows).text,'I. First point\n\u00a0\u00a0\u00a0\u00a0A. Retrospective child\nII. S')
+  assert.deepEqual(outlineEditorRows(parseOutline(serializeOutline(rows).text)).map(entry=>entry.row.marker),layout.map(entry=>entry.row.marker))
+})
+
+test('cleared trailing children collapse but populated children and blank internal slots remain',()=>{
+  const rows=parseOutline('I. First\n    A. child\n    B. last\nII. Second')
+  const cleared=updateOutlineRow(rows,rows[2].id,'')
+  assert.equal(outlineEditorRows(cleared)[1].addSubpoint?.marker,'B.')
+  const internal=updateOutlineRow(rows,rows[1].id,'')
+  assert.ok(outlineEditorRows(internal).some(entry=>entry.row.id===rows[1].id))
+  assert.equal(outlineEditorRows(internal)[2].addSubpoint?.marker,'C.')
+})
 
 test('a single character immediately reveals the next sub-point and main point with stable identities',()=>{
   let rows: OutlineRow[]=[]

@@ -7,6 +7,8 @@ import TemplateSlideEditor from './TemplateSlideEditor'
 import MoveSlidesDialog from './MoveSlidesDialog'
 import DeleteSlidesDialog from './DeleteSlidesDialog'
 import SlideText from './SlideText'
+import PreviewCanvas from './PreviewCanvas'
+import ServicePreview from './ServicePreview'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 import { SERMON_TEMPLATES, createTemplateDraft, editTemplateField, insertionPoint, type SermonTemplateId } from './plannerTemplates'
 import { preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
@@ -201,50 +203,6 @@ function previewBlockText(block: Record<string, any>) {
 }
 
 
-function PreviewCanvas({ kind, presetId, template, titleCard, singer, next, backgroundUrl, backgroundDimOpacity = 0.55, children }: { kind: string; presetId?: string; template?: string; titleCard?: boolean; singer?: boolean; next?: {state: string; text: string}; backgroundUrl?: string; backgroundDimOpacity?: number; children: React.ReactNode }) {
-  const stage = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const element = stage.current
-    if (!element) return
-    const fit = () => {
-      const logicalSize = presetId === 'wotbc-sermon-title' ? 112 : presetId === 'wotbc-sermon-quote' ? 94 : presetId === 'wotbc-sermon-verse' ? 88 : titleCard ? 98 : kind === 'bible' ? 96 : kind === 'sermon' ? 82 : kind === 'song' ? (presetId === 'wotbc-song-lyrics' ? 106 : 98) : 76
-      let size = element.clientWidth / 1920 * logicalSize
-      element.style.setProperty('--slide-text-size', `${size}px`)
-      const overflows = () => {
-        const content = element.querySelector<HTMLElement>('.heritage-service-planner__slide-content')!
-        const textOverflow = [...element.querySelectorAll<HTMLElement>('[data-fit-text]')].some(node => node.scrollHeight > node.clientHeight + 1 || node.scrollWidth > node.clientWidth + 1)
-        // Credits deliberately sit outside the centered title region.
-        if (titleCard) return textOverflow || [...content.querySelectorAll<HTMLElement>('[data-role="title"], [data-role="subtitle"]')].reduce((height, node) => height + node.offsetHeight, 0) > content.clientHeight
-        return textOverflow || content.scrollHeight > content.clientHeight + 1 || content.scrollWidth > content.clientWidth + 1
-      }
-      while (size > 6 && overflows()) {
-        size *= 0.92
-        element.style.setProperty('--slide-text-size', `${size}px`)
-      }
-      // Match the text after fitting, including title/body preset overrides.
-      // The footer clips its prefix to one line; it must never shrink to fit.
-      const content = element.querySelector<HTMLElement>('.heritage-service-planner__slide-content')!
-      const primary = content.querySelector<HTMLElement>('[data-role="lyrics"], [data-role="body"]')
-        || content.querySelector<HTMLElement>('.heritage-service-planner__scripture-page p:not(.heritage-service-planner__scripture-reference)')
-        || content.querySelector<HTMLElement>('[data-role="title"], [data-fit-text]')
-      const typography = getComputedStyle(primary || content)
-      element.style.setProperty('--singer-next-font-size', primary ? typography.fontSize : `${size}px`)
-      element.style.setProperty('--singer-next-font-weight', typography.fontWeight)
-      element.style.setProperty('--singer-next-font-family', typography.fontFamily)
-    }
-    const observer = new ResizeObserver(fit)
-    observer.observe(element)
-    element.addEventListener('input', fit)
-    element.addEventListener('input-fit', fit)
-    fit()
-    return () => { observer.disconnect(); element.removeEventListener('input', fit); element.removeEventListener('input-fit', fit) }
-  }, [children, kind, presetId, titleCard, singer])
-  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-kind={kind} data-preset={presetId} data-template={!singer ? template : undefined} data-title-card={titleCard || undefined} data-singer={singer || undefined} style={backgroundUrl ? { backgroundImage: `linear-gradient(rgba(0,0,0,${backgroundDimOpacity}), rgba(0,0,0,${backgroundDimOpacity})), url("${backgroundUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}><div className="heritage-service-planner__slide-content">{children}</div>
-    {singer && next ? <aside className="heritage-service-planner__next-lines" aria-label="Next slide cue" data-state={next.state}>
-      <p>{next.state === 'end' ? 'End of presentation' : next.text}</p>
-    </aside> : null}
-  </div></div>
-}
 
 function descendantIds(project: ServiceProject, itemId: string, found = new Set<string>()) {
   if (found.has(itemId)) return found
@@ -363,6 +321,7 @@ export default function PlanServiceClient() {
   const localUrls = useRef<string[]>([])
   useEffect(() => () => localUrls.current.forEach(url => URL.revokeObjectURL(url)), [])
   const [previewChannel, setPreviewChannel] = useState<ChannelId>('english')
+  const [servicePreviewOpen, setServicePreviewOpen] = useState(false)
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0)
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([])
   const rangeAnchor = useRef<string | null>(null)
@@ -1052,6 +1011,9 @@ export default function PlanServiceClient() {
 
   return (
     <section className="heritage-service-planner">
+      {servicePreviewOpen && draft ? <ServicePreview project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
+        mediaUrl={assetId=>mediaPreviews[assetId] || (envelope?.project.assets?.[assetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(assetId)}` : undefined)}
+        onClose={row=>{setServicePreviewOpen(false);if(row) selectSlide(row)}} /> : null}
       {error ? <p className="heritage-service-planner__error" role="alert">{error}</p> : null}
 
       <div className="heritage-service-planner__shell">
@@ -1169,7 +1131,7 @@ export default function PlanServiceClient() {
           {selected ? <>
             <section className="heritage-service-planner__preview">
               <header className="heritage-service-planner__preview-heading">
-                <div><strong>{activeSlide ? `Slide ${activeSlide.number}` : selected.title}</strong><span title={draft?.title}>{draft?.title}</span><time dateTime={draft?.serviceDate}>{draft?.serviceDate}</time></div>
+                <div><strong>{activeSlide ? `Slide ${activeSlide.number}` : selected.title}</strong><span title={draft?.title}>{draft?.title}</span><time dateTime={draft?.serviceDate}>{draft?.serviceDate}</time><button type="button" className="heritage-service-planner__service-preview-button" disabled={!slideList.rows.some(row=>row.cue) || Boolean(slideList.error)} onClick={()=>setServicePreviewOpen(true)}>▦ Service Preview</button></div>
                 <button type="button" disabled={!undoStack.length} onClick={undo}>Undo</button>
               </header>
               <div className="heritage-service-planner__output-tabs" role="tablist" aria-label="Preview output">
