@@ -1136,7 +1136,7 @@ export default function PlanServiceClient() {
               </header>
               <div className="heritage-service-planner__output-tabs" role="tablist" aria-label="Preview output">
                 <span>Screen</span>
-                {CHANNEL_IDS.map(channelId => <button key={channelId} type="button" role="tab" aria-selected={previewChannel === channelId} onClick={() => setPreviewChannel(channelId)}>{channelId === 'media' ? 'Singers' : draft?.channels[channelId]?.label || channelId}</button>)}
+                {CHANNEL_IDS.map(channelId => <button key={channelId} type="button" role="tab" aria-selected={previewChannel === channelId} onClick={() => setPreviewChannel(channelId)}>{channelId === 'media' ? 'Stage-Facing Screen' : draft?.channels[channelId]?.label || channelId}</button>)}
               </div>
               {selected.kind === 'song' && selected.songPresentation && !preview.singer ? <div className="heritage-service-planner__song-layout">
                 <label><input type="checkbox" aria-label="Stacked translation" checked={selected.songPresentation.stackedTranslation}

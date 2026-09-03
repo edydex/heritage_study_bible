@@ -17,7 +17,7 @@ export default function ServicePreview({project,rows,initialSlideId,initialChann
   const active=slides.find(row=>row.id===selectedId) || slides[0]
   const index=slides.indexOf(active)
   const next=slides[index+1]
-  const label=(id:string)=>id==='media' ? 'Singers' : project.channels[id]?.label || id
+  const label=(id:string)=>id==='media' ? 'Stage-Facing Screen' : project.channels[id]?.label || id
   useEffect(()=>{dialog.current?.showModal();grid.current?.focus()},[])
   useEffect(()=>{grid.current?.querySelector('[aria-pressed="true"]')?.scrollIntoView({block:'nearest'})},[selectedId])
   function move(offset:number) { const target=slides[Math.max(0,Math.min(slides.length-1,index+offset))]; if(target) setSelectedId(target.id) }
