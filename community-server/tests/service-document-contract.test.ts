@@ -402,6 +402,16 @@ test('visual planning accepts only an approved scoped SyncShow connection', () =
   )
 })
 
+test('SyncShow can download exact image and video assets from a service revision', () => {
+  const syncShow = readFileSync(
+    new URL('../src/endpoints/syncShow.ts', import.meta.url),
+    'utf8',
+  )
+  assert.match(syncShow, /!\['image', 'video'\]\.includes\(asset\.kind\)/)
+  assert.match(syncShow, /That media file is not part of this service revision\./)
+  assert.doesNotMatch(syncShow, /asset\.kind !== 'image'/)
+})
+
 test('approved SyncShow planner requests enforce read and write scopes', async () => {
   const token = 'planner-device-token-that-is-long-enough'
   let scopes = ['syncshow:service-documents:read']
