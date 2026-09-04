@@ -19,10 +19,16 @@ test('device approval accepts same-origin browser form posts when Firefox omits 
   ))?.handler
   assert.ok(approvalHandler)
 
+  let authenticatedOrigin: string | null = 'not-checked'
+  let authenticatedFetchSite: string | null = 'not-checked'
   const request = (headers: HeadersInit) => ({
     headers: new Headers(headers),
     payload: {
-      auth: async () => ({ user: null }),
+      auth: async ({ headers: checkedHeaders }: { headers: Headers }) => {
+        authenticatedOrigin = checkedHeaders.get('origin')
+        authenticatedFetchSite = checkedHeaders.get('sec-fetch-site')
+        return { user: null }
+      },
     },
     url: 'http://localhost:3000/api/community/syncshow/v1/auth/device/approve',
   })
@@ -48,6 +54,8 @@ test('device approval accepts same-origin browser form posts when Firefox omits 
     'sec-fetch-site': 'same-origin',
   }) as never)
   assert.equal(opaqueOriginWithSameOriginFetchMetadata.status, 401)
+  assert.equal(authenticatedOrigin, null)
+  assert.equal(authenticatedFetchSite, 'same-origin')
 
   const rejectedHeaders: HeadersInit[] = [
     {},

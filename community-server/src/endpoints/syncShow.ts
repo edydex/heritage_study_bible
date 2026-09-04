@@ -341,7 +341,16 @@ async function configuredCommunity(req: PayloadRequest) {
 
 async function authenticatedBrowserUser(req: PayloadRequest) {
   if (req.user) return requestDoc(req.user)
-  const result = await req.payload.auth({ headers: req.headers })
+  let headers = req.headers
+  if (headers.get('origin') === 'null' && headers.get('sec-fetch-site') === 'same-origin') {
+    // Payload treats a literal opaque Origin as an explicit cross-origin value
+    // and never reaches its Sec-Fetch-Site fallback. Firefox emits this pair
+    // for the no-referrer approval form, so preserve the protected fetch
+    // metadata while presenting the opaque origin as absent to Payload auth.
+    headers = new Headers(headers)
+    headers.delete('origin')
+  }
+  const result = await req.payload.auth({ headers })
   return result.user ? requestDoc(result.user) : null
 }
 
