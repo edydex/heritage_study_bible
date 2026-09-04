@@ -13,7 +13,7 @@ type StoredConnection = {
   revokedAt?: string | null
 }
 
-test('device approval accepts same-origin browser form posts when Firefox omits Origin', async () => {
+test('device approval accepts same-origin browser form posts when Firefox omits origin headers', async () => {
   const approvalHandler = syncShowEndpoints.find(endpoint => (
     endpoint.path.endsWith('/auth/device/approve') && endpoint.method === 'post'
   ))?.handler
@@ -38,13 +38,26 @@ test('device approval accepts same-origin browser form posts when Firefox omits 
   }) as never)
   assert.equal(sameOriginHeader.status, 401)
 
+  const sameOriginFetchMetadata = await approvalHandler(request({
+    'sec-fetch-site': 'same-origin',
+  }) as never)
+  assert.equal(sameOriginFetchMetadata.status, 401)
+
+  const opaqueOriginWithSameOriginFetchMetadata = await approvalHandler(request({
+    origin: 'null',
+    'sec-fetch-site': 'same-origin',
+  }) as never)
+  assert.equal(opaqueOriginWithSameOriginFetchMetadata.status, 401)
+
   const rejectedHeaders: HeadersInit[] = [
     {},
     { referer: 'https://attacker.example/submit' },
     {
       origin: 'https://attacker.example',
       referer: 'http://localhost:3000/api/community/syncshow/v1/auth/device/approve',
+      'sec-fetch-site': 'same-origin',
     },
+    { 'sec-fetch-site': 'cross-site' },
   ]
   for (const headers of rejectedHeaders) {
     const rejected = await approvalHandler(request(headers) as never)

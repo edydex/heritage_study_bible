@@ -1862,14 +1862,21 @@ ${loginMessage}
 function sameOriginApprovalSubmission(req: PayloadRequest) {
   const expectedOrigin = new URL(communityPublicConfig.publicUrl).origin
   const origin = req.headers.get('origin')
-  if (origin) return origin === expectedOrigin
+  if (origin && origin !== 'null') return origin === expectedOrigin
   const referer = req.headers.get('referer')
-  if (!referer) return false
-  try {
-    return new URL(referer).origin === expectedOrigin
-  } catch {
-    return false
+  if (referer) {
+    try {
+      return new URL(referer).origin === expectedOrigin
+    } catch {
+      return false
+    }
   }
+
+  // Approval pages deliberately use Referrer-Policy: no-referrer. Firefox may
+  // therefore omit both Origin and Referer on this same-origin form POST.
+  // Sec-Fetch-Site is a browser-controlled request header and preserves the
+  // same-origin CSRF boundary without weakening explicit-origin rejection.
+  return req.headers.get('sec-fetch-site') === 'same-origin'
 }
 
 const deviceApprovalPost: Endpoint = {
