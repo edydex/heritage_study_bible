@@ -333,6 +333,7 @@ test('reverification rejects tampered and expired links, then rejects a replay a
 test('expired and revoked device sessions are rejected by the shared session boundary', async () => {
   const token = createOpaqueToken()
   const seenWhere: AnyRecord[] = []
+  const seenRequests: unknown[] = []
   const storedSession: AnyRecord = {
     id: 1,
     tokenHash: hashOpaqueToken(token),
@@ -342,8 +343,9 @@ test('expired and revoked device sessions are rejected by the shared session bou
   const request = {
     headers: new Headers({ authorization: `Community ${token}` }),
     payload: {
-      find: async ({ where }: AnyRecord) => {
+      find: async ({ where, req }: AnyRecord) => {
         seenWhere.push(where)
+        seenRequests.push(req)
         const clauses = where.and as AnyRecord[]
         const tokenClause = clauses.find(clause => clause.tokenHash)?.tokenHash?.equals
         const expiry = clauses.find(clause => clause.expiresAt)?.expiresAt?.greater_than
@@ -368,6 +370,7 @@ test('expired and revoked device sessions are rejected by the shared session bou
   assert.equal(seenWhere.length, 3)
   assert.equal(JSON.stringify(seenWhere[0]).includes(token), false)
   assert.equal(JSON.stringify(seenWhere[0]).includes(hashOpaqueToken(token)), true)
+  assert.deepEqual(seenRequests, [undefined, undefined, undefined], 'session lookup must not inherit authenticated request state')
 })
 
 test('Strict protection requires the password after email verification and consumes the link only on success', async () => {
