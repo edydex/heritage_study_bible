@@ -43,7 +43,10 @@ async function syncContext(req: PayloadRequest, requestedDeviceId?: string) {
   const session = await currentCommunitySession(req)
   const userId = relationId(session?.user)
   const deviceId = String(session?.deviceId || '')
-  if (!session || !req.user || Number(req.user.id) !== userId || !userId || !deviceId) return null
+  // The bearer session has already been looked up by its cryptographic token
+  // hash. Custom endpoints must not additionally depend on framework-populated
+  // req.user, which Payload does not supply reliably for collection strategies.
+  if (!session || !userId || !deviceId) return null
   if (requestedDeviceId && requestedDeviceId !== deviceId) return null
   const user = await req.payload.findByID({
     collection: 'users', id: userId, depth: 0, overrideAccess: true, req,

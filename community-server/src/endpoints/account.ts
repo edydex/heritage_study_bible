@@ -41,7 +41,11 @@ function generation(value: unknown) {
 async function context(req: PayloadRequest) {
   const session = await currentCommunitySession(req)
   const userId = relationId(session?.user)
-  if (!session || !req.user || Number(req.user.id) !== userId || !userId) return null
+  // Custom Payload endpoints do not consistently receive req.user from a
+  // collection auth strategy. The independently validated, hashed Community
+  // session is the authority here; its stored user relationship scopes every
+  // subsequent account query.
+  if (!session || !userId) return null
   const user = await req.payload.findByID({
     collection: 'users', id: userId, depth: 0, overrideAccess: true, req,
   })

@@ -461,7 +461,11 @@ export const authEndpoints: Endpoint[] = [
       if (disabledResponse) return disabledResponse
       const session = await currentCommunitySession(req)
       const userId = relationId(session?.user)
-      if (!session || !req.user || Number(req.user.id) !== userId) return invalidCredentials(req)
+      if (!session || !userId) return invalidCredentials(req)
+      const user = await req.payload.findByID({
+        collection: 'users', id: userId, depth: 0, overrideAccess: true, req,
+      })
+      if (!user) return invalidCredentials(req)
       const address = clientAddress(req)
       const addressLimit = await rateLimit(req, `reverify:address:${address}`, 10)
       if (!addressLimit.allowed) return tooManyRequests(req, addressLimit.retryAfter)
@@ -470,8 +474,8 @@ export const authEndpoints: Endpoint[] = [
       try {
         await sendCommunityMagicLinkEmail({
           payload: req.payload,
-          email: String(req.user.email),
-          userID: req.user.id,
+          email: String(user.email),
+          userID: user.id,
           deviceId: String(session.deviceId || 'legacy-community-device'),
           deviceName: String(session.deviceName || 'Heritage device'),
           platform: String(session.platform || 'unknown'),

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import {
   isAuthorizedFirstSyncPreservation,
@@ -156,4 +157,16 @@ test('a member cannot directly read or mutate any account sync collection', asyn
     assert.equal(await collection.access?.create?.(memberRequest), false)
     assert.equal(await collection.access?.update?.(memberRequest), false)
   }
+})
+
+test('custom account and sync endpoints trust only the validated Community session boundary', () => {
+  const accountSource = readFileSync(new URL('../src/endpoints/account.ts', import.meta.url), 'utf8')
+  const syncSource = readFileSync(new URL('../src/endpoints/sync.ts', import.meta.url), 'utf8')
+  const authSource = readFileSync(new URL('../src/endpoints/auth.ts', import.meta.url), 'utf8')
+  for (const source of [accountSource, syncSource]) {
+    assert.match(source, /const session = await currentCommunitySession\(req\)/)
+    assert.match(source, /const userId = relationId\(session\?\.user\)/)
+    assert.doesNotMatch(source, /!req\.user|Number\(req\.user\.id\)/)
+  }
+  assert.doesNotMatch(authSource, /!req\.user|String\(req\.user\.email\)|userID: req\.user\.id/)
 })
