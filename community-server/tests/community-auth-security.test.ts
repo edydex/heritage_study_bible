@@ -373,6 +373,41 @@ test('expired and revoked device sessions are rejected by the shared session bou
   assert.deepEqual(seenRequests, [undefined, undefined, undefined], 'session lookup must not inherit authenticated request state')
 })
 
+test('live session lookup uses a parameterized token hash rather than a second Payload collection query', async () => {
+  const token = createOpaqueToken()
+  const tokenHash = hashOpaqueToken(token)
+  const session: AnyRecord = {
+    id: 23,
+    user: 41,
+    expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    revokedAt: null,
+  }
+  let query: AnyRecord | null = null
+  const request = {
+    headers: new Headers({ authorization: `Community ${token}` }),
+    user: null,
+    payload: {
+      db: {
+        drizzle: {
+          execute: async (value: AnyRecord) => {
+            query = value
+            return { rows: [{ id: session.id }] }
+          },
+        },
+      },
+      findByID: async ({ id }: AnyRecord) => id === session.id ? session : null,
+      find: async () => { throw new Error('live adapter must use the indexed database lookup') },
+    },
+  }
+  assert.equal((await currentCommunitySession(request as never))?.id, session.id)
+  assert(query)
+  const parts = queryParts(query as AnyRecord)
+  assert.match(parts.text, /FROM "community_sessions"/)
+  assert.match(parts.text, /"revoked_at" IS NULL/)
+  assert.equal(parts.parameters.includes(token), false)
+  assert.equal(parts.parameters.includes(tokenHash), true)
+})
+
 test('custom endpoints reuse only the private session identity set by Community authentication', async () => {
   const session: AnyRecord = {
     id: 17,
