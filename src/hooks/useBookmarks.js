@@ -14,6 +14,12 @@ const COMMENTARY_STORAGE_KEY = STORAGE_KEYS.commentaryBookmarks
 const NOTES_STORAGE_KEY = STORAGE_KEYS.notes
 const HIGHLIGHTS_STORAGE_KEY = STORAGE_KEYS.highlights
 
+function normalizeStoredBookmark(bookmark) {
+  if (!bookmark || typeof bookmark !== 'object') return bookmark
+  const { hasCommentary: _legacyHasCommentary, ...savedBookmark } = bookmark
+  return savedBookmark
+}
+
 export function useBookmarks() {
   const [bookmarks, setBookmarks] = useState([])
   const [commentaryBookmarks, setCommentaryBookmarks] = useState([])
@@ -35,7 +41,7 @@ export function useBookmarks() {
         ])
 
         if (cancelled) return
-        setBookmarks(Array.isArray(storedBookmarks) ? storedBookmarks : [])
+        setBookmarks(Array.isArray(storedBookmarks) ? storedBookmarks.map(normalizeStoredBookmark) : [])
         setCommentaryBookmarks(Array.isArray(storedCommentary) ? storedCommentary : [])
         setNotes(Array.isArray(storedNotes) ? storedNotes : [])
         setHighlights(Array.isArray(storedHighlights) ? storedHighlights : [])

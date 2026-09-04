@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES } from '../data/resources'
+import ChronologyTimeline from './ChronologyTimeline'
 import {
   COMMENTS_ITEM_TYPE,
   PLAN_NOTE_ITEM_TYPE,
@@ -115,6 +116,7 @@ function ReadingPlanNoteViewer() {
   const reading = currentEntry?.reading || null
   const done = noteItem ? isPlanItemComplete(progressState, reading.day, noteItem.id) : false
   const sourceItems = useMemo(() => getPlanNoteSources(noteItem), [noteItem])
+  const usesSituationalTimeline = noteItem?.timeline?.presentation === 'situational'
 
   useEffect(() => {
     if (!reading || !noteItem) return
@@ -227,17 +229,27 @@ function ReadingPlanNoteViewer() {
         {!loading && !error && noteItem && (
           <>
             <section className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 sm:p-6">
-              <p className="text-xs uppercase font-semibold text-amber-700 dark:text-amber-300">
-                Chronology Note
-              </p>
-              <h2 className="mt-2 text-2xl font-bold text-gray-950 dark:text-gray-100">
-                {noteItem.label}
-              </h2>
-              <p className="mt-4 text-base leading-relaxed text-gray-700 dark:text-gray-200">
-                {noteItem.note}
-              </p>
+              {!usesSituationalTimeline && (
+                <>
+                  <p className="text-xs uppercase font-semibold text-amber-700 dark:text-amber-300">
+                    Chronology Note
+                  </p>
+                  <h2 className="mt-2 text-2xl font-bold text-gray-950 dark:text-gray-100">
+                    {noteItem.label}
+                  </h2>
+                  <p className="mt-4 text-base leading-relaxed text-gray-700 dark:text-gray-200">
+                    {noteItem.note}
+                  </p>
+                </>
+              )}
 
-              {sourceItems.length > 0 && (
+              <ChronologyTimeline
+                detailsText={noteItem.note}
+                sources={sourceItems}
+                timeline={noteItem.timeline}
+              />
+
+              {!usesSituationalTimeline && sourceItems.length > 0 && (
                 <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Sources</h3>
                   <ul className="mt-2 space-y-2">

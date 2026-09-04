@@ -100,13 +100,24 @@ describe('reading plan items', () => {
     const items = getBibleReadingItems({
       day: 4,
       items: [
-        { type: 'note', id: 'intro', title: 'Intro', text: 'Welcome' },
+        {
+          type: 'note',
+          id: 'intro',
+          title: 'Intro',
+          text: 'Welcome',
+          timeline: {
+            startYear: 609,
+            endYear: 586,
+            contexts: [{ label: 'Jeremiah 25', startYear: 605, endYear: 605 }],
+          },
+        },
         { type: 'passage', passage: 'Psalms 23' },
       ],
     })
 
     expect(items).toHaveLength(2)
     expect(items[0].type).toBe('plan-note')
+    expect(items[0].timeline.contexts[0].label).toBe('Jeremiah 25')
     expect(items[1]).toMatchObject({ book: 'Psalms', chapter: 23 })
   })
 })

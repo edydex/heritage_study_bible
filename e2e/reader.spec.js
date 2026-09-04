@@ -71,6 +71,184 @@ test.describe('Heritage reader', () => {
     await expect(page.locator('#verse-2-1')).toBeVisible({ timeout: 20_000 })
   })
 
+  test('keeps textured chronology bars readable on a narrow phone', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/255/note-jeremiah-historical-appendix', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Jeremiah 52 retells Judah’s final collapse' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+
+    const bars = timeline.locator('[data-situation-bar]')
+    await expect(bars).toHaveCount(7)
+    await expect(bars.nth(0)).toHaveAttribute('data-timeline-texture', 'diagonal stripes')
+    await expect(bars.nth(1)).toHaveAttribute('data-timeline-texture', 'vertical stripes')
+    await expect(bars.nth(2)).toHaveAttribute('data-timeline-texture', 'dots')
+
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      pageWidth: document.body.scrollWidth,
+      clippedAnchors: [...document.querySelectorAll('[data-timeline-anchor]')]
+        .filter(anchor => anchor.scrollWidth > anchor.clientWidth)
+        .map(anchor => anchor.textContent.trim()),
+      barBackgrounds: [...document.querySelectorAll('[data-situation-bar]')]
+        .map(bar => getComputedStyle(bar).backgroundImage),
+    }))
+
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth)
+    expect(layout.clippedAnchors).toEqual([])
+    expect(layout.barBackgrounds.every(background => background !== 'none')).toBe(true)
+    expect(new Set(layout.barBackgrounds).size).toBeGreaterThanOrEqual(3)
+
+    await timeline.getByRole('button', { name: 'Escape to Egypt' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('After 586 BC (est.)')
+  })
+
+  test('shows Daniel’s Jeremiah context and dated anchors on a narrow phone', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/248/note-daniel-early-babylonian-exile', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Daniel enters Babylonian service' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+    await expect(timeline.getByText('Jer 25:1; 46:2')).toBeVisible()
+    await expect(timeline.getByText('Jer 24:1')).toBeVisible()
+    await expect(timeline.getByText('Ezek 1:1–3')).toBeVisible()
+    await expect(timeline.locator('[data-situation-bar="Dan 2"]')).toHaveAccessibleName(
+      /spans training through training/
+    )
+
+    await timeline.getByRole('button', { name: 'Babylon triumphs' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('605 BC (est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText('Jer 25:1; 46:2')
+
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      pageWidth: document.body.scrollWidth,
+      clippedAnchors: [...document.querySelectorAll('[data-timeline-anchor]')]
+        .filter(anchor => anchor.scrollWidth > anchor.clientWidth)
+        .map(anchor => anchor.textContent.trim()),
+    }))
+
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth)
+    expect(layout.clippedAnchors).toEqual([])
+  })
+
+  test('shows Ezekiel 24 beside Jeremiah on the final-siege note', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/249/note-jeremiah-zedekiah-siege-anchors', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Babylon’s final siege of Jerusalem' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+    await expect(timeline.getByText('Jer 37–38')).toBeVisible()
+    await expect(timeline.getByText('Ezek 24')).toBeVisible()
+    await expect(timeline.getByText('2 Kin 25:1–7')).toBeVisible()
+    await expect(timeline.getByText('2 Chr 36:17–20')).toBeVisible()
+
+    await timeline.getByRole('button', { name: 'Siege begins' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('588 BC (est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText('same year, month, and day')
+  })
+
+  test('places Lamentations beside Jerusalem’s fall on a narrow phone', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/255/note-lamentations-after-jerusalem-falls', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Jerusalem falls, and Judah mourns' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+    await expect(timeline.getByText('Lam 1–2')).toBeVisible()
+    await expect(timeline.getByText('Lam 5')).toBeVisible()
+    await expect(timeline.getByText('2 Kin 25:1–21')).toBeVisible()
+    await expect(timeline.getByText('Jer 39; 52:1–30')).toBeVisible()
+    await expect(timeline.getByText('Jer 40–44')).toBeVisible()
+    await expect(timeline.getByText('Ezek 33:21')).toBeVisible()
+
+    await timeline.getByRole('button', { name: 'Communal mourning' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('586–539 BC (broad est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText(
+      'personified Jerusalem, an individual sufferer, and the surviving community'
+    )
+
+    await timeline.getByRole('button', { name: 'Flight to Egypt' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('After 586 BC (est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText('surviving remnant took Jeremiah to Egypt')
+
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      pageWidth: document.body.scrollWidth,
+      clippedAnchors: [...document.querySelectorAll('[data-timeline-anchor]')]
+        .filter(anchor => anchor.scrollWidth > anchor.clientWidth)
+        .map(anchor => anchor.textContent.trim()),
+    }))
+
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth)
+    expect(layout.clippedAnchors).toEqual([])
+  })
+
+  test('shows Jeremiah and Ezekiel’s overlapping ministries on a narrow phone', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/237/note-ezekiel-dated-exile-visions', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Jeremiah in Judah, Ezekiel among the exiles' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+    await expect(timeline.getByText('Jer 27–36')).toBeVisible()
+    await expect(timeline.getByText('Ezek 1–7')).toBeVisible()
+    await expect(timeline.getByText('2 Kin 24:10–25:21')).toBeVisible()
+    await expect(timeline.getByText('2 Chr 36:9–21')).toBeVisible()
+
+    await timeline.getByRole('button', { name: 'Parallel warnings' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('593–588 BC (est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText('Jeremiah warned Judah from Jerusalem')
+
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      pageWidth: document.body.scrollWidth,
+      clippedAnchors: [...document.querySelectorAll('[data-timeline-anchor]')]
+        .filter(anchor => anchor.scrollWidth > anchor.clientWidth)
+        .map(anchor => anchor.textContent.trim()),
+    }))
+
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth)
+    expect(layout.clippedAnchors).toEqual([])
+  })
+
+  test('shows the historical accounts beside the exile Psalms on a narrow phone', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/#/resources/reading-plans/chronological-bible/note/258/note-exilic-psalm-laments', {
+      waitUntil: 'networkidle',
+    })
+
+    const timeline = page.getByRole('region', { name: 'Songs of destruction, exile, and return' })
+    await expect(timeline).toBeVisible({ timeout: 20_000 })
+    await expect(timeline.getByText('2 Kin 25')).toBeVisible()
+    await expect(timeline.getByText('2 Chr 36:17–23')).toBeVisible()
+    await expect(timeline.getByText('Jer 39–44; 52')).toBeVisible()
+    await expect(timeline.getByText('Ezek 33–37')).toBeVisible()
+
+    await timeline.getByRole('button', { name: 'Survivors displaced' }).click()
+    await expect(timeline.getByRole('tooltip')).toContainText('After 586 BC (est.)')
+    await expect(timeline.getByRole('tooltip')).toContainText('deported to Babylon')
+
+    const layout = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      pageWidth: document.body.scrollWidth,
+      clippedAnchors: [...document.querySelectorAll('[data-timeline-anchor]')]
+        .filter(anchor => anchor.scrollWidth > anchor.clientWidth)
+        .map(anchor => anchor.textContent.trim()),
+    }))
+
+    expect(layout.pageWidth).toBeLessThanOrEqual(layout.viewportWidth)
+    expect(layout.clippedAnchors).toEqual([])
+  })
+
   test('accepts unique numbered-book prefixes without a registered alias', async ({ page }) => {
     await openReader(page)
     await submitSearch(page, '2thes 2')
@@ -110,18 +288,19 @@ test.describe('Heritage reader', () => {
     await bookmarkButton.click({ force: true })
 
     await page.getByTestId('open-bookmarks').click()
-    await expect(page.getByText('Bookmarks (1)')).toBeVisible()
+    await expect(page.getByText('Bookmarks & Notes (1)')).toBeVisible()
     await page.getByRole('button', { name: 'By Books' }).click()
     await page.getByRole('button', { name: /Genesis/ }).click()
     await page.getByRole('button', { name: /Chapter 1/ }).click()
-    await expect(page.getByText('Verse 1')).toBeVisible()
+    await expect(page.getByText('Genesis 1:1')).toBeVisible()
+    await expect(page.getByText('Has commentary')).toHaveCount(0)
 
     await page.keyboard.press('Escape')
     await page.locator('#verse-1-1').hover()
     await bookmarkButton.click({ force: true })
 
     await page.getByTestId('open-bookmarks').click()
-    await expect(page.getByText('No bookmarks yet. Click the star on any verse or commentary to bookmark it!')).toBeVisible()
+    await expect(page.getByText('No bookmarks or notes yet. Save a verse, commentary, or note to find it here.')).toBeVisible()
   })
 
   test('selects multiple verses with the phone action bar', async ({ page }) => {
@@ -153,7 +332,10 @@ test.describe('Heritage reader', () => {
 
     await actions.getByRole('button', { name: 'Done' }).click()
     await expect(actions).toBeHidden()
-    await expect(page.getByRole('button', { name: /Select Verses/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Commentary' })).toBeHidden()
+    await expect(page.locator('#verse-20-13')).not.toHaveAttribute('aria-pressed')
+    await expect(page.locator('#verse-20-14')).not.toHaveAttribute('aria-pressed')
+    await expect(page.getByRole('button', { name: 'Next chapter' })).toBeVisible()
     expect(reactUpdateErrors).toEqual([])
   })
 

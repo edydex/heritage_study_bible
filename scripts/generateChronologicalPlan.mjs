@@ -1,10 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { bibleBooks } from '../src/data/bible-books.js'
+import { chronologicalTimelineAids } from './chronologicalTimelineAids.mjs'
 
 const totalDays = 365
-const generatorVersion = 4
-const planRevision = '2026-07-late-judah-history-first'
+const generatorVersion = 11
+const planRevision = '2026-09-jeremiah-ezekiel-context'
 
 const sourceNotes = [
   {
@@ -43,6 +44,27 @@ const sourceNotes = [
     use: '2 Kings 23:29-25:30 and 2 Chronicles 36 provide the controlling royal timeline; Jeremiah 21-52 supplies explicit reign, exile, siege, and aftermath notices within that frame.',
     url: 'https://www.biblegateway.com/passage/?search=2%20Kings%2023%3A29-25%3A30%3B%202%20Chronicles%2036%3B%20Jeremiah%2021-52&version=WEB',
     rightsNote: 'Primary biblical reference data; translation text remains separately licensed.',
+  },
+  {
+    id: 'lamentations_authorship_setting',
+    title: 'Adele Berlin, “An Introduction to Lamentations”',
+    use: 'Ancient Jeremiah attribution, the poems’ post-destruction setting, and the uncertainty surrounding their exact author, date, and place of composition.',
+    url: 'https://www.thetorah.com/article/an-introduction-to-lamentations',
+    rightsNote: 'Used for high-level scholarly context only.',
+  },
+  {
+    id: 'lamentations_esv_study_bible',
+    title: 'ESV Study Bible, “Introduction to Lamentations”',
+    use: 'Conservative evangelical overview of the traditional Jeremiah attribution and the narrator, individual, Jerusalem, and communal voices within the poems.',
+    url: 'https://www.thegospelcoalition.org/course/lamentations/',
+    rightsNote: 'Used for high-level literary and authorship context only.',
+  },
+  {
+    id: 'ezekiel_esv_global_study_bible',
+    title: 'ESV Global Study Bible, “Introduction to Ezekiel”',
+    use: 'Ezekiel’s ministry among the 597 BC exiles while Zedekiah still ruled Jerusalem, overlapping Jeremiah’s final years in Judah.',
+    url: 'https://www.esv.org/resources/esv-global-study-bible/introduction-to-ezekiel/',
+    rightsNote: 'Used for high-level historical context only.',
   },
   {
     id: 'nahum_nineveh_context',
@@ -90,6 +112,7 @@ function note(id, title, text, sources = []) {
     title,
     text,
     sources,
+    ...(chronologicalTimelineAids[id] ? { timeline: chronologicalTimelineAids[id] } : {}),
   }
 }
 
@@ -508,66 +531,83 @@ const chronologicalSections = [
       note(
         'jeremiah-zedekiah-first-exiles',
         'Jeremiah 27-29: Zedekiah and the first exiles',
-        'These chapters belong after the first group of exiles was taken to Babylon, but before Jerusalem\'s final fall. For the surrounding history, see 2 Kings 24:10-20 and 2 Chronicles 36:9-13.',
-        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
+        'These chapters belong after the first group of exiles was taken to Babylon, but before Jerusalem\'s final fall. Ezekiel\'s dated ministry begins among those exiles a few years later and overlaps Zedekiah\'s later years. For the surrounding history, see 2 Kings 24:10-20 and 2 Chronicles 36:9-13.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'merrill_kings_prophets']
       ),
       'Jeremiah 27-29',
       note(
+        'ezekiel-dated-exile-visions',
+        'Jeremiah in Judah, Ezekiel among the exiles',
+        'Ezekiel begins in Babylon in the fifth year of Jehoiachin’s exile, while Zedekiah still rules Jerusalem and Jeremiah is still preaching there. The plan therefore enters Ezekiel beside Jeremiah 27-29, returns to Ezekiel around the dated start of the final siege, and continues his post-fall messages afterward. Ezekiel 29:17 is a later dated addition within an earlier Egypt-oracle block, so that paragraph remains an acknowledged exception.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'townsend_ot_nt']
+      ),
+      'Ezekiel 1-7',
+      note(
         'jeremiah-consolation-siege-flashback',
         'Jeremiah 30-36: promise, siege, then a Jehoiakim flashback',
-        'The reading begins with promises of restoration, moves into Jerusalem\'s final siege under Zedekiah, and then looks back to events under Jehoiakim. That backward step is part of Jeremiah\'s arrangement, so the chapters stay together here. For the reigns in view, see 2 Kings 24 and 2 Chronicles 36:4-13.',
-        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
+        'The reading begins with promises of restoration, moves into Jerusalem\'s final siege under Zedekiah, and then looks back to events under Jehoiakim. That backward step is part of Jeremiah\'s arrangement, so the chapters stay together here. Ezekiel 1-23 supplies the parallel warning ministry among the earlier exiles during Zedekiah\'s reign. For the reigns in view, see 2 Kings 24 and 2 Chronicles 36:4-13.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'merrill_kings_prophets']
       ),
       'Jeremiah 30-36',
+      'Ezekiel 8-23',
       note(
         'daniel-early-babylonian-exile',
         'Why Daniel begins here',
-        'Daniel 1 opens in the third year of Jehoiakim and Daniel 2 is set in Nebuchadnezzar\'s second year. Those early Babylonian-court chapters belong with Judah\'s first Babylonian crisis rather than with the later Persian-era Daniel visions.',
-        ['biblical_superscriptions', 'townsend_ot_nt']
+        'Daniel 1 opens in Jehoiakim\'s third year; Jeremiah 25:1 and 46:2 place Babylon\'s victory at Carchemish in his fourth year, and Daniel 2 follows in Nebuchadnezzar\'s second year. Jeremiah 24:1 and 2 Kings 24:10-17 then mark Jehoiachin\'s later 597 BC exile, which should not be confused with Daniel\'s earlier removal. Ezekiel\'s dated call among that later group follows in 593 BC.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'townsend_ot_nt']
       ),
       'Daniel 1-2',
       note(
         'jeremiah-zedekiah-siege-anchors',
-        'Jeremiah 37-38: Zedekiah\'s final siege',
-        'Jeremiah 37-38 stays in Zedekiah\'s last siege, including the temporary Babylonian withdrawal when Pharaoh\'s army approaches and Jeremiah\'s confinement. 2 Kings 25:1-7 gives the controlling siege-and-capture sequence, and 2 Chronicles 36:11-20 gives its parallel summary. Those historical accounts are read before Jeremiah 39 narrates the city\'s fall.',
-        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'townsend_ot_nt', 'merrill_kings_prophets']
+        'Jeremiah 37-38 and Ezekiel 24: the final siege',
+        'Jeremiah 37-38 stays in Zedekiah\'s last siege, including the temporary Babylonian withdrawal when Pharaoh\'s army approaches and Jeremiah\'s confinement. From Babylon, Ezekiel 24:1-2 dates the siege\'s beginning to the same year, month, and day as 2 Kings 25:1. 2 Chronicles 36:11-20 gives the parallel fall summary before Jeremiah 39 narrates the city\'s capture.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
       'Jeremiah 37-38',
+      'Ezekiel 24',
+      'Ezekiel 29-31',
       note(
         'jeremiah-appendix-oracles',
         'Jeremiah 45-51: an appendix spanning two reigns',
-        'Jeremiah 45 and 46 are explicitly set in Jehoiakim\'s fourth year; chapter 47 is before Pharaoh struck Gaza; chapters 48-50 give no firm royal heading; and Jeremiah 51:59 reaches Zedekiah\'s fourth year. Rather than scatter this Baruch-and-nations appendix across several earlier days, the plan keeps it together before the fall and records its Jehoiakim-to-Zedekiah reach here.',
-        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'townsend_ot_nt']
+        'Jeremiah 45 and 46 are explicitly set in Jehoiakim\'s fourth year; chapter 47 is before Pharaoh struck Gaza; chapters 48-50 give no firm royal heading; and Jeremiah 51:59 reaches Zedekiah\'s fourth year. Rather than scatter this Baruch-and-nations appendix across several earlier days, the plan keeps it together before the fall and records its Jehoiakim-to-Zedekiah reach here. Ezekiel 25-32 supplies a parallel foreign-nations block around the siege and fall.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'townsend_ot_nt']
       ),
       'Jeremiah 45-51',
       note(
         'late-judah-fall-history-first',
         'History first: Jerusalem falls',
-        'Before returning to Jeremiah\'s fall narratives, the plan reads the historical anchors. 2 Kings 25 follows Zedekiah\'s siege and capture, the temple\'s destruction, Gedaliah\'s governorship and death, the remnant\'s flight to Egypt, and Jehoiachin\'s eventual release. 2 Chronicles 36 supplies the parallel Judah-and-temple summary and then reaches Cyrus. Reading Kings and Chronicles first makes their royal timeline the frame for Jeremiah 39-44 and 52, rather than making Jeremiah carry the chronology by itself.',
-        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'townsend_ot_nt', 'merrill_kings_prophets']
+        'Before returning to Jeremiah\'s fall narratives, the plan reads the historical anchors. 2 Kings 25 follows Zedekiah\'s siege and capture, the temple\'s destruction, Gedaliah\'s governorship and death, the remnant\'s flight to Egypt, and Jehoiachin\'s eventual release. 2 Chronicles 36 supplies the parallel Judah-and-temple summary and then reaches Cyrus. Ezekiel 24 dates the siege from Babylon, and Ezekiel 33:21 records the news reaching the exiles. Together these accounts frame Jeremiah 39-44 and 52.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
       '2 Kings 25',
       '2 Chronicles 36',
       note(
         'jeremiah-fall-and-aftermath',
-        'Jeremiah 39-44: the fall and its aftermath',
-        'Jeremiah 39 expands Jerusalem\'s fall and Zedekiah\'s capture, paralleling 2 Kings 25:1-12 and 2 Chronicles 36:15-20. Jeremiah 40-41 expands the Gedaliah episode summarized in 2 Kings 25:22-25, and chapters 42-44 follow the surviving remnant into Egypt after the flight reported in 2 Kings 25:26. These chapters now follow the historical accounts they elaborate.',
-        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
+        'Jeremiah 39-44 beside Ezekiel, Kings, and Chronicles',
+        'Jeremiah 39 narrates Jerusalem\'s fall; chapters 40-41 follow Gedaliah\'s brief governorship and death; and chapters 42-44 follow the remnant into Egypt. Ezekiel 24 dates the siege from Babylon, and Ezekiel 33:21 records the news reaching the exiles. 2 Kings 25:1-26 supplies the siege-to-flight sequence, while 2 Chronicles 36:17-21 gives the parallel fall and destruction summary.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'merrill_kings_prophets']
       ),
-      'Jeremiah 39-44',
+      'Jeremiah 39',
       note(
         'jeremiah-historical-appendix',
-        'Jeremiah 52: the historical appendix',
-        'Jeremiah 52 retells the final Zedekiah-era siege, destruction, deportations, and Jehoiachin\'s later release. It closely parallels the history already read in 2 Kings 24:18-25:30, with additional deportation details, so the plan keeps this appendix after Kings, Chronicles, and Jeremiah\'s own fall-and-aftermath narrative.',
-        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'merrill_kings_prophets']
+        'Jeremiah 52 beside Jeremiah 39: a retrospective appendix',
+        'Jeremiah 52 is read beside Jeremiah 39 because verses 1-30 retell Zedekiah\'s reign, Jerusalem\'s siege and fall, and the deportations already framed by 2 Kings 24:18-25:21 and 2 Chronicles 36:11-21. Ezekiel 24 and 33:21 supply the matching siege and fall-news markers from Babylon. It is not a second capture of Jerusalem; verses 31-34 then jump forward to Jehoiachin\'s release around 561 BC.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'merrill_kings_prophets']
       ),
       'Jeremiah 52',
+      note(
+        'lamentations-after-jerusalem-falls',
+        'Lamentations beside Jerusalem’s fall',
+        'The poems give voice to personified Jerusalem, an individual sufferer, and the surviving community. Lamentations does not name its author or place of composition, though ancient Jewish and Christian tradition associates the book with Jeremiah. The plan therefore reads the poems beside Jerusalem’s 586 BC fall, while Ezekiel 33:21 locates the news among the Babylonian exiles and Jeremiah 40-44 follows the remnant toward Egypt; this placement describes their historical setting, not where Jeremiah wrote them.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'lamentations_authorship_setting', 'lamentations_esv_study_bible']
+      ),
       'Lamentations 1-5',
+      'Jeremiah 40-44',
       note(
         'exilic-psalm-laments',
         'Why these Psalms follow Jerusalem\'s fall',
-        'These Psalms are not all dated by a royal heading, but their contents fit the shock of exile, ruined sanctuary, threatened covenant, or Babylon more directly than a generic Davidic placement would. Psalm 137 is the clearest Babylon Psalm; Psalms 74, 79, 89, and 102 are kept nearby as destruction-and-restoration laments.',
-        ['biblical_superscriptions', 'townsend_ot_nt']
+        'These Psalms are not all dated by a royal heading, but their contents fit the shock of exile, ruined sanctuary, threatened covenant, or Babylon more directly than a generic Davidic placement would. Psalm 137 is the clearest Babylon Psalm; Psalms 74, 79, 89, and 102 are kept nearby as destruction-and-restoration laments. The timeline keeps Jeremiah, Ezekiel, Kings, and Chronicles visible as the historical accounts and prophetic voices continue from Jerusalem’s destruction into displacement, hope, release, and return.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible', 'townsend_ot_nt', 'merrill_kings_prophets']
       ),
       'Psalms 74',
       'Psalms 79',
@@ -583,18 +623,8 @@ const chronologicalSections = [
     confidence: 'medium',
     sources: ['townsend_ot_nt', 'merrill_kings_prophets'],
     passages: [
-      note(
-        'ezekiel-dated-exile-visions',
-        'Why Ezekiel is split into dated exile blocks',
-        'Ezekiel gives repeated year, month, and day markers from Jehoiachin\'s captivity. The plan keeps Ezekiel mostly in canonical order but splits the major blocks where the book itself gives clear chronological markers, including the siege date in Ezekiel 24 and the restoration vision in Ezekiel 40.',
-        ['biblical_superscriptions', 'townsend_ot_nt']
-      ),
-      'Ezekiel 1-7',
-      'Ezekiel 8-19',
-      'Ezekiel 20-24',
-      'Ezekiel 29-30',
       'Ezekiel 25-28',
-      'Ezekiel 31-32',
+      'Ezekiel 32',
       'Ezekiel 33-39',
       'Ezekiel 40-48',
       note(
@@ -934,6 +964,7 @@ function toReadingItems(dayItems) {
         sources: item.sources || [],
         sourceLabels: (item.sources || []).map(source => sourceTitleById.get(source) || source),
         sourceLinks: (item.sources || []).map(source => sourceLinkById.get(source)).filter(Boolean),
+        ...(item.timeline ? { timeline: item.timeline } : {}),
       })
       continue
     }
@@ -953,6 +984,7 @@ function toNoteReadingItem(noteItem) {
     sources: noteItem.sources || [],
     sourceLabels: (noteItem.sources || []).map(source => sourceTitleById.get(source) || source),
     sourceLinks: (noteItem.sources || []).map(source => sourceLinkById.get(source)).filter(Boolean),
+    ...(noteItem.timeline ? { timeline: noteItem.timeline } : {}),
   }
 }
 
@@ -1247,6 +1279,7 @@ const output = {
     'For long prophetic books whose internal order is mixed, prefer readable era bands over a brittle chapter-by-chapter reshuffle, and explain the compromise in a plan note.',
     'When a prophetic book lacks an explicit date, label the placement as inferred, tentative, or traditional instead of treating it like a fixed timestamp.',
     'Use plan notes to mark when a prophecy points forward to a later period or when a book-to-book connection is less obvious.',
+    'Give placement-focused editorial notes an event-first historical situation track with passage bars; attach concise dates only to defensible anchor events, mark converted calendar years as estimated, and keep fulfillment dates off the track.',
     'Validate that every Protestant-canon Bible chapter appears exactly once.',
     'Keep event-titled Psalms near their named historical settings, place author- or guild-titled Psalms near the broad setting their headings suggest, and use clearly labeled undated Psalms as reading-rhythm pauses in dense sections without forcing false precision.',
     'Use bundled World English Bible character counts to balance daily readings; the generated metadata records whether the 20 percent target is feasible at whole-chapter granularity.',
