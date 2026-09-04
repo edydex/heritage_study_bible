@@ -92,10 +92,10 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(({ servers, joined }) => {
     localStorage.setItem('heritage-content-servers-v2', JSON.stringify(servers))
     localStorage.setItem('heritage-communities-v1', JSON.stringify(joined))
-    localStorage.setItem('heritage-community-sessions-v1', JSON.stringify({
-      main: { token: 'main-private-token' },
-      earlier: { token: 'earlier-private-token' },
-      later: { token: 'later-private-token' },
+    sessionStorage.setItem('heritage-community-sessions-v1', JSON.stringify({
+      main: { token: 'main-private-token', issuerOrigin: 'https://main.example' },
+      earlier: { token: 'earlier-private-token', issuerOrigin: 'https://earlier.example' },
+      later: { token: 'later-private-token', issuerOrigin: 'https://later.example' },
     }))
   }, { servers: contentServers, joined: communities })
 

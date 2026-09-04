@@ -5,9 +5,17 @@ import {
   upsertContentServer,
 } from './contentServers.js'
 import { normalizeCommunityManifestUrl, validateCommunityManifest } from '../utils/communityProtocol.js'
+import { getDeviceIdentity } from './secureStorage.js'
+import {
+  COMMUNITY_SESSIONS_KEY,
+  getCommunitySession,
+  getCommunitySessions,
+  saveCommunitySession,
+} from './communitySessions.js'
+
+export { COMMUNITY_SESSIONS_KEY, getCommunitySession, getCommunitySessions, saveCommunitySession }
 
 export const COMMUNITY_REGISTRY_KEY = 'heritage-communities-v1'
-const COMMUNITY_SESSIONS_KEY = 'heritage-community-sessions-v1'
 export const COMMUNITIES_CHANGE_EVENT = 'heritage-communities-change'
 
 function readJson(key, fallback) {
@@ -50,18 +58,19 @@ async function fetchJson(url, options = {}) {
     throw wrapped
   }
   const body = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(body.error || `Community request failed with HTTP ${response.status}.`)
+  if (!response.ok) {
+    const error = new Error(body.error || `Community request failed with HTTP ${response.status}.`)
+    error.status = response.status
+    error.body = body
+    error.retryAfter = Number(response.headers.get('retry-after') || 0)
+    throw error
+  }
   return body
 }
 
 export function getCommunities() {
   const records = readJson(COMMUNITY_REGISTRY_KEY, [])
   return Array.isArray(records) ? records : []
-}
-
-export function getCommunitySessions() {
-  const sessions = readJson(COMMUNITY_SESSIONS_KEY, {})
-  return sessions && typeof sessions === 'object' ? sessions : {}
 }
 
 async function inspectCommunityManifest(inputUrl) {
@@ -77,20 +86,23 @@ export async function inspectCommunity(inputUrl) {
   return { ...discovery, contentPreview }
 }
 
-export async function beginCommunityJoin(preview, email) {
+export async function beginCommunityJoin(preview, email, options = {}) {
   if (!preview?.manifest?.id) throw new Error('Check the community before joining it.')
   const normalizedEmail = String(email || '').trim().toLowerCase()
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) throw new Error('Enter a valid email address.')
 
   const records = getCommunities()
   const existing = records.find(record => record.manifest.id === preview.manifest.id)
+  const device = await getDeviceIdentity()
   const authResult = await fetchJson(preview.manifest.auth.requestUrl, {
     method: 'POST',
-    body: JSON.stringify({ email: normalizedEmail }),
+    body: JSON.stringify({ email: normalizedEmail, ...device, flow: options.flow === 'sync' ? 'sync' : 'community' }),
   })
+  const syncFlow = options.flow === 'sync'
   const record = {
     ...preview,
     status: 'email-sent',
+    syncOnly: syncFlow,
     email: normalizedEmail,
     addedAt: existing?.addedAt || new Date().toISOString(),
     primary: existing?.primary ?? records.length === 0,
@@ -101,6 +113,7 @@ export async function beginCommunityJoin(preview, email) {
 
   let contentWarning = ''
   try {
+    if (syncFlow) return { ...record, contentWarning, debugLink: authResult.debugLink || '', expiresAt: authResult.expiresAt || null }
     if (!getContentServerSubscriptions().some(server => server.manifest.id === preview.contentPreview.manifest.id)) {
       await addContentServer(preview.contentPreview)
     }
@@ -108,29 +121,28 @@ export async function beginCommunityJoin(preview, email) {
     contentWarning = `The sign-in email was sent, but public resources were not installed: ${error.message}`
   }
 
-  return { ...record, contentWarning, debugLink: authResult.debugLink || '' }
+  return { ...record, contentWarning, debugLink: authResult.debugLink || '', expiresAt: authResult.expiresAt || null }
 }
 
-export async function completeCommunitySignIn(serverUrl, token) {
+export async function completeCommunitySignIn(serverUrl, token, options = {}) {
   // Authentication depends only on the signed community discovery document.
   // Public content catalogs are refreshed separately so a broken optional feed
   // cannot invalidate an otherwise valid one-time sign-in link.
   const discovery = await inspectCommunityManifest(serverUrl)
   const session = await fetchJson(discovery.manifest.auth.sessionUrl, {
     method: 'POST',
-    body: JSON.stringify({ token }),
+    body: JSON.stringify({ token, ...(typeof options.password === 'string' ? { password: options.password } : {}) }),
+    headers: options.authorization ? { Authorization: options.authorization } : {},
   })
-  const sessions = getCommunitySessions()
-  localStorage.setItem(COMMUNITY_SESSIONS_KEY, JSON.stringify({
-    ...sessions,
-    [discovery.manifest.id]: session,
-  }))
+  if (session.reverified) return { reverified: true, ...session, manifest: discovery.manifest }
+  await saveCommunitySession(discovery.manifest.id, session, discovery)
 
   const records = getCommunities()
   const existing = records.find(record => record.manifest.id === discovery.manifest.id)
   let contentPreview = existing?.contentPreview || null
   let contentWarning = ''
   try {
+    if (session.syncOnly) throw new Error('SYNC_ONLY_SKIP_CONTENT')
     const refreshedContent = await inspectContentServer(discovery.manifest.contentServerUrl, {
       authorization: `Community ${session.token}`,
       authorizationOrigin: new URL(discovery.manifest.contentServerUrl).origin,
@@ -138,14 +150,17 @@ export async function completeCommunitySignIn(serverUrl, token) {
     contentPreview = refreshedContent
     await upsertContentServer(refreshedContent)
   } catch (error) {
-    contentWarning = `Signed in, but the Community resource catalog could not be refreshed: ${error.message}`
+    if (error.message !== 'SYNC_ONLY_SKIP_CONTENT') {
+      contentWarning = `Signed in, but the Community resource catalog could not be refreshed: ${error.message}`
+    }
   }
 
   const record = {
     ...(existing || discovery),
     ...discovery,
     ...(contentPreview ? { contentPreview } : {}),
-    status: 'joined',
+    status: session.syncOnly ? 'sync-only' : 'joined',
+    syncOnly: session.syncOnly === true,
     member: session.member,
     contentWarning,
     primary: existing?.primary ?? records.length === 0,
@@ -164,17 +179,17 @@ export function setPrimaryCommunity(communityId) {
 }
 
 export function removeCommunity(communityId) {
-  const records = getCommunities().filter(record => record.manifest.id !== communityId)
+  const previous = getCommunities()
+  const removed = previous.find(record => record.manifest.id === communityId)
+  const records = previous.filter(record => record.manifest.id !== communityId)
   if (records.length && !records.some(record => record.primary)) records[0] = { ...records[0], primary: true }
   writeRegistry(records)
-  const sessions = getCommunitySessions()
-  delete sessions[communityId]
-  localStorage.setItem(COMMUNITY_SESSIONS_KEY, JSON.stringify(sessions))
+  saveCommunitySession(communityId, null, removed).catch(() => {})
   return records
 }
 
 export async function communityApiRequest(community, path, options = {}) {
-  const session = getCommunitySessions()[community.manifest.id]
+  const session = await getCommunitySession(community.manifest.id, community)
   if (!session?.token) throw new Error('Sign in to this community again.')
   const url = new URL(String(path).replace(/^\/+/, ''), `${community.manifest.apiBaseUrl}/`).href
   return fetchJson(url, {

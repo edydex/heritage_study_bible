@@ -11,6 +11,8 @@ import { Books } from '@/collections/Books'
 import { Commentaries } from '@/collections/Commentaries'
 import { Communities } from '@/collections/Communities'
 import { CommunityInvites } from '@/collections/CommunityInvites'
+import { CommunityAuthChallenges } from '@/collections/CommunityAuthChallenges'
+import { CommunityAuthRateLimits } from '@/collections/CommunityAuthRateLimits'
 import { CommunitySessions } from '@/collections/CommunitySessions'
 import { EncryptedSync } from '@/collections/EncryptedSync'
 import { EventRsvps } from '@/collections/EventRsvps'
@@ -32,8 +34,13 @@ import { SyncShowSermonPublicationCatalogs } from '@/collections/SyncShowSermonP
 import { SyncShowSermonPublications } from '@/collections/SyncShowSermonPublications'
 import { SyncShowSongPublicLinks } from '@/collections/SyncShowSongPublicLinks'
 import { SyncShowSongMemberShares } from '@/collections/SyncShowSongMemberShares'
+import { SyncAccountEvents } from '@/collections/SyncAccountEvents'
+import { SyncConflicts } from '@/collections/SyncConflicts'
+import { SyncDevices } from '@/collections/SyncDevices'
+import { SyncRecords } from '@/collections/SyncRecords'
 import { Users } from '@/collections/Users'
 import { authEndpoints } from '@/endpoints/auth'
+import { accountEndpoints } from '@/endpoints/account'
 import { managerSermonPublicationEndpoints } from '@/endpoints/sermonPublications'
 import { managerSermonPreparationEndpoints } from '@/endpoints/sermonPreparations'
 import { sermonMediaEndpoints } from '@/endpoints/sermonMedia'
@@ -42,6 +49,7 @@ import { startSermonMediaMaintenance } from '@/lib/syncshow/SermonMediaMaintenan
 import { songPublicLinkEndpoints } from '@/endpoints/songPublicLinks'
 import { songMemberSharingEndpoints } from '@/endpoints/songMemberSharing'
 import { syncShowEndpoints } from '@/endpoints/syncShow'
+import { syncEndpoints } from '@/endpoints/sync'
 import { backfillSongSyncDocuments } from '@/lib/backfillSongSyncDocuments'
 import { bootstrapInstallation } from '@/lib/bootstrapInstallation'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
@@ -163,6 +171,8 @@ export default buildConfig({
   collections: [
     Users,
     CommunitySessions,
+    CommunityAuthChallenges,
+    CommunityAuthRateLimits,
     Communities,
     Memberships,
     CommunityInvites,
@@ -187,6 +197,10 @@ export default buildConfig({
     Events,
     EventRsvps,
     EncryptedSync,
+    SyncDevices,
+    SyncRecords,
+    SyncConflicts,
+    SyncAccountEvents,
   ],
   cors: allowedOrigins,
   // Heritage clients use scoped Community bearer tokens. Only the Community
@@ -213,6 +227,8 @@ export default buildConfig({
   }),
   endpoints: [
     ...authEndpoints,
+    ...accountEndpoints,
+    ...syncEndpoints,
     ...syncShowEndpoints,
     ...songPublicLinkEndpoints,
     ...songMemberSharingEndpoints,

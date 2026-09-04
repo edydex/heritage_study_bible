@@ -19,6 +19,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(HeritageControlsPlugin.class);
+        registerPlugin(HeritageSecureStoragePlugin.class);
         super.onCreate(savedInstanceState);
         configureSystemBars();
         registerBackHandler();

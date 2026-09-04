@@ -27,6 +27,7 @@ test('a valid community sign-in survives an unavailable optional content catalog
     dispatchEvent() {},
     setTimeout,
     clearTimeout,
+    sessionStorage: createStorage(),
   }
   globalThis.fetch = async url => {
     const value = String(url)
@@ -64,7 +65,7 @@ test('a valid community sign-in survives an unavailable optional content catalog
     assert.equal(record.status, 'joined')
     assert.equal(record.member.id, 'reader-1')
     assert.match(record.contentWarning, /catalog could not be refreshed/i)
-    assert.equal(getCommunitySessions()['test-church'].token, 'session-token')
+    assert.equal((await getCommunitySessions())['test-church'].token, 'session-token')
   } finally {
     globalThis.localStorage = previous.localStorage
     globalThis.window = previous.window
@@ -88,6 +89,7 @@ test('community sign-in explains an unreachable new server in plain language', a
     dispatchEvent() {},
     setTimeout,
     clearTimeout,
+    sessionStorage: createStorage(),
   }
   globalThis.fetch = async () => {
     throw new TypeError('NetworkError when attempting to fetch resource.')
@@ -122,7 +124,7 @@ test('checking a Community uses a simple GET without forcing a CORS preflight', 
   const requests = []
   globalThis.localStorage = createStorage()
   globalThis.CustomEvent = class CustomEvent {}
-  globalThis.window = { dispatchEvent() {}, setTimeout, clearTimeout }
+  globalThis.window = { dispatchEvent() {}, setTimeout, clearTimeout, sessionStorage: createStorage() }
   globalThis.fetch = async (url, options = {}) => {
     requests.push({ url: String(url), options })
     if (String(url).endsWith('/.well-known/heritage-community.json')) {
@@ -182,7 +184,7 @@ test('member sign-in refreshes the hidden song catalog without leaking its token
   globalThis.CustomEvent = class CustomEvent {
     constructor(type, init = {}) { this.type = type; this.detail = init.detail }
   }
-  globalThis.window = { dispatchEvent() {}, setTimeout, clearTimeout }
+  globalThis.window = { dispatchEvent() {}, setTimeout, clearTimeout, sessionStorage: createStorage() }
   globalThis.fetch = async (url, options = {}) => {
     const value = String(url)
     requests.push({ url: value, authorization: options.headers?.Authorization || '' })
@@ -253,6 +255,99 @@ test('member sign-in refreshes the hidden song catalog without leaking its token
 
     const subscriptions = JSON.parse(globalThis.localStorage.getItem('heritage-content-servers-v2'))
     assert.equal(subscriptions[0].catalogs.songs.items[0].title, 'Member Song')
+  } finally {
+    globalThis.localStorage = previous.localStorage
+    globalThis.window = previous.window
+    globalThis.CustomEvent = previous.CustomEvent
+    globalThis.fetch = previous.fetch
+  }
+})
+
+test('sync-only sign-in neither subscribes to nor fetches Community content', async () => {
+  const previous = {
+    localStorage: globalThis.localStorage,
+    window: globalThis.window,
+    CustomEvent: globalThis.CustomEvent,
+    fetch: globalThis.fetch,
+  }
+  const requests = []
+  globalThis.localStorage = createStorage()
+  globalThis.CustomEvent = class CustomEvent {
+    constructor(type, init = {}) { this.type = type; this.detail = init.detail }
+  }
+  globalThis.window = { dispatchEvent() {}, setTimeout, clearTimeout, sessionStorage: createStorage() }
+  globalThis.fetch = async (url, options = {}) => {
+    const value = String(url)
+    requests.push({ url: value, options })
+    if (value.endsWith('/api/community/auth/magic-link')) {
+      return Response.json({ accepted: true, expiresAt: '2030-01-01T00:15:00.000Z' })
+    }
+    if (value.endsWith('/.well-known/heritage-community.json')) {
+      return Response.json({
+        schemaVersion: 1,
+        kind: 'heritage-community',
+        id: 'sync-community',
+        name: 'Sync Community',
+        apiBaseUrl: '/api',
+        contentServerUrl: '/heritage-content.json',
+        auth: {
+          method: 'email-magic-link',
+          requestPath: '/community/auth/magic-link',
+          sessionPath: '/community/auth/session',
+        },
+      })
+    }
+    if (value.endsWith('/api/community/auth/session')) {
+      return Response.json({
+        token: 'sync-session-secret',
+        expiresAt: '2030-02-01T00:00:00.000Z',
+        syncOnly: true,
+        member: { id: 'reader-sync', email: 'reader@example.com', displayName: 'Reader' },
+      })
+    }
+    if (value.endsWith('/heritage-content.json')) {
+      throw new Error('sync-only flow must not request the content manifest')
+    }
+    return Response.json({ error: `Unexpected URL ${value}` }, { status: 404 })
+  }
+
+  const preview = {
+    manifestUrl: 'https://community.example/.well-known/heritage-community.json',
+    manifest: {
+      id: 'sync-community',
+      name: 'Sync Community',
+      auth: { requestUrl: 'https://community.example/api/community/auth/magic-link' },
+    },
+    contentPreview: {
+      manifest: { id: 'sync-community-content' },
+    },
+  }
+
+  try {
+    const {
+      beginCommunityJoin,
+      completeCommunitySignIn,
+      getCommunitySessions,
+    } = await import('../src/services/communities.js')
+
+    const pending = await beginCommunityJoin(preview, 'Reader@Example.com', { flow: 'sync' })
+    assert.equal(pending.status, 'email-sent')
+    assert.equal(pending.syncOnly, true)
+    const requestBody = JSON.parse(requests[0].options.body)
+    assert.equal(requestBody.email, 'reader@example.com')
+    assert.equal(requestBody.flow, 'sync')
+    assert.equal(requestBody.platform, 'web')
+    assert.match(requestBody.deviceId, /^heritage-/)
+
+    const signedIn = await completeCommunitySignIn('https://community.example', 'one-time-token')
+    assert.equal(signedIn.status, 'sync-only')
+    assert.equal(signedIn.syncOnly, true)
+    assert.equal(signedIn.contentWarning, '')
+    assert.equal(requests.some(request => request.url.endsWith('/heritage-content.json')), false)
+    assert.equal(globalThis.localStorage.getItem('heritage-content-servers-v2'), null)
+    assert.equal(globalThis.localStorage.getItem('heritage-community-sessions-v1'), null)
+    assert.equal((await getCommunitySessions())['sync-community'].token, 'sync-session-secret')
+    assert.equal((await getCommunitySessions())['sync-community'].issuerOrigin, 'https://community.example')
   } finally {
     globalThis.localStorage = previous.localStorage
     globalThis.window = previous.window

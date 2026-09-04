@@ -63,6 +63,18 @@ test('backup restore revalidates community endpoints and linked content', () => 
         method: 'email-magic-link',
         requestUrl: 'https://church.example/api/community/auth/magic-link',
         sessionUrl: 'https://church.example/api/community/auth/session',
+        reverifyUrl: 'https://church.example/api/community/auth/reverify',
+        logoutUrl: 'https://church.example/api/community/auth/logout',
+      },
+      sync: {
+        schemaVersion: 1,
+        recordsUrl: 'https://church.example/api/community/sync/v1/records',
+        accountUrl: 'https://church.example/api/community/account',
+        protectionUrl: 'https://church.example/api/community/account/protection',
+        revokeDeviceUrl: 'https://church.example/api/community/account/devices/revoke',
+        exportUrl: 'https://church.example/api/community/account/export',
+        eraseUrl: 'https://church.example/api/community/account/erase',
+        privacyModel: 'server-encrypted-records',
       },
       capabilities: { sharedPlanNotes: true, injected: 'not-a-boolean' },
     },
@@ -75,6 +87,9 @@ test('backup restore revalidates community endpoints and linked content', () => 
   const records = sanitizeCommunityRegistry([community])
   assert.equal(records.length, 1)
   assert.equal(records[0].manifest.auth.sessionUrl, 'https://church.example/api/community/auth/session')
+  assert.equal(records[0].manifest.auth.reverifyUrl, 'https://church.example/api/community/auth/reverify')
+  assert.equal(records[0].manifest.auth.logoutUrl, 'https://church.example/api/community/auth/logout')
+  assert.deepEqual(records[0].manifest.sync, community.manifest.sync)
   assert.deepEqual(records[0].manifest.capabilities, { sharedPlanNotes: true })
   assert.deepEqual(records[0].member, { id: 'member-1', displayName: 'Reader' })
 

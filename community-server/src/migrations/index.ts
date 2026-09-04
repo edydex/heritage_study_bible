@@ -16,6 +16,7 @@ import * as migration_20260730_120000_song_member_sharing from './20260730_12000
 import * as migration_20260730_230000_sermon_media_staging from './20260730_230000_sermon_media_staging';
 import * as migration_20260813_120000_service_documents from './20260813_120000_service_documents';
 import * as migration_20260902_053500_service_document_lock_relations from './20260902_053500_service_document_lock_relations';
+import * as migration_20260903_200000_community_accounts_sync from './20260903_200000_community_accounts_sync';
 
 export const migrations = [
   {
@@ -107,5 +108,10 @@ export const migrations = [
     up: migration_20260902_053500_service_document_lock_relations.up,
     down: migration_20260902_053500_service_document_lock_relations.down,
     name: '20260902_053500_service_document_lock_relations',
+  },
+  {
+    up: migration_20260903_200000_community_accounts_sync.up,
+    down: migration_20260903_200000_community_accounts_sync.down,
+    name: '20260903_200000_community_accounts_sync',
   },
 ];

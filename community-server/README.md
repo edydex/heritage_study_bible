@@ -1,5 +1,11 @@
 # Heritage Community Server
 
+The optional Community Accounts service provides record-level personal reading
+progress synchronization without granting church membership. Its authentication,
+strict-password, device-revocation, encryption-at-rest, merge/conflict, export,
+and retention contract is documented in
+[`docs/PERSONAL_PROGRESS_SYNC.md`](docs/PERSONAL_PROGRESS_SYNC.md).
+
 This is the dynamic, self-hostable companion to the Heritage Study Bible app.
 It is a separate deployable built on Payload, Next.js, and PostgreSQL. Its
 Payload admin manages the same resource types as a static Content Server, plus

@@ -69,17 +69,22 @@ export interface Config {
   collections: {
     users: User;
     'community-sessions': CommunitySession;
+    'community-auth-challenges': CommunityAuthChallenge;
+    'community-auth-rate-limits': CommunityAuthRateLimit;
     communities: Community;
     memberships: Membership;
     'community-invites': CommunityInvite;
     media: Media;
     'reading-plans': ReadingPlan;
     songs: Song;
+    'syncshow-song-member-shares': SyncshowSongMemberShare;
     'syncshow-song-public-links': SyncshowSongPublicLink;
     'syncshow-device-grants': SyncshowDeviceGrant;
     'syncshow-connections': SyncshowConnection;
     sermons: Sermon;
     'service-plans': ServicePlan;
+    'service-documents': ServiceDocument;
+    'syncshow-service-document-changes': SyncshowServiceDocumentChange;
     'syncshow-sermon-changes': SyncshowSermonChange;
     'syncshow-sermon-publications': SyncshowSermonPublication;
     'syncshow-sermon-publication-catalogs': SyncshowSermonPublicationCatalog;
@@ -90,6 +95,10 @@ export interface Config {
     events: Event;
     'event-rsvps': EventRsvp;
     'encrypted-sync': EncryptedSync;
+    'sync-devices': SyncDevice;
+    'sync-records': SyncRecord;
+    'sync-conflicts': SyncConflict;
+    'sync-account-events': SyncAccountEvent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -99,17 +108,22 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     'community-sessions': CommunitySessionsSelect<false> | CommunitySessionsSelect<true>;
+    'community-auth-challenges': CommunityAuthChallengesSelect<false> | CommunityAuthChallengesSelect<true>;
+    'community-auth-rate-limits': CommunityAuthRateLimitsSelect<false> | CommunityAuthRateLimitsSelect<true>;
     communities: CommunitiesSelect<false> | CommunitiesSelect<true>;
     memberships: MembershipsSelect<false> | MembershipsSelect<true>;
     'community-invites': CommunityInvitesSelect<false> | CommunityInvitesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'reading-plans': ReadingPlansSelect<false> | ReadingPlansSelect<true>;
     songs: SongsSelect<false> | SongsSelect<true>;
+    'syncshow-song-member-shares': SyncshowSongMemberSharesSelect<false> | SyncshowSongMemberSharesSelect<true>;
     'syncshow-song-public-links': SyncshowSongPublicLinksSelect<false> | SyncshowSongPublicLinksSelect<true>;
     'syncshow-device-grants': SyncshowDeviceGrantsSelect<false> | SyncshowDeviceGrantsSelect<true>;
     'syncshow-connections': SyncshowConnectionsSelect<false> | SyncshowConnectionsSelect<true>;
     sermons: SermonsSelect<false> | SermonsSelect<true>;
     'service-plans': ServicePlansSelect<false> | ServicePlansSelect<true>;
+    'service-documents': ServiceDocumentsSelect<false> | ServiceDocumentsSelect<true>;
+    'syncshow-service-document-changes': SyncshowServiceDocumentChangesSelect<false> | SyncshowServiceDocumentChangesSelect<true>;
     'syncshow-sermon-changes': SyncshowSermonChangesSelect<false> | SyncshowSermonChangesSelect<true>;
     'syncshow-sermon-publications': SyncshowSermonPublicationsSelect<false> | SyncshowSermonPublicationsSelect<true>;
     'syncshow-sermon-publication-catalogs': SyncshowSermonPublicationCatalogsSelect<false> | SyncshowSermonPublicationCatalogsSelect<true>;
@@ -120,6 +134,10 @@ export interface Config {
     events: EventsSelect<false> | EventsSelect<true>;
     'event-rsvps': EventRsvpsSelect<false> | EventRsvpsSelect<true>;
     'encrypted-sync': EncryptedSyncSelect<false> | EncryptedSyncSelect<true>;
+    'sync-devices': SyncDevicesSelect<false> | SyncDevicesSelect<true>;
+    'sync-records': SyncRecordsSelect<false> | SyncRecordsSelect<true>;
+    'sync-conflicts': SyncConflictsSelect<false> | SyncConflictsSelect<true>;
+    'sync-account-events': SyncAccountEventsSelect<false> | SyncAccountEventsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -174,6 +192,19 @@ export interface User {
   systemRole: 'system-admin' | 'member';
   magicLinkTokenHash?: string | null;
   magicLinkExpiresAt?: string | null;
+  accountProtection: 'email' | 'strict-password';
+  strictPasswordHash?: string | null;
+  strictPasswordAlgorithm?: string | null;
+  strictPasswordParams?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  syncGeneration: number;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -203,6 +234,46 @@ export interface CommunitySession {
   tokenHash: string;
   expiresAt: string;
   revokedAt?: string | null;
+  deviceId?: string | null;
+  deviceName?: string | null;
+  platform?: string | null;
+  emailVerifiedAt?: string | null;
+  lastUsedAt?: string | null;
+  syncGeneration: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "community-auth-challenges".
+ */
+export interface CommunityAuthChallenge {
+  id: number;
+  user: number | User;
+  emailHash: string;
+  tokenHash: string;
+  purpose: 'sign-in' | 'reverify';
+  flow: 'community' | 'sync';
+  deviceId: string;
+  deviceName: string;
+  platform: string;
+  requiresPassword: boolean;
+  expiresAt: string;
+  failedAttempts: number;
+  consumedAt?: string | null;
+  supersededAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "community-auth-rate-limits".
+ */
+export interface CommunityAuthRateLimit {
+  id: number;
+  bucketHash: string;
+  attempts: number;
+  resetAt: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -431,6 +502,20 @@ export interface Song {
     | number
     | boolean
     | null;
+  memberShareReceiptId?: string | null;
+  memberShareReceiptVersion?: number | null;
+  memberSharePreviousSongSyncVersion?: number | null;
+  memberShareSongSyncVersion?: number | null;
+  memberShareFamilyRevision?: string | null;
+  memberShareReviewRevision?: string | null;
+  memberShareVisibility?: string | null;
+  memberSharePublishAt?: string | null;
+  memberShareTimeZone?: string | null;
+  memberShareValidThrough?: string | null;
+  memberShareReviewedAt?: string | null;
+  memberShareConfirmedAt?: string | null;
+  memberShareRequestRevision?: string | null;
+  memberShareReceiptRevision?: string | null;
   title: string;
   description?: string | null;
   russianTitle?: string | null;
@@ -476,6 +561,39 @@ export interface Song {
   rightsNotes?: string | null;
   sourceUrl?: string | null;
   permissionUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Immutable exact-family reviews authorizing lyrics for signed-in Community members.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "syncshow-song-member-shares".
+ */
+export interface SyncshowSongMemberShare {
+  id: number;
+  community: number | Community;
+  song: number | Song;
+  schemaVersion: number;
+  receiptId: string;
+  receiptVersion: number;
+  songSyncId: string;
+  previousSongSyncVersion: number;
+  songSyncVersion: number;
+  familyRevision: string;
+  reviewRevision: string;
+  visibility: 'public' | 'scheduled-public';
+  publishAt?: string | null;
+  timeZone: string;
+  validThrough?: string | null;
+  reviewedAt: string;
+  confirmedAt: string;
+  requestRevision: string;
+  receiptRevision: string;
+  reviewSource: string;
+  auditSource: string;
+  idempotencyKeyHash: string;
+  requestHash: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -767,6 +885,60 @@ export interface ServicePlan {
   createdAt: string;
 }
 /**
+ * Canonical storage for the visual Plan a service editor and SyncShow. Display routing stays on the venue computer.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-documents".
+ */
+export interface ServiceDocument {
+  id: number;
+  community: number | Community;
+  /**
+   * Derived from the shared document.
+   */
+  title: string;
+  /**
+   * Used to create an empty English, Russian, and Media document. Later changes come from the shared editor.
+   */
+  serviceDate: string;
+  /**
+   * Ready approves only the currently saved revision. Any content edit returns the new revision to Planning.
+   */
+  status: 'planning' | 'ready' | 'archived' | 'cancelled';
+  /**
+   * Canonical HeritageServiceDocumentV1 source. The visual preparation editor replaces this technical view during the pilot.
+   */
+  documentSource: string;
+  syncId: string;
+  syncVersion: number;
+  revision: string;
+  changedAt: string;
+  readyRevision?: string | null;
+  readyAt?: string | null;
+  lastIdempotencyKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "syncshow-service-document-changes".
+ */
+export interface SyncshowServiceDocumentChange {
+  id: number;
+  community: number | Community;
+  serviceDocument: number | ServiceDocument;
+  syncId: string;
+  syncVersion: number;
+  revision: string;
+  status: string;
+  title: string;
+  serviceDate: string;
+  documentSource: string;
+  changedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "syncshow-sermon-changes".
  */
@@ -1022,6 +1194,82 @@ export interface EncryptedSync {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sync-devices".
+ */
+export interface SyncDevice {
+  id: number;
+  user: number | User;
+  deviceId: string;
+  friendlyName: string;
+  platform: string;
+  firstConnectedAt: string;
+  lastSyncedAt?: string | null;
+  revokedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sync-records".
+ */
+export interface SyncRecord {
+  id: number;
+  user: number | User;
+  recordType: string;
+  recordId: string;
+  schemaVersion: number;
+  serverRevision: number;
+  originDeviceId: string;
+  deleted: boolean;
+  clientUpdatedAt?: string | null;
+  keyId: string;
+  iv: string;
+  authTag: string;
+  ciphertext: string;
+  contentHash: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sync-conflicts".
+ */
+export interface SyncConflict {
+  id: number;
+  user: number | User;
+  recordType: string;
+  recordId: string;
+  schemaVersion: number;
+  baseRevision: number;
+  serverRevision: number;
+  originDeviceId: string;
+  deleted: boolean;
+  clientUpdatedAt?: string | null;
+  serverRecordMissing: boolean;
+  keyId: string;
+  iv: string;
+  authTag: string;
+  ciphertext: string;
+  contentHash: string;
+  resolvedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sync-account-events".
+ */
+export interface SyncAccountEvent {
+  id: number;
+  user: number | User;
+  eventType: 'device-connected' | 'protection-changed' | 'device-revoked';
+  deviceId?: string | null;
+  occurredAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -1077,6 +1325,10 @@ export interface PayloadLockedDocument {
         value: number | Song;
       } | null)
     | ({
+        relationTo: 'syncshow-song-member-shares';
+        value: number | SyncshowSongMemberShare;
+      } | null)
+    | ({
         relationTo: 'syncshow-song-public-links';
         value: number | SyncshowSongPublicLink;
       } | null)
@@ -1095,6 +1347,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'service-plans';
         value: number | ServicePlan;
+      } | null)
+    | ({
+        relationTo: 'service-documents';
+        value: number | ServiceDocument;
+      } | null)
+    | ({
+        relationTo: 'syncshow-service-document-changes';
+        value: number | SyncshowServiceDocumentChange;
       } | null)
     | ({
         relationTo: 'syncshow-sermon-changes';
@@ -1187,6 +1447,11 @@ export interface UsersSelect<T extends boolean = true> {
   systemRole?: T;
   magicLinkTokenHash?: T;
   magicLinkExpiresAt?: T;
+  accountProtection?: T;
+  strictPasswordHash?: T;
+  strictPasswordAlgorithm?: T;
+  strictPasswordParams?: T;
+  syncGeneration?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1213,6 +1478,44 @@ export interface CommunitySessionsSelect<T extends boolean = true> {
   tokenHash?: T;
   expiresAt?: T;
   revokedAt?: T;
+  deviceId?: T;
+  deviceName?: T;
+  platform?: T;
+  emailVerifiedAt?: T;
+  lastUsedAt?: T;
+  syncGeneration?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "community-auth-challenges_select".
+ */
+export interface CommunityAuthChallengesSelect<T extends boolean = true> {
+  user?: T;
+  emailHash?: T;
+  tokenHash?: T;
+  purpose?: T;
+  flow?: T;
+  deviceId?: T;
+  deviceName?: T;
+  platform?: T;
+  requiresPassword?: T;
+  expiresAt?: T;
+  failedAttempts?: T;
+  consumedAt?: T;
+  supersededAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "community-auth-rate-limits_select".
+ */
+export interface CommunityAuthRateLimitsSelect<T extends boolean = true> {
+  bucketHash?: T;
+  attempts?: T;
+  resetAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1352,6 +1655,20 @@ export interface SongsSelect<T extends boolean = true> {
   publishAt?: T;
   syncVersion?: T;
   syncDocuments?: T;
+  memberShareReceiptId?: T;
+  memberShareReceiptVersion?: T;
+  memberSharePreviousSongSyncVersion?: T;
+  memberShareSongSyncVersion?: T;
+  memberShareFamilyRevision?: T;
+  memberShareReviewRevision?: T;
+  memberShareVisibility?: T;
+  memberSharePublishAt?: T;
+  memberShareTimeZone?: T;
+  memberShareValidThrough?: T;
+  memberShareReviewedAt?: T;
+  memberShareConfirmedAt?: T;
+  memberShareRequestRevision?: T;
+  memberShareReceiptRevision?: T;
   title?: T;
   description?: T;
   russianTitle?: T;
@@ -1372,6 +1689,36 @@ export interface SongsSelect<T extends boolean = true> {
   rightsNotes?: T;
   sourceUrl?: T;
   permissionUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "syncshow-song-member-shares_select".
+ */
+export interface SyncshowSongMemberSharesSelect<T extends boolean = true> {
+  community?: T;
+  song?: T;
+  schemaVersion?: T;
+  receiptId?: T;
+  receiptVersion?: T;
+  songSyncId?: T;
+  previousSongSyncVersion?: T;
+  songSyncVersion?: T;
+  familyRevision?: T;
+  reviewRevision?: T;
+  visibility?: T;
+  publishAt?: T;
+  timeZone?: T;
+  validThrough?: T;
+  reviewedAt?: T;
+  confirmedAt?: T;
+  requestRevision?: T;
+  receiptRevision?: T;
+  reviewSource?: T;
+  auditSource?: T;
+  idempotencyKeyHash?: T;
+  requestHash?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1515,6 +1862,44 @@ export interface ServicePlansSelect<T extends boolean = true> {
   syncId?: T;
   syncVersion?: T;
   revision?: T;
+  documentSource?: T;
+  changedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-documents_select".
+ */
+export interface ServiceDocumentsSelect<T extends boolean = true> {
+  community?: T;
+  title?: T;
+  serviceDate?: T;
+  status?: T;
+  documentSource?: T;
+  syncId?: T;
+  syncVersion?: T;
+  revision?: T;
+  changedAt?: T;
+  readyRevision?: T;
+  readyAt?: T;
+  lastIdempotencyKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "syncshow-service-document-changes_select".
+ */
+export interface SyncshowServiceDocumentChangesSelect<T extends boolean = true> {
+  community?: T;
+  serviceDocument?: T;
+  syncId?: T;
+  syncVersion?: T;
+  revision?: T;
+  status?: T;
+  title?: T;
+  serviceDate?: T;
   documentSource?: T;
   changedAt?: T;
   updatedAt?: T;
@@ -1692,6 +2077,78 @@ export interface EncryptedSyncSelect<T extends boolean = true> {
   iv?: T;
   ciphertext?: T;
   contentHash?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sync-devices_select".
+ */
+export interface SyncDevicesSelect<T extends boolean = true> {
+  user?: T;
+  deviceId?: T;
+  friendlyName?: T;
+  platform?: T;
+  firstConnectedAt?: T;
+  lastSyncedAt?: T;
+  revokedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sync-records_select".
+ */
+export interface SyncRecordsSelect<T extends boolean = true> {
+  user?: T;
+  recordType?: T;
+  recordId?: T;
+  schemaVersion?: T;
+  serverRevision?: T;
+  originDeviceId?: T;
+  deleted?: T;
+  clientUpdatedAt?: T;
+  keyId?: T;
+  iv?: T;
+  authTag?: T;
+  ciphertext?: T;
+  contentHash?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sync-conflicts_select".
+ */
+export interface SyncConflictsSelect<T extends boolean = true> {
+  user?: T;
+  recordType?: T;
+  recordId?: T;
+  schemaVersion?: T;
+  baseRevision?: T;
+  serverRevision?: T;
+  originDeviceId?: T;
+  deleted?: T;
+  clientUpdatedAt?: T;
+  serverRecordMissing?: T;
+  keyId?: T;
+  iv?: T;
+  authTag?: T;
+  ciphertext?: T;
+  contentHash?: T;
+  resolvedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sync-account-events_select".
+ */
+export interface SyncAccountEventsSelect<T extends boolean = true> {
+  user?: T;
+  eventType?: T;
+  deviceId?: T;
+  occurredAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -49,6 +49,8 @@ export async function bootstrapInstallation(payload: Payload) {
         email: bootstrap.email,
         password: bootstrap.password,
         systemRole: 'system-admin',
+        accountProtection: 'email',
+        syncGeneration: 1,
       },
     })
   }

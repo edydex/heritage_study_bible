@@ -39,6 +39,7 @@ function Header({
   onSideButtonScrollChange,
   showVolumeScrollSetting = false,
   onSearchKeyboardCaptureChange,
+  onSyncSettingsClick,
   onAdvancedSettingsClick,
   hidden = false,
 }) {
@@ -458,6 +459,21 @@ function Header({
                 </div>
 
                 {/* Verse Layout */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setShowSettings(false)
+                      onSyncSettingsClick?.()
+                    }}
+                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <span className="text-sm text-gray-700 dark:text-gray-200 font-medium">Sync</span>
+                    <span className="text-gray-400 dark:text-gray-500">›</span>
+                  </button>
+                </div>
+
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
                   <button
                     type="button"

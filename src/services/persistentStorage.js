@@ -33,6 +33,8 @@ export const STORAGE_KEYS = {
   readingPlanGroups: 'heritage-reading-plan:groups',
   contentServers: 'heritage-content-servers-v2',
   communities: 'heritage-communities-v1',
+  syncState: 'heritage-progress-sync-state-v1',
+  syncRollback: 'heritage-progress-sync-rollback-v1',
 }
 
 export const EXPORTABLE_EXACT_KEYS = [
@@ -260,13 +262,29 @@ export function sanitizeCommunityRegistry(value) {
       if (!record || typeof record !== 'object' || Array.isArray(record)) throw new Error('Invalid community record.')
       const manifestUrl = normalizeCommunityManifestUrl(requireHttpUrl(record.manifestUrl, 'Community manifest URL'))
       const storedAuth = record.manifest?.auth || {}
+      const storedSync = record.manifest?.sync || null
       const manifest = validateCommunityManifest({
         ...record.manifest,
         auth: {
           method: storedAuth.method,
           requestPath: storedAuth.requestPath || storedAuth.requestUrl,
           sessionPath: storedAuth.sessionPath || storedAuth.sessionUrl,
+          reverifyPath: storedAuth.reverifyPath || storedAuth.reverifyUrl,
+          logoutPath: storedAuth.logoutPath || storedAuth.logoutUrl,
         },
+        ...(storedSync ? {
+          sync: {
+            ...storedSync,
+            recordsPath: storedSync.recordsPath || storedSync.recordsUrl,
+            accountPath: storedSync.accountPath || storedSync.accountUrl,
+            protectionPath: storedSync.protectionPath || storedSync.protectionUrl,
+            revokeDevicePath: storedSync.revokeDevicePath || storedSync.revokeDeviceUrl,
+            conflictsPath: storedSync.conflictsPath || storedSync.conflictsUrl,
+            resolveConflictPath: storedSync.resolveConflictPath || storedSync.resolveConflictUrl,
+            exportPath: storedSync.exportPath || storedSync.exportUrl,
+            erasePath: storedSync.erasePath || storedSync.eraseUrl,
+          },
+        } : {}),
       }, manifestUrl)
 
       for (const [label, endpoint] of [
@@ -293,7 +311,8 @@ export function sanitizeCommunityRegistry(value) {
         manifestUrl,
         manifest,
         contentPreview,
-        status: record.status === 'joined' ? 'joined' : 'email-sent',
+        status: record.status === 'joined' ? 'joined' : record.status === 'sync-only' ? 'sync-only' : 'email-sent',
+        syncOnly: record.syncOnly === true,
         email: safeOptionalString(record.email, 320),
         addedAt: safeTimestamp(record.addedAt) || new Date(0).toISOString(),
         primary: record.primary === true,
@@ -325,6 +344,151 @@ function sanitizeImportedValue(key, value) {
   return value
 }
 
+const SYNCHRONIZED_LIST_TYPES = new Map([
+  [STORAGE_KEYS.bookmarks, 'bible-bookmark'],
+  [STORAGE_KEYS.resourceBookmarks, 'resource-bookmark'],
+  [STORAGE_KEYS.notes, 'note'],
+  [STORAGE_KEYS.highlights, 'highlight'],
+])
+
+function parseImportedJson(value, fallback) {
+  try { return JSON.parse(value) } catch { return fallback }
+}
+
+function timestampNumber(value) {
+  const parsed = Date.parse(String(value || ''))
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+function itemModifiedAt(item) {
+  return timestampNumber(item?.dateModified)
+    || timestampNumber(item?.updatedAt)
+    || timestampNumber(item?.dateCreated)
+    || timestampNumber(item?.createdAt)
+}
+
+function importedItemId(item) {
+  if (item?.id != null && String(item.id)) return String(item.id)
+  // Retain legacy pre-UUID entries without collapsing distinct item kinds.
+  return JSON.stringify([
+    item?.resourceId || '', item?.commentaryId || '', item?.book || '',
+    item?.chapter || '', item?.verse || '', item?.chapterIndex || '',
+    item?.reference || '', item?.type || '',
+  ])
+}
+
+function wasSynchronouslyDeleted(syncState, recordType, recordId) {
+  return syncState?.records?.[`${recordType}\u0000${recordId}`]?.deleted === true
+}
+
+function hasSynchronizedMetadata(syncState, recordType, recordId) {
+  return Boolean(syncState?.records?.[`${recordType}\u0000${recordId}`])
+}
+
+function mergeSynchronizedList(current, incoming, recordType, syncState) {
+  const existing = Array.isArray(current) ? current : []
+  const result = new Map(existing.map(item => [importedItemId(item), item]))
+  for (const item of Array.isArray(incoming) ? incoming : []) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue
+    const id = importedItemId(item)
+    const saved = result.get(id)
+    if (item?.id && hasSynchronizedMetadata(syncState, recordType, String(item.id))) continue
+    if (!saved || itemModifiedAt(item) > itemModifiedAt(saved)) result.set(id, item)
+  }
+  return [...result.values()]
+}
+
+function newerPosition(current, incoming, recordType, recordId, syncState) {
+  if (hasSynchronizedMetadata(syncState, recordType, recordId)) return current || null
+  if (!current) {
+    return wasSynchronouslyDeleted(syncState, recordType, recordId) ? null : incoming
+  }
+  if (!incoming) return current
+  return timestampNumber(incoming.updatedAt) > timestampNumber(current.updatedAt) ? incoming : current
+}
+
+function mergeReaderProgress(current, incoming, syncState) {
+  const saved = current && typeof current === 'object' ? current : {}
+  const imported = incoming && typeof incoming === 'object' ? incoming : {}
+  const resources = { ...(saved.resources || {}) }
+  for (const [resourceId, position] of Object.entries(imported.resources || {})) {
+    const merged = newerPosition(resources[resourceId], position, 'resource-position', resourceId, syncState)
+    if (merged) resources[resourceId] = merged
+  }
+  return {
+    ...imported,
+    ...saved,
+    bible: newerPosition(saved.bible, imported.bible, 'bible-position', 'bible', syncState),
+    resources,
+  }
+}
+
+function mergeActivePlan(current, incoming, syncState) {
+  if (hasSynchronizedMetadata(syncState, 'active-reading-plan', 'active')) return current || null
+  if (!current) return wasSynchronouslyDeleted(syncState, 'active-reading-plan', 'active') ? null : incoming
+  if (!incoming) return current
+  const currentTime = timestampNumber(current.updatedAt || current.startedAt || current.startedOn)
+  const incomingTime = timestampNumber(incoming.updatedAt || incoming.startedAt || incoming.startedOn)
+  return incomingTime > currentTime ? incoming : current
+}
+
+function mergePlanProgress(current, incoming, planId, syncState) {
+  const saved = current && typeof current === 'object' ? current : {}
+  const imported = incoming && typeof incoming === 'object' ? incoming : {}
+  const completedItems = {}
+  const days = new Set([...Object.keys(imported.completedItems || {}), ...Object.keys(saved.completedItems || {})])
+  for (const day of days) {
+    const ids = new Set(Array.isArray(saved.completedItems?.[day]) ? saved.completedItems[day].map(String) : [])
+    for (const itemId of Array.isArray(imported.completedItems?.[day]) ? imported.completedItems[day].map(String) : []) {
+      const recordId = `${planId}|${day}|${itemId}`
+      if (!ids.has(itemId) && hasSynchronizedMetadata(syncState, 'reading-plan-item', recordId)) continue
+      ids.add(itemId)
+    }
+    if (ids.size) completedItems[day] = [...ids]
+  }
+
+  const dayNotes = { ...(saved.dayNotes || {}) }
+  const currentTime = timestampNumber(saved.updatedAt)
+  const incomingTime = timestampNumber(imported.updatedAt)
+  for (const [day, note] of Object.entries(imported.dayNotes || {})) {
+    const recordId = `${planId}|${day}`
+    if (hasSynchronizedMetadata(syncState, 'reading-plan-day-note', recordId)) continue
+    if (!(day in dayNotes) || incomingTime > currentTime) dayNotes[day] = note
+  }
+
+  return {
+    ...imported,
+    ...saved,
+    completedItems,
+    completedDays: [...new Set([
+      ...(saved.completedDays || []),
+      ...(imported.completedDays || []).filter(day => !hasSynchronizedMetadata(
+        syncState,
+        'reading-plan-day',
+        `${planId}|${day}`,
+      )),
+    ])],
+    dayNotes,
+    startedOn: saved.startedOn || imported.startedOn || null,
+    updatedAt: currentTime >= incomingTime ? saved.updatedAt || imported.updatedAt : imported.updatedAt,
+  }
+}
+
+export function mergeImportedSynchronizedValue(key, currentValue, importedValue, syncState = {}) {
+  const current = parseImportedJson(currentValue, null)
+  const incoming = parseImportedJson(importedValue, null)
+  if (SYNCHRONIZED_LIST_TYPES.has(key)) {
+    return JSON.stringify(mergeSynchronizedList(current, incoming, SYNCHRONIZED_LIST_TYPES.get(key), syncState))
+  }
+  if (key === STORAGE_KEYS.readerProgress) return JSON.stringify(mergeReaderProgress(current, incoming, syncState))
+  if (key === STORAGE_KEYS.activeReadingPlan) return JSON.stringify(mergeActivePlan(current, incoming, syncState))
+  if (key.startsWith(STORAGE_KEYS.readingPlanPrefix) && key.endsWith(':progress')) {
+    const planId = key.slice(STORAGE_KEYS.readingPlanPrefix.length, -':progress'.length)
+    return JSON.stringify(mergePlanProgress(current, incoming, planId, syncState))
+  }
+  return importedValue
+}
+
 export async function exportHeritageData() {
   const keys = new Set(EXPORTABLE_EXACT_KEYS)
   for (const key of getAllLocalStorageKeys()) {
@@ -351,10 +515,14 @@ export async function importHeritageData(payload) {
   }
 
   const entries = Object.entries(payload.data)
+  const syncState = await getStoredJson(STORAGE_KEYS.syncState, {})
   for (const [key, value] of entries) {
     if (typeof value !== 'string') continue
     const allowed = EXPORTABLE_EXACT_KEYS.includes(key) || key.startsWith(STORAGE_KEYS.readingPlanPrefix)
-    if (allowed) await setStoredValue(key, sanitizeImportedValue(key, value))
+    if (!allowed) continue
+    const sanitized = sanitizeImportedValue(key, value)
+    const current = await getStoredValue(key)
+    await setStoredValue(key, mergeImportedSynchronizedValue(key, current, sanitized, syncState))
   }
 
   return entries.length

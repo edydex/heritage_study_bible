@@ -5,6 +5,7 @@ import {
   validateContentCatalog,
   validateContentServerManifest,
 } from '../utils/contentProtocol.js'
+import { getCommunitySession } from './communitySessions.js'
 
 export const CONTENT_SERVERS_STORAGE_KEY = 'heritage-content-servers-v2'
 export const CONTENT_SERVERS_CHANGE_EVENT = 'heritage-content-servers-change'
@@ -12,7 +13,6 @@ const MAX_METADATA_BYTES = 5 * 1024 * 1024
 const REQUEST_TIMEOUT_MS = 15000
 const AUTOMATIC_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000
 const COMMUNITY_REGISTRY_KEY = 'heritage-communities-v1'
-const COMMUNITY_SESSIONS_KEY = 'heritage-community-sessions-v1'
 
 function readSubscriptions() {
   try {
@@ -28,14 +28,13 @@ function writeSubscriptions(subscriptions) {
   window.dispatchEvent(new CustomEvent(CONTENT_SERVERS_CHANGE_EVENT, { detail: subscriptions }))
 }
 
-function memberRequestOptionsForServer(server) {
+async function memberRequestOptionsForServer(server) {
   try {
     const communities = JSON.parse(localStorage.getItem(COMMUNITY_REGISTRY_KEY) || '[]')
-    const sessions = JSON.parse(localStorage.getItem(COMMUNITY_SESSIONS_KEY) || '{}')
     const community = Array.isArray(communities)
       ? communities.find(record => record?.contentPreview?.manifest?.id === server?.manifest?.id)
       : null
-    const token = sessions?.[community?.manifest?.id]?.token
+    const token = (await getCommunitySession(community?.manifest?.id, community))?.token
     if (!token || !community?.manifest?.contentServerUrl) return {}
     return {
       authorization: `Community ${token}`,
@@ -144,7 +143,7 @@ export async function refreshContentServer(serverId, options = null) {
   if (!existing) throw new Error('Content server not found.')
   const preview = await inspectContentServer(
     existing.manifestUrl,
-    options || memberRequestOptionsForServer(existing),
+    options || await memberRequestOptionsForServer(existing),
   )
   if (preview.manifest.id !== serverId) throw new Error('The server id changed; remove it and review it again.')
 
@@ -167,7 +166,7 @@ export async function refreshStaleContentServers() {
     const checkedAt = Date.parse(server.lastCheckedAt || server.addedAt || '') || 0
     if (now - checkedAt < AUTOMATIC_REFRESH_INTERVAL_MS) continue
     try {
-      refreshed.push(await refreshContentServer(server.manifest.id, memberRequestOptionsForServer(server)))
+      refreshed.push(await refreshContentServer(server.manifest.id, await memberRequestOptionsForServer(server)))
     } catch {
       // A temporarily unavailable optional library must not block app startup.
     }

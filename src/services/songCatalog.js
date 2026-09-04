@@ -1,6 +1,7 @@
 import { HERITAGE_BUILT_IN_SONGS } from '../data/builtInSongs.js'
 import { HYMNS } from '../components/HymnsViewer.jsx'
-import { getCommunities, getCommunitySessions } from './communities.js'
+import { getCommunities } from './communities.js'
+import { getCommunitySession } from './communitySessions.js'
 import { getRemoteContentItemsForCategory } from './contentServers.js'
 
 const SONG_REQUEST_TIMEOUT_MS = 8000
@@ -294,7 +295,7 @@ async function fetchSongDocument(reference) {
         community.manifest?.apiBaseUrl,
         community.manifest?.contentServerUrl,
       ].filter(Boolean).map(value => new URL(value).origin)
-      const token = getCommunitySessions()[community.manifest.id]?.token
+      const token = (await getCommunitySession(community.manifest.id, community))?.token
       if (token && allowedOrigins.includes(destinationOrigin)) {
         authorization = `Community ${token}`
       }

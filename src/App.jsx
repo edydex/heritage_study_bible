@@ -50,6 +50,7 @@ const RemoteResourceViewer = lazy(() => import('./components/RemoteResourceViewe
 const BuiltInSongViewer = lazy(() => import('./components/BuiltInSongViewer'))
 const CommunityHomePage = lazy(() => import('./components/CommunityHomePage'))
 const CommunityCallbackPage = lazy(() => import('./components/CommunityCallbackPage'))
+const SyncSettingsPage = lazy(() => import('./components/SyncSettingsPage'))
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
@@ -674,6 +675,16 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
       </header>
 
       <main className="container mx-auto max-w-2xl px-4 py-5 pb-20 space-y-4">
+        <section className="rounded-lg border border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-800 p-4">
+          <button type="button" onClick={() => navigate('/settings/sync')} className="w-full flex items-center justify-between gap-4 text-left">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Sync</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Keep reading progress, plans, bookmarks, notes, and highlights on your other devices.</p>
+            </div>
+            <span className="text-2xl leading-none text-gray-400 dark:text-gray-500">›</span>
+          </button>
+        </section>
+
         <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <button
             type="button"
@@ -2025,6 +2036,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           onSideButtonScrollChange={onSideButtonScrollChange}
           showVolumeScrollSetting={isNativeAndroid()}
           onSearchKeyboardCaptureChange={setNativeSearchKeyboardCaptureInputEnabled}
+          onSyncSettingsClick={() => navigate('/settings/sync')}
           onAdvancedSettingsClick={() => navigate('/settings/advanced')}
         />
 
@@ -2458,6 +2470,7 @@ function App() {
           <Route path="/resources/:categoryId" element={<ResourcePage />} />
           <Route path="/settings/about" element={<AboutPage />} />
           <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} />} />
+          <Route path="/settings/sync" element={<SyncSettingsPage />} />
           <Route path="/settings/content-servers" element={<ContentServersPage />} />
           <Route path="/community/callback" element={<CommunityCallbackPage />} />
           <Route path="/community" element={<CommunityHomePage />} />
