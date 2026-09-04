@@ -6,13 +6,19 @@ import {
 } from 'payload'
 import serviceCore from '../../packages/service-core/node.js'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
-import { serializeSongForSync, SyncShowProtocolError } from '@/lib/syncShowProtocol'
+import {
+  serializeSongForSync,
+  SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
+  SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE,
+  SyncShowProtocolError,
+} from '@/lib/syncShowProtocol'
 import {
   HeritageServiceBibleLookupError,
   loadHeritageServiceBiblePassage,
 } from '@/lib/syncshow/HeritageServiceBibleLookup'
 import { CANONICAL_BIBLE_BOOKS } from '@/lib/syncshow/BibleRange'
 import {
+  authorizeSyncShow,
   findServiceDocument,
   mutateServiceDocument,
   serviceDocumentResponse,
@@ -116,13 +122,18 @@ async function boundedJson(req: PayloadRequest) {
   }
 }
 
-async function managerContext(req: PayloadRequest) {
+async function managerContext(
+  req: PayloadRequest,
+  access: 'read' | 'write' = 'read',
+) {
   if ((req.headers.get('authorization') || '').startsWith('SyncShow ')) {
-    throw new ServiceDocumentEditorError(
-      'COMMUNITY_AUTH_REQUIRED',
-      'Sign in to Heritage Community to plan a service.',
-      401,
+    const authorized = await authorizeSyncShow(
+      req,
+      access === 'write'
+        ? SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE
+        : SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
     )
+    return { communityId: authorized.communityId }
   }
   const current = req.user || (await req.payload.auth({ headers: req.headers })).user
   const userId = relationId(current)
@@ -311,7 +322,7 @@ const create: Endpoint = {
   method: 'post',
   handler: async req => {
     try {
-      const { communityId } = await managerContext(req)
+      const { communityId } = await managerContext(req, 'write')
       const mutation = blankServiceDocument(await boundedJson(req))
       const result = await mutateServiceDocument(
         req,
@@ -355,7 +366,7 @@ const update: Endpoint = {
   method: 'put',
   handler: async req => {
     try {
-      const { communityId } = await managerContext(req)
+      const { communityId } = await managerContext(req, 'write')
       const syncId = identifier(req.routeParams?.syncId, 'Service identity')
       const mutation = managerWrite(await boundedJson(req), syncId)
       const result = await mutateServiceDocument(
@@ -520,7 +531,7 @@ const uploadAsset: Endpoint = {
   method: 'put',
   handler: async req => {
     try {
-      const { communityId } = await managerContext(req)
+      const { communityId } = await managerContext(req, 'write')
       const asset = await storeServiceDocumentAsset(
         req,
         communityId,
