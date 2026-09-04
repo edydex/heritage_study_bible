@@ -2788,10 +2788,10 @@ const serviceDocumentAssetGet: Endpoint = {
         )
       }
       const asset = document.project.assets[identity.id]
-      if (!asset || asset.kind !== 'image') {
+      if (!asset || !['image', 'video'].includes(asset.kind)) {
         throw new ServiceDocumentAssetError(
           'SERVICE_ASSET_NOT_FOUND',
-          'That image is not part of this service revision.',
+          'That media file is not part of this service revision.',
           404,
         )
       }
