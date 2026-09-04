@@ -13,6 +13,46 @@ type StoredConnection = {
   revokedAt?: string | null
 }
 
+test('device approval accepts same-origin browser form posts when Firefox omits Origin', async () => {
+  const approvalHandler = syncShowEndpoints.find(endpoint => (
+    endpoint.path.endsWith('/auth/device/approve') && endpoint.method === 'post'
+  ))?.handler
+  assert.ok(approvalHandler)
+
+  const request = (headers: HeadersInit) => ({
+    headers: new Headers(headers),
+    payload: {
+      auth: async () => ({ user: null }),
+    },
+    url: 'http://localhost:3000/api/community/syncshow/v1/auth/device/approve',
+  })
+
+  const sameOriginReferer = await approvalHandler(request({
+    referer: 'http://localhost:3000/api/community/syncshow/v1/auth/device/approve?user_code=ABCD-2345',
+  }) as never)
+  assert.equal(sameOriginReferer.status, 401)
+  assert.match(await sameOriginReferer.text(), /Sign in required/)
+
+  const sameOriginHeader = await approvalHandler(request({
+    origin: 'http://localhost:3000',
+  }) as never)
+  assert.equal(sameOriginHeader.status, 401)
+
+  const rejectedHeaders: HeadersInit[] = [
+    {},
+    { referer: 'https://attacker.example/submit' },
+    {
+      origin: 'https://attacker.example',
+      referer: 'http://localhost:3000/api/community/syncshow/v1/auth/device/approve',
+    },
+  ]
+  for (const headers of rejectedHeaders) {
+    const rejected = await approvalHandler(request(headers) as never)
+    assert.equal(rejected.status, 403)
+    assert.match(await rejected.text(), /submitted from this Community server/)
+  }
+})
+
 test('community managers cannot clear or rewrite an existing SyncShow revocation', () => {
   const revokedAt = '2026-07-25T23:00:00.000Z'
   assert.deepEqual(

@@ -1859,12 +1859,24 @@ ${loginMessage}
   },
 }
 
+function sameOriginApprovalSubmission(req: PayloadRequest) {
+  const expectedOrigin = new URL(communityPublicConfig.publicUrl).origin
+  const origin = req.headers.get('origin')
+  if (origin) return origin === expectedOrigin
+  const referer = req.headers.get('referer')
+  if (!referer) return false
+  try {
+    return new URL(referer).origin === expectedOrigin
+  } catch {
+    return false
+  }
+}
+
 const deviceApprovalPost: Endpoint = {
   path: '/community/syncshow/v1/auth/device/approve',
   method: 'post',
   handler: async req => {
-    const expectedOrigin = new URL(communityPublicConfig.publicUrl).origin
-    if (req.headers.get('origin') !== expectedOrigin) {
+    if (!sameOriginApprovalSubmission(req)) {
       return html('<!doctype html><meta charset="utf-8"><title>SyncShow connection</title><h1>Request rejected</h1><p>Approval must be submitted from this Community server.</p>', 403)
     }
     const user = await authenticatedBrowserUser(req)
