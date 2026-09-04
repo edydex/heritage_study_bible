@@ -5,7 +5,7 @@ import { authEndpoints, challengeIsUsable, normalizeEmail } from '../src/endpoin
 import { consumePersistentRateLimit } from '../src/lib/authRateLimit.ts'
 import { recordAccountSecurityEvent } from '../src/lib/accountSecurityNotification.ts'
 import { sendCommunityMagicLinkEmail } from '../src/lib/communityMagicLinkEmail.ts'
-import { currentCommunitySession } from '../src/lib/communitySession.ts'
+import { currentCommunitySession, markCommunitySessionUser } from '../src/lib/communitySession.ts'
 import {
   hashStrictPassword,
   validateStrictPassword,
@@ -371,6 +371,34 @@ test('expired and revoked device sessions are rejected by the shared session bou
   assert.equal(JSON.stringify(seenWhere[0]).includes(token), false)
   assert.equal(JSON.stringify(seenWhere[0]).includes(hashOpaqueToken(token)), true)
   assert.deepEqual(seenRequests, [undefined, undefined, undefined], 'session lookup must not inherit authenticated request state')
+})
+
+test('custom endpoints reuse only the private session identity set by Community authentication', async () => {
+  const session: AnyRecord = {
+    id: 17,
+    user: 41,
+    expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    revokedAt: null,
+  }
+  const user = markCommunitySessionUser({ id: 41, collection: 'users' }, session.id)
+  assert.deepEqual(JSON.parse(JSON.stringify(user)), { id: 41, collection: 'users' })
+  const request = {
+    headers: new Headers(),
+    user,
+    payload: {
+      findByID: async ({ id }: AnyRecord) => id === session.id ? session : null,
+      find: async () => { throw new Error('marked authentication must not fall back to bearer lookup') },
+    },
+  }
+  assert.equal((await currentCommunitySession(request as never))?.id, session.id)
+  session.user = 42
+  assert.equal(await currentCommunitySession(request as never), null)
+  session.user = 41
+  session.revokedAt = new Date().toISOString()
+  assert.equal(await currentCommunitySession(request as never), null)
+  session.revokedAt = null
+  session.expiresAt = new Date(Date.now() - 1).toISOString()
+  assert.equal(await currentCommunitySession(request as never), null)
 })
 
 test('Strict protection requires the password after email verification and consumes the link only on success', async () => {

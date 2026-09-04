@@ -1,4 +1,5 @@
 import type { CollectionConfig, FieldAccess } from 'payload'
+import { markCommunitySessionUser } from '@/lib/communitySession'
 import { communityAuthEnabled } from '@/lib/publicConfig'
 import { hashOpaqueToken } from '@/lib/tokens'
 
@@ -66,9 +67,12 @@ export const Users: CollectionConfig = {
           // Community bearer tokens are stored by the client and must never
           // inherit Payload's server-wide administrator role. Memberships
           // still grant owner/admin/leader permissions within their church.
+          const authenticatedUser = user
+            ? { ...user, collection: 'users' as const, systemRole: 'member' as const }
+            : null
           return {
-            user: user
-              ? { ...user, collection: 'users', systemRole: 'member' }
+            user: authenticatedUser
+              ? markCommunitySessionUser(authenticatedUser, session.id)
               : null,
           }
         },
