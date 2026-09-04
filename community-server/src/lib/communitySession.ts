@@ -16,7 +16,12 @@ export async function currentCommunitySession(req: PayloadRequest) {
     depth: 0,
     limit: 1,
     overrideAccess: true,
-    req,
+    // Payload has already authenticated the request with this same bearer
+    // token before a custom endpoint runs. Reusing that authenticated request
+    // here makes the nested collection lookup inherit request state that can
+    // suppress its own session row. Keep this authority check independent,
+    // as the collection auth strategy does, and scope every later operation
+    // from the validated session relationship.
     where: {
       and: [
         { tokenHash: { equals: hashOpaqueToken(token) } },
