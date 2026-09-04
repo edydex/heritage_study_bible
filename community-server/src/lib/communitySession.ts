@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import type { PayloadRequest } from 'payload'
 import { hashOpaqueToken } from '@/lib/tokens'
 
@@ -53,6 +54,34 @@ export async function currentCommunitySession(req: PayloadRequest) {
 
   const token = communityBearerToken(req.headers)
   if (!token) return null
+  const tokenHash = hashOpaqueToken(token)
+  const database = (req.payload.db as unknown as {
+    drizzle?: { execute: (query: unknown) => Promise<{ rows?: Array<Record<string, unknown>> }> }
+  } | undefined)?.drizzle
+  if (database?.execute) {
+    // Custom endpoint collection reads have produced different results from
+    // the authentication strategy on the live Payload request boundary. Use
+    // the same indexed hash as a parameterized database lookup, then load and
+    // revalidate the exact document. The bearer itself never reaches SQL.
+    const result = await database.execute(sql`
+      SELECT "id"
+      FROM "community_sessions"
+      WHERE "token_hash" = ${tokenHash}
+        AND "expires_at" > now()
+        AND "revoked_at" IS NULL
+      LIMIT 1
+    `)
+    const id = Number(result.rows?.[0]?.id)
+    if (!Number.isSafeInteger(id) || id < 1) return null
+    const session = await req.payload.findByID({
+      collection: 'community-sessions',
+      id,
+      depth: 0,
+      overrideAccess: true,
+    })
+    return sessionIsActive(session) ? session : null
+  }
+
   const result = await req.payload.find({
     collection: 'community-sessions',
     depth: 0,
@@ -66,7 +95,7 @@ export async function currentCommunitySession(req: PayloadRequest) {
     // from the validated session relationship.
     where: {
       and: [
-        { tokenHash: { equals: hashOpaqueToken(token) } },
+        { tokenHash: { equals: tokenHash } },
         { expiresAt: { greater_than: new Date().toISOString() } },
         { revokedAt: { exists: false } },
       ],
