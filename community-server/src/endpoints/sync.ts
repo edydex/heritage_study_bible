@@ -50,6 +50,7 @@ async function syncContext(req: PayloadRequest, requestedDeviceId?: string) {
   if (requestedDeviceId && requestedDeviceId !== deviceId) return null
   const user = await req.payload.findByID({
     collection: 'users', id: userId, depth: 0, overrideAccess: true, req,
+    showHiddenFields: true,
   })
   if (!user || !generation(session.syncGeneration) || generation(session.syncGeneration) !== generation(user.syncGeneration)) {
     return null
