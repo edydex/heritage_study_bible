@@ -166,7 +166,9 @@ test('custom account and sync endpoints trust only the validated Community sessi
   for (const source of [accountSource, syncSource]) {
     assert.match(source, /const session = await currentCommunitySession\(req\)/)
     assert.match(source, /const userId = relationId\(session\?\.user\)/)
+    assert.match(source, /collection: 'users',[\s\S]{0,180}showHiddenFields: true/)
     assert.doesNotMatch(source, /!req\.user|Number\(req\.user\.id\)/)
   }
+  assert.equal((authSource.match(/showHiddenFields: true/g) || []).length, 3)
   assert.doesNotMatch(authSource, /!req\.user|String\(req\.user\.email\)|userID: req\.user\.id/)
 })

@@ -48,6 +48,7 @@ async function context(req: PayloadRequest) {
   if (!session || !userId) return null
   const user = await req.payload.findByID({
     collection: 'users', id: userId, depth: 0, overrideAccess: true, req,
+    showHiddenFields: true,
   })
   if (!user || !generation(session.syncGeneration) || generation(session.syncGeneration) !== generation(user.syncGeneration)) {
     return null

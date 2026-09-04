@@ -263,6 +263,7 @@ export const authEndpoints: Endpoint[] = [
       const user = (await req.payload.find({
         collection: 'users', depth: 0, limit: 1, overrideAccess: true,
         req,
+        showHiddenFields: true,
         where: { email: { equals: email } },
       })).docs[0]
       const communityID = String(community.id)
@@ -322,6 +323,7 @@ export const authEndpoints: Endpoint[] = [
         await lockSyncUser(req, userId)
         const user = await req.payload.findByID({
           collection: 'users', id: userId, depth: 0, overrideAccess: true, req,
+          showHiddenFields: true,
         })
         if (!user) return { response: invalidCredentials(req) } as const
 
@@ -464,6 +466,7 @@ export const authEndpoints: Endpoint[] = [
       if (!session || !userId) return invalidCredentials(req)
       const user = await req.payload.findByID({
         collection: 'users', id: userId, depth: 0, overrideAccess: true, req,
+        showHiddenFields: true,
       })
       if (!user) return invalidCredentials(req)
       const address = clientAddress(req)
