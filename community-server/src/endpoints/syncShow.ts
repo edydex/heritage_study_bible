@@ -116,7 +116,7 @@ const RATE_WINDOW_MS = 15 * 60_000
 const rateLimits = new Map<string, { count: number; resetAt: number }>()
 
 type RequestDoc = Record<string, unknown>
-type SyncShowAuth = {
+export type SyncShowAuth = {
   connection: RequestDoc
   communityId: number
   userId: number
@@ -354,7 +354,7 @@ async function authenticatedBrowserUser(req: PayloadRequest) {
   return result.user ? requestDoc(result.user) : null
 }
 
-async function authorizeSyncShow(req: PayloadRequest, scope: string): Promise<SyncShowAuth> {
+export async function authorizeSyncShow(req: PayloadRequest, scope: string): Promise<SyncShowAuth> {
   const authorization = req.headers.get('authorization') || ''
   const token = authorization.startsWith('SyncShow ')
     ? authorization.slice('SyncShow '.length).trim()

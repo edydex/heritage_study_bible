@@ -26,6 +26,7 @@ import {
   parsePlannerLibrarySongDocument,
   projectFromServiceEnvelope,
 } from '../src/components/serviceDocumentPlannerModel.ts'
+import { hashOpaqueToken } from '../src/lib/tokens.ts'
 
 type AnyRecord = Record<string, any>
 
@@ -379,6 +380,88 @@ test('Community dashboard routes service planning through the visual shared edit
     'GET /community/service-documents/library/bible-passage',
     'POST /community/service-documents/library/bible-passage',
   ]) assert.ok(routes.has(route), route)
+})
+
+test('visual planning accepts only an approved scoped SyncShow connection', () => {
+  const endpoints = readFileSync(
+    new URL('../src/endpoints/serviceDocuments.ts', import.meta.url),
+    'utf8',
+  )
+  const syncShow = readFileSync(
+    new URL('../src/endpoints/syncShow.ts', import.meta.url),
+    'utf8',
+  )
+  assert.match(syncShow, /export async function authorizeSyncShow/)
+  assert.match(endpoints, /await authorizeSyncShow\(/)
+  assert.match(endpoints, /SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE/)
+  assert.match(endpoints, /SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE/)
+  assert.match(endpoints, /managerContext\(req, 'write'\)/)
+  assert.doesNotMatch(
+    endpoints,
+    /startsWith\('SyncShow '\)[\s\S]{0,220}Sign in to Heritage Community/,
+  )
+})
+
+test('approved SyncShow planner requests enforce read and write scopes', async () => {
+  const token = 'planner-device-token-that-is-long-enough'
+  let scopes = ['syncshow:service-documents:read']
+  const payload = {
+    config: { cors: '*' },
+    logger: { error: () => undefined },
+    find: async ({ collection }: { collection: string }) => {
+      if (collection === 'syncshow-connections') {
+        return {
+          docs: [{
+            id: 41,
+            tokenHash: hashOpaqueToken(token),
+            scopes,
+            community: 7,
+            user: 9,
+            expiresAt: new Date(Date.now() + 60_000).toISOString(),
+            revokedAt: null,
+            lastUsedAt: new Date().toISOString(),
+          }],
+        }
+      }
+      if (collection === 'memberships') {
+        return { docs: [{ id: 51, community: 7, user: 9, role: 'leader' }] }
+      }
+      if (collection === 'service-documents') return { docs: [] }
+      throw new Error(`Unexpected collection: ${collection}`)
+    },
+  }
+  const request = () => ({
+    headers: new Headers({ Authorization: `SyncShow ${token}` }),
+    payload,
+    url: 'https://community.example.test/api/community/service-documents',
+  })
+  const list = managerServiceDocumentEndpoints.find(endpoint => (
+    endpoint.path === '/community/service-documents' && endpoint.method === 'get'
+  ))?.handler
+  const create = managerServiceDocumentEndpoints.find(endpoint => (
+    endpoint.path === '/community/service-documents' && endpoint.method === 'post'
+  ))?.handler
+  assert.ok(list)
+  assert.ok(create)
+
+  const readable = await list(request() as never)
+  assert.equal(readable.status, 200)
+  assert.deepEqual(await readable.json(), { schemaVersion: 1, items: [] })
+
+  const deniedWrite = await create(request() as never)
+  assert.equal(deniedWrite.status, 401)
+  assert.equal((await deniedWrite.json() as AnyRecord).code, 'UNAUTHORIZED')
+
+  scopes = [
+    'syncshow:service-documents:read',
+    'syncshow:service-documents:write',
+  ]
+  const writeReachedBodyValidation = await create(request() as never)
+  assert.equal(writeReachedBodyValidation.status, 415)
+  assert.equal(
+    (await writeReachedBodyValidation.json() as AnyRecord).code,
+    'INVALID_REQUEST',
+  )
 })
 
 test('service-document change locks have their required Payload relation column', () => {
