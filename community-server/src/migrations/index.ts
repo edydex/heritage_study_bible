@@ -1,3 +1,4 @@
+import * as migration_20260913_140000_service_translation_plans from './20260913_140000_service_translation_plans';
 import * as migration_20260913_010000_live_service_settings from './20260913_010000_live_service_settings';
 import * as migration_20260711_075027_initial_schema from './20260711_075027_initial_schema';
 import * as migration_20260722_175750_community_admin_invitations from './20260722_175750_community_admin_invitations';
@@ -119,5 +120,10 @@ export const migrations = [
     up: migration_20260913_010000_live_service_settings.up,
     down: migration_20260913_010000_live_service_settings.down,
     name: '20260913_010000_live_service_settings',
+  },
+  {
+    up: migration_20260913_140000_service_translation_plans.up,
+    down: migration_20260913_140000_service_translation_plans.down,
+    name: '20260913_140000_service_translation_plans',
   },
 ];

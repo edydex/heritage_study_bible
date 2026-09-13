@@ -1,4 +1,5 @@
 'use client'
+import type { ServiceTranslationPlan, TranslationSettings } from '../lib/serviceTranslationPlan'
 import { useEffect, useRef, useState } from 'react'
 
 interface ControlLease { token: string; expiresAtUnixMs: number; apiBase: string }
@@ -7,6 +8,21 @@ async function requestAccess(): Promise<ControlLease> {
   const body = await response.json()
   if (!response.ok) throw new Error(body.error || 'Could not open live translation.')
   return body as ControlLease
+}
+
+async function loadServicePlans(serviceId?: string): Promise<{ schemaVersion: 1; services: ServiceTranslationPlan[] }> {
+  const response = await fetch(`/api/community/translation/plans${serviceId ? `?serviceId=${encodeURIComponent(serviceId)}` : ''}`, { credentials: 'same-origin', cache: 'no-store' })
+  const body = await response.json()
+  if (!response.ok) throw new Error(body.error || 'Could not load prepared services.')
+  if (body.schemaVersion !== 1 || !Array.isArray(body.services)) throw new Error('Update Community to load translation settings.')
+  return body
+}
+async function saveServicePlan(input: { serviceId: string; serviceRevision: string; baseRevision: number; settings: TranslationSettings }): Promise<{ schemaVersion: 1; service: ServiceTranslationPlan }> {
+  const response = await fetch('/api/community/translation/plans', { method: 'PUT', credentials: 'same-origin', cache: 'no-store', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) })
+  const body = await response.json()
+  if (!response.ok) throw new Error(body.error || 'Could not save translation settings.')
+  if (body.schemaVersion !== 1 || !body.service) throw new Error('Update Community to save translation settings.')
+  return body
 }
 
 export default function LiveTranslationClient() {
@@ -27,11 +43,14 @@ export default function LiveTranslationClient() {
         const url = new URL('client/operator.js', initialLease.apiBase).href
         const client = await import(/* webpackIgnore: true */ url) as {
           clientVersion: number
-          mount(element: HTMLElement, options: { initialLease: ControlLease; requestAccess: typeof requestAccess }): () => void
+          servicePlanVersion: number
+          mount(element: HTMLElement, options: { initialLease: ControlLease; requestAccess: typeof requestAccess; loadServicePlans: typeof loadServicePlans; saveServicePlan: typeof saveServicePlan; preferredServiceId?: string }): () => void
         }
         if (stopped) return
-        if (client.clientVersion !== 1 || typeof client.mount !== 'function') throw new Error('Update the translation processor to use these controls.')
-        dispose = client.mount(element, { initialLease, requestAccess })
+        if (client.clientVersion !== 1 || client.servicePlanVersion !== 1 || typeof client.mount !== 'function') throw new Error('Update the translation processor to use these controls.')
+        const preferred = new URL(window.location.href).searchParams.get('service')
+        const preferredServiceId = preferred && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(preferred) ? preferred : undefined
+        dispose = client.mount(element, { initialLease, requestAccess, loadServicePlans, saveServicePlan, preferredServiceId })
         setLoading(false)
       } catch (cause) {
         if (!stopped) { setError(cause instanceof Error ? cause.message : 'Live translation is unavailable.'); setLoading(false) }

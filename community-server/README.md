@@ -195,3 +195,13 @@ normal administration is through `sudo heritage-community <command>`.
 
 For an Intel Surface Pro 7, the pre-baked Debian installer and verified macOS
 USB writer are documented in [appliance/README.md](appliance/README.md).
+
+### Translation settings for a prepared service
+
+Save the service in **Plan a service**, then open **Translation settings**. The shared operator console loads that service, or lets an operator choose another prepared service. Choose English → Russian or Russian → English, Quality or Economy, generated speech, and optional uploaded sermon notes; use **Save for this service**. Saving does not start translation or open a microphone. On service day, review the saved choices and start from either Community or SyncShow Preview 27 or later.
+
+Economy note sharing is an explicit choice for each translation session. The saved plan remembers which notes were selected, but never persists that sharing choice. A service edit marks its translation settings for review; concurrent saves return a conflict rather than replacing another editor's work. Archived and cancelled services cannot be selected. Unplanned services remain available.
+
+The private companion plan lives on `service-documents.translationPlan`, separately from canonical slide content, revision readiness and offline ShowPackages. The `/api/community/translation/plans` GET/PUT endpoints require a current church manager or a paired SyncShow connection with translation-control scope. Cookie writes require the church origin. A saved plan uses its own revision and the exact canonical service revision. The processor retains an operator-declared service reference with the private session; it is not a server-certified publication or a public congregation field.
+
+Update Community and Multilinguum together through the unified installer. This adds migration `20260913_140000_service_translation_plans`; the shared client advertises `servicePlanVersion: 1`. Tests include authorization/schema/conflict cases and a disposable production-container HTTP scenario with six competing writers against PostgreSQL. No model requests are required to save settings.

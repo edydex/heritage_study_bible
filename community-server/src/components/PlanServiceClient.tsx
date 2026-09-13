@@ -1057,6 +1057,9 @@ export default function PlanServiceClient() {
             <button type="button" aria-label="Refresh services" disabled={busy} onClick={loadList}>↻</button>
           </div>
           <NewService onCreated={useEnvelope} onCopy={draft && !busy ? copyService : undefined} />
+          {envelope && (dirty || busy || desiredStatus !== envelope.status
+            ? <p className="heritage-service-planner__save-state">Save this service to open translation settings.</p>
+            : <p><a href={`/admin/live-translation?service=${encodeURIComponent(envelope.syncId)}`} target="_blank" rel="noopener noreferrer">Translation settings ↗</a></p>)}
 
           <div className="heritage-service-planner__outline-heading">
             <h2>Service order</h2>

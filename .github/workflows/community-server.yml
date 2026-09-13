@@ -42,6 +42,7 @@ jobs:
           npm run test:deploy
           npm run test:appliance
           npm run typecheck
+          node --import tsx --test tests/translation-access.test.ts tests/translation-plans.test.ts
           npm run build
 
       - name: Create isolated test configuration
@@ -147,6 +148,9 @@ jobs:
           test -z "$(docker compose --env-file .env.production -f docker-compose.production.yml port postgres 5432)"
           HERITAGE_BACKUP_DIR=/tmp/heritage-ci-backups deploy/backup.sh --online --label ci
           HERITAGE_BACKUP_DIR=/tmp/heritage-ci-backups deploy/status.sh --verify-backup
+
+      - name: Verify saved translation plans against real PostgreSQL
+        run: node tests/translation-plans-http.mjs
 
       - name: Verify local-only mode without SMTP
         run: |

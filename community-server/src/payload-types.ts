@@ -933,6 +933,15 @@ export interface ServiceDocument {
   changedAt: string;
   readyRevision?: string | null;
   readyAt?: string | null;
+  translationPlan?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   lastIdempotencyKey?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -1909,6 +1918,7 @@ export interface ServiceDocumentsSelect<T extends boolean = true> {
   changedAt?: T;
   readyRevision?: T;
   readyAt?: T;
+  translationPlan?: T;
   lastIdempotencyKey?: T;
   updatedAt?: T;
   createdAt?: T;

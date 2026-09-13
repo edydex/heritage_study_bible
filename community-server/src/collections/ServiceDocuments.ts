@@ -298,6 +298,12 @@ export const ServiceDocuments: CollectionConfig = {
       access: technicalFieldAccess,
     },
     {
+      name: 'translationPlan',
+      type: 'json',
+      hidden: true,
+      access: technicalFieldAccess,
+    },
+    {
       name: 'lastIdempotencyKey',
       type: 'text',
       hidden: true,
