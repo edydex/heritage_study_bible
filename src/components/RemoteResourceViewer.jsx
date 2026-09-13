@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { resolveCommunitySongMemberAccess } from '../services/communitySongAccess'
 import { getRemoteContentItem } from '../services/contentServers'
+import { getCommunities } from '../services/communities'
 import {
   buildCommunitySongMemberShareUrl,
   communitySongMemberItemFromRoute,
@@ -457,7 +458,9 @@ function RemoteResourceViewer({ directSong = false }) {
     }
   }
 
-  const memberShareUrl = item?.contentType === 'songs'
+  const communitySongSource = item?.contentType === 'songs' && (directSong
+    || getCommunities().some(community => community.contentPreview?.manifest?.id === item.sourceServerId))
+  const memberShareUrl = communitySongSource
     ? buildCommunitySongMemberShareUrl(contentUrl, item.sourceServerId)
     : ''
   const shareSong = async () => {

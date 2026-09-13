@@ -326,3 +326,27 @@ test('the copy fallback creates a member link with no session credential', async
   expect(query.get('url')).toBe('https://main.example/content/songs/77')
   expect(copied).not.toContain('main-private-token')
 })
+
+test('a standalone public library is readable without being labelled as member-only', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('heritage-communities-v1', '[]')
+    sessionStorage.removeItem('heritage-community-sessions-v1')
+    localStorage.setItem('heritage-content-servers-v2', JSON.stringify([{
+      enabled: true,
+      manifest: { id: 'public-library', name: 'Public Song Library' },
+      catalogs: { songs: { items: [{
+        id: 'public-demo', title: 'Public Library Rehearsal',
+        content: { url: 'https://public.example/content/songs/demo', mediaType: 'application/vnd.heritage.song+json' },
+      }] } },
+    }]))
+  })
+  await page.route('https://public.example/content/songs/demo', route => {
+    expect(route.request().headers().authorization).toBeUndefined()
+    return route.fulfill({ json: { title: 'Public Library Rehearsal', lyrics: 'Synthetic public song words' } })
+  })
+  await page.goto('/#/resources/songs')
+  await page.getByRole('heading', { name: 'Public Library Rehearsal' }).click()
+  await expect(page.getByText('Synthetic public song words')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Share member-only link' })).toHaveCount(0)
+  await expect(page.getByText(/Member links require/)).toHaveCount(0)
+})

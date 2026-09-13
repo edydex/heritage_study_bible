@@ -106,7 +106,10 @@ function BuiltInSongViewer() {
     : null
   const selectedContentUrl = selectedResult?.reference?.item?.content?.url || ''
   const selectedContentServerId = selectedResult?.reference?.item?.sourceServerId || ''
-  const memberShareUrl = buildCommunitySongMemberShareUrl(selectedContentUrl, selectedContentServerId)
+  const selectedCommunitySource = ['primary-community', 'community'].includes(selectedResult?.reference?.source?.type)
+  const memberShareUrl = selectedCommunitySource
+    ? buildCommunitySongMemberShareUrl(selectedContentUrl, selectedContentServerId)
+    : ''
   const selectedRightsDocument = selectedResult?.document
     ? {
         ...selectedResult.document,
