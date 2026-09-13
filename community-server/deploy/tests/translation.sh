@@ -78,6 +78,8 @@ if (heritage_verify_backup "$backup") >/dev/null 2>&1; then fail 'legacy backup 
 for scenario in collision corrupt; do
   (
     translation_restore_volume=''
+    # Read by the sourced translation restore helper.
+    # shellcheck disable=SC2034
     HERITAGE_PROJECT_NAME=translation-test
     trap 'printf "%s" "$translation_restore_volume" >"$test_root/$scenario-owned"' EXIT
     heritage_translation_image_id() { printf 'sha256:test\n'; }

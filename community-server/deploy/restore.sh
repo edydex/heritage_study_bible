@@ -165,7 +165,7 @@ fi
 
 assert_legacy_partial_restore_safe() {
   local legacy_live_inventory
-  local legacy_live_digest
+  local _legacy_live_digest
   local legacy_live_count
   local legacy_live_bytes
   local legacy_database_count
@@ -177,7 +177,7 @@ assert_legacy_partial_restore_safe() {
   else
     : >"${legacy_live_inventory}"
   fi
-  read -r legacy_live_digest legacy_live_count legacy_live_bytes \
+  read -r _legacy_live_digest legacy_live_count legacy_live_bytes \
     < <(heritage_sermon_inventory_summary "${legacy_live_inventory}")
   rm -f -- "${legacy_live_inventory}"
   read -r legacy_database_count legacy_database_bytes \
@@ -346,7 +346,7 @@ prepare_sermon_restore_volume() {
     >"${sermon_restore_inventory}" \
     || heritage_die "Temporary private recording objects failed path, digest, ownership, or mode verification."
 
-  read -r restored_inventory_digest restored_inventory_count restored_inventory_bytes \
+  read -r _restored_inventory_digest restored_inventory_count restored_inventory_bytes \
     < <(heritage_sermon_inventory_summary "${sermon_restore_inventory}")
   if [[ "${backup_format}" != "1" ]]; then
     cmp -- "${backup_path}/sermon-media.inventory" \

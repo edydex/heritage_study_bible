@@ -45,6 +45,8 @@ while (($#)); do
   case "$1" in
     --install-dir)
       (($# >= 2)) || heritage_die "--install-dir requires a path."
+      # Read by heritage_prepare_context in the sourced common library.
+      # shellcheck disable=SC2034
       HERITAGE_INSTALL_DIR="$2"
       shift 2
       ;;

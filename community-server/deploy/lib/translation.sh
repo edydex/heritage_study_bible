@@ -132,6 +132,8 @@ heritage_translation_select_restore() {
   previous="$(heritage_translation_volume_name)"
   heritage_set_config_value HERITAGE_TRANSLATION_VOLUME "$translation_restore_volume"
   export HERITAGE_TRANSLATION_VOLUME="$translation_restore_volume"
+  # Read by the restore caller when deciding whether cleanup owns this volume.
+  # shellcheck disable=SC2034
   translation_restore_selected=1
   heritage_info "Restored translation storage selected. Previous volume retained for recovery: $previous"
 }

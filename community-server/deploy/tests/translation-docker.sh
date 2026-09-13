@@ -8,11 +8,12 @@ source "$DEPLOY_DIR/lib/common.sh"
 test_root="$(mktemp -d /var/tmp/heritage-translation-docker.XXXXXX)"
 HERITAGE_PROJECT_NAME="heritage-translation-test-$(basename "$test_root" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9')"
 HERITAGE_INSTALL_DIR="$(cd "$DEPLOY_DIR/.." && pwd -P)"
+# Read by heritage_compose in the sourced common library.
+# shellcheck disable=SC2034
 HERITAGE_COMPOSE_FILE="$HERITAGE_INSTALL_DIR/docker-compose.production.yml"
 HERITAGE_ENV_FILE="$test_root/community.env"
 original_volume="$HERITAGE_PROJECT_NAME-original"
 translation_restore_volume=''
-translation_restore_selected=0
 cat >"$HERITAGE_ENV_FILE" <<EOF
 DATABASE_URL=postgresql://unused:unused@postgres/unused
 POSTGRES_DB=unused

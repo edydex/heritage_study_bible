@@ -217,7 +217,6 @@ sermon_capacity_kib=0
 sermon_free_kib=0
 sermon_used_percent="unknown"
 sermon_inventory_digest=""
-sermon_database_inventory_matches=0
 if heritage_docker volume inspect "${sermon_media_volume}" >/dev/null 2>&1; then
   sermon_inventory_file="$(mktemp \
     "${TMPDIR:-/tmp}/heritage-status-sermon-inventory.XXXXXX")"
@@ -236,9 +235,7 @@ if heritage_docker volume inspect "${sermon_media_volume}" >/dev/null 2>&1; then
   if (( sermon_stats_available )) \
     && (heritage_capture_sermon_database_inventory \
       "${sermon_database_inventory_file}"); then
-    if cmp -s -- "${sermon_inventory_file}" "${sermon_database_inventory_file}"; then
-      sermon_database_inventory_matches=1
-    else
+    if ! cmp -s -- "${sermon_inventory_file}" "${sermon_database_inventory_file}"; then
       printf '  [FAIL] Managed sermon-media database rows do not exactly match live finalized objects\n' >&2
       failures=$((failures + 1))
     fi

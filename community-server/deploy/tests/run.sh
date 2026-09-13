@@ -802,7 +802,7 @@ EOF
   docker compose --env-file "$compose_env" --file "${SERVER_DIR}/docker-compose.production.yml" config --quiet
   docker compose --env-file "$compose_env" --file "${SERVER_DIR}/docker-compose.production.yml" \
     --profile operations --profile cloudflare-token config --quiet
-  COMMUNITY_AUTH_ENABLED=false SMTP_HOST= SMTP_FROM= \
+  COMMUNITY_AUTH_ENABLED=false SMTP_HOST='' SMTP_FROM='' \
     docker compose --env-file "$compose_env" --file "${SERVER_DIR}/docker-compose.production.yml" config --quiet
   pass "production Compose validates with default and optional profiles"
 fi
