@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { resolveCommunitySongMemberAccess } from '../services/communitySongAccess'
 import { getRemoteContentItem } from '../services/contentServers'
 import {
-  buildCommunitySongShareUrl,
-  communitySongItemFromUrl,
+  buildCommunitySongMemberShareUrl,
+  communitySongMemberItemFromRoute,
 } from '../utils/communitySongLinks'
 import { writeTextToClipboard } from '../utils/verseSelection'
 import SongRightsDisclosure from './SongRightsDisclosure'
 
 const REMOTE_CONTENT_CACHE = 'heritage-remote-content-v3'
+const CHECKING_ACCESS = Object.freeze({ status: 'checking', communityName: '' })
+const PUBLIC_ACCESS = Object.freeze({ status: 'not-required', communityName: '' })
 const TEXT_MEDIA_TYPES = new Set([
   'application/json',
   'application/ld+json',
@@ -161,45 +164,75 @@ async function parseTextResponse(response, mediaType) {
     : response.text()
 }
 
-async function openRemoteCache() {
+async function openRemoteCache(options = {}) {
   if (typeof window === 'undefined' || !('caches' in window)) return null
-  return window.caches.open(REMOTE_CONTENT_CACHE)
+  try {
+    if (!options.authorization) return await window.caches.open(REMOTE_CONTENT_CACHE)
+    const scope = `${options.authorizationOrigin}\n${options.authorization}`
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(scope))
+    const id = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
+    return await window.caches.open(`heritage-member-songs-v1-${id}`)
+  } catch { return null }
 }
 
-async function fetchRemote(url) {
+async function fetchRemote(url, options = {}) {
+  const headers = {}
+  if (
+    options.authorization
+    && options.authorizationOrigin
+    && new URL(url).origin === options.authorizationOrigin
+  ) {
+    headers.Authorization = options.authorization
+  }
   const response = await fetch(url, {
     cache: 'no-store',
     credentials: 'omit',
+    headers,
+    redirect: options.authorization ? 'error' : 'follow',
     referrerPolicy: 'no-referrer',
   })
-  if (!response.ok) throw new Error(`HTTP ${response.status}`)
+  if (!response.ok) {
+    const error = new Error(`HTTP ${response.status}`)
+    error.status = response.status
+    throw error
+  }
   return response
 }
 
-async function loadTextNetworkFirst(url, mediaType) {
+async function loadTextNetworkFirst(url, mediaType, options = {}) {
   let networkError = null
   try {
-    const response = await fetchRemote(url)
+    const response = await fetchRemote(url, options)
     const value = await parseTextResponse(response.clone(), mediaType)
-    const cache = await openRemoteCache()
-    if (cache) await cache.put(url, response.clone()).catch(() => {})
+    const cache = await openRemoteCache(options)
+    if (cache && (!options.authorization || await cache.match(url))) {
+      await cache.put(url, response.clone()).catch(() => {})
+    }
     return { value, source: 'network' }
   } catch (error) {
     networkError = error
   }
 
-  const cache = await openRemoteCache()
+  const cache = await openRemoteCache(options)
+  if (options.authorization && [401, 403, 404, 410].includes(networkError?.status)) {
+    if (cache) await cache.delete(url).catch(() => {})
+    throw networkError
+  }
   const cached = cache ? await cache.match(url) : null
   if (cached) return { value: await parseTextResponse(cached.clone(), mediaType), source: 'cache' }
   throw networkError || new Error('No saved copy is available.')
 }
 
-async function cacheRemoteUrl(cache, url) {
+async function cacheRemoteUrl(cache, url, options = {}) {
   try {
-    const response = await fetchRemote(url)
+    const response = await fetchRemote(url, options)
     await cache.put(url, response.clone())
     return response
   } catch (error) {
+    if (options.authorization && [401, 403, 404, 410].includes(error?.status)) {
+      await cache.delete(url).catch(() => {})
+      throw error
+    }
     const existing = await cache.match(url)
     if (existing) return existing
     throw error
@@ -210,12 +243,39 @@ function RemoteResourceViewer({ directSong = false }) {
   const { contentKey } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const directContentUrl = directSong ? searchParams.get('url') : ''
+  const directQuery = directSong ? searchParams.toString() : ''
   const item = useMemo(
-    () => getRemoteContentItem(contentKey) || (directSong ? communitySongItemFromUrl(directContentUrl) : null),
-    [contentKey, directContentUrl, directSong],
+    () => directSong
+      ? communitySongMemberItemFromRoute(directQuery)
+      : getRemoteContentItem(contentKey),
+    [contentKey, directQuery, directSong],
   )
-  const itemKey = item?.id || contentKey || directContentUrl
+  const accessKey = directSong && item ? `${item.sourceServerId}:${item.content?.url}` : ''
+  const [accessState, setAccessState] = useState(null)
+  const memberAccess = directSong
+    ? accessState?.key === accessKey ? accessState : CHECKING_ACCESS
+    : PUBLIC_ACCESS
+  useEffect(() => {
+    if (!directSong || !item) return
+    let cancelled = false
+    resolveCommunitySongMemberAccess({
+      contentServerId: item.sourceServerId,
+      contentUrl: item.content?.url,
+    }).then(result => {
+      if (!cancelled) setAccessState({ ...result, key: accessKey })
+    })
+    return () => { cancelled = true }
+  }, [accessKey, directSong, item])
+  const memberRequestOptions = useMemo(
+    () => memberAccess.status === 'ready'
+      ? {
+          authorization: memberAccess.authorization,
+          authorizationOrigin: memberAccess.authorizationOrigin,
+        }
+      : {},
+    [memberAccess],
+  )
+  const itemKey = item?.id || contentKey || directQuery
   const objectUrlsRef = useRef(new Map())
   const [content, setContent] = useState('')
   const [contentDocument, setContentDocument] = useState(null)
@@ -242,7 +302,7 @@ function RemoteResourceViewer({ directSong = false }) {
 
   const getCachedObjectUrl = async url => {
     if (objectUrlsRef.current.has(url)) return objectUrlsRef.current.get(url)
-    const cache = await openRemoteCache()
+    const cache = await openRemoteCache(memberRequestOptions)
     const response = cache ? await cache.match(url) : null
     if (!response) return ''
     const objectUrl = URL.createObjectURL(await response.blob())
@@ -268,6 +328,7 @@ function RemoteResourceViewer({ directSong = false }) {
 
   useEffect(() => {
     if (!item || !isText) return
+    if (directSong && memberAccess.status !== 'ready') return
     if (!contentUrl) {
       setStatus('error')
       setMessage('This resource has an invalid content URL.')
@@ -279,7 +340,7 @@ function RemoteResourceViewer({ directSong = false }) {
     setMessage('')
     setContent('')
     setContentDocument(null)
-    loadTextNetworkFirst(contentUrl, mediaType)
+    loadTextNetworkFirst(contentUrl, mediaType, memberRequestOptions)
       .then(({ value, source }) => {
         if (cancelled) return
         const document = value && typeof value === 'object' && !Array.isArray(value) ? value : null
@@ -291,10 +352,12 @@ function RemoteResourceViewer({ directSong = false }) {
       .catch(error => {
         if (cancelled) return
         setStatus('error')
-        setMessage(`Could not load this resource: ${error.message}`)
+        setMessage(directSong && [401, 403, 404, 410].includes(error?.status)
+          ? 'This song is no longer available to your church account. Check your church sign-in or ask your church about access.'
+          : `Could not load this resource: ${error.message}`)
       })
     return () => { cancelled = true }
-  }, [contentUrl, isText, item, itemKey, mediaType])
+  }, [contentUrl, directSong, isText, item, itemKey, mediaType, memberAccess.status, memberRequestOptions])
 
   useEffect(() => {
     if (!assets.length) return
@@ -310,6 +373,7 @@ function RemoteResourceViewer({ directSong = false }) {
 
   useEffect(() => {
     if (!item || isText || !contentUrl) return
+    if (directSong && memberAccess.status !== 'ready') return
     let cancelled = false
     getCachedObjectUrl(contentUrl)
       .then(url => {
@@ -317,7 +381,7 @@ function RemoteResourceViewer({ directSong = false }) {
       })
       .catch(() => {})
     return () => { cancelled = true }
-  }, [contentUrl, isText, item, itemKey])
+  }, [contentUrl, directSong, isText, item, itemKey, memberAccess.status])
 
   const directSections = useMemo(() => {
     if (!contentDocument) return []
@@ -347,7 +411,7 @@ function RemoteResourceViewer({ directSong = false }) {
       setMessage('This resource has an invalid content URL and cannot be saved.')
       return
     }
-    const cache = await openRemoteCache()
+    const cache = await openRemoteCache(memberRequestOptions)
     if (!cache) {
       setMessage('Offline saving is not supported by this browser or WebView.')
       return
@@ -356,11 +420,11 @@ function RemoteResourceViewer({ directSong = false }) {
     setSavingOffline(true)
     setMessage('Saving this resource and its linked files…')
     try {
-      await cacheRemoteUrl(cache, contentUrl)
+      await cacheRemoteUrl(cache, contentUrl, memberRequestOptions)
       let failedAssets = 0
       for (const asset of assets) {
         try {
-          await cacheRemoteUrl(cache, asset.url)
+          await cacheRemoteUrl(cache, asset.url, memberRequestOptions)
         } catch {
           failedAssets += 1
         }
@@ -393,22 +457,22 @@ function RemoteResourceViewer({ directSong = false }) {
     }
   }
 
-  const shareUrl = item?.contentType === 'songs'
-    ? buildCommunitySongShareUrl(contentUrl)
+  const memberShareUrl = item?.contentType === 'songs'
+    ? buildCommunitySongMemberShareUrl(contentUrl, item.sourceServerId)
     : ''
   const shareSong = async () => {
-    if (!shareUrl) {
-      setMessage('This song does not have a valid share link.')
+    if (!memberShareUrl) {
+      setMessage('This song does not have a valid member link.')
       return
     }
     const title = contentDocument?.title || item.title || 'Community song'
     try {
       if (navigator.share) {
-        await navigator.share({ title, text: `${title} — Community song sheet`, url: shareUrl })
-        setMessage('Song link shared.')
+        await navigator.share({ title, text: `${title} — member-only Community song; sign-in required`, url: memberShareUrl })
+        setMessage('Member link shared.')
       } else {
-        await writeTextToClipboard(shareUrl)
-        setMessage('Unlisted song link copied.')
+        await writeTextToClipboard(memberShareUrl)
+        setMessage('Member link copied.')
       }
     } catch (error) {
       if (error?.name !== 'AbortError') setMessage(`Could not share this song: ${error.message}`)
@@ -422,11 +486,40 @@ function RemoteResourceViewer({ directSong = false }) {
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Resource unavailable</h1>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             {directSong
-              ? 'This unlisted song link is incomplete or invalid.'
+              ? 'This member-only song link is incomplete or unsafe.'
               : 'Its Content Server may have been removed or refreshed.'}
           </p>
           <button onClick={() => navigate(directSong ? '/resources/songs' : '/settings/content-servers')} className="mt-4 text-primary dark:text-blue-300 underline">
             {directSong ? 'Browse songs' : 'Manage Content Servers'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (directSong && memberAccess.status === 'checking') {
+    return <div className="p-6 text-center" role="status">Checking church sign-in…</div>
+  }
+
+  if (directSong && memberAccess.status !== 'ready') {
+    const source = memberAccess.communityName || item.sourceServerName || 'this Community'
+    const explanation = memberAccess.status === 'origin-mismatch'
+      ? `This song address does not match your saved church, ${source}.`
+      : memberAccess.status === 'invalid-community'
+        ? 'Check this church’s saved address in Community Home before opening member songs.'
+        : memberAccess.status === 'sign-in-required'
+          ? `This is a member-only song from ${source}. Sign in to that Community on this device, then reopen the link.`
+          : 'This is a member-only song. Join and sign in to the Community that sent it, then reopen the link.'
+    return (
+      <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center p-6">
+        <div className="max-w-md rounded-xl border border-amber-300 bg-amber-50 p-5 text-center dark:border-amber-700 dark:bg-amber-950/30">
+          <h1 className="text-xl font-bold text-amber-950 dark:text-amber-100">Community sign-in required</h1>
+          <p className="mt-2 text-sm text-amber-900 dark:text-amber-200">{explanation}</p>
+          <p className="mt-3 text-xs text-amber-800 dark:text-amber-300">
+            Your personal notes and progress account is separate from church membership.
+          </p>
+          <button onClick={() => navigate('/community')} className="mt-4 font-semibold text-primary dark:text-blue-300 underline">
+            Open Community Home
           </button>
         </div>
       </div>
@@ -445,7 +538,7 @@ function RemoteResourceViewer({ directSong = false }) {
   const selectedSongHasContent = songLanguage === 'ru'
     ? Boolean(readableText(contentDocument?.russianLyrics) || readableText(contentDocument?.russianChordSheet))
     : Boolean(readableText(contentDocument?.lyrics) || readableText(contentDocument?.chordSheet))
-  const sourceServerName = contentDocument?.communityRightsContact?.communityName || item.sourceServerName
+  const sourceServerName = contentDocument?.communityRightsContact?.communityName || memberAccess.communityName || item.sourceServerName
 
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900">
@@ -468,6 +561,15 @@ function RemoteResourceViewer({ directSong = false }) {
       <main className="container mx-auto max-w-3xl px-4 py-6 pb-20">
         {(contentDocument?.description || item.description) && (
           <p className="mb-5 text-sm leading-relaxed text-gray-600 dark:text-gray-300">{contentDocument?.description || item.description}</p>
+        )}
+
+        {memberShareUrl && (
+          <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100">
+            <p className="font-semibold">Member-only Community song</p>
+            <p className="mt-1">
+              Recipients must be signed in to {sourceServerName}. Church editors manage which songs are available to members.
+            </p>
+          </div>
         )}
 
         {!contentUrl && (
@@ -594,15 +696,15 @@ function RemoteResourceViewer({ directSong = false }) {
         )}
 
         <div className="mt-5 flex flex-wrap gap-2">
-          {contentUrl && <a href={contentUrl} target="_blank" rel="noreferrer" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white">Open original</a>}
+          {contentUrl && !directSong && <a href={contentUrl} target="_blank" rel="noreferrer" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white">Open original</a>}
           {contentUrl && (
             <button disabled={savingOffline} onClick={makeAvailableOffline} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 disabled:opacity-50">
               {savingOffline ? 'Saving…' : 'Save offline'}
             </button>
           )}
-          {shareUrl && (
+          {memberShareUrl && (
             <button onClick={shareSong} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
-              Share unlisted song link
+              Share member-only link
             </button>
           )}
         </div>

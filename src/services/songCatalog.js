@@ -311,6 +311,7 @@ async function fetchSongDocument(reference) {
       cache: 'no-store',
       credentials: 'omit',
       headers: authorization ? { Authorization: authorization } : {},
+      redirect: authorization ? 'error' : 'follow',
       referrerPolicy: 'no-referrer',
       signal: controller.signal,
     })

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { loadMergedSong } from '../services/songCatalog'
-import { buildCommunitySongShareUrl } from '../utils/communitySongLinks'
+import { buildCommunitySongMemberShareUrl } from '../utils/communitySongLinks'
 import { writeTextToClipboard } from '../utils/verseSelection'
 import SongRightsDisclosure from './SongRightsDisclosure'
 
@@ -105,7 +105,8 @@ function BuiltInSongViewer() {
     ? song?.loaded?.find(result => result.reference.source.id === selectedVariant.preferredSource.id)
     : null
   const selectedContentUrl = selectedResult?.reference?.item?.content?.url || ''
-  const shareUrl = buildCommunitySongShareUrl(selectedContentUrl)
+  const selectedContentServerId = selectedResult?.reference?.item?.sourceServerId || ''
+  const memberShareUrl = buildCommunitySongMemberShareUrl(selectedContentUrl, selectedContentServerId)
   const selectedRightsDocument = selectedResult?.document
     ? {
         ...selectedResult.document,
@@ -116,15 +117,15 @@ function BuiltInSongViewer() {
     : null
 
   const shareSong = async () => {
-    if (!shareUrl) return
+    if (!memberShareUrl) return
     const title = russian && song.russianTitle ? song.russianTitle : song.title
     try {
       if (navigator.share) {
-        await navigator.share({ title, text: `${title} — Community song sheet`, url: shareUrl })
-        setShareMessage('Song link shared.')
+        await navigator.share({ title, text: `${title} — member-only Community song; sign-in required`, url: memberShareUrl })
+        setShareMessage('Member link shared.')
       } else {
-        await writeTextToClipboard(shareUrl)
-        setShareMessage('Unlisted song link copied.')
+        await writeTextToClipboard(memberShareUrl)
+        setShareMessage('Member link copied.')
       }
     } catch (error) {
       if (error?.name !== 'AbortError') setShareMessage(`Could not share this song: ${error.message}`)
@@ -267,10 +268,13 @@ function BuiltInSongViewer() {
                   Source: {selectedVariant.rights.sourceLabel}
                 </p>
               )}
-              {shareUrl && (
-                <button onClick={shareSong} className="mt-3 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-200">
-                  Share unlisted song link
-                </button>
+              {memberShareUrl && (
+                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100">
+                  <p>Member links require the recipient to be signed in to {selectedResult.reference.source.name}. Church editors manage which songs are available to members.</p>
+                  <button onClick={shareSong} className="mt-2 rounded-lg border border-blue-300 px-4 py-2 text-sm font-semibold dark:border-blue-700">
+                    Share member-only link
+                  </button>
+                </div>
               )}
               {shareMessage && <p className="mt-2 text-sm text-gray-600 dark:text-gray-300" role="status">{shareMessage}</p>}
             </>
