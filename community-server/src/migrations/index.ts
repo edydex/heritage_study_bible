@@ -1,3 +1,4 @@
+import * as migration_20260913_010000_live_service_settings from './20260913_010000_live_service_settings';
 import * as migration_20260711_075027_initial_schema from './20260711_075027_initial_schema';
 import * as migration_20260722_175750_community_admin_invitations from './20260722_175750_community_admin_invitations';
 import * as migration_20260724_044857_song_admin_bilingual_rights from './20260724_044857_song_admin_bilingual_rights';
@@ -113,5 +114,10 @@ export const migrations = [
     up: migration_20260903_200000_community_accounts_sync.up,
     down: migration_20260903_200000_community_accounts_sync.down,
     name: '20260903_200000_community_accounts_sync',
+  },
+  {
+    up: migration_20260913_010000_live_service_settings.up,
+    down: migration_20260913_010000_live_service_settings.down,
+    name: '20260913_010000_live_service_settings',
   },
 ];

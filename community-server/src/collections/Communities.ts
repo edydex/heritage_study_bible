@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isSystemAdmin } from '@/access'
+import { youtubeChannel, youtubeVideoId, publicTranslationUrl } from '@/lib/liveServiceConfig'
 
 export const Communities: CollectionConfig = {
   slug: 'communities',
@@ -46,5 +47,31 @@ export const Communities: CollectionConfig = {
     },
     { name: 'allowDirectoryListing', label: 'Show a public member directory', type: 'checkbox', defaultValue: false },
     { name: 'contentServerEnabled', label: 'Publish church resources to Heritage', type: 'checkbox', defaultValue: true },
+    {
+      name: 'liveService',
+      label: 'Live service',
+      type: 'group',
+      fields: [
+        {
+          name: 'youtubeChannelUrl', label: 'YouTube channel', type: 'text',
+          admin: { description: 'The church channel, for example https://www.youtube.com/@wordoftruthbiblech.' },
+          validate: (value: unknown) => value == null || value === '' || youtubeChannel(value) ? true : 'Enter a YouTube channel URL using its @handle or channel ID.',
+        },
+        {
+          name: 'youtubeVideoUrl', label: 'Current service video', type: 'text',
+          admin: { description: 'Paste the scheduled or current YouTube stream link. Clear it when no video should be embedded.' },
+          validate: (value: unknown) => value == null || value === '' || youtubeVideoId(value) ? true : 'Enter a YouTube watch, live, or share URL for a specific video.',
+        },
+        {
+          name: 'translationUrl', label: 'Live translation page', type: 'text',
+          admin: { description: 'Use /translate for the integrated listener, or the public HTTPS address of your existing Multilinguum listener. Never enter a processor address or access token.' },
+          validate: (value: unknown) => value == null || value === '' || publicTranslationUrl(value) ? true : 'Enter /translate or a public HTTPS listener URL without a query string, fragment, or credentials.',
+        },
+        {
+          name: 'broadcastDelaySeconds', label: 'Broadcast delay (seconds)', type: 'number', defaultValue: 0, min: 0, max: 180,
+          admin: { description: 'Measured delay from the church sound feed to the YouTube broadcast. This is a starting point for alignment; verify against the current stream.' },
+        },
+      ],
+    },
   ],
 }

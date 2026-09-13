@@ -303,6 +303,24 @@ export interface Community {
   joinPolicy: 'invite' | 'open';
   allowDirectoryListing?: boolean | null;
   contentServerEnabled?: boolean | null;
+  liveService?: {
+    /**
+     * The church channel, for example https://www.youtube.com/@wordoftruthbiblech.
+     */
+    youtubeChannelUrl?: string | null;
+    /**
+     * Paste the scheduled or current YouTube stream link. Clear it when no video should be embedded.
+     */
+    youtubeVideoUrl?: string | null;
+    /**
+     * Use /translate for the integrated listener, or the public HTTPS address of your existing Multilinguum listener. Never enter a processor address or access token.
+     */
+    translationUrl?: string | null;
+    /**
+     * Measured delay from the church sound feed to the YouTube broadcast. This is a starting point for alignment; verify against the current stream.
+     */
+    broadcastDelaySeconds?: number | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -1533,6 +1551,14 @@ export interface CommunitiesSelect<T extends boolean = true> {
   joinPolicy?: T;
   allowDirectoryListing?: T;
   contentServerEnabled?: T;
+  liveService?:
+    | T
+    | {
+        youtubeChannelUrl?: T;
+        youtubeVideoUrl?: T;
+        translationUrl?: T;
+        broadcastDelaySeconds?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
