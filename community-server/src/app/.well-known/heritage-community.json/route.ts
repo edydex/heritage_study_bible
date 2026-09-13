@@ -1,7 +1,18 @@
 import { communityAuthEnabled, communityPublicConfig, publicJson } from '@/lib/publicConfig'
 import { sermonMediaEnabled } from '@/lib/syncshow/SermonMedia'
 
+export const dynamic = 'force-dynamic'
+
 export function GET() {
+  const translationEnabled = Boolean(process.env.TRANSLATION_PROCESSOR_URL && process.env.TRANSLATION_CONTROL_TOKEN)
+  const translation = {
+    schemaVersion: 1,
+    operatorPath: '/admin/live-translation',
+    accessPath: '/api/community/translation/access',
+    eventsPath: '/translation/api/public/events',
+    scopes: ['syncshow:translation:control'],
+  }
+
   return publicJson({
     schemaVersion: 1,
     kind: 'heritage-community',
@@ -12,6 +23,7 @@ export function GET() {
     contentServerUrl: `${communityPublicConfig.publicUrl}/heritage-content.json`,
     apiBaseUrl: `${communityPublicConfig.publicUrl}/api`,
     integrations: {
+      ...(translationEnabled ? { translation } : {}),
       syncShow: {
         schemaVersion: 2,
         apiBaseUrl: `${communityPublicConfig.publicUrl}/api/community/syncshow/v1`,
@@ -29,6 +41,7 @@ export function GET() {
           songs: 'songs',
         },
         resources: {
+          ...(translationEnabled ? { translation } : {}),
           songs: {
             schemaVersion: 1,
             endpoint: 'songs',

@@ -414,7 +414,7 @@ if [[ ( "${coverage_backup_format}" == "2" || "${coverage_backup_format}" == "3"
   fi
 fi
 if (( coverage_inventory_matches )); then
-  printf '  [ok] %s format 2 backup inventory exactly covers %s finalized private recording object(s), %s bytes\n' \
+  printf '  [ok] %s backup inventory exactly covers %s finalized private recording object(s), %s bytes\n' \
     "${coverage_label}" "${sermon_completed_files}" "${sermon_completed_bytes}"
 elif (( sermon_stats_available )) && (( sermon_completed_files > 0 )); then
   printf '  [FAIL] %s backup inventory does not exactly cover %s finalized private recording object(s), %s bytes\n' \
@@ -425,7 +425,7 @@ elif [[ "${coverage_backup_format}" == "1" \
   printf '  [ok] %s legacy format 1 backup is acceptable because no finalized private recordings exist\n' \
     "${coverage_label}"
 elif [[ ( "${coverage_backup_format}" == "2" || "${coverage_backup_format}" == "3" ) ]]; then
-  printf '  [FAIL] %s format 2 private-recording inventory is invalid or does not match the current empty store\n' \
+  printf '  [FAIL] %s private-recording inventory is invalid or does not match the current empty store\n' \
     "${coverage_label}" >&2
   failures=$((failures + 1))
 else
