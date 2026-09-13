@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +27,11 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class CommunityIntegrationTest {
     @Rule public ActivityScenarioRule<MainActivity> activity = new ActivityScenarioRule<>(MainActivity.class);
+    private Bitmap previousScreen;
+
+    @After public void releaseScreenshot() {
+        if (previousScreen != null) { previousScreen.recycle(); previousScreen = null; }
+    }
 
     private String evaluate(String script) throws Exception {
         CountDownLatch done = new CountDownLatch(1);
@@ -65,12 +71,30 @@ public class CommunityIntegrationTest {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         File folder = new File(context.getExternalFilesDir(null), "native-acceptance");
         assertTrue(folder.isDirectory() || folder.mkdirs());
-        Bitmap bitmap = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
-        assertNotNull(bitmap);
+        Bitmap bitmap;
+        Bitmap content;
+        boolean changed;
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (true) {
+            bitmap = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
+            assertNotNull(bitmap);
+            // Ignore the system clock/navigation areas when waiting for a new
+            // screen. A compositor capture can still contain the prior frame.
+            content = Bitmap.createBitmap(bitmap, 0, bitmap.getHeight() / 5,
+                    bitmap.getWidth(), bitmap.getHeight() * 3 / 5);
+            changed = previousScreen == null || !previousScreen.sameAs(content);
+            if (changed || name.equals("unexpected-visible-screen") || System.nanoTime() >= deadline) break;
+            content.recycle();
+            bitmap.recycle();
+            Thread.sleep(200);
+        }
         try (FileOutputStream out = new FileOutputStream(new File(folder, name + ".png"))) {
             assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG, 100, out));
         }
         bitmap.recycle();
+        if (previousScreen != null) previousScreen.recycle();
+        previousScreen = content;
+        assertTrue("The captured screen did not advance: " + name, changed || name.equals("unexpected-visible-screen"));
     }
 
     private void route(String hash, String heading) throws Exception {
@@ -79,7 +103,11 @@ public class CommunityIntegrationTest {
         CountDownLatch painted = new CountDownLatch(1);
         activity.getScenario().onActivity(instance -> instance.getBridge().getWebView()
                 .postVisualStateCallback(System.nanoTime(), new WebView.VisualStateCallback() {
-                    @Override public void onComplete(long requestId) { painted.countDown(); }
+                    @Override public void onComplete(long requestId) {
+                        WebView web = instance.getBridge().getWebView();
+                        web.postInvalidateOnAnimation();
+                        web.postOnAnimation(() -> web.postOnAnimation(painted::countDown));
+                    }
                 }));
         assertTrue("WebView did not commit the expected screen: " + heading, painted.await(20, TimeUnit.SECONDS));
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(45);
