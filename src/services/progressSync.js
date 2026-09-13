@@ -298,7 +298,7 @@ async function syncRequest(community, url, session, options = {}) {
   } catch (error) {
     const wrapped = new Error(error?.name === 'AbortError'
       ? 'The Community server took too long to respond. Your local reading data is safe; try again.'
-      : 'You appear to be offline. Your local reading data is safe; reconnect and try again.')
+      : 'Could not reach the Community server. Your local reading data is safe; check your connection or try again shortly.')
     wrapped.cause = error
     throw wrapped
   } finally {
