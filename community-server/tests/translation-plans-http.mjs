@@ -47,7 +47,7 @@ assert.equal(afterSave.status, originalRecord.status)
 // Generic Payload writes must not bypass the dedicated CAS endpoint.
 await request(`/api/service-documents/${recordId}`, { method: 'PATCH', body: { translationPlan: { schemaVersion: 1, revision: 88, serviceRevision: plan.serviceRevision, settings } } })
 assert.equal((await request(selectedPath)).body.services[0].revision, 1)
-const source = serviceCore.parseHeritageServiceDocumentSource(originalRecord.documentSource)
+const source = structuredClone(serviceCore.parseHeritageServiceDocumentSource(originalRecord.documentSource))
 source.project.title = 'Edited disposable service'
 source.project.revision++
 source.project.updatedAt = new Date().toISOString()
