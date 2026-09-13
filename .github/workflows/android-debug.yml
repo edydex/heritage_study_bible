@@ -34,6 +34,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify failed-emulator cleanup
+        run: python3 scripts/test_android_runner_cleanup.py
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
