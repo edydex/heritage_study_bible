@@ -21,7 +21,7 @@ import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNative
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
 import { getActiveReadingPlan } from './services/readingPlanProgress'
-import { refreshStaleContentServers } from './services/contentServers'
+import { CONTENT_SERVERS_CHANGE_EVENT, CONTENT_SERVERS_STORAGE_KEY, getPublicSermonPublicationSources, refreshStaleContentServers } from './services/contentServers'
 import { checkForApkUpdate, openApkDownload } from './services/appUpdates'
 import { getVerseTextWithPsalmSuperscription, withPsalmSuperscriptionVerse } from './utils/psalmSuperscriptions'
 import { toggleVerseInSelection } from './utils/verseSelection'
@@ -48,6 +48,7 @@ const ToolViewer = lazy(() => import('./components/ToolViewer'))
 const ContentServersPage = lazy(() => import('./components/ContentServersPage'))
 const RemoteResourceViewer = lazy(() => import('./components/RemoteResourceViewer'))
 const BuiltInSongViewer = lazy(() => import('./components/BuiltInSongViewer'))
+const PublishedSermonArchivePage = lazy(() => import('./components/PublishedSermonArchivePage'))
 const CommunityHomePage = lazy(() => import('./components/CommunityHomePage'))
 const CommunityCallbackPage = lazy(() => import('./components/CommunityCallbackPage'))
 const SyncSettingsPage = lazy(() => import('./components/SyncSettingsPage'))
@@ -1069,6 +1070,19 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const bibleContainerRef = useRef(null)
   const searchRequestRef = useRef(0)
   const [activeReadingPlan, setActiveReadingPlan] = useState(() => getActiveReadingPlan())
+  const [sermonPublicationSources, setSermonPublicationSources] = useState(() => getPublicSermonPublicationSources())
+  useEffect(() => {
+    const refreshSources = () => setSermonPublicationSources(getPublicSermonPublicationSources())
+    const handleStorage = event => {
+      if (event.key === CONTENT_SERVERS_STORAGE_KEY) refreshSources()
+    }
+    window.addEventListener(CONTENT_SERVERS_CHANGE_EVENT, refreshSources)
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener(CONTENT_SERVERS_CHANGE_EVENT, refreshSources)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [])
   
   // Translation state
   const [translationId, setTranslationId] = useState(() => {
@@ -2229,6 +2243,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
               versePositions={versePositions}
               selectedVerse={selectedVerse}
               selectedVerses={selectedVerses}
+              sermonPublicationSources={sermonPublicationSources}
               multiSelectMode={multiSelectMode}
               onToggleMultiSelect={toggleMultiSelectMode}
               translationId={translationId}
@@ -2466,6 +2481,8 @@ function App() {
           <Route path="/resources/content/:contentKey" element={<RemoteResourceViewer />} />
           <Route path="/community-song" element={<RemoteResourceViewer directSong />} />
           <Route path="/resources/songs/:itemId" element={<BuiltInSongViewer />} />
+          <Route path="/resources/sermons/:serverId/:publicId" element={<PublishedSermonArchivePage />} />
+          <Route path="/resources/sermons" element={<PublishedSermonArchivePage />} />
           <Route path="/resources/:categoryId" element={<ResourcePage />} />
           <Route path="/settings/about" element={<AboutPage />} />
           <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} />} />

@@ -85,6 +85,35 @@ export function getContentServerSubscriptions() {
   return readSubscriptions()
 }
 
+export function getPublicSermonPublicationSources() {
+  const sources = []
+  const seen = new Set()
+
+  for (const server of readSubscriptions()) {
+    if (server?.enabled === false) continue
+    try {
+      const manifest = validateContentServerManifest(server.manifest, server.manifestUrl)
+      const publication = manifest.publications?.sermons
+      if (!publication || seen.has(manifest.id)) continue
+      seen.add(manifest.id)
+      const checkedAt = Date.parse(server.lastCheckedAt || '')
+      sources.push(Object.freeze({
+        serverId: manifest.id,
+        serverName: manifest.name,
+        catalogUrl: publication.catalog.url,
+        detailMediaType: publication.detailMediaType,
+        subscriptionRevision: Number.isFinite(checkedAt)
+          ? new Date(checkedAt).toISOString()
+          : '',
+      }))
+    } catch {
+      // Stored server records are untrusted. Only exact current markers activate discovery.
+    }
+  }
+
+  return Object.freeze(sources)
+}
+
 export async function inspectContentServer(inputUrl, options = {}) {
   const manifestUrl = normalizeContentServerManifestUrl(inputUrl)
   const rawManifest = await fetchJson(manifestUrl, options)
@@ -164,7 +193,8 @@ export async function refreshStaleContentServers() {
   const refreshed = []
   for (const server of subscriptions) {
     const checkedAt = Date.parse(server.lastCheckedAt || server.addedAt || '') || 0
-    if (now - checkedAt < AUTOMATIC_REFRESH_INTERVAL_MS) continue
+    const needsPublicationDiscovery = !Object.prototype.hasOwnProperty.call(server.manifest || {}, 'publications')
+    if (!needsPublicationDiscovery && now - checkedAt < AUTOMATIC_REFRESH_INTERVAL_MS) continue
     try {
       refreshed.push(await refreshContentServer(server.manifest.id, await memberRequestOptionsForServer(server)))
     } catch {

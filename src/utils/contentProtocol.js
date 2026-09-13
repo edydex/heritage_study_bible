@@ -1,5 +1,10 @@
 export const CONTENT_SERVER_KIND = 'heritage-content-server'
 export const CONTENT_PROTOCOL_VERSION = 2
+export const PUBLIC_SERMON_PUBLICATION_KIND = 'heritage-public-sermon-publication'
+export const PUBLIC_SERMON_PUBLICATION_SCHEMA_VERSION = 1
+export const PUBLIC_SERMON_CATALOG_MEDIA_TYPE = 'application/json'
+export const PUBLIC_SERMON_DETAIL_MEDIA_TYPE = 'application/vnd.heritage.sermon+json'
+export const PUBLIC_SERMON_PASSAGE_INDEX_MEDIA_TYPE = 'application/json'
 export const SUPPORTED_CONTENT_TYPES = Object.freeze([
   'readingPlans',
   'songs',
@@ -22,6 +27,102 @@ const CATALOG_ALIASES = Object.freeze({ plans: 'readingPlans', hymns: 'songs' })
 function assertPlainObject(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error(`${label} must be an object.`)
+  }
+}
+
+function hasExactKeys(value, expectedKeys) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const keys = Object.keys(value)
+  return keys.length === expectedKeys.length
+    && expectedKeys.every(key => Object.prototype.hasOwnProperty.call(value, key))
+}
+
+function isLoopbackHostname(hostname) {
+  return hostname === 'localhost'
+    || hostname === '127.0.0.1'
+    || hostname === '[::1]'
+    || hostname === '::1'
+}
+
+function resolveStrictSameOriginPublicationUrl(value, manifestUrl) {
+  if (typeof value !== 'string' || !value.trim() || value.includes('\\')) return null
+
+  let manifest
+  let url
+  try {
+    manifest = new URL(manifestUrl)
+    url = new URL(value, manifest)
+  } catch {
+    return null
+  }
+
+  const secureTransport = url.protocol === 'https:'
+    || (url.protocol === 'http:' && isLoopbackHostname(url.hostname))
+  if (
+    !secureTransport
+    || !url.hostname
+    || url.origin !== manifest.origin
+    || url.username
+    || url.password
+    || url.hash
+  ) {
+    return null
+  }
+  return url.href
+}
+
+export function normalizePublicSermonPublicationMarker(input, manifestUrl) {
+  const baseKeys = [
+    'schemaVersion',
+    'kind',
+    'catalog',
+    'detailMediaType',
+  ]
+  const hasPassageIndex = Object.prototype.hasOwnProperty.call(input || {}, 'passageIndex')
+  if (!hasExactKeys(input, hasPassageIndex ? [...baseKeys, 'passageIndex'] : baseKeys)) {
+    return null
+  }
+  if (
+    input.schemaVersion !== PUBLIC_SERMON_PUBLICATION_SCHEMA_VERSION
+    || input.kind !== PUBLIC_SERMON_PUBLICATION_KIND
+    || input.detailMediaType !== PUBLIC_SERMON_DETAIL_MEDIA_TYPE
+    || !hasExactKeys(input.catalog, ['url', 'mediaType'])
+    || input.catalog.mediaType !== PUBLIC_SERMON_CATALOG_MEDIA_TYPE
+  ) {
+    return null
+  }
+
+  const catalogUrl = resolveStrictSameOriginPublicationUrl(input.catalog.url, manifestUrl)
+  if (!catalogUrl) return null
+
+  let passageIndex = null
+  if (hasPassageIndex) {
+    if (
+      !hasExactKeys(input.passageIndex, ['url', 'mediaType'])
+      || input.passageIndex.mediaType !== PUBLIC_SERMON_PASSAGE_INDEX_MEDIA_TYPE
+    ) {
+      return null
+    }
+    const passageIndexUrl = resolveStrictSameOriginPublicationUrl(
+      input.passageIndex.url,
+      manifestUrl,
+    )
+    if (!passageIndexUrl) return null
+    passageIndex = {
+      url: passageIndexUrl,
+      mediaType: PUBLIC_SERMON_PASSAGE_INDEX_MEDIA_TYPE,
+    }
+  }
+
+  return {
+    schemaVersion: PUBLIC_SERMON_PUBLICATION_SCHEMA_VERSION,
+    kind: PUBLIC_SERMON_PUBLICATION_KIND,
+    catalog: {
+      url: catalogUrl,
+      mediaType: PUBLIC_SERMON_CATALOG_MEDIA_TYPE,
+    },
+    detailMediaType: PUBLIC_SERMON_DETAIL_MEDIA_TYPE,
+    ...(passageIndex ? { passageIndex } : {}),
   }
 }
 
@@ -71,17 +172,24 @@ export function validateContentServerManifest(input, manifestUrl) {
   if (!String(input.name || '').trim()) {
     throw new Error('The content server is missing a name.')
   }
-  assertPlainObject(input.catalogs, 'Content server catalogs')
 
   const catalogs = {}
-  for (const [rawType, rawEntry] of Object.entries(input.catalogs)) {
+  if (input.catalogs !== undefined) {
+    assertPlainObject(input.catalogs, 'Content server catalogs')
+  }
+  for (const [rawType, rawEntry] of Object.entries(input.catalogs || {})) {
     const contentType = CATALOG_ALIASES[rawType] || rawType
     if (!SUPPORTED_CONTENT_TYPES.includes(contentType)) continue
     const path = typeof rawEntry === 'string' ? rawEntry : rawEntry?.url
     if (!path) continue
     catalogs[contentType] = resolvePublicUrl(path, manifestUrl)
   }
-  if (!Object.keys(catalogs).length) {
+
+  const sermonPublication = normalizePublicSermonPublicationMarker(
+    input.publications?.sermons,
+    manifestUrl,
+  )
+  if (!Object.keys(catalogs).length && !sermonPublication) {
     throw new Error('The content server does not publish a supported catalog.')
   }
 
@@ -96,6 +204,7 @@ export function validateContentServerManifest(input, manifestUrl) {
     updatedAt: input.updatedAt || null,
     icon: input.icon ? resolvePublicUrl(input.icon, manifestUrl) : '',
     catalogs,
+    publications: sermonPublication ? { sermons: sermonPublication } : {},
   }
 }
 

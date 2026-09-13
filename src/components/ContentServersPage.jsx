@@ -39,9 +39,11 @@ function ContentServersPage() {
 
   const previewCapabilities = useMemo(() => {
     if (!preview) return []
-    return Object.entries(preview.counts)
+    const capabilities = Object.entries(preview.counts)
       .filter(([, count]) => count > 0)
       .map(([type, count]) => `${count} ${TYPE_LABELS[type] || type}`)
+    if (preview.manifest.publications?.sermons) capabilities.push('Published sermon library')
+    return capabilities
   }, [preview])
 
   const handleInspect = async event => {

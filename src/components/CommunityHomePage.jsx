@@ -261,7 +261,7 @@ function CommunityHomePage() {
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {Object.entries(preview.manifest.capabilities).filter(([key, enabled]) => enabled && COMMUNITY_FEATURE_LABELS[key]).map(([capability]) => <span key={capability} className="rounded-full bg-white dark:bg-gray-800 px-2 py-1 text-[11px] text-gray-600 dark:text-gray-300">{COMMUNITY_FEATURE_LABELS[capability]}</span>)}
               </div>
-              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">{Object.values(preview.contentPreview.counts).reduce((sum, count) => sum + count, 0)} public resources available.</p>
+              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">{preview.contentPreview.manifest.publications?.sermons ? 'Includes the church’s published sermon library.' : `${Object.values(preview.contentPreview.counts).reduce((sum, count) => sum + count, 0)} public resources available.`}</p>
               <button onClick={handleSavePublic} disabled={Boolean(busy)} className="mt-3 w-full rounded-lg bg-primary px-4 py-2.5 text-white font-semibold disabled:opacity-50">{busy === 'save' ? 'Saving…' : 'Save church and browse public resources'}</button>
               <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">Have a member invitation? Enter your email to join.</p>
               <input aria-label="Member email" type="email" inputMode="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-3 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
