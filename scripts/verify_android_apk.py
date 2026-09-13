@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Verify the built Android preview against its source, tests and previous signer."""
-import argparse, hashlib, json, os, pathlib, re, shutil, subprocess, zipfile
+import argparse, hashlib, json, os, pathlib, re, shutil, struct, subprocess, zipfile
 import xml.etree.ElementTree as ET
 
 root = pathlib.Path(__file__).resolve().parent.parent
@@ -52,6 +52,14 @@ for report in (root/'android/app/build/outputs/androidTest-results/connected').r
         assert not any(case.find(name) is not None for name in ['failure','error','skipped']), 'Android test did not pass'
         found.add(case.get('name'))
 assert found == expected, 'Missing native acceptance results: '+repr(expected-found)
+screenshots = root / 'android/app/build/native-acceptance/screenshots'
+for name in ['community-home', 'sermon-archive', 'member-sign-in']:
+    matches = list(screenshots.rglob(name+'.png'))
+    assert len(matches) == 1, 'Missing or duplicate native screenshot: '+name
+    data = matches[0].read_bytes()
+    assert data[:8] == b'\x89PNG\r\n\x1a\n' and data[12:16] == b'IHDR', 'Invalid screenshot: '+name
+    width, height = struct.unpack('>II', data[16:24])
+    assert width >= 320 and height >= 640, 'Unexpected native screenshot size: '+name
 output.mkdir(parents=True, exist_ok=True)
 name = f"heritage-study-bible-{current['versionName']}-debug.apk"
 shutil.copyfile(apk, output/name)

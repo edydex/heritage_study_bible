@@ -14,7 +14,7 @@ printf 'avdmanager=%s\navdDirectory=%s\n' "$avd_manager" "$ANDROID_AVD_HOME" > "
 timeout --kill-after=5 15 adb start-server
 printf 'no\n' | timeout --kill-after=5 120 "$avd_manager" create avd --force --name heritage-acceptance --path "$ANDROID_AVD_HOME/heritage-acceptance.avd" --package 'system-images;android-35;google_apis;x86_64' --device pixel_2 2>&1 | tee "$output/avd-create.log"
 [[ -f "$ANDROID_AVD_HOME/heritage-acceptance.ini" ]] || { echo 'AVD creation did not write the expected emulator registration.' >&2; exit 1; }
-"$ANDROID_HOME/emulator/emulator" -avd heritage-acceptance -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -camera-back none -camera-front none -cores 2 -memory 2048 > "$output/emulator.log" 2>&1 &
+"$ANDROID_HOME/emulator/emulator" -avd heritage-acceptance -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -gpu swiftshader_indirect -camera-back none -camera-front none -cores 2 -memory 2048 > "$output/emulator.log" 2>&1 &
 heritage_emulator_pid=$!
 cleanup() {
   timeout --kill-after=5 10 adb logcat -d > "$output/logcat.txt" 2>&1 || true
@@ -40,4 +40,6 @@ timeout --kill-after=5 10 adb shell settings put global animator_duration_scale 
 timeout --kill-after=5 10 adb shell svc wifi disable
 timeout --kill-after=5 10 adb shell svc data disable
 cd "$repo_root/android"
-timeout --kill-after=5 900 ./gradlew :app:connectedDebugAndroidTest --stacktrace
+# Keep the test app until cleanup has pulled its screenshots. The emulator is
+# disposable; Gradle's normal uninstall removes the app's external files first.
+timeout --kill-after=5 900 ./gradlew :app:connectedDebugAndroidTest -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true --stacktrace
