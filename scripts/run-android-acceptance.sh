@@ -33,7 +33,9 @@ while (( SECONDS < boot_deadline )); do
   sleep 2
 done
 [[ "$booted" == true ]] || { echo 'Android emulator did not boot.' >&2; exit 1; }
-timeout --kill-after=5 10 adb shell input keyevent 82
+# Unlock through WindowManager without dispatching input to the still-starting
+# launcher; an early MENU key can create a launcher ANR over the tested app.
+timeout --kill-after=5 10 adb shell wm dismiss-keyguard
 timeout --kill-after=5 10 adb shell settings put global window_animation_scale 0
 timeout --kill-after=5 10 adb shell settings put global transition_animation_scale 0
 timeout --kill-after=5 10 adb shell settings put global animator_duration_scale 0
