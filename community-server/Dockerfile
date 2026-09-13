@@ -23,14 +23,18 @@ FROM base AS migrations
 ENV NODE_ENV=production \
     HOME=/tmp \
     XDG_CACHE_HOME=/tmp/.cache
-# The guided installer checks out source with umask 077. Preserve its private
-# host permissions while making the copied files readable by this image's user.
-COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
-COPY --chown=node:node package.json package-lock.json next.config.ts tsconfig.json ./
-COPY --chown=node:node packages ./packages
-COPY --chown=node:node src ./src
-COPY --chown=node:node scripts ./scripts
-USER node
+# Both migrations and sermon-media maintenance use this image. Match the
+# runtime's 1001:1001 identity, including when Compose selects that user for
+# private recording access. Installer source is private (umask 077), so its
+# copied files must belong to the identity that runs these commands.
+RUN addgroup -S -g 1001 nodejs \
+  && adduser -S -D -H -u 1001 -G nodejs nextjs
+COPY --from=dependencies --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --chown=nextjs:nodejs package.json package-lock.json next.config.ts tsconfig.json ./
+COPY --chown=nextjs:nodejs packages ./packages
+COPY --chown=nextjs:nodejs src ./src
+COPY --chown=nextjs:nodejs scripts ./scripts
+USER nextjs
 CMD ["npm", "run", "migrate"]
 
 FROM base AS runner
