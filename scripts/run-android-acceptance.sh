@@ -39,6 +39,9 @@ timeout --kill-after=5 10 adb shell settings put global transition_animation_sca
 timeout --kill-after=5 10 adb shell settings put global animator_duration_scale 0
 timeout --kill-after=5 10 adb shell svc wifi disable
 timeout --kill-after=5 10 adb shell svc data disable
+timeout --kill-after=5 10 adb shell cmd connectivity airplane-mode enable
+timeout --kill-after=5 10 adb emu gsm data unregistered
+timeout --kill-after=5 10 adb shell dumpsys connectivity > "$output/connectivity-before-tests.txt"
 cd "$repo_root/android"
 # Keep the test app until cleanup has pulled its screenshots. The emulator is
 # disposable; Gradle's normal uninstall removes the app's external files first.

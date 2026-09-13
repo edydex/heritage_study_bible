@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -90,7 +91,12 @@ public class CommunityIntegrationTest {
     }
 
     @Test public void packagedCommunityScreensAndMemberLinkWorkOffline() throws Exception {
-        assertEquals("false", evaluate("navigator.onLine"));
+        ConnectivityManager connectivity = InstrumentationRegistry.getInstrumentation()
+                .getTargetContext().getSystemService(ConnectivityManager.class);
+        long offlineDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(45);
+        while (connectivity.getActiveNetwork() != null && System.nanoTime() < offlineDeadline) Thread.sleep(200);
+        assertNull("The emulator still has an active network", connectivity.getActiveNetwork());
+        waitFor("navigator.onLine === false");
         route("/community", "Community Home");
         screenshot("community-home");
         route("/resources/sermons", "Published Sermons");
