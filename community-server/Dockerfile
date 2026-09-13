@@ -23,11 +23,13 @@ FROM base AS migrations
 ENV NODE_ENV=production \
     HOME=/tmp \
     XDG_CACHE_HOME=/tmp/.cache
-COPY --from=dependencies /app/node_modules ./node_modules
-COPY package.json package-lock.json next.config.ts tsconfig.json ./
-COPY packages ./packages
-COPY src ./src
-COPY scripts ./scripts
+# The guided installer checks out source with umask 077. Preserve its private
+# host permissions while making the copied files readable by this image's user.
+COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node package.json package-lock.json next.config.ts tsconfig.json ./
+COPY --chown=node:node packages ./packages
+COPY --chown=node:node src ./src
+COPY --chown=node:node scripts ./scripts
 USER node
 CMD ["npm", "run", "migrate"]
 
