@@ -24,6 +24,7 @@ with tempfile.TemporaryDirectory(prefix='heritage-runner-fault-') as folder:
     root = Path(folder)
     (root / 'scripts').mkdir()
     (root / 'tools').mkdir()
+    (root / 'runtime').mkdir()
     (root / 'sdk/emulator').mkdir(parents=True)
     shutil.copyfile(runner, root / 'scripts/run.sh')
     executable(root / 'tools/adb', '''
@@ -32,7 +33,12 @@ with tempfile.TemporaryDirectory(prefix='heritage-runner-fault-') as folder:
             sys.exit(0)
         time.sleep(60)
     ''', python=True)
-    executable(root / 'tools/avdmanager', 'cat >/dev/null\nexit 0\n')
+    executable(root / 'tools/sdkmanager', 'exit 0\n')
+    executable(root / 'tools/avdmanager', '''
+        import os, pathlib, sys
+        sys.stdin.read()
+        (pathlib.Path(os.environ['ANDROID_AVD_HOME']) / 'heritage-acceptance.ini').write_text('fixture')
+    ''', python=True)
     executable(root / 'sdk/emulator/emulator', '''
         echo simulated-emulator-start-failure >&2
         exit 1
@@ -54,6 +60,7 @@ with tempfile.TemporaryDirectory(prefix='heritage-runner-fault-') as folder:
         **os.environ,
         'PATH': str(root / 'tools') + os.pathsep + os.environ['PATH'],
         'ANDROID_HOME': str(root / 'sdk'),
+        'RUNNER_TEMP': str(root / 'runtime'),
     }
     started = time.monotonic()
     process = subprocess.Popen(

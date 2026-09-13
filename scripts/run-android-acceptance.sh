@@ -4,8 +4,16 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 output="$repo_root/android/app/build/native-acceptance"
 mkdir -p "$output"
 export ANDROID_SERIAL=emulator-5554
+android_user_dir=$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/heritage-android-user.XXXXXX")
+export ANDROID_USER_HOME="$android_user_dir"
+export ANDROID_EMULATOR_HOME="$android_user_dir"
+export ANDROID_AVD_HOME="$android_user_dir/avd"
+mkdir -p "$ANDROID_AVD_HOME"
+avd_manager="$(dirname "$(command -v sdkmanager)")/avdmanager"
+printf 'avdmanager=%s\navdDirectory=%s\n' "$avd_manager" "$ANDROID_AVD_HOME" > "$output/avd-setup.txt"
 timeout --kill-after=5 15 adb start-server
-printf 'no\n' | timeout --kill-after=5 120 avdmanager create avd --force --name heritage-acceptance --package 'system-images;android-35;google_apis;x86_64' --device pixel_2
+printf 'no\n' | timeout --kill-after=5 120 "$avd_manager" create avd --force --name heritage-acceptance --path "$ANDROID_AVD_HOME/heritage-acceptance.avd" --package 'system-images;android-35;google_apis;x86_64' --device pixel_2 2>&1 | tee "$output/avd-create.log"
+[[ -f "$ANDROID_AVD_HOME/heritage-acceptance.ini" ]] || { echo 'AVD creation did not write the expected emulator registration.' >&2; exit 1; }
 "$ANDROID_HOME/emulator/emulator" -avd heritage-acceptance -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -camera-back none -camera-front none -cores 2 -memory 2048 > "$output/emulator.log" 2>&1 &
 heritage_emulator_pid=$!
 cleanup() {
