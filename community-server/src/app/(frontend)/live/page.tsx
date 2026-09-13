@@ -1,24 +1,17 @@
-export const metadata = { title: 'Listen live' }
+import Link from 'next/link'
+import { LiveServiceClient } from '@/components/LiveServiceClient'
+import { loadLiveService } from '@/lib/loadLiveService'
 
-export default function LivePage() {
-  return (
-    <main className="live-page">
-      <header>
-        <div>
-          <p className="eyebrow"><span className="live-dot" aria-hidden="true" /> Live service</p>
-          <h1>Listen with live translation</h1>
-          <p>Choose a language below. Audio becomes available when the church starts the live service.</p>
-        </div>
-        <a className="text-link" href="https://translate.mayos.dev" target="_blank" rel="noreferrer">Open in a new window ↗</a>
-      </header>
-      <div className="live-frame">
-        <iframe
-          allow="autoplay"
-          src="https://translate.mayos.dev/?embed=1"
-          title="WOTBC live translated audio"
-        />
-      </div>
-      <p className="live-page__help">If audio does not begin, press the play button inside the listener. Headphones are recommended.</p>
-    </main>
-  )
+export const metadata = { title: 'Live service' }
+export const dynamic = 'force-dynamic'
+
+export default async function LivePage() {
+  const settings = await loadLiveService()
+  return <main className="live-page">
+    <header><div><p className="eyebrow">{settings.churchName}</p><h1>Join the live service</h1>
+      <p>Watch the service, choose your audio, and read along in your language.</p></div>
+      <Link className="text-link" href="/translate">Translation without video →</Link>
+    </header>
+    <LiveServiceClient settings={settings} video />
+  </main>
 }

@@ -129,3 +129,7 @@ button, input, select, textarea { font: inherit; }
   .live-frame { min-height: 680px; border-radius: 12px; }
   .live-frame iframe { height: 760px; }
 }
+
+.live-service-client { width: 100%; }
+.live-service-fallback { padding: 24px; background: #fffdf8; border: 1px solid #e2e1d8; border-radius: 16px; }
+.live-service-fallback iframe { display: block; width: 100%; max-width: 960px; aspect-ratio: 16 / 9; min-height: 200px; border: 0; }

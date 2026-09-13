@@ -4,10 +4,22 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
+// Internal companion service. Only the anonymous listener contract is proxied.
+// Next records rewrites at build time; local/nonstandard deployments set this before building.
+const translationProcessor = new URL(process.env.TRANSLATION_PROCESSOR_URL || 'http://translation-processor:4310')
+if (!['http:', 'https:'].includes(translationProcessor.protocol) || translationProcessor.username || translationProcessor.password || translationProcessor.pathname !== '/' || translationProcessor.search || translationProcessor.hash) {
+  throw new Error('TRANSLATION_PROCESSOR_URL must be an HTTP(S) origin without credentials or a path')
+}
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
   output: 'standalone',
+  async rewrites() {
+    return [
+      ...['service', 'events', 'token'].map(endpoint => ({ source: `/translation/api/public/${endpoint}`, destination: `${translationProcessor.origin}/api/public/${endpoint}` })),
+      { source: '/translation/client/:file', destination: `${translationProcessor.origin}/client/:file` },
+    ]
+  },
   images: {
     localPatterns: [{ pathname: '/api/media/file/**' }],
   },

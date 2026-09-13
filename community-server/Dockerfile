@@ -10,6 +10,8 @@ COPY package.json package-lock.json ./
 RUN npm ci --legacy-peer-deps
 
 FROM base AS builder
+ARG TRANSLATION_PROCESSOR_URL=http://translation-processor:4310
+ENV TRANSLATION_PROCESSOR_URL=$TRANSLATION_PROCESSOR_URL
 ENV NODE_ENV=production
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
