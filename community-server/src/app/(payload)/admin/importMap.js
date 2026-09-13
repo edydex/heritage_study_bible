@@ -24,6 +24,7 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { default as default_a202ad21aea188adfad41087711ba85c } from '@/components/AdminNav'
 import { default as default_d2e5e8cdcf265e3c61c4d683161d9698 } from '@/components/AdminDashboard'
+import { default as default_c47a6a2000b141a0bb5c4ccc6ddb6ea0 } from '@/components/LiveTranslation'
 import { default as default_7625f2337a08dca3f9d12b0a78287a4d } from '@/components/PlanService'
 import { default as default_b44c3e81d020f6d739a9474c1ba127b9 } from '@/components/PrepareSermon'
 import { default as default_0912daed07190b9084fae7fccd1fb1a6 } from '@/components/SermonPublicationReview'
@@ -57,6 +58,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/components/AdminNav#default": default_a202ad21aea188adfad41087711ba85c,
   "@/components/AdminDashboard#default": default_d2e5e8cdcf265e3c61c4d683161d9698,
+  "@/components/LiveTranslation#default": default_c47a6a2000b141a0bb5c4ccc6ddb6ea0,
   "@/components/PlanService#default": default_7625f2337a08dca3f9d12b0a78287a4d,
   "@/components/PrepareSermon#default": default_b44c3e81d020f6d739a9474c1ba127b9,
   "@/components/SermonPublicationReview#default": default_0912daed07190b9084fae7fccd1fb1a6,

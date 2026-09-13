@@ -15,6 +15,7 @@ export default function AdminNav() {
       </Link>
       <div className="heritage-admin-nav__primary">
         <Link href="/admin/plan-service">Plan a service</Link>
+        <Link href="/admin/live-translation">Live translation</Link>
         {!inPlanner ? <>
           <Link href="/admin/prepare-sermon">Prepare sermon</Link>
           <Link href="/admin/sermon-publications">Publish sermons</Link>

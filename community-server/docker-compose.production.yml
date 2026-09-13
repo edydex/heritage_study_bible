@@ -12,6 +12,8 @@ x-community-environment: &community-environment
   COMMUNITY_PUBLIC_URL: ${COMMUNITY_PUBLIC_URL:?Set COMMUNITY_PUBLIC_URL in .env.production}
   COMMUNITY_ID: ${COMMUNITY_ID:?Set COMMUNITY_ID in .env.production}
   COMMUNITY_NAME: ${COMMUNITY_NAME:?Set COMMUNITY_NAME in .env.production}
+  TRANSLATION_CONTROL_TOKEN: ${TRANSLATION_CONTROL_TOKEN:-}
+  TRANSLATION_PROCESSOR_URL: ${TRANSLATION_PROCESSOR_URL:-http://translation-processor:4310}
   COMMUNITY_DESCRIPTION: ${COMMUNITY_DESCRIPTION:-A Heritage church community.}
   COMMUNITY_CCLI_LICENSE_NUMBER: ${COMMUNITY_CCLI_LICENSE_NUMBER:-}
   COMMUNITY_TIME_ZONE: ${COMMUNITY_TIME_ZONE:-UTC}
@@ -69,6 +71,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
+      args:
+        TRANSLATION_PROCESSOR_URL: ${TRANSLATION_PROCESSOR_URL:-http://translation-processor:4310}
     init: true
     restart: unless-stopped
     environment:

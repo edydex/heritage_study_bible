@@ -49,6 +49,7 @@ import { startSermonMediaMaintenance } from '@/lib/syncshow/SermonMediaMaintenan
 import { songPublicLinkEndpoints } from '@/endpoints/songPublicLinks'
 import { songMemberSharingEndpoints } from '@/endpoints/songMemberSharing'
 import { syncShowEndpoints } from '@/endpoints/syncShow'
+import { translationEndpoints } from '@/endpoints/translation'
 import { syncEndpoints } from '@/endpoints/sync'
 import { backfillSongSyncDocuments } from '@/lib/backfillSongSyncDocuments'
 import { bootstrapInstallation } from '@/lib/bootstrapInstallation'
@@ -137,6 +138,12 @@ export default buildConfig({
           meta: {
             title: 'Church workspace',
           },
+        },
+        liveTranslation: {
+          Component: '@/components/LiveTranslation',
+          exact: true,
+          meta: { title: 'Live translation' },
+          path: '/live-translation',
         },
         planService: {
           Component: '@/components/PlanService',
@@ -230,6 +237,7 @@ export default buildConfig({
     ...accountEndpoints,
     ...syncEndpoints,
     ...syncShowEndpoints,
+    ...translationEndpoints,
     ...songPublicLinkEndpoints,
     ...songMemberSharingEndpoints,
     ...managerSermonPreparationEndpoints,

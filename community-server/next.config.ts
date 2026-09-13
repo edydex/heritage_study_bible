@@ -4,7 +4,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
-// Internal companion service. Only the anonymous listener contract is proxied.
+// Internal companion service. Explicit public and authenticated live-control routes are proxied.
 // Next records rewrites at build time; local/nonstandard deployments set this before building.
 const translationProcessor = new URL(process.env.TRANSLATION_PROCESSOR_URL || 'http://translation-processor:4310')
 if (!['http:', 'https:'].includes(translationProcessor.protocol) || translationProcessor.username || translationProcessor.password || translationProcessor.pathname !== '/' || translationProcessor.search || translationProcessor.hash) {
@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       ...['service', 'events', 'token'].map(endpoint => ({ source: `/translation/api/public/${endpoint}`, destination: `${translationProcessor.origin}/api/public/${endpoint}` })),
+      ...['preflight', 'sessions', 'sessions/current', 'sessions/current/start', 'sessions/current/stop', 'sessions/current/channels/:channelId', 'operator/events', 'capture/audio'].map(endpoint => ({ source: `/translation/api/${endpoint}`, destination: `${translationProcessor.origin}/api/${endpoint}` })),
       { source: '/translation/client/:file', destination: `${translationProcessor.origin}/client/:file` },
     ]
   },

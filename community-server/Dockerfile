@@ -32,6 +32,8 @@ USER node
 CMD ["npm", "run", "migrate"]
 
 FROM base AS runner
+ARG TRANSLATION_PROCESSOR_URL=http://translation-processor:4310
+ENV TRANSLATION_PROCESSOR_URL=$TRANSLATION_PROCESSOR_URL
 ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0 \
     PORT=3000 \

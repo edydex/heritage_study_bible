@@ -11,3 +11,15 @@ For an external public listener, its URL must identify the base containing `clie
 `/live/settings.json` is the public version-1 settings document. URL validation accepts supported YouTube links and rejects lookalike hosts; public fields are explicitly shaped. The migration adds four nullable/defaulted columns. Public reads remain available; anonymous writes are rejected.
 
 The stored broadcast delay is not applied to the player yet. YouTube/translation timing, real translated audio, native floating-window behavior, actual phone playback, companion installation, and WOTBC deployment remain acceptance work. Local production builds, the real public WebSocket through Heritage, bilingual synthetic text, and the in-page floating panel have been verified. No WOTBC deployment is represented by those local checks.
+
+## Manager controls
+
+The church workspace links to `/admin/live-translation`. The embedded Multilinguum operator opens in control-only mode; **Connect this mixer** explicitly opens the selected input. A second console can control the service without claiming that input. English/Russian text and the generated-speech toggle use the same processor session as SyncShow.
+
+`POST /api/community/translation/access` checks the configured church and the signed-in manager's current membership (or system administrator role). Browser requests must have the same Origin as `COMMUNITY_PUBLIC_URL`. SyncShow uses its existing device authorization with an explicitly granted `syncshow:translation:control` scope. Existing connections must be reauthorized with that scope; no implicit permission expansion occurs.
+
+Set `TRANSLATION_CONTROL_TOKEN` to the processor's permanent `PROCESSOR_CONTROL_TOKEN` through private server configuration. Only a signed ten-minute control lease reaches the browser. The lease renews every two minutes while the operator is open; it is never saved in local storage. Revocation takes effect on renewal, within the maximum ten-minute lease lifetime. Heritage proxies the enumerated authenticated session/control/capture endpoints and does not proxy the lease issuer, archives, replay, or voice-profile administration.
+
+`TRANSLATION_PROCESSOR_URL` must identify the same processor at build time and runtime. The production Compose configuration passes it to both. `/client/operator.js` and `/client/pcm-worklet.js` must be installed in the processor alongside the listener module. The Multilinguum processor Dockerfile includes both builds.
+
+The complete optional companion installer, translation archive backup/restore, WOTBC deployment, provider/account setup, actual mixer/audio acceptance, broadcast delay alignment, and SyncShow screen layouts remain integration work. Merely setting these variables does not install the companion.

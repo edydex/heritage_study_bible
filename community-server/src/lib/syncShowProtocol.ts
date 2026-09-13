@@ -23,7 +23,9 @@ export const SYNCSHOW_SERMON_MEDIA_READ_SCOPE =
   'syncshow:sermon-media:read'
 export const SYNCSHOW_SERMON_MEDIA_WRITE_SCOPE =
   'syncshow:sermon-media:write'
+export const SYNCSHOW_TRANSLATION_CONTROL_SCOPE = 'syncshow:translation:control'
 export const SYNCSHOW_SCOPES = [
+  SYNCSHOW_TRANSLATION_CONTROL_SCOPE,
   SYNCSHOW_READ_SCOPE,
   SYNCSHOW_WRITE_SCOPE,
   SYNCSHOW_SERMON_READ_SCOPE,
