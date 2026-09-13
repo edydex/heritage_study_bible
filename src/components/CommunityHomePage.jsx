@@ -71,6 +71,8 @@ function CommunityHomePage() {
   const [busy, setBusy] = useState('')
   const [message, setMessage] = useState('')
   const [debugLink, setDebugLink] = useState('')
+  const [signInRequired, setSignInRequired] = useState({})
+  const [rejoining, setRejoining] = useState(null)
 
   useEffect(() => {
     const refresh = () => setCommunities(getCommunities())
@@ -100,12 +102,16 @@ function CommunityHomePage() {
   const loadEvents = async community => {
     if (community.status !== 'joined') return
     setBusy(`events:${community.manifest.id}`)
+    setMessage('')
     try {
       const query = `events?where[startsAt][greater_than_equal]=${encodeURIComponent(new Date().toISOString())}&sort=startsAt&limit=50&depth=1`
       const result = await communityApiRequest(community, query)
       setEventsByCommunity(value => ({ ...value, [community.manifest.id]: result.docs || [] }))
+      setSignInRequired(value => ({ ...value, [community.manifest.id]: false }))
     } catch (error) {
-      setMessage(error.message || 'Could not load community events.')
+      if (error.status === 401) {
+        setSignInRequired(value => ({ ...value, [community.manifest.id]: true }))
+      } else setMessage(error.message || 'Could not load community events.')
     } finally {
       setBusy('')
     }
@@ -129,17 +135,18 @@ function CommunityHomePage() {
     }
   }
 
-  const handleJoin = async () => {
+  const handleJoin = async community => {
     setBusy('join')
     setMessage('')
     try {
-      const record = await beginCommunityJoin(preview, email)
+      const record = await beginCommunityJoin(community, email)
       setCommunities(getCommunities())
       setMessage(`A secure sign-in link was sent to ${record.email}. Open it on this device to finish joining.${record.contentWarning ? ` ${record.contentWarning}` : ''}`)
       setDebugLink(record.debugLink || '')
       setPreview(null)
       setJoinUrl('')
       setEmail('')
+      setRejoining(null)
     } catch (error) {
       setMessage(error.message || 'Could not begin community sign-in.')
     } finally {
@@ -164,7 +171,8 @@ function CommunityHomePage() {
       })
       setMessage(`RSVP saved: ${response.replace('-', ' ')}.`)
     } catch (error) {
-      setMessage(error.message || 'Could not save the RSVP.')
+      if (error.status === 401) setSignInRequired(value => ({ ...value, [community.manifest.id]: true }))
+      else setMessage(error.message || 'Could not save the RSVP.')
     } finally {
       setBusy('')
     }
@@ -189,7 +197,8 @@ function CommunityHomePage() {
             <p className="text-xs uppercase tracking-wide text-blue-100">Primary community</p>
             <h2 className="mt-1 text-2xl font-bold heading-text">{primary.manifest.name}</h2>
             <p className="mt-2 text-sm text-blue-50">{primary.manifest.description}</p>
-            {primary.status === 'joined' && <p className="mt-3 text-xs text-blue-100">Signed in as {primary.member?.displayName || primary.member?.email || 'Member'}</p>}
+            {primary.status === 'joined' && !signInRequired[primary.manifest.id] && <p className="mt-3 text-xs text-blue-100">Signed in as {primary.member?.displayName || primary.member?.email || 'Member'}</p>}
+            {primary.status === 'joined' && signInRequired[primary.manifest.id] && <p className="mt-3 text-sm text-blue-100">Sign in again below to access member resources. This church sign-in is separate from personal notes and progress.</p>}
           </section>
         )}
 
@@ -203,7 +212,9 @@ function CommunityHomePage() {
             </div>
             {primary?.status === 'joined' && <button onClick={() => loadEvents(primary)} className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs text-gray-700 dark:text-gray-200">Refresh</button>}
           </div>
-          {!primary || primary.status !== 'joined' ? (
+          {primary?.status === 'joined' && signInRequired[primary.manifest.id] ? (
+            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Sign in again to load the church calendar.</p>
+          ) : !primary || primary.status !== 'joined' ? (
             <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Join a community to see its shared calendar.</p>
           ) : (eventsByCommunity[primary.manifest.id] || []).length === 0 ? (
             <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{busy === `events:${primary.manifest.id}` ? 'Loading events…' : 'No upcoming events.'}</p>
@@ -234,9 +245,10 @@ function CommunityHomePage() {
                 <div key={community.manifest.id} className="py-3 flex items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold text-gray-900 dark:text-gray-100">{community.manifest.name} {community.primary && <span className="text-xs text-primary dark:text-blue-300">· Primary</span>}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{{ joined: 'Joined', 'sync-only': 'Signed in for personal sync', following: 'Public resources saved', 'email-sent': 'Waiting for email sign-in' }[community.status] || 'Saved community'}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{signInRequired[community.manifest.id] && community.status === 'joined' ? 'Member sign-in needed' : { joined: 'Joined', 'sync-only': 'Signed in for personal sync', following: 'Public resources saved', 'email-sent': 'Waiting for email sign-in' }[community.status] || 'Saved community'}</p>
                   </div>
                   <div className="flex gap-2">
+                    {signInRequired[community.manifest.id] && community.status === 'joined' && <button onClick={() => { setRejoining(community); setEmail(community.member?.email || community.email || ''); setMessage(''); setDebugLink('') }} className="text-xs text-primary dark:text-blue-300">Sign in again</button>}
                     {!community.primary && <button onClick={() => setCommunities(setPrimaryCommunity(community.manifest.id))} className="text-xs text-primary dark:text-blue-300">Make primary</button>}
                     <button onClick={() => setCommunities(removeCommunity(community.manifest.id))} className="text-xs text-red-600 dark:text-red-300">Remove</button>
                   </div>
@@ -244,6 +256,11 @@ function CommunityHomePage() {
               ))}
             </div>
           )}
+          {rejoining && <form className="mt-4 space-y-3" onSubmit={event => { event.preventDefault(); handleJoin(rejoining) }}>
+            <p className="text-sm text-gray-700 dark:text-gray-200">Sign in to {rejoining.manifest.name}</p>
+            <input aria-label="Church sign-in email" type="email" required value={email} onChange={event => setEmail(event.target.value)} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
+            <button disabled={Boolean(busy) || !email.trim()} className="rounded-lg bg-primary px-4 py-2.5 text-white font-semibold disabled:opacity-50">{busy === 'join' ? 'Sending link…' : 'Send church sign-in link'}</button>
+          </form>}
         </section>
 
         <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5">
@@ -265,7 +282,7 @@ function CommunityHomePage() {
               <button onClick={handleSavePublic} disabled={Boolean(busy)} className="mt-3 w-full rounded-lg bg-primary px-4 py-2.5 text-white font-semibold disabled:opacity-50">{busy === 'save' ? 'Saving…' : 'Save church and browse public resources'}</button>
               <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">Have a member invitation? Enter your email to join.</p>
               <input aria-label="Member email" type="email" inputMode="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-3 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
-              <button onClick={handleJoin} disabled={Boolean(busy) || !email.trim()} className="mt-2 w-full rounded-lg bg-gray-950 dark:bg-gray-100 px-4 py-2.5 text-white dark:text-gray-950 font-bold disabled:opacity-50">{busy === 'join' ? 'Sending link…' : `Join ${preview.manifest.name}`}</button>
+              <button onClick={() => handleJoin(preview)} disabled={Boolean(busy) || !email.trim()} className="mt-2 w-full rounded-lg bg-gray-950 dark:bg-gray-100 px-4 py-2.5 text-white dark:text-gray-950 font-bold disabled:opacity-50">{busy === 'join' ? 'Sending link…' : `Join ${preview.manifest.name}`}</button>
             </div>
           )}
         </section>

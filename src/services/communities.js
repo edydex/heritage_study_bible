@@ -234,7 +234,11 @@ export function removeCommunity(communityId) {
 
 export async function communityApiRequest(community, path, options = {}) {
   const session = await getCommunitySession(community.manifest.id, community)
-  if (!session?.token) throw new Error('Sign in to this community again.')
+  if (!session?.token) {
+    const error = new Error('Sign in to this community again.')
+    error.status = 401
+    throw error
+  }
   const url = new URL(String(path).replace(/^\/+/, ''), `${community.manifest.apiBaseUrl}/`).href
   return fetchJson(url, {
     ...options,
