@@ -8,15 +8,18 @@ const cookies = (await readFile('/tmp/heritage-ci-cookies.txt', 'utf8')).split('
   .filter(line => line && (!line.startsWith('#') || line.startsWith('#HttpOnly_')))
   .map(line => line.split('\t')).map(fields => `${fields[5]}=${fields[6]}`).join('; ')
 assert.ok(cookies.includes('payload-token='))
-async function request(path, { method = 'GET', body, authenticated = true, requestOrigin = origin } = {}) {
+async function request(path, { method = 'GET', body, authenticated = true, requestOrigin = origin, browserSite = 'same-origin' } = {}) {
   const response = await fetch(`${origin}${path}`, { method, headers: {
-    ...(authenticated ? { cookie: cookies } : {}), ...(requestOrigin ? { origin: requestOrigin } : {}),
+    ...(authenticated ? { cookie: cookies } : {}), ...(browserSite ? { 'sec-fetch-site': browserSite } : {}), ...(requestOrigin ? { origin: requestOrigin } : {}),
     ...(body ? { 'content-type': 'application/json' } : {}),
   }, ...(body ? { body: JSON.stringify(body) } : {}) })
   return { status: response.status, body: await response.json() }
 }
 const path = '/api/community/translation/plans'
 assert.equal((await request(path, { authenticated: false })).status, 401)
+// Payload correctly rejects origin-less cookie clients without browser provenance.
+assert.equal((await request(path, { requestOrigin: null, browserSite: null })).status, 401)
+assert.equal((await request(path, { requestOrigin: null, browserSite: 'cross-site' })).status, 401)
 const church = (await request('/api/communities?where[slug][equals]=ci-church')).body.docs[0]
 assert.ok(church?.id)
 const created = await request('/api/service-documents', { method: 'POST', body: { community: church.id, title: 'Disposable translation plan acceptance', serviceDate: '2099-01-01' } })
