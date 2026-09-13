@@ -53,7 +53,9 @@ export function orderedRecordLockKeys(
   records: Array<{ recordType: string; recordId: string }>,
 ) {
   return records
-    .map(record => `heritage-sync-record:${userId}:${record.recordType}\0${record.recordId}`)
+    // PostgreSQL text parameters cannot contain NUL, even when only hashing a
+    // lock name. JSON preserves tuple boundaries without inserting that byte.
+    .map(record => `heritage-sync-record:${JSON.stringify([userId, record.recordType, record.recordId])}`)
     .sort((left, right) => Buffer.from(left).compare(Buffer.from(right)))
 }
 

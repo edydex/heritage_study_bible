@@ -114,10 +114,24 @@ test('record locks are deterministically ordered and scoped to the account', () 
     { recordType: 'bible-bookmark', recordId: 'a' },
     { recordType: 'note', recordId: 'a' },
   ]), [
-    'heritage-sync-record:9:bible-bookmark\0a',
-    'heritage-sync-record:9:note\0a',
-    'heritage-sync-record:9:note\0z',
+    'heritage-sync-record:[9,"bible-bookmark","a"]',
+    'heritage-sync-record:[9,"note","a"]',
+    'heritage-sync-record:[9,"note","z"]',
   ])
+})
+
+test('record lock names are PostgreSQL-safe without ambiguous record boundaries', () => {
+  const records = [
+    { recordType: 'active-reading-plan', recordId: 'active' },
+    { recordType: 'note', recordId: 'a:b' },
+    { recordType: 'note:a', recordId: 'b' },
+    { recordType: 'note', recordId: 'Заметка "первая" \\ 🙂' },
+  ]
+  const keys = orderedRecordLockKeys(9, records)
+  assert.ok(keys.every(key => !Buffer.from(key).includes(0)), 'PostgreSQL rejects NUL in text parameters')
+  assert.equal(new Set(keys).size, records.length, 'different record tuples cannot share a lock name')
+  assert.deepEqual(keys, orderedRecordLockKeys(9, [...records].reverse()))
+  assert.ok(orderedRecordLockKeys(10, records).every(key => !keys.includes(key)), 'accounts have distinct locks')
 })
 
 test('first-sync preservation is server-authorized only for a newer client value', () => {
