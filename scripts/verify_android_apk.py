@@ -34,6 +34,7 @@ assert re.fullmatch(r'\d+\.\d+\.\d+(?:-[a-z0-9.]+)?', current['versionName'])
 source = subprocess.check_output(['git','rev-parse','HEAD'], cwd=root, text=True).strip()
 assert source == os.environ['GITHUB_SHA'], 'Build source differs from workflow source'
 assets = {}
+web_metadata = {}
 with zipfile.ZipFile(apk) as archive:
     assert len(archive.namelist()) == len(set(archive.namelist())), 'Duplicate ZIP entries'
     for path in sorted((root/'dist').rglob('*')):
@@ -41,9 +42,24 @@ with zipfile.ZipFile(apk) as archive:
         assert not path.is_symlink()
         relative = path.relative_to(root/'dist').as_posix()
         data = path.read_bytes()
+        # AAPT omits this hidden, website-only directory. Validate its app-link
+        # identity against the APK signer instead of expecting it inside the APK.
+        if relative == '.well-known/assetlinks.json':
+            associations = json.loads(data)
+            assert any(
+                entry.get('target', {}).get('namespace') == 'android_app'
+                and entry.get('target', {}).get('package_name') == current['applicationId']
+                and 'delegate_permission/common.handle_all_urls' in entry.get('relation', [])
+                and current['signerSha256'] in [fingerprint.replace(':', '').lower()
+                    for fingerprint in entry.get('target', {}).get('sha256_cert_fingerprints', [])]
+                for entry in associations
+            ), 'Website app-link identity does not match the APK signer'
+            web_metadata[relative] = hashlib.sha256(data).hexdigest()
+            continue
         assert archive.read('assets/public/'+relative) == data, 'Bundled web asset mismatch: '+relative
         assets[relative] = hashlib.sha256(data).hexdigest()
 assert len(assets) > 10
+assert '.well-known/assetlinks.json' in web_metadata, 'Website app-link metadata is missing'
 expected = {'packagedCommunityScreensAndMemberLinkWorkOffline', 'secureStorageUsesNativeKeystoreAndSurvivesActivityRestart', 'encryptedValuesCannotBeSubstitutedForAnotherStorageKey'}
 found = set()
 for report in (root/'android/app/build/outputs/androidTest-results/connected').rglob('*.xml'):
@@ -63,7 +79,7 @@ for name in ['community-home', 'sermon-archive', 'member-sign-in']:
 output.mkdir(parents=True, exist_ok=True)
 name = f"heritage-study-bible-{current['versionName']}-debug.apk"
 shutil.copyfile(apk, output/name)
-record = {'schemaVersion':1, 'sourceRevision':source, **current, 'apk':{'name':name,'size':apk.stat().st_size,'sha256':sha(apk)}, 'previousRelease':{'versionName':old['versionName'],'versionCode':old['versionCode'],'sha256':sha(previous)}, 'webAssets':{'count':len(assets),'manifestSha256':hashlib.sha256(json.dumps(assets,sort_keys=True,separators=(',',':')).encode()).hexdigest()}, 'nativeTests':sorted(found)}
+record = {'schemaVersion':1, 'sourceRevision':source, **current, 'apk':{'name':name,'size':apk.stat().st_size,'sha256':sha(apk)}, 'previousRelease':{'versionName':old['versionName'],'versionCode':old['versionCode'],'sha256':sha(previous)}, 'webAssets':{'count':len(assets),'manifestSha256':hashlib.sha256(json.dumps(assets,sort_keys=True,separators=(',',':')).encode()).hexdigest()}, 'websiteOnlyMetadata':web_metadata, 'nativeTests':sorted(found)}
 metadata = output/'android-build.json'
 metadata.write_text(json.dumps(record, indent=2)+'\n')
 (output/'SHA256SUMS').write_text(f"{sha(output/name)}  {name}\n{sha(metadata)}  android-build.json\n")

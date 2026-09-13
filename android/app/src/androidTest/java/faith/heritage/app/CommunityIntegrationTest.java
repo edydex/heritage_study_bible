@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -73,9 +74,23 @@ public class CommunityIntegrationTest {
     private void route(String hash, String heading) throws Exception {
         evaluate("window.location.hash=" + JSONObject.quote(hash));
         waitFor("document.body.innerText.includes(" + JSONObject.quote(heading) + ")");
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(45);
+        while (System.nanoTime() < deadline) {
+            AccessibilityNodeInfo root = InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow();
+            boolean visible = root != null && "faith.heritage.app".equals(String.valueOf(root.getPackageName()))
+                    && root.findAccessibilityNodeInfosByText(heading).stream().anyMatch(AccessibilityNodeInfo::isVisibleToUser);
+            if (visible) {
+                InstrumentationRegistry.getInstrumentation().getUiAutomation().waitForIdle(200, 5000);
+                return;
+            }
+            Thread.sleep(200);
+        }
+        screenshot("unexpected-visible-screen");
+        fail("The expected Heritage heading was not visible: " + heading);
     }
 
     @Test public void packagedCommunityScreensAndMemberLinkWorkOffline() throws Exception {
+        assertEquals("false", evaluate("navigator.onLine"));
         route("/community", "Community Home");
         screenshot("community-home");
         route("/resources/sermons", "Published Sermons");
