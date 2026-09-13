@@ -22,6 +22,7 @@ export function normalizeCommunityManifestUrl(value) {
 function httpUrl(value, base) {
   const url = new URL(String(value || ''), base)
   if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Community endpoints must use HTTP or HTTPS.')
+  if (url.username || url.password) throw new Error('Community URLs must not contain credentials.')
   return url.href
 }
 
@@ -94,5 +95,13 @@ export function validateCommunityManifest(input, manifestUrl) {
     },
     capabilities: input.capabilities && typeof input.capabilities === 'object' ? input.capabilities : {},
     sync,
+    publicPages: Object.fromEntries(['live', 'translation'].flatMap(key => {
+      // Public navigation is optional; a malformed link must not break sign-in.
+      try {
+        if (!input.publicPages?.[key]) return []
+        const url = httpUrl(input.publicPages[key], manifestUrl)
+        return new URL(url).origin === new URL(manifestUrl).origin ? [[key, url]] : []
+      } catch { return [] }
+    })),
   }
 }

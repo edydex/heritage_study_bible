@@ -9,11 +9,14 @@ test('translation discovery follows installed setup and advertises only public p
     delete process.env.TRANSLATION_PROCESSOR_URL
     delete process.env.TRANSLATION_CONTROL_TOKEN
     const disabled = await GET().json()
+    assert.equal(disabled.publicPages.live, `${disabled.website}/live`)
+    assert.equal(disabled.publicPages.translation, undefined)
     assert.equal(disabled.integrations.translation, undefined)
     assert.equal(disabled.integrations.syncShow.resources.translation, undefined)
     process.env.TRANSLATION_PROCESSOR_URL = 'http://private-processor:4310'
     process.env.TRANSLATION_CONTROL_TOKEN = 'synthetic-key-that-must-not-be-advertised'
     const enabled = await GET().json()
+    assert.equal(enabled.publicPages.translation, `${enabled.website}/translate`)
     const translation = enabled.integrations.translation
     assert.deepEqual(translation, {
       schemaVersion: 1,

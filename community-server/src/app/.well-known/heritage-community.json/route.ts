@@ -22,6 +22,10 @@ export function GET() {
     website: communityPublicConfig.publicUrl,
     contentServerUrl: `${communityPublicConfig.publicUrl}/heritage-content.json`,
     apiBaseUrl: `${communityPublicConfig.publicUrl}/api`,
+    publicPages: {
+      live: `${communityPublicConfig.publicUrl}/live`,
+      ...(translationEnabled ? { translation: `${communityPublicConfig.publicUrl}/translate` } : {}),
+    },
     integrations: {
       ...(translationEnabled ? { translation } : {}),
       syncShow: {

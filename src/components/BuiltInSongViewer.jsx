@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { loadMergedSong } from '../services/songCatalog'
 import { buildCommunitySongShareUrl } from '../utils/communitySongLinks'
 import { writeTextToClipboard } from '../utils/verseSelection'
@@ -44,6 +44,9 @@ function linksFor(result) {
 function BuiltInSongViewer() {
   const { itemId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const communityId = searchParams.get('community')
+  const catalogPath = `/resources/songs${communityId ? `?community=${encodeURIComponent(communityId)}` : ''}`
   const [language, setLanguage] = useState('en')
   const [variantIndex, setVariantIndex] = useState(0)
   const [song, setSong] = useState(null)
@@ -142,7 +145,7 @@ function BuiltInSongViewer() {
         <div className="max-w-md rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 text-center">
           <h1 className="font-semibold text-gray-900 dark:text-gray-100">Song not found</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{loadError || 'This song is no longer in an installed catalog.'}</p>
-          <button onClick={() => navigate('/resources/songs')} className="mt-4 text-sm font-semibold text-primary dark:text-blue-300 underline">
+          <button onClick={() => navigate(catalogPath)} className="mt-4 text-sm font-semibold text-primary dark:text-blue-300 underline">
             Back to Songs
           </button>
         </div>
@@ -154,7 +157,7 @@ function BuiltInSongViewer() {
     <div className="min-h-screen bg-background dark:bg-gray-900">
       <header className="bg-primary text-white sticky top-0 z-40 shadow-lg">
         <div className="h-14 px-4 sm:px-6 flex items-center gap-3">
-          <button onClick={() => navigate('/resources/songs')} className="p-1.5 rounded-lg hover:bg-white/20" aria-label="Back">←</button>
+          <button onClick={() => navigate(catalogPath)} className="p-1.5 rounded-lg hover:bg-white/20" aria-label="Back">←</button>
           <h1 className="min-w-0 flex-1 truncate text-base sm:text-lg font-bold">
             {russian && song.russianTitle ? song.russianTitle : song.title}
           </h1>

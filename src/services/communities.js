@@ -86,6 +86,50 @@ export async function inspectCommunity(inputUrl) {
   return { ...discovery, contentPreview }
 }
 
+export async function refreshCommunityDiscovery(communityId) {
+  const existing = getCommunities().find(record => record.manifest.id === communityId)
+  if (!existing) return null
+  const discovery = await inspectCommunityManifest(existing.manifestUrl)
+  if (discovery.manifest.id !== communityId) throw new Error('The community id changed; check its address again.')
+  const records = getCommunities()
+  const current = records.find(record => record.manifest.id === communityId)
+  if (!current || current.manifestUrl !== existing.manifestUrl) return null
+  const record = { ...current, ...discovery }
+  writeRegistry(records.map(row => row.manifest.id === communityId ? record : row))
+  return record
+}
+
+export async function savePublicCommunity(preview) {
+  if (!preview?.manifest?.id || !preview?.contentPreview?.manifest?.id) {
+    throw new Error('Check the community before saving it.')
+  }
+  const existing = getCommunities().find(record => record.manifest.id === preview.manifest.id)
+  if (existing && existing.manifestUrl !== preview.manifestUrl) {
+    throw new Error('A different address is already saved for this community.')
+  }
+  const installed = getContentServerSubscriptions().find(server => server.manifest.id === preview.contentPreview.manifest.id)
+  if (installed && installed.manifestUrl !== preview.contentPreview.manifestUrl) {
+    throw new Error('A different address is already saved for this content server.')
+  }
+  // Keep an existing member catalog and its enabled/disabled preference.
+  if (!installed) await addContentServer(preview.contentPreview)
+  const records = getCommunities()
+  const current = records.find(record => record.manifest.id === preview.manifest.id)
+  const record = {
+    ...preview,
+    ...current,
+    manifest: preview.manifest,
+    contentPreview: installed || preview.contentPreview,
+    status: current?.status || 'following',
+    primary: current?.primary ?? records.length === 0,
+    addedAt: current?.addedAt || new Date().toISOString(),
+  }
+  writeRegistry(current
+    ? records.map(row => row.manifest.id === preview.manifest.id ? record : row)
+    : [...records, record])
+  return record
+}
+
 export async function beginCommunityJoin(preview, email, options = {}) {
   if (!preview?.manifest?.id) throw new Error('Check the community before joining it.')
   const normalizedEmail = String(email || '').trim().toLowerCase()

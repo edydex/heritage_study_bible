@@ -7,8 +7,13 @@ import {
   getCommunities,
   inspectCommunity,
   removeCommunity,
+  refreshCommunityDiscovery,
+  savePublicCommunity,
   setPrimaryCommunity,
 } from '../services/communities'
+import CommunityResources from './CommunityResources'
+
+const COMMUNITY_FEATURE_LABELS = { events: 'Calendar', rsvps: 'Event RSVPs', personalProgressSync: 'Personal sync', strictPasswordProtection: 'Optional password protection' }
 
 function formatEventDate(value) {
   const date = new Date(value)
@@ -74,6 +79,23 @@ function CommunityHomePage() {
   }, [])
 
   const primary = useMemo(() => communities.find(record => record.primary) || communities[0] || null, [communities])
+
+  useEffect(() => {
+    if (primary) refreshCommunityDiscovery(primary.manifest.id).catch(() => {})
+  }, [primary?.manifest?.id])
+
+  const handleSavePublic = async () => {
+    setBusy('save')
+    setMessage('')
+    try {
+      await savePublicCommunity(preview)
+      setCommunities(setPrimaryCommunity(preview.manifest.id))
+      setPreview(null)
+      setJoinUrl('')
+      setMessage('Church saved. Its public resources are ready to browse.')
+    } catch (error) { setMessage(error.message) }
+    finally { setBusy('') }
+  }
 
   const loadEvents = async community => {
     if (community.status !== 'joined') return
@@ -162,14 +184,16 @@ function CommunityHomePage() {
       </header>
 
       <main className="container mx-auto max-w-2xl px-4 py-5 pb-20 space-y-5">
-        {primary?.status === 'joined' && (
+        {primary && (
           <section className="rounded-xl bg-primary text-white p-5 shadow-sm">
             <p className="text-xs uppercase tracking-wide text-blue-100">Primary community</p>
             <h2 className="mt-1 text-2xl font-bold heading-text">{primary.manifest.name}</h2>
             <p className="mt-2 text-sm text-blue-50">{primary.manifest.description}</p>
-            <p className="mt-3 text-xs text-blue-100">Signed in as {primary.member?.displayName || primary.member?.email || 'Member'}</p>
+            {primary.status === 'joined' && <p className="mt-3 text-xs text-blue-100">Signed in as {primary.member?.displayName || primary.member?.email || 'Member'}</p>}
           </section>
         )}
+
+        {primary && <CommunityResources key={primary.manifest.id} community={primary} />}
 
         <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
@@ -204,13 +228,13 @@ function CommunityHomePage() {
 
         <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5">
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Your communities</h2>
-          {communities.length === 0 ? <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">You have not joined a community yet.</p> : (
+          {communities.length === 0 ? <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Save a church below to find its live service and resources.</p> : (
             <div className="mt-2 divide-y divide-gray-200 dark:divide-gray-700">
               {communities.map(community => (
                 <div key={community.manifest.id} className="py-3 flex items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold text-gray-900 dark:text-gray-100">{community.manifest.name} {community.primary && <span className="text-xs text-primary dark:text-blue-300">· Primary</span>}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{community.status === 'joined' ? 'Joined' : 'Waiting for email sign-in'}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{{ joined: 'Joined', 'sync-only': 'Signed in for personal sync', following: 'Public resources saved', 'email-sent': 'Waiting for email sign-in' }[community.status] || 'Saved community'}</p>
                   </div>
                   <div className="flex gap-2">
                     {!community.primary && <button onClick={() => setCommunities(setPrimaryCommunity(community.manifest.id))} className="text-xs text-primary dark:text-blue-300">Make primary</button>}
@@ -223,8 +247,8 @@ function CommunityHomePage() {
         </section>
 
         <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Join a community</h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Checking first shows the community features and public resources. Most Communities require your email to be listed under Member invitations before they send a one-time sign-in link.</p>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Find a church</h2>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Save a church to browse its public resources without signing in. Join with an invitation to access member resources and the shared calendar.</p>
           <form noValidate onSubmit={handleInspect} className="mt-4 flex flex-col sm:flex-row gap-2">
             <input type="text" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={joinUrl} onChange={event => { setJoinUrl(event.target.value); setPreview(null) }} placeholder="community.example.church" aria-label="Community server address" className="flex-1 min-w-0 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
             <button disabled={busy === 'inspect' || !joinUrl.trim()} className="rounded-lg bg-primary px-4 py-2.5 text-white font-semibold disabled:opacity-50">{busy === 'inspect' ? 'Checking…' : 'Check Community'}</button>
@@ -235,11 +259,13 @@ function CommunityHomePage() {
               <h3 className="font-bold text-gray-900 dark:text-gray-100">{preview.manifest.name}</h3>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{preview.manifest.description}</p>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {Object.entries(preview.manifest.capabilities).filter(([, enabled]) => enabled).map(([capability]) => <span key={capability} className="rounded-full bg-white dark:bg-gray-800 px-2 py-1 text-[11px] text-gray-600 dark:text-gray-300">{capability.replace(/([A-Z])/g, ' $1')}</span>)}
+                {Object.entries(preview.manifest.capabilities).filter(([key, enabled]) => enabled && COMMUNITY_FEATURE_LABELS[key]).map(([capability]) => <span key={capability} className="rounded-full bg-white dark:bg-gray-800 px-2 py-1 text-[11px] text-gray-600 dark:text-gray-300">{COMMUNITY_FEATURE_LABELS[capability]}</span>)}
               </div>
-              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">Also adds {Object.values(preview.contentPreview.counts).reduce((sum, count) => sum + count, 0)} public resources through its Content Server.</p>
-              <input type="email" inputMode="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-3 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
-              <button onClick={handleJoin} disabled={busy === 'join' || !email.trim()} className="mt-2 w-full rounded-lg bg-gray-950 dark:bg-gray-100 px-4 py-2.5 text-white dark:text-gray-950 font-bold disabled:opacity-50">{busy === 'join' ? 'Sending link…' : `Join ${preview.manifest.name}`}</button>
+              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">{Object.values(preview.contentPreview.counts).reduce((sum, count) => sum + count, 0)} public resources available.</p>
+              <button onClick={handleSavePublic} disabled={Boolean(busy)} className="mt-3 w-full rounded-lg bg-primary px-4 py-2.5 text-white font-semibold disabled:opacity-50">{busy === 'save' ? 'Saving…' : 'Save church and browse public resources'}</button>
+              <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">Have a member invitation? Enter your email to join.</p>
+              <input aria-label="Member email" type="email" inputMode="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-3 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
+              <button onClick={handleJoin} disabled={Boolean(busy) || !email.trim()} className="mt-2 w-full rounded-lg bg-gray-950 dark:bg-gray-100 px-4 py-2.5 text-white dark:text-gray-950 font-bold disabled:opacity-50">{busy === 'join' ? 'Sending link…' : `Join ${preview.manifest.name}`}</button>
             </div>
           )}
         </section>

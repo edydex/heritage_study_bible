@@ -355,3 +355,34 @@ test('sync-only sign-in neither subscribes to nor fetches Community content', as
     globalThis.fetch = previous.fetch
   }
 })
+
+test('saving public resources sends no email and preserves existing membership and private catalog', async () => {
+  const previous = { localStorage: globalThis.localStorage, window: globalThis.window, CustomEvent: globalThis.CustomEvent, fetch: globalThis.fetch }
+  globalThis.localStorage = createStorage()
+  globalThis.CustomEvent = class CustomEvent {}
+  globalThis.window = { dispatchEvent() {} }
+  globalThis.fetch = async () => { throw new Error('Public save must make no network/auth request') }
+  const preview = {
+    manifestUrl: 'https://church.example/.well-known/heritage-community.json',
+    manifest: { id: 'church', name: 'Church' },
+    contentPreview: { manifestUrl: 'https://church.example/heritage-content.json', manifest: { id: 'church-content' }, catalogs: { songs: { items: [] } }, counts: { songs: 0 } },
+  }
+  try {
+    const { savePublicCommunity, getCommunities, COMMUNITY_REGISTRY_KEY } = await import('../src/services/communities.js')
+    const saved = await savePublicCommunity(preview)
+    assert.equal(saved.status, 'following')
+    assert.equal(saved.primary, true)
+    assert.equal(globalThis.localStorage.getItem('heritage-community-sessions-v1'), null)
+    const member = { ...saved, status: 'joined', member: { id: 'member-1' }, syncOnly: false }
+    globalThis.localStorage.setItem(COMMUNITY_REGISTRY_KEY, JSON.stringify([member]))
+    const privateCatalog = { ...preview.contentPreview, enabled: false, catalogs: { songs: { items: [{ title: 'Member-only song' }] } } }
+    globalThis.localStorage.setItem('heritage-content-servers-v2', JSON.stringify([privateCatalog]))
+    await savePublicCommunity(preview)
+    const record = getCommunities()[0]
+    assert.equal(record.status, 'joined')
+    assert.equal(record.member.id, 'member-1')
+    assert.equal(record.contentPreview.catalogs.songs.items[0].title, 'Member-only song')
+    assert.equal(JSON.parse(globalThis.localStorage.getItem('heritage-content-servers-v2'))[0].enabled, false)
+    await assert.rejects(savePublicCommunity({ ...preview, manifestUrl: 'https://other.example/community.json' }), /different address/)
+  } finally { Object.assign(globalThis, previous) }
+})

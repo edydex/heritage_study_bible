@@ -95,3 +95,15 @@ test('community manifests reject auth and sync endpoints on another origin', () 
     },
   }, 'https://community.example.church/.well-known/heritage-community.json'), /must stay on the Community server/)
 })
+
+test('public page discovery only keeps safe links on the community origin', () => {
+  const base = { schemaVersion: 1, kind: 'heritage-community', id: 'church', name: 'Church', apiBaseUrl: '/api', contentServerUrl: '/heritage-content.json', auth: { method: 'email-magic-link' } }
+  const url = 'https://church.example/.well-known/heritage-community.json'
+  assert.deepEqual(validateCommunityManifest({ ...base, publicPages: { live: '/live', translation: '/translate' } }, url).publicPages, {
+    live: 'https://church.example/live', translation: 'https://church.example/translate',
+  })
+  for (const unsafe of ['https://elsewhere.example/live', 'javascript:alert(1)', 'https://name:secret@church.example/live']) {
+    assert.deepEqual(validateCommunityManifest({ ...base, publicPages: { live: unsafe } }, url).publicPages, {})
+  }
+  assert.deepEqual(validateCommunityManifest(base, url).publicPages, {})
+})

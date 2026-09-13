@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
 import { DEFAULT_TRANSLATION, loadTranslation } from '../data/translations'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from '../utils/librarySearch'
@@ -80,6 +80,10 @@ const CLICKABLE_CATEGORIES = ['confessions', 'books', 'reading-plans', 'tools', 
 function ResourcePage() {
   const { categoryId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const communityId = ['songs', 'sermons', 'commentaries'].includes(categoryId) ? searchParams.get('community') : null
+  const community = communityId ? getCommunities().find(record => record.manifest.id === communityId) : null
+  const communitySourceId = community?.contentPreview?.manifest?.id
 
   const [searchQuery, setSearchQuery] = useState('')
   const [showFilters, setShowFilters] = useState(false)
@@ -153,12 +157,15 @@ function ResourcePage() {
 
   const items = useMemo(() => {
     if (isSongs) {
-      return mergeSongCatalog({
-        remoteItems,
-        communities: getCommunities(),
-      })
+      const songs = mergeSongCatalog({ remoteItems, communities: getCommunities() })
+      // Filter after merging so song URLs still identify the same group in the viewer.
+      return communityId ? songs.filter(song => communitySourceId && song.references.some(
+        reference => reference.kind === 'remote' && reference.item.sourceServerId === communitySourceId,
+      )) : songs
     }
-    const combined = [...category.items, ...remoteItems]
+    const combined = communityId
+      ? remoteItems.filter(item => communitySourceId && item.sourceServerId === communitySourceId)
+      : [...category.items, ...remoteItems]
     if (isSongs) return combined.sort((a, b) => a.title.localeCompare(b.title))
     if (!isConfessions && !isBooks) return combined
     return combined.sort((a, b) => {
@@ -167,7 +174,7 @@ function ResourcePage() {
       if (ay !== by) return ay - by
       return a.title.localeCompare(b.title)
     })
-  }, [category.items, isBooks, isConfessions, isSongs, remoteItems])
+  }, [category.items, isBooks, isConfessions, isSongs, remoteItems, communityId, communitySourceId])
 
   const availableTags = useMemo(() => {
     if (!isBooks) return []
@@ -284,7 +291,7 @@ function ResourcePage() {
 
   const handleItemClick = (item) => {
     if (isSongs) {
-      navigate(`/resources/songs/${encodeURIComponent(item.id)}`)
+      navigate(`/resources/songs/${encodeURIComponent(item.id)}${communityId ? `?community=${encodeURIComponent(communityId)}` : ''}`)
       return
     }
     if (item.remote) {
@@ -305,7 +312,7 @@ function ResourcePage() {
       <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
         <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
           <button
-            onClick={() => navigate('/genesis/1')}
+            onClick={() => navigate(communityId ? '/community' : '/genesis/1')}
             className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
           >
             <span className="text-lg">{'\u2190'}</span>
@@ -352,6 +359,10 @@ function ResourcePage() {
       </header>
 
       <main className="container mx-auto max-w-2xl px-4 py-6">
+        {communityId && <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
+          <p>{community?.manifest.name || 'Community unavailable'}</p>
+          <button onClick={() => navigate(`/resources/${categoryId}`)} className="text-primary dark:text-blue-300 underline">Show all {category.title.toLowerCase()}</button>
+        </div>}
         {isBooks && showFilters && (
           <div className="mb-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
@@ -568,7 +579,7 @@ function ResourcePage() {
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   {trimmedQuery ? 'No songs match that search.' : 'No resources in this category yet.'}
                 </p>
-                {!trimmedQuery && <button onClick={() => navigate('/settings/content-servers')} className="mt-2 text-sm font-semibold text-primary dark:text-blue-300 underline underline-offset-2">Add a Content Server</button>}
+                {!trimmedQuery && <button onClick={() => navigate(communityId ? '/community' : '/settings/content-servers')} className="mt-2 text-sm font-semibold text-primary dark:text-blue-300 underline underline-offset-2">{communityId ? 'Back to Community Home' : 'Add a Content Server'}</button>}
               </div>
             )}
 
