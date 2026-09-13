@@ -1,17 +1,18 @@
 import Link from 'next/link'
+import { loadLiveService } from '@/lib/loadLiveService'
 import { formatBibleRange, formatServiceDate, loadPublicSermons } from '@/lib/publicSite'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Sermons' }
 
 export default async function SermonsPage() {
-  const sermons = await loadPublicSermons().catch(() => [])
+  const [sermons, { churchName }] = await Promise.all([loadPublicSermons().catch(() => []), loadLiveService()])
   return (
     <main className="site-main page-stack">
       <header className="page-heading">
         <p className="eyebrow">Public library</p>
         <h1>Sermons</h1>
-        <p>Messages preached at Word of Truth Bible Church.</p>
+        <p>Messages preached at {churchName}.</p>
       </header>
       {sermons.length ? <div className="sermon-list">
         {sermons.map(sermon => <article key={sermon.id}>

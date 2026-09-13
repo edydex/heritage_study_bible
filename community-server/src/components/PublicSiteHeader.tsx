@@ -1,14 +1,14 @@
 import Link from 'next/link'
 
-export function PublicSiteHeader() {
+export function PublicSiteHeader({ churchName }: { churchName: string }) {
   return (
     <header className="site-header">
       <div className="site-header__inner">
         <Link className="site-brand" href="/">
-          <span className="site-brand__mark" aria-hidden="true">W</span>
+          <span className="site-brand__mark" aria-hidden="true">{Array.from(churchName.trim())[0]?.toLocaleUpperCase() || 'H'}</span>
           <span>
-            <strong>Word of Truth Bible Church</strong>
-            <small>WOTBC Heritage</small>
+            <strong>{churchName}</strong>
+            <small>Heritage Community</small>
           </span>
         </Link>
         <nav aria-label="Main navigation">

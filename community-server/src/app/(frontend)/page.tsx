@@ -1,10 +1,11 @@
 import Link from 'next/link'
+import { loadLiveService } from '@/lib/loadLiveService'
 import { formatServiceDate, loadPublicSermons } from '@/lib/publicSite'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const sermons = await loadPublicSermons().catch(() => [])
+  const [sermons, { churchName }] = await Promise.all([loadPublicSermons().catch(() => []), loadLiveService()])
   const latest = sermons[0]
   return (
     <main className="site-main">
@@ -20,7 +21,7 @@ export default async function Home() {
         </div>
         <aside className="home-hero__card">
           <span>Sunday worship</span>
-          <strong>Word of Truth Bible Church</strong>
+          <strong>{churchName}</strong>
           <p>Join us as we read, sing, and hear God’s Word together.</p>
         </aside>
       </section>
