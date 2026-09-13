@@ -1014,6 +1014,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
   const [currentBook, setCurrentBook] = useState(urlBook || 'Genesis')
   const [currentChapter, setCurrentChapter] = useState(urlChapter || 1)
+  const lastPassageUrlRef = useRef({ book: urlBook, chapter: urlChapter })
   const [showBookmarkManager, setShowBookmarkManager] = useState(false)
   const [showResources, setShowResources] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -1481,15 +1482,24 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     navigate(location.pathname, { replace: true, state: null })
   }, [location.pathname, location.state, navigate])
 
-  // Sync URL to state when URL changes
+  // An incoming route wins over the previous render's passage state. Keep both
+  // directions in one effect so a changing navigate callback cannot write the
+  // old chapter back while the new URL is being adopted.
   useEffect(() => {
-    if (urlBook && urlBook !== currentBook) {
-      setCurrentBook(urlBook)
+    const previous = lastPassageUrlRef.current
+    const urlChanged = previous.book !== urlBook || previous.chapter !== urlChapter
+    lastPassageUrlRef.current = { book: urlBook, chapter: urlChapter }
+    if (urlChanged) {
+      if (urlBook && urlBook !== currentBook) setCurrentBook(urlBook)
+      if (urlChapter && urlChapter !== currentChapter) setCurrentChapter(urlChapter)
+      return
     }
-    if (urlChapter && urlChapter !== currentChapter) {
-      setCurrentChapter(urlChapter)
+
+    const expectedSlug = bookToSlug(currentBook)
+    if (bookSlug !== expectedSlug || urlChapter !== currentChapter) {
+      navigate(`/${expectedSlug}/${currentChapter}`, { replace: true })
     }
-  }, [urlBook, urlChapter])
+  }, [bookSlug, urlBook, urlChapter, currentBook, currentChapter, navigate])
 
   // Handle external deep links that should open commentary at a specific verse
   useEffect(() => {
@@ -1530,17 +1540,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       return null
     })
   }, [currentBook, currentChapter])
-
-  // Update URL when book/chapter changes (but avoid loops)
-  useEffect(() => {
-    const expectedSlug = bookToSlug(currentBook)
-    const currentPath = `/${expectedSlug}/${currentChapter}`
-    
-    // Only navigate if URL doesn't match current state
-    if (bookSlug !== expectedSlug || parseInt(chapterNum) !== currentChapter) {
-      navigate(currentPath, { replace: true })
-    }
-  }, [currentBook, currentChapter, navigate])
 
   // Check screen size for responsive behavior
   useEffect(() => {

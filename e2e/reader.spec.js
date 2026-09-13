@@ -56,6 +56,26 @@ test.describe('Heritage reader', () => {
     await expect(page.locator('#verse-2-1')).toBeVisible({ timeout: 20_000 })
   })
 
+  test('adopts changed hash routes and browser history without a render loop', async ({ page }) => {
+    await openReader(page)
+    await page.goto('/#/genesis/2')
+    await expect(page.locator('#verse-2-1')).toBeVisible()
+    await expect(page).toHaveURL(/#\/genesis\/2$/)
+
+    await page.goto('/#/john/3')
+    await expect(page.getByRole('heading', { name: 'John 3', exact: true })).toBeVisible()
+    await expect(page.locator('#verse-3-16')).toContainText('For God so loved')
+    await page.goBack()
+    await expect(page.getByRole('heading', { name: 'Genesis 2', exact: true })).toBeVisible()
+    await page.goForward()
+    await expect(page.getByRole('heading', { name: 'John 3', exact: true })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Next chapter' }).click()
+    await expect(page).toHaveURL(/#\/john\/4$/)
+    await expect(page.locator('#verse-4-1')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Something went wrong' })).toHaveCount(0)
+  })
+
   test('jumps to a verse reference from search', async ({ page }) => {
     await openReader(page)
     await submitSearch(page, 'John 3:16')
