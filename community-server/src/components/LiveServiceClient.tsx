@@ -22,17 +22,17 @@ export function LiveServiceClient({ settings, video = false }: { settings: LiveS
         const url = new URL('client/heritage.js', base).href
         const client = await import(/* webpackIgnore: true */ url) as {
           clientVersion: number
-          mount(element: HTMLElement, options: { apiBase: string; churchName: string; videoId: string | null; channelUrl: string | null }): () => void
+          mount(element: HTMLElement, options: { apiBase: string; broadcastDelaySeconds: number; churchName: string; videoId: string | null; channelUrl: string | null }): () => void
         }
         if (stopped) return
         if (client.clientVersion !== 1 || typeof client.mount !== 'function') throw new Error('Incompatible listener client')
-        dispose = client.mount(element, { apiBase: base.href, churchName: settings.churchName, videoId: video ? settings.videoId : null, channelUrl: video ? settings.channelUrl : null })
+        dispose = client.mount(element, { apiBase: base.href, broadcastDelaySeconds: settings.broadcastDelaySeconds, churchName: settings.churchName, videoId: video ? settings.videoId : null, channelUrl: video ? settings.channelUrl : null })
         setState('ready')
       } catch { if (!stopped) setState('unavailable') }
     }
     void load()
     return () => { stopped = true; dispose?.(); element.remove() }
-  }, [settings.translationUrl, settings.churchName, settings.videoId, settings.channelUrl, video])
+  }, [settings.translationUrl, settings.churchName, settings.videoId, settings.channelUrl, settings.broadcastDelaySeconds, video])
 
   return <>
     <div ref={host} className="live-service-client" />
