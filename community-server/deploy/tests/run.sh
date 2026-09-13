@@ -19,6 +19,7 @@ for script in "${scripts[@]}"; do
   bash -n "$script"
 done
 pass "all operator scripts pass bash syntax checking"
+bash "${DEPLOY_DIR}/tests/translation.sh"
 
 grep -Fq '/app/private/sermon-media/staging' "${SERVER_DIR}/Dockerfile" \
   && grep -Fq '/app/private/sermon-media/objects' "${SERVER_DIR}/Dockerfile" \

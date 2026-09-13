@@ -35,6 +35,8 @@ active staging refuses backup. Online backup is allowed only while managed
 recording upload is disabled and both its database and private store stay empty.
 
 Existing backups are never overwritten.
+When translation is installed, format 3 also contains its stopped archive store.
+Prepared or live translation refuses backup before any service is stopped.
 EOF
 }
 
@@ -119,6 +121,7 @@ if [[ -e "${destination}" ]]; then
 fi
 partial="${HERITAGE_BACKUP_DIR}/.partial-${name}-$$"
 app_was_stopped=0
+translation_was_running=0
 backup_complete=0
 leave_app_stopped=0
 
@@ -139,6 +142,14 @@ cleanup() {
     fi
   fi
 
+  if (( translation_was_running )); then
+    heritage_translation_resume >/dev/null 2>&1
+    if [[ $? -ne 0 && ${status} -eq 0 ]]; then
+      status=1
+      heritage_warn "The backup succeeded, but translation could not resume. Run heritage-community translation status."
+    fi
+  fi
+
   if (( ! backup_complete )) && [[ -n "${partial:-}" && "${partial}" == "${HERITAGE_BACKUP_DIR}/.partial-"* ]]; then
     rm -rf -- "${partial}"
   fi
@@ -148,6 +159,16 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
+
+if heritage_translation_enabled; then
+  [[ "${quiesce}" == "1" ]] || heritage_die "Translation archives require a quiesced backup. Use --quiesce."
+  if heritage_service_running translation-processor; then
+    # Set the restart flag only after maintenance accepts an idle service.
+    heritage_translation_maintenance true || heritage_die "Translation is busy; no service was stopped."
+    translation_was_running=1
+    heritage_translation_quiesce || heritage_die "Could not stop idle translation for backup."
+  fi
+fi
 
 mkdir -- "${partial}"
 
@@ -413,6 +434,11 @@ if command -v git >/dev/null 2>&1 && git -C "${HERITAGE_INSTALL_DIR}" rev-parse 
 fi
 
 backup_format=2
+if heritage_translation_enabled; then
+  heritage_info "Archiving the stopped translation processor."
+  heritage_translation_archive "${partial}/translation.tar.gz"
+  backup_format=3
+fi
 
 cat >"${partial}/manifest.env" <<EOF
 HERITAGE_BACKUP_FORMAT=${backup_format}
@@ -433,10 +459,19 @@ SERMON_MEDIA_OBJECT_COUNT=${sermon_inventory_count}
 SERMON_MEDIA_OBJECT_BYTES=${sermon_inventory_bytes}
 EOF
 
+if [[ "${backup_format}" == "3" ]]; then
+  cat >>"${partial}/manifest.env" <<EOF
+TRANSLATION_FILE=translation.tar.gz
+TRANSLATION_SOURCE_REVISION=$(heritage_config_value HERITAGE_TRANSLATION_REVISION)
+TRANSLATION_IMAGE_ID=$(heritage_translation_image_id)
+EOF
+fi
+
 (
   cd -- "${partial}"
   sha256sum database.dump media.tar.gz recovery.tar.gz sermon-media.tar.gz \
     sermon-media.inventory manifest.env >SHA256SUMS
+  [[ "${backup_format}" != "3" ]] || sha256sum translation.tar.gz >>SHA256SUMS
 )
 
 heritage_info "Verifying the complete backup set before publication."

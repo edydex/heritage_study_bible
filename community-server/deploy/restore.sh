@@ -142,6 +142,10 @@ heritage_info "Verifying backup checksums."
 heritage_verify_backup "${backup_path}"
 backup_format="$(heritage_backup_format "${backup_path}")" \
   || heritage_die "Backup format validation failed."
+if [[ "${backup_format}" == "3" ]]; then
+  heritage_translation_enabled || heritage_die "This backup includes translation. Set up the translation companion before restoring it."
+  heritage_validate_tar_archive "${backup_path}/translation.tar.gz" generic || heritage_die "Translation archive validation failed; live data was not changed."
+fi
 heritage_info "Validating the PostgreSQL dump catalog."
 heritage_compose run --rm --no-deps -T --entrypoint pg_restore postgres --list \
   <"${backup_path}/database.dump" >/dev/null \
@@ -149,12 +153,12 @@ heritage_compose run --rm --no-deps -T --entrypoint pg_restore postgres --list \
 
 heritage_validate_tar_archive "${backup_path}/media.tar.gz" generic \
   || heritage_die "Media archive validation failed; live data was not changed."
-if [[ "${backup_format}" == "2" ]]; then
+if [[ "${backup_format}" != "1" ]]; then
   heritage_validate_tar_archive "${backup_path}/sermon-media.tar.gz" sermon-media \
     || heritage_die "Private sermon-media archive validation failed; live data was not changed."
 fi
 
-if [[ "${backup_format}" == "2" \
+if [[ "${backup_format}" != "1" \
   && ( "${restore_database}" != "1" || "${restore_media}" != "1" ) ]]; then
   heritage_die "Format 2 backup is one atomic database/media set; partial restore is refused."
 fi
@@ -199,6 +203,9 @@ fi
 
 safety_backup="not-created"
 community_was_running=0
+translation_was_running=0
+translation_restore_volume=""
+translation_restore_selected=0
 destructive_started=0
 leave_app_stopped_on_failure=0
 sermon_restore_volume=""
@@ -242,7 +249,7 @@ prepare_sermon_restore_volume() {
     sh "${sermon_service_uid}" "${sermon_service_gid}" \
     || heritage_die "Could not initialize the temporary sermon-media volume."
 
-  if [[ "${backup_format}" == "2" ]]; then
+  if [[ "${backup_format}" != "1" ]]; then
     heritage_info "Extracting private recordings into a distinct temporary volume."
     heritage_compose run --rm --no-deps -T \
       --volume "${sermon_restore_volume}:/restore" \
@@ -341,7 +348,7 @@ prepare_sermon_restore_volume() {
 
   read -r restored_inventory_digest restored_inventory_count restored_inventory_bytes \
     < <(heritage_sermon_inventory_summary "${sermon_restore_inventory}")
-  if [[ "${backup_format}" == "2" ]]; then
+  if [[ "${backup_format}" != "1" ]]; then
     cmp -- "${backup_path}/sermon-media.inventory" \
       "${sermon_restore_inventory}" \
       || heritage_die "Extracted private objects do not exactly match the format 2 inventory."
@@ -494,6 +501,7 @@ cleanup() {
     heritage_warn "Restore did not finish. Safety backup: ${safety_backup}"
     if (( destructive_started || leave_app_stopped_on_failure )); then
       heritage_compose stop --timeout 60 community >/dev/null 2>&1 || true
+      if heritage_translation_enabled; then heritage_compose stop --timeout 60 translation-processor >/dev/null 2>&1 || true; fi
       if (( destructive_started )); then
         heritage_warn "Live data may be incomplete. The application remains stopped; inspect the error and restore the safety backup."
       else
@@ -508,12 +516,23 @@ cleanup() {
     fi
   fi
 
+  if (( status != 0 && translation_was_running && ! destructive_started && ! leave_app_stopped_on_failure )); then
+    heritage_translation_resume >/dev/null 2>&1 || true
+  fi
+  if [[ -n "$translation_restore_volume" ]] && (( ! translation_restore_selected )); then
+    heritage_docker volume rm "$translation_restore_volume" >/dev/null 2>&1 || true
+  fi
   exit "${status}"
 }
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
+if heritage_translation_enabled && heritage_service_running translation-processor; then
+  heritage_translation_maintenance true || heritage_die "Finish the live translation service before restore."
+  translation_was_running=1
+  heritage_translation_quiesce || heritage_die "Could not stop translation before restore."
+fi
 if heritage_service_running community; then
   community_was_running=1
 fi
@@ -544,7 +563,7 @@ heritage_compose run --rm --no-deps -T --entrypoint pg_restore postgres --list \
   || heritage_die "The selected PostgreSQL dump changed or became unreadable; live data was not changed."
 heritage_validate_tar_archive "${backup_path}/media.tar.gz" generic \
   || heritage_die "The selected media archive changed or became unsafe; live data was not changed."
-if [[ "${backup_format}" == "2" ]]; then
+if [[ "${backup_format}" != "1" ]]; then
   heritage_validate_tar_archive "${backup_path}/sermon-media.tar.gz" sermon-media \
     || heritage_die "The selected private sermon-media archive changed or became unsafe; live data was not changed."
 fi
@@ -559,6 +578,11 @@ heritage_wait_for_postgres 60 || heritage_die "PostgreSQL did not become ready."
 if (( restore_media )); then
   prepare_sermon_restore_volume
   validate_live_sermon_layout_for_restore
+fi
+
+if [[ "${backup_format}" == "3" ]]; then
+  heritage_validate_tar_archive "${backup_path}/translation.tar.gz" generic || heritage_die "The translation archive changed or is unsafe."
+  heritage_translation_stage_restore "${backup_path}/translation.tar.gz"
 fi
 
 if (( restore_database )); then
@@ -579,7 +603,7 @@ if (( restore_database )); then
   restored_database_inventory="$(mktemp \
     "${TMPDIR:-/tmp}/heritage-restored-database-inventory.XXXXXX")"
   heritage_capture_sermon_database_inventory "${restored_database_inventory}"
-  if [[ "${backup_format}" == "2" ]]; then
+  if [[ "${backup_format}" != "1" ]]; then
     cmp -- "${backup_path}/sermon-media.inventory" \
       "${restored_database_inventory}" \
       || heritage_die "Restored database recording rows do not exactly match the format 2 object inventory."
@@ -606,7 +630,17 @@ if (( restore_media )); then
   replace_private_sermon_media
 fi
 
+if [[ "${backup_format}" == "3" ]]; then
+  heritage_translation_select_restore
+elif heritage_translation_enabled; then
+  heritage_warn "This older backup has no translation archive. Existing translation storage was preserved."
+fi
+
 if (( start_after )); then
+  if heritage_translation_enabled; then
+    heritage_compose up -d translation-processor
+    heritage_translation_wait 60 || heritage_die "Restored translation did not become healthy."
+  fi
   heritage_info "Starting Heritage Community."
   heritage_compose up -d postgres community
   # Never reconcile a connector that is already running: it may carry this

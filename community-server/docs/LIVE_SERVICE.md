@@ -22,4 +22,23 @@ Set `TRANSLATION_CONTROL_TOKEN` to the processor's permanent `PROCESSOR_CONTROL_
 
 `TRANSLATION_PROCESSOR_URL` must identify the same processor at build time and runtime. The production Compose configuration passes it to both. `/client/operator.js` and `/client/pcm-worklet.js` must be installed in the processor alongside the listener module. The Multilinguum processor Dockerfile includes both builds.
 
-The complete optional companion installer, translation archive backup/restore, WOTBC deployment, provider/account setup, actual mixer/audio acceptance, broadcast delay alignment, and SyncShow screen layouts remain integration work. Merely setting these variables does not install the companion.
+## Install the translation companion
+
+Update Community to the compatible integration revision, then use the clean Multilinguum checkout and full revision from the unified repository's `components.lock.json`:
+
+```sh
+heritage-community translation configure --source /absolute/path/to/multilinguum --revision FULL_COMMIT_SHA
+heritage-community translation status
+```
+
+Setup prompts privately for an OpenAI key. Audio relay settings are optional for text-only operation. For unattended setup, use the private `TRANSLATION_OPENAI_API_KEY` and `TRANSLATION_LIVEKIT_*` environment variables with `--non-interactive --yes`. `--dry-run` validates the source and describes the phases. Setup neither starts a paid service nor enables OpenAI data sharing.
+
+The command validates the exact source and companion protocol, takes a safety backup, builds a CPU-only processor, initializes its dedicated volume, and runs the normal Community update. The processor has no public host port. Community keeps the public `/live` and `/translate` addresses, including manager controls at `/admin/live-translation`. Existing tunnel settings remain in place. Provider keys are supplied only to the processor; the shared control key also stays in private Community configuration.
+
+Regular `heritage-community update --no-pull` builds the pinned companion with Community. Reconfiguration uses that same guarded update path. Prebuilt-only `--skip-build` updates are currently refused when the companion is enabled because that mode does not yet pin a third image.
+
+Regular quiesced backups include translation archives, their SQLite index, context documents, and voice-profile metadata in format 3. A prepared or live service refuses maintenance before any service is stopped; finish translation or cancel its preparation first. The idle processor stops before archive copying and resumes afterward. Restore checks the complete checksum set, extracts translation into a distinct volume, and checks SQLite integrity before selecting it. The old volume remains available for recovery. Legacy backups have no translation data and preserve the existing translation volume.
+
+Run `npm run test:deploy` for local deployment checks. On an isolated Docker host, explicitly run `HERITAGE_TRANSLATION_TEST_IMAGE=locally-built-image bash deploy/tests/translation-docker.sh` to exercise the packaged clients, live guard, clean shutdown, archive copy and fresh-volume restore with synthetic bilingual text. It creates a separate project, exposes no host port, uses no provider credentials, and removes only its own temporary containers and volumes.
+
+Full installer/Community migration acceptance, WOTBC deployment, provider/account setup, actual mixer/audio acceptance, broadcast delay alignment, and SyncShow screen layouts still require integration verification.

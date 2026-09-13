@@ -55,6 +55,7 @@ Commands:
   sermon-media-maintenance
                 Quiesce and reconcile managed sermon recording storage
   update        Back up, fast-forward source, build, migrate, and verify
+  translation   Set up or inspect the optional live-translation companion
   reconfigure   Rerun the guided setup while preserving core secrets
   uninstall     Remove services; data is preserved unless explicitly purged
   help          Show this message
@@ -112,6 +113,9 @@ case "$command_name" in
     ;;
   update)
     exec "${SCRIPT_DIR}/update.sh" --install-dir "$HERITAGE_INSTALL_DIR" --backup-dir "$HERITAGE_BACKUP_DIR" "$@"
+    ;;
+  translation)
+    exec "${SCRIPT_DIR}/translation.sh" --install-dir "$HERITAGE_INSTALL_DIR" "$@"
     ;;
   reconfigure)
     deployment_root=${HERITAGE_DEPLOYMENT_ROOT:-$(read_default HERITAGE_DEPLOYMENT_ROOT || printf '/opt/heritage-community')}

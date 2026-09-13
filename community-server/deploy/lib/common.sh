@@ -64,6 +64,9 @@ heritage_init_context() {
   if [[ -n "$(heritage_env_value TUNNEL_TOKEN "${HERITAGE_ENV_FILE}")" ]]; then
     HERITAGE_COMPOSE_PROFILE_ARGS=(--profile cloudflare-token)
   fi
+  if heritage_translation_enabled; then
+    HERITAGE_COMPOSE_PROFILE_ARGS+=(--profile translation)
+  fi
 }
 
 heritage_init_docker() {
@@ -178,7 +181,7 @@ heritage_backup_format() {
 
   format="$(heritage_manifest_value HERITAGE_BACKUP_FORMAT "${backup_dir}/manifest.env")"
   case "${format}" in
-    1|2)
+    1|2|3)
       printf '%s\n' "${format}"
       ;;
     *)
@@ -648,7 +651,7 @@ heritage_verify_backup() {
     || heritage_die "Backup manifest has an unexpected recovery filename."
 
   expected_checksum_count=4
-  if [[ "${format}" == "2" ]]; then
+  if [[ "${format}" != "1" ]]; then
     [[ "$(heritage_manifest_value SERMON_MEDIA_FILE "${backup_dir}/manifest.env")" \
       == "sermon-media.tar.gz" ]] \
       || heritage_die "Format 2 backup manifest has an unexpected sermon-media filename."
@@ -679,6 +682,17 @@ heritage_verify_backup() {
     heritage_die "Format 1 backup unexpectedly contains private sermon-media artifacts."
   fi
 
+  if [[ "${format}" == "3" ]]; then
+    [[ "$(heritage_manifest_value TRANSLATION_FILE "${backup_dir}/manifest.env")" == "translation.tar.gz" ]] \
+      || heritage_die "Format 3 backup has an unexpected translation filename."
+    [[ -f "${backup_dir}/translation.tar.gz" ]] || heritage_die "Format 3 translation archive is missing."
+    [[ "$(heritage_manifest_value TRANSLATION_SOURCE_REVISION "${backup_dir}/manifest.env")" =~ ^[a-f0-9]{40}$ ]] \
+      || heritage_die "Format 3 translation revision is missing or invalid."
+    expected_checksum_count=7
+  elif [[ -e "${backup_dir}/translation.tar.gz" ]]; then
+    heritage_die "A legacy backup unexpectedly contains translation data."
+  fi
+
   awk -v format="${format}" -v expected="${expected_checksum_count}" '
     NF != 2 { invalid = 1; next }
     length($1) != 64 || $1 ~ /[^0-9a-f]/ { invalid = 1 }
@@ -689,8 +703,9 @@ heritage_verify_backup() {
       if (filename == "media.tar.gz") allowed = 1
       if (filename == "recovery.tar.gz") allowed = 1
       if (filename == "manifest.env") allowed = 1
-      if (format == "2" && filename == "sermon-media.tar.gz") allowed = 1
-      if (format == "2" && filename == "sermon-media.inventory") allowed = 1
+      if (format != "1" && filename == "sermon-media.tar.gz") allowed = 1
+      if (format != "1" && filename == "sermon-media.inventory") allowed = 1
+      if (format == "3" && filename == "translation.tar.gz") allowed = 1
       if (!allowed) {
         invalid = 1
       }
@@ -721,3 +736,6 @@ heritage_confirm_exact() {
   IFS= read -r answer
   [[ "${answer}" == "${expected}" ]] || heritage_die "Confirmation did not match; nothing was changed."
 }
+
+# Optional translation companion helpers share the same operation lock and configuration.
+source "${HERITAGE_DEPLOY_DIR}/lib/translation.sh"

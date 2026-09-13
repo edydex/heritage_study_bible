@@ -110,6 +110,15 @@ failures=0
 warnings=0
 printf '\nHealth checks\n'
 
+if heritage_translation_enabled; then
+  if heritage_service_running translation-processor && heritage_translation_wait 2; then
+    printf '  [ok] Translation processor is running and healthy\n'
+  else
+    printf '  [FAIL] Translation is configured but the processor is unavailable\n' >&2
+    failures=$((failures + 1))
+  fi
+fi
+
 if heritage_service_running postgres; then
   printf '  [ok] PostgreSQL container is running\n'
 else
@@ -371,7 +380,7 @@ if [[ -n "${coverage_backup}" && -f "${coverage_backup}/manifest.env" ]]; then
     "${coverage_backup}/manifest.env")"
 fi
 coverage_inventory_matches=0
-if [[ "${coverage_backup_format}" == "2" \
+if [[ ( "${coverage_backup_format}" == "2" || "${coverage_backup_format}" == "3" ) \
   && -f "${coverage_backup}/sermon-media.tar.gz" \
   && -f "${coverage_backup}/sermon-media.inventory" \
   && -f "${coverage_backup}/SHA256SUMS" \
@@ -415,7 +424,7 @@ elif [[ "${coverage_backup_format}" == "1" \
   && "${sermon_completed_files}" == "0" ]]; then
   printf '  [ok] %s legacy format 1 backup is acceptable because no finalized private recordings exist\n' \
     "${coverage_label}"
-elif [[ "${coverage_backup_format}" == "2" ]]; then
+elif [[ ( "${coverage_backup_format}" == "2" || "${coverage_backup_format}" == "3" ) ]]; then
   printf '  [FAIL] %s format 2 private-recording inventory is invalid or does not match the current empty store\n' \
     "${coverage_label}" >&2
   failures=$((failures + 1))

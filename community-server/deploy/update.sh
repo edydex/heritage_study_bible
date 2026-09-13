@@ -134,6 +134,9 @@ else
 fi
 
 heritage_init_context
+if heritage_translation_enabled && (( skip_build )); then
+  heritage_die "Prebuilt-only update does not yet pin the translation image. Use a normal update with the companion enabled."
+fi
 
 if (( dry_run )); then
   cat <<EOF
@@ -177,6 +180,7 @@ safety_backup="not-created"
 phase="preflight"
 upstream=""
 app_quiesced=0
+translation_quiesced=0
 community_image_ref=""
 migration_image_ref=""
 source_compose_file="${HERITAGE_COMPOSE_FILE}"
@@ -420,8 +424,8 @@ if (( pull_source )); then
 fi
 
 on_error() {
-  local status=$?
-  trap - ERR HUP INT TERM
+  local status=${1:-$?}
+  trap - ERR EXIT HUP INT TERM
   set +e
   heritage_warn "Update failed during: ${phase}"
   heritage_warn "Previous Git commit: ${before_commit}"
@@ -432,13 +436,20 @@ on_error() {
     heritage_warn "The app remains stopped because the failure occurred after migration quiescence."
     heritage_warn "The Cloudflare connector was left running to preserve remote recovery access; public app requests may report the origin as unavailable."
   fi
+  if (( translation_quiesced )); then
+    if (( app_quiesced )); then
+      heritage_compose stop --timeout 60 translation-processor >/dev/null 2>&1 || true
+    else
+      heritage_translation_resume >/dev/null 2>&1 || true
+    fi
+  fi
   cleanup_pinned_compose
   exit "${status}"
 }
 on_signal() {
   local signal_name="$1"
   local status="$2"
-  trap - ERR HUP INT TERM
+  trap - ERR EXIT HUP INT TERM
   set +e
   heritage_warn "Update interrupted by ${signal_name} during: ${phase}"
   heritage_warn "Previous Git commit: ${before_commit}"
@@ -448,11 +459,23 @@ on_signal() {
     heritage_warn "The app remains stopped because the interruption occurred after migration quiescence."
     heritage_warn "The Cloudflare connector was left running to preserve remote recovery access; public app requests may report the origin as unavailable."
   fi
+  if (( translation_quiesced )); then
+    if (( app_quiesced )); then
+      heritage_compose stop --timeout 60 translation-processor >/dev/null 2>&1 || true
+    else
+      heritage_translation_resume >/dev/null 2>&1 || true
+    fi
+  fi
   cleanup_pinned_compose
   exit "${status}"
 }
 trap on_error ERR
-trap cleanup_pinned_compose EXIT
+on_exit() {
+  local status=$?
+  if (( status != 0 )); then on_error "$status"; fi
+  cleanup_pinned_compose
+}
+trap on_exit EXIT
 trap 'on_signal HUP 129' HUP
 trap 'on_signal INT 130' INT
 trap 'on_signal TERM 143' TERM
@@ -506,7 +529,12 @@ if (( skip_build )); then
 else
   phase="application image build"
   heritage_info "Building the application and migration images."
-  heritage_compose build --pull community migrate
+  if heritage_translation_enabled; then
+    heritage_validate_translation_source
+    heritage_compose build --pull community migrate translation-processor
+  else
+    heritage_compose build --pull community migrate
+  fi
 fi
 
 phase="database readiness"
@@ -520,6 +548,11 @@ fi
 heritage_wait_for_postgres 60 || heritage_die "PostgreSQL did not become ready."
 
 phase="service quiescence"
+if heritage_translation_enabled && heritage_service_running translation-processor; then
+  heritage_translation_maintenance true
+  translation_quiesced=1
+  heritage_translation_quiesce
+fi
 heritage_info "Stopping the community app before database migration."
 heritage_compose stop --timeout 60 community
 app_quiesced=1
@@ -547,7 +580,12 @@ heritage_info "Replacing the PostgreSQL and community services with the updated 
 if (( skip_build )); then
   heritage_compose up -d --no-build --pull never postgres community
 else
-  heritage_compose up -d postgres community
+  if heritage_translation_enabled; then
+    heritage_compose up -d postgres translation-processor community
+    heritage_translation_wait 60
+  else
+    heritage_compose up -d postgres community
+  fi
 fi
 
 if (( skip_build )); then
@@ -586,6 +624,7 @@ if (( skip_build )); then
   verify_running_community_image
 fi
 app_quiesced=0
+translation_quiesced=0
 
 after_commit="$(git -C "${HERITAGE_INSTALL_DIR}" rev-parse HEAD)"
 cleanup_pinned_compose

@@ -65,6 +65,50 @@ services:
     stop_grace_period: 1m
     logging: *default-logging
 
+  translation-processor:
+    profiles: [translation]
+    image: ${HERITAGE_TRANSLATION_IMAGE:-heritage-translation:local}
+    build:
+      context: ${HERITAGE_TRANSLATION_SOURCE:-./.translation-not-installed}
+      dockerfile: services/processor/Dockerfile
+    init: true
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PROCESSOR_HOST: 0.0.0.0
+      PROCESSOR_PORT: 4310
+      PROCESSOR_PUBLIC_URL: ${COMMUNITY_PUBLIC_URL}/translation/
+      PROCESSOR_CONTROL_TOKEN: ${TRANSLATION_CONTROL_TOKEN:-}
+      OPERATOR_ALLOWED_ORIGINS: ${COMMUNITY_PUBLIC_URL},tauri://localhost,http://tauri.localhost,https://tauri.localhost
+      CHURCH_NAME: ${COMMUNITY_NAME}
+      ARCHIVE_ROOT: /var/lib/multilinguum/archives
+      ARCHIVE_RETENTION_DAYS: ${TRANSLATION_ARCHIVE_RETENTION_DAYS:-30}
+      OPENAI_API_KEY: ${TRANSLATION_OPENAI_API_KEY:-}
+      OPENAI_TRANSLATE_MODEL: ${TRANSLATION_REALTIME_MODEL:-gpt-realtime-translate}
+      OPENAI_TRANSCRIBE_MODEL: ${TRANSLATION_TRANSCRIBE_MODEL:-gpt-live-transcribe}
+      OPENAI_FILE_TRANSCRIBE_MODEL: ${TRANSLATION_FILE_TRANSCRIBE_MODEL:-gpt-4o-transcribe}
+      OPENAI_TEXT_MODEL: ${TRANSLATION_TEXT_MODEL:-gpt-5.6-terra}
+      OPENAI_TTS_MODEL: ${TRANSLATION_TTS_MODEL:-gpt-4o-mini-tts}
+      LIVEKIT_URL: ${TRANSLATION_LIVEKIT_URL:-}
+      LIVEKIT_API_KEY: ${TRANSLATION_LIVEKIT_API_KEY:-}
+      LIVEKIT_API_SECRET: ${TRANSLATION_LIVEKIT_API_SECRET:-}
+      VOICE_WORKER_URL: ""
+    volumes:
+      - translation-data:/var/lib/multilinguum
+    networks: [backend, edge]
+    read_only: true
+    tmpfs: ["/tmp:size=256m,mode=1777"]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    stop_grace_period: 60s
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:4310/health').then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    logging: *default-logging
+
   community:
     image: ${HERITAGE_COMMUNITY_IMAGE:-heritage-community:local}
     build:
@@ -221,6 +265,8 @@ networks:
   edge:
 
 volumes:
+  translation-data:
+    name: ${HERITAGE_TRANSLATION_VOLUME:-heritage-community-translation}
   postgres-data:
     name: ${HERITAGE_POSTGRES_VOLUME:-heritage-community-postgres}
   media:
