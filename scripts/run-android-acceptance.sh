@@ -37,6 +37,9 @@ timeout --kill-after=5 10 adb shell input keyevent 82
 timeout --kill-after=5 10 adb shell settings put global window_animation_scale 0
 timeout --kill-after=5 10 adb shell settings put global transition_animation_scale 0
 timeout --kill-after=5 10 adb shell settings put global animator_duration_scale 0
+# The Google APIs image's first-boot setup re-enables Wi-Fi asynchronously.
+# This AVD is disposable and needs no Google-account setup during offline tests.
+timeout --kill-after=5 10 adb shell pm disable-user --user 0 com.google.android.googlesdksetup
 timeout --kill-after=5 10 adb shell svc wifi disable
 timeout --kill-after=5 10 adb shell svc data disable
 timeout --kill-after=5 10 adb shell cmd connectivity airplane-mode enable
