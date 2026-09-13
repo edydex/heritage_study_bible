@@ -5,8 +5,9 @@ import static org.junit.Assert.*;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.net.ConnectivityManager;
-import android.view.accessibility.AccessibilityNodeInfo;
+import android.webkit.WebView;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -75,19 +76,29 @@ public class CommunityIntegrationTest {
     private void route(String hash, String heading) throws Exception {
         evaluate("window.location.hash=" + JSONObject.quote(hash));
         waitFor("document.body.innerText.includes(" + JSONObject.quote(heading) + ")");
+        CountDownLatch painted = new CountDownLatch(1);
+        activity.getScenario().onActivity(instance -> instance.getBridge().getWebView()
+                .postVisualStateCallback(System.nanoTime(), new WebView.VisualStateCallback() {
+                    @Override public void onComplete(long requestId) { painted.countDown(); }
+                }));
+        assertTrue("WebView did not commit the expected screen: " + heading, painted.await(20, TimeUnit.SECONDS));
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(45);
         while (System.nanoTime() < deadline) {
-            AccessibilityNodeInfo root = InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow();
-            boolean visible = root != null && "faith.heritage.app".equals(String.valueOf(root.getPackageName()))
-                    && root.findAccessibilityNodeInfosByText(heading).stream().anyMatch(AccessibilityNodeInfo::isVisibleToUser);
-            if (visible) {
+            AtomicReference<Boolean> visible = new AtomicReference<>(false);
+            activity.getScenario().onActivity(instance -> {
+                WebView web = instance.getBridge().getWebView();
+                Rect bounds = new Rect();
+                visible.set(instance.getWindow().getDecorView().hasWindowFocus() && web.isShown()
+                        && web.getGlobalVisibleRect(bounds) && bounds.width() > 0 && bounds.height() > 0);
+            });
+            if (visible.get()) {
                 InstrumentationRegistry.getInstrumentation().getUiAutomation().waitForIdle(200, 5000);
                 return;
             }
             Thread.sleep(200);
         }
         screenshot("unexpected-visible-screen");
-        fail("The expected Heritage heading was not visible: " + heading);
+        fail("The rendered Heritage window was hidden or lacked focus: " + heading);
     }
 
     @Test public void packagedCommunityScreensAndMemberLinkWorkOffline() throws Exception {
