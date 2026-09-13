@@ -27,4 +27,3 @@ export async function authorizeTranslation(req: PayloadRequest, options: { origi
   }
   return { origin, communityId, identity }
 }
-
