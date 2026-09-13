@@ -23,7 +23,10 @@ const created = await request('/api/service-documents', { method: 'POST', body: 
 assert.equal(created.status, 201, JSON.stringify(created.body))
 const recordId = created.body.doc.id
 const selectedPath = `${path}?serviceId=service-2099-01-01`
-let plan = (await request(selectedPath, { requestOrigin: null })).body.services[0]
+const firstRead = await request(selectedPath, { requestOrigin: null })
+assert.equal(firstRead.status, 200, JSON.stringify(firstRead))
+let plan = firstRead.body.services[0]
+assert.ok(plan, JSON.stringify(firstRead))
 assert.equal(plan.revision, 0)
 const originalRecord = (await request(`/api/service-documents/${recordId}`)).body
 const settings = { sourceLanguage: 'ru', translationProfile: 'economy', speechEnabled: false, contextDocumentIds: [] }

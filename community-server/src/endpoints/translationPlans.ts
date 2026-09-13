@@ -81,6 +81,7 @@ export async function translationPlansResponse(req: PayloadRequest, options: { o
     return respond({ schemaVersion: 1, service: saved })
   } catch (error) {
     if (error instanceof SyncShowProtocolError) return respond({ error: error.message }, error.status)
+    req.payload.logger.error({ err: error }, 'Service translation plan request failed')
     return respond({ error: 'Translation settings are temporarily unavailable. Try again.' }, 503)
   }
 }
