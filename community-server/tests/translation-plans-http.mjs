@@ -37,15 +37,18 @@ for (const destination of ['/admin', '/admin/prepare-sermon', '/admin/sermon-pub
 }
 // SyncShow's existing windows send their device credential only to API requests.
 // Their HTML must load without a cookie; browser visitors redirect after API 401.
-for (const [destination, marker] of [
-  ['/admin/live-translation?service=service-2099-01-01', 'Opening live translation'],
-  ['/admin/plan-service', 'heritage-service-planner'],
+for (const [destination, title] of [
+  ['/admin/live-translation?service=service-2099-01-01', 'Live translation — Heritage Community'],
+  ['/admin/plan-service', 'Plan a service — Heritage Community'],
 ]) {
   const response = await fetch(`${origin}${destination}`, { redirect: 'manual' })
   assert.equal(response.status, 200)
   const html = await response.text()
   assert.equal(htmlRedirectLocation(html), null, `Paired SyncShow entry was blocked: ${destination}`)
-  assert.ok(html.includes(marker), `Missing client entry for ${destination}`)
+  // Payload defers anonymous children until its auth provider hydrates; the
+  // requested page metadata and bootstrap are present in the server response.
+  assert.equal(html.match(/<title>(.*?)<\/title>/)?.[1]?.replace(/\s+/g, ' '), title)
+  assert.ok(html.includes('__next_f.push'), `Missing client bootstrap for ${destination}`)
 }
 assert.equal((await request('/api/community/service-documents', { authenticated: false })).status, 401)
 const authenticatedPage = await fetch(`${origin}/admin/live-translation?service=service-2099-01-01`, {
