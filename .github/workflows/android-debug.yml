@@ -54,6 +54,10 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The old SDK "tools" package is no longer available. The action
+          # supplies cmdline-tools; install only the supported adb package here.
+          packages: platform-tools
 
       - name: Install Android platform packages
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "emulator" "system-images;android-35;google_apis;x86_64"
