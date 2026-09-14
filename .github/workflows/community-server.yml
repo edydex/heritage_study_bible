@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - 'community-server/**'
+      - 'tests/fixtures/community-service-plan-conformance-*.json'
       - '.github/workflows/community-server.yml'
   push:
     branches: ['main']
     paths:
       - 'community-server/**'
+      - 'tests/fixtures/community-service-plan-conformance-*.json'
       - '.github/workflows/community-server.yml'
   workflow_dispatch:
 
@@ -42,6 +44,7 @@ jobs:
           npm run test:deploy
           npm run test:appliance
           npm run typecheck
+          npm run test:syncshow
           node --import tsx --test tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-plans.test.ts
           npm run build
 
@@ -187,3 +190,89 @@ jobs:
       - name: Clean up
         if: always()
         run: docker compose --env-file .env.production -f docker-compose.production.yml down --volumes --remove-orphans
+
+  syncshow-payload-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: heritage_ci
+          POSTGRES_PASSWORD: disposable-ci-database-password
+          POSTGRES_DB: heritage_syncshow_payload_live
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage_ci -d heritage_syncshow_payload_live"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://heritage_ci:disposable-ci-database-password@127.0.0.1:5432/heritage_syncshow_payload_live
+      SERVICE_PLAN_LIVE_DATABASE_URL: postgresql://heritage_ci:disposable-ci-database-password@127.0.0.1:5432/heritage_syncshow_payload_live
+      SONG_PUBLIC_LINK_LIVE_DATABASE_URL: postgresql://heritage_ci:disposable-ci-database-password@127.0.0.1:5432/heritage_syncshow_payload_live
+      HERITAGE_DISPOSABLE_CI: heritage-community-syncshow-payload-live-v1
+      PAYLOAD_SECRET: disposable-ci-payload-secret-at-least-thirty-two-characters
+      COMMUNITY_PUBLIC_URL: http://127.0.0.1:3000
+      COMMUNITY_ID: local-church
+      HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED: 'true'
+      BOOTSTRAP_ADMIN_EMAIL: fixture-admin@example.test
+      BOOTSTRAP_ADMIN_PASSWORD: disposable-ci-administrator-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Migrate the disposable lifecycle database
+        env:
+          NODE_ENV: production
+        run: npm run migrate
+      - name: Check service planning, recording actors, storage and recovery
+        env:
+          NODE_ENV: production
+        run: npm run test:syncshow:service-plan-live
+      - name: Check song publication lifecycle
+        run: npm run test:syncshow:song-link-live
+
+  syncshow-sermon-history-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: heritage_ci
+          POSTGRES_PASSWORD: disposable-ci-history-password
+          POSTGRES_DB: heritage_syncshow_sermon_history_live
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage_ci -d heritage_syncshow_sermon_history_live"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://heritage_ci:disposable-ci-history-password@127.0.0.1:5432/heritage_syncshow_sermon_history_live
+      SERMON_HISTORY_LIVE_DATABASE_URL: postgresql://heritage_ci:disposable-ci-history-password@127.0.0.1:5432/heritage_syncshow_sermon_history_live
+      HERITAGE_DISPOSABLE_CI: heritage-community-syncshow-sermon-history-live-v1
+      PAYLOAD_SECRET: disposable-ci-history-secret-at-least-thirty-two-characters
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      # This check creates and tears down its own history tables. It must never
+      # share the migrated lifecycle database above or inherit bootstrap users.
+      - name: Check isolated sermon-history constraints
+        env:
+          NODE_ENV: test
+        run: npm run test:syncshow:sermon-history-live

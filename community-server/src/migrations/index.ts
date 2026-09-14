@@ -1,3 +1,4 @@
+import * as migration_20260914_170000_recording_manager_actors from './20260914_170000_recording_manager_actors';
 import * as migration_20260913_140000_service_translation_plans from './20260913_140000_service_translation_plans';
 import * as migration_20260913_010000_live_service_settings from './20260913_010000_live_service_settings';
 import * as migration_20260711_075027_initial_schema from './20260711_075027_initial_schema';
@@ -125,5 +126,10 @@ export const migrations = [
     up: migration_20260913_140000_service_translation_plans.up,
     down: migration_20260913_140000_service_translation_plans.down,
     name: '20260913_140000_service_translation_plans',
+  },
+  {
+    up: migration_20260914_170000_recording_manager_actors.up,
+    down: migration_20260914_170000_recording_manager_actors.down,
+    name: '20260914_170000_recording_manager_actors',
   },
 ];

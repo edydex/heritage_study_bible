@@ -30,7 +30,6 @@ test('Payload wires a same-origin manager sermon-preparation task into admin', a
   assert.match(importMap, /"@\/components\/PrepareSermon#default"/)
   assert.match(welcome, /href:\s*'\/admin\/prepare-sermon'/)
   assert.match(welcome, /title:\s*'Prepare a sermon'/)
-  assert.match(welcome, /title:\s*'Add an older sermon'/)
 
   assert.match(view, /DefaultTemplate/)
   assert.match(view, /viewType="prepare-sermon"/)

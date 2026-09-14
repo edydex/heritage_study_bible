@@ -133,7 +133,7 @@ test('scope dependencies remain additive for existing grants', () => {
 test('every operation rechecks live authority and sermon binding', () => {
   assert.match(
     store,
-    /async function validateLiveUpload[\s\S]*recheckAuthority[\s\S]*lockedSermon[\s\S]*assertSermonMediaBinding/,
+    /async function validateLiveUpload[\s\S]*recheckSermonMediaAuthority[\s\S]*lockedSermon[\s\S]*assertSermonMediaBinding/,
   )
   for (const operation of [
     'getSermonMediaUpload',
@@ -166,7 +166,7 @@ test('init replay recovery and replacement preserve safe lock ordering', () => {
     store.indexOf('export async function getSermonMediaUpload'),
   )
   assert.ok(
-    init.indexOf('await recheckAuthority')
+    init.indexOf('await recheckSermonMediaAuthority')
       < init.indexOf('await lockSermonMediaAdmission'),
   )
   assert.ok(
@@ -291,7 +291,7 @@ test('bounded runtime and quiesced maintenance are fail-closed', () => {
   assert.match(runtimeMaintenance, /recoverSermonMediaFinalization/)
   assert.match(
     store,
-    /recoverSermonMediaFinalization[\s\S]*const finalizationEnabled = sermonMediaEnabled\(\)[\s\S]*"finalization_lease_expires_at" <= now\(\)[\s\S]*FROM "syncshow_connections"[\s\S]*FROM "memberships"[\s\S]*lockedSermon[\s\S]*lockedUpload[\s\S]*if \(!authorityValid\)[\s\S]*transitionUpload\(database, Number\(upload\.id\), 'expired'\)[\s\S]*if \(!finalizationEnabled\)[\s\S]*enqueueSermonMediaFinalization/,
+    /recoverSermonMediaFinalization[\s\S]*const finalizationEnabled = sermonMediaEnabled\(\)[\s\S]*"finalization_lease_expires_at" <= now\(\)[\s\S]*recheckSermonMediaAuthority[\s\S]*lockedSermon[\s\S]*lockedUpload[\s\S]*if \(!authorityValid\)[\s\S]*transitionUpload\(database, Number\(upload\.id\), 'expired'\)[\s\S]*if \(!finalizationEnabled\)[\s\S]*enqueueSermonMediaFinalization/,
   )
   assert.match(
     maintenance,

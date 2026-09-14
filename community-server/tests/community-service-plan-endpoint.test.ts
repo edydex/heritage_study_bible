@@ -324,6 +324,7 @@ test('schema-v2 discovery advertises service plans beside the independent song a
   assert.deepEqual(Object.keys(integration.resources).sort(), [
     'sermonPublications',
     'sermons',
+    'serviceDocuments',
     'servicePlans',
     'songPublicLinks',
     'songs',

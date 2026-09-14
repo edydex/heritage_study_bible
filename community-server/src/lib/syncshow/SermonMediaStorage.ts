@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto'
+import { validateOggOpusRecording } from './OggOpusRecording.ts'
 import {
   constants,
 } from 'node:fs'
@@ -44,7 +45,7 @@ export type StoredSermonMediaObject = Readonly<{
   sizeBytes: number
 }>
 
-type AcceptedMediaType = 'audio/mpeg' | 'audio/mp4'
+type AcceptedMediaType = 'audio/mpeg' | 'audio/mp4' | 'audio/ogg'
 
 type ChunkStreamTiming = Readonly<{
   inactivityMs: number
@@ -504,13 +505,17 @@ async function validateMediaContainer(
   try {
     const valid = mediaType === 'audio/mpeg'
       ? await validateMpegAudio(handle, sizeBytes)
-      : await validateMp4Audio(handle, sizeBytes)
+      : mediaType === 'audio/ogg'
+        ? await validateOggOpusRecording((offset, length) => readExactly(handle, offset, length), sizeBytes)
+        : await validateMp4Audio(handle, sizeBytes)
     if (!valid) {
       throw new SermonMediaError(
         'INVALID_MEDIA_CONTAINER',
         mediaType === 'audio/mpeg'
           ? 'The uploaded recording is not a valid MP3 audio container.'
-          : 'The uploaded recording is not a valid MP4/M4A audio container.',
+          : mediaType === 'audio/ogg'
+            ? 'The uploaded recording is not a complete mono/stereo Ogg Opus recording.'
+            : 'The uploaded recording is not a valid MP4/M4A audio container.',
         422,
       )
     }

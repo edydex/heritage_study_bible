@@ -74,6 +74,8 @@ export function GET() {
           },
           ...(sermonMediaEnabled()
             ? {
+                // A sibling capability keeps strict v1 clients compatible.
+                sermonMediaFormats: { schemaVersion: 1, additionalAcceptedMediaTypes: ['audio/ogg'] },
                 sermonMedia: {
                   schemaVersion: 1,
                   endpoint: 'sermon-media',

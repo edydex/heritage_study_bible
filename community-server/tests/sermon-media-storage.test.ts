@@ -483,3 +483,26 @@ test('runtime sweep commits expiry before deleting terminal staging', async () =
     await access(uncommittedFile)
   })
 })
+
+
+test('Opus recordings retain their exact private bytes; damaged containers cannot complete', async () => {
+  await withStorage(async root => {
+    const bytes = await readFile(new URL('./fixtures/recording-tone.opus', import.meta.url))
+    for (const valid of [true, false]) {
+      const value = Buffer.from(bytes)
+      if (!valid) value[value.length - 1] ^= 1
+      const uploadId = valid ? 'OpusValidRecordingAAAAAAAAAAAAAA' : 'OpusDamagedRecordingAAAAAAAAAAAA'
+      const { chunk } = await storeOne(uploadId, value)
+      const operation = () => assembleSermonMediaObject({
+        uploadId, communityNamespace: COMMUNITY_NAMESPACE, chunks: [chunk],
+        expectedSha256: digest(value), expectedSizeBytes: value.length, expectedMediaType: 'audio/ogg',
+      })
+      if (valid) {
+        const object = await operation()
+        assert.deepEqual(await readFile(path.join(root, object.storageKey)), bytes)
+        assert.equal(await verifySermonMediaObject(object), true)
+        assert.deepEqual(await operation(), object)
+      } else await assert.rejects(operation, { code: 'INVALID_MEDIA_CONTAINER' })
+    }
+  })
+})

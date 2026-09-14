@@ -4,6 +4,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import {
   access,
   mkdtemp,
+  readFile,
   readdir,
   rm,
 } from 'node:fs/promises'
@@ -38,6 +39,7 @@ import {
   createSermonRevision,
 } from '../src/lib/syncshow/SermonDocument.ts'
 import { hashOpaqueToken } from '../src/lib/tokens.ts'
+import { up as extendRecordingActors, down as restoreRecordingActors } from '../src/migrations/20260914_170000_recording_manager_actors.ts'
 import { assertDisposableLiveDatabase } from './lib/disposableLiveDatabase.ts'
 
 type AnyRecord = Record<string, any>
@@ -144,6 +146,7 @@ async function createCanonicalSermon(
   suffix: string,
   recordingId: string,
   bytes: Uint8Array,
+  mediaType: 'audio/mpeg' | 'audio/ogg' = 'audio/mpeg',
 ) {
   const syncId = `sermon-media-lock-${suffix}-${recordingId}`
   const sha256 = createHash('sha256').update(bytes).digest('hex')
@@ -163,8 +166,8 @@ async function createCanonicalSermon(
       id: recordingId,
       kind: 'audio',
       language: 'en',
-      mediaType: 'audio/mpeg',
-      fileName: `${recordingId}.mp3`,
+      mediaType,
+      fileName: `${recordingId}.${mediaType === 'audio/ogg' ? 'opus' : 'mp3'}`,
       sha256,
       sizeBytes: bytes.byteLength,
       durationSeconds: null,
@@ -215,8 +218,8 @@ async function createCanonicalSermon(
       id: recordingId,
       kind: 'audio',
       language: 'en',
-      mediaType: 'audio/mpeg',
-      fileName: `${recordingId}.mp3`,
+      mediaType,
+      fileName: `${recordingId}.${mediaType === 'audio/ogg' ? 'opus' : 'mp3'}`,
       sha256,
       sizeBytes: bytes.byteLength,
       durationSeconds: null,
@@ -375,6 +378,65 @@ test('two real PostgreSQL slots cannot deadlock init with chunk/finalization', {
         mode: 'write',
       })
     }
+
+    // The additive migration preserves existing paired uploads, supports a
+    // genuine browser manager, and refuses to drop newly recorded history.
+    const migrationDb = (payload.db as AnyRecord).drizzle
+    const oldBytes = mp3Bytes(39)
+    const oldFixture = await createCanonicalSermon(payload, community.id, suffix, 'migration-old-paired', oldBytes)
+    created.sermons.push(oldFixture.sermon.id)
+    const oldUpload = await initializeSermonMediaUpload(request(payload), authorities[0], oldFixture.init, `old-paired-${suffix}`)
+    await restoreRecordingActors({ db: migrationDb } as never)
+    await extendRecordingActors({ db: migrationDb } as never)
+    assert.equal((await getSermonMediaUpload(request(payload), authorities[0], oldUpload.upload.id)).state, 'uploading')
+    await cancelSermonMediaUpload(request(payload), authorities[0], oldUpload.upload.id, `old-cancel-${suffix}`)
+
+    const managerAuthority: SermonMediaAuthority = { ...authorities[1], connectionId: null }
+    const opus = await readFile(new URL('./fixtures/recording-tone.opus', import.meta.url))
+    const managerFixture = await createCanonicalSermon(payload, community.id, suffix, 'browser-opus', opus, 'audio/ogg')
+    created.sermons.push(managerFixture.sermon.id)
+    const managerUpload = await initializeSermonMediaUpload(request(payload), managerAuthority, managerFixture.init, `browser-init-${suffix}`)
+    const actorRow = await (payload.db as AnyRecord).pool.query(
+      'SELECT connection_id, manager_user_id FROM syncshow_sermon_media_uploads WHERE upload_id = $1', [managerUpload.upload.id])
+    assert.deepEqual(actorRow.rows, [{ connection_id: null, manager_user_id: managerAuthority.userId }])
+    assert.equal((await initializeSermonMediaUpload(request(payload), managerAuthority, managerFixture.init, `browser-init-${suffix}`)).upload.id, managerUpload.upload.id)
+    await assert.rejects(restoreRecordingActors({ db: migrationDb } as never), /Manager or Opus recording history/)
+    await assert.rejects((payload.db as AnyRecord).pool.query(
+      'UPDATE syncshow_sermon_media_uploads SET connection_id = $1 WHERE upload_id = $2',
+      [authorities[0].connectionId, managerUpload.upload.id]), /actor_check/)
+    await assert.rejects((payload.db as AnyRecord).pool.query(
+      'UPDATE syncshow_sermon_media_uploads SET manager_user_id = NULL WHERE upload_id = $1',
+      [managerUpload.upload.id]), /actor_check/)
+    for (const [column, value] of [['file_name', '../recording.opus'], ['size_bytes', 1073741825], ['media_type', 'text/html']]) {
+      // Column names are fixed fixture constants; values remain parameters.
+      await assert.rejects((payload.db as AnyRecord).pool.query(
+        `UPDATE syncshow_sermon_media_uploads SET "${column}" = $1 WHERE upload_id = $2`, [value, managerUpload.upload.id]), (error: any) => error.code === '23514' && error.constraint.startsWith('syncshow_sermon_media_uploads_'))
+    }
+    await putSermonMediaChunk(request(payload), managerAuthority, managerUpload.upload.id, {
+      index: 0, contentLength: String(opus.length), contentRange: `bytes 0-${opus.length - 1}/${opus.length}`,
+      sha256: managerFixture.init.recording.sha256,
+    }, `browser-chunk-${suffix}`, async headers => storeSermonMediaChunk({
+      uploadId: managerUpload.upload.id, headers, body: body(opus),
+    }))
+    // Model process loss after accepting completion, then recover using the
+    // persisted manager identity rather than inventing a SyncShow connection.
+    ;(globalThis as AnyRecord)[FINALIZATION_WORKER_KEY] = { running: true, queue: [] }
+    const managerCompletion = await completeSermonMediaUpload(request(payload), managerAuthority, managerUpload.upload.id, `browser-complete-${suffix}`)
+    assert.equal(managerCompletion.accepted, true)
+    ;(globalThis as AnyRecord)[FINALIZATION_WORKER_KEY] = { running: false, queue: [] }
+    await (payload.db as AnyRecord).pool.query(
+      "UPDATE syncshow_sermon_media_uploads SET finalization_lease_expires_at = now() - interval '1 second' WHERE upload_id = $1", [managerUpload.upload.id])
+    process.env.HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED = 'true'
+    assert.equal(await recoverSermonMediaFinalization(payload), true)
+    const finishedManager = await waitForUploadState(payload, managerAuthority, managerUpload.upload.id, 'complete')
+    assert.equal(finishedManager.state, 'complete')
+    const saved = await (payload.db as AnyRecord).pool.query(
+      'SELECT o.storage_key FROM syncshow_sermon_media_objects o JOIN syncshow_sermon_media_uploads u ON u.object_id = o.id WHERE u.upload_id = $1', [managerUpload.upload.id])
+    assert.deepEqual(await readFile(path.join(storageRoot, saved.rows[0].storage_key)), opus)
+    // Current roles are rechecked on later requests, even for a completed job.
+    await (payload.db as AnyRecord).pool.query("UPDATE memberships SET role = 'member' WHERE id = $1", [secondMembership.id])
+    await assert.rejects(getSermonMediaUpload(request(payload), managerAuthority, managerUpload.upload.id), { code: 'MANAGER_REQUIRED' })
+    await (payload.db as AnyRecord).pool.query("UPDATE memberships SET role = 'leader' WHERE id = $1", [secondMembership.id])
 
     const claimAbandonedFinalization = async (
       label: string,
@@ -644,14 +706,14 @@ test('two real PostgreSQL slots cannot deadlock init with chunk/finalization', {
       )
     )
     await Promise.all(entered.map(item => item.promise))
-    const competingInits = fixtures.map((fixture, index) =>
+    const competingInits = Promise.allSettled(fixtures.map((fixture, index) =>
       initializeSermonMediaUpload(
         request(payload),
         authorities[index],
         fixture.init,
         `competing-init-${suffix}-${index}`,
       )
-    )
+    ))
     await new Promise(resolve => setTimeout(resolve, 100))
     releases[1]()
     releases[0]()
@@ -661,7 +723,7 @@ test('two real PostgreSQL slots cannot deadlock init with chunk/finalization', {
     )
     assert.equal(chunkResults.length, 2)
     const initResults = await withTimeout(
-      Promise.allSettled(competingInits),
+      competingInits,
       'two-slot competing init',
     )
     assert.deepEqual(
@@ -983,27 +1045,27 @@ test('two real PostgreSQL slots cannot deadlock init with chunk/finalization', {
     process.env.HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED = 'true'
   } finally {
     const pool = (payload.db as AnyRecord).pool
-    const connectionIds = created.connections.map(Number)
-    const objectIds = connectionIds.length
+    const sermonIds = created.sermons.map(Number)
+    const objectIds = sermonIds.length
       ? (await pool.query(`
           SELECT DISTINCT "object_id"
           FROM "syncshow_sermon_media_uploads"
-          WHERE "connection_id" = ANY($1::integer[])
+          WHERE "sermon_id" = ANY($1::integer[])
             AND "object_id" IS NOT NULL
-        `, [connectionIds]).catch(() => ({ rows: [] }))).rows
+        `, [sermonIds]).catch(() => ({ rows: [] }))).rows
         .map((item: AnyRecord) => Number(item.object_id))
       : []
     await pool.query(`
       DELETE FROM "syncshow_sermon_media_chunks"
       WHERE "upload_id" IN (
         SELECT "id" FROM "syncshow_sermon_media_uploads"
-        WHERE "connection_id" = ANY($1::integer[])
+        WHERE "sermon_id" = ANY($1::integer[])
       )
-    `, [connectionIds]).catch(() => undefined)
+    `, [sermonIds]).catch(() => undefined)
     await pool.query(`
       DELETE FROM "syncshow_sermon_media_uploads"
-      WHERE "connection_id" = ANY($1::integer[])
-    `, [connectionIds]).catch(() => undefined)
+      WHERE "sermon_id" = ANY($1::integer[])
+    `, [sermonIds]).catch(() => undefined)
     if (objectIds.length) {
       await pool.query(`
         DELETE FROM "syncshow_sermon_media_objects"

@@ -14,7 +14,7 @@ test('the migration image contains the read-only SyncShow preflight script', asy
     dockerfile.indexOf('FROM base AS migrations'),
     dockerfile.indexOf('FROM base AS runner'),
   )
-  assert.match(migrations, /COPY scripts \.\/scripts/)
+  assert.match(migrations, /COPY(?: --chown=nextjs:nodejs)? scripts \.\/scripts/)
 })
 
 test('discovery and device endpoints match SyncShow CommunityClient exactly', async () => {

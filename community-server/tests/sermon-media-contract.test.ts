@@ -74,7 +74,7 @@ test('Community discovery matches the shared SyncShow sermon-media vector', asyn
       fixture.discoveryResource,
     )
     assert.deepEqual(
-      fixture.discoveryResource.acceptedMediaTypes,
+      [...fixture.discoveryResource.acceptedMediaTypes, ...value.integrations.syncShow.resources.sermonMediaFormats.additionalAcceptedMediaTypes],
       SERMON_MEDIA_ACCEPTED_MEDIA_TYPES,
     )
     assert.equal(

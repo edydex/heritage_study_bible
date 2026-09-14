@@ -258,7 +258,7 @@ test('member visibility requires an exact current unexpired receipt', () => {
     false,
   )
   assert.equal(
-    serializeSongForSync(song).effectiveVisibility,
+    serializeSongForSync(song, new Date('2026-08-01T00:00:00.000Z')).effectiveVisibility,
     'public',
   )
   assert.deepEqual(serializeSongForSync(song).memberSharing, {

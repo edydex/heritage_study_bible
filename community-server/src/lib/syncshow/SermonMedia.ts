@@ -11,6 +11,7 @@ export const SERMON_MEDIA_SESSION_TTL_SECONDS = 7 * 24 * 60 * 60
 export const SERMON_MEDIA_ACCEPTED_MEDIA_TYPES = [
   'audio/mpeg',
   'audio/mp4',
+  'audio/ogg',
 ] as const
 export const SERMON_MEDIA_READ_SCOPE = 'syncshow:sermon-media:read'
 export const SERMON_MEDIA_WRITE_SCOPE = 'syncshow:sermon-media:write'
@@ -386,7 +387,7 @@ function recording(value: unknown): SermonMediaRecording {
   ) {
     fail(
       'UNSUPPORTED_MEDIA_TYPE',
-      'recording.mediaType must be audio/mpeg or audio/mp4.',
+      'recording.mediaType must be audio/mpeg, audio/mp4 or audio/ogg (Opus).',
       415,
     )
   }
@@ -406,6 +407,7 @@ function recording(value: unknown): SermonMediaRecording {
   const extension = fileName.toLowerCase()
   if (
     (mediaType === 'audio/mpeg' && !extension.endsWith('.mp3'))
+    || (mediaType === 'audio/ogg' && !extension.endsWith('.opus') && !extension.endsWith('.ogg'))
     || (
       mediaType === 'audio/mp4'
       && !extension.endsWith('.m4a')

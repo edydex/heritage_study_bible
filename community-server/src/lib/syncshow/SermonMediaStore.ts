@@ -2,6 +2,9 @@ import { sql } from '@payloadcms/db-postgres'
 import { createHash, randomBytes } from 'node:crypto'
 import type { Payload, PayloadRequest } from 'payload'
 import { createOpaqueToken, hashOpaqueToken } from '@/lib/tokens'
+import { getConfiguredCommunityId } from '../configuredCommunity.ts'
+import { communityRequestAccess } from '../communityMemberRequest.ts'
+import { publicUrl } from '../publicConfig.ts'
 import {
   assertSermonMediaBinding,
   expectedSermonMediaChunk,
@@ -50,7 +53,7 @@ type TransactionAdapter = {
 }
 
 export type SermonMediaAuthority = Readonly<{
-  connectionId: number
+  connectionId: number | null
   communityId: number
   userId: number
   mode: 'read' | 'write'
@@ -90,7 +93,7 @@ const WRITE_SCOPES = [
 const CHUNK_CONCURRENCY_KEY = '__heritageSermonMediaChunkConcurrency'
 type ChunkConcurrencyState = {
   global: number
-  connections: Map<number, number>
+  connections: Map<number | string, number>
 }
 
 function chunkConcurrencyState() {
@@ -105,7 +108,7 @@ function chunkConcurrencyState() {
 }
 
 export function acquireSermonMediaChunkRequestSlot(
-  connectionId: number,
+  connectionId: number | string,
 ) {
   const state = chunkConcurrencyState()
   const connectionCount = state.connections.get(connectionId) || 0
@@ -224,11 +227,17 @@ export async function authorizeSermonMedia(
     ? authorization.slice('SyncShow '.length).trim()
     : ''
   if (!token) {
-    throw new SermonMediaError(
-      'UNAUTHORIZED',
-      'A SyncShow connection token is required.',
-      401,
-    )
+    if (/^SyncShow(?:\s|$)/.test(authorization)) throw new SermonMediaError('UNAUTHORIZED', 'This SyncShow connection is invalid.', 401)
+    const origin = new URL(publicUrl).origin
+    if ((mode === 'write' || req.headers.has('origin')) && req.headers.get('origin') !== origin) {
+      throw new SermonMediaError('ORIGIN', 'Open recording management from your church website.', 403)
+    }
+    const communityId = await getConfiguredCommunityId(req.payload)
+    if (!communityId) throw new SermonMediaError('COMMUNITY_NOT_READY', 'This church has not finished setup.', 503)
+    const access = await communityRequestAccess(req.payload, req.headers, communityId)
+    if (!access.user) throw new SermonMediaError('UNAUTHORIZED', 'Sign in to manage sermon recordings.', 401)
+    if (!access.manager) throw new SermonMediaError('MANAGER_REQUIRED', 'A church manager account is required.', 403)
+    return Object.freeze({ connectionId: null, communityId: Number(communityId), userId: relationId(access.user.id), mode })
   }
   const found = (await req.payload.find({
     collection: 'syncshow-connections',
@@ -265,7 +274,7 @@ export async function authorizeSermonMedia(
   ) {
     throw new SermonMediaError(
       'MANAGER_REQUIRED',
-      'This connection no longer belongs to a church manager.',
+      'Recording access requires a current church manager.',
       403,
     )
   }
@@ -356,29 +365,38 @@ async function cleanupForTerminalOutcome<T>(
   return unwrap(outcome)
 }
 
-async function recheckAuthority(
+export async function recheckSermonMediaAuthority(
   database: TransactionDatabase,
   authority: SermonMediaAuthority,
 ) {
-  const connections = databaseRows(await database.execute(sql`
-    SELECT "id", "scopes"
-    FROM "syncshow_connections"
-    WHERE "id" = ${authority.connectionId}
-      AND "community_id" = ${authority.communityId}
-      AND "user_id" = ${authority.userId}
-      AND "revoked_at" IS NULL
-      AND "expires_at" > now()
-    LIMIT 2
-    FOR UPDATE;
-  `))
-  if (connections.length !== 1) {
-    throw new SermonMediaError(
-      'UNAUTHORIZED',
-      'This SyncShow connection is invalid or expired.',
-      401,
-    )
+  if (authority.connectionId === null) {
+    const users = databaseRows(await database.execute(sql`
+      SELECT "id", "system_role" AS "systemRole" FROM "users"
+      WHERE "id" = ${authority.userId} LIMIT 2 FOR UPDATE;
+    `))
+    if (users.length !== 1) throw new SermonMediaError('UNAUTHORIZED', 'The recording manager no longer exists.', 401)
+    if (users[0].systemRole === 'system-admin') return
+  } else {
+    const connections = databaseRows(await database.execute(sql`
+      SELECT "id", "scopes"
+      FROM "syncshow_connections"
+      WHERE "id" = ${authority.connectionId}
+        AND "community_id" = ${authority.communityId}
+        AND "user_id" = ${authority.userId}
+        AND "revoked_at" IS NULL
+        AND "expires_at" > now()
+      LIMIT 2
+      FOR UPDATE;
+    `))
+    if (connections.length !== 1) {
+      throw new SermonMediaError(
+        'UNAUTHORIZED',
+        'This SyncShow connection is invalid or expired.',
+        401,
+      )
+    }
+    requireScopes(connections[0].scopes, authority.mode)
   }
-  requireScopes(connections[0].scopes, authority.mode)
   const memberships = databaseRows(await database.execute(sql`
     SELECT "id"
     FROM "memberships"
@@ -391,7 +409,7 @@ async function recheckAuthority(
   if (memberships.length !== 1) {
     throw new SermonMediaError(
       'MANAGER_REQUIRED',
-      'This connection no longer belongs to a church manager.',
+      'Recording access requires a current church manager.',
       403,
     )
   }
@@ -432,7 +450,9 @@ async function enforceSermonMediaAdmission(
       ) AS "activeCommunity",
       COUNT(*) FILTER (
         WHERE "state" IN ('uploading', 'finalizing')
-          AND "connection_id" = ${authority.connectionId}
+          AND ("connection_id" = ${authority.connectionId}
+            OR (${authority.connectionId}::integer IS NULL AND "community_id" = ${authority.communityId}
+              AND "manager_user_id" = ${authority.userId}))
       ) AS "activeConnection",
       COALESCE(MAX("size_bytes") FILTER (
         WHERE "state" IN ('uploading', 'finalizing')
@@ -739,6 +759,7 @@ function uploadSelection() {
     "upload_id" AS "uploadId",
     "community_id" AS "communityId",
     "connection_id" AS "connectionId",
+    "manager_user_id" AS "managerUserId",
     "sermon_id" AS "sermonId",
     "schema_version" AS "schemaVersion",
     "state",
@@ -810,7 +831,7 @@ async function lockedAuthorizedUpload(
   authority: SermonMediaAuthority,
   value: unknown,
 ) {
-  await recheckAuthority(database, authority)
+  await recheckSermonMediaAuthority(database, authority)
   const uploadId = normalizeUploadId(value)
   const peeked = databaseRows(await database.execute(sql`
     SELECT ${uploadSelection()}
@@ -968,7 +989,7 @@ async function validateLiveUpload(
   authority: SermonMediaAuthority,
   upload: UnknownRecord,
 ): Promise<SermonMediaError | null> {
-  await recheckAuthority(database, authority)
+  await recheckSermonMediaAuthority(database, authority)
   const state = String(upload.state) as SermonMediaUploadState
   if (
     ACTIVE_UPLOAD_STATES.includes(
@@ -1072,7 +1093,7 @@ export async function initializeSermonMediaUpload(
   }>
   try {
     result = await inTransaction(req, async database => {
-      await recheckAuthority(database, authority)
+      await recheckSermonMediaAuthority(database, authority)
       await lockSermonMediaAdmission(database)
       // A client can lose the accepted init response before persisting the
       // upload ID. Peek without a row lock so we can lock the original sermon
@@ -1304,6 +1325,7 @@ export async function initializeSermonMediaUpload(
           "upload_id",
           "community_id",
           "connection_id",
+          "manager_user_id",
           "sermon_id",
           "schema_version",
           "state",
@@ -1330,6 +1352,7 @@ export async function initializeSermonMediaUpload(
           ${uploadId},
           ${authority.communityId},
           ${authority.connectionId},
+          ${authority.connectionId === null ? authority.userId : null},
           ${Number(sermon.id)},
           ${SERMON_MEDIA_SCHEMA_VERSION},
           'uploading',
@@ -1451,7 +1474,7 @@ export async function putSermonMediaChunk(
   ) => Promise<StoredSermonMediaChunk>,
 ) {
   const releaseRequestSlot = acquireSermonMediaChunkRequestSlot(
-    authority.connectionId,
+    authority.connectionId ?? `manager:${authority.communityId}:${authority.userId}`,
   )
   try {
   const normalizedUploadId = normalizeUploadId(uploadId)
@@ -2300,9 +2323,9 @@ export async function recoverSermonMediaFinalization(
         "upload"."community_id" AS "communityId",
         "upload"."connection_id" AS "connectionId",
         "upload"."sync_id" AS "syncId",
-        "connection"."user_id" AS "userId"
+        COALESCE("upload"."manager_user_id", "connection"."user_id") AS "userId"
       FROM "syncshow_sermon_media_uploads" AS "upload"
-      JOIN "syncshow_connections" AS "connection"
+      LEFT JOIN "syncshow_connections" AS "connection"
         ON "connection"."id" = "upload"."connection_id"
       WHERE "upload"."state" = 'finalizing'
         AND "upload"."finalization_lease_expires_at" <= now()
@@ -2316,48 +2339,19 @@ export async function recoverSermonMediaFinalization(
     }
     const candidate = candidates[0]
     const authority: SermonMediaAuthority = Object.freeze({
-      connectionId: Number(candidate.connectionId),
+      connectionId: candidate.connectionId === null ? null : Number(candidate.connectionId),
       communityId: Number(candidate.communityId),
       userId: Number(candidate.userId),
       mode: 'write',
     })
     const uploadId = String(candidate.uploadId)
-    const connections = databaseRows(await database.execute(sql`
-      SELECT
-        "id",
-        "scopes",
-        "revoked_at" AS "revokedAt",
-        ("expires_at" > now()) AS "unexpired"
-      FROM "syncshow_connections"
-      WHERE "id" = ${authority.connectionId}
-        AND "community_id" = ${authority.communityId}
-        AND "user_id" = ${authority.userId}
-      LIMIT 2
-      FOR UPDATE;
-    `))
-    let authorityValid = connections.length === 1
-      && !connections[0].revokedAt
-      && (
-        connections[0].unexpired === true
-        || connections[0].unexpired === 'true'
-      )
-    if (authorityValid) {
-      try {
-        requireScopes(connections[0].scopes, 'write')
-      } catch {
-        authorityValid = false
-      }
+    let authorityValid = true
+    try {
+      await recheckSermonMediaAuthority(database, authority)
+    } catch (error) {
+      if (!(error instanceof SermonMediaError) || ![401, 403].includes(error.status)) throw error
+      authorityValid = false
     }
-    const memberships = databaseRows(await database.execute(sql`
-      SELECT "id"
-      FROM "memberships"
-      WHERE "community_id" = ${authority.communityId}
-        AND "user_id" = ${authority.userId}
-        AND "role" IN ('owner', 'admin', 'leader')
-      LIMIT 2
-      FOR UPDATE;
-    `))
-    if (memberships.length !== 1) authorityValid = false
     try {
       await lockedSermon(
         database,

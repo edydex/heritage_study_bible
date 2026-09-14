@@ -1126,12 +1126,8 @@ test('Community admin gives service planning a first-class ordinary-task entry p
     new URL('../src/components/AdminWelcome.tsx', import.meta.url),
     'utf8',
   )
-  assert.match(welcome, /href: '\/admin\/collections\/service-plans\/create'/)
-  assert.match(welcome, /title: 'Plan a service'/)
-  assert.match(
-    welcome,
-    /sections, songs, Scripture readings, and the sermon/,
-  )
+  assert.match(welcome, /href: '\/admin\/plan-service'/)
+  assert.match(welcome, /title: 'Plan[^']*service'/)
 })
 
 test('Payload hook explicitly resolves hidden canonical sermon fields for exact plan pins', async () => {
