@@ -31,7 +31,7 @@ heritage-community translation configure --source /absolute/path/to/multilinguum
 heritage-community translation status
 ```
 
-Setup prompts privately for an OpenAI key. Audio relay settings are optional for text-only operation. For unattended setup, use the private `TRANSLATION_OPENAI_API_KEY` and `TRANSLATION_LIVEKIT_*` environment variables with `--non-interactive --yes`. `--dry-run` validates the source and describes the phases. Setup neither starts a paid service nor enables OpenAI data sharing.
+Setup prompts privately for an OpenAI key. Quality/Economy captions and optional translated speech use the existing Community connection; they do not require LiveKit. LiveKit relay settings are optional for direct Realtime audio. For unattended setup, use the private `TRANSLATION_OPENAI_API_KEY` and, if needed, `TRANSLATION_LIVEKIT_*` environment variables with `--non-interactive --yes`. `--dry-run` validates the source and describes the phases. Setup neither starts a paid service nor enables OpenAI data sharing.
 
 The command validates the exact source and companion protocol, takes a safety backup, builds a CPU-only processor, initializes its dedicated volume, and runs the normal Community update. The processor has no public host port. Community keeps the public `/live` and `/translate` addresses, including manager controls at `/admin/live-translation`. Existing tunnel settings remain in place. Provider keys are supplied only to the processor; the shared control key also stays in private Community configuration.
 

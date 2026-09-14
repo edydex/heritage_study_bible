@@ -89,7 +89,8 @@ if (( ! non_interactive )); then
   printf 'OpenAI API key (hidden; Enter keeps the existing key or leaves setup pending): ' >&2
   read -rs entered; printf '\n' >&2
   openai_key="${entered:-$openai_key}"
-  printf 'Configure translated-audio relay credentials now? [y/N]: ' >&2
+  printf 'Quality/Economy speech uses this server; a separate relay is optional.\n' >&2
+  printf 'Configure a LiveKit relay for direct Realtime audio now? [y/N]: ' >&2
   read -r answer
   if [[ "$answer" == y || "$answer" == Y ]]; then
     printf 'LiveKit secure WebSocket URL: ' >&2; read -r entered
