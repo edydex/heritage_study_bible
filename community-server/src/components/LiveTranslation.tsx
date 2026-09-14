@@ -1,13 +1,11 @@
 import { DefaultTemplate } from '@payloadcms/next/templates'
 import type { AdminViewServerProps } from 'payload'
 import LiveTranslationClient from './LiveTranslationClient'
-import { redirect } from 'next/navigation'
-import { workspaceSignInRedirect } from '../lib/workspaceNavigation'
 
 export default function LiveTranslation(props: AdminViewServerProps) {
   const { initPageResult } = props
-  const signIn = workspaceSignInRedirect(initPageResult.req.user, '/admin/live-translation', props.searchParams)
-  if (signIn) redirect(signIn)
+  // SyncShow supplies its scoped credential to the client API request, not this
+  // HTML request. Let that request distinguish a paired window from a visitor.
   return (
     <DefaultTemplate
       i18n={props.i18n}

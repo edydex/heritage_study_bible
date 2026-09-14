@@ -17,8 +17,8 @@ async function request(path, { method = 'GET', body, authenticated = true, reque
   return { status: response.status, body: await response.json() }
 }
 const path = '/api/community/translation/plans'
-// Custom Payload views must not render a misleading workspace for anonymous visitors.
-for (const destination of ['/admin', '/admin/live-translation?service=service-2099-01-01', '/admin/plan-service', '/admin/prepare-sermon', '/admin/sermon-publications?sermon=sermon-ci']) {
+// Cookie-only workspace views can redirect before the client loads.
+for (const destination of ['/admin', '/admin/prepare-sermon', '/admin/sermon-publications?sermon=sermon-ci']) {
   const response = await fetch(`${origin}${destination}`, { redirect: 'manual' })
   let location
   if ([302, 303, 307, 308].includes(response.status)) {
@@ -35,6 +35,19 @@ for (const destination of ['/admin', '/admin/live-translation?service=service-20
   // Payload already guards the dashboard and defaults to it after sign-in.
   assert.equal(signIn.searchParams.get('redirect') ?? '/admin', destination)
 }
+// SyncShow's existing windows send their device credential only to API requests.
+// Their HTML must load without a cookie; browser visitors redirect after API 401.
+for (const [destination, marker] of [
+  ['/admin/live-translation?service=service-2099-01-01', 'Opening live translation'],
+  ['/admin/plan-service', 'heritage-service-planner'],
+]) {
+  const response = await fetch(`${origin}${destination}`, { redirect: 'manual' })
+  assert.equal(response.status, 200)
+  const html = await response.text()
+  assert.equal(htmlRedirectLocation(html), null, `Paired SyncShow entry was blocked: ${destination}`)
+  assert.ok(html.includes(marker), `Missing client entry for ${destination}`)
+}
+assert.equal((await request('/api/community/service-documents', { authenticated: false })).status, 401)
 const authenticatedPage = await fetch(`${origin}/admin/live-translation?service=service-2099-01-01`, {
   headers: { cookie: cookies, 'sec-fetch-site': 'same-origin' }, redirect: 'manual',
 })

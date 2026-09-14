@@ -54,7 +54,14 @@ export default function LiveTranslationClient() {
         dispose = client.mount(element, { initialLease, requestAccess, loadServicePlans, saveServicePlan, preferredServiceId })
         setLoading(false)
       } catch (cause) {
-        if (!stopped) { setError(translationAccessProblem(cause)); setLoading(false) }
+        if (!stopped) {
+          const problem = translationAccessProblem(cause)
+          setError(problem)
+          setLoading(false)
+          if (problem.signInRequired) window.location.replace(workspaceSignInHref('/admin/live-translation', {
+            service: new URL(window.location.href).searchParams.getAll('service'),
+          }))
+        }
       }
     })()
     return () => { stopped = true; dispose?.(); element.remove() }

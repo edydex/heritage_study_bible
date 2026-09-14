@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { workspaceSignInHref } from '../lib/workspaceNavigation'
 import serviceCore from '../../packages/service-core/index.js'
 import { plannerPreview } from './plannerPreview'
 import TemplateSlideEditor from './TemplateSlideEditor'
@@ -382,7 +383,7 @@ export default function PlanServiceClient() {
     ? CHANNEL_IDS.filter(channelId => selected.variants?.[channelId]?.mode === 'content')
     : []
 
-  async function loadList() {
+  async function loadList(initial = false) {
     setBusy(true)
     setError(null)
     try {
@@ -390,6 +391,11 @@ export default function PlanServiceClient() {
       setSummaries(result.items || [])
     } catch (caught) {
       setError(errorText(caught))
+      // Only initial entry may navigate away. An expired session while editing
+      // must leave the unsaved service on screen for the operator to recover.
+      if (initial && (caught as { status?: number })?.status === 401) {
+        window.location.replace(workspaceSignInHref('/admin/plan-service'))
+      }
     } finally {
       setBusy(false)
     }
@@ -477,7 +483,7 @@ export default function PlanServiceClient() {
   }
 
   useEffect(() => {
-    loadList()
+    loadList(true)
     loadLibraries()
   }, [])
 
@@ -1054,7 +1060,7 @@ export default function PlanServiceClient() {
                 {summaries.map(summary => <option key={summary.syncId} value={summary.syncId}>{summary.serviceDate} · {summary.title}</option>)}
               </select>
             </label>
-            <button type="button" aria-label="Refresh services" disabled={busy} onClick={loadList}>↻</button>
+            <button type="button" aria-label="Refresh services" disabled={busy} onClick={() => void loadList()}>↻</button>
           </div>
           <NewService onCreated={useEnvelope} onCopy={draft && !busy ? copyService : undefined} />
           {envelope && (dirty || busy || desiredStatus !== envelope.status
