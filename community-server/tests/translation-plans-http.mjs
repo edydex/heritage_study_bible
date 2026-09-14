@@ -16,6 +16,29 @@ async function request(path, { method = 'GET', body, authenticated = true, reque
   return { status: response.status, body: await response.json() }
 }
 const path = '/api/community/translation/plans'
+// Custom Payload views must not render a misleading workspace for anonymous visitors.
+for (const destination of ['/admin', '/admin/live-translation?service=service-2099-01-01', '/admin/plan-service', '/admin/prepare-sermon', '/admin/sermon-publications?sermon=sermon-ci']) {
+  const response = await fetch(`${origin}${destination}`, { redirect: 'manual' })
+  const expected = `/admin/login?redirect=${encodeURIComponent(destination)}`
+  if ([302, 303, 307, 308].includes(response.status)) {
+    assert.equal(new URL(response.headers.get('location'), origin).pathname, '/admin/login')
+    assert.equal(new URL(response.headers.get('location'), origin).searchParams.get('redirect'), destination)
+  } else {
+    // Next can emit a meta refresh when an ancestor already began streaming.
+    assert.equal(response.status, 200)
+    const html = await response.text()
+    const refresh = html.match(/<meta[^>]*http-equiv="refresh"[^>]*content="[^"]*url=([^"]+)"[^>]*>/i)
+    assert.ok(refresh, `Missing sign-in redirect for ${destination}`)
+    assert.equal(refresh[1].replaceAll('&amp;', '&'), expected)
+  }
+}
+const authenticatedPage = await fetch(`${origin}/admin/live-translation?service=service-2099-01-01`, {
+  headers: { cookie: cookies, 'sec-fetch-site': 'same-origin' }, redirect: 'manual',
+})
+assert.equal(authenticatedPage.status, 200)
+assert.ok((await authenticatedPage.text()).includes('Opening live translation'))
+const loginPage = await fetch(`${origin}/admin/login`)
+assert.ok((await loginPage.text()).includes('Heritage reading sync has a separate sign-in'))
 assert.equal((await request(path, { authenticated: false })).status, 401)
 // Payload correctly rejects origin-less cookie clients without browser provenance.
 assert.equal((await request(path, { requestOrigin: null, browserSite: null })).status, 401)

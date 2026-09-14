@@ -23,6 +23,7 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { default as default_a202ad21aea188adfad41087711ba85c } from '@/components/AdminNav'
+import { default as default_fa4a20611f8e562519785c8b58bf013b } from '@/components/WorkspaceSignInGuide'
 import { default as default_d2e5e8cdcf265e3c61c4d683161d9698 } from '@/components/AdminDashboard'
 import { default as default_c47a6a2000b141a0bb5c4ccc6ddb6ea0 } from '@/components/LiveTranslation'
 import { default as default_7625f2337a08dca3f9d12b0a78287a4d } from '@/components/PlanService'
@@ -57,6 +58,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/components/AdminNav#default": default_a202ad21aea188adfad41087711ba85c,
+  "@/components/WorkspaceSignInGuide#default": default_fa4a20611f8e562519785c8b58bf013b,
   "@/components/AdminDashboard#default": default_d2e5e8cdcf265e3c61c4d683161d9698,
   "@/components/LiveTranslation#default": default_c47a6a2000b141a0bb5c4ccc6ddb6ea0,
   "@/components/PlanService#default": default_7625f2337a08dca3f9d12b0a78287a4d,

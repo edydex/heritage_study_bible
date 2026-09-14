@@ -1,12 +1,13 @@
 'use client'
 import type { ServiceTranslationPlan, TranslationSettings } from '../lib/serviceTranslationPlan'
 import { useEffect, useRef, useState } from 'react'
+import { TranslationAccessError, translationAccessProblem, workspaceSignInHref } from '../lib/workspaceNavigation'
 
 interface ControlLease { token: string; expiresAtUnixMs: number; apiBase: string }
 async function requestAccess(): Promise<ControlLease> {
   const response = await fetch('/api/community/translation/access', { method: 'POST', credentials: 'same-origin', cache: 'no-store' })
   const body = await response.json()
-  if (!response.ok) throw new Error(body.error || 'Could not open live translation.')
+  if (!response.ok) throw new TranslationAccessError(response.status, body.error || 'Could not open live translation.')
   return body as ControlLease
 }
 
@@ -27,7 +28,7 @@ async function saveServicePlan(input: { serviceId: string; serviceRevision: stri
 
 export default function LiveTranslationClient() {
   const host = useRef<HTMLDivElement>(null)
-  const [error, setError] = useState('')
+  const [error, setError] = useState<ReturnType<typeof translationAccessProblem>>()
   const [loading, setLoading] = useState(true)
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function LiveTranslationClient() {
     const element = document.createElement('div')
     host.current?.append(element)
     setLoading(true)
-    setError('')
+    setError(undefined)
     void (async () => {
       try {
         const initialLease = await requestAccess()
@@ -53,7 +54,7 @@ export default function LiveTranslationClient() {
         dispose = client.mount(element, { initialLease, requestAccess, loadServicePlans, saveServicePlan, preferredServiceId })
         setLoading(false)
       } catch (cause) {
-        if (!stopped) { setError(cause instanceof Error ? cause.message : 'Live translation is unavailable.'); setLoading(false) }
+        if (!stopped) { setError(translationAccessProblem(cause)); setLoading(false) }
       }
     })()
     return () => { stopped = true; dispose?.(); element.remove() }
@@ -61,6 +62,10 @@ export default function LiveTranslationClient() {
   return <section style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
     <div ref={host} />
     {loading && <p role="status">Opening live translation…</p>}
-    {error && <><h1>Live translation</h1><p role="alert">{error}</p><p><a href="/admin/login?redirect=%2Fadmin%2Flive-translation">Sign in to the church workspace</a></p><button onClick={() => setAttempt(value => value + 1)}>Try again</button></>}
+    {error && <><h1>Live translation</h1><p role="alert">{error.message}</p>
+      {error.signInRequired
+        ? <p><a href={workspaceSignInHref('/admin/live-translation', { service: new URL(window.location.href).searchParams.getAll('service') })}>Sign in to the church workspace</a></p>
+        : <p><a href="/admin">Back to the church workspace</a></p>}
+      <button onClick={() => setAttempt(value => value + 1)}>Try again</button></>}
   </section>
 }

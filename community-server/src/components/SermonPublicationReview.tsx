@@ -2,9 +2,13 @@ import { DefaultTemplate } from '@payloadcms/next/templates'
 import type { AdminViewServerProps } from 'payload'
 import SermonPublicationReviewClient from './SermonPublicationReviewClient'
 import { parseSermonPublicationReviewTarget } from './sermonPublicationReviewModel'
+import { redirect } from 'next/navigation'
+import { workspaceSignInRedirect } from '../lib/workspaceNavigation'
 
 export default function SermonPublicationReview(props: AdminViewServerProps) {
   const { initPageResult } = props
+  const signIn = workspaceSignInRedirect(initPageResult.req.user, '/admin/sermon-publications', props.searchParams)
+  if (signIn) redirect(signIn)
   const initialTarget = parseSermonPublicationReviewTarget(props.searchParams)
   return (
     <DefaultTemplate

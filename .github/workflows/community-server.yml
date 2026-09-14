@@ -42,7 +42,7 @@ jobs:
           npm run test:deploy
           npm run test:appliance
           npm run typecheck
-          node --import tsx --test tests/translation-access.test.ts tests/translation-plans.test.ts
+          node --import tsx --test tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-plans.test.ts
           npm run build
 
       - name: Create isolated test configuration

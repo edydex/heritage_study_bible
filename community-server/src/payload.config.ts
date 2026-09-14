@@ -130,6 +130,7 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
     components: {
+      beforeLogin: ['@/components/WorkspaceSignInGuide'],
       Nav: '@/components/AdminNav',
       views: {
         dashboard: {
