@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from 'react'
 import { TranslationAccessError, translationAccessProblem, workspaceSignInHref } from '../lib/workspaceNavigation'
 
 interface ControlLease { token: string; expiresAtUnixMs: number; apiBase: string }
-async function requestAccess(): Promise<ControlLease> {
-  const response = await fetch('/api/community/translation/access', { method: 'POST', credentials: 'same-origin', cache: 'no-store' })
+async function requestAccess(purpose?: 'archive-review'): Promise<ControlLease> {
+  const response = await fetch('/api/community/translation/access', { method: 'POST', credentials: 'same-origin', cache: 'no-store', ...(purpose ? { headers: { 'content-type': 'application/json' }, body: JSON.stringify({ purpose }) } : {}) })
   const body = await response.json()
   if (!response.ok) throw new TranslationAccessError(response.status, body.error || 'Could not open live translation.')
   return body as ControlLease
 }
+
+const requestArchiveAccess = () => requestAccess('archive-review')
 
 async function loadServicePlans(serviceId?: string): Promise<{ schemaVersion: 1; services: ServiceTranslationPlan[] }> {
   const response = await fetch(`/api/community/translation/plans${serviceId ? `?serviceId=${encodeURIComponent(serviceId)}` : ''}`, { credentials: 'same-origin', cache: 'no-store' })
@@ -45,13 +47,14 @@ export default function LiveTranslationClient() {
         const client = await import(/* webpackIgnore: true */ url) as {
           clientVersion: number
           servicePlanVersion: number
-          mount(element: HTMLElement, options: { initialLease: ControlLease; requestAccess: typeof requestAccess; loadServicePlans: typeof loadServicePlans; saveServicePlan: typeof saveServicePlan; preferredServiceId?: string }): () => void
+          archiveReviewVersion?: number
+          mount(element: HTMLElement, options: { initialLease: ControlLease; requestAccess: typeof requestAccess; requestArchiveAccess?: typeof requestArchiveAccess; loadServicePlans: typeof loadServicePlans; saveServicePlan: typeof saveServicePlan; preferredServiceId?: string }): () => void
         }
         if (stopped) return
         if (client.clientVersion !== 1 || client.servicePlanVersion !== 1 || typeof client.mount !== 'function') throw new Error('Update the translation processor to use these controls.')
         const preferred = new URL(window.location.href).searchParams.get('service')
         const preferredServiceId = preferred && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(preferred) ? preferred : undefined
-        dispose = client.mount(element, { initialLease, requestAccess, loadServicePlans, saveServicePlan, preferredServiceId })
+        dispose = client.mount(element, { initialLease, requestAccess, ...(client.archiveReviewVersion === 1 ? { requestArchiveAccess } : {}), loadServicePlans, saveServicePlan, preferredServiceId })
         setLoading(false)
       } catch (cause) {
         if (!stopped) {

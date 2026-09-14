@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
     return [
       ...['service', 'events', 'token', 'audio/:sessionId/:clipId.wav'].map(endpoint => ({ source: `/translation/api/public/${endpoint}`, destination: `${translationProcessor.origin}/api/public/${endpoint}` })),
       ...['preflight', 'context-documents', 'sessions', 'sessions/current', 'sessions/current/start', 'sessions/current/stop', 'sessions/current/channels/:channelId', 'operator/events', 'capture/audio'].map(endpoint => ({ source: `/translation/api/${endpoint}`, destination: `${translationProcessor.origin}/api/${endpoint}` })),
+      ...['archives', 'archives/:sessionId/audio/:channelId', 'archives/:sessionId/transcripts/:channelId', 'archives/:sessionId/latency'].map(endpoint => ({ source: `/translation/api/${endpoint}`, destination: `${translationProcessor.origin}/api/${endpoint}` })),
       { source: '/translation/client/:file', destination: `${translationProcessor.origin}/client/:file` },
     ]
   },

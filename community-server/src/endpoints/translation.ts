@@ -4,6 +4,31 @@ import type { Endpoint, PayloadRequest } from 'payload'
 import { SyncShowProtocolError } from '../lib/syncShowProtocol.ts'
 import { translationPlanEndpoints } from './translationPlans.ts'
 
+async function accessPurpose(req: PayloadRequest): Promise<'live' | 'archive-review'> {
+  if (!req.body) return 'live'
+  if (Number(req.headers.get('content-length')) > 512) throw new SyncShowProtocolError('REQUEST', 'Access request is too large.', 413)
+  const reader = req.body.getReader()
+  const chunks: Uint8Array[] = []
+  let size = 0
+  try {
+    for (;;) {
+      const chunk = await reader.read()
+      if (chunk.done) break
+      size += chunk.value.byteLength
+      if (size > 512) { await reader.cancel(); throw new SyncShowProtocolError('REQUEST', 'Access request is too large.', 413) }
+      chunks.push(chunk.value)
+    }
+  } finally { reader.releaseLock() }
+  if (size === 0) return 'live'
+  if (req.headers.get('content-type')?.split(';', 1)[0].trim().toLowerCase() !== 'application/json') throw new SyncShowProtocolError('REQUEST', 'Send the access purpose as JSON.', 415)
+  let value: unknown
+  try { value = JSON.parse(Buffer.concat(chunks).toString('utf8')) } catch { throw new SyncShowProtocolError('REQUEST', 'Invalid access request.', 400) }
+  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).some(key => key !== 'purpose')) throw new SyncShowProtocolError('REQUEST', 'Invalid access purpose.', 400)
+  const purpose = (value as { purpose?: unknown }).purpose ?? 'live'
+  if (purpose !== 'live' && purpose !== 'archive-review') throw new SyncShowProtocolError('REQUEST', 'Invalid access purpose.', 400)
+  return purpose
+}
+
 /** Only the server exchanges its permanent key. Browsers receive a renewable ten-minute lease. */
 export async function translationAccessResponse(req: PayloadRequest, options: {
   origin?: string
@@ -13,7 +38,8 @@ export async function translationAccessResponse(req: PayloadRequest, options: {
 } = {}): Promise<Response> {
   const respond = (body: unknown, status = 200) => Response.json(body, { status, headers: privateHeaders })
   try {
-    const { origin, identity } = await authorizeTranslation(req, options)
+    const purpose = await accessPurpose(req)
+    const { origin, identity } = await authorizeTranslation(req, { ...options, archiveReview: purpose === 'archive-review' })
     const key = options.controlToken ?? process.env.TRANSLATION_CONTROL_TOKEN ?? ''
     if (key.length < 32) return respond({ error: 'Live translation needs to be enabled in server setup.' }, 503)
     const processor = new URL(options.processorUrl ?? process.env.TRANSLATION_PROCESSOR_URL ?? 'http://translation-processor:4310')
@@ -21,7 +47,7 @@ export async function translationAccessResponse(req: PayloadRequest, options: {
     const response = await (options.fetch ?? fetch)(new URL('/api/control/leases', processor), {
       method: 'POST',
       headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ subject: createHash('sha256').update(identity).digest('hex') }),
+      body: JSON.stringify({ subject: createHash('sha256').update(identity).digest('hex'), ...(purpose === 'archive-review' ? { scope: 'archive-read' } : {}) }),
       cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(10000),
     })
     if (!response.ok) return respond({ error: 'The translation processor is unavailable. Check server setup.' }, 503)

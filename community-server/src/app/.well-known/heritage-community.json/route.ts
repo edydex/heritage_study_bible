@@ -11,6 +11,7 @@ export function GET() {
     accessPath: '/api/community/translation/access',
     eventsPath: '/translation/api/public/events',
     scopes: ['syncshow:translation:control'],
+    archiveReview: { schemaVersion: 1, scope: 'syncshow:translation:archives:read' },
   }
 
   return publicJson({

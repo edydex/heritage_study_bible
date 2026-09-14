@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { translationAccessResponse } from '../src/endpoints/translation.ts'
-import { SYNCSHOW_TRANSLATION_CONTROL_SCOPE } from '../src/lib/syncShowProtocol.ts'
+import { SYNCSHOW_TRANSLATION_ARCHIVE_SCOPE, SYNCSHOW_TRANSLATION_CONTROL_SCOPE } from '../src/lib/syncShowProtocol.ts'
 const origin = 'https://church.example'
 const controlToken = 'test-server-key-that-must-never-reach-the-browser'
 function fixture({ user = { id: 7, systemRole: 'member' } as Record<string, unknown> | null, role = 'admin', scopes = [SYNCSHOW_TRANSLATION_CONTROL_SCOPE], device = false, revoked = false, otherChurch = false } = {}) {
@@ -66,4 +66,52 @@ test('missing setup and upstream failure return an actionable error without leak
   const response = await translationAccessResponse(req as never, { ...options, fetch: (async () => Response.json({ error: controlToken }, { status: 401 })) as typeof fetch })
   assert.equal(response.status, 503)
   assert.ok(!(await response.text()).includes(controlToken))
+})
+
+function withPurpose(req: ReturnType<typeof fixture>['req'], value: unknown) {
+  req.headers.set('content-type', 'application/json')
+  return { ...req, body: new Response(JSON.stringify(value)).body }
+}
+test('recording review uses a distinct lease and requires its explicit device grant', async () => {
+  for (const device of [false, true]) {
+    const { req, options, calls } = fixture({ device, scopes: [SYNCSHOW_TRANSLATION_ARCHIVE_SCOPE] })
+    const response = await translationAccessResponse(withPurpose(req, { purpose: 'archive-review' }) as never, {
+      ...options, fetch: (async (url, init) => {
+        assert.equal(JSON.parse(String(init?.body)).scope, 'archive-read')
+        return options.fetch(url, init)
+      }) as typeof fetch,
+    })
+    assert.equal(response.status, 200)
+    assert.equal(calls(), 1)
+    assert.deepEqual(Object.keys(await response.json()).sort(), ['apiBase', 'expiresAtUnixMs', 'token'])
+  }
+  const denied: Array<[Parameters<typeof fixture>[0], number]> = [[{ scopes: [SYNCSHOW_TRANSLATION_CONTROL_SCOPE] }, 401], [{ revoked: true }, 401], [{ otherChurch: true }, 403], [{ role: 'member' }, 403]]
+  for (const [config, status] of denied) {
+    const { req, options, calls } = fixture({ device: true, scopes: [SYNCSHOW_TRANSLATION_ARCHIVE_SCOPE], ...config })
+    const response = await translationAccessResponse(withPurpose(req, { purpose: 'archive-review' }) as never, options)
+    assert.equal(response.status, status)
+    assert.equal(calls(), 0)
+  }
+  const { req, options, calls } = fixture({ device: true, scopes: [SYNCSHOW_TRANSLATION_ARCHIVE_SCOPE] })
+  assert.equal((await translationAccessResponse(req as never, options)).status, 401)
+  assert.equal(calls(), 0)
+})
+test('access-purpose parsing rejects unknown privilege requests and oversized streaming bodies', async () => {
+  for (const body of [{ purpose: 'master' }, { purpose: 'archive-review', url: '/api/maintenance' }, [], { purpose: 'x'.repeat(600) }]) {
+    const { req, options, calls } = fixture()
+    const response = await translationAccessResponse(withPurpose(req, body) as never, options)
+    assert.ok([400, 413].includes(response.status))
+    assert.equal(calls(), 0)
+  }
+  const { req, options, calls } = fixture()
+  const request = withPurpose(req, { purpose: 'archive-review' })
+  request.headers.set('origin', 'https://other.example')
+  assert.equal((await translationAccessResponse(request as never, options)).status, 403)
+  assert.equal(calls(), 0)
+})
+
+test('legacy body-less clients can send an empty request stream without a content type', async () => {
+  const { req, options } = fixture({ device: true })
+  const response = await translationAccessResponse({ ...req, body: new Response('').body } as never, options)
+  assert.equal(response.status, 200)
 })

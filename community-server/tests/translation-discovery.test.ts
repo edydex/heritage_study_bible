@@ -24,6 +24,7 @@ test('translation discovery follows installed setup and advertises only public p
       accessPath: '/api/community/translation/access',
       eventsPath: '/translation/api/public/events',
       scopes: ['syncshow:translation:control'],
+      archiveReview: { schemaVersion: 1, scope: 'syncshow:translation:archives:read' },
     })
     assert.deepEqual(enabled.integrations.syncShow.resources.translation, translation)
     assert.ok(!JSON.stringify(enabled).includes('synthetic-key'))

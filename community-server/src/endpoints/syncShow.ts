@@ -24,6 +24,7 @@ import {
   serializeSongForSync,
   songEtag,
   syncShowAccessToken,
+  syncShowScopeDescription,
   SYNCSHOW_MAX_PAGE_SIZE,
   SYNCSHOW_MAX_REQUEST_BYTES,
   SYNCSHOW_PROTOCOL_VERSION,
@@ -1556,7 +1557,7 @@ const deviceStart: Endpoint = {
           subject: `Approve ${clientName} for ${communityPublicConfig.name}`,
           text: [
             `${clientName} requested scoped access to ${communityPublicConfig.name} resources.`,
-            `Requested scopes: ${scopes.join(', ')}`,
+            `Requested permissions: ${scopes.map(syncShowScopeDescription).join(', ')}`,
             `Approval code: ${displayUserCode(userCode)}`,
             `Open this page and explicitly approve the request: ${verificationUriComplete}`,
             `This request expires in ${DEVICE_GRANT_MINUTES} minutes.`,
@@ -1855,7 +1856,7 @@ const deviceApprovalPage: Endpoint = {
 <title>Approve SyncShow connection</title>
 <h1>Approve SyncShow connection</h1>
 <p><strong>${escapeHtml(grant.clientName)}</strong> is asking for: ${escapeHtml(
-  Array.isArray(grant.scopes) ? grant.scopes.join(', ') : 'Community resource access',
+  Array.isArray(grant.scopes) ? grant.scopes.map(syncShowScopeDescription).join(', ') : 'Community resource access',
 )}</p>
 <p>Requested account: ${escapeHtml(grant.requestedEmail)}</p>
 ${loginMessage}

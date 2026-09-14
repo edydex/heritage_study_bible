@@ -24,7 +24,9 @@ export const SYNCSHOW_SERMON_MEDIA_READ_SCOPE =
 export const SYNCSHOW_SERMON_MEDIA_WRITE_SCOPE =
   'syncshow:sermon-media:write'
 export const SYNCSHOW_TRANSLATION_CONTROL_SCOPE = 'syncshow:translation:control'
+export const SYNCSHOW_TRANSLATION_ARCHIVE_SCOPE = 'syncshow:translation:archives:read'
 export const SYNCSHOW_SCOPES = [
+  SYNCSHOW_TRANSLATION_ARCHIVE_SCOPE,
   SYNCSHOW_TRANSLATION_CONTROL_SCOPE,
   SYNCSHOW_READ_SCOPE,
   SYNCSHOW_WRITE_SCOPE,
@@ -39,6 +41,20 @@ export const SYNCSHOW_SCOPES = [
   SYNCSHOW_SERMON_MEDIA_READ_SCOPE,
   SYNCSHOW_SERMON_MEDIA_WRITE_SCOPE,
 ] as const
+const scopeDescriptions = new Map<string, string>([
+  [SYNCSHOW_TRANSLATION_CONTROL_SCOPE, 'Control live translation'],
+  [SYNCSHOW_TRANSLATION_ARCHIVE_SCOPE, 'Read private recorded services and transcripts'],
+  [SYNCSHOW_READ_SCOPE, 'Read songs'], [SYNCSHOW_WRITE_SCOPE, 'Edit songs'],
+  [SYNCSHOW_SERMON_READ_SCOPE, 'Read sermons'], [SYNCSHOW_SERMON_WRITE_SCOPE, 'Edit sermons'],
+  ['syncshow:sermon-sources:read', 'Read sermon source documents'], ['syncshow:sermon-sources:write', 'Edit sermon source documents'],
+  [SYNCSHOW_SERMON_PUBLICATION_READ_SCOPE, 'Read sermon publication status'],
+  [SYNCSHOW_SERVICE_PLAN_READ_SCOPE, 'Read service plans'],
+  [SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE, 'Read prepared services'], [SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE, 'Edit prepared services'],
+  [SYNCSHOW_SONG_PUBLIC_LINK_READ_SCOPE, 'Read song sharing links'], [SYNCSHOW_SONG_PUBLIC_LINK_WRITE_SCOPE, 'Manage song sharing links'],
+  [SYNCSHOW_SERMON_MEDIA_READ_SCOPE, 'Read sermon recordings'], [SYNCSHOW_SERMON_MEDIA_WRITE_SCOPE, 'Manage sermon recordings'],
+])
+export const syncShowScopeDescription = (scope: unknown) => scopeDescriptions.get(String(scope)) ?? String(scope)
+
 export const SYNCSHOW_MAX_REQUEST_BYTES = 2 * 1024 * 1024
 export const SYNCSHOW_MAX_DOCUMENT_BYTES = 512 * 1024
 export const SYNCSHOW_MAX_DOCUMENTS = 32
