@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -29,6 +29,7 @@ vi.mock('../services/secureStorage.js', () => ({
 }))
 
 import SyncSettingsPage from './SyncSettingsPage.jsx'
+import { getAutomaticSyncEnabled } from '../services/automaticSync.js'
 
 function renderSync() {
   return render(<MemoryRouter><SyncSettingsPage /></MemoryRouter>)
@@ -117,4 +118,17 @@ describe('SyncSettingsPage account states', () => {
     await waitFor(() => expect(screen.getByText('Manage account').closest('details')).not.toHaveAttribute('open'))
     expect(screen.getByRole('button', { name: 'Sign out on this device' })).toBeInTheDocument()
   })
+  it('explains and persists the device automatic-sync toggle without making a sync request', async () => {
+    renderSync()
+    const toggle = await screen.findByRole('switch', { name: 'Automatic Sync' })
+    expect(toggle).not.toBeChecked()
+    expect(toggle).toHaveAccessibleDescription(/after the Bible opens and every 3 minutes/)
+    fireEvent.click(toggle)
+    await waitFor(() => expect(toggle).toBeChecked())
+    expect(await getAutomaticSyncEnabled()).toBe(true)
+    fireEvent.click(toggle)
+    await waitFor(() => expect(toggle).not.toBeChecked())
+    expect(await getAutomaticSyncEnabled()).toBe(false)
+  })
+
 })

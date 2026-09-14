@@ -16,6 +16,11 @@ import {
   signOutSyncAccount,
 } from '../services/progressSync.js'
 import { authenticateLocalDevice } from '../services/secureStorage.js'
+import {
+  AUTOMATIC_SYNC_CHANGE_EVENT, AUTOMATIC_SYNC_STATUS_EVENT,
+  getAutomaticSyncEnabled, getAutomaticSyncStatus, setAutomaticSyncEnabled,
+} from '../services/automaticSync.js'
+import { SYNC_STATE_CHANGE_EVENT } from '../services/syncEvents.js'
 
 function downloadJson(fileName, payload) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }))
@@ -56,6 +61,9 @@ export default function SyncSettingsPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [eraseText, setEraseText] = useState('')
   const [conflicts, setConflicts] = useState([])
+  const [automaticSync, setAutomaticSync] = useState(false)
+  const [savingAutomaticSync, setSavingAutomaticSync] = useState(false)
+  const [automaticStatus, setAutomaticStatus] = useState(getAutomaticSyncStatus)
 
   const refresh = async () => {
     const saved = await getSyncState()
@@ -74,6 +82,33 @@ export default function SyncSettingsPage() {
   useEffect(() => {
     refresh().finally(() => setBusy(''))
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    const readPreference = () => getAutomaticSyncEnabled().then(value => { if (!cancelled) setAutomaticSync(value) })
+    const readStatus = () => setAutomaticStatus(getAutomaticSyncStatus())
+    const readState = () => getSyncState().then(value => { if (!cancelled) setState(value) })
+    void readPreference()
+    window.addEventListener(AUTOMATIC_SYNC_CHANGE_EVENT, readPreference)
+    window.addEventListener(AUTOMATIC_SYNC_STATUS_EVENT, readStatus)
+    window.addEventListener(SYNC_STATE_CHANGE_EVENT, readState)
+    return () => {
+      cancelled = true
+      window.removeEventListener(AUTOMATIC_SYNC_CHANGE_EVENT, readPreference)
+      window.removeEventListener(AUTOMATIC_SYNC_STATUS_EVENT, readStatus)
+      window.removeEventListener(SYNC_STATE_CHANGE_EVENT, readState)
+    }
+  }, [])
+
+  const toggleAutomaticSync = async enabled => {
+    setSavingAutomaticSync(true)
+    try {
+      await setAutomaticSyncEnabled(enabled)
+      setAutomaticSync(enabled)
+    } finally {
+      setSavingAutomaticSync(false)
+    }
+  }
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000)
@@ -176,6 +211,22 @@ export default function SyncSettingsPage() {
       </header>
 
       <main className="container mx-auto max-w-2xl px-4 py-5 pb-20 space-y-4">
+        <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
+          <label className="flex min-h-11 items-center justify-between gap-4 cursor-pointer">
+            <span className="font-semibold text-gray-900 dark:text-gray-100">Automatic Sync</span>
+            <span className="relative inline-flex shrink-0 items-center">
+              <input type="checkbox" role="switch" checked={automaticSync} disabled={savingAutomaticSync}
+                onChange={event => { void toggleAutomaticSync(event.target.checked) }}
+                aria-describedby="automatic-sync-help" className="peer sr-only" />
+              <span aria-hidden="true" className="h-7 w-12 rounded-full bg-gray-300 dark:bg-gray-600 peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2 peer-disabled:opacity-50" />
+              <span aria-hidden="true" className="absolute left-1 h-5 w-5 rounded-full bg-white shadow-sm peer-checked:translate-x-5" />
+            </span>
+          </label>
+          <p id="automatic-sync-help" className="mt-2 text-xs leading-5 text-gray-600 dark:text-gray-300">
+            When signed in, quietly sync after the Bible opens and every 3 minutes while the app is open. Pauses offline or in the background. Your current page stays open. Applies to this device.
+          </p>
+          {automaticSync && automaticStatus.error && <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">{automaticStatus.error}</p>}
+        </section>
         {!account && !waiting && (
           <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
             <h2 className="heading-text text-xl font-bold text-gray-900 dark:text-gray-100">Sync your reading progress</h2>
@@ -205,7 +256,7 @@ export default function SyncSettingsPage() {
             <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5">
               <h2 className="heading-text text-xl font-bold text-gray-900 dark:text-gray-100">Sync</h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{account.member.email}</p>
-              <button type="button" onClick={syncNow} disabled={busy === 'sync'} className="mt-5 w-full rounded-lg bg-primary px-4 py-3 font-semibold text-white disabled:opacity-50">{busy === 'sync' ? 'Syncing…' : 'Sync now'}</button>
+              <button type="button" onClick={syncNow} disabled={busy === 'sync' || automaticStatus.running} className="mt-5 w-full rounded-lg bg-primary px-4 py-3 font-semibold text-white disabled:opacity-50">{busy === 'sync' || automaticStatus.running ? 'Syncing…' : 'Sync now'}</button>
               <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">Last synced: {formatDate(state.lastSyncedAt)}</p>
               <p className={`mt-1 text-sm ${state.conflictCount ? 'text-amber-700 dark:text-amber-300' : 'text-gray-600 dark:text-gray-300'}`}>{statusMessage(state)}</p>
               <button type="button" onClick={() => run('signout', signOutSyncAccount)} disabled={busy === 'signout'} className="mt-4 text-sm font-semibold text-gray-700 dark:text-gray-200 underline disabled:opacity-50">{busy === 'signout' ? 'Signing out…' : 'Sign out on this device'}</button>

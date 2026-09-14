@@ -8,6 +8,7 @@ vi.mock('@capacitor/core', () => ({
 }))
 
 import { useBookmarks } from './useBookmarks'
+import { SYNC_DATA_CHANGE_EVENT } from '../services/syncEvents.js'
 import { STORAGE_KEYS } from '../services/persistentStorage'
 
 describe('useBookmarks', () => {
@@ -207,4 +208,20 @@ describe('useBookmarks', () => {
 
     expect(result.current.isCommentaryBookmarked('c1')).toBe(false)
   })
+  it('shows incoming notes without undoing a pending React note edit', async () => {
+    const old = { id: 'local', book: 'John', chapter: 3, verse: 16, text: 'old' }
+    localStorage.setItem(STORAGE_KEYS.notes, JSON.stringify([old]))
+    const { result } = renderHook(() => useBookmarks())
+    await waitFor(() => expect(result.current.hydrated).toBe(true))
+    const remote = { id: 'remote', book: 'John', chapter: 3, verse: 17, text: 'remote' }
+    act(() => {
+      result.current.saveNote('John', 3, 16, 'typing')
+      window.dispatchEvent(new CustomEvent(SYNC_DATA_CHANGE_EVENT, {
+        detail: { key: STORAGE_KEYS.notes, previous: [old], value: [{ ...old, text: 'server' }, remote] },
+      }))
+    })
+    expect(result.current.getNote('John', 3, 16).text).toBe('typing')
+    expect(result.current.getNote('John', 3, 17).text).toBe('remote')
+  })
+
 })

@@ -1,6 +1,7 @@
 import { getSecureValue, removeSecureValue, setSecureValue } from './secureStorage.js'
 
 export const COMMUNITY_SESSIONS_KEY = 'heritage-community-sessions-v1'
+export const COMMUNITY_SESSION_CHANGE_EVENT = 'heritage-community-session-change'
 
 function expectedIssuer(value) {
   const manifest = value?.manifest || value
@@ -51,4 +52,5 @@ export async function saveCommunitySession(communityId, session, community) {
   if (Object.keys(sessions).length) await setSecureValue(COMMUNITY_SESSIONS_KEY, JSON.stringify(sessions))
   else await removeSecureValue(COMMUNITY_SESSIONS_KEY)
   try { localStorage.removeItem(COMMUNITY_SESSIONS_KEY) } catch {}
+  window.dispatchEvent(new Event(COMMUNITY_SESSION_CHANGE_EVENT))
 }

@@ -146,6 +146,27 @@ public class CommunityIntegrationTest {
         screenshot("member-sign-in");
     }
 
+    @Test public void automaticSyncSettingSurvivesRestartAndBibleOpensOffline() throws Exception {
+        route("/settings/sync", "Automatic Sync");
+        waitFor("document.querySelector('[role=\"switch\"]') && !document.querySelector('[role=\"switch\"]').disabled");
+        evaluate("if (!document.querySelector('[role=\"switch\"]').checked) document.querySelector('[role=\"switch\"]').click()");
+        waitFor("document.querySelector('[role=\"switch\"]').checked && !document.querySelector('[role=\"switch\"]').disabled");
+        JSONObject saved = nativeResult("window.__nativeAcceptance=JSON.stringify(await window.Capacitor.Plugins.Preferences.get({key:'heritage-automatic-sync-v1'}));");
+        assertEquals("true", saved.getString("value"));
+        screenshot("automatic-sync");
+        activity.getScenario().recreate();
+        ready();
+        route("/genesis/1", "Genesis 1");
+        waitFor("document.body.innerText.includes('In the beginning') && !document.body.innerText.includes('Loading Bible text')");
+        assertFalse(evaluate("document.body.innerText").contains("Opening Sync"));
+        route("/settings/sync", "Automatic Sync");
+        waitFor("document.querySelector('[role=\"switch\"]').checked");
+        evaluate("document.querySelector('[role=\"switch\"]').click()");
+        waitFor("!document.querySelector('[role=\"switch\"]').checked && !document.querySelector('[role=\"switch\"]').disabled");
+        JSONObject disabled = nativeResult("window.__nativeAcceptance=JSON.stringify(await window.Capacitor.Plugins.Preferences.get({key:'heritage-automatic-sync-v1'}));");
+        assertEquals("false", disabled.getString("value"));
+    }
+
     @Test public void secureStorageUsesNativeKeystoreAndSurvivesActivityRestart() throws Exception {
         JSONObject written = nativeResult("const p=window.Capacitor.Plugins.HeritageSecureStorage;"
                 + "await p.set({key:'acceptance-token',value:'QA only — English Русский'});"

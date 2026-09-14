@@ -60,7 +60,7 @@ with zipfile.ZipFile(apk) as archive:
         assets[relative] = hashlib.sha256(data).hexdigest()
 assert len(assets) > 10
 assert '.well-known/assetlinks.json' in web_metadata, 'Website app-link metadata is missing'
-expected = {'packagedCommunityScreensAndMemberLinkWorkOffline', 'secureStorageUsesNativeKeystoreAndSurvivesActivityRestart', 'encryptedValuesCannotBeSubstitutedForAnotherStorageKey'}
+expected = {'packagedCommunityScreensAndMemberLinkWorkOffline', 'secureStorageUsesNativeKeystoreAndSurvivesActivityRestart', 'encryptedValuesCannotBeSubstitutedForAnotherStorageKey', 'automaticSyncSettingSurvivesRestartAndBibleOpensOffline'}
 found = set()
 for report in (root/'android/app/build/outputs/androidTest-results/connected').rglob('*.xml'):
     for case in ET.parse(report).iter('testcase'):
@@ -69,7 +69,7 @@ for report in (root/'android/app/build/outputs/androidTest-results/connected').r
         found.add(case.get('name'))
 assert found == expected, 'Missing native acceptance results: '+repr(expected-found)
 screenshots = root / 'android/app/build/native-acceptance/screenshots'
-for name in ['community-home', 'sermon-archive', 'member-sign-in']:
+for name in ['community-home', 'sermon-archive', 'member-sign-in', 'automatic-sync']:
     matches = list(screenshots.rglob(name+'.png'))
     assert len(matches) == 1, 'Missing or duplicate native screenshot: '+name
     data = matches[0].read_bytes()

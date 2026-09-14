@@ -35,6 +35,7 @@ export const STORAGE_KEYS = {
   communities: 'heritage-communities-v1',
   syncState: 'heritage-progress-sync-state-v1',
   syncRollback: 'heritage-progress-sync-rollback-v1',
+  automaticSync: 'heritage-automatic-sync-v1',
 }
 
 export const EXPORTABLE_EXACT_KEYS = [

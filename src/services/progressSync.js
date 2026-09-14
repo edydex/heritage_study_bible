@@ -1,5 +1,7 @@
 import { inspectCommunity, beginCommunityJoin, communityApiRequest, getCommunities } from './communities.js'
 import { getCommunitySession, saveCommunitySession } from './communitySessions.js'
+import { keepLocalEdit, mergeSyncList, mergeSyncPlan, mergeSyncPosition, sameSyncValue } from './syncLocalMerge.js'
+import { SYNC_DATA_CHANGE_EVENT, SYNC_STATE_CHANGE_EVENT } from './syncEvents.js'
 import { exportHeritageData, getStoredJson, removeStoredValue, setStoredJson, STORAGE_KEYS } from './persistentStorage.js'
 
 const DEFAULT_SYNC_SERVER = import.meta.env.VITE_HERITAGE_SYNC_SERVER_URL || 'https://wotbc.heritage.faith'
@@ -168,58 +170,66 @@ function remoteRecordMap(localRecords, remoteRecords, locallyChangedKeys) {
   return map
 }
 
-async function applyRecordMap(records) {
+function recordStorageValues(records) {
   const values = [...records.values()].filter(record => !record.deleted)
-  const bible = values.find(record => record.recordType === 'bible-position')?.value || null
-  const resources = Object.fromEntries(values
-    .filter(record => record.recordType === 'resource-position')
-    .map(record => [record.recordId, record.value]))
-  await setStoredJson(STORAGE_KEYS.readerProgress, { bible, resources })
-
-  const activePlan = values.find(record => record.recordType === 'active-reading-plan')?.value || null
-  if (activePlan) await setStoredJson(STORAGE_KEYS.activeReadingPlan, activePlan)
-  else await removeStoredValue(STORAGE_KEYS.activeReadingPlan)
-
-  for (const [recordType, storageKey] of [
-    ['bible-bookmark', STORAGE_KEYS.bookmarks],
-    ['resource-bookmark', STORAGE_KEYS.resourceBookmarks],
-    ['note', STORAGE_KEYS.notes],
-    ['highlight', STORAGE_KEYS.highlights],
-  ]) {
-    await setStoredJson(storageKey, values.filter(record => record.recordType === recordType).map(record => record.value))
-  }
-
-  for (const key of readLocalPlanKeys()) {
-    const existing = await getStoredJson(key, {})
-    await setStoredJson(key, { ...existing, completedItems: {}, completedDays: [], dayNotes: {} })
-  }
-  const plans = new Map()
+  const result = new Map([
+    [STORAGE_KEYS.readerProgress, {
+      bible: values.find(record => record.recordType === 'bible-position')?.value || null,
+      resources: Object.fromEntries(values.filter(record => record.recordType === 'resource-position').map(record => [record.recordId, record.value])),
+    }],
+    [STORAGE_KEYS.activeReadingPlan, values.find(record => record.recordType === 'active-reading-plan')?.value || null],
+  ])
+  for (const [type, key] of [
+    ['bible-bookmark', STORAGE_KEYS.bookmarks], ['resource-bookmark', STORAGE_KEYS.resourceBookmarks],
+    ['note', STORAGE_KEYS.notes], ['highlight', STORAGE_KEYS.highlights],
+  ]) result.set(key, values.filter(record => record.recordType === type).map(record => record.value))
   for (const record of values.filter(record => record.recordType.startsWith('reading-plan-'))) {
-    const planId = record.value?.planId
+    const { planId, day, itemId, note } = record.value || {}
     if (!planId) continue
-    if (!plans.has(planId)) plans.set(planId, { items: [], days: [], notes: [] })
-    if (record.recordType === 'reading-plan-item') plans.get(planId).items.push(record.value)
-    if (record.recordType === 'reading-plan-day') plans.get(planId).days.push(record.value)
-    if (record.recordType === 'reading-plan-day-note') plans.get(planId).notes.push(record.value)
-  }
-  for (const [planId, planRecords] of plans) {
     const key = `${STORAGE_KEYS.readingPlanPrefix}${planId}:progress`
-    const existing = await getStoredJson(key, {})
-    const completedItems = {}
-    for (const item of planRecords.items) {
-      const day = String(item.day)
-      if (!completedItems[day]) completedItems[day] = []
-      if (!completedItems[day].includes(item.itemId)) completedItems[day].push(item.itemId)
-    }
-    const dayNotes = Object.fromEntries(planRecords.notes.map(note => [String(note.day), note.note]))
-    await setStoredJson(key, {
-      ...existing,
-      completedItems,
-      completedDays: [...new Set(planRecords.days.map(day => Number(day.day)).filter(Number.isInteger))],
-      dayNotes,
-      updatedAt: new Date().toISOString(),
-    })
+    if (!result.has(key)) result.set(key, { completedItems: {}, completedDays: [], dayNotes: {} })
+    const plan = result.get(key)
+    if (record.recordType === 'reading-plan-item') (plan.completedItems[day] ||= []).push(itemId)
+    if (record.recordType === 'reading-plan-day') plan.completedDays.push(Number(day))
+    if (record.recordType === 'reading-plan-day-note') plan.dayNotes[day] = note
   }
+  return result
+}
+
+async function applyRecordMap(records, baselineRecords) {
+  const before = recordStorageValues(currentRecordsByKey(baselineRecords))
+  const incoming = recordStorageValues(records)
+  for (const key of new Set([...before.keys(), ...incoming.keys()])) {
+    const isPlan = key.startsWith(STORAGE_KEYS.readingPlanPrefix) && key.endsWith(':progress')
+    const fallback = isPlan ? {} : key === STORAGE_KEYS.readerProgress ? { bible: null, resources: {} }
+      : Array.isArray(incoming.get(key)) ? [] : null
+    const previous = before.get(key) ?? fallback
+    const desired = incoming.get(key) ?? fallback
+    if (sameSyncValue(previous, desired)) continue
+    // Read each group immediately before writing it. Never apply the snapshot
+    // collected before the network request over a newer note or reading position.
+    const current = await getStoredJson(key, fallback)
+    const next = isPlan ? mergeSyncPlan(previous, current, desired)
+      : key === STORAGE_KEYS.readerProgress ? mergeSyncPosition(previous, current, desired)
+        : key === STORAGE_KEYS.activeReadingPlan ? keepLocalEdit(previous, current, desired)
+          : mergeSyncList(previous, current, desired)
+    if (sameSyncValue(current, next)) continue
+    const writing = next == null ? removeStoredValue(key) : setStoredJson(key, next)
+    // The local mirror is already updated synchronously, before native I/O.
+    window.dispatchEvent(new CustomEvent(SYNC_DATA_CHANGE_EVENT, { detail: { key, previous: current, value: next } }))
+    await writing
+  }
+}
+
+let mutationQueue = Promise.resolve()
+let syncInFlight = null
+function withSyncMutation(action) {
+  const run = () => globalThis.navigator?.locks?.request
+    ? navigator.locks.request('heritage-personal-sync', action)
+    : action()
+  const result = mutationQueue.then(run, run)
+  mutationQueue = result.catch(() => {})
+  return result
 }
 
 export async function getSyncState() {
@@ -237,6 +247,7 @@ export async function getSyncState() {
 
 async function saveSyncState(state) {
   await setStoredJson(STORAGE_KEYS.syncState, state)
+  window.dispatchEvent(new CustomEvent(SYNC_STATE_CHANGE_EVENT, { detail: { lastSyncedAt: state.lastSyncedAt } }))
   return state
 }
 
@@ -378,7 +389,11 @@ export async function loadSyncConflicts(existingContext = null) {
   }
 }
 
-export async function resolveSyncConflict(conflict, action) {
+export function resolveSyncConflict(conflict, action) {
+  return withSyncMutation(() => resolveConflict(conflict, action))
+}
+
+async function resolveConflict(conflict, action) {
   if (!conflict || !Number.isSafeInteger(Number(conflict.id))) throw new Error('That synchronized change is no longer available.')
   if (action !== 'use-conflict' && action !== 'discard-conflict') throw new Error('Choose which synchronized change to keep.')
   const context = await loadSyncAccount()
@@ -413,7 +428,7 @@ export async function resolveSyncConflict(conflict, action) {
     delete metadata[key]
     knownKeys.delete(key)
   }
-  await applyRecordMap(records)
+  await applyRecordMap(records, localRecords)
   const blockedConflicts = (state.blockedConflicts || []).filter(blockedKey => blockedKey !== key)
   const conflictCount = Math.max(0, Number(state.conflictCount || 0) - 1)
   await saveSyncState({
@@ -429,9 +444,16 @@ export async function resolveSyncConflict(conflict, action) {
   return result
 }
 
-export async function performManualSync() {
+export function performManualSync() {
+  if (!syncInFlight) {
+    syncInFlight = withSyncMutation(performSync).finally(() => { syncInFlight = null })
+  }
+  return syncInFlight
+}
+
+async function performSync() {
   const accountContext = await loadSyncAccount()
-  if (!accountContext) throw new Error('Sign in before synchronizing.')
+  if (!accountContext) throw Object.assign(new Error('Sign in before synchronizing.'), { status: 401 })
   const { community, session, account } = accountContext
   const state = await getSyncState()
   if (!state.initialComplete) {
@@ -496,10 +518,10 @@ export async function performManualSync() {
 
   const conflictKeys = new Set(response.conflicts.map(conflict => recordKey(conflict.recordType, conflict.recordId)))
   const finalMap = remoteRecordMap([...mergedBeforePush.values()], response.records, conflictKeys)
-  await applyRecordMap(finalMap)
+  await applyRecordMap(finalMap, localRecords)
 
   const metadata = { ...(state.records || {}) }
-  for (const record of response.records) {
+  for (const record of [...pull.records, ...response.records]) {
     const key = recordKey(record.recordType, record.recordId)
     metadata[key] = {
       serverRevision: record.serverRevision,
@@ -550,7 +572,11 @@ export async function changeAccountProtection(input) {
   })
 }
 
-export async function revokeSyncDevice(deviceId) {
+export function revokeSyncDevice(deviceId) {
+  return withSyncMutation(() => revokeSyncDeviceUnlocked(deviceId))
+}
+
+async function revokeSyncDeviceUnlocked(deviceId) {
   const context = await loadSyncAccount()
   if (!context) throw new Error('Sign in again to continue.')
   const result = await syncRequest(context.community, context.community.manifest.sync.revokeDeviceUrl, context.session, {
@@ -560,14 +586,22 @@ export async function revokeSyncDevice(deviceId) {
   return result
 }
 
-export async function signOutSyncAccount() {
+export function signOutSyncAccount() {
+  return withSyncMutation(() => signOutSyncAccountUnlocked())
+}
+
+async function signOutSyncAccountUnlocked() {
   const context = await loadSyncAccount()
   if (!context) return
   await syncRequest(context.community, context.community.manifest.auth.logoutUrl, context.session, { method: 'POST', body: '{}' })
   await saveCommunitySession(context.community.manifest.id, null, context.community)
 }
 
-export async function eraseSynchronizedAccountData() {
+export function eraseSynchronizedAccountData() {
+  return withSyncMutation(() => eraseSynchronizedAccountDataUnlocked())
+}
+
+async function eraseSynchronizedAccountDataUnlocked() {
   const context = await loadSyncAccount()
   if (!context) throw new Error('Sign in again to continue.')
   const result = await syncRequest(context.community, context.community.manifest.sync.eraseUrl, context.session, {

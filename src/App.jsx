@@ -12,6 +12,7 @@ import TextSelectionBar from './components/TextSelectionBar'
 import ResourcesModal from './components/ResourcesModal'
 import BookReferenceChooser from './components/BookReferenceChooser'
 import { useBookmarks } from './hooks/useBookmarks'
+import { useAutomaticSync } from './hooks/useAutomaticSync'
 import { bibleBooks } from './data/bible-books.js'
 import { translations, DEFAULT_TRANSLATION, loadTranslation, loadTranslationLayout } from './data/translations'
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
@@ -1004,7 +1005,7 @@ function AboutPage() {
   )
 }
 
-function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
+function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderReady }) {
   const { bookSlug, chapterNum } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -1409,8 +1410,12 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     notes, saveNote, saveNotes, deleteNote, deleteNoteById,
     addHighlight, removeHighlights, isHighlighted, getVerseHighlightColor,
     addTextHighlight, removeTextHighlight, isTextSelectionHighlighted, getTextSelectionHighlight,
-    getTextHighlights, saveTextNote,
+    getTextHighlights, saveTextNote, hydrated,
   } = useBookmarks()
+
+  useEffect(() => {
+    if (bibleData && !translationLoading && hydrated) onReaderReady?.(true)
+  }, [bibleData, translationLoading, hydrated, onReaderReady])
 
   const existingTextSelectionNote = useMemo(() => (
     textSelection
@@ -2431,6 +2436,8 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
 // Main App with Router
 function App() {
+  const [readerReady, setReaderReady] = useState(false)
+  useAutomaticSync(readerReady)
   const [sideButtonScroll, setSideButtonScrollState] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.sideButtonScroll)
@@ -2490,8 +2497,8 @@ function App() {
           <Route path="/settings/content-servers" element={<ContentServersPage />} />
           <Route path="/community/callback" element={<CommunityCallbackPage />} />
           <Route path="/community" element={<CommunityHomePage />} />
-          <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
-          <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
+          <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} onReaderReady={setReaderReady} />} />
+          <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} onReaderReady={setReaderReady} />} />
           <Route path="/" element={<HomeRedirect />} />
           <Route path="*" element={<Navigate to="/genesis/1" replace />} />
         </Routes>

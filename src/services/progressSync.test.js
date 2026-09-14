@@ -182,4 +182,57 @@ describe('progressSync', () => {
       records: { [key]: { serverRevision: 4, deleted: false } },
     })
   })
+  it('coalesces manual and automatic requests and keeps edits made while the reply is pending', async () => {
+    const note = { id: 'shared', text: 'before', dateModified: '2026-09-03T12:00:00.000Z' }
+    await setStoredJson(STORAGE_KEYS.notes, [note])
+    let release
+    let posted
+    vi.stubGlobal('fetch', vi.fn(async (url, options = {}) => {
+      if (String(url).endsWith('/account')) return jsonResponse({ currentDeviceId: 'device-a', conflicts: 0 })
+      if (options.method !== 'POST') return jsonResponse({ records: [], latestRevision: 0 })
+      posted = JSON.parse(options.body)
+      await new Promise(resolve => { release = resolve })
+      return jsonResponse({
+        latestRevision: 1, conflicts: [],
+        acknowledgements: [{ recordType: 'note', recordId: 'shared', serverRevision: 1, deleted: false }],
+        records: [{ ...posted.changes[0], serverRevision: 1 }],
+      })
+    }))
+    const automatic = performManualSync()
+    const manual = performManualSync()
+    expect(manual).toBe(automatic)
+    await vi.waitFor(() => expect(release).toBeTypeOf('function'))
+    const edited = { ...note, text: 'typed while syncing', dateModified: '2026-09-03T12:01:00.000Z' }
+    await setStoredJson(STORAGE_KEYS.notes, [edited, { id: 'new-note', text: 'new' }])
+    release()
+    const result = await automatic
+    expect(fetch).toHaveBeenCalledTimes(3)
+    expect(await getStoredJson(STORAGE_KEYS.notes, [])).toEqual([edited, { id: 'new-note', text: 'new' }])
+    const remaining = await buildLocalChanges([
+      { recordType: 'note', recordId: 'shared', value: edited },
+      { recordType: 'note', recordId: 'new-note', value: { id: 'new-note', text: 'new' } },
+    ], result.state)
+    expect(remaining).toHaveLength(2)
+    expect(remaining[0].baseRevision).toBe(1)
+  })
+
+  it('remembers pull-only revisions and does not rewrite unchanged reading data', async () => {
+    await setStoredJson(STORAGE_KEYS.syncState, { initialComplete: true, lastRevision: 0, records: {} })
+    const note = { recordType: 'note', recordId: 'remote', value: { id: 'remote', text: 'from phone' }, serverRevision: 7, deleted: false }
+    let pulls = 0
+    const requests = []
+    vi.stubGlobal('fetch', vi.fn(async (url, options = {}) => {
+      if (String(url).endsWith('/account')) return jsonResponse({ currentDeviceId: 'device-a', conflicts: 0 })
+      if (options.method !== 'POST') return jsonResponse({ records: ++pulls === 1 ? [note] : [], latestRevision: 7 })
+      requests.push(JSON.parse(options.body))
+      return jsonResponse({ latestRevision: 7, records: [], conflicts: [] })
+    }))
+    await performManualSync()
+    expect(await getStoredJson(STORAGE_KEYS.notes, [])).toEqual([note.value])
+    const writes = vi.spyOn(Storage.prototype, 'setItem')
+    await performManualSync()
+    expect(requests[1].changes).toEqual([])
+    expect(writes.mock.calls.filter(([key]) => key === STORAGE_KEYS.notes || key === STORAGE_KEYS.readerProgress)).toHaveLength(0)
+  })
+
 })

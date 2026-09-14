@@ -8,6 +8,8 @@ import {
 } from '../utils/verseAnnotations'
 import { resolveTextAnchor, textSelectionMatchesAnnotation } from '../utils/textSelection'
 import { normalizeHighlightColor } from '../utils/highlightColors'
+import { SYNC_DATA_CHANGE_EVENT } from '../services/syncEvents.js'
+import { mergeSyncList } from '../services/syncLocalMerge.js'
 
 const STORAGE_KEY = STORAGE_KEYS.bookmarks
 const COMMENTARY_STORAGE_KEY = STORAGE_KEYS.commentaryBookmarks
@@ -54,6 +56,19 @@ export function useBookmarks() {
 
     load()
     return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    const update = ({ detail }) => {
+      const setter = {
+        [STORAGE_KEY]: setBookmarks, [NOTES_STORAGE_KEY]: setNotes, [HIGHLIGHTS_STORAGE_KEY]: setHighlights,
+      }[detail?.key]
+      // Functional updates also preserve React edits that have not yet flushed
+      // through the persistence effects when an incoming sync completes.
+      if (setter) setter(current => mergeSyncList(detail.previous, current, detail.value))
+    }
+    window.addEventListener(SYNC_DATA_CHANGE_EVENT, update)
+    return () => window.removeEventListener(SYNC_DATA_CHANGE_EVENT, update)
   }, [])
 
   useEffect(() => {
@@ -360,6 +375,7 @@ export function useBookmarks() {
   }
 
   return {
+    hydrated,
     bookmarks,
     addBookmark,
     removeBookmark,
