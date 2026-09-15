@@ -11,6 +11,8 @@ import {
 
 export const Songs: CollectionConfig = {
   slug: 'songs',
+  // List cells need the archive state even when this column is not displayed.
+  forceSelect: { status: true },
   indexes: [
     { fields: ['community', 'slug'], unique: true },
     { fields: ['community', 'syncId'], unique: true },
@@ -56,7 +58,10 @@ export const Songs: CollectionConfig = {
       ],
       admin: {
         position: 'sidebar',
-        components: { Field: '@/components/SongPublicationField' },
+        components: {
+          Field: '@/components/SongPublicationField',
+          Cell: '@/components/SongPublicationCell',
+        },
         description: 'Published: church website and Heritage Songs. Unlisted: direct link only. Private: church workspace only.',
       },
     },
