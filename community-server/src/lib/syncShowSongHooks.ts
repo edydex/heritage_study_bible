@@ -75,7 +75,8 @@ CollectionBeforeValidateHook = ({
     : operation === 'update'
       ? String(existing.visibility || 'private')
       : 'private'
-  if (explicitVisibility && requestedVisibility !== 'private') {
+  if (explicitVisibility && requestedVisibility !== 'private'
+    && (context as Record<string, unknown> | undefined)?.songbookPublicationRequested !== true) {
     throw new Error(
       'Signed-in member visibility requires an exact song-family rights review. Save this song as Private, then use SyncShow’s “Share with Community members” action.',
     )
