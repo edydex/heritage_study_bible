@@ -1,3 +1,4 @@
+import { publishedSongContent } from '@/lib/songPublication'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
@@ -60,6 +61,8 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
       return contentJson({ error: 'Not found.' }, { status: 404 })
     }
     if (type === 'songs') {
+      const published = publishedSongContent(doc as unknown as Record<string, unknown>)
+      if (published) return contentJson({ ...published, id: String(doc.id) })
       const access = await communityRequestAccess(payload, request.headers, communityId)
       if (!access.authenticated
         || doc.status === 'archived'

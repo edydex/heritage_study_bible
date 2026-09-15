@@ -491,19 +491,32 @@ export interface Song {
   id: number;
   community: number | Community;
   /**
-   * Drafts stay in the admin. Published items appear in the public Heritage catalog.
-   */
-  status: 'draft' | 'published' | 'archived';
-  /**
    * Filled automatically from the title when left blank. Change it only if the public link needs a different short name.
    */
   slug: string;
+  /**
+   * Published: church website and Heritage Songs. Unlisted: direct link only. Private: church workspace only.
+   */
+  songbookVisibility: 'published' | 'unlisted' | 'private';
+  songbookContent?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Archiving removes this song from public pages and active libraries.
+   */
+  status: 'draft' | 'published' | 'archived';
   /**
    * Stable identity shared with SyncShow. It does not change when a title changes.
    */
   syncId: string;
   /**
-   * Songs are never anonymous. Scheduled songs use the Community server clock.
+   * Managed by SyncShow’s member-sharing action. Use Songbook publication above for the public website and Heritage Songs.
    */
   visibility: 'private' | 'public' | 'scheduled-public';
   /**
@@ -1683,8 +1696,10 @@ export interface ReadingPlanNoteSelect<T extends boolean = true> {
  */
 export interface SongsSelect<T extends boolean = true> {
   community?: T;
-  status?: T;
   slug?: T;
+  songbookVisibility?: T;
+  songbookContent?: T;
+  status?: T;
   syncId?: T;
   visibility?: T;
   publishAt?: T;

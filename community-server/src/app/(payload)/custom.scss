@@ -1706,35 +1706,20 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
   .heritage-service-planner__preview-heading time { font-size: 0.6rem; }
 }
 
-.heritage-admin-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  padding: 1rem 0.75rem;
-  border-right: 1px solid var(--theme-elevation-150);
-  background: var(--theme-elevation-50);
-}
-
+.heritage-admin-nav { background: var(--theme-elevation-50); border-right: 1px solid var(--theme-elevation-150); }
+.heritage-admin-nav__content { display: flex; min-height: 100%; flex-direction: column; gap: 1.25rem; padding: 1.25rem; }
 .heritage-admin-nav a { text-decoration: none; }
-.heritage-admin-nav__brand { display: flex; align-items: center; gap: 0.55rem; padding: 0.35rem; }
-.heritage-admin-nav__brand > span { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 50%; color: white; background: #315c49; font-family: Georgia, serif; }
-.heritage-admin-nav__primary { display: grid; gap: 0.18rem; }
-.heritage-admin-nav__primary a,
-.heritage-admin-nav details a,
-.heritage-admin-nav__footer > a { padding: 0.55rem 0.65rem; border-radius: 0.4rem; color: var(--theme-text); font-size: 0.82rem; font-weight: 650; }
-.heritage-admin-nav__primary a:hover,
-.heritage-admin-nav details a:hover,
-.heritage-admin-nav__footer > a:hover { background: var(--theme-elevation-100); }
-.heritage-admin-nav details { display: grid; padding-top: 0.4rem; border-top: 1px solid var(--theme-elevation-150); }
-.heritage-admin-nav details summary { padding: 0.55rem 0.65rem; color: var(--theme-elevation-600); font-size: 0.75rem; font-weight: 700; cursor: pointer; }
-.heritage-admin-nav details[open] { gap: 0.1rem; }
-.heritage-admin-nav details a { display: block; }
-.heritage-admin-nav__footer { display: grid; gap: 0.1rem; margin-top: auto; padding-top: 0.6rem; border-top: 1px solid var(--theme-elevation-150); }
-.heritage-admin-nav__footer .logout { padding: 0.55rem 0.65rem; font-size: 0.82rem; }
-.heritage-admin-nav__planner-note { margin: 0; padding: 0.65rem; color: var(--theme-elevation-550); font-size: 0.72rem; line-height: 1.4; }
-.heritage-admin-nav[data-planner] { width: 8.5rem; }
-.heritage-admin-nav[data-planner] .heritage-admin-nav__brand strong { display: none; }
-.heritage-admin-nav[data-planner] .heritage-admin-nav__primary a { font-size: 0.75rem; }
+.heritage-admin-nav__heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.heritage-admin-nav__brand { font-weight: 750; font-size: 1.05rem; }
+.heritage-admin-nav__heading button { min-width: 44px; min-height: 44px; border: 1px solid var(--theme-elevation-200); border-radius: .5rem; background: transparent; color: var(--theme-text); font-size: 1.5rem; cursor: pointer; }
+.heritage-admin-nav__primary, .heritage-admin-nav__secondary, .heritage-admin-nav__footer { display: grid; gap: .35rem; }
+.heritage-admin-nav__content a:not(.heritage-admin-nav__brand), .heritage-admin-nav__footer .logout { display: flex; align-items: center; min-height: 46px; padding: .75rem 1rem; border-radius: .55rem; color: var(--theme-text); font-size: 1rem; font-weight: 600; }
+.heritage-admin-nav__content a:hover { background: var(--theme-elevation-100); }
+.heritage-admin-nav__content a[aria-current='page'] { background: var(--theme-elevation-150); box-shadow: inset 3px 0 #678e75; font-weight: 750; }
+.heritage-admin-nav__content :focus-visible { outline: 2px solid #678e75; outline-offset: 2px; }
+.heritage-admin-nav__secondary, .heritage-admin-nav__footer { padding-top: 1rem; border-top: 1px solid var(--theme-elevation-150); }
+.heritage-admin-nav__secondary p { margin: 0 .8rem .4rem; color: var(--theme-elevation-600); font-size: .85rem; }
+.heritage-admin-nav__footer { margin-top: auto; }
 
 .heritage-admin-welcome {
   width: min(70rem, 100%);
@@ -1758,3 +1743,11 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
   .heritage-admin-actions { grid-template-columns: 1fr; }
   .heritage-admin-nav[data-planner] { width: auto; }
 }
+
+.heritage-song-publication { border: 0; padding: 0; margin: 0 0 1.5rem; }
+.heritage-song-publication legend { font-weight: 700; margin-bottom: .75rem; }
+.heritage-song-publication label { display: flex; gap: .75rem; align-items: flex-start; padding: .85rem; margin-bottom: .4rem; border: 1px solid var(--theme-elevation-200); border-radius: .6rem; cursor: pointer; }
+.heritage-song-publication label:has(input:checked) { border-color: #678e75; background: var(--theme-elevation-100); }
+.heritage-song-publication input { margin-top: .2rem; accent-color: #315c49; }
+.heritage-song-publication small { display: block; margin-top: .3rem; color: var(--theme-elevation-600); line-height: 1.5; }
+.heritage-song-publication p { font-size: .85rem; color: var(--theme-elevation-600); line-height: 1.5; }

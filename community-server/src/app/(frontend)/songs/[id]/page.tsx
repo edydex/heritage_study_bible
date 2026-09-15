@@ -1,35 +1,41 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { loadPublicSong } from '@/lib/publicSite'
+import { songbookLanguage } from '@/lib/songbookSearch'
 
 export const dynamic = 'force-dynamic'
+export const metadata = { robots: { index: false, follow: false } }
 
-export default async function SongPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function SongPage({ params, searchParams }: {
+  params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const { id } = await params
-  const result = await loadPublicSong(id).catch(() => null)
+  const query = await searchParams
+  const language = songbookLanguage(query.lang)
+  const russian = language === 'ru'
+  const result = await loadPublicSong(id)
   if (!result) notFound()
-  const { song, snapshot } = result
-  return (
-    <main className="site-main song-detail">
-      <header className="page-heading">
-        <p className="eyebrow">Song library</p>
-        <h1>{song.title}</h1>
-        {song.russianTitle && song.russianTitle !== song.title ? <p className="song-detail__translation">{song.russianTitle}</p> : null}
-        {song.authors.length ? <p>{song.authors.join(', ')}</p> : null}
-      </header>
-
-      {snapshot ? <div className="lyrics-languages">
-        {snapshot.documents.map(document => <article key={document.id}>
-          <header><span>{document.language.toUpperCase()}</span><h2>{document.title}</h2></header>
-          {document.sections.map((section, index) => <section key={`${section.marker}-${index}`}>
-            <h3>{section.label || section.marker}</h3>
-            {section.slides.map((slide, slideIndex) => <p key={slideIndex}>{slide.lines.map((line, lineIndex) => <span key={lineIndex}>{line}<br /></span>)}</p>)}
-          </section>)}
-          {document.attribution ? <footer>{document.attribution}</footer> : null}
-        </article>)}
-      </div> : <section className="rights-notice">
-        <h2>Lyrics are not public for this song</h2>
-        <p>The title remains searchable, but the church has not approved an anonymous lyrics copy. Church leaders can still use the reviewed private copy while planning services.</p>
-      </section>}
-    </main>
-  )
+  const { song, content } = result
+  const back = new URLSearchParams({ lang: language, ...(typeof query.q === 'string' ? { q: query.q } : {}) })
+  const versions = [
+    { language: 'en', title: song.title, lyrics: content.lyrics, chords: content.chordSheet },
+    { language: 'ru', title: song.russianTitle || song.title, lyrics: content.russianLyrics, chords: content.russianChordSheet },
+  ].sort((a, b) => Number(b.language === language) - Number(a.language === language))
+  return <main className="site-main song-detail">
+    <Link className="songbook-back" href={`/songs?${back}`}>{russian ? '← Все песни' : '← All songs'}</Link>
+    <header className="page-heading">
+      <p className="eyebrow">{russian ? 'Песни церкви' : 'Church songbook'}</p>
+      <h1>{russian && song.russianTitle ? song.russianTitle : song.title}</h1>
+      {song.authors.length ? <p>{song.authors.join(', ')}</p> : null}
+    </header>
+    <div className="lyrics-languages">
+      {versions.filter(version => version.lyrics || version.chords).map(version => <article key={version.language} lang={version.language}>
+        <header><span>{version.language.toUpperCase()}</span><h2>{version.title}</h2></header>
+        {version.lyrics ? <div className="songbook-lyrics">{version.lyrics}</div> : null}
+        {version.chords ? <details><summary>{version.language === 'ru' ? 'Аккорды' : 'Chords'}</summary><pre className="songbook-chords">{version.chords}</pre></details> : null}
+        {(content.copyright || content.license) && <footer>{[content.copyright, content.license].filter(Boolean).join(' · ')}</footer>}
+      </article>)}
+    </div>
+    {!content.lyrics && !content.russianLyrics && <p>{russian ? 'Церковь пока не добавила слова этой песни.' : 'The church has not added lyrics for this song yet.'}</p>}
+  </main>
 }

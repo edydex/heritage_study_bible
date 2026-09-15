@@ -1,3 +1,4 @@
+import * as migration_songbook from './20260914_220000_songbook_publication';
 import * as migration_20260913_140000_service_translation_plans from './20260913_140000_service_translation_plans';
 import * as migration_20260913_010000_live_service_settings from './20260913_010000_live_service_settings';
 import * as migration_20260711_075027_initial_schema from './20260711_075027_initial_schema';
@@ -21,6 +22,7 @@ import * as migration_20260902_053500_service_document_lock_relations from './20
 import * as migration_20260903_200000_community_accounts_sync from './20260903_200000_community_accounts_sync';
 
 export const migrations = [
+
   {
     up: migration_20260711_075027_initial_schema.up,
     down: migration_20260711_075027_initial_schema.down,
@@ -126,4 +128,5 @@ export const migrations = [
     down: migration_20260913_140000_service_translation_plans.down,
     name: '20260913_140000_service_translation_plans',
   },
+  { up: migration_songbook.up, down: migration_songbook.down, name: '20260914_220000_songbook_publication' },
 ];
