@@ -66,7 +66,7 @@ test('real HTTP calendar privacy, persistent defaults, tag sorting and sermon pr
     const imageBytes = await sharp({ create: { width: 16, height: 9, channels: 3, background: '#245134' } }).png().toBuffer()
     const imageHash = createHash('sha256').update(imageBytes).digest('hex')
     const imageId = `sha256:${imageHash}`
-    const upload = await fetch(`${base}/api/community/service-documents/assets/${encodeURIComponent(imageId)}`, {method:'PUT',headers:{Authorization:`JWT ${token}`,'Content-Type':'image/png'},body:imageBytes})
+    const upload = await fetch(`${base}/api/community/service-documents/assets/${encodeURIComponent(imageId)}`, {method:'PUT',headers:{Authorization:`JWT ${token}`,'Content-Type':'image/png'},body:Uint8Array.from(imageBytes)})
     assert.equal(upload.status, 201)
     const image = { ...(await upload.json()).asset, fileName:'rehearsal.png',storedName:`${imageHash}.png`,kind:'image',altText:'Rehearsal',attribution:'' }
     let deck = createTemplateSlide(project, {id:'test-point',template:'point',english:{heading:'Love',body:'Be patient'},russian:{heading:'Любовь',body:'Будьте терпеливы'},selectedId:null})
