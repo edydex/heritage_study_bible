@@ -19,7 +19,7 @@ test('Payload wires a same-origin manager sermon-preparation task into admin', a
     source('../src/app/(payload)/admin/importMap.js'),
     source('../src/components/AdminWelcome.tsx'),
     source('../src/components/PrepareSermon.tsx'),
-    source('../src/components/PrepareSermonClient.tsx'),
+    source('../src/components/ManuscriptPreparation.tsx'),
     source('../src/endpoints/sermonPreparations.ts'),
   ])
 

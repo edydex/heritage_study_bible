@@ -172,7 +172,7 @@ test('checking a Community uses a simple GET without forcing a CORS preflight', 
   }
 })
 
-test('member sign-in refreshes the hidden song catalog without leaking its token cross-origin', async () => {
+test('member sign-in refreshes the public songbook anonymously without leaking its token cross-origin', async () => {
   const previous = {
     localStorage: globalThis.localStorage,
     window: globalThis.window,
@@ -250,7 +250,7 @@ test('member sign-in refreshes the hidden song catalog without leaking its token
 
     const songCatalogRequest = requests.find(request => request.url.endsWith('/catalogs/songs'))
     const crossOriginRequest = requests.find(request => request.url === 'https://static.example/catalogs/books')
-    assert.equal(songCatalogRequest.authorization, 'Community member-secret')
+    assert.equal(songCatalogRequest.authorization, '')
     assert.equal(crossOriginRequest.authorization, '')
 
     const subscriptions = JSON.parse(globalThis.localStorage.getItem('heritage-content-servers-v2'))

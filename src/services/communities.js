@@ -41,6 +41,7 @@ async function fetchJson(url, options = {}) {
     }
     response = await fetch(url, {
       credentials: 'omit',
+      cache: 'no-store',
       referrerPolicy: 'no-referrer',
       ...options,
       headers,

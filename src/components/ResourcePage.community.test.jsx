@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { expect, it, vi } from 'vitest'
 vi.mock('../services/communities', () => ({ COMMUNITIES_CHANGE_EVENT: 'community-change', getCommunities: () => [{ manifest: { id: 'church', name: 'My Church' }, contentPreview: { manifest: { id: 'church-content' } } }] }))
-vi.mock('../services/contentServers', () => ({ CONTENT_SERVERS_CHANGE_EVENT: 'content-change', getRemoteContentItemsForCategory: () => [
+vi.mock('../services/contentServers', () => ({ CONTENT_SERVERS_CHANGE_EVENT: 'content-change', refreshSongCatalogs: vi.fn(async () => 1), getRemoteContentItemsForCategory: () => [
   { id: 'church-song', title: 'My Church Song', sourceServerId: 'church-content', sourceServerName: 'My Church' },
   { id: 'other-song', title: 'Other Church Song', sourceServerId: 'other-content', sourceServerName: 'Other Church' },
 ] }))

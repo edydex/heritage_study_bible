@@ -2,8 +2,6 @@ import { publishedSongContent, songbookVisibility } from '@/lib/songPublication'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
-import { communityRequestAccess } from '@/lib/communityMemberRequest'
-import { isSongVisibleToMember } from '@/lib/syncShowProtocol'
 import { privateAuthorizationJson, publicJson } from '@/lib/publicConfig'
 
 const typeToCollection = {
@@ -33,10 +31,6 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
   if (communityId == null) {
     return catalogJson({ error: 'The configured community does not exist.' }, { status: 503 })
   }
-  const songAccess = type === 'songs'
-    ? await communityRequestAccess(payload, request.headers, communityId)
-    : null
-  const now = new Date().toISOString()
   const records: Record<string, any>[] = []
   let page = 1
   for (;;) {
@@ -46,7 +40,7 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
       where: { and: [
         { community: { equals: communityId } },
         type === 'songs' ? { status: { not_equals: 'archived' } } : { status: { equals: 'published' } },
-        ...(type === 'songs' && !songAccess?.authenticated ? [{ songbookVisibility: { equals: 'published' } }] : []),
+        ...(type === 'songs' ? [{ songbookVisibility: { equals: 'published' } }] : []),
       ] },
     })
     records.push(...result.docs)
@@ -57,7 +51,6 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
     const raw = doc as unknown as Record<string, unknown>
     const content = publishedSongContent(raw)
     if (songbookVisibility(raw) === 'published' && content) return [{ ...content, id: doc.id }]
-    if (songAccess?.authenticated && (songAccess.manager || isSongVisibleToMember(raw, new Date(now)))) return [doc]
     return []
   }) : records
 
@@ -65,6 +58,7 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
     {
       schemaVersion: 2,
       contentType: type,
+      ...(type === 'songs' ? { songbookPolicy: 'published-only-v1' } : {}),
       updatedAt: new Date().toISOString(),
       items: docs.map(doc => ({
         id: String(doc.id),

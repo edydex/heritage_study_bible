@@ -245,20 +245,16 @@ test('DELETE is a CAS-protected archive tombstone and physical song deletion is 
   assert.match(songs, /delete: \(\) => false/)
 })
 
-test('ordinary song catalog/content routes require members and enforce scheduled server time', async () => {
+test('song catalog lists Published only and direct member content retains access checks', async () => {
   const [catalog, content, access, publicConfig] = await Promise.all([
     source('app/catalogs/[type]/route.ts'),
     source('app/content/[type]/[id]/route.ts'),
     source('access.ts'),
     source('lib/publicConfig.ts'),
   ])
-  assert.match(catalog, /communityRequestAccess/)
-  assert.match(catalog, /!songAccess\?\.authenticated/)
-  assert.match(catalog, /songAccess\?\.manager/)
+  assert.match(catalog, /songbookVisibility: \{ equals: 'published' \}/)
+  assert.doesNotMatch(catalog, /communityRequestAccess|songAccess/)
   assert.match(catalog, /status: \{ not_equals: 'archived' \}/)
-  assert.match(catalog, /type === 'songs' && !songAccess\?\.manager/)
-  assert.match(catalog, /visibility: \{ equals: 'scheduled-public' \}/)
-  assert.match(catalog, /publishAt: \{ less_than_equal: now \}/)
   assert.match(catalog, /const catalogJson = type === 'songs' \? privateAuthorizationJson : publicJson/)
   assert.match(content, /!access\.authenticated/)
   assert.match(content, /isSongVisibleToMember/)

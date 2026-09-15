@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
 import { DEFAULT_TRANSLATION, loadTranslation } from '../data/translations'
@@ -7,7 +7,9 @@ import SearchResults from './SearchResults'
 import {
   CONTENT_SERVERS_CHANGE_EVENT,
   getRemoteContentItemsForCategory,
+  refreshSongCatalogs,
 } from '../services/contentServers'
+import PullToRefresh from './PullToRefresh'
 import { COMMUNITIES_CHANGE_EVENT, getCommunities } from '../services/communities'
 import { mergeSongCatalog } from '../services/songCatalog'
 
@@ -99,6 +101,28 @@ function ResourcePage() {
   const [searchResults, setSearchResults] = useState(null)
   const [bibleSearchData, setBibleSearchData] = useState(null)
   const [remoteItems, setRemoteItems] = useState(() => getRemoteContentItemsForCategory(categoryId))
+  const [refreshing, setRefreshing] = useState(false)
+  const [refreshMessage, setRefreshMessage] = useState('')
+  const refreshPending = useRef(false)
+  const refreshSongs = useCallback(async () => {
+    if (refreshPending.current || categoryId !== 'songs' || (communityId && !communitySourceId)) return
+    refreshPending.current = true
+    setRefreshing(true)
+    setRefreshMessage('')
+    try {
+      const count = await refreshSongCatalogs(communitySourceId || null)
+      setRefreshMessage(count ? 'Songs are up to date.' : 'No Community songbooks are connected yet.')
+    } catch (error) {
+      setRefreshMessage(error.message || 'Could not refresh songs. Try again when connected.')
+    } finally {
+      refreshPending.current = false
+      setRefreshing(false)
+    }
+  }, [categoryId, communityId, communitySourceId])
+
+  useEffect(() => {
+    if (categoryId === 'songs' && navigator.onLine !== false) void refreshSongs()
+  }, [categoryId, refreshSongs])
 
   useEffect(() => {
     const refresh = () => setRemoteItems(getRemoteContentItemsForCategory(categoryId))
@@ -310,7 +334,7 @@ function ResourcePage() {
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900">
       <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
-        <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
+        <div className="px-4 sm:px-6 min-h-14 py-2 flex flex-wrap sm:flex-nowrap items-center gap-3">
           <button
             onClick={() => navigate(communityId ? '/community' : '/genesis/1')}
             className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
@@ -324,7 +348,7 @@ function ResourcePage() {
           {(isBooks || isSongs) && (
             <>
               <form
-                className="flex-1 min-w-0 max-w-xl"
+                className="w-full sm:w-auto sm:flex-1 order-last sm:order-none min-w-0 max-w-xl"
                 onSubmit={(event) => {
                   event.preventDefault()
                 }}
@@ -358,7 +382,12 @@ function ResourcePage() {
         </div>
       </header>
 
+      <PullToRefresh enabled={isSongs} refreshing={refreshing} onRefresh={refreshSongs}>
       <main className="container mx-auto max-w-2xl px-4 py-6">
+        {isSongs && <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
+          <p role="status">{refreshMessage || 'Pull down from the top to refresh Community songs.'}</p>
+          <button type="button" onClick={refreshSongs} disabled={refreshing} className="shrink-0 min-h-11 rounded-lg border border-gray-300 dark:border-gray-600 px-3 text-primary dark:text-blue-300 disabled:opacity-50">{refreshing ? 'Refreshing…' : 'Refresh'}</button>
+        </div>}
         {communityId && <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
           <p>{community?.manifest.name || 'Community unavailable'}</p>
           <button onClick={() => navigate(`/resources/${categoryId}`)} className="text-primary dark:text-blue-300 underline">Show all {category.title.toLowerCase()}</button>
@@ -609,6 +638,7 @@ function ResourcePage() {
           </>
         )}
       </main>
+      </PullToRefresh>
     </div>
   )
 }

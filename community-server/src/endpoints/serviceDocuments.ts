@@ -63,14 +63,14 @@ function responseHeaders(req: PayloadRequest, extra: HeadersInit = {}) {
   return headers
 }
 
-function json(req: PayloadRequest, value: unknown, init: ResponseInit = {}) {
+export function json(req: PayloadRequest, value: unknown, init: ResponseInit = {}) {
   return Response.json(value, {
     ...init,
     headers: responseHeaders(req, init.headers),
   })
 }
 
-function editorError(req: PayloadRequest, error: unknown) {
+export function editorError(req: PayloadRequest, error: unknown) {
   if (error instanceof ServiceDocumentEditorError) {
     return json(req, { code: error.code, error: error.message }, { status: error.status })
   }
@@ -122,7 +122,7 @@ async function boundedJson(req: PayloadRequest) {
   }
 }
 
-async function managerContext(
+export async function managerContext(
   req: PayloadRequest,
   access: 'read' | 'write' = 'read',
 ) {
@@ -305,7 +305,7 @@ const list: Endpoint = {
         overrideAccess: true,
         showHiddenFields: true,
         req,
-        where: { community: { equals: communityId } },
+        where: { and: [{ community: { equals: communityId } }, { purpose: { not_equals: 'sermon' } }] },
       })
       return json(req, {
         schemaVersion: 1,

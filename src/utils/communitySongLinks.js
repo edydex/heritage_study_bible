@@ -44,6 +44,12 @@ export function normalizeCommunitySongMemberContentUrl(value) {
   return url.href
 }
 
+export function normalizeCommunitySongPublicPageUrl(value, contentUrl) {
+  const page = normalizeSecureUrl(value)
+  const content = normalizeSecureUrl(contentUrl)
+  return page && content && page.origin === content.origin && /^\/songs\/[^/]+$/.test(page.pathname) ? page.href : ''
+}
+
 export function normalizeCommunitySongPublicBearerUrl(value) {
   const url = normalizeSecureUrl(value)
   if (!url || !SONG_PUBLIC_BEARER_PATH.test(url.pathname)) return ''

@@ -1,5 +1,6 @@
 'use client'
 
+import { importSermonPresentation } from './importSermonPresentation'
 import { churchWorkspaceLinks } from '@/lib/churchWorkspaceLinks'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { workspaceSignInHref } from '../lib/workspaceNavigation'
@@ -248,6 +249,7 @@ function today() {
 function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeInput) => void; onCopy?: () => void }) {
   const [title, setTitle] = useState('Sunday Morning Service')
   const [serviceDate, setServiceDate] = useState(today)
+  const newServiceDetails = useRef<HTMLDetailsElement>(null)
   const titleInput = useRef<HTMLInputElement>(null)
   const serviceDateInput = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
@@ -270,6 +272,7 @@ function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeI
         }),
       })
       onCreated(response.serviceDocument)
+      if (newServiceDetails.current) newServiceDetails.current.open = false
     } catch (caught) {
       setError(errorText(caught))
     } finally {
@@ -278,7 +281,7 @@ function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeI
   }
 
   return (
-    <details className="heritage-service-planner__new">
+    <details ref={newServiceDetails} className="heritage-service-planner__new">
       <summary>+ New service</summary>
       <div>
         <label>
@@ -299,7 +302,7 @@ function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeI
   )
 }
 
-export default function PlanServiceClient() {
+export default function PlanServiceClient({ sermonSyncId, onDirtyChange }: { sermonSyncId?: string; onDirtyChange?: (dirty: boolean) => void } = {}) {
   const [summaries, setSummaries] = useState<ServiceSummary[]>([])
   const [envelope, setEnvelope] = useState<ServiceEnvelope | null>(null)
   const [draft, setDraft] = useState<ServiceProject | null>(null)
@@ -312,12 +315,14 @@ export default function PlanServiceClient() {
   const [uploadingVideo, setUploadingVideo] = useState(false)
   const [songLibrary, setSongLibrary] = useState<SongLibraryOption[]>([])
   const [songChoice, setSongChoice] = useState('')
+  const [sermonLibrary, setSermonLibrary] = useState<any[]>([])
+  const [sermonChoice, setSermonChoice] = useState('')
   const [bibleBooks, setBibleBooks] = useState<BibleBookOption[]>([])
   const [bibleBookId, setBibleBookId] = useState('Eph')
   const [bibleChapter, setBibleChapter] = useState(3)
   const [bibleStartVerse, setBibleStartVerse] = useState(14)
   const [bibleEndVerse, setBibleEndVerse] = useState(21)
-  const [resourceTab, setResourceTab] = useState<ResourceTab>('songs')
+  const [resourceTab, setResourceTab] = useState<ResourceTab>(sermonSyncId ? 'templates' : 'songs')
   const [sermonPassage, setSermonPassage] = useState(false)
   const [mediaPreviews, setMediaPreviews] = useState<Record<string, string>>({})
   const localUrls = useRef<string[]>([])
@@ -385,6 +390,7 @@ export default function PlanServiceClient() {
     : []
 
   async function loadList(initial = false) {
+    if (sermonSyncId) return
     setBusy(true)
     setError(null)
     try {
@@ -404,14 +410,17 @@ export default function PlanServiceClient() {
 
   async function loadLibraries() {
     try {
-      const [songs, bible] = await Promise.all([
+      const [songs, bible, sermons] = await Promise.all([
         jsonRequest(`${ENDPOINT}/library/songs`),
         jsonRequest(`${ENDPOINT}/library/bible-passage`),
+        jsonRequest('/api/community/sermon-presentations'),
       ])
       const nextSongs = songs.items || []
       setSongLibrary(nextSongs)
       setSongChoice(current => current || nextSongs[0]?.syncId || '')
       setBibleBooks(bible.books || [])
+      setSermonLibrary(sermons.items || [])
+      setSermonChoice(current => current || sermons.items?.[0]?.syncId || '')
     } catch (caught) {
       setError(errorText(caught))
     }
@@ -484,9 +493,37 @@ export default function PlanServiceClient() {
   }
 
   useEffect(() => {
-    loadList(true)
+    if (sermonSyncId) {
+      setBusy(true)
+      jsonRequest(`/api/community/sermon-presentations/${encodeURIComponent(sermonSyncId)}`, { method: 'POST' })
+        .then(result => useEnvelope(result.serviceDocument))
+        .catch(error => setError(errorText(error))).finally(() => setBusy(false))
+    } else loadList(true)
     loadLibraries()
   }, [])
+
+  useEffect(() => { onDirtyChange?.(dirty || desiredStatus !== envelope?.status) }, [dirty, desiredStatus, envelope?.status, onDirtyChange])
+
+  async function addWholeSermon() {
+    if (!draft || !sermonChoice || busy) return
+    setBusy(true); setError(null)
+    try {
+      const result = await jsonRequest(`/api/community/sermon-presentations/${encodeURIComponent(sermonChoice)}`)
+      if (!result.serviceDocument) throw new Error('This sermon has no saved slides yet. Open Prepare a sermon first.')
+      const imported = importSermonPresentation(draft, projectFromServiceEnvelope(result.serviceDocument), result.sermonDocument, selectedId)
+      change(project => Object.assign(project, imported.project))
+      setSelectedId(plannerSlides(imported.project).find(row => row.cue && !draft.items[row.itemId])?.itemId || imported.selectedId)
+      setSelectedRowIds([])
+      setNotice('Whole sermon added, including its saved slides and media. Save the service to keep it.')
+    } catch (error) { setError(errorText(error)) } finally { setBusy(false) }
+  }
+
+  useEffect(() => {
+    if (!envelope || (!dirty && desiredStatus === envelope.status)) return
+    const protect = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = '' }
+    window.addEventListener('beforeunload', protect)
+    return () => window.removeEventListener('beforeunload', protect)
+  }, [dirty, desiredStatus, envelope?.status])
 
   function change(mutator: (project: ServiceProject) => void) {
     if (!draft) return
@@ -1043,12 +1080,13 @@ export default function PlanServiceClient() {
               <option value="planning">Planning</option><option value="ready">Ready</option>
               <option value="archived">Archived</option><option value="cancelled">Cancelled</option>
             </select>
-            <button type="button" aria-label="Save service" title={!draft ? 'Open a service to save' : busy ? 'Saving…' : dirty || desiredStatus !== envelope?.status ? 'Save service · unsaved changes' : `Saved · v${envelope?.syncVersion || ''}`}
+            <button type="button" aria-label={sermonSyncId ? 'Save sermon slides' : 'Save service'} title={!draft ? 'Open a service to save' : busy ? 'Saving…' : dirty || desiredStatus !== envelope?.status ? 'Save service · unsaved changes' : `Saved · v${envelope?.syncVersion || ''}`}
               disabled={!draft || busy || (!dirty && desiredStatus === envelope?.status)} onClick={save}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2zm2 0v7h10V3M7 21v-7h10v7" /></svg>
             </button>
           </div>
           <p className="heritage-service-planner__save-state" aria-live="polite" title={notice}>{draft ? `${slideList.rows.filter(row => row.cue).length} slides · ${busy ? 'Working…' : dirty || desiredStatus !== envelope?.status ? 'Unsaved changes' : `Saved v${envelope?.syncVersion}`}` : notice}</p>
+          {!sermonSyncId && <>
           <div className="heritage-service-planner__service-picker">
             <label>
               <span>Current service</span>
@@ -1064,8 +1102,10 @@ export default function PlanServiceClient() {
             ? <p className="heritage-service-planner__save-state">Save this service to open translation settings.</p>
             : <p><a href={`/admin/live-translation?service=${encodeURIComponent(envelope.syncId)}`} target="_blank" rel="noopener noreferrer">Translation settings ↗</a></p>)}
 
+          </>}
+
           <div className="heritage-service-planner__outline-heading">
-            <h2>Service order</h2>
+            <h2>{sermonSyncId ? 'Sermon slides' : 'Service order'}</h2>
             <small aria-live="polite">{batchSlides.length > 1 ? `${batchSlides.length} selected` : 'Shift-click to select several'}</small>
           </div>
 
@@ -1137,7 +1177,7 @@ export default function PlanServiceClient() {
           {selected ? <>
             <section className="heritage-service-planner__preview">
               <header className="heritage-service-planner__preview-heading">
-                <div><strong>{activeSlide ? `Slide ${activeSlide.number}` : selected.title}</strong><span title={draft?.title}>{draft?.title}</span><time dateTime={draft?.serviceDate}>{draft?.serviceDate}</time><button type="button" className="heritage-service-planner__service-preview-button" disabled={!slideList.rows.some(row=>row.cue) || Boolean(slideList.error)} onClick={()=>setServicePreviewOpen(true)}>▦ Service Preview</button></div>
+                <div><strong>{activeSlide ? `Slide ${activeSlide.number}` : selected.title}</strong><span title={draft?.title}>{draft?.title}</span><time dateTime={draft?.serviceDate}>{draft?.serviceDate}</time><button type="button" className="heritage-service-planner__service-preview-button" disabled={!slideList.rows.some(row=>row.cue) || Boolean(slideList.error)} onClick={()=>setServicePreviewOpen(true)}>▦ {sermonSyncId ? 'Sermon preview' : 'Service Preview'}</button></div>
                 <button type="button" disabled={!undoStack.length} onClick={undo}>Undo</button>
               </header>
               <div className="heritage-service-planner__output-tabs" role="tablist" aria-label="Preview output">
@@ -1256,10 +1296,11 @@ export default function PlanServiceClient() {
         <section className="heritage-service-planner__resources">
           <div className="heritage-service-planner__resource-tabs" role="tablist" aria-label="Add slides">
             <strong>Add slides</strong>
-            {(['songs', 'media', 'scripture', 'templates'] as ResourceTab[]).map(tab => <button key={tab} type="button" role="tab" aria-selected={resourceTab === tab} onClick={() => { setResourceTab(tab); if (tab === 'scripture') setSermonPassage(false) }}>{tab === 'songs' ? 'Songs' : tab === 'media' ? 'Media' : tab === 'templates' ? 'Sermon templates' : 'Scripture'}</button>)}
+            {(['songs', 'media', 'scripture', 'templates'] as ResourceTab[]).map(tab => <button key={tab} type="button" role="tab" aria-selected={resourceTab === tab} onClick={() => { setResourceTab(tab); if (tab === 'scripture') setSermonPassage(false) }}>{tab === 'songs' ? 'Songs' : tab === 'media' ? 'Media' : tab === 'templates' ? 'Sermon' : 'Scripture'}</button>)}
             <details className="heritage-service-planner__add-menu"><summary aria-label="More slide types" title="More slide types">＋</summary><div><button type="button" disabled={!draft} onClick={event => { add('group'); event.currentTarget.closest('details')!.open = false }}>Section divider</button><button type="button" disabled={!draft} onClick={event => { add('blank'); event.currentTarget.closest('details')!.open = false }}>Blank screen</button></div></details>
           </div>
           <div className="heritage-service-planner__resource-content">
+            {resourceTab === 'templates' && !sermonSyncId && <div className="heritage-sermon-library"><label>Prepared sermon<select aria-label="Prepared sermon" value={sermonChoice} onChange={event => setSermonChoice(event.target.value)}><option value="">Choose a sermon…</option>{sermonLibrary.map(sermon => <option key={sermon.syncId} value={sermon.syncId}>{sermon.serviceDate} · {sermon.title}</option>)}</select></label><button type="button" disabled={!draft || !sermonChoice || busy} onClick={addWholeSermon}>Add whole sermon</button><small>Newest added first. Copies saved slides, media and notes into this service.</small><a href="/admin/prepare-sermon" target="_blank" rel="noopener noreferrer">Prepare a sermon ↗</a><button type="button" onClick={loadLibraries} disabled={busy}>Refresh sermons</button></div>}
             {resourceTab === 'templates' ? <div className="heritage-service-planner__templates">{SERMON_TEMPLATES.map(value => <button key={value.id} type="button" disabled={!draft} onClick={() => { if (value.id === 'passage') { setResourceTab('scripture'); setSermonPassage(true) } else addTemplate(value.id) }}><span aria-hidden="true">{value.icon}</span><strong>{value.label}</strong><small>{value.hint}</small></button>)}</div> : null}
             {resourceTab === 'songs' ? <>
               <label><span>Reviewed Community song</span><select value={songChoice} onChange={event => setSongChoice(event.target.value)}>{songLibrary.map(song => <option key={song.syncId} value={song.syncId}>{song.title}{song.russianTitle && song.russianTitle !== song.title ? ` / ${song.russianTitle}` : ''}</option>)}</select></label>

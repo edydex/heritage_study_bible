@@ -1,3 +1,4 @@
+import CalendarBrowser from '../../../packages/calendar-ui/CalendarBrowser.jsx'
 import Link from 'next/link'
 import { loadLiveService } from '@/lib/loadLiveService'
 import { formatServiceDate, loadPublicSermons } from '@/lib/publicSite'
@@ -31,6 +32,8 @@ export default async function Home() {
         <Link href="/songs"><span>02</span><strong>Song library</strong><p>Find the songs we sing in English and Russian.</p></Link>
         <Link href="/live"><span>03</span><strong>Live translation</strong><p>Hear the sermon live in the language you need.</p></Link>
       </section>
+
+      <CalendarBrowser />
 
       {latest ? <section className="latest-sermon">
         <div>

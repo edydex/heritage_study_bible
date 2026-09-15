@@ -1758,3 +1758,16 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-song-publication-cell select:disabled { cursor: default; opacity: .65; }
 .heritage-song-publication-cell small { display: block; margin-top: .3rem; font-size: .8rem; white-space: normal; color: var(--theme-elevation-600); }
 .heritage-song-publication-cell [role='alert'] { color: var(--theme-error-600); }
+
+/* Keep the saved-sermon picker beside its action, above the slide templates. */
+.heritage-service-planner__resource-content:has(.heritage-sermon-library) { flex-wrap:wrap; align-items:stretch; }
+.heritage-service-planner__resource-content > .heritage-sermon-library { display:grid; grid-template-columns:minmax(12rem,1fr) auto auto; flex:1 1 100%; gap:.3rem .6rem; padding:0; margin:0; align-items:end; border:0; }
+.heritage-sermon-library label { display:grid; gap:.25rem; grid-column:1; grid-row:1; }
+.heritage-sermon-library select { width:100%; }
+.heritage-sermon-library button:first-of-type { grid-column:2; grid-row:1; }
+.heritage-sermon-library button:last-of-type { grid-column:3; grid-row:1; }
+.heritage-sermon-library button { padding:.45rem .8rem; border:1px solid var(--theme-elevation-200); border-radius:.3rem; background:var(--theme-bg); color:var(--theme-text); }
+.heritage-sermon-library small { grid-column:1; grid-row:2; opacity:.7; }
+.heritage-sermon-library a { grid-column:2/4; grid-row:2; font-size:.8rem; }
+.heritage-service-planner__resource-content:has(.heritage-sermon-library) > .heritage-service-planner__templates { flex-basis:100%; grid-template-columns:repeat(4,minmax(0,1fr)); }
+@media(max-width:600px) { .heritage-service-planner__resource-content > .heritage-sermon-library { grid-template-columns:minmax(0,1fr) auto; } .heritage-sermon-library button:last-of-type { grid-column:2; grid-row:2; } .heritage-sermon-library a { grid-column:1; } .heritage-sermon-library small { display:none; } }

@@ -51,7 +51,7 @@ it('keeps a temporary connection failure distinct from expired membership', asyn
   await screen.findByText('Could not reach the Community server.')
   expect(screen.queryByRole('button', { name: 'Sign in again' })).not.toBeInTheDocument()
   expect(screen.getByText('Signed in as Reader')).toBeInTheDocument()
-  mocks.request.mockResolvedValue({ docs: [] })
+  mocks.request.mockResolvedValue({ events: [], timeZone: 'UTC', authenticated: true })
   fireEvent.click(screen.getByRole('button', { name: 'Refresh' }))
   await waitFor(() => expect(screen.queryByText('Could not reach the Community server.')).not.toBeInTheDocument())
   expect(mocks.join).not.toHaveBeenCalled()

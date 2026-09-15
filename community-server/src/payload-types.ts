@@ -301,6 +301,10 @@ export interface Community {
    * Invite-only prevents strangers from creating member accounts on a public server.
    */
   joinPolicy: 'invite' | 'open';
+  /**
+   * Events can inherit this setting or choose their own visibility.
+   */
+  calendarDefaultVisibility: 'members' | 'public';
   allowDirectoryListing?: boolean | null;
   contentServerEnabled?: boolean | null;
   liveService?: {
@@ -494,6 +498,11 @@ export interface Song {
    * Filled automatically from the title when left blank. Change it only if the public link needs a different short name.
    */
   slug: string;
+  /**
+   * Choose one or more uses. Sort this column to group songs, with titles alphabetized within each group.
+   */
+  tags?: ('solo' | 'choir' | 'communal')[] | null;
+  tagSortKey?: string | null;
   /**
    * Published: church website and Heritage Songs. Unlisted: direct link only. Private: church workspace only.
    */
@@ -923,6 +932,8 @@ export interface ServicePlan {
  */
 export interface ServiceDocument {
   id: number;
+  purpose: 'service' | 'sermon';
+  sermon?: (number | null) | Sermon;
   community: number | Community;
   /**
    * Derived from the shared document.
@@ -1174,7 +1185,7 @@ export interface PlanNote {
   createdAt: string;
 }
 /**
- * Church calendar items shown to signed-in members, with optional RSVP buttons and reminders.
+ * Click a calendar date to create an event. Set recurring services and choose who can see each event.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
@@ -1190,6 +1201,16 @@ export interface Event {
    * For example: America/Los_Angeles.
    */
   timeZone: string;
+  /**
+   * For a recurring event, this applies to the entire series.
+   */
+  visibility: 'inherit' | 'public' | 'members';
+  recurrence?: ('none' | 'weekly' | 'monthly') | null;
+  repeatInterval?: number | null;
+  /**
+   * Last date, inclusive, in YYYY-MM-DD format. Leave blank to keep repeating.
+   */
+  repeatUntil?: string | null;
   location?: string | null;
   url?: string | null;
   rsvpEnabled?: boolean | null;
@@ -1571,6 +1592,7 @@ export interface CommunitiesSelect<T extends boolean = true> {
   logo?: T;
   timeZone?: T;
   joinPolicy?: T;
+  calendarDefaultVisibility?: T;
   allowDirectoryListing?: T;
   contentServerEnabled?: T;
   liveService?:
@@ -1697,6 +1719,8 @@ export interface ReadingPlanNoteSelect<T extends boolean = true> {
 export interface SongsSelect<T extends boolean = true> {
   community?: T;
   slug?: T;
+  tags?: T;
+  tagSortKey?: T;
   songbookVisibility?: T;
   songbookContent?: T;
   status?: T;
@@ -1922,6 +1946,8 @@ export interface ServicePlansSelect<T extends boolean = true> {
  * via the `definition` "service-documents_select".
  */
 export interface ServiceDocumentsSelect<T extends boolean = true> {
+  purpose?: T;
+  sermon?: T;
   community?: T;
   title?: T;
   serviceDate?: T;
@@ -2093,6 +2119,10 @@ export interface EventsSelect<T extends boolean = true> {
   startsAt?: T;
   endsAt?: T;
   timeZone?: T;
+  visibility?: T;
+  recurrence?: T;
+  repeatInterval?: T;
+  repeatUntil?: T;
   location?: T;
   url?: T;
   rsvpEnabled?: T;

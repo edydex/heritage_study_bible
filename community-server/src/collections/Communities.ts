@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { validTimeZone } from '../../packages/calendar-core/index.js'
 import { isSystemAdmin } from '@/access'
 import { youtubeChannel, youtubeVideoId, publicTranslationUrl } from '@/lib/liveServiceConfig'
 
@@ -32,7 +33,7 @@ export const Communities: CollectionConfig = {
     { name: 'description', label: 'Short public description', type: 'textarea' },
     { name: 'website', label: 'Public server address', type: 'text', admin: { readOnly: true } },
     { name: 'logo', label: 'Church logo', type: 'upload', relationTo: 'media' },
-    { name: 'timeZone', label: 'Time zone', type: 'text', defaultValue: 'UTC', required: true, admin: { description: 'For example: America/Los_Angeles.' } },
+    { name: 'timeZone', label: 'Default event time zone', validate: (value: unknown) => validTimeZone(value) || 'Choose a valid time zone such as America/Los_Angeles.', type: 'text', defaultValue: 'UTC', required: true, admin: { description: 'For example: America/Los_Angeles.' } },
     {
       name: 'joinPolicy',
       label: 'Who may join?',
@@ -45,6 +46,7 @@ export const Communities: CollectionConfig = {
       ],
       admin: { description: 'Invite-only prevents strangers from creating member accounts on a public server.' },
     },
+    { name: 'calendarDefaultVisibility', label: 'Default calendar visibility', type: 'select', required: true, defaultValue: 'members', options: [{label: 'Members only', value: 'members'}, {label: 'Public — everyone', value: 'public'}], admin: { description: 'Events can inherit this setting or choose their own visibility.' } },
     { name: 'allowDirectoryListing', label: 'Show a public member directory', type: 'checkbox', defaultValue: false },
     { name: 'contentServerEnabled', label: 'Publish church resources to Heritage', type: 'checkbox', defaultValue: true },
     {

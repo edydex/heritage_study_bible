@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   COMMUNITIES_CHANGE_EVENT,
@@ -11,6 +11,7 @@ import {
   savePublicCommunity,
   setPrimaryCommunity,
 } from '../services/communities'
+import CalendarBrowser from '../../community-server/packages/calendar-ui/CalendarBrowser.jsx'
 import CommunityResources from './CommunityResources'
 
 const COMMUNITY_FEATURE_LABELS = { events: 'Calendar', rsvps: 'Event RSVPs', personalProgressSync: 'Personal sync', strictPasswordProtection: 'Optional password protection' }
@@ -37,7 +38,7 @@ function downloadEvent(event, community) {
     'PRODID:-//Heritage Study Bible//Community Events//EN',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
-    `UID:heritage-${community.manifest.id}-${event.id}@heritage.faith`,
+    `UID:heritage-${community.manifest.id}-${event.id}-${icsTimestamp(event.startsAt)}@heritage.faith`,
     `DTSTAMP:${icsTimestamp(new Date())}`,
     `DTSTART:${icsTimestamp(event.startsAt)}`,
     `DTEND:${icsTimestamp(event.endsAt || new Date(new Date(event.startsAt).getTime() + 60 * 60_000))}`,
@@ -67,7 +68,6 @@ function CommunityHomePage() {
   const [joinUrl, setJoinUrl] = useState('')
   const [email, setEmail] = useState('')
   const [preview, setPreview] = useState(null)
-  const [eventsByCommunity, setEventsByCommunity] = useState({})
   const [busy, setBusy] = useState('')
   const [message, setMessage] = useState('')
   const [debugLink, setDebugLink] = useState('')
@@ -99,27 +99,22 @@ function CommunityHomePage() {
     finally { setBusy('') }
   }
 
-  const loadEvents = async community => {
-    if (community.status !== 'joined') return
-    setBusy(`events:${community.manifest.id}`)
-    setMessage('')
-    try {
-      const query = `events?where[startsAt][greater_than_equal]=${encodeURIComponent(new Date().toISOString())}&sort=startsAt&limit=50&depth=1`
-      const result = await communityApiRequest(community, query)
-      setEventsByCommunity(value => ({ ...value, [community.manifest.id]: result.docs || [] }))
-      setSignInRequired(value => ({ ...value, [community.manifest.id]: false }))
-    } catch (error) {
-      if (error.status === 401) {
-        setSignInRequired(value => ({ ...value, [community.manifest.id]: true }))
-      } else setMessage(error.message || 'Could not load community events.')
-    } finally {
-      setBusy('')
+  const loadCalendar = useCallback(async path => {
+    if (!primary) return { events: [], timeZone: 'UTC' }
+    if (primary.status === 'joined') {
+      try {
+        const result = await communityApiRequest(primary, path)
+        setSignInRequired(value => ({ ...value, [primary.manifest.id]: !result.authenticated }))
+        return result
+      } catch (error) {
+        if (error.status !== 401 && error.status !== 403) throw error
+        setSignInRequired(value => ({ ...value, [primary.manifest.id]: true }))
+      }
     }
-  }
-
-  useEffect(() => {
-    if (primary?.status === 'joined' && !eventsByCommunity[primary.manifest.id]) loadEvents(primary)
-  }, [primary?.manifest?.id, primary?.status])
+    const response = await fetch(new URL(path, `${primary.manifest.apiBaseUrl}/`), { cache: 'no-store', credentials: 'omit' })
+    if (!response.ok) throw new Error('Could not load the church calendar. Try again when connected.')
+    return response.json()
+  }, [primary?.manifest?.id, primary?.manifest?.apiBaseUrl, primary?.status])
 
   const handleInspect = async event => {
     event.preventDefault()
@@ -204,38 +199,12 @@ function CommunityHomePage() {
 
         {primary && <CommunityResources key={primary.manifest.id} community={primary} />}
 
-        <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Upcoming events</h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Calendar files include the community's local reminder.</p>
-            </div>
-            {primary?.status === 'joined' && <button onClick={() => loadEvents(primary)} className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs text-gray-700 dark:text-gray-200">Refresh</button>}
-          </div>
-          {primary?.status === 'joined' && signInRequired[primary.manifest.id] ? (
-            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Sign in again to load the church calendar.</p>
-          ) : !primary || primary.status !== 'joined' ? (
-            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Join a community to see its shared calendar.</p>
-          ) : (eventsByCommunity[primary.manifest.id] || []).length === 0 ? (
-            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{busy === `events:${primary.manifest.id}` ? 'Loading events…' : 'No upcoming events.'}</p>
-          ) : (
-            <div className="mt-3 divide-y divide-gray-200 dark:divide-gray-700">
-              {eventsByCommunity[primary.manifest.id].map(event => (
-                <article key={event.id} className="py-4 first:pt-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">{event.title}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{formatEventDate(event.startsAt)}{event.location ? ` · ${event.location}` : ''}</p>
-                  {event.description && <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{event.description}</p>}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {event.rsvpEnabled && ['going', 'maybe', 'not-going'].map(response => (
-                      <button key={response} onClick={() => handleRsvp(primary, event, response)} disabled={busy === `rsvp:${event.id}`} className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs capitalize text-gray-700 dark:text-gray-200 disabled:opacity-50">{response.replace('-', ' ')}</button>
-                    ))}
-                    <button onClick={() => downloadEvent(event, primary)} className="rounded-lg bg-primary/10 dark:bg-blue-500/20 px-3 py-1.5 text-xs font-semibold text-primary dark:text-blue-300">Add to calendar</button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+        {primary && <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5">
+          <CalendarBrowser key={primary.manifest.id} load={loadCalendar} renderActions={event => <div className="mt-3 flex flex-wrap gap-2">
+            {event.rsvpEnabled && primary.status === 'joined' && !event.recurring && ['going', 'maybe', 'not-going'].map(response => <button key={response} onClick={() => handleRsvp(primary, event, response)} disabled={busy === `rsvp:${event.id}`} className="rounded-lg border px-3 py-2 text-sm capitalize">{response.replace('-', ' ')}</button>)}
+            <button onClick={() => downloadEvent(event, primary)} className="rounded-lg border px-3 py-2 text-sm">Add this date to calendar</button>
+          </div>} />
+        </section>}
 
         <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5">
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Your communities</h2>
@@ -265,7 +234,7 @@ function CommunityHomePage() {
 
         <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5">
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Find a church</h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Save a church to browse its public resources without signing in. Join with an invitation to access member resources and the shared calendar.</p>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Save a church to browse its public resources without signing in. Join with an invitation to access member resources and private calendar events.</p>
           <form noValidate onSubmit={handleInspect} className="mt-4 flex flex-col sm:flex-row gap-2">
             <input type="text" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={joinUrl} onChange={event => { setJoinUrl(event.target.value); setPreview(null) }} placeholder="community.example.church" aria-label="Community server address" className="flex-1 min-w-0 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
             <button disabled={busy === 'inspect' || !joinUrl.trim()} className="rounded-lg bg-primary px-4 py-2.5 text-white font-semibold disabled:opacity-50">{busy === 'inspect' ? 'Checking…' : 'Check Community'}</button>

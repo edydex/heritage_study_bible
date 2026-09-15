@@ -20,7 +20,9 @@ test('real songbook publishing, serving, withdrawal, and tenant boundaries', { s
   const admin = (await payload.find({ collection: 'users', where: { email: { equals: 'songbook-ci@example.org' } } })).docs[0]
   assert.ok(community && admin)
   const getContent = (id: number) => content(new Request('http://127.0.0.1/content/songs/' + id), { params: Promise.resolve({ type: 'songs', id: String(id) }) })
-  const getCatalog = async () => (await catalog(new Request('http://127.0.0.1/catalogs/songs'), { params: Promise.resolve({ type: 'songs' }) })).json()
+  const getCatalog = async (headers = {}) => (await catalog(new Request('http://127.0.0.1/catalogs/songs', { headers }), { params: Promise.resolve({ type: 'songs' }) })).json()
+  const login = await payload.login({ collection: 'users', data: { email: admin.email, password: process.env.BOOTSTRAP_ADMIN_PASSWORD! } })
+  const managerHeaders = { cookie: `payload-token=${login.token}` }
   try {
     const song = await payload.create({ collection: 'songs', user: admin, overrideAccess: false, data: {
       community: community.id, title: 'A songbook test', russianTitle: 'Песня для проверки', slug: prefix,
@@ -29,6 +31,7 @@ test('real songbook publishing, serving, withdrawal, and tenant boundaries', { s
     assert.equal(song.songbookVisibility, 'private')
     assert.equal(await loadPublicSong(prefix), null)
     assert.equal((await getContent(song.id)).status, 404)
+    assert.ok(!(await getCatalog(managerHeaders)).items.some((item: { id: string }) => item.id === String(song.id)))
     await assert.rejects(payload.update({ collection: 'songs', id: song.id, overrideAccess: false, data: { songbookVisibility: 'published' } }))
 
     // The admin may submit the old member-sharing value alongside the new
@@ -45,11 +48,13 @@ test('real songbook publishing, serving, withdrawal, and tenant boundaries', { s
     let words = await served.json()
     assert.equal(words.lyrics, 'English rehearsal words')
     assert.equal(words.russianLyrics, 'Русские слова для проверки')
+    assert.ok(words.publicPageUrl.endsWith('/songs/' + prefix))
     assert.doesNotMatch(JSON.stringify(words), /PRIVATE_NOTES_SENTINEL|rightsNotes|syncDocuments|songbookContent/)
 
     await payload.update({ collection: 'songs', id: song.id, user: admin, overrideAccess: false, data: { lyrics: 'Unpublished edit' } })
     assert.equal((await (await getContent(song.id)).json()).lyrics, 'English rehearsal words')
     await payload.update({ collection: 'songs', id: song.id, user: admin, overrideAccess: false, data: { songbookVisibility: 'unlisted' } })
+    assert.ok(!(await getCatalog(managerHeaders)).items.some((item: { id: string }) => item.id === String(song.id)))
     assert.equal((await (await getContent(song.id)).json()).lyrics, 'Unpublished edit')
     assert.ok(!(await getCatalog()).items.some((item: { id: string }) => item.id === String(song.id)))
     assert.ok(!(await loadPublicSongs()).some(item => item.id === String(song.id)))
@@ -81,7 +86,7 @@ test('real songbook publishing, serving, withdrawal, and tenant boundaries', { s
     assert.equal((await getContent(song.id)).status, 404)
     assert.equal(await loadPublicSong(prefix), null)
 
-    const other = await payload.create({ collection: 'communities', data: { name: 'Other test tenant', slug: prefix + '-tenant', joinPolicy: 'invite', timeZone: 'UTC', contentServerEnabled: true } })
+    const other = await payload.create({ collection: 'communities', data: { name: 'Other test tenant', slug: prefix + '-tenant', joinPolicy: 'invite', calendarDefaultVisibility: 'members', timeZone: 'UTC', contentServerEnabled: true } })
     const foreign = await payload.create({ collection: 'songs', data: { community: other.id, title: 'Foreign private tenant', slug: prefix + '-foreign', songbookVisibility: 'published', lyrics: 'Other tenant text' } as never })
     assert.equal((await getContent(foreign.id)).status, 404)
     assert.equal(await loadPublicSong(prefix + '-foreign'), null)

@@ -151,6 +151,8 @@ export const prepareHeritageServiceDocument: CollectionBeforeValidateHook = ({
   return {
     ...next,
     community: relationId(next.community || original?.community) || next.community,
+    purpose: original?.purpose || (context?.sermonPresentationId ? 'sermon' : 'service'),
+    sermon: original?.sermon || context?.sermonPresentationId || null,
     syncId: document.id,
     title: document.project.title,
     serviceDate: payloadServiceDate(document.project.serviceDate),
@@ -193,6 +195,8 @@ export const ServiceDocuments: CollectionConfig = {
     beforeValidate: [prepareHeritageServiceDocument],
   },
   fields: [
+    { name: 'purpose', type: 'select', defaultValue: 'service', required: true, index: true, options: ['service', 'sermon'], access: technicalFieldAccess },
+    { name: 'sermon', type: 'relationship', relationTo: 'sermons', index: true, access: technicalFieldAccess },
     {
       name: 'community',
       label: 'Church',

@@ -71,7 +71,7 @@ export async function bootstrapInstallation(payload: Payload) {
       data: {
         contentServerEnabled: true,
         description: process.env.COMMUNITY_DESCRIPTION || 'A Heritage church community.',
-        joinPolicy: 'invite',
+        joinPolicy: 'invite', calendarDefaultVisibility: 'members',
         name: process.env.COMMUNITY_NAME || 'Local Church',
         slug: communitySlug,
         timeZone: process.env.COMMUNITY_TIME_ZONE || 'UTC',

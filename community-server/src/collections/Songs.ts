@@ -3,6 +3,7 @@ import { captureSongPublicationIntent, prepareSongPublication, withdrawSongPubli
 import { createCommunityContent, manageCommunityContent, readSongsByVisibility } from '@/access'
 import { communityContentFields } from '@/fields/communityContentFields'
 import { fillContentSlug } from '@/lib/contentAdmin'
+import { prepareSongTags, sortSongLibrary } from '@/lib/songTags'
 import { normalizeSyncDocuments } from '@/lib/syncShowProtocol'
 import {
   enforceSongMemberSharingMutation,
@@ -21,11 +22,12 @@ export const Songs: CollectionConfig = {
     useAsTitle: 'title',
     group: 'Content',
     description: 'Bilingual song listings, lyrics, chords, files, and a plain-language rights record.',
-    defaultColumns: ['title', 'russianTitle', 'songbookVisibility', 'updatedAt'],
+    defaultColumns: ['title', 'russianTitle', 'tags', 'songbookVisibility', 'updatedAt'],
     listSearchableFields: ['title', 'russianTitle', 'alternateTitles', 'authors'],
     components: { beforeList: ['@/components/SongListGuide'] },
     hideAPIURL: true,
   },
+  defaultSort: ['title', 'id'],
   access: {
     read: readSongsByVisibility,
     create: createCommunityContent,
@@ -35,8 +37,8 @@ export const Songs: CollectionConfig = {
     delete: () => false,
   },
   hooks: {
-    beforeOperation: [captureSongPublicationIntent],
-    beforeChange: [prepareSongPublication],
+    beforeOperation: [captureSongPublicationIntent, sortSongLibrary],
+    beforeChange: [prepareSongTags, prepareSongPublication],
     afterChange: [withdrawSongPublicLinks],
     beforeValidate: [
       fillContentSlug,
@@ -48,6 +50,15 @@ export const Songs: CollectionConfig = {
     ...communityContentFields.filter(field => (
       'name' in field && ['community', 'slug'].includes(String(field.name))
     )),
+    {
+      name: 'tags', label: 'Tags', type: 'select', hasMany: true, index: true,
+      options: [{ label: 'Solo', value: 'solo' }, { label: 'Choir', value: 'choir' }, { label: 'Communal', value: 'communal' }],
+      admin: { description: 'Choose one or more uses. Sort this column to group songs, with titles alphabetized within each group.' },
+    },
+    {
+      name: 'tagSortKey', type: 'text', hidden: true, index: true,
+      access: { create: () => false, update: () => false },
+    },
     {
       name: 'songbookVisibility', label: 'Songbook publication', type: 'select',
       required: true, defaultValue: 'private', index: true,

@@ -10,6 +10,7 @@ export default function PrepareSermon(props: AdminViewServerProps) {
   if (signIn) redirect(signIn)
   return (
     <DefaultTemplate
+      className="heritage-planner-frame"
       i18n={props.i18n}
       locale={initPageResult.locale}
       params={props.params}

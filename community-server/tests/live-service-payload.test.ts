@@ -16,7 +16,7 @@ test('migrated church settings round-trip through Payload and reject anonymous c
   const payload = await getPayload({ config: { ...resolved, onInit: async () => {} } })
   try {
     const community = await payload.create({ collection: 'communities', overrideAccess: true, data: {
-      name: 'Disposable live service test', slug: `live-service-${Date.now()}`, timeZone: 'America/Los_Angeles', joinPolicy: 'invite',
+      name: 'Disposable live service test', slug: `live-service-${Date.now()}`, timeZone: 'America/Los_Angeles', joinPolicy: 'invite', calendarDefaultVisibility: 'members',
       liveService: { youtubeChannelUrl: 'https://www.youtube.com/@wordoftruthbiblech', youtubeVideoUrl: 'https://www.youtube.com/watch?v=yVg2nsbpJC0', translationUrl: '/translate', broadcastDelaySeconds: 25 },
     } })
     const read = await payload.findByID({ collection: 'communities', id: community.id, overrideAccess: false })

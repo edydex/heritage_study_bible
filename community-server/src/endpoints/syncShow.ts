@@ -1380,6 +1380,7 @@ export async function mutateServiceDocument(
   communityId: number,
   write: ServiceDocumentWrite,
   idempotencyKey: string,
+  options: { sermonPresentationId?: number } = {},
 ) {
   const adapter = req.payload.db as unknown as SermonTransactionAdapter
   const transactionId = await adapter.beginTransaction()
@@ -1433,7 +1434,7 @@ export async function mutateServiceDocument(
         collection: 'service-documents' as never,
         overrideAccess: true,
         showHiddenFields: true,
-        context: { serviceDocumentChangedAt: new Date().toISOString() },
+        context: { serviceDocumentChangedAt: new Date().toISOString(), ...(options.sermonPresentationId ? { sermonPresentationId: options.sermonPresentationId } : {}) },
         req,
         data: {
           community: communityId,
@@ -2579,6 +2580,7 @@ const serviceDocumentsListGet: Endpoint = {
         where: {
           and: [
             { community: { equals: auth.communityId } },
+            { purpose: { not_equals: 'sermon' } },
             ...(cursor
               ? [{
                   or: [

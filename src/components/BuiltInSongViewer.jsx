@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { loadMergedSong } from '../services/songCatalog'
-import { buildCommunitySongMemberShareUrl } from '../utils/communitySongLinks'
+import { normalizeCommunitySongPublicPageUrl } from '../utils/communitySongLinks'
 import { writeTextToClipboard } from '../utils/verseSelection'
 import SongRightsDisclosure from './SongRightsDisclosure'
 
@@ -10,6 +10,7 @@ function sourceNames(sources = []) {
 }
 
 function explanationFor(result, language) {
+  if (result.error && result.cached) return 'Refresh failed—showing saved words.'
   if (result.error) return `Could not load this source: ${result.error.message}`
   if (result.reference.kind === 'built-in') {
     const rightsLabel = language === 'ru'
@@ -105,11 +106,7 @@ function BuiltInSongViewer() {
     ? song?.loaded?.find(result => result.reference.source.id === selectedVariant.preferredSource.id)
     : null
   const selectedContentUrl = selectedResult?.reference?.item?.content?.url || ''
-  const selectedContentServerId = selectedResult?.reference?.item?.sourceServerId || ''
-  const selectedCommunitySource = ['primary-community', 'community'].includes(selectedResult?.reference?.source?.type)
-  const memberShareUrl = selectedCommunitySource
-    ? buildCommunitySongMemberShareUrl(selectedContentUrl, selectedContentServerId)
-    : ''
+  const publicShareUrl = normalizeCommunitySongPublicPageUrl(selectedResult?.document?.publicPageUrl, selectedContentUrl)
   const selectedRightsDocument = selectedResult?.document
     ? {
         ...selectedResult.document,
@@ -120,15 +117,15 @@ function BuiltInSongViewer() {
     : null
 
   const shareSong = async () => {
-    if (!memberShareUrl) return
+    if (!publicShareUrl) return
     const title = russian && song.russianTitle ? song.russianTitle : song.title
     try {
       if (navigator.share) {
-        await navigator.share({ title, text: `${title} — member-only Community song; sign-in required`, url: memberShareUrl })
-        setShareMessage('Member link shared.')
+        await navigator.share({ title, text: title, url: publicShareUrl })
+        setShareMessage('Song link shared.')
       } else {
-        await writeTextToClipboard(memberShareUrl)
-        setShareMessage('Member link copied.')
+        await writeTextToClipboard(publicShareUrl)
+        setShareMessage('Song link copied.')
       }
     } catch (error) {
       if (error?.name !== 'AbortError') setShareMessage(`Could not share this song: ${error.message}`)
@@ -213,6 +210,9 @@ function BuiltInSongViewer() {
               Showing available words now; checking {song.pendingSourceCount} connected {song.pendingSourceCount === 1 ? 'source' : 'sources'} in the background…
             </p>
           )}
+          {!song.pendingSourceCount && failedSourceCount > 0 && selectedVariant && (
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400" role="status">Refresh failed—showing saved songs.</p>
+          )}
 
           {variants.length > 1 && (
             <section className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/30">
@@ -271,11 +271,11 @@ function BuiltInSongViewer() {
                   Source: {selectedVariant.rights.sourceLabel}
                 </p>
               )}
-              {memberShareUrl && (
+              {publicShareUrl && (
                 <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100">
-                  <p>Member links require the recipient to be signed in to {selectedResult.reference.source.name}. Church editors manage which songs are available to members.</p>
+                  <p>Published by {selectedResult.reference.source.name}. This song link opens without signing in.</p>
                   <button onClick={shareSong} className="mt-2 rounded-lg border border-blue-300 px-4 py-2 text-sm font-semibold dark:border-blue-700">
-                    Share member-only link
+                    Share song
                   </button>
                 </div>
               )}

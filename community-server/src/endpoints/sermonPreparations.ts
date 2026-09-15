@@ -42,7 +42,7 @@ function responseHeaders(req: PayloadRequest, extra: HeadersInit = {}) {
   return headers
 }
 
-function json(
+export function json(
   req: PayloadRequest,
   value: unknown,
   init: ResponseInit = {},
@@ -53,7 +53,7 @@ function json(
   })
 }
 
-function endpointError(req: PayloadRequest, error: unknown): Response {
+export function endpointError(req: PayloadRequest, error: unknown): Response {
   if (error instanceof SermonPreparationEndpointError) {
     return json(req, { code: error.code, error: error.message }, { status: error.status })
   }
@@ -82,7 +82,7 @@ function relationId(value: unknown): number {
   return Number.isSafeInteger(id) && id > 0 ? id : 0
 }
 
-async function boundedJson(req: PayloadRequest): Promise<RequestDoc> {
+export async function boundedJson(req: PayloadRequest): Promise<RequestDoc> {
   const contentType = String(req.headers.get('content-type') || '')
     .split(';', 1)[0]
     .trim()
@@ -186,7 +186,7 @@ async function hasManagerMembership(
   })).docs[0])
 }
 
-async function managerContext(req: PayloadRequest) {
+export async function managerContext(req: PayloadRequest) {
   const userId = await authenticatedManagerUserId(req)
   const communityId = await configuredCommunity(req)
   if (!await hasManagerMembership(req, userId, communityId)) {
@@ -199,7 +199,7 @@ async function managerContext(req: PayloadRequest) {
   return { userId, communityId }
 }
 
-async function assertLiveManager(
+export async function assertLiveManager(
   database: CanonicalSermonTransactionDatabase,
   userId: number,
   communityId: number,

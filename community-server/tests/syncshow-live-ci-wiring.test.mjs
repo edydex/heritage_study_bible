@@ -74,7 +74,7 @@ test('Payload live CI migrates one dedicated database before sequential lifecycl
 })
 
 test('destructive sermon-history CI has a distinct fresh database and test mode', () => {
-  const historyJob = job('syncshow-sermon-history-live')
+  const historyJob = job('syncshow-sermon-history-live', 'songbook-publication')
   assert.match(historyJob, /image: postgres:17-alpine/)
   assert.match(
     historyJob,

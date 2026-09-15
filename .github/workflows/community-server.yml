@@ -45,7 +45,7 @@ jobs:
           npm run test:appliance
           npm run typecheck
           npm run test:syncshow
-          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-plans.test.ts
+          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-plans.test.ts tests/calendar.test.ts tests/sermon-presentation.test.ts
           npm run build
 
       - name: Create isolated test configuration
@@ -304,6 +304,7 @@ jobs:
       COMMUNITY_NAME: Songbook CI Church
       COMMUNITY_PUBLIC_URL: http://127.0.0.1:3300
       COMMUNITY_AUTH_ENABLED: 'false'
+      HERITAGE_SERMON_MEDIA_PATH: /tmp/heritage-songbook-ci-media
       BOOTSTRAP_ADMIN_EMAIL: songbook-ci@example.org
       BOOTSTRAP_ADMIN_PASSWORD: disposable-songbook-ci-password
     steps:
@@ -316,3 +317,15 @@ jobs:
       - run: npm ci --include=dev --legacy-peer-deps
       - run: npm run migrate
       - run: node --import tsx --test --test-force-exit tests/songbook-publication-payload.test.ts tests/songbook-publication.test.ts tests/songbook-search.test.ts
+      - name: Build calendar and sermon rehearsal server
+        run: npm run build
+      - name: Exercise calendar and sermon workflows over HTTP
+        run: |
+          npm run start -- --hostname 127.0.0.1 --port 3300 > /tmp/community-workflows.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --silent --fail http://127.0.0.1:3300/.well-known/heritage-community.json > /dev/null; then break; fi
+            sleep 1
+          done
+          node --import tsx --test tests/community-workflows-http.test.ts

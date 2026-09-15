@@ -111,10 +111,9 @@ test('Payload registration and admin paths cannot bypass the gate', () => {
   assert.match(packageSource, /tests\/song-member-sharing-migration\.test\.mjs/)
 })
 
-test('member catalog and detail routes require receipts and project fields', () => {
-  assert.match(catalog, /memberShareReceiptId: \{ exists: true \}/)
-  assert.match(catalog, /memberShareValidThrough: \{ greater_than_equal: now \}/)
-  assert.match(catalog, /isSongVisibleToMember/)
+test('public song catalog omits member-only songs while direct member details keep their receipt checks', () => {
+  assert.match(catalog, /songbookVisibility: \{ equals: 'published' \}/)
+  assert.doesNotMatch(catalog, /isSongVisibleToMember|songAccess/)
   assert.match(catalog, /showHiddenFields: type === 'songs'/)
   assert.match(content, /memberSongContentProjection/)
   assert.match(content, /showHiddenFields: type === 'songs'/)

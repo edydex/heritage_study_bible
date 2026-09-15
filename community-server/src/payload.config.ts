@@ -1,3 +1,5 @@
+import { sermonPresentationEndpoints } from './endpoints/sermonPresentations'
+import { calendarEndpoints } from './endpoints/calendar'
 import { postgresAdapter, type PostgresAdapterArgs } from '@payloadcms/db-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
@@ -234,6 +236,8 @@ export default buildConfig({
       : { jsonTransport: true },
   }),
   endpoints: [
+    ...calendarEndpoints,
+    ...sermonPresentationEndpoints,
     ...authEndpoints,
     ...accountEndpoints,
     ...syncEndpoints,

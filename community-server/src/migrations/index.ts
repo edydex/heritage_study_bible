@@ -1,3 +1,4 @@
+import * as migration_workflows from './20260915_080000_calendar_song_tags_sermon_slides'
 import * as migration_songbook from './20260914_220000_songbook_publication';
 import * as migration_20260914_170000_recording_manager_actors from './20260914_170000_recording_manager_actors';
 import * as migration_20260913_140000_service_translation_plans from './20260913_140000_service_translation_plans';
@@ -134,4 +135,5 @@ export const migrations = [
     name: '20260914_170000_recording_manager_actors',
   },
   { up: migration_songbook.up, down: migration_songbook.down, name: '20260914_220000_songbook_publication' },
+  { up: migration_workflows.up, down: migration_workflows.down, name: '20260915_080000_calendar_song_tags_sermon_slides' },
 ];

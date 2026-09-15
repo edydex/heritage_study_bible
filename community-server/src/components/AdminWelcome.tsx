@@ -9,7 +9,7 @@ const actions = [
   {
     href: '/admin/prepare-sermon',
     title: 'Prepare a sermon',
-    text: 'Paste the pastor’s manuscript or slide notes, confirm the primary passage, and create one private Ready sermon for planning and SyncShow.',
+    text: 'Create a private sermon draft, build its slides, and add the whole sermon to a service.',
   },
   {
     href: '/admin/sermon-publications',
