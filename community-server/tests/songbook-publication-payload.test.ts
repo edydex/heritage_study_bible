@@ -31,7 +31,13 @@ test('real songbook publishing, serving, withdrawal, and tenant boundaries', { s
     assert.equal((await getContent(song.id)).status, 404)
     await assert.rejects(payload.update({ collection: 'songs', id: song.id, overrideAccess: false, data: { songbookVisibility: 'published' } }))
 
-    await payload.update({ collection: 'songs', id: song.id, user: admin, overrideAccess: false, data: { songbookVisibility: 'published' } })
+    // The admin may submit the old member-sharing value alongside the new
+    // publication choice. It must not demand another member-sharing review.
+    await payload.update({ collection: 'songs', id: song.id, user: admin, overrideAccess: false,
+      data: { visibility: 'public', songbookVisibility: 'published' } })
+    const publication = await payload.findByID({ collection: 'songs', id: song.id, showHiddenFields: true })
+    assert.equal(publication.visibility, 'private')
+    assert.equal(publication.memberShareReceiptId, null)
     assert.ok((await getCatalog()).items.some((item: { id: string }) => item.id === String(song.id)))
     assert.ok((await loadPublicSongs()).some(item => item.id === String(song.id)))
     let served = await getContent(song.id)
