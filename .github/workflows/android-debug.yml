@@ -20,9 +20,16 @@ on:
       - 'capacitor.config.json'
       - 'vite.config.js'
       - '.github/workflows/android-debug.yml'
+      - 'scripts/publish-android-release.mjs'
+      - 'tests/android-release-publishing.test.mjs'
 
 permissions:
   contents: write
+
+# One update feed, including labelled previews. An older build must not replace it.
+concurrency:
+  group: heritage-android-release
+  cancel-in-progress: false
 
 jobs:
   build-debug-apk:
@@ -42,6 +49,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      - name: Verify Android update publication
+        run: node --test tests/android-release-publishing.test.mjs
 
       - name: Setup Java
         uses: actions/setup-java@v4
