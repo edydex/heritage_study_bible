@@ -1751,3 +1751,10 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-song-publication input { margin-top: .2rem; accent-color: #315c49; }
 .heritage-song-publication small { display: block; margin-top: .3rem; color: var(--theme-elevation-600); line-height: 1.5; }
 .heritage-song-publication p { font-size: .85rem; color: var(--theme-elevation-600); line-height: 1.5; }
+
+.heritage-song-publication-cell { min-width: 9rem; max-width: 19rem; }
+.heritage-song-publication-cell select { width: 100%; min-height: 2.75rem; padding: .45rem .7rem; border: 1px solid var(--theme-elevation-250); border-radius: .4rem; background: var(--theme-input-bg); color: var(--theme-text); font: inherit; cursor: pointer; }
+.heritage-song-publication-cell select:focus-visible { outline: 2px solid #678e75; outline-offset: 2px; }
+.heritage-song-publication-cell select:disabled { cursor: default; opacity: .65; }
+.heritage-song-publication-cell small { display: block; margin-top: .3rem; font-size: .8rem; white-space: normal; color: var(--theme-elevation-600); }
+.heritage-song-publication-cell [role='alert'] { color: var(--theme-error-600); }
