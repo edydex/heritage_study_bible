@@ -24,7 +24,7 @@ export default function AdminWelcome() {
       <p className="heritage-admin-eyebrow">Church workspace</p>
       <h1>What are you working on?</h1>
       <p className="heritage-admin-intro">
-        Start with the Sunday service. The song and sermon libraries are always available from the small menu on the left.
+        Start with the Sunday service. The song and sermon libraries are always available from the workspace menu.
       </p>
       <div className="heritage-admin-actions">
         {actions.map(action => (

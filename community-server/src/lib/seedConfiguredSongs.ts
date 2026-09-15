@@ -31,6 +31,7 @@ export async function seedConfiguredSongs(payload: Payload) {
       draft: false,
       overrideAccess: true,
       data: {
+        songbookVisibility: 'private',
         ...song,
         community: communityId,
         description: 'WOTBC starter song listing. Open Admin → Songs to add church-reviewed words, chords, and files.',

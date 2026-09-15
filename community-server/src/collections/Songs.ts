@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { captureSongPublicationIntent, prepareSongPublication, withdrawSongPublicLinks } from '@/lib/songPublication'
 import { createCommunityContent, manageCommunityContent, readSongsByVisibility } from '@/access'
 import { communityContentFields } from '@/fields/communityContentFields'
 import { fillContentSlug } from '@/lib/contentAdmin'
@@ -18,7 +19,7 @@ export const Songs: CollectionConfig = {
     useAsTitle: 'title',
     group: 'Content',
     description: 'Bilingual song listings, lyrics, chords, files, and a plain-language rights record.',
-    defaultColumns: ['title', 'russianTitle', 'visibility', 'rightsStatus', 'updatedAt'],
+    defaultColumns: ['title', 'russianTitle', 'songbookVisibility', 'updatedAt'],
     listSearchableFields: ['title', 'russianTitle', 'alternateTitles', 'authors'],
     components: { beforeList: ['@/components/SongListGuide'] },
     hideAPIURL: true,
@@ -32,6 +33,9 @@ export const Songs: CollectionConfig = {
     delete: () => false,
   },
   hooks: {
+    beforeOperation: [captureSongPublicationIntent],
+    beforeChange: [prepareSongPublication],
+    afterChange: [withdrawSongPublicLinks],
     beforeValidate: [
       fillContentSlug,
       enforceSongMemberSharingMutation,
@@ -40,8 +44,31 @@ export const Songs: CollectionConfig = {
   },
   fields: [
     ...communityContentFields.filter(field => (
-      'name' in field && ['community', 'status', 'slug'].includes(String(field.name))
+      'name' in field && ['community', 'slug'].includes(String(field.name))
     )),
+    {
+      name: 'songbookVisibility', label: 'Songbook publication', type: 'select',
+      required: true, defaultValue: 'private', index: true,
+      options: [
+        { label: 'Published', value: 'published' },
+        { label: 'Unlisted', value: 'unlisted' },
+        { label: 'Private', value: 'private' },
+      ],
+      admin: {
+        position: 'sidebar',
+        components: { Field: '@/components/SongPublicationField' },
+        description: 'Published: church website and Heritage Songs. Unlisted: direct link only. Private: church workspace only.',
+      },
+    },
+    {
+      name: 'songbookContent', type: 'json', hidden: true,
+      access: { create: () => false, update: () => false },
+    },
+    {
+      name: 'status', label: 'Library status', type: 'select', required: true, defaultValue: 'draft', index: true,
+      options: [{ label: 'Active', value: 'draft' }, { label: 'Active (member sharing)', value: 'published' }, { label: 'Archived', value: 'archived' }],
+      admin: { position: 'sidebar', description: 'Archiving removes this song from public pages and active libraries.' },
+    },
     {
       name: 'syncId',
       label: 'Sync identity',
@@ -57,7 +84,7 @@ export const Songs: CollectionConfig = {
     },
     {
       name: 'visibility',
-      label: 'Community visibility',
+      label: 'Legacy member sharing',
       type: 'select',
       required: true,
       defaultValue: 'private',
@@ -69,7 +96,7 @@ export const Songs: CollectionConfig = {
       ],
       admin: {
         position: 'sidebar',
-        description: 'Songs are never anonymous. Scheduled songs use the Community server clock.',
+        readOnly: true, disableBulkEdit: true, description: 'Managed by SyncShow’s member-sharing action. Use Songbook publication above for the public website and Heritage Songs.',
       },
     },
     {

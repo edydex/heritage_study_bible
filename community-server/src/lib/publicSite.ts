@@ -12,21 +12,8 @@ import {
   loadActivePublicSermonPublication,
   loadStoredPublicSermonCatalog,
 } from '@/lib/syncshow/SermonPublicationStore'
-import {
-  parseSongPublicLinkSnapshotSource,
-  type SongPublicLinkSnapshot,
-} from '@/lib/syncshow/SongPublicLink'
-
-type PublicSong = {
-  id: string
-  syncId: string
-  slug: string
-  title: string
-  russianTitle: string
-  alternateTitles: string[]
-  authors: string[]
-  description: string
-}
+import { publishedSongContent } from '@/lib/songPublication'
+import type { SongbookEntry } from '@/lib/songbookSearch'
 
 function relationId(value: unknown) {
   const raw = value && typeof value === 'object' && 'id' in value
@@ -35,19 +22,12 @@ function relationId(value: unknown) {
   return String(raw || '')
 }
 
-function publicSong(doc: Record<string, any>): PublicSong {
-  return {
-    id: String(doc.id || ''),
-    syncId: String(doc.syncId || ''),
-    slug: String(doc.slug || doc.syncId || doc.id || ''),
-    title: String(doc.title || 'Untitled song'),
-    russianTitle: String(doc.russianTitle || ''),
-    alternateTitles: Array.isArray(doc.alternateTitles)
-      ? doc.alternateTitles.map(String).filter(Boolean)
-      : [],
-    authors: Array.isArray(doc.authors) ? doc.authors.map(String).filter(Boolean) : [],
-    description: String(doc.description || ''),
-  }
+function publicSong(doc: Record<string, any>): SongbookEntry | null {
+  const content = publishedSongContent(doc)
+  if (!content) return null
+  return { id: String(doc.id), slug: String(doc.slug || doc.syncId || doc.id),
+    title: content.title, russianTitle: content.russianTitle, alternateTitles: content.alternateTitles,
+    authors: content.authors }
 }
 
 async function context() {
@@ -75,62 +55,31 @@ export async function loadPublicSermon(publicId: string): Promise<PublicSermonDe
   return publication ? parsePublicSermonDetailSource(publication.detailSource) : null
 }
 
-export async function loadPublicSongs(): Promise<PublicSong[]> {
+export async function loadPublicSongs(): Promise<SongbookEntry[]> {
   const { payload, communityId } = await context()
   if (communityId == null) return []
-  const result = await payload.find({
-    collection: 'songs',
-    depth: 0,
-    limit: 1000,
-    overrideAccess: true,
-    showHiddenFields: true,
-    sort: 'title',
-    where: {
-      and: [
-        { community: { equals: communityId } },
-        { status: { not_equals: 'archived' } },
-      ],
-    },
-  })
-  return result.docs.map(doc => publicSong(doc as Record<string, any>))
-}
-
-async function loadApprovedSongSnapshot(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  communityId: number,
-  songSyncId: string,
-): Promise<SongPublicLinkSnapshot | null> {
-  const result = await payload.find({
-    collection: 'syncshow-song-public-links',
-    depth: 0,
-    limit: 20,
-    overrideAccess: true,
-    showHiddenFields: true,
-    sort: '-issuedAt',
-    where: {
-      and: [
-        { community: { equals: communityId } },
-        { songSyncId: { equals: songSyncId } },
-        { revokedAt: { exists: false } },
-      ],
-    },
-  })
-  const now = Date.now()
-  for (const raw of result.docs as Record<string, any>[]) {
-    if (raw.expiresAt && Date.parse(String(raw.expiresAt)) <= now) continue
-    try {
-      return parseSongPublicLinkSnapshotSource(raw.snapshotSource, raw.snapshotChecksum)
-    } catch {
-      // A corrupt historical link never grants public access. Try the next
-      // independently reviewed active snapshot, if one exists.
+  const songs: SongbookEntry[] = []
+  let page = 1
+  for (;;) {
+    const result = await payload.find({
+      collection: 'songs', depth: 0, limit: 200, page, overrideAccess: true, showHiddenFields: true,
+      sort: 'title', where: { and: [
+        { community: { equals: communityId } }, { status: { not_equals: 'archived' } },
+        { songbookVisibility: { equals: 'published' } },
+      ] },
+    })
+    for (const doc of result.docs) {
+      const song = publicSong(doc)
+      if (song) songs.push(song)
     }
+    if (!result.hasNextPage) return songs
+    page++
   }
-  return null
 }
 
 export async function loadPublicSong(
   routeId: string,
-): Promise<{ song: PublicSong; snapshot: SongPublicLinkSnapshot | null } | null> {
+): Promise<{ song: SongbookEntry; content: NonNullable<ReturnType<typeof publishedSongContent>> } | null> {
   const { payload, communityId } = await context()
   if (communityId == null) return null
   const found = await payload.find({
@@ -155,8 +104,8 @@ export async function loadPublicSong(
   const raw = found.docs[0] as Record<string, any> | undefined
   if (!raw || relationId(raw.community) !== String(communityId)) return null
   const song = publicSong(raw)
-  const snapshot = await loadApprovedSongSnapshot(payload, communityId, song.syncId)
-  return { song, snapshot }
+  const content = publishedSongContent(raw)
+  return song && content ? { song, content } : null
 }
 
 export function formatServiceDate(value: string) {

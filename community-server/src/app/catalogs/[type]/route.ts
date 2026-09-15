@@ -1,3 +1,4 @@
+import { publishedSongContent, songbookVisibility } from '@/lib/songPublication'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
@@ -35,69 +36,30 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
   const songAccess = type === 'songs'
     ? await communityRequestAccess(payload, request.headers, communityId)
     : null
-  if (type === 'songs' && !songAccess?.authenticated) {
-    return catalogJson(
-      {
-        schemaVersion: 2,
-        contentType: type,
-        updatedAt: new Date().toISOString(),
-        items: [],
-      },
-    )
-  }
   const now = new Date().toISOString()
-  const result = await payload.find({
-    collection,
-    depth: 0,
-    limit: 1000,
-    overrideAccess: true,
-    showHiddenFields: type === 'songs',
-    where: {
-      and: [
+  const records: Record<string, any>[] = []
+  let page = 1
+  for (;;) {
+    const result = await payload.find({
+      collection, depth: 0, limit: type === 'songs' ? 200 : 1000, page,
+      overrideAccess: true, showHiddenFields: type === 'songs', sort: 'id',
+      where: { and: [
         { community: { equals: communityId } },
-        ...(type === 'songs' && songAccess?.manager
-          ? [{ status: { not_equals: 'archived' } }]
-          : [{ status: { equals: 'published' } }]),
-        ...(type === 'songs' && !songAccess?.manager
-          ? [{
-            or: [
-                {
-                  and: [
-                    { visibility: { equals: 'public' } },
-                    { memberShareVisibility: { equals: 'public' } },
-                  ],
-                },
-                {
-                  and: [
-                    { visibility: { equals: 'scheduled-public' } },
-                    { publishAt: { less_than_equal: now } },
-                    { memberShareVisibility: { equals: 'scheduled-public' } },
-                    { memberSharePublishAt: { less_than_equal: now } },
-                  ],
-                },
-              ],
-            }]
-          : []),
-        ...(type === 'songs' && !songAccess?.manager
-          ? [
-              { memberShareReceiptId: { exists: true } },
-              {
-                or: [
-                  { memberShareValidThrough: { exists: false } },
-                  { memberShareValidThrough: { greater_than_equal: now } },
-                ],
-              },
-            ]
-          : []),
-      ],
-    },
-  })
-  const docs = type === 'songs' && !songAccess?.manager
-    ? result.docs.filter(doc => isSongVisibleToMember(
-        doc as unknown as Record<string, unknown>,
-        new Date(now),
-      ))
-    : result.docs
+        type === 'songs' ? { status: { not_equals: 'archived' } } : { status: { equals: 'published' } },
+        ...(type === 'songs' && !songAccess?.authenticated ? [{ songbookVisibility: { equals: 'published' } }] : []),
+      ] },
+    })
+    records.push(...result.docs)
+    if (type !== 'songs' || !result.hasNextPage) break
+    page++
+  }
+  const docs = type === 'songs' ? records.flatMap<Record<string, any>>(doc => {
+    const raw = doc as unknown as Record<string, unknown>
+    const content = publishedSongContent(raw)
+    if (songbookVisibility(raw) === 'published' && content) return [{ ...content, id: doc.id }]
+    if (songAccess?.authenticated && (songAccess.manager || isSongVisibleToMember(raw, new Date(now)))) return [doc]
+    return []
+  }) : records
 
   return catalogJson(
     {

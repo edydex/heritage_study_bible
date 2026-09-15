@@ -133,3 +133,42 @@ button, input, select, textarea { font: inherit; }
 .live-service-client { width: 100%; }
 .live-service-fallback { padding: 24px; background: #fffdf8; border: 1px solid #e2e1d8; border-radius: 16px; }
 .live-service-fallback iframe { display: block; width: 100%; max-width: 960px; aspect-ratio: 16 / 9; min-height: 200px; border: 0; }
+
+.songbook-page { max-width: 900px; }
+.songbook-page .page-heading { margin-bottom: 2.5rem; }
+.public-songbook__tools { padding: 1.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 1.2rem; }
+.public-songbook__languages { display: flex; padding: .3rem; background: var(--green-soft); border-radius: .7rem; max-width: 340px; margin-bottom: 1.3rem; }
+.public-songbook__languages button { flex: 1; min-height: 46px; border: 0; border-radius: .5rem; background: transparent; color: var(--muted); font: inherit; cursor: pointer; }
+.public-songbook__languages button[aria-pressed='true'] { background: var(--surface); color: var(--green-dark); box-shadow: 0 1px 4px #17251f15; font-weight: 700; }
+.public-songbook__search > span { display: block; font-weight: 700; margin-bottom: .65rem; }
+.public-songbook__search > div { display: flex; align-items: center; gap: .75rem; padding: .3rem .8rem; border: 1px solid var(--line); border-radius: .7rem; background: var(--paper); }
+.public-songbook__search svg { width: 22px; flex-shrink: 0; fill: none; stroke: var(--muted); stroke-width: 1.8; }
+.public-songbook__search input { width: 100%; min-width: 0; min-height: 48px; padding: .5rem 0; background: transparent; border: 0; color: var(--ink); font: inherit; outline: none; }
+.public-songbook__search:focus-within > div { outline: 2px solid var(--green); outline-offset: 2px; }
+.public-songbook__search button { min-width: 44px; min-height: 44px; color: var(--green); font-size: 1.5rem; border: 0; background: transparent; cursor: pointer; }
+.public-songbook__hint { margin: .75rem 0 0; color: var(--muted); font-size: .85rem; }
+.public-songbook__count { margin: 1.5rem 0; color: var(--muted); font-size: .9rem; }
+.public-songbook__group { margin: 0 0 2rem; }
+.public-songbook__group h2 { margin: 0 0 .8rem; font-family: inherit; font-size: 1.5rem; }
+.public-songbook__group ul { list-style: none; margin: 0; padding: 0 1.25rem; border: 1px solid var(--line); border-radius: .9rem; background: var(--surface); }
+.public-songbook__group li + li { border-top: 1px solid var(--line); }
+.public-songbook__group a { display: flex; align-items: center; gap: 1rem; min-height: 82px; padding: 1.15rem .3rem; text-decoration: none; color: var(--ink); }
+.public-songbook__group a:hover .public-songbook__title { color: var(--green); text-decoration: underline; }
+.public-songbook__title { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 1.08rem; line-height: 1.5; }
+.public-songbook__badges { display: flex; gap: .4rem; }
+.public-songbook__badges > span { display: grid; place-items: center; min-width: 29px; height: 28px; background: var(--green-soft); color: var(--green-dark); border-radius: .35rem; font-size: .7rem; font-weight: 750; }
+.public-songbook__arrow { color: var(--green); }
+.public-songbook__empty { padding: 2.5rem 1.5rem; text-align: center; border: 1px dashed var(--line); border-radius: 1rem; }
+.public-songbook__empty p { color: var(--muted); }
+.public-songbook button:focus-visible, .public-songbook a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.songbook-back { display: inline-block; padding: .7rem 0; margin-bottom: 1.5rem; color: var(--green); }
+.songbook-lyrics { white-space: pre-wrap; line-height: 1.9; }
+.songbook-chords { overflow-x: auto; max-width: 100%; padding: 1rem; background: var(--green-soft); }
+@media (max-width: 600px) {
+  .songbook-page { padding-top: 2rem; }
+  .public-songbook__tools { padding: 1rem; }
+  .public-songbook__languages { max-width: none; }
+  .public-songbook__group ul { padding: 0 .9rem; }
+  .public-songbook__group a { gap: .65rem; min-height: 76px; }
+  .public-songbook__arrow { display: none; }
+}

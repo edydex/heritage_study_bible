@@ -1,5 +1,6 @@
 'use client'
 
+import { churchWorkspaceLinks } from '@/lib/churchWorkspaceLinks'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { workspaceSignInHref } from '../lib/workspaceNavigation'
 import serviceCore from '../../packages/service-core/index.js'
@@ -1029,13 +1030,9 @@ export default function PlanServiceClient() {
               <summary aria-label="Workspace menu" title="Workspace menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg></summary>
               <nav aria-label="Church workspace">
                 <strong>Church workspace</strong>
-                <a href="/admin">Workspace home</a>
-                <a href="/admin/prepare-sermon">Prepare a sermon</a>
-                <a href="/admin/sermon-publications">Publish sermons</a>
-                <a href="/admin/collections/songs">Song library</a>
-                <a href="/admin/collections/sermons">Sermon library</a>
-                <a href="/admin/collections/media">Media library</a>
-                <a href="/" target="_blank" rel="noreferrer">Church website ↗</a>
+                {churchWorkspaceLinks.filter(item => item.href !== '/admin/plan-service').map(item =>
+                <a key={item.href} href={item.href}>{item.label}</a>)}
+              <a href="/" target="_blank" rel="noreferrer">Church website ↗</a>
                 <a href="/admin/account">My account</a>
                 <a href="/admin/logout">Log out</a>
                 <small>{notice}</small>

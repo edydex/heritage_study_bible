@@ -45,7 +45,7 @@ jobs:
           npm run test:appliance
           npm run typecheck
           npm run test:syncshow
-          node --import tsx --test tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-plans.test.ts
+          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-plans.test.ts
           npm run build
 
       - name: Create isolated test configuration
@@ -276,3 +276,43 @@ jobs:
         env:
           NODE_ENV: test
         run: npm run test:syncshow:sermon-history-live
+
+  songbook-publication:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: songbook_ci
+          POSTGRES_PASSWORD: songbook-ci-database-password
+          POSTGRES_DB: songbook_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U songbook_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://songbook_ci:songbook-ci-database-password@127.0.0.1:5432/songbook_ci
+      HERITAGE_SONGBOOK_TEST_DATABASE: postgresql://songbook_ci:songbook-ci-database-password@127.0.0.1:5432/songbook_ci
+      HERITAGE_DISPOSABLE_CI: songbook-publication
+      PAYLOAD_SECRET: disposable-songbook-ci-secret-at-least-thirty-two-characters
+      COMMUNITY_ID: songbook-ci
+      COMMUNITY_NAME: Songbook CI Church
+      COMMUNITY_PUBLIC_URL: http://127.0.0.1:3300
+      COMMUNITY_AUTH_ENABLED: 'false'
+      BOOTSTRAP_ADMIN_EMAIL: songbook-ci@example.org
+      BOOTSTRAP_ADMIN_PASSWORD: disposable-songbook-ci-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - run: npm ci --include=dev --legacy-peer-deps
+      - run: npm run migrate
+      - run: node --import tsx --test --test-force-exit tests/songbook-publication-payload.test.ts tests/songbook-publication.test.ts tests/songbook-search.test.ts
