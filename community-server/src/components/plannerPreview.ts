@@ -1,3 +1,4 @@
+import canvasLayout from '../../packages/service-core/node/services/project/CanvasLayout.js'
 import singerPresentation from '../../packages/service-core/node/services/project/SingerPresentation.js'
 import type { PlannerSlide } from './plannerSlides'
 
@@ -17,7 +18,7 @@ export function plannerPreview(rows: PlannerSlide[], active: PlannerSlide | unde
   const nextSlide = index >= 0 ? slides[index + 1] : undefined
   const nextOutput = outputFor(nextSlide).output
   const nextText = nextOutput?.mode === 'hide' ? '' : (nextOutput?.blocks || []).map((block: any) =>
-    block.type === 'text' ? block.text
+    block.type === 'canvas' ? canvasLayout.canvasText(block.objects) : block.type === 'text' ? block.text
       : block.type === 'bible' ? block.verses.map((verse: any) => `${verse.number} ${verse.text}`).join(' ') : ''
   ).filter(Boolean).join('\n')
   return { ...current, singer,

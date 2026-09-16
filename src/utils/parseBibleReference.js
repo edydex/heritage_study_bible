@@ -157,6 +157,20 @@ Object.entries({ ...allAliases }).forEach(([alias, book]) => {
   allAliases[alias.replace(/\s+/g, '')] = book
 })
 
+// Canonical prefixes are derived, not another hand-maintained abbreviation list.
+// Only unique prefixes enter the single-reference parser. Search exposes the
+// ambiguous ones through getBookReferenceChoices below.
+const canonicalToken = value => value.toLowerCase().replace(/\s+/g, '')
+for (const book of bibleBooks) {
+  if (/^\d/.test(book.name)) continue
+  const name = canonicalToken(book.name)
+  for (let length = 2; length < name.length; length++) {
+    const prefix = name.slice(0, length)
+    if (!/[a-z]$/.test(prefix) || allAliases[prefix]) continue
+    if (bibleBooks.filter(other => canonicalToken(other.name).startsWith(prefix)).length === 1) allAliases[prefix] = book.name
+  }
+}
+
 // Pre-sort aliases by length (longest first) for greedy matching
 const sortedAliasKeys = Object.keys(allAliases).sort((a, b) => b.length - a.length)
 
@@ -286,6 +300,28 @@ export function getNumberedBookReferenceChoices(input) {
   }
 
   return []
+}
+
+/** All plausible book-name prefixes for the search chooser. Exact book names
+ * remain authoritative; common non-prefix aliases (Jn, Ps, etc.) still work. */
+export function getBookReferenceChoices(input) {
+  const value = String(input || '').trim().toLowerCase()
+  const match = value.match(/^([1-3]?\s*[a-z]+(?:\s+[a-z]+)*)\.?\s*(\d+)(?:[\s:.]+(\d+))?$/)
+  if (!match) return getNumberedBookReferenceChoices(value)
+  const [, name, chapterText, verseText] = match
+  const token = canonicalToken(name)
+  const exact = bibleBooks.find(book => canonicalToken(book.name) === token)
+  let books = exact ? [exact] : bibleBooks.filter(book => canonicalToken(book.name).startsWith(token))
+  if (!books.length) {
+    const alias = allAliases[token] || allAliases[name]
+    books = bibleBooks.filter(book => book.name === alias)
+  }
+  if (!books.length) return getNumberedBookReferenceChoices(value)
+  const chapter = Number(chapterText), verse = verseText ? Number(verseText) : null
+  return books.map(book => ({ book: book.name, chapter, verse,
+    ...(chapter < 1 || chapter > book.chapters ? { invalidReason: `${book.name} has ${book.chapters} chapter${book.chapters === 1 ? '' : 's'}.` }
+      : verse !== null && verse < 1 ? { invalidReason: 'Verse numbers start at 1.' } : {})
+  }))
 }
 
 export function parseBibleReference(input, defaultBook = null) {

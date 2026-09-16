@@ -7,6 +7,7 @@ export default function PreviewCanvas({ kind, presetId, template, titleCard, sin
     const element = stage.current
     if (!element) return
     const fit = () => {
+      if (element.querySelector('.heritage-canvas')) return
       const logicalSize = presetId === 'wotbc-sermon-title' ? 112 : presetId === 'wotbc-sermon-quote' ? 94 : presetId === 'wotbc-sermon-verse' ? 88 : titleCard ? 98 : kind === 'bible' ? 96 : kind === 'sermon' ? 82 : kind === 'song' ? (presetId === 'wotbc-song-lyrics' ? 106 : 98) : 76
       let size = element.clientWidth / 1920 * logicalSize
       element.style.setProperty('--slide-text-size', `${size}px`)

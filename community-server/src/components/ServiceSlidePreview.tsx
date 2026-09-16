@@ -1,4 +1,5 @@
 'use client'
+import CanvasSlide from './CanvasSlide'
 import PreviewCanvas from './PreviewCanvas'
 import SlideText from './SlideText'
 import { plannerPreview } from './plannerPreview'
@@ -18,6 +19,7 @@ export default function ServiceSlidePreview({project,rows,slide,channelId,mediaU
   return <PreviewCanvas kind={item.kind} presetId={preview.presetId} titleCard={isSongTitleSlide(slide)} singer={preview.singer} next={preview.next}
     backgroundUrl={backgroundId ? mediaUrl(backgroundId) : undefined} backgroundDimOpacity={item.sermonPresentation?.darkenBackground===false ? 0 : .55}>
     {blocks.map((block:any,index:number)=>{
+      if (block.type==='canvas') return <CanvasSlide key={`${slide.id}:${channelId}:${index}`} objects={block.objects} mediaUrl={mediaUrl} />
       if (block.type==='image' && block.role==='background') return null
       if (block.type==='image' || block.type==='video') {
         const source=mediaUrl(block.assetId)

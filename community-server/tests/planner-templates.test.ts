@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import core from '../packages/service-core/index.js'
 import formatting from '../packages/service-core/node/services/project/SlideFormatting.js'
-import { createTemplateSlide, createTemplateDraft, editTemplateField, insertionPoint, nextPointPrefix } from '../src/components/plannerTemplates.ts'
+import { createTemplateSlide, createTemplateDraft, editTemplateField, editCanvasObjects, insertionPoint, nextPointPrefix } from '../src/components/plannerTemplates.ts'
 import { editPlannerSlide, plannerSlides, deletePlannerSlide } from '../src/components/plannerSlides.ts'
 import { preparePlannerPresentation } from '../src/components/plannerPresentation.ts'
 
@@ -133,4 +133,38 @@ test('empty quote fields save without guides and legacy titles retain their old 
   assert.equal(nextPointPrefix('1. First\n2. Second'),'3. ')
   assert.equal(nextPointPrefix('VIII. Eighth'),'IX. ')
   assert.throws(()=>core.addProjectItem(project(),{id:'empty',kind:'sermon',title:'Legacy',textByChannel:{english:''},presetId:'wotbc-sermon'}),/required/)
+})
+
+
+test('Other canvas round-trip preserves objects, formatting, output isolation and referenced images',()=>{
+  let value=createTemplateDraft(project(),{id:'canvas',template:'other',selectedId:null})
+  value=JSON.parse(JSON.stringify(value));value.assets[image.id]=image
+  const frame={x:.1,y:.1,width:.4,height:.3,rotation:25}
+  const objects=[{id:'words',type:'text',frame,text:'Love is patient',fontSize:64,align:'left',color:'#ffffff',spans:[{start:0,end:4,background:'#8a5a00',italic:true}]},
+    {id:'photo',type:'image',frame:{...frame,x:.5},assetId:image.id,altText:'Picture'},
+    {id:'brace',type:'brace',frame:{...frame,width:.1},color:'#ffc000',lineWidth:4},
+    {id:'circle',type:'circle',frame,filled:true,color:'#ffffff',lineWidth:3}]
+  value=editCanvasObjects(value,'canvas','russian',objects)
+  const reopened=reopen(value)
+  assert.equal(reopened.items.canvas.objectsByChannel.english.length,0,'English is not silently translated')
+  assert.deepEqual(reopened.items.canvas.objectsByChannel.media,reopened.items.canvas.objectsByChannel.russian)
+  const output=blocks(reopened,'canvas','russian')[0]
+  assert.equal(output.type,'canvas');assert.equal(output.objects[0].spans[0].background,'#8a5a00');assert.equal(output.objects[2].frame.rotation,25)
+  assert.ok(core.pruneUnreachableProjectRecords(reopened,{assetIds:[image.id]}).assets[image.id])
+  assert.equal(deletePlannerSlide(reopened,plannerSlides(reopened)[0]).assets[image.id],undefined)
+  assert.throws(()=>editCanvasObjects(value,'canvas','russian',[{...objects[0],frame:{...frame,width:NaN}}]),/width/)
+  assert.throws(()=>editCanvasObjects(value,'canvas','russian',[{...objects[0],frame:{...frame,x:.9}}]),/inside/)
+  assert.throws(()=>editCanvasObjects(value,'canvas','russian',[{...objects[1],assetId:'https:\/\/example.com/picture.png'}]),/saved image/)
+})
+
+test('highlight spans compose with bold and remove independently',()=>{
+  const body='Exact Scripture words'
+  let spans=formatting.applyTextStyle(body,[],0,5,{weight:'700'})
+  spans=formatting.applyTextStyle(body,spans,0,10,{background:'#ffff00'})
+  let value=createTemplateDraft(project(),{id:'quote',template:'quote',selectedId:null})
+  value=editTemplateField(value,'quote','english','body',body,spans)
+  assert.equal(blocks(reopen(value),'quote')[0].spans[0].background,'#ffff00')
+  const cleared=formatting.applyTextStyle(body,spans,0,body.length,{background:undefined})
+  assert.deepEqual(cleared,[{start:0,end:5,weight:'700'}])
+  assert.throws(()=>editTemplateField(value,'quote','english','body',body,[{start:0,end:2,background:'url(bad)'}]),/Highlight/)
 })

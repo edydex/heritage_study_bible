@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { workspaceSignInHref } from '../lib/workspaceNavigation'
 import serviceCore from '../../packages/service-core/index.js'
 import { plannerPreview } from './plannerPreview'
+import CanvasSlide, { newCanvasObject } from './CanvasSlide'
 import TemplateSlideEditor from './TemplateSlideEditor'
 import MoveSlidesDialog from './MoveSlidesDialog'
 import DeleteSlidesDialog from './DeleteSlidesDialog'
@@ -13,7 +14,7 @@ import SlideText from './SlideText'
 import PreviewCanvas from './PreviewCanvas'
 import ServicePreview from './ServicePreview'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
-import { SERMON_TEMPLATES, createTemplateDraft, editTemplateField, insertionPoint, type SermonTemplateId } from './plannerTemplates'
+import { SERMON_TEMPLATES, createTemplateDraft, editTemplateField, editCanvasObjects, insertionPoint, type SermonTemplateId } from './plannerTemplates'
 import { preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
 import { editablePreviewBlock, editPlannerSlide, isSongTitleSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
 import { changePlannerSelection, plannerRangeSelection, selectedPlannerSlides, type SelectionResult } from './plannerSelection'
@@ -78,7 +79,7 @@ type BibleBookOption = {
   name: string
   chapters: number
 }
-type PictureUploadTarget = 'new' | 'all' | 'background' | ChannelId
+type PictureUploadTarget = 'new' | 'all' | 'background' | 'canvas' | ChannelId
 type ResourceTab = 'songs' | 'media' | 'scripture' | 'templates'
 
 function uuid() {
@@ -306,6 +307,8 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange }: { ser
   const [summaries, setSummaries] = useState<ServiceSummary[]>([])
   const [envelope, setEnvelope] = useState<ServiceEnvelope | null>(null)
   const [draft, setDraft] = useState<ServiceProject | null>(null)
+  const latestDraft = useRef(draft)
+  latestDraft.current = draft
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [desiredStatus, setDesiredStatus] = useState<ServiceEnvelope['status']>('planning')
   const [dirty, setDirty] = useState(false)
@@ -347,6 +350,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange }: { ser
   const pictureInput = useRef<HTMLInputElement>(null)
   const videoInput = useRef<HTMLInputElement>(null)
   const pictureTarget = useRef<PictureUploadTarget>('new')
+  const canvasPictureTarget = useRef<{itemId:string;channelId:string} | null>(null)
   const [notice, setNotice] = useState('Choose a service or create the next one.')
   const selected = selectedId && draft ? draft.items[selectedId] || null : null
   const slideList = useMemo<{ rows: PlannerSlide[]; error: string }>(() => {
@@ -526,10 +530,12 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange }: { ser
   }, [dirty, desiredStatus, envelope?.status])
 
   function change(mutator: (project: ServiceProject) => void) {
-    if (!draft) return
-    const next = cloneProject(draft)
+    const current = latestDraft.current
+    if (!current) return
+    const next = cloneProject(current)
     mutator(next)
-    setUndoStack(stack => [...stack.slice(-29), draft])
+    latestDraft.current = next
+    setUndoStack(stack => [...stack.slice(-29), current])
     setDraft(next)
     setDesiredStatus('planning')
     setDirty(true)
@@ -854,6 +860,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange }: { ser
 
   function choosePicture(target: PictureUploadTarget) {
     pictureTarget.current = target
+    canvasPictureTarget.current = target === 'canvas' && selectedId ? {itemId:selectedId,channelId:previewChannel} : null
     if (pictureInput.current) {
       pictureInput.current.value = ''
       pictureInput.current.click()
@@ -866,6 +873,8 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange }: { ser
       setError('Choose a PNG, JPEG, or WebP picture.')
       return
     }
+    const target = pictureTarget.current
+    const canvasTarget = canvasPictureTarget.current
     setUploadingPicture(true)
     setError(null)
     setNotice('Uploading the exact picture privately…')
@@ -888,9 +897,17 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange }: { ser
         altText: file.name,
         attribution: '',
       }
-      const target = pictureTarget.current
       const previewUrl = URL.createObjectURL(file); localUrls.current.push(previewUrl); setMediaPreviews(value => ({ ...value, [asset.id]: previewUrl }))
-      if (target === 'new') {
+      if (target === 'canvas' && canvasTarget) {
+        change(project => {
+          const item = project.items[canvasTarget.itemId]
+          if (item?.sermonTemplate !== 'other') throw new Error('The target slide is no longer available.')
+          project.assets[asset.id] = asset
+          const objects = [...(item.objectsByChannel[canvasTarget.channelId] || []), newCanvasObject('image', {assetId:asset.id,altText:file.name})]
+          const updated = editCanvasObjects(project, canvasTarget.itemId, canvasTarget.channelId, objects)
+          project.items[canvasTarget.itemId] = updated.items[canvasTarget.itemId]
+        })
+      } else if (target === 'new') {
         const id = `picture-${uuid()}`
         const { parentId, index } = insertionPoint(draft, selectedId)
         change(project => {
@@ -1200,14 +1217,17 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange }: { ser
                 <label><input type="checkbox" checked={selected.sermonPresentation?.showText ?? true} onChange={event => updateSelected({ sermonPresentation: {darkenBackground: true, ...selected.sermonPresentation, showText: event.target.checked} })} /> Show title text</label>
                 <label><input type="checkbox" checked={selected.sermonPresentation?.darkenBackground ?? true} onChange={event => updateSelected({ sermonPresentation: {showText: true, ...selected.sermonPresentation, darkenBackground: event.target.checked} })} /> Darken image</label>
               </div> : null}
+              {selected.sermonTemplate === 'other' && !preview.singer && <><div id="heritage-canvas-tools" /><button type="button" className="heritage-canvas-copy" onClick={()=>{if(globalThis.confirm('Replace the objects on the other outputs with this slide layout?'))updateSelected({objectsByChannel:Object.fromEntries(draft!.channelIds.map(id=>[id,JSON.parse(JSON.stringify(selected.objectsByChannel[previewChannel] || []))]))})}}>Copy this layout to all outputs</button></>}
               <PreviewCanvas kind={selected.kind} presetId={preview.presetId} template={selected.sermonTemplate} titleCard={Boolean(activeSlide && isSongTitleSlide(activeSlide))} singer={preview.singer} next={preview.next} backgroundDimOpacity={selected.sermonPresentation?.darkenBackground === false ? 0 : 0.55} backgroundUrl={selected.backgroundAssetId ? mediaPreviews[selected.backgroundAssetId] || (envelope?.project.assets?.[selected.backgroundAssetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetId)}` : undefined) : undefined}>
                 {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
                   : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
+                  : selected.sermonTemplate === 'other' && !preview.singer ? <CanvasSlide key={`${selected.id}:${previewChannel}`} objects={selected.objectsByChannel[previewChannel] || []} mediaUrl={id=>mediaPreviews[id] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(id)}`} uploading={uploadingPicture} onImage={()=>choosePicture('canvas')} onChange={objects=>slideMutation(()=>editCanvasObjects(draft!,selected.id,previewChannel,objects))} />
                   : selected.sermonTemplate && !preview.singer ? <TemplateSlideEditor key={`${selected.id}:${previewChannel}`} item={selected} channelId={previewChannel} uploading={uploadingPicture} onImage={() => choosePicture('background')}
                       onEdit={(field, text, spans) => slideMutation(() => editTemplateField(draft!, selected.id, previewChannel, field, text, spans))} />
                   : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
                     : selected.kind === 'blank' ? <p className="heritage-service-planner__stage-status">Intentional blank screen</p>
                       : (activePreviewOutput?.blocks || []).map((block: any, index: number) => {
+                        if (block.type === 'canvas') return <CanvasSlide key={index} objects={block.objects} mediaUrl={id=>mediaPreviews[id] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(id)}`} />
                         if (block.type === 'image' && block.role === 'background') return null
                         if (block.type === 'image' || block.type === 'video') {
                           if (!envelope?.project.assets?.[block.assetId] && !mediaPreviews[block.assetId]) return <p key={index} className="heritage-service-planner__stage-status">Save the service to preview this new media file.</p>

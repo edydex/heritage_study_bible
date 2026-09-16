@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { bibleBooks } from '../data/bible-books'
 import {
+  getBookReferenceChoices,
   getNumberedBookReferenceChoices,
   parseBibleReference,
   resolveBookAliasPrefix,
@@ -202,5 +203,28 @@ describe('parseBibleReference', () => {
 
   it('does not apply default book to non-numeric prefixed input', () => {
     expect(parseBibleReference('Genesis chapter one', 'Romans')).toBeNull()
+  })
+})
+
+
+describe('book-name prefix choices', () => {
+  it('derives Luk and Joh, including compact input and trailing periods', () => {
+    for (const query of ['Luk 8:24', 'luk8:24', 'Luk. 8:24']) expect(getBookReferenceChoices(query)).toEqual([{book:'Luke',chapter:8,verse:24}])
+    expect(parseBibleReference('Joh 3:16')).toEqual({book:'John',chapter:3,verse:16})
+    expect(parseBibleReference('Luk 8:24')).toEqual({book:'Luke',chapter:8,verse:24})
+  })
+  it('offers every matching unnumbered book without guessing', () => {
+    expect(getBookReferenceChoices('Jo 3').map(value=>value.book)).toEqual(['Joshua','Job','Joel','Jonah','John'])
+    expect(getBookReferenceChoices('Ma 5').map(value=>value.book)).toEqual(['Malachi','Matthew','Mark'])
+    expect(getBookReferenceChoices('Ma 5')[0].invalidReason).toContain('4 chapters')
+    expect(getBookReferenceChoices('Phil 2').map(value=>value.book)).toEqual(['Philippians','Philemon'])
+  })
+  it('preserves exact names, conventional aliases, numbered families and text searches', () => {
+    expect(getBookReferenceChoices('John 3')).toEqual([{book:'John',chapter:3,verse:null}])
+    expect(getBookReferenceChoices('Jn 3:16')).toEqual([{book:'John',chapter:3,verse:16}])
+    expect(getBookReferenceChoices('1 c 2')).toHaveLength(2)
+    expect(getBookReferenceChoices('pet 2')).toHaveLength(2)
+    expect(getBookReferenceChoices('faith and hope')).toEqual([])
+    expect(getBookReferenceChoices('John loves 3')).toEqual([])
   })
 })

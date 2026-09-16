@@ -16,7 +16,7 @@ import { useAutomaticSync } from './hooks/useAutomaticSync'
 import { bibleBooks } from './data/bible-books.js'
 import { translations, DEFAULT_TRANSLATION, loadTranslation, loadTranslationLayout } from './data/translations'
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
-import { getNumberedBookReferenceChoices, parseBibleReference } from './utils/parseBibleReference'
+import { getBookReferenceChoices, parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
 import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, setNativeSideButtonScrollEnabled, setNativeSearchKeyboardCaptureInputEnabled, setNativeTextSelectionMenuSuppressed } from './services/androidControls'
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
@@ -473,6 +473,8 @@ function ScrollToTopOnRouteChange() {
   }, [])
 
   useLayoutEffect(() => {
+    // Verse navigation owns its scroll once the target chapter has rendered.
+    if (location.state?.scrollToVerse) return
     forceScrollTop()
     const raf1 = window.requestAnimationFrame(() => forceScrollTop())
     const raf2 = window.requestAnimationFrame(() => window.requestAnimationFrame(() => forceScrollTop()))
@@ -1887,7 +1889,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
       return
     }
 
-    const numberedBookChoices = getNumberedBookReferenceChoices(trimmedQuery)
+    const numberedBookChoices = getBookReferenceChoices(trimmedQuery)
     if (numberedBookChoices.length > 1) {
       setSearchResults(null)
       setSearchLoading(false)
@@ -1897,6 +1899,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
 
     if (numberedBookChoices.length === 1) {
       const [choice] = numberedBookChoices
+      if (choice.invalidReason) { setSearchLoading(false); showToast(choice.invalidReason); return }
       setSearchQuery('')
       setSearchResults(null)
       setSearchLoading(false)
@@ -1965,23 +1968,30 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
     }
   }
 
-  // Navigate to verse from search or bookmark
+  // Store the destination with the route, so the chapter reset cannot race it.
   const navigateToVerse = (book, chapter, verse) => {
-    if (book) setCurrentBook(book)
-    setCurrentChapter(chapter)
+    const targetBook = book || currentBook
     setSearchResults(null)
     setShowBookmarkManager(false)
     setShowGoToPassageButton(false)
-    // Scroll to verse after render
-    setTimeout(() => {
-      const element = document.getElementById(`verse-${chapter}-${verse}`)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        element.classList.add('bg-yellow-100')
-        setTimeout(() => element.classList.remove('bg-yellow-100'), 2000)
-      }
-    }, 100)
+    navigate(`/${bookToSlug(targetBook)}/${chapter}`, {
+      replace: true, state: { scrollToVerse: { book: targetBook, chapter: Number(chapter), verse: Number(verse) } },
+    })
   }
+
+  useLayoutEffect(() => {
+    const target = location.state?.scrollToVerse
+    if (!target || target.book !== currentBook || target.chapter !== currentChapter || !bibleData || translationLoading) return
+    const element = bibleContainerRef.current?.querySelector(`#verse-${target.chapter}-${target.verse}`)
+    if (!element) return
+    let highlightTimer
+    const frame = requestAnimationFrame(() => {
+      element.scrollIntoView({ behavior: 'instant', block: 'center' })
+      element.classList.add('bg-yellow-100')
+      highlightTimer = setTimeout(() => element.classList.remove('bg-yellow-100'), 2000)
+    })
+    return () => { cancelAnimationFrame(frame); clearTimeout(highlightTimer); element.classList.remove('bg-yellow-100') }
+  }, [location.key, location.state, currentBook, currentChapter, bibleData, translationLoading, parallelMode, showBookmarkManager])
 
   // Navigate to book and chapter
   const handleNavigate = (bookName, chapter) => {

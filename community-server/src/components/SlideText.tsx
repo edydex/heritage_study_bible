@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 
@@ -44,6 +44,7 @@ export default function SlideText({ text, label, role, placeholder, spans = EMPT
       const fragment = document.createElement('span')
       fragment.textContent = draft.current.text.slice(span.start, span.end)
       if (span.foreground) fragment.style.color = span.foreground
+      if (span.background) fragment.style.backgroundColor = span.background
       if (span.weight) fragment.style.fontWeight = span.weight
       if (span.fontScale) fragment.style.fontSize = `${span.fontScale}em`
       if (span.italic !== undefined) fragment.style.fontStyle = span.italic ? 'italic' : 'normal'
@@ -54,7 +55,7 @@ export default function SlideText({ text, label, role, placeholder, spans = EMPT
     node.dataset.empty = String(!draft.current.text.length)
     painted.current = true
   }
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Echoing a live edit through React must not replace the focused DOM/caret.
     if (painted.current && text === draft.current.text && JSON.stringify(spans) === JSON.stringify(draft.current.spans)) return
     draft.current = { text, spans }; paint()
@@ -73,7 +74,7 @@ export default function SlideText({ text, label, role, placeholder, spans = EMPT
       const prefix = selected.cloneRange(); prefix.selectNodeContents(root); prefix.setEnd(selected.startContainer, selected.startOffset)
       const start = prefix.toString().length, end = start + selected.toString().length
       const rect = selected.getBoundingClientRect()
-      const value = { start, end, x: Math.max(8, Math.min(rect.left, innerWidth - 290)), y: Math.max(8, rect.top - 44) }
+      const value = { start, end, x: Math.max(8, Math.min(rect.left, innerWidth - 390)), y: Math.max(8, rect.top - 52) }
       rangeRef.current = value; setRange(value)
     }
     document.addEventListener('selectionchange', update)
@@ -135,6 +136,8 @@ export default function SlideText({ text, label, role, placeholder, spans = EMPT
     {range && canFormat ? createPortal(<div ref={toolbar} className="heritage-slide-format" role="toolbar" aria-label="Selected text formatting" style={{left:range.x,top:range.y}}>
       {([['Bold','B','weight','700'],['Italic','I','italic',true],['Underline','U','underline',true]] as const).map(([label,caption,key,value]) => <button key={key} type="button" aria-label={label} aria-pressed={active(key,value)} onPointerDown={event => event.preventDefault()} onClick={() => apply({ [key]: active(key,value) ? (key === 'weight' ? '400' : false) : value })}>{caption}</button>)}
       <label title="Text color"><span>Color</span><input type="color" aria-label="Text color" defaultValue="#ffc000" onInput={event => apply({foreground:event.currentTarget.value}, false)} /></label>
+      <label title="Text highlight"><span>Highlight</span><input type="color" aria-label="Text highlight" defaultValue="#8a5a00" onInput={event => apply({background:event.currentTarget.value}, false)} /></label>
+      <button type="button" aria-label="Remove highlight" onPointerDown={event => event.preventDefault()} onClick={() => apply({background:undefined})}>No highlight</button>
       <button type="button" aria-label="Clear formatting" onPointerDown={event => event.preventDefault()} onClick={() => apply(null)}>Clear</button>
       {error ? <span role="alert">{error}</span> : null}
     </div>, document.body) : null}</>

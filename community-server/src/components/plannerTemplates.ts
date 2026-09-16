@@ -5,6 +5,7 @@ export const SERMON_TEMPLATES = [
   { id: 'point', label: 'Main point', hint: 'Continue this sermon’s outline', icon: '☷' },
   { id: 'passage', label: 'Bible passage', hint: 'Exact verses with editable emphasis', icon: '¶' },
   { id: 'quote', label: 'Quote / text', hint: 'A quotation or a single thought', icon: '“' },
+  { id: 'other', label: 'Other', hint: 'Move text, pictures and simple shapes', icon: '◇' },
 ] as const
 export type SermonTemplateId = typeof SERMON_TEMPLATES[number]['id']
 export type TemplateText = { heading: string; body: string }
@@ -106,8 +107,9 @@ export function createTemplateDraft(project: any, options: {
   const textByChannel = Object.fromEntries(project.channelIds.map((id: string) => [id, previous?.textByChannel[id] || '']))
   const place = insertionPoint(project, options.selectedId)
   return core.addProjectItem(project, {
-    id: options.id, kind: 'sermon', title: options.template === 'title' ? 'Sermon title' : options.template === 'point' ? 'Main point' : 'Quote / text',
+    id: options.id, kind: 'sermon', title: options.template === 'title' ? 'Sermon title' : options.template === 'point' ? 'Main point' : options.template === 'other' ? 'Other slide' : 'Quote / text',
     sermonTemplate: options.template, textByChannel,
+    ...(options.template === 'other' ? {objectsByChannel: Object.fromEntries(project.channelIds.map((id: string) => [id, []]))} : {}),
     ...(previous ? Object.fromEntries(['titlesByChannel','spansByChannel','titleSpansByChannel'].filter(key => previous[key]).map(key => [key, copy(previous[key])])) : {}),
     ...(options.template === 'point' ? {pendingPointChannels: [...project.channelIds]} : {}),
     ...(options.template === 'title' ? {sermonPresentation: {showText: false, darkenBackground: false}} : {}),
@@ -142,5 +144,15 @@ export function editTemplateField(project: any, itemId: string, channelId: strin
     }
   }
   if (text.trim() && (field === 'heading' || field === 'next' || item.sermonTemplate === 'quote' || (field === 'body' && item.sermonTemplate === 'point'))) item.title = text.trim().split('\n')[0].slice(0, 200)
+  return core.normalizeServiceProject(next)
+}
+
+export function editCanvasObjects(project: any, itemId: string, channelId: string, objects: any[]) {
+  const next = copy(project), item = next.items[itemId]
+  if (item?.sermonTemplate !== 'other' || !project.channelIds.includes(channelId)) throw new Error('Choose an Other slide.')
+  item.objectsByChannel[channelId] = copy(objects)
+  const source = project.channelIds.find((id: string) => id !== 'media' && project.channels[id].language === project.channels.media?.language)
+    || (project.channelIds.includes('russian') ? 'russian' : 'english')
+  if (channelId === source && project.channelIds.includes('media')) item.objectsByChannel.media = copy(objects)
   return core.normalizeServiceProject(next)
 }
