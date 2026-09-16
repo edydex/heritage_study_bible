@@ -66,6 +66,7 @@ export default function SlideText({ text, label, role, placeholder, spans = EMPT
     const update = () => {
       const selection = window.getSelection(), root = element.current
       if (!root || !selection?.rangeCount) return
+      if (document.activeElement !== root && !toolbar.current?.contains(document.activeElement)) { rangeRef.current = null; setRange(null); return }
       const selected = selection.getRangeAt(0)
       if (!root.contains(selected.startContainer) || !root.contains(selected.endContainer) || selected.collapsed) {
         if (toolbar.current?.contains(document.activeElement)) return
@@ -125,7 +126,7 @@ export default function SlideText({ text, label, role, placeholder, spans = EMPT
   return <><div ref={element} className="heritage-service-planner__editable-text" data-role={role} data-fit-text data-empty={!text.length} data-placeholder={readOnly ? undefined : placeholder} aria-placeholder={readOnly ? undefined : placeholder}
     contentEditable={readOnly ? false : 'plaintext-only'} suppressContentEditableWarning
     role={!readOnly || canFormat ? 'textbox' : undefined} aria-readonly={readOnly && canFormat || undefined} aria-multiline={!readOnly || canFormat || undefined} aria-label={label} tabIndex={readOnly && canFormat ? 0 : undefined}
-    onInput={input} onFocus={()=>{editStart.current=draft.current;focusEmpty()}} onPointerUp={focusEmpty} onBlur={event => { if (!toolbar.current?.contains(event.relatedTarget as Node)) commit() }}
+    onInput={input} onFocus={()=>{editStart.current=draft.current;focusEmpty()}} onPointerUp={focusEmpty} onBlur={event => { if (!toolbar.current?.contains(event.relatedTarget as Node)) { commit(); rangeRef.current = null; setRange(null) } }}
     onPaste={event => { if (readOnly) return; event.preventDefault(); insertPlain(event.clipboardData.getData('text/plain')) }}
     onKeyDown={event => {
       if (canFormat && (event.metaKey || event.ctrlKey) && ['b','i','u'].includes(event.key.toLowerCase())) { event.preventDefault(); const key = event.key.toLowerCase() === 'b' ? 'weight' : event.key.toLowerCase() === 'i' ? 'italic' : 'underline'; const value = key === 'weight' ? '700' : true; apply({ [key]: active(key, value) ? (key === 'weight' ? '400' : false) : value }); return }
