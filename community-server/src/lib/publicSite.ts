@@ -1,3 +1,4 @@
+import { firstSongSections } from '../../packages/song-text/index.js'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
@@ -27,7 +28,7 @@ function publicSong(doc: Record<string, any>): SongbookEntry | null {
   if (!content) return null
   return { id: String(doc.id), slug: String(doc.slug || doc.syncId || doc.id),
     title: content.title, russianTitle: content.russianTitle, alternateTitles: content.alternateTitles,
-    authors: content.authors }
+    authors: content.authors, previewSections: firstSongSections(content) }
 }
 
 async function context() {

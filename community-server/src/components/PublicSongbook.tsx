@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import SongPreview from '../../packages/song-text/SongPreview.jsx'
 import { useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { groupSongbook, songbookLanguage, songbookTitle, type SongbookEntry } from '@/lib/songbookSearch'
@@ -36,14 +37,14 @@ export default function PublicSongbook({ songs }: { songs: SongbookEntry[] }) {
     {groups.length ? groups.map(group => <section className="public-songbook__group" key={group.letter} aria-label={group.letter}>
       <h2>{group.letter}</h2>
       <ul>{group.songs.map(song => <li key={song.id}>
-        <Link href={`/songs/${encodeURIComponent(song.slug)}?${new URLSearchParams({ lang: language, ...(query ? { q: query } : {}) })}`}>
+        <SongPreview title={song.displayTitle} sections={(song.previewSections || []).filter(section => section.language === language)}><Link href={`/songs/${encodeURIComponent(song.slug)}?${new URLSearchParams({ lang: language, ...(query ? { q: query } : {}) })}`}>
           <span className="public-songbook__title">{song.displayTitle}</span>
           <span className="public-songbook__badges">
             {songbookTitle(song, 'en') && <span lang="en" aria-label="English title available">EN</span>}
             {songbookTitle(song, 'ru') && <span lang="en" aria-label="Russian title available">RU</span>}
           </span>
           <span className="public-songbook__arrow" aria-hidden="true">↗</span>
-        </Link>
+        </Link></SongPreview>
       </li>)}</ul>
     </section>) : <div className="public-songbook__empty">
       <h2>{russian ? 'Песни не найдены' : 'No songs found'}</h2>

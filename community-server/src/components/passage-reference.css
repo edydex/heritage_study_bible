@@ -1,0 +1,10 @@
+.heritage-passage-shortcut { display:grid; gap:.35rem; min-width:0; }
+.heritage-passage-shortcut input { width:100%; min-width:0; padding:.5rem; border:1px solid var(--theme-elevation-250,#bbb); border-radius:.35rem; color:inherit; background:var(--theme-input-bg,#fff); }
+.heritage-passage-shortcut small { opacity:.75; font-size:.75rem; }
+.heritage-passage-shortcut__choices { display:flex; gap:.4rem; flex-wrap:wrap; }
+.heritage-passage-shortcut__choices button { border:1px solid var(--theme-elevation-250,#bbb); background:var(--theme-bg,#fff); color:inherit; border-radius:.35rem; padding:.4rem .65rem; cursor:pointer; }
+.heritage-passage-shortcut__choices small { display:block; }
+.heritage-passage-shortcut__choices button:disabled { opacity:.5; cursor:default; }
+.heritage-passage-manual { align-self:center; }
+.heritage-passage-manual summary { cursor:pointer; font-size:.8rem; }
+.heritage-passage-manual > div { position:fixed; bottom:8rem; right:1.5rem; z-index:40; display:grid; grid-template-columns:minmax(10rem,2fr) repeat(3,minmax(4rem,1fr)); gap:.65rem; max-width:calc(100vw - 3rem); padding:1rem; border:1px solid var(--theme-elevation-250,#bbb); border-radius:.5rem; background:var(--theme-bg,#fff); box-shadow:0 .5rem 2rem #0003; }

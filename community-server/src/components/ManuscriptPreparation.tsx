@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, type FormEvent } from 'react'
+import PassageReferenceInput from './PassageReferenceInput'
 import {
   CANONICAL_BIBLE_BOOKS,
   canonicalBibleChapterVerseMaximum,
@@ -526,6 +527,9 @@ export default function PrepareSermonClient() {
               Use the passage the congregation reads before this sermon. Exact
               verses let the Study Bible link the sermon back to this text.
             </p>
+            <PassageReferenceInput books={CANONICAL_BIBLE_BOOKS} label="Primary passage shortcut" onResolve={passage => {
+              setDraft(current => ({ ...current, primaryPassage: { bookId:passage.bookId, startChapter:String(passage.startChapter), startVerse:String(passage.startVerse), endChapter:String(passage.endChapter), endVerse:String(passage.endVerse) }, reviewConfirmed:false })); invalidatePriorAttempt()
+            }} />
             <div className="heritage-sermon-preparation__passage">
               <label>
                 <span>Book</span>
@@ -628,6 +632,9 @@ export default function PrepareSermonClient() {
                         Remove
                       </button>
                     </div>
+                    <PassageReferenceInput books={CANONICAL_BIBLE_BOOKS} label={`${labelPrefix} shortcut`} onResolve={reference => {
+                      setDraft(current => ({...current, mentionedPassages:current.mentionedPassages.map(value => value.clientId === passage.clientId ? {...value,bookId:reference.bookId,startChapter:String(reference.startChapter),startVerse:String(reference.startVerse),endChapter:String(reference.endChapter),endVerse:String(reference.endVerse)} : value),reviewConfirmed:false})); invalidatePriorAttempt()
+                    }} />
                     <div className="heritage-sermon-preparation__passage">
                       <label>
                         <span>Book</span>

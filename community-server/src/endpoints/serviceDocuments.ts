@@ -1,3 +1,4 @@
+import { firstSongSections } from '../../packages/song-text/index.js'
 import { createHash, randomUUID } from 'node:crypto'
 import {
   headersWithCors,
@@ -8,6 +9,7 @@ import serviceCore from '../../packages/service-core/node.js'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
 import {
   serializeSongForSync,
+  legacyFieldsFromSyncDocuments,
   SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
   SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE,
   SyncShowProtocolError,
@@ -417,6 +419,7 @@ const songLibraryList: Endpoint = {
           rightsStatus: value.rightsStatus,
           visibility: value.visibility,
           documentCount: value.syncDocuments.length,
+          previewSections: firstSongSections(legacyFieldsFromSyncDocuments(value.syncDocuments)),
           updatedAt: value.updatedAt,
         }))
       return json(req, { schemaVersion: 1, items })

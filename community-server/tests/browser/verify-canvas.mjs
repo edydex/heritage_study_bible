@@ -8,6 +8,8 @@ const evidence=resolve(process.env.CANVAS_TEST_EVIDENCE || 'test-results/canvas-
 await mkdir(evidence,{recursive:true})
 const pixel=await sharp({create:{width:1,height:1,channels:3,background:'#3050d0'}}).png().toBuffer()
 const results=[]
+const origin=process.env.CANVAS_TEST_ORIGIN || 'http://127.0.0.1:4199'
+const workspace=process.env.PLANNER_QOL === '1'
 for(const [name,engine] of Object.entries({chromium,firefox})) {
  const browser=await engine.launch({headless:true}),page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[]
  page.setDefaultTimeout(10000)
@@ -15,11 +17,19 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  console.log('Start',name)
  let project=core.createServiceProject({id:'canvas-rehearsal',title:'Canvas rehearsal',serviceDate:'2026-09-16',preferredProfileId:'main-sanctuary',presetPack:{id:'main-sanctuary',version:1,sha256:null},channels:[{id:'english',label:'English',language:'en'},{id:'russian',label:'Russian',language:'ru'},{id:'media',label:'Stage',language:'ru'}]})
  project=core.addProjectItem(project,{id:'initial',kind:'sermon',title:'Starting slide',presetId:'wotbc-sermon',textByChannel:{english:'Starting slide',russian:'Начало'}})
+ let bibleRequest
  let saved={syncId:'canvas-rehearsal',syncVersion:1,revision:1,status:'planning',project},lastSave
  await page.route('**/api/community/**',async route=>{
   const url=new URL(route.request().url()),method=route.request().method()
-  if(url.pathname.endsWith('/library/songs') || url.pathname.endsWith('/sermon-presentations'))return route.fulfill({json:{items:[]}})
-  if(url.pathname.endsWith('/library/bible-passage'))return route.fulfill({json:{books:[]}})
+  if(url.pathname.endsWith('/sermon-presentations'))return route.fulfill({json:{items:[{syncId:'canvas-rehearsal',title:'Canvas rehearsal',serviceDate:'2026-09-16'}]}})
+  if(url.pathname.endsWith('/library/songs'))return route.fulfill({json:{items:[{syncId:'song-a',title:'A short title',russianTitle:'Песня',previewSections:[{language:'en',label:'Verse 1',lines:['First rehearsal line','Next rehearsal line']},{language:'ru',label:'Куплет 1',lines:['Первая строка']}]},{syncId:'song-b',title:'Another title',previewSections:[]}]}})
+  if(url.pathname.endsWith('/library/bible-passage')) {
+    if(method==='GET')return route.fulfill({json:{books:[{id:'1Chr',name:'1 Chronicles',chapters:29},{id:'Eph',name:'Ephesians',chapters:6},{id:'John',name:'John',chapters:21},{id:'Matt',name:'Matthew',chapters:28},{id:'Mark',name:'Mark',chapters:16},{id:'Mal',name:'Malachi',chapters:4}]}})
+    bibleRequest=route.request().postDataJSON();const {bookId,chapter,startVerse,endVerse}=bibleRequest
+    const range={schemaVersion:1,bookId,start:{chapter,verse:startVerse},end:{chapter,verse:endVerse}}
+    const text={reference:'1 Chronicles 3:7–10',translationId:'BSB',verses:Array.from({length:endVerse-startVerse+1},(_,index)=>({number:startVerse+index,text:`Rehearsal verse ${startVerse+index}`}))}
+    return route.fulfill({json:{passage:{range,title:text.reference,passagesByChannel:{english:text,russian:{...text,translationId:'SYNO-W'},media:{...text,translationId:'SYNO-W'}}}}})
+  }
   if(url.pathname.includes('/assets/') && method==='GET')return route.fulfill({body:pixel,contentType:'image/png'})
   if(url.pathname.includes('/assets/') && method==='PUT')return route.fulfill({json:{asset:{mediaType:'image/png',size:pixel.length,width:1,height:1,orientation:1}}})
   if(method==='PUT'){
@@ -30,11 +40,30 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
   if(url.pathname.endsWith('/canvas-rehearsal'))return route.fulfill({json:{serviceDocument:saved}})
   return route.fulfill({json:{items:[]}})
  })
- await page.goto('http://127.0.0.1:4199/community-server/tests/browser/planner.html')
+ await page.goto(`${origin}/community-server/tests/browser/planner.html${workspace?'?workspace':''}`)
+ if(workspace)await page.getByLabel('Sermon to prepare').selectOption('canvas-rehearsal')
  await page.screenshot({path:`${evidence}/initial-${name}.png`})
  console.log('Planner loaded', name)
  await page.getByRole('button',{name:/Other Move text/}).click()
  console.log('Other created')
+ if(workspace) {
+  await expect(page.getByLabel('Workspace menu',{exact:true})).toHaveCount(1)
+  await expect(page.getByLabel('Church workspace menu',{exact:true})).toHaveCount(0)
+  const picker=await page.getByLabel('Sermon to prepare').boundingBox(),status=await page.locator('#service-status').boundingBox(),stage=await page.locator('.heritage-service-planner__stage').boundingBox(),tools=await page.getByRole('complementary',{name:'Slide objects'}).boundingBox()
+  assert(picker.y<status.y && picker.x+picker.width<stage.x)
+  assert(tools.x>stage.x+stage.width-1 && tools.y<stage.y+stage.height)
+  assert(stage.height>350,`Slide too small: ${stage.height}`)
+  const english=await page.getByRole('tab',{name:'English',exact:true}).boundingBox(),undo=await page.getByRole('button',{name:'Undo',exact:true}).boundingBox(),preview=await page.getByRole('button',{name:'▦ Sermon preview',exact:true}).boundingBox()
+  assert(Math.abs(english.y-undo.y)<10 && undo.x<preview.x)
+  assert(english.x<undo.x)
+
+  assert.equal(await page.locator('summary').filter({hasText:'Slide settings'}).count(),0)
+  await page.getByText('Other slide',{exact:true}).first().click({button:'right'})
+  await page.getByRole('menuitem',{name:'Slide settings…',exact:true}).click()
+  await page.getByRole('dialog',{name:'Slide settings',exact:true}).getByLabel('Item name').fill('Custom canvas')
+  await page.getByRole('button',{name:'Done',exact:true}).click()
+  await expect(page.getByRole('dialog',{name:'Slide settings',exact:true})).toHaveCount(0)
+ }
  await page.getByRole('button',{name:'Add text',exact:true}).click()
  const text=page.getByRole('textbox',{name:'Text object 1',exact:true})
  await text.fill('Love is patient · Любовь долготерпит')
@@ -62,6 +91,7 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  await page.getByRole('button',{name:'Save sermon slides',exact:true}).click()
  await expect(page.getByText('2 slides · Saved v2',{exact:true})).toBeVisible()
  let other=Object.values(saved.project.items).find(item=>item.sermonTemplate==='other')
+ if(workspace)assert.equal(other.title,'Custom canvas')
  assert.equal(other.objectsByChannel.english.length,5)
  assert.equal(other.objectsByChannel.english[0].spans[0].background,'#8a5a00')
  assert.equal(other.objectsByChannel.english[0].spans[0].weight,'700')
@@ -70,7 +100,8 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  assert(Object.keys(saved.project.assets).length===1)
  await page.screenshot({path:`${evidence}/${name}.png`,fullPage:true})
  await page.reload()
- await page.getByText('Other slide',{exact:true}).first().click()
+ if(workspace)await page.getByLabel('Sermon to prepare').selectOption('canvas-rehearsal')
+ await page.getByText(workspace?'Custom canvas':'Other slide',{exact:true}).first().click()
  await expect(page.locator('.heritage-canvas__object')).toHaveCount(5)
  await expect(page.locator('.heritage-canvas img')).toHaveJSProperty('naturalWidth',1)
  await page.getByRole('tab',{name:'Russian',exact:true}).click()
@@ -79,8 +110,51 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  await page.getByRole('textbox',{name:'Text object 1',exact:true}).press('Tab')
  await page.getByRole('tab',{name:'Stage-Facing Screen',exact:true}).click()
  await expect(page.getByText('Любовь никогда не перестает',{exact:true})).toBeVisible()
+ if(workspace) {
+  await page.getByRole('tab',{name:'Songs',exact:true}).click()
+  const song=page.getByRole('button',{name:'A short title Песня',exact:true})
+  await song.hover();await expect(page.getByRole('tooltip')).toContainText('First rehearsal line')
+  await page.keyboard.press('Escape');await expect(page.getByRole('tooltip')).toHaveCount(0)
+  await song.focus();await expect(page.getByRole('tooltip')).toContainText('Первая строка')
+  await page.keyboard.press('Escape')
+  await page.getByRole('tab',{name:'Scripture',exact:true}).click()
+  await page.getByLabel('Passage shortcut',{exact:true}).fill('Ma 5 3-9')
+  await expect(page.getByRole('button',{name:'Add reading',exact:true})).toBeDisabled()
+  await expect(page.getByRole('button',{name:/Malachi.*4 chapters/})).toBeDisabled()
+  await page.getByRole('button',{name:'Matthew',exact:true}).click()
+  await expect(page.getByRole('button',{name:'Add reading',exact:true})).toBeEnabled()
+  await page.getByLabel('Passage shortcut',{exact:true}).fill('1 chr 3 7-10')
+  await expect(page.getByRole('status').filter({hasText:'1 Chronicles 3:7–10'})).toBeVisible()
+  await page.getByRole('button',{name:'Add reading',exact:true}).click()
+  await expect(page.getByText('1 Chronicles 3:7–10 · BSB / SYNO-W',{exact:true}).first()).toBeVisible()
+  assert.deepEqual(bibleRequest,{schemaVersion:1,bookId:'1Chr',chapter:3,startVerse:7,endVerse:10})
+  await page.getByText('Custom canvas',{exact:true}).first().click()
+  await page.getByRole('tab',{name:'English',exact:true}).click()
+  await page.setViewportSize({width:1024,height:768})
+  await page.screenshot({path:`${evidence}/compact-${name}.png`,fullPage:true})
+  const inspector=page.getByRole('complementary',{name:'Slide objects'})
+  await expect(inspector).toBeVisible()
+  await page.getByRole('button',{name:'Add brace }',exact:true}).click()
+  // Text editing must retain browser undo instead of removing the new object.
+  await page.getByLabel('Passage shortcut',{exact:true}).focus()
+  await page.keyboard.press('Control+z')
+  await page.keyboard.press('Meta+z')
+  await expect(page.locator('.heritage-canvas__object')).toHaveCount(6)
+  const nativeTextUndo=await page.getByRole('textbox',{name:'Text object 1',exact:true}).evaluate(element=>{
+    const event=new KeyboardEvent('keydown',{key:'z',metaKey:true,bubbles:true,cancelable:true})
+    element.dispatchEvent(event);return !event.defaultPrevented
+  })
+  assert(nativeTextUndo,'Inline text must keep its native undo')
+  await page.getByLabel('Rotation °',{exact:true}).fill('30')
+  await page.getByRole('tab',{name:'English',exact:true}).focus()
+  await page.keyboard.press('Control+z')
+  await expect(page.getByLabel('Rotation °',{exact:true})).toHaveValue('0')
+  await page.keyboard.press('Meta+z')
+  await expect(page.locator('.heritage-canvas__object')).toHaveCount(5)
+  await page.screenshot({path:`${evidence}/compact-${name}.png`,fullPage:true})
+ }
  assert.deepEqual(errors,[])
- results.push({browser:name,saveReopen:true,dragResizeRotation:true,highlight:true,image:true,russianStage:true,errors})
+ results.push({browser:name,saveReopen:true,dragResizeRotation:true,highlight:true,image:true,russianStage:true,workspace,...(workspace ? {compactLayout:true,slideSettingsDialog:true,songHoverFocus:true,passageShortcut:true,ambiguousBooks:true,controlUndo:true,commandUndo:true,nativeTextUndoPreserved:true} : {}),errors})
  await browser.close()
 }
 await writeFile(`${evidence}/results.json`,JSON.stringify(results,null,2)+'\n')

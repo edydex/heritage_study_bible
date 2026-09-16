@@ -94,6 +94,7 @@ export default function CanvasSlide({ objects, mediaUrl, onChange, onImage, uplo
     next.splice(index,1);next.splice(target,0,selected);commit(next)
   }
   const toolbar=editable && tools ? createPortal(<div className="heritage-canvas-tools">
+    <h3>Slide objects</h3>
     <div className="heritage-canvas-tools__add" role="toolbar" aria-label="Add slide object">
       <button type="button" disabled={values.length>=64} onClick={()=>add('text')}>Add text</button>
       <button type="button" disabled={uploading || values.length>=64} onClick={onImage}>{uploading?'Uploading…':'Add image'}</button>
@@ -101,7 +102,7 @@ export default function CanvasSlide({ objects, mediaUrl, onChange, onImage, uplo
       <button type="button" disabled={values.length>=64} onClick={()=>add('circle')}>Outline circle</button>
       <button type="button" disabled={values.length>=64} onClick={()=>add('circle',{filled:true})}>Filled circle</button>
     </div>
-    <p>Click an object to select it. Use its Move, Resize, and Rotate handles, or the controls below. Click inside text to type and select words to format them. Text shrinks to fit its box.</p>
+    <details className="heritage-canvas-tools__help"><summary>Editing tips</summary><p>Select an object to move, resize or rotate it. Click inside text to type; select words to format them. Text shrinks to fit its box.</p></details>
     {selected && <div className="heritage-canvas-tools__properties" aria-label="Selected object properties">
       {(['x','y','width','height'] as const).map(key=><label key={key}>{({x:'Left',y:'Top',width:'Width',height:'Height'})[key]} %<input type="number" min={key==='width'||key==='height'?1:0} max="100" step="1" value={Math.round(selected.frame[key]*100)} onChange={event=>{if(event.currentTarget.value)frame({[key]:Number(event.currentTarget.value)/100})}} /></label>)}
       <label>Rotation °<input type="number" min="-180" max="180" value={Math.round(selected.frame.rotation)} onChange={event=>frame({rotation:clamp(Number(event.currentTarget.value),-180,180)})} /></label>

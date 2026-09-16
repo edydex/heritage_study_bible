@@ -1771,3 +1771,27 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-sermon-library a { grid-column:2/4; grid-row:2; font-size:.8rem; }
 .heritage-service-planner__resource-content:has(.heritage-sermon-library) > .heritage-service-planner__templates { flex-basis:100%; grid-template-columns:repeat(4,minmax(0,1fr)); }
 @media(max-width:600px) { .heritage-service-planner__resource-content > .heritage-sermon-library { grid-template-columns:minmax(0,1fr) auto; } .heritage-sermon-library button:last-of-type { grid-column:2; grid-row:2; } .heritage-sermon-library a { grid-column:1; } .heritage-sermon-library small { display:none; } }
+
+.heritage-service-planner__resource-content > .heritage-passage-shortcut { flex:1 1 18rem; max-width:32rem; }
+.heritage-planner-song-library { flex:1 1 30rem; min-width:0; display:grid; grid-template-columns:minmax(9rem,1fr) minmax(12rem,2fr); gap:.65rem; }
+.heritage-planner-song-library input { width:100%; min-width:0; padding:.45rem; color:inherit; background:var(--theme-input-bg); border:1px solid var(--theme-elevation-250); border-radius:.3rem; }
+.heritage-planner-song-library__list { max-height:9rem; overflow:auto; display:grid; gap:.2rem; }
+.heritage-planner-song-library__list button { display:block; width:100%; text-align:left; padding:.45rem .65rem; color:var(--theme-text); background:var(--theme-bg); border:1px solid var(--theme-elevation-200); border-radius:.35rem; cursor:pointer; }
+.heritage-planner-song-library__list button[aria-pressed=true] { border-color:#397c59; background:var(--theme-success-50,#e9f5ed); }
+.heritage-planner-song-library__list small { display:block; opacity:.7; }
+.heritage-slide-settings { width:min(40rem,calc(100vw - 2rem)); }
+.heritage-slide-settings > header,.heritage-slide-settings > footer { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.heritage-slide-settings__fields { display:grid; gap:.8rem; padding:1rem 0; }
+.heritage-slide-settings footer small { max-width:28rem; opacity:.7; }
+
+/* One compact preview header: context and outputs left, actions right. */
+.heritage-service-planner__preview-heading { flex-shrink:0; }
+.heritage-service-planner__preview-heading > .heritage-service-planner__preview-context { flex:1 1 0; min-width:0; align-items:center; overflow-x:auto; scrollbar-width:thin; }
+.heritage-service-planner__preview-context > * { flex-shrink:0; }
+.heritage-service-planner__preview-context .heritage-service-planner__preview-title { max-width:10rem; overflow:hidden; text-overflow:ellipsis; }
+.heritage-service-planner__preview-heading .heritage-service-planner__output-tabs { gap:.1rem; padding:0; border:0; background:transparent; white-space:nowrap; }
+.heritage-service-planner__preview-heading .heritage-service-planner__output-tabs button { font-size:.72rem; padding:.4rem .5rem; }
+.heritage-service-planner__preview-heading > .heritage-service-planner__preview-actions { margin-left:auto; flex:0 0 auto; gap:.4rem; align-items:center; overflow:visible; }
+.heritage-service-planner__preview-actions > button { border:1px solid #50665a; border-radius:.3rem; padding:.35rem .55rem; color:#eef5f0; background:#26382e; font-size:.72rem; cursor:pointer; }
+.heritage-service-planner__preview-actions > button:disabled { opacity:.45; cursor:default; }
+@media(max-width:1150px) { .heritage-service-planner__preview-context .heritage-service-planner__preview-title { max-width:6rem; } }

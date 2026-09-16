@@ -10,6 +10,7 @@ import {
   refreshSongCatalogs,
 } from '../services/contentServers'
 import PullToRefresh from './PullToRefresh'
+import SongCatalogPreview from './SongCatalogPreview'
 import { COMMUNITIES_CHANGE_EVENT, getCommunities } from '../services/communities'
 import { mergeSongCatalog } from '../services/songCatalog'
 
@@ -538,7 +539,7 @@ function ResourcePage() {
             <div className="space-y-3">
               {visibleItems.map(item => {
                 const Wrapper = isClickable ? 'button' : 'div'
-                return (
+                const card = (
                   <Wrapper
                     key={item.id}
                     onClick={isClickable ? () => handleItemClick(item) : undefined}
@@ -600,6 +601,7 @@ function ResourcePage() {
                     )}
                   </Wrapper>
                 )
+                return isSongs ? <SongCatalogPreview key={item.id} item={item}>{card}</SongCatalogPreview> : card
               })}
             </div>
 

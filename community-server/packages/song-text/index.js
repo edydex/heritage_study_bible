@@ -46,3 +46,10 @@ export function normalizeSongSections(sections, language = 'en') {
     return parseSongLyrics(text, { language, label: !label || /^section\s+\d+$/i.test(label) ? `${language === 'ru' ? 'Куплет' : 'Verse'} ${index + 1}` : label })
   })
 }
+
+export function firstSongSections(song, language) {
+  return (language ? [language] : ['en', 'ru']).flatMap(language => {
+    const first = parseSongLyrics(language === 'ru' ? song?.russianLyrics : song?.lyrics, { language })[0]
+    return first ? [{ ...first, language }] : []
+  })
+}

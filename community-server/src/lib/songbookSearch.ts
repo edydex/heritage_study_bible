@@ -1,5 +1,5 @@
 export type SongbookLanguage = 'en' | 'ru'
-export type SongbookEntry = { id: string; slug: string; title: string; russianTitle: string; alternateTitles: string[]; authors: string[] }
+export type SongbookEntry = { id: string; slug: string; title: string; russianTitle: string; alternateTitles: string[]; authors: string[]; previewSections?: { language: string; label: string; lines: string[] }[] }
 
 export function songbookLanguage(value: unknown): SongbookLanguage { return value === 'ru' ? 'ru' : 'en' }
 export function songbookTitle(song: SongbookEntry, language: SongbookLanguage) {

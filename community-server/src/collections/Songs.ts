@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Field } from 'payload'
 import { captureSongPublicationIntent, prepareSongPublication, withdrawSongPublicLinks } from '@/lib/songPublication'
 import { createCommunityContent, manageCommunityContent, readSongsByVisibility } from '@/access'
 import { communityContentFields } from '@/fields/communityContentFields'
@@ -257,8 +257,8 @@ export const Songs: CollectionConfig = {
           fields: [
             ...communityContentFields.filter(field => (
               'name' in field && ['title', 'description'].includes(String(field.name))
-            )),
-            { name: 'russianTitle', label: 'Russian title', type: 'text' },
+            )).map((field): Field => field.type === 'text' && field.name === 'title' ? { ...field, admin: { ...field.admin, components: { Cell: '@/components/SongTitleCell' } } } : field),
+            { name: 'russianTitle', label: 'Russian title', type: 'text', admin: { components: { Cell: '@/components/SongTitleCell' } } },
             {
               name: 'alternateTitles',
               label: 'Other titles people may search',
