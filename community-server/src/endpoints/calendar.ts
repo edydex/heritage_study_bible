@@ -1,7 +1,7 @@
 import { headersWithCors, type Endpoint, type PayloadRequest, type Where } from 'payload'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
 import { communityRequestAccess } from '@/lib/communityMemberRequest'
-import { eventIsPublic, eventOccurrences, validDate, validTimeZone } from '../../packages/calendar-core/index.js'
+import { eventIsPublic, eventOccurrences, localDate, validDate, canonicalTimeZone } from '../../packages/calendar-core/index.js'
 
 function json(req: PayloadRequest, body: unknown, status = 200) {
   const headers = headersWithCors({ req, headers: new Headers({ 'Cache-Control': 'private, no-store', Vary: 'Authorization, Cookie', 'X-Content-Type-Options': 'nosniff' }) })
@@ -13,6 +13,13 @@ async function context(req: PayloadRequest) {
   const church = await req.payload.findByID({ collection: 'communities', id, depth: 0, overrideAccess: true, req })
   const access = await communityRequestAccess(req.payload, req.headers, id)
   return { id, church, access }
+}
+function visibleEvent(doc: any, access: { authenticated: boolean; manager: boolean }, communityId: number | string) {
+  return { id: doc.id, title: doc.title, description: doc.description, startsAt: doc.startsAt, endsAt: doc.endsAt,
+    timeZone: canonicalTimeZone(doc.timeZone) || 'UTC', location: doc.location, url: doc.url, recurrence: doc.recurrence,
+    repeatInterval: doc.repeatInterval, repeatUntil: doc.repeatUntil,
+    ...(access.authenticated ? { community: communityId, rsvpEnabled: doc.rsvpEnabled, defaultReminderMinutes: doc.defaultReminderMinutes } : {}),
+    ...(access.manager ? { visibility: doc.visibility } : {}) }
 }
 export const calendarEndpoints: Endpoint[] = [
   { path: '/community/calendar', method: 'get', handler: async req => {
@@ -33,31 +40,45 @@ export const calendarEndpoints: Endpoint[] = [
         for (const doc of result.docs) {
           if (!access.authenticated && !eventIsPublic(doc, church.calendarDefaultVisibility || 'members')) continue
           // Public responses deliberately omit relationship, RSVP and audit metadata.
-          const event = { id: doc.id, title: doc.title, description: doc.description, startsAt: doc.startsAt, endsAt: doc.endsAt,
-            timeZone: doc.timeZone, location: doc.location, url: doc.url, recurrence: doc.recurrence,
-            repeatInterval: doc.repeatInterval, repeatUntil: doc.repeatUntil,
-            ...(access.authenticated ? { rsvpEnabled: doc.rsvpEnabled, defaultReminderMinutes: doc.defaultReminderMinutes } : {}),
-            ...(access.manager ? { visibility: doc.visibility } : {}) }
+          const event = visibleEvent(doc, access, id)
           events.push(...eventOccurrences(event, from, to))
         }
         more = result.hasNextPage; page++
         if (page > 40 && more) return json(req, { error: 'The calendar is too large to load. Please contact your church administrator.' }, 422)
       }
       events.sort((a, b) => a.startsAt.localeCompare(b.startsAt) || a.title.localeCompare(b.title) || Number(a.id) - Number(b.id))
-      return json(req, { events, timeZone: church.timeZone, authenticated: access.authenticated, canManage: access.manager })
+      return json(req, { events, timeZone: canonicalTimeZone(church.timeZone) || 'UTC', authenticated: access.authenticated, canManage: access.manager })
     } catch (error) { req.payload.logger.error({ err: error }, 'Calendar failed'); return json(req, { error: 'Could not load the church calendar.' }, 500) }
+  } },
+  { path: '/community/calendar/events/:id', method: 'get', handler: async req => {
+    try {
+      const { id, church, access } = await context(req)
+      const eventId = String(req.routeParams?.id || '')
+      const date = new URL(req.url || '/', 'http://localhost').searchParams.get('date')
+      if (!/^\d+$/.test(eventId) || (date !== null && !validDate(date))) return json(req, { error: 'Choose a valid event and date.' }, 400)
+      const result = await req.payload.find({ collection: 'events', depth: 0, limit: 1, overrideAccess: true, req,
+        where: { and: [{ id: { equals: eventId } }, { community: { equals: id } }, { cancelled: { not_equals: true } }] } })
+      const doc = result.docs[0]
+      if (!doc || (!access.authenticated && !eventIsPublic(doc, church.calendarDefaultVisibility || 'members'))) return json(req, { error: 'This event is unavailable or requires church membership.' }, 404)
+      const safe = visibleEvent(doc, access, id)
+      const occurrenceDate = date || localDate(safe.startsAt, safe.timeZone)
+      const event = eventOccurrences(safe, occurrenceDate, occurrenceDate).find(event => event.date === occurrenceDate)
+      if (!event) return json(req, { error: 'This event does not occur on that date.' }, 404)
+      return json(req, { event, authenticated: access.authenticated, canManage: access.manager })
+    } catch (error) { req.payload.logger.error({ err: error }, 'Event details failed'); return json(req, { error: 'Could not load this event. Please try again.' }, 500) }
   } },
   ...(['get', 'put'] as const).map(method => ({ path: '/community/calendar/settings', method, handler: async (req: PayloadRequest) => {
     try {
       const { id, church, access } = await context(req)
       if (!access.manager) return json(req, { error: 'Sign in as a church manager to change calendar settings.' }, access.authenticated ? 403 : 401)
-      if (method === 'get') return json(req, { communityId: id, timeZone: church.timeZone, defaultVisibility: church.calendarDefaultVisibility || 'members' })
+      if (method === 'get') return json(req, { communityId: id, timeZone: canonicalTimeZone(church.timeZone) || 'UTC', defaultVisibility: church.calendarDefaultVisibility || 'members' })
       const raw = await req.text?.()
       if (!raw || raw.length > 2048) return json(req, { error: 'Invalid settings.' }, 400)
       const body = JSON.parse(raw)
-      if (!validTimeZone(body.timeZone) || !['members', 'public'].includes(body.defaultVisibility)) return json(req, { error: 'Choose a valid time zone and calendar visibility.' }, 400)
-      await req.payload.update({ collection: 'communities', id, overrideAccess: true, req, data: { timeZone: body.timeZone, calendarDefaultVisibility: body.defaultVisibility } })
-      return json(req, { communityId: id, timeZone: body.timeZone, defaultVisibility: body.defaultVisibility })
+      const timeZone = canonicalTimeZone(body.timeZone)
+      if (!timeZone || !['members', 'public'].includes(body.defaultVisibility)) return json(req, { error: 'Choose a valid time zone and calendar visibility.' }, 400)
+      await req.payload.update({ collection: 'communities', id, overrideAccess: true, req, data: { timeZone, calendarDefaultVisibility: body.defaultVisibility } })
+      return json(req, { communityId: id, timeZone, defaultVisibility: body.defaultVisibility })
     } catch (error) { req.payload.logger.error({ err: error }, 'Calendar settings failed'); return json(req, { error: 'Could not save calendar settings.' }, 500) }
   } })),
 ]

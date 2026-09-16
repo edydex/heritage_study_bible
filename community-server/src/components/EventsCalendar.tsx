@@ -8,7 +8,7 @@ import './EventsCalendar.css'
 async function api(path: string, options?: RequestInit) {
   const response = await fetch(`/api/${path}`, { cache: 'no-store', credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', ...options?.headers } })
   const value = await response.json()
-  if (!response.ok) throw new Error(value.error || value.errors?.[0]?.message || 'Could not save the event.')
+  if (!response.ok) throw new Error(value.error || value.errors?.[0]?.data?.errors?.map((error: any) => error.message).join(' ') || value.errors?.[0]?.message || 'Could not save the event.')
   return value
 }
 export default function EventsCalendar() {
@@ -81,7 +81,7 @@ export default function EventsCalendar() {
         <div className="heritage-events__row"><label>Who can see it?<select value={draft.visibility} onChange={event => field('visibility', event.target.value)}><option value="inherit">Church default ({settings.defaultVisibility === 'public' ? 'Public' : 'Members only'})</option><option value="public">Public — everyone</option><option value="members">Members only</option></select></label><label>Repeats<select value={draft.recurrence} onChange={event => field('recurrence', event.target.value)}><option value="none">Does not repeat</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label></div>
         {draft.recurrence !== 'none' && <div className="heritage-events__row"><label>Every {draft.recurrence === 'weekly' ? 'weeks' : 'months'}<input type="number" min="1" max="52" required value={draft.repeatInterval} onChange={event => field('repeatInterval', event.target.value)} /></label><label>Repeat until (optional)<input type="date" value={draft.repeatUntil} onChange={event => field('repeatUntil', event.target.value)} /></label></div>}
         <label>Location<input value={draft.location || ''} onChange={event => field('location', event.target.value)} /></label>
-        <details><summary>Description and options</summary><label>Description<textarea rows={4} value={draft.description || ''} onChange={event => field('description', event.target.value)} /></label><label>Event link<input type="url" value={draft.url || ''} onChange={event => field('url', event.target.value)} /></label><label><input type="checkbox" checked={Boolean(draft.rsvpEnabled)} onChange={event => field('rsvpEnabled', event.target.checked)} /> Let members RSVP</label></details>
+        <details><summary>Description and options</summary><label>Description<textarea rows={4} value={draft.description || ''} onChange={event => field('description', event.target.value)} /></label><label>Registration or event website (optional)<input placeholder="https://…" type="url" value={draft.url || ''} onChange={event => field('url', event.target.value)} /></label><p>Add an external registration or information website, or leave blank. The event details page is created automatically.</p><label><input type="checkbox" checked={Boolean(draft.rsvpEnabled)} onChange={event => field('rsvpEnabled', event.target.checked)} /> Let members RSVP</label></details>
         {error && <p role="alert">{error}</p>}<button disabled={busy}>{busy ? 'Saving…' : 'Save event'}</button>
       </form>
     </section></div>}

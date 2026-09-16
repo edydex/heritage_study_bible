@@ -1,3 +1,6 @@
+export function canonicalTimeZone(zone: unknown): string
+export function formatEventTime(value: string, zone?: string): string
+export function eventPagePath(event: Record<string, any>): string
 export function validTimeZone(zone: unknown): boolean
 export function zonedParts(value: string | number | Date, zone?: string): Record<string, string>
 export function localDate(value: string | number | Date, zone?: string): string

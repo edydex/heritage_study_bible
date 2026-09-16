@@ -37,8 +37,8 @@ it('opens the same event details from the middle day of a multi-day event', asyn
   const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 10)).toISOString().slice(0, 10)
   const retreat = { ...event, startsAt: `${date}T10:00:00Z`, endsAt: `${date.slice(0, 8)}12T18:00:00Z`, timeZone: 'UTC' }
   render(<CalendarBrowser load={vi.fn().mockResolvedValue({ events: [retreat], timeZone: 'UTC', authenticated: false })} />)
-  await screen.findByRole('button', { name: 'Prayer Retreat' })
+  await screen.findByRole('link', { name: 'Prayer Retreat' })
   fireEvent.click(screen.getByRole('button', { name: `${date.slice(0, 8)}11, view events, 1 events` }))
-  expect(screen.getByRole('heading', { name: 'Prayer Retreat' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Prayer Retreat →' })).toBeInTheDocument()
   expect(screen.queryByText('No events on this date.')).not.toBeInTheDocument()
 })

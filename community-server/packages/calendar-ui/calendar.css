@@ -1,6 +1,6 @@
 .church-calendar { --cal-line: #b5bdb744; --cal-accent: #4d9475; color: inherit; width: 100%; }
-.church-calendar button { font: inherit; color: inherit; cursor: pointer; }
-.church-calendar button:focus-visible { outline: 3px solid var(--cal-accent); outline-offset: -2px; }
+.church-calendar button,.church-calendar a { font: inherit; color: inherit; cursor: pointer; }
+.church-calendar button:focus-visible,.church-calendar a:focus-visible { outline: 3px solid var(--cal-accent); outline-offset: -2px; }
 .church-calendar__toolbar { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; }
 .church-calendar__toolbar h3 { flex: 1; margin: 0; font-size: 1.15rem; }
 .church-calendar__toolbar button { min-width: 2.75rem; min-height: 2.75rem; border: 1px solid var(--cal-line); border-radius: .5rem; background: transparent; padding: .4rem .6rem; }
@@ -27,3 +27,15 @@
 .church-calendar__details h3 { font-size: 1.15rem; }
 .church-calendar__details p { margin: 8px 0; }
 @media(max-width:520px){ .church-calendar__week{min-height:5.3rem}.church-calendar__day{padding:.1rem}.church-calendar__event{font-size:.7rem!important;padding:.2rem}.church-calendar__toolbar h3{font-size:1rem}.church-calendar__filters{gap:.4rem 1rem} }
+
+.church-calendar__event { text-decoration: none; }
+.church-event { max-width: 46rem; margin: 0 auto; }
+.church-event__back { display: inline-block; margin-bottom: 1.8rem; text-decoration: underline; }
+.church-event article { border: 1px solid #8884; border-radius: 1rem; padding: clamp(1rem,4vw,2.5rem); }
+.church-event h1 { font-size: clamp(1.7rem,5vw,2.5rem); line-height: 1.2; margin: .6rem 0 1.8rem; }
+.church-event__eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; opacity: .7; }
+.church-event dl { display: grid; gap: 1rem; }
+.church-event dt { font-size: .8rem; opacity: .7; }
+.church-event dd { margin: .3rem 0 0; }
+.church-event__description { white-space: pre-wrap; margin: 2rem 0; }
+.church-event__website { display: inline-block; text-decoration: underline; margin: 1.5rem 0; }

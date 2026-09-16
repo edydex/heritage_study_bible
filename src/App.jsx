@@ -2499,6 +2499,7 @@ function App() {
           <Route path="/community/callback" element={<CommunityCallbackPage />} />
           <Route path="/community" element={<CommunityHomePage />} />
           <Route path="/community/calendar" element={<CommunityCalendarPage />} />
+          <Route path="/community/calendar/events/:eventId" element={<CommunityCalendarPage />} />
           <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} onReaderReady={setReaderReady} />} />
           <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} onReaderReady={setReaderReady} />} />
           <Route path="/" element={<HomeRedirect />} />

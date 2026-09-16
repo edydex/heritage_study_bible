@@ -10,6 +10,7 @@ import {
   communitySongMemberItemFromRoute,
 } from '../utils/communitySongLinks'
 import { writeTextToClipboard } from '../utils/verseSelection'
+import SongShareDialog from './SongShareDialog'
 import SongRightsDisclosure from './SongRightsDisclosure'
 
 const REMOTE_CONTENT_CACHE = 'heritage-remote-content-v3'
@@ -243,6 +244,7 @@ async function cacheRemoteUrl(cache, url, options = {}) {
 }
 
 function RemoteResourceViewer({ directSong = false }) {
+  const [share, setShare] = useState(null)
   const { contentKey } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -473,17 +475,9 @@ function RemoteResourceViewer({ directSong = false }) {
       return
     }
     const title = contentDocument?.title || item.title || 'Community song'
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, text: `${title} — member-only Community song; sign-in required`, url: memberShareUrl })
-        setMessage('Member link shared.')
-      } else {
-        await writeTextToClipboard(memberShareUrl)
-        setMessage('Member link copied.')
-      }
-    } catch (error) {
-      if (error?.name !== 'AbortError') setMessage(`Could not share this song: ${error.message}`)
-    }
+    let copied = false
+    try { await writeTextToClipboard(memberShareUrl); copied = true } catch { /* The dialog keeps the link available for manual copying. */ }
+    setShare({ title, url: memberShareUrl, copied, memberOnly: true })
   }
 
   if (!item) {
@@ -717,6 +711,7 @@ function RemoteResourceViewer({ directSong = false }) {
             </button>
           )}
         </div>
+        {share && <SongShareDialog share={share} onClose={() => setShare(null)} />}
         {message && <p className={`mt-3 text-sm ${status === 'error' ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-gray-300'}`}>{message}</p>}
       </main>
     </div>

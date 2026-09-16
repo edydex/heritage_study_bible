@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { eventOccurrences, eventIsPublic, localToInstant, localDateTime, monthDays } from '../packages/calendar-core/index.js'
+import { canonicalTimeZone, formatEventTime, eventOccurrences, eventIsPublic, localToInstant, localDateTime, monthDays } from '../packages/calendar-core/index.js'
 const zone = 'America/Los_Angeles'
 const event = { id: 1, title: 'Worship', startsAt: localToInstant('2026-10-25T10:00', zone), endsAt: localToInstant('2026-10-25T11:00', zone), timeZone: zone, recurrence: 'weekly', repeatInterval: 1 }
 test('weekly services keep their Pacific wall time across daylight saving changes', () => {
@@ -26,4 +26,13 @@ test('church defaults and explicit public/member overrides remain independent', 
   assert.equal(eventIsPublic({ visibility: 'inherit' }, 'public'), true)
   assert.equal(eventIsPublic({ visibility: 'members' }, 'public'), false)
   assert.equal(eventIsPublic({ visibility: 'public' }, 'members'), true)
+})
+
+test('legacy Pacific abbreviations are converted to a browser-compatible IANA zone', () => {
+  assert.equal(canonicalTimeZone('PST'), zone)
+  assert.equal(canonicalTimeZone('PDT'), zone)
+  assert.equal(canonicalTimeZone('not a zone'), '')
+  assert.equal(eventOccurrences({ ...event, timeZone: 'PST' }, '2026-10-25', '2026-11-08')[0].timeZone, zone)
+  assert.doesNotThrow(() => formatEventTime(event.startsAt, 'PST'))
+  assert.doesNotThrow(() => formatEventTime(event.startsAt, 'not a zone'))
 })

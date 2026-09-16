@@ -1,9 +1,21 @@
 const DAY = 86400000
 const formatters = new Map()
-export function validTimeZone(zone) {
-  try { new Intl.DateTimeFormat('en', { timeZone: zone }).format(0); return typeof zone === 'string' && zone.length > 0 } catch { return false }
+export function canonicalTimeZone(zone) {
+  if (typeof zone !== 'string' || !zone.trim()) return ''
+  const input = /^(PST|PDT)$/i.test(zone.trim()) ? 'America/Los_Angeles' : zone.trim()
+  try { return new Intl.DateTimeFormat('en', { timeZone: input }).resolvedOptions().timeZone } catch { return '' }
+}
+export function validTimeZone(zone) { return Boolean(canonicalTimeZone(zone)) }
+export function formatEventTime(value, zone) {
+  if (!Number.isFinite(Date.parse(value))) return 'Time not set'
+  return new Date(value).toLocaleString(undefined, { timeZone: canonicalTimeZone(zone) || 'UTC', dateStyle: 'full', timeStyle: 'short' })
+}
+export function eventPagePath(event) {
+  const date = event.date || localDate(event.startsAt, event.timeZone)
+  return `/events/${encodeURIComponent(event.id)}?date=${encodeURIComponent(date)}`
 }
 export function zonedParts(value, zone = 'UTC') {
+  zone = canonicalTimeZone(zone) || 'UTC'
   if (!formatters.has(zone)) formatters.set(zone, new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }))
   return Object.fromEntries(formatters.get(zone).formatToParts(new Date(value)).filter(part => part.type !== 'literal').map(part => [part.type, part.value]))
 }
@@ -81,7 +93,7 @@ export function eventIsPublic(event, defaultVisibility = 'members') {
 export function eventOccurrences(event, from, to) {
   if (!validDate(from) || !validDate(to) || from > to || (Date.parse(to) - Date.parse(from)) / DAY > 62) throw new Error('Choose a calendar range of at most 63 days.')
   if (event.cancelled || !Number.isFinite(Date.parse(event.startsAt))) return []
-  const zone = validTimeZone(event.timeZone) ? event.timeZone : 'UTC'
+  const zone = canonicalTimeZone(event.timeZone) || 'UTC'
   const start = localDateTime(event.startsAt, zone)
   const startDate = start.slice(0, 10)
   const recurrence = event.recurrence || 'none'

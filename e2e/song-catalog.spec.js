@@ -1,3 +1,4 @@
+import jsQR from 'jsqr'
 import { expect, test } from '@playwright/test'
 
 const contentServers = [
@@ -104,7 +105,7 @@ test.beforeEach(async ({ page }) => {
 
   // Catalog documents are public; member-only links below still require a session.
   for (const [url, document] of [
-    ['https://main.example/song.json', { title: 'Merge Test Hymn', lyrics: 'Shared wording\nSecond line', rightsNotes: 'Main source record' }],
+    ['https://main.example/song.json', { title: 'Merge Test Hymn', lyrics: 'Shared wording\nSecond line', rightsNotes: 'Main source record', publicPageUrl: 'https://main.example/songs/merge-test-hymn' }],
     ['https://later.example/song.json', { title: 'Merge Test Hymn', lyrics: 'Shared wording, second line!', rightsNotes: 'Later source record' }],
     ['https://earlier.example/song.json', { title: 'Merge Test Hymn', lyrics: 'Different wording', rightsNotes: 'Earlier source record' }],
     ['https://main.example/before.json', { title: 'Before the Throne of God Above', lyrics: 'A distinct Community wording', rightsNotes: 'Main source record' }],
@@ -303,7 +304,7 @@ test('the copy fallback creates a member link with no session credential', async
   await page.goto(memberSongRoute)
   await expect(page.getByText('Sample licensed lyric line')).toBeVisible()
   await page.getByRole('button', { name: 'Share member-only link' }).click()
-  await expect(page.getByText('Member link copied.')).toBeVisible()
+  await expect(page.getByText('Link copied', { exact: true })).toBeVisible()
   const copied = await page.evaluate(() => window.copiedMemberLink)
   const query = new URLSearchParams(new URL(copied).hash.split('?')[1])
   expect([...query.keys()].sort()).toEqual(['access', 'server', 'url'])
@@ -335,4 +336,45 @@ test('a standalone public library is readable without being labelled as member-o
   await expect(page.getByText('Synthetic public song words')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Share member-only link' })).toHaveCount(0)
   await expect(page.getByText(/Member links require/)).toHaveCount(0)
+})
+
+
+test('share song copies its public link and shows a locally generated, readable QR code', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__copiedSong = ''
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async text => { window.__copiedSong = text } } })
+  })
+  await page.goto('/#/resources/songs/song-merge-test-hymn')
+  await page.getByRole('button', { name: 'Share song', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Share song' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('status')).toHaveText('Link copied')
+  const image = dialog.getByRole('img', { name: 'QR code for this song link' })
+  await expect(image).toBeVisible()
+  const pixels = await image.evaluate(async image => {
+    await image.decode()
+    const canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight
+    const context = canvas.getContext('2d'); context.drawImage(image, 0, 0)
+    return { data: Array.from(context.getImageData(0, 0, canvas.width, canvas.height).data), width: canvas.width, height: canvas.height }
+  })
+  const copied = await page.evaluate(() => window.__copiedSong)
+  expect(copied).toBe('https://main.example/songs/merge-test-hymn')
+  expect(jsQR(Uint8ClampedArray.from(pixels.data), pixels.width, pixels.height).data).toBe(copied)
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect(await dialog.evaluate(node => node.getBoundingClientRect().width <= innerWidth)).toBe(true)
+  await page.screenshot({ path: `/private/tmp/heritage-share-${test.info().project.name}.png` })
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+})
+
+test('share dialog offers the link without claiming it copied when clipboard permission fails', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('Denied') } } })
+    document.execCommand = () => false
+  })
+  await page.goto('/#/resources/songs/song-merge-test-hymn')
+  await page.getByRole('button', { name: 'Share song', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Share song' })
+  await expect(dialog.getByRole('status')).not.toContainText('Link copied')
+  await expect(dialog.getByLabel('Song link')).toHaveValue('https://main.example/songs/merge-test-hymn')
 })

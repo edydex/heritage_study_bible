@@ -4,6 +4,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { loadMergedSong } from '../services/songCatalog'
 import { normalizeCommunitySongPublicPageUrl } from '../utils/communitySongLinks'
 import { writeTextToClipboard } from '../utils/verseSelection'
+import SongShareDialog from './SongShareDialog'
 import SongRightsDisclosure from './SongRightsDisclosure'
 
 function sourceNames(sources = []) {
@@ -54,13 +55,13 @@ function BuiltInSongViewer() {
   const [song, setSong] = useState(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
-  const [shareMessage, setShareMessage] = useState('')
+  const [share, setShare] = useState(null)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setLoadError('')
-    setShareMessage('')
+    setShare(null)
     setLanguage('en')
     setVariantIndex(0)
 
@@ -120,17 +121,9 @@ function BuiltInSongViewer() {
   const shareSong = async () => {
     if (!publicShareUrl) return
     const title = russian && song.russianTitle ? song.russianTitle : song.title
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, text: title, url: publicShareUrl })
-        setShareMessage('Song link shared.')
-      } else {
-        await writeTextToClipboard(publicShareUrl)
-        setShareMessage('Song link copied.')
-      }
-    } catch (error) {
-      if (error?.name !== 'AbortError') setShareMessage(`Could not share this song: ${error.message}`)
-    }
+    let copied = false
+    try { await writeTextToClipboard(publicShareUrl); copied = true } catch { /* The dialog provides a selectable link when clipboard access is denied. */ }
+    setShare({ title, url: publicShareUrl, copied })
   }
 
   if (loading) {
@@ -271,7 +264,7 @@ function BuiltInSongViewer() {
                   </button>
                 </div>
               )}
-              {shareMessage && <p className="mt-2 text-sm text-gray-600 dark:text-gray-300" role="status">{shareMessage}</p>}
+              {share && <SongShareDialog share={share} onClose={() => setShare(null)} />}
             </>
           ) : song.pendingSourceCount > 0 ? (
             <section className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100">

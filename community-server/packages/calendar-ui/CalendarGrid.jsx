@@ -1,9 +1,10 @@
 'use client'
 import { useState } from 'react'
-import { localDate, calendarWeeks, eventIncludesDate, shiftMonth } from '../calendar-core/index.js'
+import { localDate, calendarWeeks, eventIncludesDate, shiftMonth, canonicalTimeZone } from '../calendar-core/index.js'
 import './calendar.css'
 
-export default function CalendarGrid({ month, onMonthChange, events = [], timeZone = 'UTC', onDateSelect, onEventSelect, selectedDate, busy = false, defaultRecurring = false, create = false, onFilterChange, showEmpty = true }) {
+export default function CalendarGrid({ month, onMonthChange, events = [], timeZone = 'UTC', onDateSelect, onEventSelect, eventHref, selectedDate, busy = false, defaultRecurring = false, create = false, onFilterChange, showEmpty = true }) {
+  timeZone = canonicalTimeZone(timeZone) || 'UTC'
   const [showEvents, setShowEvents] = useState(true)
   const [showRecurring, setShowRecurring] = useState(defaultRecurring)
   const visible = events.filter(event => event.recurring ? showRecurring : showEvents)
@@ -30,7 +31,10 @@ export default function CalendarGrid({ month, onMonthChange, events = [], timeZo
           <button type="button" className="church-calendar__date" aria-label={`${date}${create ? ', create event' : ', view events'}${matches.length ? `, ${matches.length} events` : ''}`} onClick={() => onDateSelect?.(date)}>{Number(date.slice(8))}</button>
         </div>
         })}
-        {week.entries.map(({ event, start, end, lane, continuesBefore, continuesAfter }) => <button key={event.instanceId} type="button" className="church-calendar__event" style={{ gridColumn: `${start + 1} / ${end + 2}`, gridRow: lane + 2 }} data-continues-before={continuesBefore || undefined} data-continues-after={continuesAfter || undefined} title={event.title} onClick={() => onEventSelect?.(event)}>{continuesBefore && <span aria-hidden="true">‹ </span>}{event.title}{continuesAfter && <span aria-hidden="true"> ›</span>}</button>)}
+        {week.entries.map(({ event, start, end, lane, continuesBefore, continuesAfter }) => {
+          const Tag = eventHref ? 'a' : 'button'
+          return <Tag key={event.instanceId} {...(eventHref ? { href: eventHref(event) } : { type: 'button', onClick: () => onEventSelect?.(event) })} className="church-calendar__event" style={{ gridColumn: `${start + 1} / ${end + 2}`, gridRow: lane + 2 }} data-continues-before={continuesBefore || undefined} data-continues-after={continuesAfter || undefined} title={event.title}>{continuesBefore && <span aria-hidden="true">‹ </span>}{event.title}{continuesAfter && <span aria-hidden="true"> ›</span>}</Tag>
+        })}
       </div>)}
     </div>
     {!busy && showEmpty && !visible.length && <p className="church-calendar__empty">No events match these filters this month.</p>}
