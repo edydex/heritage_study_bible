@@ -134,14 +134,15 @@ export function mergeSongCatalog({
     group.references.sort((left, right) => left.source.priority - right.source.priority)
     const builtIn = group.references.find(reference => reference.kind === 'built-in')
     const preferred = builtIn || group.references[0]
+    const russianTitle = group.references.find(reference => reference.russianTitle)?.russianTitle || ''
     const sourceNames = [...new Set(group.references.map(reference => reference.source.name))]
     return {
       id: builtIn?.id || `song-${routeIdForTitle(preferred.title)}`,
       songKey: group.songKey,
       songGroup: true,
       title: preferred.title,
-      alternateTitle: preferred.russianTitle,
-      russianTitle: preferred.russianTitle,
+      alternateTitle: russianTitle,
+      russianTitle,
       description: preferred.description,
       author: preferred.author,
       authors: preferred.authors,

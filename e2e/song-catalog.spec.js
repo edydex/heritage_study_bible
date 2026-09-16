@@ -102,33 +102,19 @@ test.beforeEach(async ({ page }) => {
     }))
   }, { servers: contentServers, joined: communities })
 
-  await page.route('https://main.example/song.json', route => route.fulfill({
-    status: route.request().headers().authorization === 'Community main-private-token' ? 200 : 401,
-    json: route.request().headers().authorization === 'Community main-private-token'
-      ? { title: 'Merge Test Hymn', lyrics: 'Shared wording\nSecond line', rightsNotes: 'Main source record' }
-      : { error: 'Sign in required' },
-  }))
-  await page.route('https://later.example/song.json', route => route.fulfill({
-    status: route.request().headers().authorization === 'Community later-private-token' ? 200 : 401,
-    json: route.request().headers().authorization === 'Community later-private-token'
-      ? { title: 'Merge Test Hymn', lyrics: 'Shared wording, second line!', rightsNotes: 'Later source record' }
-      : { error: 'Sign in required' },
-  }))
-  await page.route('https://earlier.example/song.json', route => route.fulfill({
-    status: route.request().headers().authorization === 'Community earlier-private-token' ? 200 : 401,
-    json: route.request().headers().authorization === 'Community earlier-private-token'
-      ? { title: 'Merge Test Hymn', lyrics: 'Different wording', rightsNotes: 'Earlier source record' }
-      : { error: 'Sign in required' },
-  }))
-  await page.route('https://main.example/before.json', async route => {
-    await new Promise(resolve => setTimeout(resolve, 1200))
-    await route.fulfill({
-      status: route.request().headers().authorization === 'Community main-private-token' ? 200 : 401,
-      json: route.request().headers().authorization === 'Community main-private-token'
-        ? { title: 'Before the Throne of God Above', lyrics: 'A distinct Community wording', rightsNotes: 'Main source record' }
-      : { error: 'Sign in required' },
+  // Catalog documents are public; member-only links below still require a session.
+  for (const [url, document] of [
+    ['https://main.example/song.json', { title: 'Merge Test Hymn', lyrics: 'Shared wording\nSecond line', rightsNotes: 'Main source record' }],
+    ['https://later.example/song.json', { title: 'Merge Test Hymn', lyrics: 'Shared wording, second line!', rightsNotes: 'Later source record' }],
+    ['https://earlier.example/song.json', { title: 'Merge Test Hymn', lyrics: 'Different wording', rightsNotes: 'Earlier source record' }],
+    ['https://main.example/before.json', { title: 'Before the Throne of God Above', lyrics: 'A distinct Community wording', rightsNotes: 'Main source record' }],
+  ]) {
+    await page.route(url, async route => {
+      expect(route.request().headers().authorization).toBeUndefined()
+      if (url.endsWith('/before.json')) await new Promise(resolve => setTimeout(resolve, 1200))
+      return route.fulfill({ json: document })
     })
-  })
+  }
   await page.route('https://main.example/content/songs/77', route => route.fulfill({
     status: route.request().headers().authorization === 'Community main-private-token' ? 200 : 401,
     json: route.request().headers().authorization === 'Community main-private-token'
