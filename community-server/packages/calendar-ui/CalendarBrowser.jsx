@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import CalendarGrid from './CalendarGrid.jsx'
-import { localDate, monthDays, safeEventUrl } from '../calendar-core/index.js'
+import { localDate, monthDays, safeEventUrl, eventIncludesDate } from '../calendar-core/index.js'
 
 async function defaultLoad(path) {
   const response = await fetch(`/api/${path}`, { cache: 'no-store', credentials: 'same-origin' })
@@ -27,7 +27,7 @@ export default function CalendarBrowser({ load = defaultLoad, renderActions }) {
       .finally(() => { if (active) setBusy(false) })
     return () => { active = false }
   }, [month, load, refresh])
-  const events = selected ? result.events.filter(event => (event.recurring ? filters.recurring : filters.events)).filter(event => event.instanceId === selected || localDate(event.startsAt, result.timeZone) === selected) : []
+  const events = selected ? result.events.filter(event => (event.recurring ? filters.recurring : filters.events)).filter(event => event.instanceId === selected || eventIncludesDate(event, selected, result.timeZone)) : []
   return <div className="church-calendar-browser">
     <div className="church-calendar__toolbar"><h2>Calendar</h2><button type="button" disabled={busy} onClick={() => setRefresh(value => value + 1)}>Refresh</button></div>
     <CalendarGrid month={month} onMonthChange={setMonth} events={result.events} timeZone={result.timeZone} busy={busy} showEmpty={!error} onFilterChange={setFilters} selectedDate={selected} onDateSelect={setSelected} onEventSelect={event => setSelected(event.instanceId)} />
@@ -38,6 +38,7 @@ export default function CalendarBrowser({ load = defaultLoad, renderActions }) {
       {events.map(event => <article key={event.instanceId}>
         <h3>{event.title}</h3>
         <p>{new Date(event.startsAt).toLocaleString(undefined, { timeZone: event.timeZone, dateStyle: 'full', timeStyle: 'short' })} · {event.timeZone.replaceAll('_', ' ')}{event.recurring ? ' · Recurring' : ''}</p>
+        {event.endsAt && <p>Ends {new Date(event.endsAt).toLocaleString(undefined, { timeZone: event.timeZone, dateStyle: 'full', timeStyle: 'short' })}</p>}
         {event.location && <p>{event.location}</p>}
         {event.description && <p style={{ whiteSpace: 'pre-wrap' }}>{event.description}</p>}
         {safeEventUrl(event.url) && <a href={safeEventUrl(event.url)} target="_blank" rel="noopener noreferrer">Event details ↗</a>}

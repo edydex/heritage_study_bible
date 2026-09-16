@@ -30,6 +30,10 @@ export default function CommunityResources({ community }) {
     } finally { setBusy(false) }
   }
   const openResource = category => {
+    if (category === 'calendar') {
+      navigate(`/community/calendar?community=${encodeURIComponent(community.manifest.id)}`)
+      return
+    }
     if (server?.enabled === false) {
       navigate('/settings/content-servers')
     } else if (server) {
@@ -50,7 +54,7 @@ export default function CommunityResources({ community }) {
         <span className="block font-semibold">Live translation</span>
         <span className="mt-1 block text-sm text-gray-500 dark:text-gray-400">Read the translation or listen when translated audio is available.</span>
       </a>}
-      {[['songs', 'Songs', 'Find the songs your congregation sings.'], ['sermons', 'Sermons and notes', 'Read the messages your church shares.'], ['commentaries', 'Passage commentary', 'Open your church’s published Bible study notes.']].map(([id, title, description]) =>
+      {[['calendar', 'Calendar', 'See upcoming events and regular gatherings.'], ['sermons', 'Sermons and notes', 'Read the messages your church shares.'], ['songs', 'Songs', 'Find the songs your congregation sings.'], ['commentaries', 'Passage commentary', 'Open your church’s published Bible study notes.']].map(([id, title, description]) =>
         <button key={id} onClick={() => openResource(id)} disabled={busy} className={tileClass}>
           <span className="block font-semibold">{title}</span><span className="mt-1 block text-sm text-gray-500 dark:text-gray-400">{description}</span>
         </button>)}

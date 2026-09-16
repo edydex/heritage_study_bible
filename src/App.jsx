@@ -51,6 +51,7 @@ const RemoteResourceViewer = lazy(() => import('./components/RemoteResourceViewe
 const BuiltInSongViewer = lazy(() => import('./components/BuiltInSongViewer'))
 const PublishedSermonArchivePage = lazy(() => import('./components/PublishedSermonArchivePage'))
 const CommunityHomePage = lazy(() => import('./components/CommunityHomePage'))
+const CommunityCalendarPage = lazy(() => import('./components/CommunityCalendarPage'))
 const CommunityCallbackPage = lazy(() => import('./components/CommunityCallbackPage'))
 const SyncSettingsPage = lazy(() => import('./components/SyncSettingsPage'))
 
@@ -2497,6 +2498,7 @@ function App() {
           <Route path="/settings/content-servers" element={<ContentServersPage />} />
           <Route path="/community/callback" element={<CommunityCallbackPage />} />
           <Route path="/community" element={<CommunityHomePage />} />
+          <Route path="/community/calendar" element={<CommunityCalendarPage />} />
           <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} onReaderReady={setReaderReady} />} />
           <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} onReaderReady={setReaderReady} />} />
           <Route path="/" element={<HomeRedirect />} />

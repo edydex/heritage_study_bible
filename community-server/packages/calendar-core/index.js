@@ -45,6 +45,36 @@ export function monthDays(month) {
   const start = addDays(first, -new Date(`${first}T00:00:00Z`).getUTCDay())
   return Array.from({ length: 42 }, (_, index) => addDays(start, index))
 }
+export function eventDateRange(event, zone = 'UTC') {
+  const start = Date.parse(event.startsAt)
+  if (!Number.isFinite(start)) return null
+  const end = Date.parse(event.endsAt)
+  // End times are exclusive: an event ending at midnight does not occupy
+  // the following day. Compare instants before converting to church dates.
+  return { start: localDate(start, zone), end: localDate(end > start ? end - 1 : start, zone) }
+}
+export function eventIncludesDate(event, date, zone = 'UTC') {
+  const range = eventDateRange(event, zone)
+  return Boolean(range && date >= range.start && date <= range.end)
+}
+export function calendarWeeks(month, events, zone = 'UTC') {
+  const days = monthDays(month)
+  const ranges = events.map(event => ({ event, range: eventDateRange(event, zone) })).filter(item => item.range)
+  return Array.from({ length: 6 }, (_, index) => {
+    const dates = days.slice(index * 7, index * 7 + 7)
+    const entries = ranges.filter(({ range }) => range.start <= dates[6] && range.end >= dates[0])
+      .map(({ event, range }) => ({ event, start: range.start < dates[0] ? 0 : dates.indexOf(range.start), end: range.end > dates[6] ? 6 : dates.indexOf(range.end), continuesBefore: range.start < dates[0], continuesAfter: range.end > dates[6] }))
+      .sort((a, b) => a.start - b.start || b.end - a.end || String(a.event.title).localeCompare(String(b.event.title)) || String(a.event.instanceId).localeCompare(String(b.event.instanceId)))
+    const laneEnds = []
+    for (const entry of entries) {
+      let lane = laneEnds.findIndex(end => end < entry.start)
+      if (lane < 0) lane = laneEnds.length
+      laneEnds[lane] = entry.end
+      entry.lane = lane
+    }
+    return { dates, entries, lanes: laneEnds.length }
+  })
+}
 export function eventIsPublic(event, defaultVisibility = 'members') {
   return (event.visibility && event.visibility !== 'inherit' ? event.visibility : defaultVisibility) === 'public'
 }

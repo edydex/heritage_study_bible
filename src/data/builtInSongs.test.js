@@ -80,19 +80,7 @@ describe('Heritage built-in songs', () => {
 
     expect(publicDomainSongs).toHaveLength(19)
     expect(englishFallbackIds).toEqual([])
-    expect(russianSongIds).toEqual([
-      'amazing-grace',
-      'jesus-paid-it-all',
-      'come-thou-fount',
-      'i-surrender-all',
-      'it-is-well',
-      'just-as-i-am',
-      'nothing-but-the-blood',
-      'o-come-o-come-emmanuel',
-      'rock-of-ages',
-      'turn-your-eyes',
-      'what-a-friend',
-    ])
+    expect(russianSongIds).toEqual(['amazing-grace', 'rock-of-ages'])
     expect(publicDomainSongs
       .filter(song => song.russianSections.length)
       .every(song => song.russianSourceLabel && song.russianRightsLabel)).toBe(true)

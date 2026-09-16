@@ -1,3 +1,5 @@
+import { normalizeSongSections, parseSongLyrics } from '../../community-server/packages/song-text/index.js'
+import SongLyrics from '../../community-server/packages/song-text/SongLyrics.jsx'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { resolveCommunitySongMemberAccess } from '../services/communitySongAccess'
@@ -298,6 +300,8 @@ function RemoteResourceViewer({ directSong = false }) {
     [contentDocument, item?.contentType],
   )
   const songSections = Array.isArray(contentDocument?.songSections) ? contentDocument.songSections : []
+  const plainSongSections = songSections.some(section => section.lines?.some(line => typeof line === 'object' && line?.chords)) ? null : normalizeSongSections(songSections, songLanguage)
+  const lyricSections = isSong ? parseSongLyrics(readableText(songLanguage === 'ru' ? contentDocument?.russianLyrics : contentDocument?.lyrics), { language: songLanguage }) : []
   const transcriptSections = Array.isArray(contentDocument?.transcriptSections) ? contentDocument.transcriptSections : []
   const chapters = Array.isArray(contentDocument?.chapters) ? contentDocument.chapters : []
 
@@ -388,7 +392,6 @@ function RemoteResourceViewer({ directSong = false }) {
     if (!contentDocument) return []
     const russian = songLanguage === 'ru'
     return [
-      { title: russian ? 'Текст песни' : 'Lyrics', value: readableText(russian ? contentDocument.russianLyrics : contentDocument.lyrics), mono: false },
       { title: russian ? 'Аккорды' : 'Chord sheet', value: readableText(russian ? contentDocument.russianChordSheet : contentDocument.chordSheet), mono: true },
       { title: 'Transcript', value: readableText(contentDocument.transcript), mono: false },
       { title: 'Text', value: readableText(contentDocument.body || contentDocument.richText), mono: false },
@@ -398,6 +401,7 @@ function RemoteResourceViewer({ directSong = false }) {
   const hasStructuredContent = Boolean(
     contentDocument && (
       songSections.length
+      || lyricSections.length
       || transcriptSections.length
       || chapters.length
       || directSections.length
@@ -600,7 +604,9 @@ function RemoteResourceViewer({ directSong = false }) {
                   </dl>
                 )}
 
-                {songSections.map((section, sectionIndex) => (
+                {lyricSections.length > 0 && <SongLyrics sections={lyricSections} language={songLanguage} />}
+                {plainSongSections && <SongLyrics sections={plainSongSections} language={songLanguage} />}
+                {(plainSongSections ? [] : songSections).map((section, sectionIndex) => (
                   <section key={`${section.label || 'section'}-${sectionIndex}`}>
                     <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">{section.label || `Section ${sectionIndex + 1}`}</h2>
                     <div className="mt-3 space-y-3">

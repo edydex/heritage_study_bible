@@ -1,3 +1,4 @@
+import SongLyrics from '../../community-server/packages/song-text/SongLyrics.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { loadMergedSong } from '../services/songCatalog'
@@ -248,16 +249,7 @@ function BuiltInSongViewer() {
                 </div>
               )}
 
-              <div className="mt-6 space-y-5">
-                {selectedVariant.sections.map((section, index) => (
-                  <section key={`${selectedVariant.signature}-${index}`}>
-                    <h2 className="text-xs font-bold uppercase tracking-wide text-gray-400">{section.label}</h2>
-                    <p className="mt-1 whitespace-pre-line text-base leading-relaxed text-gray-800 dark:text-gray-200">
-                      {section.lines.join('\n')}
-                    </p>
-                  </section>
-                ))}
-              </div>
+              <div className="mt-6 text-gray-800 dark:text-gray-200"><SongLyrics sections={selectedVariant.sections} language={language} /></div>
 
               <div className="mt-6">
                 <SongRightsDisclosure

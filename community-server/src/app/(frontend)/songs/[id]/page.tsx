@@ -1,3 +1,5 @@
+import SongLyrics from '../../../../../packages/song-text/SongLyrics.jsx'
+import { parseSongLyrics } from '../../../../../packages/song-text/index.js'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { loadPublicSong } from '@/lib/publicSite'
@@ -31,7 +33,7 @@ export default async function SongPage({ params, searchParams }: {
     <div className="lyrics-languages">
       {versions.filter(version => version.lyrics || version.chords).map(version => <article key={version.language} lang={version.language}>
         <header><span>{version.language.toUpperCase()}</span><h2>{version.title}</h2></header>
-        {version.lyrics ? <div className="songbook-lyrics">{version.lyrics}</div> : null}
+        {version.lyrics ? <SongLyrics sections={parseSongLyrics(version.lyrics, { language: version.language })} language={version.language} /> : null}
         {version.chords ? <details><summary>{version.language === 'ru' ? 'Аккорды' : 'Chords'}</summary><pre className="songbook-chords">{version.chords}</pre></details> : null}
         {(content.copyright || content.license) && <footer>{[content.copyright, content.license].filter(Boolean).join(' · ')}</footer>}
       </article>)}

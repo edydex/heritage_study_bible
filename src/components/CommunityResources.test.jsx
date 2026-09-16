@@ -6,7 +6,7 @@ vi.mock('../services/communities', () => ({ inspectCommunity: mocks.inspect, sav
 vi.mock('../services/contentServers', () => ({ CONTENT_SERVERS_CHANGE_EVENT: 'content-change', getContentServerSubscriptions: () => mocks.subscriptions, refreshContentServer: mocks.refresh }))
 import CommunityResources from './CommunityResources'
 const church = { manifestUrl: 'https://church.example/community.json', manifest: { id: 'church', publicPages: { live: 'https://church.example/live', translation: 'https://church.example/translate' } }, contentPreview: { manifest: { id: 'content' } } }
-function show() { render(<MemoryRouter><Routes><Route path="/" element={<CommunityResources community={church} />} /><Route path="/resources/songs" element={<p>Song library</p>} /><Route path="/settings/content-servers" element={<p>Content settings</p>} /></Routes></MemoryRouter>) }
+function show() { render(<MemoryRouter><Routes><Route path="/" element={<CommunityResources community={church} />} /><Route path="/community/calendar" element={<p>Calendar page</p>} /><Route path="/resources/songs" element={<p>Song library</p>} /><Route path="/settings/content-servers" element={<p>Content settings</p>} /></Routes></MemoryRouter>) }
 beforeEach(() => { vi.clearAllMocks(); mocks.subscriptions = [] })
 it('opens live pages without membership and adds public resources only on request', async () => {
   mocks.inspect.mockResolvedValue(church)
@@ -42,4 +42,16 @@ it('reports a failed refresh while preserving access to the installed library', 
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Previously loaded resources are still available'))
   fireEvent.click(screen.getByRole('button', { name: /^Songs / }))
   expect(screen.getByText('Song library')).toBeInTheDocument()
+})
+
+it('opens Calendar before Sermons without refreshing the song library', () => {
+  show()
+  const buttons = screen.getAllByRole('button')
+  const calendar = screen.getByRole('button', { name: /^Calendar / })
+  const sermons = screen.getByRole('button', { name: /^Sermons and notes / })
+  expect(buttons.indexOf(calendar)).toBeLessThan(buttons.indexOf(sermons))
+  fireEvent.click(calendar)
+  expect(screen.getByText('Calendar page')).toBeInTheDocument()
+  expect(mocks.refresh).not.toHaveBeenCalled()
+  expect(mocks.inspect).not.toHaveBeenCalled()
 })

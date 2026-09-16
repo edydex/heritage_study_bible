@@ -24,6 +24,7 @@ export function GET() {
     contentServerUrl: `${communityPublicConfig.publicUrl}/heritage-content.json`,
     apiBaseUrl: `${communityPublicConfig.publicUrl}/api`,
     publicPages: {
+      calendar: `${communityPublicConfig.publicUrl}/calendar`,
       live: `${communityPublicConfig.publicUrl}/live`,
       ...(translationEnabled ? { translation: `${communityPublicConfig.publicUrl}/translate` } : {}),
     },

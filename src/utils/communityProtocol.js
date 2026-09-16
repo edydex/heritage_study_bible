@@ -95,7 +95,7 @@ export function validateCommunityManifest(input, manifestUrl) {
     },
     capabilities: input.capabilities && typeof input.capabilities === 'object' ? input.capabilities : {},
     sync,
-    publicPages: Object.fromEntries(['live', 'translation'].flatMap(key => {
+    publicPages: Object.fromEntries(['live', 'translation', 'calendar'].flatMap(key => {
       // Public navigation is optional; a malformed link must not break sign-in.
       try {
         if (!input.publicPages?.[key]) return []

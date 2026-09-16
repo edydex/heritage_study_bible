@@ -1,3 +1,4 @@
+import { parseSongLyrics, normalizeSongSections } from '../../community-server/packages/song-text/index.js'
 import { HERITAGE_BUILT_IN_SONGS } from '../data/builtInSongs.js'
 import { HYMNS } from '../components/HymnsViewer.jsx'
 import { getCommunities } from './communities.js'
@@ -170,30 +171,8 @@ function sectionsFromStanzas(stanzas) {
     .filter(section => section.lines.length)
 }
 
-function sectionsFromSongSections(sections) {
-  return (Array.isArray(sections) ? sections : [])
-    .map((section, index) => {
-      const rawLines = Array.isArray(section?.lines) ? section.lines : []
-      return {
-        label: plainText(section?.label) || `Section ${index + 1}`,
-        lines: rawLines.map(line => plainText(line?.text ?? line)).filter(Boolean),
-      }
-    })
-    .filter(section => section.lines.length)
-}
-
-export function sectionsFromText(value) {
-  const text = plainText(value).replace(/\r\n?/g, '\n')
-  if (!text) return []
-  return text.split(/\n{2,}/).map((block, index) => {
-    const lines = block.split('\n').map(plainText).filter(Boolean)
-    const heading = lines[0]?.match(/^(verse|stanza|chorus|refrain|bridge|ending|куплет|припев|бридж|окончание)\s*(\d*)\s*:?\s*$/iu)
-    return {
-      label: heading ? `${heading[1]}${heading[2] ? ` ${heading[2]}` : ''}` : `Section ${index + 1}`,
-      lines: heading ? lines.slice(1) : lines,
-    }
-  }).filter(section => section.lines.length)
-}
+const sectionsFromSongSections = normalizeSongSections
+export const sectionsFromText = parseSongLyrics
 
 function lyricsSignature(sections) {
   return sections
@@ -264,9 +243,9 @@ function remoteLanguageVariants(reference, document) {
   }
 
   add('en', sectionsFromText(document?.lyrics))
-  add('ru', sectionsFromText(document?.russianLyrics))
+  add('ru', sectionsFromText(document?.russianLyrics, { language: 'ru' }))
 
-  const primarySections = sectionsFromSongSections(document?.songSections)
+  const primarySections = sectionsFromSongSections(document?.songSections, document?.language)
   if (primarySections.length) add(plainText(document?.language).toLowerCase() === 'ru' ? 'ru' : 'en', primarySections)
 
   const translations = [
@@ -275,8 +254,8 @@ function remoteLanguageVariants(reference, document) {
   ]
   translations.forEach(translation => {
     const language = plainText(translation?.language || translation?.locale).toLowerCase().startsWith('ru') ? 'ru' : 'en'
-    const sections = sectionsFromSongSections(translation?.songSections)
-    add(language, sections.length ? sections : sectionsFromText(translation?.lyrics || translation?.text))
+    const sections = sectionsFromSongSections(translation?.songSections, language)
+    add(language, sections.length ? sections : sectionsFromText(translation?.lyrics || translation?.text, { language }))
   })
   return variants
 }

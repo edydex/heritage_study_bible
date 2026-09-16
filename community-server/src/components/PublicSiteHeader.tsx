@@ -12,6 +12,7 @@ export function PublicSiteHeader({ churchName }: { churchName: string }) {
           </span>
         </Link>
         <nav aria-label="Main navigation">
+          <Link href="/calendar">Calendar</Link>
           <Link href="/sermons">Sermons</Link>
           <Link href="/songs">Songs</Link>
           <Link className="site-header__live" href="/live"><span aria-hidden="true">●</span> Listen live</Link>
