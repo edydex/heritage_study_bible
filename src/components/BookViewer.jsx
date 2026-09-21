@@ -339,14 +339,14 @@ function BookReader() {
   }, [bookGroups, navigatorGroup, selectedBookGroup, shouldShowBookSelector])
 
   useEffect(() => {
-    if (!audioParagraph || selectedChapterIndex !== audioParagraph.chapterIndex) return
+    if (textLoading || !audioParagraph || selectedChapterIndex !== audioParagraph.chapterIndex) return
     const frame = requestAnimationFrame(() => {
       const paragraph = document.getElementById(`book-paragraph-${audioParagraph.paragraphIndex}`)
       paragraph?.scrollIntoView({ block: 'center', behavior: 'instant' })
       paragraph?.focus({ preventScroll: true })
     })
     return () => cancelAnimationFrame(frame)
-  }, [audioParagraph, selectedChapterIndex, location.key])
+  }, [audioParagraph, selectedChapterIndex, location.key, textLoading])
 
   const navigatorChapterEntries = shouldShowBookSelector
     ? chapterEntries.filter(entry => entry.groupKey === (navigatorGroup || selectedBookGroup))
