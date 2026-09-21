@@ -22,7 +22,7 @@ export const Songs: CollectionConfig = {
     useAsTitle: 'title',
     group: 'Content',
     description: 'Bilingual song listings, lyrics, chords, files, and a plain-language rights record.',
-    defaultColumns: ['title', 'russianTitle', 'tags', 'songbookVisibility', 'updatedAt'],
+    defaultColumns: ['title', 'russianTitle', 'tags', 'defaultSongLanguage', 'songbookVisibility', 'updatedAt'],
     listSearchableFields: ['title', 'russianTitle', 'alternateTitles', 'authors'],
     components: { beforeList: ['@/components/SongListGuide'] },
     hideAPIURL: true,
@@ -47,6 +47,9 @@ export const Songs: CollectionConfig = {
     ],
   },
   fields: [
+    { name: 'defaultSongLanguage', label: 'Default song language', type: 'select', required: true, defaultValue: 'ru',
+      options: [{ label: 'Russian', value: 'ru' }, { label: 'English', value: 'en' }],
+      admin: { components: { Cell: '@/components/SongLanguageCell' }, description: 'The primary (top) language when adding this song to a service. You can change it per service.' } },
     ...communityContentFields.filter(field => (
       'name' in field && ['community', 'slug'].includes(String(field.name))
     )),

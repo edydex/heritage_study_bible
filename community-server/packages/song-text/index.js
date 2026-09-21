@@ -1,4 +1,4 @@
-const headingPattern = /^(verse|stanza|chorus|refrain|bridge|ending|куплет|припев|бридж|окончание)\s*(\d*)\s*:?\s*$/iu
+const headingPattern = /^(verse|stanza|chorus|refrain|bridge|ending|куплет|припев|бридж|окончание)\s*(\d*)(?:\s*\(?([a-zа-я])\)?)?\s*:?\s*$/iu
 
 // Interpret presentation-only lines for reading without changing stored lyrics
 // or removing punctuation inside an actual lyric line.
@@ -23,7 +23,7 @@ export function parseSongLyrics(value, { language = 'en', label = '' } = {}) {
     const marker = line.match(/^\^([\p{L}\d]+)$/u)
     if (heading || marker) {
       flush()
-      if (heading) current.label = `${heading[1]}${heading[2] ? ` ${heading[2]}` : ''}`
+      if (heading) current.label = `${heading[1]}${heading[2] ? ` ${heading[2]}` : ''}${heading[3] ? ` (${heading[3]})` : ''}`
       else if (/^\d+$/.test(marker[1])) current.label = `${russian ? 'Куплет' : 'Verse'} ${Number(marker[1])}`
       else {
         const name = marker[1].toLowerCase()

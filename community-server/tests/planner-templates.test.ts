@@ -63,7 +63,7 @@ test('Scripture formatting preserves words and checksums, including repagination
   assert.throws(()=>editPlannerSlide(value,row,'english',0,'Changed source',[]),/pinned/)
   const paged=preparePlannerPresentation(value).project
   for(const item of Object.values(paged.items) as any[]) if(item.kind==='bible') {
-    assert.equal(item.presetId,'wotbc-sermon-verse')
+    assert.equal(item.presetId,'wotbc-sermon-scripture')
     assert.equal(item.passagesByChannel.english.spans[0].end,formatting.scriptureFlowText(item.passagesByChannel.english.verses).length)
   }
 })

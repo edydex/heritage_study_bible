@@ -30,7 +30,7 @@ export default function ServiceSlidePreview({project,rows,slide,channelId,mediaU
       }
       if (block.type==='bible') return <div key={index} className="heritage-service-planner__scripture-page" data-fit-text>
         <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
-        <SlideText text={formatting.scriptureFlowText(block.verses)} spans={block.spans} role="body" label={`${channelId} Scripture preview`} readOnly onCommit={()=>{}} />
+        <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} role="body" label={`${channelId} Scripture preview`} readOnly onCommit={()=>{}} />
         {block.attribution ? <p className="heritage-scripture-credit">{block.attribution}</p> : null}
       </div>
       return block.type==='text' ? <SlideText key={`${slide.id}:${channelId}:${index}`} text={block.text} spans={block.spans} role={block.role} label={`${channelId} slide preview`} readOnly onCommit={()=>{}} /> : null

@@ -83,6 +83,7 @@ export function preparePlannerPresentation(project: RecordValue) {
       }
     }
     if (item.kind !== 'bible') continue
+    if (item.presetId === 'wotbc-sermon-verse') { item.presetId = 'wotbc-sermon-scripture'; changed = true }
     if (['scripture-large', 'scripture-text'].includes(item.presetId)) {
       item.presetId = 'wotbc-reading'
       changed = true
@@ -138,4 +139,22 @@ export function preparePlannerPresentation(project: RecordValue) {
     item.sermonReading = { ...item.sermonReading, chunkIndex: index, chunkCount: items.length }
   }))
   return { project: JSON.parse(JSON.stringify(core.normalizeServiceProject(next))), changed, readingsSplit }
+}
+
+
+export function addReadingTitle(project: RecordValue, itemId: string, names: Record<string, string>) {
+  const next = JSON.parse(JSON.stringify(project)), item = next.items[itemId]
+  const titleId = `${itemId}-title`, groupId = `${itemId}-reading`
+  const textByChannel: Record<string,string> = {}, spansByChannel: Record<string,any[]> = {}
+  for (const [channel, raw] of Object.entries(item.passagesByChannel)) {
+    const passage = raw as RecordValue
+    textByChannel[channel] = `${passage.reference}\n${names[channel] || passage.translationId}`
+    spansByChannel[channel] = [{start:0,end:passage.reference.length,weight:'700'}]
+  }
+  next.items[titleId] = {id:titleId,kind:'notice',title:item.title,textByChannel,spansByChannel,presetId:'wotbc-reading-title',operatorNotes:'',createdAt:item.createdAt,updatedAt:item.updatedAt}
+  const parent = Object.values(next.items).find((value:any)=>value.kind==='group' && value.childIds.includes(itemId)) as any
+  const siblings = parent ? parent.childIds : next.rootItemIds
+  siblings.splice(siblings.indexOf(itemId),1,groupId)
+  next.items[groupId] = {id:groupId,kind:'group',groupKind:'section',title:item.title,childIds:[titleId,itemId],operatorNotes:'',createdAt:item.createdAt,updatedAt:item.updatedAt}
+  return core.normalizeServiceProject(next)
 }
