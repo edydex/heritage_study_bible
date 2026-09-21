@@ -58,9 +58,14 @@ const emptyState = { trackId: null }
 const noSubscribe = () => () => {}
 const emptySnapshot = () => emptyState
 export default function AudioProvider({ children }) {
+  const navigate = useNavigate()
+  const navigateRef = useRef(navigate)
+  navigateRef.current = navigate
   const [player, setPlayer] = useState(null)
   useEffect(() => {
-    const instance = createPlatformAudioPlayer()
+    // Use the router's navigation transaction: assigning location.hash directly
+    // can race its pending HomeRedirect on a fresh install.
+    const instance = createPlatformAudioPlayer({ openLibrary: () => navigateRef.current('/audio') })
     setPlayer(instance)
     return () => instance.dispose()
   }, [])

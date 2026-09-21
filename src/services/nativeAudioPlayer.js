@@ -49,7 +49,7 @@ export function createNativeAudioPlayer({ plugin = HeritageAudio, openLibrary = 
     dispose: () => { disposed = true; listeners.clear(); subscription?.remove().catch(() => {}); openSubscription?.remove().catch(() => {}) },
   }
 }
-export function createPlatformAudioPlayer() {
+export function createPlatformAudioPlayer(options = {}) {
   return Capacitor.getPlatform?.() === 'android' && Capacitor.isPluginAvailable('HeritageAudio')
-    ? createNativeAudioPlayer() : createAudioPlayer()
+    ? createNativeAudioPlayer(options) : createAudioPlayer()
 }

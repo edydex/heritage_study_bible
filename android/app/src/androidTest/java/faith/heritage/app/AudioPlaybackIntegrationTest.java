@@ -53,7 +53,8 @@ public class AudioPlaybackIntegrationTest {
     private void await(Callable<Boolean> condition) throws Exception {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(35);
         while (System.nanoTime() < deadline) { if (condition.call()) return; Thread.sleep(100); }
-        fail("Native audio condition timed out; state=" + state());
+        fail("Native audio condition timed out; state=" + state()
+            + (reader == null ? "" : "; route=" + js("location.hash") + "; page=" + js("document.body.innerText.slice(0,600)")));
     }
     private JSONObject command(String action, Bundle args) throws Exception {
         args.putString("action", action);

@@ -2,6 +2,7 @@ import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, useL
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import Header from './components/Header'
 import AudioProvider from './components/audio/AudioProvider'
+import HomeRedirect from './components/HomeRedirect'
 import BibleChapter from './components/BibleChapter'
 import ParallelBibleChapter from './components/ParallelBibleChapter'
 import CommentarySidebar from './components/CommentarySidebar'
@@ -554,43 +555,6 @@ function NativeBackNavigation() {
   return null
 }
 
-function HomeRedirect() {
-  const [target, setTarget] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    getReaderProgress()
-      .then(progress => {
-        if (cancelled) return
-
-        const saved = progress?.bible
-        const bookMeta = saved?.book ? bibleBooks.find(book => book.name === saved.book) : null
-        const chapter = Number(saved?.chapter)
-        if (bookMeta && Number.isInteger(chapter) && chapter >= 1 && chapter <= bookMeta.chapters) {
-          setTarget(`/${bookToSlug(bookMeta.name)}/${chapter}`)
-          return
-        }
-
-        setTarget('/genesis/1')
-      })
-      .catch(() => {
-        if (!cancelled) setTarget('/genesis/1')
-      })
-
-    return () => { cancelled = true }
-  }, [])
-
-  if (!target) {
-    return (
-      <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center p-6">
-        <p className="text-gray-500 dark:text-gray-400 animate-pulse">Opening last passage...</p>
-      </div>
-    )
-  }
-
-  return <Navigate to={target} replace />
-}
 
 function ReadingPlanInviteRedirect() {
   const location = useLocation()

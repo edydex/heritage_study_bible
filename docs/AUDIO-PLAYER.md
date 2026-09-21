@@ -125,7 +125,18 @@ implementation work. No Whisper alignment or model charges were incurred here.
   the offline emulator, including the existing Community/Keystore/sync checks.
   Release verification requires all ten named Community and audio checks and
   byte-for-byte agreement between the native and web catalog sources.
+- A separate real-network check downloaded the 3,040,072-byte LibriVox recording
+  “Antiquities of the Jews, Book 4, Chapter 7” through the app's Download button.
+  With the emulator disconnected, the actual MP3 played and sought correctly,
+  resumed paused at 30.282 seconds after a full app process restart, and was
+  deleted through Internal Storage while playing. The private file and index
+  entry disappeared; the final position remained saved and playback stopped.
+- Hosted acceptance exposed a notification/last-passage navigation race on a
+  fresh install. Audio notification handling now navigates through React Router
+  and the home redirect checks the live URL at navigation time. Late saved
+  progress cannot overwrite an incoming app link; success and failure of the
+  delayed storage read are both covered by regression tests.
 
 Emulator evidence is separate from physical phone/headset, car head-unit and
-real network-download acceptance. The new native playback increment has not yet
-been published as an Android release.
+long-running mobile-network acceptance. The new native playback increment has
+not yet been published as an Android release.
