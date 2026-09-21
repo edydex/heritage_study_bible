@@ -74,10 +74,14 @@ public class AudioPlaybackIntegrationTest {
                 // DOM. Include the observation round-trip in the upper bound.
                 double after = state().getDouble("position") * 1000;
                 double latenessMs = (after - boundary * 1000) / rate;
-                assertTrue("Marker preceded the playback boundary: " + marked, before >= boundary * 1000 - 80);
+                // The boundary may pass between the pre-observation clock read
+                // and evaluating the DOM. Only the subsequent clock can prove
+                // a marker was premature; never compare it to the earlier read.
+                assertTrue("Marker preceded the playback boundary: " + marked + "; position=" + after,
+                    after >= boundary * 1000);
                 assertTrue("Verse " + verse + " highlight delayed " + latenessMs + " ms", latenessMs < 300);
                 return new JSONObject().put("verse", verse).put("boundary", boundary).put("rate", rate)
-                    .put("observedUpperLatencyMs", latenessMs);
+                    .put("observedUpperLatencyMs", latenessMs).put("observationSpanMs", (after - before) / rate);
             }
             Thread.sleep(20);
         }
@@ -97,10 +101,12 @@ public class AudioPlaybackIntegrationTest {
         assertTrue(fixture.getParentFile().isDirectory() || fixture.getParentFile().mkdirs());
         // Self-generated, silent PCM; the extractor sniffs the bytes rather than
         // trusting the catalog's filename extension. No sermon or licensed audio.
-        int samples = 80 * 8000;
+        // Match the 44.1 kHz BSB recording instead of a telephone-rate fixture;
+        // low-rate AudioTrack buffers produce coarse position steps in CI.
+        int sampleRate = 44100, samples = 80 * sampleRate;
         ByteBuffer wave = ByteBuffer.allocate(44 + samples * 2).order(ByteOrder.LITTLE_ENDIAN);
         wave.put("RIFF".getBytes()).putInt(wave.capacity() - 8).put("WAVEfmt ".getBytes()).putInt(16)
-            .putShort((short) 1).putShort((short) 1).putInt(8000).putInt(16000).putShort((short) 2).putShort((short) 16)
+            .putShort((short) 1).putShort((short) 1).putInt(sampleRate).putInt(sampleRate * 2).putShort((short) 2).putShort((short) 16)
             .put("data".getBytes()).putInt(samples * 2);
         try (FileOutputStream stream = new FileOutputStream(fixture)) { stream.write(wave.array()); }
         JSONObject record = new JSONObject().put("trackId", ID).put("path", "heritage-audio/playback-acceptance.mp3");

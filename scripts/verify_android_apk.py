@@ -88,7 +88,7 @@ latency_files = list(screenshots.rglob('ezekiel-highlight-latency.json'))
 assert len(latency_files) == 1, 'Missing or duplicate native audio latency evidence'
 latencies = json.loads(latency_files[0].read_text())
 assert len(latencies) == 6 and {row['rate'] for row in latencies} == {.75, 1, 2}, 'Missing playback-speed coverage'
-assert all(-110 < row['observedUpperLatencyMs'] < 300 for row in latencies), 'Native reading marker missed its boundary'
+assert all(0 <= row['observedUpperLatencyMs'] < 300 for row in latencies), 'Native reading marker missed its boundary'
 output.mkdir(parents=True, exist_ok=True)
 name = f"heritage-study-bible-{current['versionName']}-debug.apk"
 shutil.copyfile(apk, output/name)
