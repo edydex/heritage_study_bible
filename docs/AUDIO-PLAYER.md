@@ -114,8 +114,9 @@ See [audiobook text navigation](AUDIOBOOK-TEXT.md) for coverage and reproduction
 - The public Archive source supports HTTP byte ranges. Real recording playback
   in Chromium and Firefox resumed from 73 seconds and reached 74, then sought to
   125 and reached 126, with no page errors.
-- The full reader suite passed: 255 unit tests, 124 protocol tests and 45 Chromium
-  browser tests; the three audio browser tests also passed in Firefox.
+- The initial audio foundation passed 255 unit tests, 124 protocol tests and 45
+  Chromium browser tests; its three audio browser tests also passed in Firefox.
+  These are historical foundation counts, not the current suite totals.
 - The published audio foundation passed all seven Android packaged tests in
   GitHub Actions, including the two real private-storage/deletion tests.
 - Native adapter tests cover shared state, stale-response rejection, StrictMode
@@ -141,10 +142,19 @@ See [audiobook text navigation](AUDIOBOOK-TEXT.md) for coverage and reproduction
   progress cannot overwrite an incoming app link; success and failure of the
   delayed storage read are both covered by regression tests.
 
-Emulator evidence is separate from physical phone/headset, car head-unit and
-long-running mobile-network acceptance. The new native playback increment has
-not yet been published as an Android release.
+The native playback increment is published in
+[Android 1.1.43-preview.1 / code 46](https://github.com/edydex/heritage_study_bible/releases/tag/v1.1.43-preview.1).
+The downloaded APK passed signer/version verification, byte-for-byte comparison
+of all 666 bundled web files, agreement between native/web audio catalogs, and
+eleven packaged native tests. The normal Latest feed exposes this version to
+older installed update checkers. See the integration repository's
+[independent release receipt](https://github.com/edydex/heritage-community/blob/main/docs/verification/2026-09-21-android-1.1.43.json).
+The matching source passed 284 unit tests, 125 protocol tests, seven Bible timing
+Python cases, 58 Chromium cases and 14 focused Firefox cases.
+
+Emulator and browser evidence remain separate from physical phone/headset, car
+head-unit, human timing review and long-running mobile-network acceptance.
 
 ## BSB Bible audio increment
 
-The shared catalog now also contains 66 BSB books / 1,189 chapter recordings by Barry Hays, with a separate Bible section in the reader and Android Auto. Reader chapters offer playback and optional scrolling with an independent gray marker. Timing coverage is partial and automatic, with mismatches/gaps deliberately excluded. See [BIBLE-AUDIO.md](BIBLE-AUDIO.md) for sources, rights, exact coverage, reproduction and limitations.
+The shared catalog also contains 66 BSB books / 1,189 chapter recordings by Barry Hays, with a separate Bible section in the reader and Android Auto. Reader chapters offer playback and default-on auto-scroll with an independent gray marker; the preference is in Audio Settings. Version 1.1.43 replaces the old timing dataset for every chapter. Accepted timings cover 29,630 of 31,102 verse entries (95.27% coverage, not measured accuracy); uncertain or blank entries remain unhighlighted. See [BIBLE-AUDIO.md](BIBLE-AUDIO.md) for sources, rights, reproduction and limitations.
