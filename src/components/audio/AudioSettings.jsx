@@ -21,7 +21,7 @@ export default function AudioSettings() {
     <header><button onClick={() => navigate(-1)} aria-label="Back">←</button><h1>Audio Settings</h1></header>
     <section><h2>Follow the text</h2>
       <label className="block mt-3"><input type="checkbox" checked={audio?.settings.followBible ?? true} onChange={event => audio?.updateSettings({ followBible: event.target.checked })} /> Auto-scroll Bible recordings</label>
-      <p className="text-sm mt-1">Keep the spoken verse in view. While listening, tap a verse to play from its beginning. Timings are automatic; unverified passages stay unhighlighted.</p>
+      <p className="text-sm mt-1">Keep the reading marker in view. It moves to the next verse as the previous verse ends. Tap a verse with a verified timestamp to play from its beginning. Where timings are missing, the marker may wait until the next timed verse.</p>
       <label className="block mt-4"><input type="checkbox" checked={audio?.settings.followBooks ?? true} onChange={event => audio?.updateSettings({ followBooks: event.target.checked })} /> Auto-scroll audiobooks</label>
       <p className="text-sm mt-1">Follow the playing paragraph when its matching book edition is open.</p>
     </section>
