@@ -33,17 +33,17 @@ recording URLs/byte counts/full SHA-256 hashes, model file hashes, source text
 hash, accepted spans and exact reference paragraphs. Only installed data is used;
 partially generated local files outside the repository do not affect the app.
 
-The installed set covers 126 recordings in six books. Accepted phrase
-spans cover about 82.8% of The Wars of the Jews, 80.7% of Confessions, 86.6% of
+The installed set covers 195 recordings in seven books. Accepted phrase
+spans cover about 87.3% of City of God, 82.8% of The Wars of the Jews, 80.7% of Confessions, 86.6% of
 Enchiridion, 80.4% of First Apology, 8.7% of Martyrdom of Polycarp and 2.0% of Tertullian's Apology by recording
 duration. Those percentages measure matched time, not independently measured
 accuracy. The two sparse books use different wording from the bundled text;
 most timestamps in them correctly fall back to plain book navigation. Longer
-Josephus Antiquities, City of God and Institutes recordings are still being processed.
+Josephus Antiquities and Institutes recordings are still being processed.
 
 Validation includes 275 reader unit tests, 124 protocol tests, five Python
 matcher cases, and five audio/navigation browser checks each in Chromium and
-Firefox. The expanded six-book data also passes exact recording and paragraph
+Firefox. The expanded seven-book data also passes exact recording and paragraph
 integrity checks. Physical Android and car testing remain separate.
 
 ## Reproduce or extend coverage
