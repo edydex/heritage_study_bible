@@ -53,6 +53,9 @@ export function publishAndroidRelease({
     try { return JSON.parse(gh(['api', `repos/${repository}/${path}`])); }
     catch (error) { if (optional && String(error.stderr).includes('HTTP 404')) return null; throw error; }
   };
+  // Resolve tags through GitHub (including annotated tags), but do not pipe
+  // the entire commit diff into execFileSync's bounded stdout buffer.
+  const tagRevision = () => gh(['api', `repos/${repository}/commits/${tag}`, '--jq', '.sha']).trim();
   const checkUpgrade = () => {
     const latest = api('releases/latest', true);
     assertDiscoverableVersion(version, latest);
@@ -88,7 +91,7 @@ export function publishAndroidRelease({
   const notes = release ? null : readFileSync(join(notesDirectory, `android-${version}.md`), 'utf8');
   const ref = api(`git/ref/tags/${tag}`, true);
   if (!ref) gh(['api', `repos/${repository}/git/refs`, '--method', 'POST', '-f', `ref=refs/tags/${tag}`, '-f', `sha=${revision}`]);
-  if (api(`commits/${tag}`).sha !== revision) throw Error('Release tag belongs to a different commit; refusing to replace it');
+  if (tagRevision() !== revision) throw Error('Release tag belongs to a different commit; refusing to replace it');
   if (release) {
     const missing = files.filter(name => !release.assets.some(asset => asset.name === name));
     if (missing.length) gh(['release', 'upload', tag, ...missing.map(name => expected.get(name).path), '--repo', repository]);
@@ -102,14 +105,14 @@ export function publishAndroidRelease({
   if (!release) throw Error('Created release cannot be found');
   compare(release);
   if (!files.every(name => release.assets.some(asset => asset.name === name && asset.state === 'uploaded' && asset.browser_download_url))) throw Error('Release is incomplete');
-  if (api(`commits/${tag}`).sha !== revision) throw Error('Release tag changed during publication');
+  if (tagRevision() !== revision) throw Error('Release tag changed during publication');
   checkUpgrade(); // A retry or concurrent publisher must not roll /latest back.
   gh(['release', 'edit', tag, '--repo', repository, '--draft=false', '--prerelease=false', '--latest=true']);
   release = api('releases/latest');
   if (release.tag_name !== tag || release.draft || release.prerelease) throw Error('Published APK is not discoverable through the installed Android update checker');
   compare(release);
   if (!files.every(name => release.assets.some(asset => asset.name === name && asset.state === 'uploaded' && asset.browser_download_url))) throw Error('Latest release is incomplete');
-  if (api(`commits/${tag}`).sha !== revision) throw Error('Release tag changed after publication');
+  if (tagRevision() !== revision) throw Error('Release tag changed after publication');
   console.log(`Verified Android update feed: ${release.html_url}`);
   return release;
 }
