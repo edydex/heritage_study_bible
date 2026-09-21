@@ -10,6 +10,7 @@ import {
   savePublicCommunity,
   setPrimaryCommunity,
 } from '../services/communities'
+import { getCommunitySession, COMMUNITY_SESSION_CHANGE_EVENT } from '../services/communitySessions'
 import CommunityResources from './CommunityResources'
 
 const COMMUNITY_FEATURE_LABELS = { events: 'Calendar', rsvps: 'Event RSVPs', personalProgressSync: 'Personal sync', strictPasswordProtection: 'Optional password protection' }
@@ -24,7 +25,8 @@ function CommunityHomePage() {
   const [busy, setBusy] = useState('')
   const [message, setMessage] = useState('')
   const [debugLink, setDebugLink] = useState('')
-  const [signInRequired] = useState(() => location.state?.signInRequired ? { [location.state.signInRequired]: true } : {})
+  const [signInRequired,setSignInRequired] = useState(() => location.state?.signInRequired ? { [location.state.signInRequired]: true } : {})
+  const [sessionChecked,setSessionChecked] = useState({})
   const [rejoining, setRejoining] = useState(null)
 
   useEffect(() => {
@@ -32,6 +34,28 @@ function CommunityHomePage() {
     window.addEventListener(COMMUNITIES_CHANGE_EVENT, refresh)
     return () => window.removeEventListener(COMMUNITIES_CHANGE_EVENT, refresh)
   }, [])
+
+  useEffect(() => {
+    let cancelled=false, revision=0
+    async function inspectSessions(ignoreNavigationFailure=false) {
+      const current=++revision, required={},checked={}
+      if(!ignoreNavigationFailure && location.state?.signInRequired)required[location.state.signInRequired]=true
+      await Promise.all(communities.filter(record=>record.status==='joined').map(async record=>{
+        const id=record.manifest.id
+        try {
+          const session=await getCommunitySession(id,record)
+          const expired=session?.expiresAt && Date.parse(session.expiresAt)<=Date.now()
+          if(!session?.token || expired)required[id]=true
+          checked[id]=true
+        } catch { /* An unreadable secure store is not proof that a session expired. */ }
+      }))
+      if(!cancelled && current===revision) {setSignInRequired(required);setSessionChecked(checked)}
+    }
+    const changed=()=>void inspectSessions(true)
+    void inspectSessions()
+    window.addEventListener(COMMUNITY_SESSION_CHANGE_EVENT,changed)
+    return ()=>{cancelled=true;window.removeEventListener(COMMUNITY_SESSION_CHANGE_EVENT,changed)}
+  },[communities,location.state?.signInRequired])
 
   const primary = useMemo(() => communities.find(record => record.primary) || communities[0] || null, [communities])
 
@@ -105,7 +129,7 @@ function CommunityHomePage() {
             <p className="text-xs uppercase tracking-wide text-blue-100">Primary community</p>
             <h2 className="mt-1 text-2xl font-bold heading-text">{primary.manifest.name}</h2>
             <p className="mt-2 text-sm text-blue-50">{primary.manifest.description}</p>
-            {primary.status === 'joined' && !signInRequired[primary.manifest.id] && <p className="mt-3 text-xs text-blue-100">Signed in as {primary.member?.displayName || primary.member?.email || 'Member'}</p>}
+            {primary.status === 'joined' && sessionChecked[primary.manifest.id] && !signInRequired[primary.manifest.id] && <p className="mt-3 text-xs text-blue-100">Signed in as {primary.member?.displayName || primary.member?.email || 'Member'}</p>}
             {primary.status === 'joined' && signInRequired[primary.manifest.id] && <p className="mt-3 text-sm text-blue-100">Sign in again below to access member resources. This church sign-in is separate from personal notes and progress.</p>}
           </section>
         )}

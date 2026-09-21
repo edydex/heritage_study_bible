@@ -33,7 +33,7 @@ test('calendar opens on demand, spans dates and fits a phone', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Prayer Retreat →' })).toBeVisible()
   await page.setViewportSize({ width: 390, height: 844 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
-  await page.screenshot({ path: '/private/tmp/heritage-calendar-phone-20260916.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('heritage-calendar-phone-20260916.png'), fullPage: true })
 })
 
 test('English and Russian lyrics hide cue markers and keep paragraph and verse separation', async ({ page }) => {
@@ -47,5 +47,5 @@ test('English and Russian lyrics hide cue markers and keep paragraph and verse s
   await page.getByRole('button', { name: /RU/ }).click()
   await expect(page.getByRole('heading', { name: 'Куплет 2' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
-  await page.screenshot({ path: '/private/tmp/heritage-song-phone-20260916.png', fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('heritage-song-phone-20260916.png'), fullPage: true })
 })

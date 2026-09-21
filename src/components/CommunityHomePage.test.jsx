@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ request: vi.fn(), join: vi.fn(), records: [] }))
+const mocks = vi.hoisted(() => ({ request: vi.fn(), join: vi.fn(), session: vi.fn(), records: [] }))
 vi.mock('../services/communities', () => ({
   COMMUNITIES_CHANGE_EVENT: 'community-change',
   getCommunities: () => mocks.records,
@@ -11,6 +11,7 @@ vi.mock('../services/communities', () => ({
   refreshCommunityDiscovery: vi.fn().mockResolvedValue(null),
   inspectCommunity: vi.fn(), removeCommunity: vi.fn(), savePublicCommunity: vi.fn(), setPrimaryCommunity: vi.fn(),
 }))
+vi.mock('../services/communitySessions',()=>({COMMUNITY_SESSION_CHANGE_EVENT:'session-change',getCommunitySession:(...args)=>mocks.session(...args)}))
 vi.mock('./CommunityResources', () => ({ default: () => <div>Saved church resources</div> }))
 import CommunityHomePage from './CommunityHomePage'
 import CommunityCalendarPage from './CommunityCalendarPage'
@@ -20,6 +21,7 @@ beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ events: [], timeZone: 'UTC', authenticated: false }) }))
   mocks.request.mockReset()
   mocks.join.mockReset()
+  mocks.session.mockReset().mockResolvedValue({token:'test-session',expiresAt:'2099-01-01T00:00:00Z'})
   mocks.records = [{
     manifest: { id: 'church', name: 'Test Church', apiBaseUrl: 'https://church.example/api' },
     manifestUrl: 'https://church.example/.well-known/heritage-community.json',
@@ -66,4 +68,21 @@ it('keeps the calendar behind its own page without fetching it on Community Home
   expect(screen.queryByRole('region', { name: 'Church calendar' })).not.toBeInTheDocument()
   expect(mocks.request).not.toHaveBeenCalled()
   expect(fetch).not.toHaveBeenCalled()
+})
+
+
+it('checks local credentials on Home and offers rejoining when the saved session is absent',async()=>{
+  mocks.session.mockResolvedValue(null)
+  show('/community')
+  await screen.findByText('Member sign-in needed')
+  expect(screen.queryByText(/Signed in as/)).not.toBeInTheDocument()
+  expect(screen.getByRole('button',{name:'Sign in again'})).toBeInTheDocument()
+  expect(mocks.request).not.toHaveBeenCalled()
+  expect(fetch).not.toHaveBeenCalled()
+})
+it('recognizes an expired local session without making a calendar request',async()=>{
+  mocks.session.mockResolvedValue({token:'expired',expiresAt:'2000-01-01T00:00:00Z'})
+  show('/community')
+  await screen.findByText('Member sign-in needed')
+  expect(mocks.request).not.toHaveBeenCalled()
 })

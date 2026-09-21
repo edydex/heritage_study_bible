@@ -20,7 +20,7 @@ test('legacy PST event opens a dedicated page and supports reload, back and phon
   await expect(page.getByRole('heading', { name: 'Prayer Retreat', exact: true })).toBeVisible()
   await page.setViewportSize({ width: 390, height: 844 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await page.screenshot({ path: `/private/tmp/heritage-event-details-${test.info().project.name}.png`, fullPage: true })
+  await page.screenshot({ path: test.info().outputPath('heritage-event-details.png'), fullPage: true })
   await page.getByRole('link', { name: 'Back to calendar' }).click()
   await expect(page.getByRole('region', { name: 'Church calendar' })).toBeVisible()
   expect(errors).toEqual([])

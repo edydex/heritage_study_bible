@@ -362,7 +362,7 @@ test('share song copies its public link and shows a locally generated, readable 
   expect(jsQR(Uint8ClampedArray.from(pixels.data), pixels.width, pixels.height).data).toBe(copied)
   await page.setViewportSize({ width: 390, height: 844 })
   expect(await dialog.evaluate(node => node.getBoundingClientRect().width <= innerWidth)).toBe(true)
-  await page.screenshot({ path: `/private/tmp/heritage-share-${test.info().project.name}.png` })
+  await page.screenshot({ path: test.info().outputPath('heritage-share.png') })
   await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
 })
