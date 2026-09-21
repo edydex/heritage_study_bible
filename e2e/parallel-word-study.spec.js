@@ -3,7 +3,7 @@ async function enable(page) {
   await page.goto('/#/romans/1')
   await page.getByTitle('Enable parallel mode', { exact: true }).click()
   await page.getByRole('button', { name: 'Original languages', exact: true }).click()
-  await page.getByRole('button', { name: /^Original Original languages/ }).click()
+  await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).click()
 }
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => { localStorage.setItem('heritage-translation', 'BSB'); localStorage.setItem('heritage-default-translation-v2', 'done') })
@@ -32,15 +32,18 @@ test('tap opens real Greek lemma occurrences; hold identifies the translation wi
   await expect(page.getByRole('status')).toContainText('δοῦλος ↔ a servant')
   await page.getByRole('button', { name: 'Clear word match' }).click()
   await page.getByTitle('Text size settings').click()
-  await page.getByLabel('B&W word links').check()
+  await page.getByRole('button', { name: 'More settings', exact: true }).click()
+  await page.getByLabel('B&W', { exact: true }).check()
+  await page.getByRole('button', { name: 'Back', exact: true }).click()
+  // Re-enter session-only parallel mode after returning from settings.
+  await enable(page)
   await expect(page.locator('.word-links-monochrome')).toBeVisible()
-  await page.getByTitle('Text size settings').click()
   await expect(servant).toHaveCSS('background-image', /M-1/)
   await page.screenshot({ path: test.info().outputPath('parallel-patterns-phone.png') })
   await page.reload()
-  // Parallel mode is intentionally session-only; the presentation preference persists.
   await page.getByTitle('Text size settings').click()
-  await expect(page.getByLabel('B&W word links')).toBeChecked()
+  await page.getByRole('button', { name: 'More settings', exact: true }).click()
+  await expect(page.getByLabel('B&W', { exact: true })).toBeChecked()
 })
 test('occurrence links navigate on the first click and unsupported matching remains explicit', async ({ page }) => {
   await enable(page)

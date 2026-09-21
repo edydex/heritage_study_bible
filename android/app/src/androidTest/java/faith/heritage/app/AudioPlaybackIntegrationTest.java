@@ -173,6 +173,21 @@ public class AudioPlaybackIntegrationTest {
         reader = ActivityScenario.launch(new Intent(context, MainActivity.class).setAction("faith.heritage.app.OPEN_AUDIO"));
         await(() -> "true".equals(js("Boolean(document.querySelector('.audio-player-title'))")));
         await(() -> "true".equals(js("location.hash === '#/audio'")));
+        await(() -> "true".equals(js("document.body.innerText.includes('BSB Audio Bible') && !Array.from(document.querySelectorAll('h2')).some(node=>node.textContent==='Genesis')")));
+        await(() -> "true".equals(js("document.documentElement.style.getPropertyValue('--native-safe-top') !== ''")));
+        AtomicReference<Double> requiredTop = new AtomicReference<>(0d);
+        reader.onActivity(activity -> {
+            android.view.View web = activity.getBridge().getWebView();
+            androidx.core.view.WindowInsetsCompat insets = androidx.core.view.ViewCompat.getRootWindowInsets(web);
+            int[] origin = new int[2]; web.getLocationInWindow(origin);
+            if (insets != null) requiredTop.set((double) Math.max(0, insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars() | androidx.core.view.WindowInsetsCompat.Type.displayCutout()).top - origin[1]) / activity.getResources().getDisplayMetrics().density);
+        });
+        assertTrue("Audio library overlaps the native status bar", Double.parseDouble(js("document.querySelector('main.audio-library header').getBoundingClientRect().top")) >= requiredTop.get() + 12);
+        File screen = new File(context.getExternalFilesDir(null), "native-acceptance/audio-library.png");
+        assertTrue(screen.getParentFile().isDirectory() || screen.getParentFile().mkdirs());
+        android.graphics.Bitmap screenshot = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
+        try (FileOutputStream out = new FileOutputStream(screen)) { assertTrue(screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)); }
+        screenshot.recycle();
         // An external request can identify a catalog item but cannot replace its
         // URL/title. The legitimate local copy must be decoded while offline.
         main(() -> {

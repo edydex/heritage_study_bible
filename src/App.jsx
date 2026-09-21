@@ -3,7 +3,7 @@ import AudioPlayButton from './components/audio/AudioPlayButton'
 import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import Header from './components/Header'
-import AudioProvider from './components/audio/AudioProvider'
+import AudioProvider, { useHeritageAudio } from './components/audio/AudioProvider'
 import HomeRedirect from './components/HomeRedirect'
 import BibleChapter from './components/BibleChapter'
 import ParallelBibleChapter from './components/ParallelBibleChapter'
@@ -573,7 +573,8 @@ function ReadingPlanInviteRedirect() {
   return <Navigate to={`/resources/reading-plans/${planId}${query}`} replace />
 }
 
-function AdvancedSettingsPage({ settings, onSettingsChange }) {
+function AdvancedSettingsPage({ settings, onSettingsChange, sideButtonScroll, onSideButtonScrollChange, verseStacking, onVerseStackingChange }) {
+  const audio = useHeritageAudio()
   const navigate = useNavigate()
   const normalized = normalizeAdvancedSettings(settings)
   const [updateStatus, setUpdateStatus] = useState('idle')
@@ -645,12 +646,18 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
             ←
           </button>
           <div className="min-w-0">
-            <h1 className="heading-text text-lg font-bold leading-tight">Advanced Settings</h1>
+            <h1 className="heading-text text-lg font-bold leading-tight">More Settings</h1>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto max-w-2xl px-4 py-5 pb-20 space-y-4">
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 space-y-4">
+          <label className="flex items-center gap-3"><input type="checkbox" checked={Boolean(audio?.settings.parallelMonochrome || normalized.eInkLightBackground)} onChange={event => { audio?.updateSettings({ parallelMonochrome: event.target.checked }); updateSetting('eInkLightBackground', event.target.checked) }} /> <span>B&amp;W</span></label>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Use patterns for word links and a pure white background in light mode.</p>
+          <label className="flex items-center gap-3"><input type="checkbox" checked={sideButtonScroll} onChange={event => onSideButtonScrollChange(event.target.checked)} /> <span>Volume Scroll</span></label>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Use device volume buttons to scroll. While audio plays, they adjust volume.</p>
+        </section>
         <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <button type="button" onClick={() => navigate('/settings/audio')} className="w-full text-left"><h2 className="text-sm font-semibold">Audio Settings</h2><p className="text-xs mt-1">Text following, chapters and downloads.</p></button>
         </section>
@@ -668,24 +675,6 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Keep reading progress, plans, bookmarks, notes, and highlights on your other devices.</p>
             </div>
             <span className="text-2xl leading-none text-gray-400 dark:text-gray-500">›</span>
-          </button>
-        </section>
-
-        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <button
-            type="button"
-            onClick={() => updateSetting('eInkLightBackground', !normalized.eInkLightBackground)}
-            className="w-full flex items-center justify-between gap-4 text-left"
-          >
-            <div>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Pure White Light Background</h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Use #ffffff for light-mode page backgrounds.
-              </p>
-            </div>
-            <div className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${normalized.eInkLightBackground ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
-              <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${normalized.eInkLightBackground ? 'translate-x-5' : 'translate-x-0'}`} />
-            </div>
           </button>
         </section>
 
@@ -708,6 +697,10 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
           </div>
         </section>
 
+        <details className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <summary className="cursor-pointer font-semibold">Other settings</summary>
+          <label className="flex items-center gap-3 my-4"><input type="checkbox" checked={verseStacking} onChange={event => onVerseStackingChange(event.target.checked)} /> <span>Verse Stacking</span></label>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Flow verses together as paragraphs. Turn off to put each verse on a separate line.</p>
         <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -821,6 +814,8 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
             ))}
           </div>
         </section>
+
+        </details>
 
         <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -989,7 +984,7 @@ function AboutPage() {
   )
 }
 
-function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderReady }) {
+function BibleStudyApp({ onReaderReady, verseStacking }) {
   const { bookSlug, chapterNum } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -1205,10 +1200,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
   const [commentaryTextSize, setCommentaryTextSize] = useState(() => {
     try { const v = parseInt(localStorage.getItem('heritage-commentary-text-size')); return v >= 12 && v <= 64 ? v : 14 } catch { return 14 }
   })
-  const [verseStacking, setVerseStacking] = useState(() => {
-    try { return localStorage.getItem('heritage-verse-stacking') === 'true' } catch { return false }
-  })
-
   // Dark mode state (persisted)
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem('heritage-dark-mode') === 'true' } catch { return false }
@@ -1224,9 +1215,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
   useEffect(() => {
     setStoredValue(STORAGE_KEYS.commentaryTextSize, String(commentaryTextSize)).catch(() => {})
   }, [commentaryTextSize])
-  useEffect(() => {
-    setStoredValue(STORAGE_KEYS.verseStacking, String(verseStacking)).catch(() => {})
-  }, [verseStacking])
 
   // Sidebar width state (persisted, px)
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -2038,8 +2026,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
           onTextSizeChange={setTextSize}
           commentaryTextSize={commentaryTextSize}
           onCommentaryTextSizeChange={setCommentaryTextSize}
-          verseStacking={verseStacking}
-          onVerseStackingChange={setVerseStacking}
           translationId={translationId}
           onTranslationChange={setTranslationId}
           translationLoading={translationLoading}
@@ -2054,12 +2040,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
           onParallelDisable={() => setParallelMode(false)}
           darkMode={darkMode}
           onDarkModeChange={setDarkMode}
-          sideButtonScroll={sideButtonScroll}
-          onSideButtonScrollChange={onSideButtonScrollChange}
-          showVolumeScrollSetting={isNativeAndroid()}
           onSearchKeyboardCaptureChange={setNativeSearchKeyboardCaptureInputEnabled}
-          onAudioSettingsClick={() => navigate('/settings/audio')}
-          onSyncSettingsClick={() => navigate('/settings/sync')}
           onAdvancedSettingsClick={() => navigate('/settings/advanced')}
         />
 
@@ -2453,6 +2434,13 @@ function App() {
     } catch {}
     return isNativeAndroid()
   })
+  const [verseStacking, setVerseStackingState] = useState(() => {
+    try { return localStorage.getItem(STORAGE_KEYS.verseStacking) !== 'false' } catch { return true }
+  })
+  const setVerseStacking = useCallback(enabled => {
+    setVerseStackingState(Boolean(enabled))
+    setStoredValue(STORAGE_KEYS.verseStacking, String(Boolean(enabled))).catch(() => {})
+  }, [])
   const [advancedSettings, setAdvancedSettingsState] = useState(loadAdvancedSettings)
 
   const setSideButtonScroll = useCallback((enabled) => {
@@ -2466,10 +2454,6 @@ function App() {
     setAdvancedSettingsState(normalized)
     setStoredValue(STORAGE_KEYS.advancedSettings, JSON.stringify(normalized)).catch(() => {})
   }, [])
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('eink-light', advancedSettings.eInkLightBackground)
-  }, [advancedSettings.eInkLightBackground])
 
   useEffect(() => {
     refreshStaleContentServers().catch(() => {})
@@ -2504,15 +2488,15 @@ function App() {
           <Route path="/resources/sermons" element={<PublishedSermonArchivePage />} />
           <Route path="/resources/:categoryId" element={<ResourcePage />} />
           <Route path="/settings/about" element={<AboutPage />} />
-          <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} />} />
+          <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} verseStacking={verseStacking} onVerseStackingChange={setVerseStacking} />} />
           <Route path="/settings/sync" element={<SyncSettingsPage />} />
           <Route path="/settings/content-servers" element={<ContentServersPage />} />
           <Route path="/community/callback" element={<CommunityCallbackPage />} />
           <Route path="/community" element={<CommunityHomePage />} />
           <Route path="/community/calendar" element={<CommunityCalendarPage />} />
           <Route path="/community/calendar/events/:eventId" element={<CommunityCalendarPage />} />
-          <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} onReaderReady={setReaderReady} />} />
-          <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} onReaderReady={setReaderReady} />} />
+          <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp verseStacking={verseStacking} onReaderReady={setReaderReady} />} />
+          <Route path="/:bookSlug" element={<BibleStudyApp verseStacking={verseStacking} onReaderReady={setReaderReady} />} />
           <Route path="/" element={<HomeRedirect />} />
           <Route path="*" element={<Navigate to="/genesis/1" replace />} />
         </Routes>

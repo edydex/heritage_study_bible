@@ -2,6 +2,17 @@ import { Capacitor, registerPlugin } from '@capacitor/core'
 
 const HeritageControls = registerPlugin('HeritageControls')
 
+export async function refreshNativeSafeArea() {
+  if (!isNativeAndroid()) return
+  try {
+    const audioPage = /^#\/(?:audio|settings\/(?:audio|storage))(?:[?]|$)/.test(window.location.hash)
+    const insets = await HeritageControls.getSafeArea({ darkStatusIcons: audioPage && !document.documentElement.classList.contains('dark') })
+    for (const edge of ['top', 'bottom']) {
+      if (Number.isFinite(insets[edge])) document.documentElement.style.setProperty(`--native-safe-${edge}`, `${Math.max(0, insets[edge])}px`)
+    }
+  } catch { /* Older installed shells use the CSS safe-area fallback. */ }
+}
+
 export function isNativeAndroid() {
   return Capacitor.getPlatform?.() === 'android'
 }

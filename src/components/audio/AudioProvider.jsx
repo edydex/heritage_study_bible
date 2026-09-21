@@ -5,18 +5,24 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { createPlatformAudioPlayer } from '../../services/nativeAudioPlayer'
 import { formatAudioTime, getAudioTrack, nextAudioTrack } from '../../services/audioCatalog'
 import { getStoredValue, setStoredValue, STORAGE_KEYS } from '../../services/persistentStorage'
+import { refreshNativeSafeArea } from '../../services/androidControls'
 import './audio.css'
 
 const AudioContext = createContext(null)
 export const useHeritageAudio = () => useContext(AudioContext)
-export function AudioPlayerControls() {
+export function AudioPlayerControls({ track: selectedTrack, onNavigate } = {}) {
   const audio = useHeritageAudio()
-  return audio ? <PlayerHost {...audio} /> : null
+  return audio ? <PlayerHost {...audio} selectedTrack={selectedTrack} onNavigate={onNavigate} /> : null
 }
-function PlayerHost({ player, state }) {
+function PlayerHost({ player, state, selectedTrack, onNavigate }) {
+  const currentTrack = getAudioTrack(state.trackId)
+  const track = selectedTrack || currentTrack
+  const active = track?.id === currentTrack?.id
+  if (!active) state = { ...state, position: 0, duration: track?.duration || 0, status: 'paused', error: null }
+  const play = () => player.play(track.id)
+  const seek = async position => { if (!active) await player.play(track.id); player.seek(position) }
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState(true)
-  const track = getAudioTrack(state.trackId)
   const [timing, setTiming] = useState(null)
   useEffect(() => {
     let cancelled = false
@@ -32,20 +38,20 @@ function PlayerHost({ player, state }) {
           <button type="button" className="audio-player-title" onClick={() => setExpanded(value => !value)} aria-expanded={expanded}>
             <strong>{track.bookTitle}</strong><span>{track.title} · {formatAudioTime(state.position)} {state.offline ? '· Offline' : ''}</span>
           </button>
-          <button type="button" onClick={() => player.seek(state.position - 15)} aria-label="Rewind 15 seconds">−15s</button>
-          <button type="button" onClick={() => state.status === 'playing' || state.status === 'loading' ? player.pause() : player.play()}>
+          <button type="button" onClick={() => seek(state.position - 10)} aria-label="Rewind 10 seconds">−10</button>
+          <button type="button" onClick={() => state.status === 'playing' || state.status === 'loading' ? player.pause() : play()}>
             {state.status === 'loading' ? 'Cancel' : state.status === 'playing' ? 'Pause' : 'Play'}
           </button>
-          <button type="button" onClick={() => player.seek(state.position + 15)} aria-label="Forward 15 seconds">+15s</button>
+          <button type="button" onClick={() => seek(state.position + 10)} aria-label="Forward 10 seconds">+10</button>
         </div>
         {expanded && <div className="audio-player-expanded">
-          <label className="audio-seek">Position <input aria-label="Audio position" type="range" min="0" max={state.duration || 1} step="1" value={Math.min(state.position, state.duration || 1)} onChange={event => player.seek(event.target.value)} /> {formatAudioTime(state.duration)}</label>
+          <label className="audio-seek"><span>{formatAudioTime(state.position)}</span> <input aria-label="Audio position" type="range" min="0" max={state.duration || 1} step="1" value={Math.min(state.position, state.duration || 1)} onChange={event => seek(Number(event.target.value))} /> {formatAudioTime(state.duration)}</label>
           <div className="audio-actions">
-            <button type="button" disabled={!nextAudioTrack(track.id, -1)} onClick={() => player.skip(-1)}>Previous track</button>
-            <button type="button" disabled={!nextAudioTrack(track.id, 1)} onClick={() => player.skip(1)}>Next track</button>
+            <button type="button" disabled={!nextAudioTrack(track.id, -1)} onClick={() => { player.play(nextAudioTrack(track.id, -1).id, { restart: true }); onNavigate?.() }}>Previous track</button>
+            <button type="button" disabled={!nextAudioTrack(track.id, 1)} onClick={() => { player.play(nextAudioTrack(track.id, 1).id, { restart: true }); onNavigate?.() }}>Next track</button>
             <label>Speed <select aria-label="Playback speed" value={state.rate} onChange={event => player.setRate(event.target.value)}>{[0.75, 1, 1.25, 1.5, 1.75, 2].map(rate => <option key={rate} value={rate}>{rate}×</option>)}</select></label>
-            <button type="button" onClick={() => destination ? navigate(destination.path, { state: destination.state }) : navigate(`/resources/books/${track.textBookId || track.bookId}`)}>{destination ? destination.state.audioParagraph ? 'Go to nearby text' : destination.state.scrollToVerse ? 'Go to playing verse' : 'Open chapter text' : 'Open book text'}</button>
-            <button type="button" onClick={() => navigate('/audio')}>Audio library</button>
+            <button type="button" onClick={() => { onNavigate?.(); destination ? navigate(destination.path, { state: destination.state }) : navigate(`/resources/books/${track.textBookId || track.bookId}`) }}>{destination ? destination.state.audioParagraph ? 'Go to nearby text' : destination.state.scrollToVerse ? 'Go to playing verse' : 'Open chapter text' : 'Open book text'}</button>
+            <button type="button" onClick={() => { onNavigate?.(); navigate('/audio') }}>Audio library</button>
           </div>
         </div>}
         {state.error && <p role="status">{state.error}</p>}
@@ -59,15 +65,24 @@ const emptySnapshot = () => emptyState
 export default function AudioProvider({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
+  useEffect(() => {
+    refreshNativeSafeArea()
+    window.addEventListener('resize', refreshNativeSafeArea)
+    document.addEventListener('visibilitychange', refreshNativeSafeArea)
+    return () => { window.removeEventListener('resize', refreshNativeSafeArea); document.removeEventListener('visibilitychange', refreshNativeSafeArea) }
+  }, [location.pathname])
   const defaults = { followBible: true, followBooks: true, parallelMonochrome: false }
   const [settings, setSettings] = useState(defaults)
   const settingsChanged = useRef(false)
   useEffect(() => {
-    getStoredValue(STORAGE_KEYS.audioSettings).then(raw => {
+    Promise.all([getStoredValue(STORAGE_KEYS.audioSettings), getStoredValue(STORAGE_KEYS.advancedSettings)]).then(([raw, advanced]) => {
       if (settingsChanged.current) return
-      try { const value = JSON.parse(raw); setSettings({ followBible: value?.followBible !== false, followBooks: value?.followBooks !== false, parallelMonochrome: value?.parallelMonochrome === true }) } catch {}
+      let legacyMonochrome = false
+      try { legacyMonochrome = JSON.parse(advanced)?.eInkLightBackground === true } catch {}
+      try { const value = JSON.parse(raw); setSettings({ followBible: value?.followBible !== false, followBooks: value?.followBooks !== false, parallelMonochrome: value?.parallelMonochrome === true || legacyMonochrome }) } catch {}
     })
   }, [])
+  useEffect(() => { document.documentElement.classList.toggle('eink-light', settings.parallelMonochrome) }, [settings.parallelMonochrome])
   const updateSettings = changes => {
     settingsChanged.current = true
     setSettings(previous => { const next = { ...previous, ...changes }; setStoredValue(STORAGE_KEYS.audioSettings, JSON.stringify(next)); return next })

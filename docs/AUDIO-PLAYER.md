@@ -158,3 +158,11 @@ head-unit, human timing review and long-running mobile-network acceptance.
 ## BSB Bible audio increment
 
 The shared catalog also contains 66 BSB books / 1,189 chapter recordings by Barry Hays, with a separate Bible section in the reader and Android Auto. Reader chapters offer playback and default-on auto-scroll with an independent gray marker; the preference is in Audio Settings. Version 1.1.43 replaces the old timing dataset for every chapter. Accepted timings cover 29,630 of 31,102 verse entries (95.27% coverage, not measured accuracy); from version 1.1.47 the reading marker advances during gaps to the next nonempty verse, while exact seeking still requires an accepted timestamp. See [BIBLE-AUDIO.md](BIBLE-AUDIO.md) for sources, rights, reproduction and limitations.
+
+## Compact reading controls
+
+The phone Audio Library groups Bible recordings by translation, then book and chapter. Recording/download IDs and Android Auto queues remain unchanged. Audio library, Audio Settings and Internal Storage use the native WebView's uncovered system-bar/cutout insets, with a CSS fallback for older shells.
+
+Hold the bottom Play/Pause button for a modal player; right-click and Shift+Enter are accessible alternatives. Short taps still play/pause. The player offers −10/+10 seconds, a seek timeline (including zero), playback speed and previous/next track. Escape, Android Back or Close dismisses it without stopping audio. While a matching audiobook plays, its reader also has a floating −10 button above the bottom bar. Controls preserve existing listening positions and downloads.
+
+Quick settings contain only text sizes, Dark mode and More settings. Audio Settings and Sync are in More Settings; B&W combines patterned word links and the pure white light background. Volume Scroll is a toggle, with distance/animation options under Other settings. Verse Stacking is on when no preference has been saved, and is also under Other settings.

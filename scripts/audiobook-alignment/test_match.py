@@ -29,4 +29,13 @@ class Matches(unittest.TestCase):
   self.assertGreater(len(out['spans']),1)
   self.assertLess(out['spans'][0]['end'],10)
   self.assertGreater(out['spans'][-1]['start'],40)
+ def test_sentence_ranges_use_recognized_word_times_including_short_sentences(self):
+  text='The gracious king walked across the bright meadow. He stopped. His faithful companion waited quietly beside the flowing river.'
+  b=book([text]);a=text.index('He stopped.');z=text.index('His faithful')
+  b['chapters'][0]['sentenceRanges']=[[{'textStart':0,'textEnd':a-1,'tokenStart':0,'tokenEnd':8},{'textStart':a,'textEnd':z-1,'tokenStart':8,'tokenEnd':10},{'textStart':z,'textEnd':len(text),'tokenStart':10,'tokenEnd':20}]]
+  spans=match_recording(transcript(text),b,100)['sentenceSpans']
+  self.assertEqual(len(spans),3)
+  self.assertEqual(spans[1],{'start':2.8,'end':3.45,'paragraph':'0:0','textStart':a,'textEnd':z-1})
+  self.assertEqual(spans[2]['start'],3.5)
+  self.assertFalse(match_recording(transcript(text,probability=.1),b,100)['sentenceSpans'])
 if __name__=='__main__':unittest.main()

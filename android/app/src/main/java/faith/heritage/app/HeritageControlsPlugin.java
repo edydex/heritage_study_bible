@@ -18,6 +18,8 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import androidx.core.view.WindowCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
@@ -126,6 +128,36 @@ public class HeritageControlsPlugin extends Plugin {
             getActivity().finish();
         }
         call.resolve();
+    }
+
+    @PluginMethod
+    public void getSafeArea(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            View web = getBridge().getWebView();
+            WindowInsetsCompat windowInsets = ViewCompat.getRootWindowInsets(web);
+            JSObject result = new JSObject();
+            if (windowInsets != null) {
+                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+                int[] location = new int[2];
+                web.getLocationInWindow(location);
+                View decor = getActivity().getWindow().getDecorView();
+                float density = getContext().getResources().getDisplayMetrics().density;
+                // Only inset the part actually covered by system UI. Older
+                // Android versions already place the WebView inside the bars.
+                int coveredTop = Math.max(0, insets.top - location[1]);
+                Boolean darkStatusIcons = call.getBoolean("darkStatusIcons");
+                if (darkStatusIcons != null) {
+                    Window window = getActivity().getWindow();
+                    // Older Android retains the app's blue status bar above the
+                    // WebView; only edge-to-edge pages need dark icons on white.
+                    WindowCompat.getInsetsController(window, window.getDecorView())
+                        .setAppearanceLightStatusBars(darkStatusIcons && coveredTop > 0);
+                }
+                result.put("top", coveredTop / density);
+                result.put("bottom", Math.max(0, insets.bottom - (decor.getHeight() - location[1] - web.getHeight())) / density);
+            }
+            call.resolve(result);
+        });
     }
 
     @PluginMethod

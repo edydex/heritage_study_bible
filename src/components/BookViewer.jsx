@@ -1,6 +1,6 @@
 import { useHeritageAudio } from './audio/AudioProvider'
 import AudioPlayButton from './audio/AudioPlayButton'
-import { activeAudiobookParagraph, audiobookDestination, loadAudiobookTiming, matchingAudioParagraph } from '../services/audiobookText'
+import { activeAudiobookSentence, audiobookDestination, loadAudiobookTiming, matchingAudioParagraph } from '../services/audiobookText'
 import { getAudioTrack, getBookAudioTracks } from '../services/audioCatalog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -286,19 +286,23 @@ function BookReader() {
 
   const chapters = useMemo(() => parseBookChapters(bookText), [bookText])
   const audioParagraph = useMemo(() => matchingAudioParagraph(chapters, audioTarget), [chapters, audioTarget])
-  const liveTarget = useMemo(() => activeAudiobookParagraph(playingTrack, playingTiming, audio?.state.position), [playingTrack?.id, playingTiming, audio?.state.position])
+  const liveTarget = useMemo(() => activeAudiobookSentence(playingTrack, playingTiming, audio?.state.position), [playingTrack?.id, playingTiming, audio?.state.position])
   const liveParagraph = useMemo(() => matchingAudioParagraph(chapters, liveTarget), [chapters, liveTarget])
   const shownAudioParagraph = playingTiming ? liveParagraph : audioParagraph
+  useEffect(() => {
+    if (!playingTiming || !playingTrack) return
+    return audio?.player.watchPositions?.(playingTrack.id, (playingTiming.sentenceSpans || []).flatMap(span => [span.start, span.end]))
+  }, [playingTiming, playingTrack?.id, audio?.player])
   useEffect(() => {
     if (!audio?.settings.followBooks || audio.state.status !== 'playing' || !liveParagraph || textLoading || !progressReady) return
     if (selectedChapterIndex !== liveParagraph.chapterIndex) { setSelectedChapterIndex(liveParagraph.chapterIndex); return }
     const frame = requestAnimationFrame(() => {
-      const paragraph = document.getElementById(`book-paragraph-${liveParagraph.paragraphIndex}`)
+      const paragraph = document.querySelector('[data-audio-sentence="true"]')
       const rect = paragraph?.getBoundingClientRect()
       if (rect && (rect.top < 130 || rect.bottom > window.innerHeight - 80)) paragraph.scrollIntoView({ block: rect.height > window.innerHeight - 220 ? 'start' : 'center', behavior: 'instant' })
     })
     return () => cancelAnimationFrame(frame)
-  }, [liveParagraph?.chapterIndex, liveParagraph?.paragraphIndex, selectedChapterIndex, audio?.settings.followBooks, audio?.state.status, textLoading, progressReady])
+  }, [liveParagraph?.chapterIndex, liveParagraph?.paragraphIndex, liveParagraph?.textStart, selectedChapterIndex, audio?.settings.followBooks, audio?.state.status, textLoading, progressReady])
   const footnotesById = useMemo(() => extractBookFootnotes(bookText), [bookText])
   const selectedChapter = chapters[selectedChapterIndex] || null
   const selectedChapterNumber = extractChapterNumber(selectedChapter?.title || '')
@@ -1002,8 +1006,12 @@ function BookReader() {
               {audioTarget && <p role="status" className="mb-3 text-sm text-gray-500 dark:text-gray-400">{audioParagraph ? 'Nearby passage from the recording. The narrator may use a different translation; this is an automatic paragraph match.' : 'The book text has changed, so the recorded location could not be verified.'}</p>}
               <div className="space-y-4">
                 {(selectedChapter?.paragraphs || []).map((paragraph, index) => (
-                  <p key={index} id={`book-paragraph-${index}`} tabIndex={-1} data-audio-paragraph={shownAudioParagraph?.chapterIndex === selectedChapterIndex && shownAudioParagraph?.paragraphIndex === index ? 'true' : undefined} className="book-text-paragraph text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
-                    {renderParagraphWithFootnotes(paragraph, searchQuery, footnotesById, openFootnote)}
+                  <p key={index} id={`book-paragraph-${index}`} tabIndex={-1} data-audio-paragraph={shownAudioParagraph?.chapterIndex === selectedChapterIndex && shownAudioParagraph?.paragraphIndex === index ? 'true' : undefined} data-audio-following={playingTiming ? 'true' : undefined} className="book-text-paragraph text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
+                    {liveParagraph?.chapterIndex === selectedChapterIndex && liveParagraph?.paragraphIndex === index ? <>
+                      {renderParagraphWithFootnotes(paragraph.slice(0, liveParagraph.textStart), searchQuery, footnotesById, openFootnote)}
+                      <span data-audio-sentence="true">{renderParagraphWithFootnotes(paragraph.slice(liveParagraph.textStart, liveParagraph.textEnd), searchQuery, footnotesById, openFootnote)}</span>
+                      {renderParagraphWithFootnotes(paragraph.slice(liveParagraph.textEnd), searchQuery, footnotesById, openFootnote)}
+                    </> : renderParagraphWithFootnotes(paragraph, searchQuery, footnotesById, openFootnote)}
                   </p>
                 ))}
               </div>
@@ -1052,6 +1060,7 @@ function BookReader() {
         )}
       </main>
 
+      {playingTrack && !playingTrack.bible && (playingTrack.textBookId || playingTrack.bookId) === itemId && audio?.state.status === 'playing' && <button type="button" className="book-audio-rewind" aria-label="Rewind 10 seconds" onClick={() => audio.player.seek(audio.state.position - 10)}>−10</button>}
       {/* Bible-style bottom chapter navigation */}
       {hasChapters && !isSearchMode && (
         <>

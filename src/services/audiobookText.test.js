@@ -68,6 +68,9 @@ describe('audiobook paragraph navigation', () => {
         const track = audioTracks.find(track => track.id === id)
         const validated = validateAudiobookTiming(data, track)
         expect(validated.spans.length).toBe(timing.spans.length)
+        expect(validated.sentenceSpans.length).toBeGreaterThan(0)
+        expect(validated.sentenceSpans.length * 2).toBeLessThanOrEqual(1000)
+        for (const span of validated.sentenceSpans) expect(matchingAudioParagraph(chapters, data.paragraphs[span.paragraph])).not.toBeNull()
         for (const span of validated.spans) expect(matchingAudioParagraph(chapters, data.paragraphs[span.paragraph])).not.toBeNull()
       }
     }
@@ -112,4 +115,20 @@ it('Maximus uses the complete historical recording excerpt with stable audio ide
   expect(tracks).toHaveLength(1)
   expect(tracks[0]).toMatchObject({ id: 'lv-b61af91e3bbc5c0154f8cc06', bytes: 19296652, textBookId: book.id })
   expect(tracks[0].url).toBe('https://archive.org/download/earlychurchcollection5_2502_librivox/ecc05_09_disputation_maximus_64kb.mp3')
+})
+
+it('sentence highlighting uses exact character ranges and rejects stale, overlapping or invalid ranges', async () => {
+  const { activeAudiobookSentence } = await import('./audiobookText')
+  const data = fixture()
+  data.tracks.track.sentenceSpans = [{ start: 50, end: 53, paragraph: '2:1', textStart: 0, textEnd: 9 }, { start: 54, end: 60, paragraph: '2:1', textStart: 10, textEnd: paragraph.text.length }]
+  const timing = validateAudiobookTiming(data, track)
+  expect(activeAudiobookSentence(track, timing, 51)).toMatchObject({ textStart: 0, textEnd: 9 })
+  expect(activeAudiobookSentence(track, timing, 54)).toMatchObject({ textStart: 10 })
+  expect(activeAudiobookSentence(track, timing, 53.5)).toBeNull()
+  expect(activeAudiobookSentence({ ...track, id: 'other' }, timing, 51)).toBeNull()
+  data.tracks.track.sentenceSpans[1].textEnd = paragraph.text.length + 1
+  expect(() => validateAudiobookTiming(data, track)).toThrow('sentence timings')
+  data.tracks.track.sentenceSpans[1].textEnd = paragraph.text.length
+  data.tracks.track.sentenceSpans[1].start = 52
+  expect(() => validateAudiobookTiming(data, track)).toThrow('sentence timings')
 })

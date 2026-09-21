@@ -20,7 +20,8 @@ test.beforeEach(async ({ page }) => {
 
 async function settings(page) {
   await page.getByTitle('Text size settings').click()
-  await page.getByRole('button', { name: 'Audio Settings', exact: true }).click()
+  await page.getByRole('button', { name: 'More settings', exact: true }).click()
+  await page.getByRole('button', { name: /^Audio Settings/ }).click()
   await expect(page.getByRole('heading', { name: 'Audio Settings' })).toBeVisible()
 }
 test('compact chapter playback seeks by verse, defaults to following and keeps annotations untouched', async ({ page }) => {
@@ -60,6 +61,7 @@ test('failed timing keeps playback available and settings preserve the follow pr
   await page.reload()
   await expect(page.getByLabel('Auto-scroll Bible recordings')).not.toBeChecked()
   await page.getByRole('button', { name: 'Browse chapters and audiobooks' }).click()
+  await page.getByRole('button', { name: 'Browse BSB books' }).click()
   await page.getByLabel('Search audio library').fill('Romans')
   await page.getByRole('button', { name: 'Tracks and downloads' }).click()
   await expect(page.getByRole('button', { name: /^Play Romans/ })).toHaveCount(16)
@@ -107,7 +109,9 @@ test('playback advances continuously into an untimed verse without inventing a s
   await expect(marked).toHaveAttribute('data-verse', '9', { timeout: 4000 })
   expect(await page.evaluate(() => window.audioReadingFrames)).not.toContain(null)
   await expect(marked).toBeInViewport()
-  await page.locator('#verse-8-9 [data-verse-content]').click()
+  const verseNine = page.locator('#verse-8-9 [data-verse-content]')
+  const point = await verseNine.evaluate(element => { const rect = element.getClientRects()[0]; return { x: rect.x + Math.min(20, rect.width / 2), y: rect.y + rect.height / 2 } })
+  await page.mouse.click(point.x, point.y)
   await expect(page.getByText('This verse has no verified audio position yet.')).toBeVisible()
   await expect(marked).toHaveAttribute('data-verse', '9')
   await page.locator('#verse-8-10 [data-verse-content]').click()

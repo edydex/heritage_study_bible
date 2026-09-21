@@ -11,6 +11,19 @@ async function submitSearch(page, query) {
   await page.getByRole('button', { name: 'Search' }).click()
 }
 
+async function tapVerseText(page, selector) {
+  const text = page.locator(`${selector} [data-verse-content]`)
+  await text.scrollIntoViewIfNeeded()
+  // Inline verses wrap across lines; the bounding-box center can be empty
+  // space or another verse. Tap an actual visible text line in either layout.
+  const point = await text.evaluate(node => {
+    const rect = [...node.getClientRects()].find(rect => rect.width > 0 && rect.top >= 110 && rect.bottom < innerHeight - 90)
+    if (!rect) throw new Error('Verse has no visible text line to tap')
+    return { x: rect.left + Math.min(20, rect.width / 2), y: rect.top + rect.height / 2 }
+  })
+  await page.mouse.click(point.x, point.y)
+}
+
 async function selectTextSnippet(page, verseSelector, snippet) {
   await page.evaluate(({ verseSelector, snippet }) => {
     const root = document.querySelector(`${verseSelector} [data-verse-content]`)
@@ -334,7 +347,7 @@ test.describe('Heritage reader', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await openReader(page, '/#/jeremiah/20', '#verse-20-1')
 
-    await page.locator('#verse-20-13 .verse-text').click()
+    await tapVerseText(page, '#verse-20-13')
     const enterSelection = page.getByRole('button', { name: /Select Verses/ })
     await expect(enterSelection).toBeVisible()
     await enterSelection.click()
@@ -344,7 +357,7 @@ test.describe('Heritage reader', () => {
     await expect(enterSelection).toBeHidden()
     await expect(page.locator('#verse-20-13')).toHaveAttribute('aria-pressed', 'true')
 
-    await page.locator('#verse-20-14').click()
+    await tapVerseText(page, '#verse-20-14')
     await expect(page.locator('#verse-20-14')).toHaveAttribute('aria-pressed', 'true')
     await expect(actions.getByText('2 verses selected')).toBeVisible()
     await expect(actions.getByRole('button', { name: /Copy/ })).toBeVisible()
@@ -390,7 +403,7 @@ test.describe('Heritage reader', () => {
     const actions = page.getByRole('region', { name: 'Selected text actions' })
     await expect(actions).toBeVisible()
 
-    await page.locator('#verse-3-17 .verse-text').click()
+    await tapVerseText(page, '#verse-3-17')
     await expect(actions).toBeHidden()
     await expect(page.getByRole('heading', { name: 'Commentary' })).toBeHidden()
   })
