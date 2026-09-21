@@ -1,6 +1,12 @@
-# Later: proposed prophecy-fulfillment context
+# Proposed prophecy-fulfillment context
 
-Add an optional table after a chronological plan's existing historical timeline.
+The first Egypt comparison is implemented in the chronological plan's Day 250
+note. See [source basis and implementation](PROPHECY-HISTORICAL-CONTEXT.md).
+It includes four limited comparisons and identifies unresolved features instead
+of assigning a date to every prediction. Specialist historical/theological
+review and expansion to other passages remain open.
+
+For additional passages, add an optional table after the existing historical timeline.
 Keep the dates of writing, narrated events, and proposed fulfillment in separate
 fields. Do not turn a proposed fulfillment into an established date merely
 because a timeline needs one position.
@@ -16,12 +22,13 @@ For each entry record:
 - A confidence/interpretation label explained in plain language, author/reviewer,
   and the date of source review.
 
-Begin research with Ezekiel 29–32 and proposed Egyptian campaigns. Compare the
+The initial research covers Ezekiel 29–32 and proposed Egyptian campaigns. Compare the
 wording and sequence of individual predictions with the historical evidence;
 explicitly discuss partial, disputed or unmatched features. Do not silently
 conflate a campaign, political subjugation and complete destruction.
 
 Acceptance: source review by a historically informed reader; visible uncertainty;
 clickable Scripture references; a table that remains usable on phones; and no
-change to the existing chronology when this optional section is hidden. This is
-planned research, not implemented or accepted historical content.
+change to the existing chronology when this optional section is hidden.
+The implemented Egypt comparison is preliminary editorial content, not a claim
+that specialist review or acceptance has occurred.

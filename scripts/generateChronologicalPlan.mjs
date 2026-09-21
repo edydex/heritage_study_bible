@@ -2,10 +2,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { bibleBooks } from '../src/data/bible-books.js'
 import { chronologicalTimelineAids } from './chronologicalTimelineAids.mjs'
+import { prophecyHistoricalContext } from './prophecyHistoricalContext.mjs'
 
 const totalDays = 365
-const generatorVersion = 11
-const planRevision = '2026-09-jeremiah-ezekiel-context'
+const generatorVersion = 12
+const planRevision = '2026-09-egypt-prophecy-context'
 
 const sourceNotes = [
   {
@@ -113,6 +114,7 @@ function note(id, title, text, sources = []) {
     text,
     sources,
     ...(chronologicalTimelineAids[id] ? { timeline: chronologicalTimelineAids[id] } : {}),
+    ...(prophecyHistoricalContext[id] ? { prophecyContext: prophecyHistoricalContext[id] } : {}),
   }
 }
 
@@ -565,6 +567,12 @@ const chronologicalSections = [
       ),
       'Jeremiah 37-38',
       'Ezekiel 24',
+      note(
+        'ezekiel-egypt-oracles',
+        'Ezekiel’s Egypt oracles: dates and proposed fulfillment',
+        'Ezekiel 29–32 gathers messages about Egypt rather than following a single chronological sequence. The headings move among the tenth, eleventh and twelfth years of Jehoiachin’s exile. The twenty-seventh-year message in 29:17–21 is later even than the twenty-fifth-year temple vision in 40:1. These are dates reported for the oracles and visions, not dates of fulfillment or a claim about the book’s final composition. The optional comparison below separately considers later Egyptian events.',
+        ['biblical_superscriptions', 'late_judah_biblical_timeline', 'ezekiel_esv_global_study_bible']
+      ),
       'Ezekiel 29-31',
       note(
         'jeremiah-appendix-oracles',
@@ -965,6 +973,7 @@ function toReadingItems(dayItems) {
         sourceLabels: (item.sources || []).map(source => sourceTitleById.get(source) || source),
         sourceLinks: (item.sources || []).map(source => sourceLinkById.get(source)).filter(Boolean),
         ...(item.timeline ? { timeline: item.timeline } : {}),
+        ...(item.prophecyContext ? { prophecyContext: item.prophecyContext } : {}),
       })
       continue
     }
@@ -985,6 +994,7 @@ function toNoteReadingItem(noteItem) {
     sourceLabels: (noteItem.sources || []).map(source => sourceTitleById.get(source) || source),
     sourceLinks: (noteItem.sources || []).map(source => sourceLinkById.get(source)).filter(Boolean),
     ...(noteItem.timeline ? { timeline: noteItem.timeline } : {}),
+    ...(noteItem.prophecyContext ? { prophecyContext: noteItem.prophecyContext } : {}),
   }
 }
 

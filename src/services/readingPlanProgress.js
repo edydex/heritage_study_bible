@@ -172,6 +172,7 @@ export function getBibleReadingItems(reading) {
           sourceLabels: Array.isArray(entry.sourceLabels) ? entry.sourceLabels : [],
           sourceLinks: Array.isArray(entry.sourceLinks) ? entry.sourceLinks : [],
           timeline: entry.timeline && typeof entry.timeline === 'object' ? entry.timeline : null,
+          prophecyContext: entry.prophecyContext && typeof entry.prophecyContext === 'object' ? entry.prophecyContext : null,
           index: items.length,
         })
         return

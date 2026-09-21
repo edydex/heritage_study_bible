@@ -8,6 +8,33 @@ async function loadPlan() {
   return JSON.parse(await readFile(planUrl, 'utf8'))
 }
 
+test('Egypt historical comparisons retain unknown dates and resolve their Scripture and historical sources', async () => {
+  const plan = await loadPlan()
+  const day = plan.readings.find(reading => reading.day === 250)
+  const note = day.items.find(item => item.id === 'ezekiel-egypt-oracles')
+  assert.ok(note, 'the optional comparison should be discoverable beside the Egypt readings')
+  assert.deepEqual(day.passages, ['Ezekiel 29-31'])
+  const context = note.prophecyContext
+  assert.equal(context.entries.find(entry => entry.id === 'egypt-forty-years').eventDate, null)
+  assert.equal(note.timeline.perspective, 'historical-situation')
+  assert.doesNotMatch(JSON.stringify(note.timeline), /568|567|525/,
+    'proposed fulfillment dates must not become dates on the oracle-setting timeline')
+  const sources = new Map(context.sources.map(source => [source.id, source]))
+  assert.equal(sources.size, context.sources.length)
+  for (const entry of context.entries) {
+    for (const id of entry.sourceIds) {
+      assert.ok(sources.has(id), `missing citation ${id}`)
+      assert.equal(new URL(sources.get(id).url).protocol, 'https:')
+    }
+    for (const ref of [...entry.passages, ...entry.contextPassages]) {
+      const slug = ref.book.toLowerCase().replaceAll(' ', '-')
+      const book = JSON.parse(await readFile(new URL(`../public/data/translations/BSB/${slug}.json`, import.meta.url), 'utf8'))
+      const chapter = book.chapters.find(chapter => chapter.number === ref.chapter)
+      assert.ok(chapter?.verses.some(verse => verse.number === ref.verse), `invalid link ${ref.label}`)
+    }
+  }
+})
+
 function flattenedItems(plan) {
   return plan.readings.flatMap(reading => reading.items.map(item => ({
     ...item,
@@ -42,7 +69,7 @@ test('late-Judah history frames Jeremiah without over-fragmenting it', async () 
   const items = flattenedItems(plan)
   const position = (book, chapter) => chapterPosition(items, book, chapter)
 
-  assert.equal(plan.revision, '2026-09-jeremiah-ezekiel-context')
+  assert.equal(plan.revision, '2026-09-egypt-prophecy-context')
   assert.ok(position('2 Kings', 22) < position('Jeremiah', 1))
   assert.ok(position('2 Chronicles', 35) < position('Jeremiah', 1))
   assert.ok(position('Jeremiah', 20) < position('2 Kings', 24))
@@ -145,7 +172,7 @@ test('every timeline aid uses a valid event-first situation track', async () => 
   const plan = await loadPlan()
   const timelineNotes = flattenedItems(plan).filter(item => item.type === 'note' && item.timeline)
 
-  assert.equal(timelineNotes.length, 40)
+  assert.equal(timelineNotes.length, 41)
 
   for (const note of timelineNotes) {
     const { timeline } = note

@@ -105,6 +105,7 @@ describe('reading plan items', () => {
           id: 'intro',
           title: 'Intro',
           text: 'Welcome',
+          prophecyContext: { entries: [{ eventDate: null, assessment: 'No secure historical match' }] },
           timeline: {
             startYear: 609,
             endYear: 586,
@@ -118,6 +119,7 @@ describe('reading plan items', () => {
     expect(items).toHaveLength(2)
     expect(items[0].type).toBe('plan-note')
     expect(items[0].timeline.contexts[0].label).toBe('Jeremiah 25')
+    expect(items[0].prophecyContext.entries[0]).toEqual({ eventDate: null, assessment: 'No secure historical match' })
     expect(items[1]).toMatchObject({ book: 'Psalms', chapter: 23 })
   })
 })
