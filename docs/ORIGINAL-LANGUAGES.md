@@ -26,11 +26,29 @@ npx vitest run src/data/hebrewOriginal.test.js
 ## Romans word links
 
 With BSB as the main text and Original languages as the parallel, Romans offers
-**Word links**. Six small underline patterns repeat. Hovering, keyboard focus or
-tapping identifies the exact corresponding Greek word and English phrase on
-both sides. Switching off Word links restores ordinary word taps for verse
-notes; selecting multiple verses pauses interactive links. The link display
-does not alter Scripture text, note/highlight offsets or saved annotations.
+**Word links**. Six subtle background tints repeat. **Settings → B&W word links**
+replaces them with patterns, including diagonal strokes distinct from dots.
+Hold a word (450 ms) or press **Shift+Enter** to identify its checked counterpart.
+Moving a finger cancels the hold so scrolling is not mistaken for a word action.
+
+Tap or press Enter on a word to open occurrences. Greek words use the source's
+actual lemma metadata, including inflected forms throughout all 27 NT books.
+BSB phrases with an installed Romans correspondence look up those same Greek
+lemmas. Multiple source lemmas remain separate choices. Other translations use
+explicitly labeled matching word forms; Hebrew/Aramaic currently searches the
+open book, not an unimplemented whole-OT lemma index. Tap a result to navigate to
+that verse. No verse notes are displayed or opened by ordinary parallel taps.
+Turning off correspondence colors/patterns retains word lookup. Multi-verse
+selection temporarily pauses word interactions. Saved annotations are unchanged.
+
+The generated Greek concordance has 137,779 source-word records and 5,401 distinct
+source lemma labels. The generator checks every word range against the exact
+installed verse text and pins the same morphology file SHA-256 as the reader:
+
+```sh
+python3 scripts/original-languages/build-concordance.py /path/to/Nestle1904/morph/Nestle1904.csv
+npx vitest run src/services/wordStudy.test.js
+```
 
 The links come from the [publisher’s BSB translation tables](https://berean.bible/downloads.htm),
 not generated translations or a Strong-number lookup. A source word may

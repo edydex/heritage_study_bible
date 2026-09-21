@@ -1,24 +1,37 @@
+import { useEffect, useRef } from 'react'
 import { splitParagraphText } from '../utils/verseLayout'
 import { getTextHighlightClasses } from '../utils/highlightColors'
 
-function WordLink({ link, activeWordLink, onWordLink, children }) {
+function WordLink({ link, activeWordLink, onWordLink, onWordTap, children }) {
+  const gesture = useRef(null), suppressClick = useRef(false)
+  const cancel = () => { if (gesture.current) clearTimeout(gesture.current.timer); gesture.current = null }
+  useEffect(() => cancel, [])
   const activate = event => {
-    if (globalThis.window?.getSelection?.()?.isCollapsed === false) return
     event.stopPropagation()
-    onWordLink?.(link)
+    if (suppressClick.current) { suppressClick.current = false; event.preventDefault(); return }
+    if (globalThis.window?.getSelection?.()?.isCollapsed === false) return
+    ;(onWordTap || onWordLink)?.(link)
   }
   return <span
-    className={`bible-word-link${activeWordLink === link.id ? ' bible-word-link-active' : ''}`}
+    className={`bible-word-link${link.paired === false ? ' bible-word-unpaired' : ''}${activeWordLink === link.id ? ' bible-word-link-active' : ''}`}
     data-word-link={link.id} data-word-pattern={link.pattern}
-    title={link.label} role="button" tabIndex={0} aria-label={link.label}
+    title={onWordTap ? 'Tap for occurrences; hold (or Shift+Enter) for translation match' : link.label} role="button" tabIndex={0} aria-label={link.label}
     aria-pressed={activeWordLink === link.id}
-    onMouseEnter={() => onWordLink?.(link)} onFocus={() => onWordLink?.(link)}
+    onPointerDown={event => {
+      if (!onWordTap || event.button !== 0) return
+      cancel(); suppressClick.current = false
+      const point = { x: event.clientX, y: event.clientY }
+      gesture.current = { ...point, timer: setTimeout(() => { suppressClick.current = true; onWordLink?.(link); gesture.current = null }, 450) }
+    }}
+    onPointerMove={event => { if (gesture.current && Math.hypot(event.clientX - gesture.current.x, event.clientY - gesture.current.y) > 10) { cancel(); suppressClick.current = true } }}
+    onPointerUp={cancel} onPointerCancel={() => { cancel(); suppressClick.current = true }} onPointerLeave={cancel}
+    onContextMenu={event => { if (onWordTap) event.preventDefault() }}
     onClick={activate}
-    onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(event) } }}
+    onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); if (event.shiftKey) onWordLink?.(link); else activate(event) } }}
   >{children}</span>
 }
 
-function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLinks, activeWordLink, onWordLink) {
+function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLinks, activeWordLink, onWordLink, onWordTap) {
   const boundaries = new Set([0, text.length])
   const annotations = [...highlights, ...wordLinks]
   annotations.forEach(highlight => {
@@ -53,17 +66,17 @@ function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLin
       : <span key={`${keyPrefix}-t${index}`}>{value}</span>
     const link = wordLinks.find(item => item.startOffset < startOffset + end && item.endOffset > startOffset + start)
     return link
-      ? <WordLink key={`${keyPrefix}-w${index}`} link={link} activeWordLink={activeWordLink} onWordLink={onWordLink}>{rendered}</WordLink>
+      ? <WordLink key={`${keyPrefix}-w${index}`} link={link} activeWordLink={activeWordLink} onWordLink={onWordLink} onWordTap={onWordTap}>{rendered}</WordLink>
       : rendered
   })
 }
 
-function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks, activeWordLink, onWordLink) {
+function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap) {
   let cursor = startOffset
   return line.split(/(<b>.*?<\/b>)/g).map((part, index) => {
     const match = part.match(/^<b>(.*?)<\/b>$/)
     const value = match ? match[1] : part
-    const rendered = renderHighlightedText(value, cursor, highlights, `${keyPrefix}-${index}`, wordLinks, activeWordLink, onWordLink)
+    const rendered = renderHighlightedText(value, cursor, highlights, `${keyPrefix}-${index}`, wordLinks, activeWordLink, onWordLink, onWordTap)
     cursor += value.length
     if (match) {
       return <strong key={`${keyPrefix}-b${index}`} className="font-bold">{rendered}</strong>
@@ -88,7 +101,7 @@ function ParagraphMarker() {
   )
 }
 
-export default function VerseText({ text, layout = null, highlights = [], wordLinks = [], activeWordLink = null, onWordLink }) {
+export default function VerseText({ text, layout = null, highlights = [], wordLinks = [], activeWordLink = null, onWordLink, onWordTap }) {
   const { startsParagraph, segments } = splitParagraphText(text)
   const showLeadingMarker = startsParagraph || Boolean(layout?.breakBefore)
   let currentOffset = 0
@@ -116,7 +129,7 @@ export default function VerseText({ text, layout = null, highlights = [], wordLi
                 return (
                   <span key={`line-${lineIndex}`}>
                     {lineIndex > 0 && <><br /><span data-selection-ignore className="inline-block w-4" /></>}
-                    {renderFormattedLine(line, `${segmentIndex}-${lineIndex}`, lineOffset, highlights, wordLinks, activeWordLink, onWordLink)}
+                    {renderFormattedLine(line, `${segmentIndex}-${lineIndex}`, lineOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap)}
                   </span>
                 )
               })()

@@ -44,3 +44,11 @@ export function matchingAudioParagraph(chapters, target) {
   const paragraph = chapters?.[target.chapterIndex]?.paragraphs?.[target.paragraphIndex]
   return typeof paragraph === 'string' && paragraph === target.text ? target : null
 }
+
+// Live following never jumps into a nearby paragraph during unaligned speech.
+export function activeAudiobookParagraph(track, timing, position) {
+  if (!track || timing?.trackId !== track.id || !Number.isFinite(position)) return null
+  const span = timing.spans.find(span => position >= span.start && position < span.end)
+  const paragraph = span && timing.paragraphs[span.paragraph]
+  return paragraph ? { ...paragraph, trackId: track.id } : null
+}

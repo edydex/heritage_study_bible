@@ -37,11 +37,13 @@ export function verseWordLinks(data, chapter, verse, sourceText, targetText) {
     source: entry.groups.map(group => ({
       id: `${chapter}:${verse}:${group.id}`, pattern: group.id % 6,
       startOffset: group.source[0], endOffset: group.source[1],
+      sourceRange: group.source,
       label: `${source.slice(...group.source)} ↔ ${target.slice(...group.target)}`,
     })),
     target: entry.groups.map(group => ({
       id: `${chapter}:${verse}:${group.id}`, pattern: group.id % 6,
       startOffset: group.target[0], endOffset: group.target[1],
+      sourceRange: group.source,
       label: `${source.slice(...group.source)} ↔ ${target.slice(...group.target)}`,
     })),
   }

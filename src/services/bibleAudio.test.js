@@ -45,4 +45,20 @@ describe('Bible audio edition and timing boundaries', () => {
     expect(bibleAudioDestination(track, timing, 15).state.scrollToVerse).toBeUndefined()
     expect(bibleAudioDestination(track, timing, 5)).toMatchObject({ path: '/romans/1', state: { audioTranslation: 'BSB', audioNavigation: true, scrollToVerse: { verse: 1 } } })
   })
+  it('keeps the complete-text replacement across all books, including reported Romans 8 gaps', () => {
+    const audit = JSON.parse(readFileSync('scripts/bible-audio/full-text-audit.json', 'utf8'))
+    expect(audit.chapters).toHaveLength(1189)
+    expect(audit.counts).toMatchObject({ total: 31102, accepted: 29630, 'no-spoken-text': 16 })
+    expect(audioTracks.filter(track => track.bible).reduce((sum, track) => sum + track.bible.timedVerses, 0)).toBe(audit.counts.accepted)
+    const romans = JSON.parse(readFileSync('public/data/audio/bsb-hays/romans.json', 'utf8')).chapters[8]
+    expect(romans.verses).toHaveLength(38)
+    for (const verse of [2, 3, 6, 7, 8]) {
+      const span = romans.verses.find(row => row.verse === verse)
+      expect(activeAudioVerse(romans, (span.start + span.end) / 2)).toMatchObject({ verse })
+    }
+    expect(romans.verses.some(row => row.verse === 9)).toBe(false)
+    const matthew = JSON.parse(readFileSync('public/data/audio/bsb-hays/matthew.json', 'utf8')).chapters[17]
+    expect(matthew.verses.some(row => row.verse === 21)).toBe(false)
+    expect(matthew.verses.some(row => row.verse === 22)).toBe(true)
+  })
 })

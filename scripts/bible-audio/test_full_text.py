@@ -12,6 +12,17 @@ def word(text, start, end, score=.9):
 
 
 class CompleteTextAssessment(unittest.TestCase):
+    def test_preserves_intentionally_blank_verse_without_consuming_audio(self):
+        verses = [{'number': 20, 'text': 'Light'}, {'number': 21, 'text': ''}, {'number': 22, 'text': 'Darkness'}]
+        result = module.assess(verses, [word('light', 0, 1), word('darkness', 2, 3)], 4)
+        self.assertEqual(result[1]['reasons'], ['no-spoken-text'])
+        self.assertEqual(result[1]['words'], [])
+        self.assertEqual(result[2]['start'], 2)
+        # A blank verse must not hide an overlap between spoken verses.
+        overlap = module.assess(verses, [word('light', 0, 2.5), word('darkness', 2, 3)], 4)
+        self.assertIn('verse-overlap', overlap[0]['reasons'])
+        self.assertIn('verse-overlap', overlap[2]['reasons'])
+
     def test_preserves_complete_verse_and_rejects_truncation(self):
         verses = [{'number': 3, 'text': 'And there was light.'}]
         words = [word(w, i, i + .8) for i, w in enumerate(['and', 'there', 'was', 'light'])]

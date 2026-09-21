@@ -1,9 +1,11 @@
+import { useHeritageAudio } from './audio/AudioProvider'
+import { interactiveWordRanges } from '../services/wordStudy'
+import WordStudyDialog from './WordStudyDialog'
 import { getTranslationById } from '../data/translations'
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
 import VerseText from './VerseText'
 import { loadRomansWordLinks, verseWordLinks, originalSourceForBook, originalVerseLanguage } from '../data/originalLanguages'
 import { getVerseLayout } from '../utils/verseLayout'
-import InlineVerseNotes, { getInlineNotesAfterVerse } from './InlineVerseNotes'
 import { getParallelVerseHighlightClasses } from '../utils/highlightColors'
 
 function MissingVerse({ translationId }) {
@@ -21,6 +23,7 @@ function ParallelBibleChapter({
   secondaryTranslationId,
   hasCommentary,
   onVerseClick,
+  onOccurrenceNavigate,
   isBookmarked,
   isVerseHighlighted,
   getVerseHighlightColor,
@@ -35,6 +38,10 @@ function ParallelBibleChapter({
   secondaryVerseLayout = null,
   selectionMode = false,
 }) {
+  const audio = useHeritageAudio()
+  const [study, setStudy] = useState(null)
+  const [heldMessage, setHeldMessage] = useState('')
+  const holdWord = word => { setActiveWord(word.paired ? word : null); setHeldMessage(word.paired ? word.label : 'No checked translation match is installed for this word.') }
   const containerRef = useRef(null)
   const rowRefs = useRef({})
   const [alignment, setAlignment] = useState(null)
@@ -54,7 +61,7 @@ function ParallelBibleChapter({
       .catch(() => { if (!cancelled) setLinkError('Word links could not load. The Bible text is still available.') })
     return () => { cancelled = true }
   }, [canLink, linkRetry])
-  useEffect(() => { setActiveWord(null) }, [bookName, primaryChapter.number, showWordLinks, selectionMode])
+  useEffect(() => { setActiveWord(null); setStudy(null); setHeldMessage('') }, [bookName, primaryChapter.number, showWordLinks, selectionMode])
 
 
   const primaryVerseMap = useMemo(() => {
@@ -124,7 +131,7 @@ function ParallelBibleChapter({
 
   return (
     <div
-      className={`bg-white dark:bg-black rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8 ${selectionMode ? 'verse-selection-mode' : ''}`}
+      className={`parallel-word-study ${audio?.settings.parallelMonochrome ? 'word-links-monochrome' : 'word-links-color'} bg-white dark:bg-black rounded-none sm:rounded-xl shadow-none sm:shadow-md px-1 py-1 sm:p-6 md:p-8 ${selectionMode ? 'verse-selection-mode' : ''}`}
       ref={containerRef}
     >
       {original && <div className="mb-4 rounded-lg border border-gray-200 p-3 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
@@ -135,13 +142,15 @@ function ParallelBibleChapter({
         {hebrew && !numberingUnsupported && secondaryChapter?.superscription && <div className="mt-3 border-t pt-2"><p className="text-xs">Hebrew source heading · {secondaryChapter.superscription.sourceRefs.join(', ')}</p><p dir="rtl" lang="he" className="mt-1 text-lg">{secondaryChapter.superscription.text}</p></div>}
         {canLink ? <>
           <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={showWordLinks} onChange={event => setShowWordLinks(event.target.checked)} /> Word links</label>
-          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Matching underline patterns connect Greek words and BSB phrases. Patterns repeat; hover, tap or focus a word to identify its exact match. Links are omitted where source wording differs. Turn off Word links to open verse notes by tapping a word.</p><p className="mt-1">Links come from Berean’s published translation tables. This is a named scholarly edition of the Greek New Testament.</p></details>}
+          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Matching tints (or underline patterns in B&W mode) connect Greek words and BSB phrases. Tap a word for its occurrences. Hold it, or press Shift+Enter, to identify its translation match. Links are omitted where source wording differs.</p><p className="mt-1">Links come from Berean’s published translation tables. This is a named scholarly edition of the Greek New Testament.</p></details>}
           {selectionMode && showWordLinks && <p className="mt-1 text-xs">Word links pause while selecting verses.</p>}
           {linkError && <p role="status" className="mt-2">{linkError} <button className="underline" onClick={() => setLinkRetry(value => value + 1)}>Retry links</button></p>}
           {showWordLinks && !alignment && !linkError && <p role="status" className="mt-1 text-xs">Loading word links…</p>}
-          {showWordLinks && activeWord && !selectionMode && <p aria-live="polite" className="mt-2 font-medium">{activeWord.label}</p>}
+
         </> : <p className="mt-1 text-xs">Word links are available with BSB in Romans.</p>}
       </div>}
+      {heldMessage && <div role="status" className="sticky top-16 z-20 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2 flex items-center justify-between gap-3"><span>{heldMessage}</span><button aria-label="Clear word match" onClick={() => { setActiveWord(null); setHeldMessage('') }}>✕</button></div>}
+      {study && <WordStudyDialog word={study} onClose={() => setStudy(null)} onNavigate={onOccurrenceNavigate} />}
       <div className="space-y-2">
         {verseNumbers.map((verseNumber) => {
           const primaryVerse = primaryVerseMap.get(verseNumber)
@@ -160,10 +169,9 @@ function ParallelBibleChapter({
 
           const primaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, primaryTranslationId, primaryVerse?.text || '') || []
           const secondaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, secondaryTranslationId, secondaryVerse?.text || '') || []
-          const inlineNotes = selectionMode ? [] : [
-            ...getInlineNotesAfterVerse(notes, bookName, primaryChapter.number, verseNumber, primaryTranslationId),
-            ...getInlineNotesAfterVerse(notes, bookName, primaryChapter.number, verseNumber, secondaryTranslationId),
-          ].filter((note, index, rows) => rows.findIndex(item => item.id === note.id) === index)
+          const context = { book: bookName, chapter: primaryChapter.number, verse: verseNumber }
+          const primaryWords = selectionMode ? [] : interactiveWordRanges(primaryVerse?.text || '', links?.target, { ...context, translationId: primaryTranslationId })
+          const secondaryWords = selectionMode ? [] : interactiveWordRanges(secondaryVerse?.text || '', links?.source, { ...context, translationId: secondaryTranslationId })
           const rowClassName = `relative rounded-lg border transition-all ${selectionMode ? 'verse-selection-target cursor-pointer' : ''} ${startsParagraph ? 'mt-4' : ''} ${
             selected
               ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700'
@@ -215,7 +223,7 @@ function ParallelBibleChapter({
                     data-verse={verseNumber}
                     data-translation={primaryTranslationId}
                   >
-                    {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} wordLinks={links?.target} activeWordLink={activeWord?.id} onWordLink={setActiveWord} /> : <MissingVerse translationId={primaryTranslationId} />}
+                    {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={holdWord} onWordTap={setStudy} /> : <MissingVerse translationId={primaryTranslationId} />}
                   </p>
                   {!selectionMode && <button
                     onClick={(event) => {
@@ -246,7 +254,7 @@ function ParallelBibleChapter({
                     dir={original ? source.direction : undefined}
                     lang={hebrew ? secondaryVerse?.languages?.length === 1 ? secondaryVerse.languages[0] : 'he' : original ? 'grc' : undefined}
                   >
-                    {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} wordLinks={links?.source} activeWordLink={activeWord?.id} onWordLink={setActiveWord} /> : <MissingVerse translationId={secondaryTranslationId} />}
+                    {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} wordLinks={secondaryWords} activeWordLink={activeWord?.id} onWordLink={holdWord} onWordTap={setStudy} /> : <MissingVerse translationId={secondaryTranslationId} />}
                   </p>
                 </div>
               </div>
@@ -265,7 +273,7 @@ function ParallelBibleChapter({
                       data-verse={verseNumber}
                       data-translation={primaryTranslationId}
                     >
-                      {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} wordLinks={links?.target} activeWordLink={activeWord?.id} onWordLink={setActiveWord} /> : <MissingVerse translationId={primaryTranslationId} />}
+                      {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={holdWord} onWordTap={setStudy} /> : <MissingVerse translationId={primaryTranslationId} />}
                     </p>
                     {!selectionMode && <button
                       onClick={(event) => {
@@ -299,7 +307,7 @@ function ParallelBibleChapter({
                       dir={original ? source.direction : undefined}
                       lang={hebrew ? secondaryVerse?.languages?.length === 1 ? secondaryVerse.languages[0] : 'he' : original ? 'grc' : undefined}
                     >
-                      {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} wordLinks={links?.source} activeWordLink={activeWord?.id} onWordLink={setActiveWord} /> : <MissingVerse translationId={secondaryTranslationId} />}
+                      {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} wordLinks={secondaryWords} activeWordLink={activeWord?.id} onWordLink={holdWord} onWordTap={setStudy} /> : <MissingVerse translationId={secondaryTranslationId} />}
                     </p>
                   </div>
                 </div>
@@ -308,7 +316,6 @@ function ParallelBibleChapter({
                 <span>{originalVerseLanguage(secondaryVerse)} · WLC {secondaryVerse.sourceRefs?.join(', ')}</span>
                 {secondaryVerse.variants?.length > 0 && <details className="mt-1"><summary>Readings (qere)</summary>{secondaryVerse.variants.map((variant, i) => <p key={i} className="mt-1">Written: <bdi dir="rtl" className="text-base">{variant.written}</bdi> · Read: <bdi dir="rtl" className="text-base">{variant.reading}</bdi></p>)}</details>}
               </div>}
-              <InlineVerseNotes notes={inlineNotes} />
             </div>
           )
         })}

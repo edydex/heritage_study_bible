@@ -18,6 +18,10 @@ from pathlib import Path
 MODEL_URL = 'https://dl.fbaipublicfiles.com/mms/torchaudio/ctc_alignment_mling_uroman/model.pt'
 MODEL_SHA = '20ef12963ab4924bef49ac4fc7f58ad5da2ee43b2c11bc8c853c9b90ecdbc680'
 SAMPLE_RATE = 16000
+# This earlier pipeline uses identical acoustic inference and assessment for
+# nonempty verses. Its cached results retain their original provenance; only
+# chapters containing deliberately blank BSB verse entries need recomputing.
+COMPATIBLE_PIPELINES = {'e70e5cdcc308ebe7bca188d32c6be8da0f76914f9bf7f8ffb9bcf4f080a95e64'}
 
 
 def sha(data):
@@ -39,6 +43,10 @@ def assess(verses, records, duration):
     result, cursor = [], 0
     for verse in verses:
         words = tokens(verse['text'])
+        if not words:
+            result.append({'verse': verse['number'], 'text': '', 'start': 0,
+                           'end': 0, 'score': 0, 'words': [], 'reasons': ['no-spoken-text']})
+            continue
         subset = records[cursor:cursor + len(words)]
         cursor += len(words)
         if not words or [w['text'] for w in subset] != words:
@@ -62,7 +70,8 @@ def assess(verses, records, duration):
                        'end': end, 'score': score, 'words': subset, 'reasons': reasons})
     if cursor != len(records):
         raise ValueError('Extra aligned words')
-    for a, b in zip(result, result[1:]):
+    spoken = [row for row in result if row['words']]
+    for a, b in zip(spoken, spoken[1:]):
         if a['end'] > b['start'] + .001:
             for row in (a, b):
                 if 'verse-overlap' not in row['reasons']:
@@ -122,7 +131,10 @@ def run(args):
         try:
             if result_path.exists():
                 saved = json.loads(result_path.read_text())
-                if saved['inputSha256'] != input_sha or saved['model'] != provenance:
+                saved_model = saved['model'].copy()
+                if saved_model['pipelineSha256'] in COMPATIBLE_PIPELINES:
+                    saved_model['pipelineSha256'] = provenance['pipelineSha256']
+                if saved['inputSha256'] != input_sha or saved_model != provenance:
                     raise ValueError('Staged result source/model differs; use a separate output directory')
                 if saved['verses'] != assess(item['verses'], [w for v in saved['verses'] for w in v['words']], track['duration']):
                     raise ValueError('Staged result failed revalidation')

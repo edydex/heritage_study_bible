@@ -1,18 +1,22 @@
 import { audiobookDestination, loadAudiobookTiming } from '../../services/audiobookText'
 import { bibleAudioDestination, loadBibleAudioTiming } from '../../services/bibleAudio'
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { createPlatformAudioPlayer } from '../../services/nativeAudioPlayer'
 import { formatAudioTime, getAudioTrack, nextAudioTrack } from '../../services/audioCatalog'
+import { getStoredValue, setStoredValue, STORAGE_KEYS } from '../../services/persistentStorage'
 import './audio.css'
 
 const AudioContext = createContext(null)
 export const useHeritageAudio = () => useContext(AudioContext)
+export function AudioPlayerControls() {
+  const audio = useHeritageAudio()
+  return audio ? <PlayerHost {...audio} /> : null
+}
 function PlayerHost({ player, state }) {
   const navigate = useNavigate()
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   const track = getAudioTrack(state.trackId)
-  const bar = useRef(null)
   const [timing, setTiming] = useState(null)
   useEffect(() => {
     let cancelled = false
@@ -21,24 +25,9 @@ function PlayerHost({ player, state }) {
     return () => { cancelled = true }
   }, [track?.id])
   const destination = track?.bible ? bibleAudioDestination(track, timing, state.position) : audiobookDestination(track, timing, state.position)
-  useEffect(() => {
-    const persist = () => player.persist()
-    window.addEventListener('pagehide', persist)
-    document.addEventListener('visibilitychange', persist)
-    return () => { window.removeEventListener('pagehide', persist); document.removeEventListener('visibilitychange', persist) }
-  }, [player])
-  useEffect(() => {
-    if (!track || !bar.current) return
-    const setHeight = () => document.documentElement.style.setProperty('--audio-player-height', `${bar.current?.offsetHeight || 0}px`)
-    setHeight()
-    const observer = new ResizeObserver(setHeight)
-    observer.observe(bar.current)
-    return () => { observer.disconnect(); document.documentElement.style.removeProperty('--audio-player-height') }
-  }, [track?.id, expanded])
   return <>
     {track && <>
-      <div className="audio-player-spacer" />
-      <section ref={bar} className="audio-player" aria-label="Audio player">
+      <section className="audio-player audio-player-inline" aria-label="Audio player">
         <div className="audio-player-row">
           <button type="button" className="audio-player-title" onClick={() => setExpanded(value => !value)} aria-expanded={expanded}>
             <strong>{track.bookTitle}</strong><span>{track.title} · {formatAudioTime(state.position)} {state.offline ? '· Offline' : ''}</span>
@@ -69,6 +58,20 @@ const noSubscribe = () => () => {}
 const emptySnapshot = () => emptyState
 export default function AudioProvider({ children }) {
   const navigate = useNavigate()
+  const location = useLocation()
+  const defaults = { followBible: true, followBooks: true, parallelMonochrome: false }
+  const [settings, setSettings] = useState(defaults)
+  const settingsChanged = useRef(false)
+  useEffect(() => {
+    getStoredValue(STORAGE_KEYS.audioSettings).then(raw => {
+      if (settingsChanged.current) return
+      try { const value = JSON.parse(raw); setSettings({ followBible: value?.followBible !== false, followBooks: value?.followBooks !== false, parallelMonochrome: value?.parallelMonochrome === true }) } catch {}
+    })
+  }, [])
+  const updateSettings = changes => {
+    settingsChanged.current = true
+    setSettings(previous => { const next = { ...previous, ...changes }; setStoredValue(STORAGE_KEYS.audioSettings, JSON.stringify(next)); return next })
+  }
   const navigateRef = useRef(navigate)
   navigateRef.current = navigate
   const [player, setPlayer] = useState(null)
@@ -80,9 +83,25 @@ export default function AudioProvider({ children }) {
     return () => instance.dispose()
   }, [])
   const state = useSyncExternalStore(player?.subscribe || noSubscribe, player?.getSnapshot || emptySnapshot)
+  useEffect(() => {
+    if (!player) return
+    const persist = () => player.persist()
+    window.addEventListener('pagehide', persist)
+    document.addEventListener('visibilitychange', persist)
+    return () => { window.removeEventListener('pagehide', persist); document.removeEventListener('visibilitychange', persist) }
+  }, [player])
+  const previousTrack = useRef(null)
+  useEffect(() => {
+    const old = getAudioTrack(previousTrack.current), current = getAudioTrack(state.trackId)
+    if (state.status !== 'playing') return
+    previousTrack.current = state.trackId
+    if (settings.followBible && state.status === 'playing' && old?.bible && current?.bible && old.id !== current.id
+      && location.pathname === `/${old.bible.slug}/${old.bible.chapter}`) {
+      navigate(`/${current.bible.slug}/${current.bible.chapter}`, { state: { audioTranslation: current.bible.translation } })
+    }
+  }, [state.trackId, state.status, settings.followBible, location.pathname, navigate])
   // Keep the provider and route tree stable while saved audio loads.
-  return <AudioContext.Provider value={player ? { player, state } : null}>
+  return <AudioContext.Provider value={player ? { player, state, settings, updateSettings } : null}>
     {children}
-    {player && <PlayerHost player={player} state={state} />}
   </AudioContext.Provider>
 }

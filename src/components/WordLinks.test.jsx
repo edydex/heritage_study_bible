@@ -27,14 +27,15 @@ const props = {
 }
 
 describe('parallel word links', () => {
-  it('identifies exact counterparts with keyboard focus and lets readers return to normal verse taps', async () => {
+  it('identifies counterparts with Shift+Enter and keeps word lookup available when pairing is off', async () => {
     const { container } = render(<ParallelBibleChapter {...props} />)
     await waitFor(() => expect(container.querySelector('[data-word-link="1:1:0"]')).toBeTruthy())
-    fireEvent.focus(container.querySelector('[data-word-link="1:1:0"]'))
+    fireEvent.keyDown(container.querySelector('[data-word-link="1:1:0"]'), { key: 'Enter', shiftKey: true })
     expect(screen.getByText('Παῦλος ↔ Paul')).toBeInTheDocument()
     expect(container.querySelectorAll('.bible-word-link-active')).toHaveLength(4) // desktop and mobile source/target
     fireEvent.click(screen.getByLabelText('Word links'))
-    expect(container.querySelector('[data-word-link]')).toBeNull()
+    expect(container.querySelector('[data-word-link]')).toBeTruthy()
+    expect(container.querySelector('[data-word-pattern]')).toBeNull()
   })
   it('pauses interactive word links during verse selection', async () => {
     const { container } = render(<ParallelBibleChapter {...props} selectionMode />)

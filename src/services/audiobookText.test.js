@@ -73,3 +73,13 @@ describe('audiobook paragraph navigation', () => {
     }
   })
 })
+
+it('live following leaves unmatched narration blank instead of jumping to a nearby paragraph', async () => {
+  const { activeAudiobookParagraph } = await import('./audiobookText')
+  const track = { id: 'one' }
+  const timing = { trackId: 'one', spans: [{ start: 10, end: 20, paragraph: 0 }], paragraphs: [{ chapterIndex: 1, paragraphIndex: 2, text: 'Exact text' }] }
+  expect(activeAudiobookParagraph(track, timing, 15)).toMatchObject({ chapterIndex: 1, paragraphIndex: 2 })
+  expect(activeAudiobookParagraph(track, timing, 9)).toBeNull()
+  expect(activeAudiobookParagraph(track, timing, 20)).toBeNull()
+  expect(activeAudiobookParagraph({ id: 'other' }, timing, 15)).toBeNull()
+})

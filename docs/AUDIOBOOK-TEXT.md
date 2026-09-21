@@ -1,6 +1,6 @@
 # Navigate from an audiobook to its text
 
-Expand the internal player and choose **Go to nearby text**. It opens the book at
+Open **Audio Settings** or **Audio library** and choose **Go to nearby text**. It opens the book at
 a checked paragraph near the playback timestamp, scrolls it into view, and adds
 a temporary gray marker. This does not create a highlight or note and does not
 start playback. The link contains the recording identity and timestamp so it
@@ -9,6 +9,16 @@ can recover after a browser reload. It never copies a transcript over the book.
 The control remains **Open book text** when no nearby match is available, during
 narrator introductions or long unmatched passages, and after a timing-load
 failure. Audio playback and saved position are independent of timing data.
+
+## Follow while listening
+
+Audio Settings enables **Auto-scroll audiobooks** by default. When the matching
+text edition is open, its checked playing paragraph receives a gray marker and
+stays in view, including across chapter boundaries. The bottom chapter bar has
+Play/Pause; there is no extra fixed player covering the text. Disable following
+in Audio Settings to browse freely. Live following leaves unmatched speech blank;
+the explicit nearby-text button can still use its bounded 20-second fallback.
+Live following does not steal keyboard focus or create saved annotations.
 
 ## What the match means
 
