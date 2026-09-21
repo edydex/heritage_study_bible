@@ -1,18 +1,25 @@
 'use client'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import {usePresentationAccessibility,PresentationColorInput} from './PresentationAccessibility'
+import {patternImage,paletteColor} from './presentationPalette'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 
 type Span = Record<string, any>
 const EMPTY_SPANS: Span[] = []
 type SelectionRange = { start: number; end: number; x: number; y: number }
 
-export default function SlideText({ text, label, role, placeholder, spans = EMPTY_SPANS, readOnly = false, canFormat = false, onDraftChange, onAdvance, onCommit }: {
-  text: string; label: string; role: string; placeholder?: string; spans?: Span[]; readOnly?: boolean; canFormat?: boolean;
+export default function SlideText({ baseColor, text, label, role, placeholder, spans = EMPTY_SPANS, readOnly = false, canFormat = false, onDraftChange, onAdvance, onCommit }: {
+  baseColor?:string; text: string; label: string; role: string; placeholder?: string; spans?: Span[]; readOnly?: boolean; canFormat?: boolean;
   onDraftChange?: (text: string, spans: Span[]) => void;
   onAdvance?: () => void;
   onCommit: (text: string, spans: Span[]) => void
 }) {
+  const {monochrome}=usePresentationAccessibility()
+  const paintedMode=useRef(monochrome)
+  const paintedBase=useRef(baseColor)
+  const [foreground,setForeground]=useState('#ffc000')
+  const [background,setBackground]=useState('#8a5a00')
   const element = useRef<HTMLDivElement>(null)
   const toolbar = useRef<HTMLDivElement>(null)
   const draft = useRef({ text, spans })
@@ -39,28 +46,46 @@ export default function SlideText({ text, label, role, placeholder, spans = EMPT
     if (!node) return
     node.replaceChildren()
     let offset = 0
+    const appendPlain=(text:string)=>{
+      if(!text)return
+      if(monochrome && baseColor && !['White','Black'].includes(paletteColor(baseColor).name)) {
+        const part=document.createElement('span'); part.textContent=text;part.className='presentation-pattern-foreground';part.style.backgroundImage=patternImage(baseColor);node.append(part)
+      } else node.append(document.createTextNode(text))
+    }
     for (const span of draft.current.spans) {
-      node.append(document.createTextNode(draft.current.text.slice(offset, span.start)))
+      appendPlain(draft.current.text.slice(offset, span.start))
       const fragment = document.createElement('span')
       fragment.textContent = draft.current.text.slice(span.start, span.end)
-      if (span.foreground) fragment.style.color = span.foreground
-      if (span.background) fragment.style.backgroundColor = span.background
+      const foreground=span.foreground || baseColor
+      if (span.foreground) fragment.style.color = monochrome ? '#111111' : span.foreground
+      if(monochrome && foreground && !['White','Black'].includes(paletteColor(foreground).name)) { fragment.className='presentation-pattern-foreground'; fragment.style.backgroundImage=patternImage(foreground) }
+      if (span.background) {
+        fragment.style.backgroundColor = monochrome ? 'white' : span.background
+        if(monochrome) {
+          fragment.style.backgroundImage=(foreground ? `${patternImage(foreground)}, ` : '')+patternImage(span.background,true)
+          fragment.style.backgroundRepeat=foreground?'repeat-x, repeat':'repeat'
+          fragment.style.backgroundSize=foreground?'8px 4px, 8px 8px':'8px 8px'
+          fragment.style.backgroundPosition=foreground?'left bottom, left top':'left top'
+        }
+      }
       if (span.weight) fragment.style.fontWeight = span.weight
       if (span.fontScale) fragment.style.fontSize = `${span.fontScale}em`
       if (span.italic !== undefined) fragment.style.fontStyle = span.italic ? 'italic' : 'normal'
       if (span.underline !== undefined) fragment.style.textDecoration = span.underline ? 'underline' : 'none'
       node.append(fragment); offset = span.end
     }
-    node.append(document.createTextNode(draft.current.text.slice(offset)))
+    appendPlain(draft.current.text.slice(offset))
     node.dataset.empty = String(!draft.current.text.length)
     painted.current = true
+    paintedMode.current = monochrome
+    paintedBase.current = baseColor
   }
   useLayoutEffect(() => {
     // Echoing a live edit through React must not replace the focused DOM/caret.
-    if (painted.current && text === draft.current.text && JSON.stringify(spans) === JSON.stringify(draft.current.spans)) return
+    if (painted.current && paintedMode.current===monochrome && paintedBase.current===baseColor && text === draft.current.text && JSON.stringify(spans) === JSON.stringify(draft.current.spans)) return
     draft.current = { text, spans }; paint()
     if (rangeRef.current && document.activeElement === element.current) restore(rangeRef.current.start, rangeRef.current.end)
-  }, [text, spans])
+  }, [text, spans, monochrome, baseColor])
   useEffect(() => {
     if (!canFormat) return
     const update = () => {
@@ -123,7 +148,7 @@ export default function SlideText({ text, label, role, placeholder, spans = EMPT
     const caret = document.createRange(); caret.selectNodeContents(element.current); caret.collapse(true)
     const selection = window.getSelection(); selection?.removeAllRanges(); selection?.addRange(caret)
   }
-  return <><div ref={element} className="heritage-service-planner__editable-text" data-role={role} data-fit-text data-empty={!text.length} data-placeholder={readOnly ? undefined : placeholder} aria-placeholder={readOnly ? undefined : placeholder}
+  return <><div ref={element} className="heritage-service-planner__editable-text" style={monochrome ? {color:'#111111'} : undefined} data-role={role} data-fit-text data-empty={!text.length} data-placeholder={readOnly ? undefined : placeholder} aria-placeholder={readOnly ? undefined : placeholder}
     contentEditable={readOnly ? false : 'plaintext-only'} suppressContentEditableWarning
     role={!readOnly || canFormat ? 'textbox' : undefined} aria-readonly={readOnly && canFormat || undefined} aria-multiline={!readOnly || canFormat || undefined} aria-label={label} tabIndex={readOnly && canFormat ? 0 : undefined}
     onInput={input} onFocus={()=>{editStart.current=draft.current;focusEmpty()}} onPointerUp={focusEmpty} onBlur={event => { if (!toolbar.current?.contains(event.relatedTarget as Node)) { commit(); rangeRef.current = null; setRange(null) } }}
@@ -136,8 +161,8 @@ export default function SlideText({ text, label, role, placeholder, spans = EMPT
     }} />
     {range && canFormat ? createPortal(<div ref={toolbar} className="heritage-slide-format" role="toolbar" aria-label="Selected text formatting" style={{left:range.x,top:range.y}}>
       {([['Bold','B','weight','700'],['Italic','I','italic',true],['Underline','U','underline',true]] as const).map(([label,caption,key,value]) => <button key={key} type="button" aria-label={label} aria-pressed={active(key,value)} onPointerDown={event => event.preventDefault()} onClick={() => apply({ [key]: active(key,value) ? (key === 'weight' ? '400' : false) : value })}>{caption}</button>)}
-      <label title="Text color"><span>Color</span><input type="color" aria-label="Text color" defaultValue="#ffc000" onInput={event => apply({foreground:event.currentTarget.value}, false)} /></label>
-      <label title="Text highlight"><span>Highlight</span><input type="color" aria-label="Text highlight" defaultValue="#8a5a00" onInput={event => apply({background:event.currentTarget.value}, false)} /></label>
+      <label title="Text color"><span>Color</span><PresentationColorInput label="Text color" value={foreground} onChange={value=>{setForeground(value);apply({foreground:value},false)}} /></label>
+      <label title="Text highlight"><span>Highlight</span><PresentationColorInput label="Text highlight" value={background} onChange={value=>{setBackground(value);apply({background:value},false)}} /></label>
       <button type="button" aria-label="Remove highlight" onPointerDown={event => event.preventDefault()} onClick={() => apply({background:undefined})}>No highlight</button>
       <button type="button" aria-label="Clear formatting" onPointerDown={event => event.preventDefault()} onClick={() => apply(null)}>Clear</button>
       {error ? <span role="alert">{error}</span> : null}

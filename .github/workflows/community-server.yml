@@ -45,7 +45,7 @@ jobs:
           npm run test:appliance
           npm run typecheck
           npm run test:syncshow
-          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-provider-settings.test.ts tests/translation-plans.test.ts tests/calendar.test.ts tests/sermon-presentation.test.ts tests/planner-templates.test.ts tests/passage-shortcuts.test.ts
+          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-provider-settings.test.ts tests/translation-plans.test.ts tests/calendar.test.ts tests/sermon-presentation.test.ts tests/planner-templates.test.ts tests/passage-shortcuts.test.ts tests/presentation-palette.test.ts
           npm run build
 
       - name: Create isolated test configuration

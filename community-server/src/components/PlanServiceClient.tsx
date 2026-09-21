@@ -1,5 +1,6 @@
 'use client'
 
+import { PresentationAccessibility, PresentationAccessibilityControl } from './PresentationAccessibility'
 import { importSermonPresentation } from './importSermonPresentation'
 import { churchWorkspaceLinks } from '@/lib/churchWorkspaceLinks'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -1091,7 +1092,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   }
 
   return (
-    <section className="heritage-service-planner">
+    <PresentationAccessibility><section className="heritage-service-planner">
       {servicePreviewOpen && draft ? <ServicePreview project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
         mediaUrl={assetId=>mediaPreviews[assetId] || (envelope?.project.assets?.[assetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(assetId)}` : undefined)}
         onClose={row=>{setServicePreviewOpen(false);if(row) selectSlide(row)}} /> : null}
@@ -1142,6 +1143,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
 
           </>}
 
+          <PresentationAccessibilityControl item={selected} />
           <div className="heritage-service-planner__outline-heading">
             <h2>{sermonSyncId ? 'Sermon slides' : 'Service order'}</h2>
             <small aria-live="polite">{batchSlides.length > 1 ? `${batchSlides.length} selected` : 'Shift-click to select several'}</small>
@@ -1393,6 +1395,6 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
             onCancel={() => setDeleteDialog(null)} onDelete={() => { runSelection(deleteDialog, 'delete'); setDeleteDialog(null) }} /> : null}
         </section>
       </div>
-    </section>
+    </section></PresentationAccessibility>
   )
 }
