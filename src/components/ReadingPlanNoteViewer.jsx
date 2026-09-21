@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES } from '../data/resources'
 import ChronologyTimeline from './ChronologyTimeline'
+import ProphecyHistoricalContext from './ProphecyHistoricalContext'
 import {
   COMMENTS_ITEM_TYPE,
   PLAN_NOTE_ITEM_TYPE,
@@ -248,6 +249,7 @@ function ReadingPlanNoteViewer() {
                 sources={sourceItems}
                 timeline={noteItem.timeline}
               />
+              <ProphecyHistoricalContext key={noteItem.id} context={noteItem.prophecyContext} />
 
               {!usesSituationalTimeline && sourceItems.length > 0 && (
                 <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">

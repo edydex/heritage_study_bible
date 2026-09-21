@@ -111,6 +111,23 @@ function fallAndExile(contexts, {
 }
 
 export const chronologicalTimelineAids = {
+  'ezekiel-egypt-oracles': situationalTimeline(
+    'When Ezekiel’s Egypt messages are dated',
+    [
+      situationPhase('year10', 'Exile year 10', timelineAnchor('Tenth year · month 10 · day 12', 'Ezekiel 29:1 opens the first Egypt oracle during the years of Jerusalem’s final siege.')),
+      situationPhase('year11', 'Year 11', timelineAnchor('Exile year 11', 'Ezekiel 30:20 and 31:1 give separate dates in months one and three.')),
+      situationPhase('year12', 'Year 12', timelineAnchor('Exile year 12', 'Ezekiel 32:1 dates its lament to month twelve; verse 17 gives a day but does not name its month.')),
+      situationPhase('year25', 'Year 25', timelineAnchor('Twenty-fifth year · about 573 BC', 'Ezekiel 40:1 dates the temple vision; the BC conversion is approximate but the exile-year order is explicit.')),
+      situationPhase('year27', 'Year 27', timelineAnchor('Twenty-seventh year · about 571 BC', 'Ezekiel 29:17–21 is a later message in the Egypt collection, following the date of Ezekiel 40:1.')),
+    ],
+    [
+      situationPassage('Ezek 29:1–16', 'prophet', 'year10'),
+      situationPassage('Ezek 30:20–26; 31:1', 'prophet', 'year11'),
+      situationPassage('Ezek 32:1, 17', 'prophet', 'year12'),
+      situationPassage('Ezek 40:1', 'prophet', 'year25'),
+      situationPassage('Ezek 29:17–21', 'prophet', 'year27'),
+    ]
+  ),
   'job-patriarchal-placement': eraTimeline({
     heading: 'Job’s traditional story setting',
     rangeLabel: 'Broad patriarchal age • roughly c. 2100-1700 BC',
