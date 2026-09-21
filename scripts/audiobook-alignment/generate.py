@@ -35,16 +35,17 @@ def run(args):
         subprocess.run(['node',str(ROOT/'scripts/audiobook-alignment/export-reference.mjs'),str(reference_path)],cwd=ROOT,check=True)
     refs={b['id']:b for b in json.loads(reference_path.read_text())}
     catalog=json.loads((args.catalog or ROOT/'src/data/audioCatalog.json').read_text())
-    books=[b for b in catalog['books'] if b['id'] in refs and (not args.book or b['id'] in args.book)]
+    books=[b for b in catalog['books'] if b.get('textBookId',b['id']) in refs and (not args.book or b['id'] in args.book)]
     books.sort(key=lambda b:sum(t['duration'] for e in b['editions'] for t in e['tracks']))
     output=args.output.resolve() if args.output else ROOT/'public/data/audio/books';output.mkdir(parents=True,exist_ok=True)
     index_path=output/'index.json' if args.output else ROOT/'src/data/audiobookTextIndex.json'
     index=json.loads(index_path.read_text()) if index_path.exists() else {}
     errors=[]
     for book in books:
-        reference=refs[book['id']]
+        reference=refs[book.get('textBookId',book['id'])]
         reference_index=index_reference(reference)
         result={'schemaVersion':1,'bookId':book['id'],'textSha256':reference['textSha256'],'textSourceUrl':reference['sourceUrl'],'method':'Unique exact seven-word anchors; automatic paragraph navigation, not word-perfect synchronization.', 'model':model_info,'paragraphs':{},'tracks':{}}
+        if book.get('textBookId'):result['textBookId']=book['textBookId']
         for edition in book['editions']:
             for track in edition['tracks']:
                 if args.stop_file and args.stop_file.exists():

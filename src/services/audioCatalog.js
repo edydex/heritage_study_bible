@@ -2,7 +2,7 @@ import catalog from '../data/audioCatalog.json'
 
 export const audioBooks = catalog.books
 export const audioTracks = audioBooks.flatMap(book => book.editions.flatMap(edition => edition.tracks.map(track => ({
-  ...track, kind: book.kind || 'audiobook', bookTitle: book.title, author: book.author, editionTitle: edition.title, sourceUrl: edition.sourceUrl,
+  ...track, textBookId: book.textBookId || book.id, kind: book.kind || 'audiobook', bookTitle: book.title, author: book.author, editionTitle: edition.title, sourceUrl: edition.sourceUrl,
 }))))
 const tracksById = new Map(audioTracks.map(track => [track.id, track]))
 export function getAudioTrack(id) { return tracksById.get(id) || null }

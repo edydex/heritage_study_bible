@@ -36,6 +36,23 @@ describe('audiobook paragraph navigation', () => {
     expect(matchingAudioParagraph(chapters, { chapterIndex: 0, paragraphIndex: 0, text: 'Older text' })).toBeNull()
     expect(matchingAudioParagraph(chapters, { chapterIndex: -1, paragraphIndex: 0, text: 'Current text' })).toBeNull()
   })
+  it('uses the recording edition and rejects timings for another text edition', () => {
+    const editionTrack = { ...track, textBookId: 'book-audio-edition' }
+    expect(() => validateAudiobookTiming(fixture(), editionTrack)).toThrow()
+    const data = { ...fixture(), textBookId: 'book-audio-edition' }
+    expect(() => validateAudiobookTiming(data, track)).toThrow()
+    const timing = validateAudiobookTiming(data, editionTrack)
+    expect(audiobookDestination(editionTrack, timing, 55)?.path).toBe('/resources/books/book-audio-edition?audioTrack=track&at=55')
+  })
+  it('the complete Institutes text includes every chapter in all four books', () => {
+    const chapters = parseBookChapters(readFileSync('public/data/books/institutes-allen-complete.txt', 'utf8'))
+    const counts = {}
+    for (const chapter of chapters) {
+      const book = chapter.title.match(/^BOOK (I|II|III|IV)\./)?.[1]
+      if (book) counts[book] = (counts[book] || 0) + 1
+    }
+    expect(counts).toEqual({ I: 18, II: 17, III: 25, IV: 20 })
+  })
   it('all bundled destinations match the actual reader parser and the exact catalog recording', () => {
     const books = RESOURCE_CATEGORIES.find(category => category.id === 'books').items
     for (const [bookId, entry] of Object.entries(index)) {
@@ -43,7 +60,8 @@ describe('audiobook paragraph navigation', () => {
       const expectedIds = audioTracks.filter(track => track.bookId === bookId).map(track => track.id).sort()
       expect(Object.keys(data.tracks).sort()).toEqual(expectedIds)
       expect(entry.tracks).toBe(expectedIds.length)
-      const bytes = readFileSync(`public/${books.find(book => book.id === bookId).textPath}`)
+      const textBookId = audioTracks.find(track => track.bookId === bookId).textBookId
+      const bytes = readFileSync(`public/${books.find(book => book.id === textBookId).textPath}`)
       expect(createHash('sha256').update(bytes).digest('hex')).toBe(entry.textSha256)
       const chapters = parseBookChapters(bytes.toString('utf8'))
       for (const [id, timing] of Object.entries(data.tracks)) {
