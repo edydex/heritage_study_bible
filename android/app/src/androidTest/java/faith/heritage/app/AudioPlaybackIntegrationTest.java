@@ -124,6 +124,17 @@ public class AudioPlaybackIntegrationTest {
         if (legacyBrowser != null) { main(() -> { legacyBrowser.disconnect(); return null; }); legacyBrowser = null; }
         if (browser != null) { main(() -> { browser.release(); return null; }); browser = null; }
         context.stopService(new Intent(context, HeritagePlaybackService.class));
+        // stopService/unbinding are asynchronous. Let onDestroy finish saving
+        // the previous fixture before another test seeds its initial progress.
+        android.app.ActivityManager manager = (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        long stoppedBy = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        boolean running;
+        do {
+            running = manager.getRunningServices(Integer.MAX_VALUE).stream()
+                .anyMatch(service -> HeritagePlaybackService.class.getName().equals(service.service.getClassName()));
+            if (running) Thread.sleep(20);
+        } while (running && System.nanoTime() < stoppedBy);
+        assertFalse("Previous playback service did not finish stopping", running);
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
         context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit().remove(HeritageAudioCatalog.DOWNLOAD_INDEX).remove(HeritagePlaybackService.PROGRESS).commit();
         if (fixture != null) fixture.delete();
