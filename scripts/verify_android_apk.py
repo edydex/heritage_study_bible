@@ -77,7 +77,7 @@ for report in (root/'android/app/build/outputs/androidTest-results/connected').r
         found.add(classname+'.'+case.get('name'))
 assert found == expected, 'Missing native acceptance results: '+repr(expected-found)
 screenshots = root / 'android/app/build/native-acceptance/screenshots'
-for name in ['community-home', 'sermon-archive', 'member-sign-in', 'automatic-sync']:
+for name in ['community-home', 'sermon-archive', 'member-sign-in', 'automatic-sync', 'audio-library']:
     matches = list(screenshots.rglob(name+'.png'))
     assert len(matches) == 1, 'Missing or duplicate native screenshot: '+name
     data = matches[0].read_bytes()

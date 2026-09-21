@@ -21,3 +21,13 @@ export function formatAudioTime(value) {
   return `${hours ? `${hours}:` : ''}${hours ? String(Math.floor(seconds / 60) % 60).padStart(2, '0') : Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
 }
 export function formatAudioBytes(bytes) { return `${(Number(bytes || 0) / 1024 / 1024).toFixed(1)} MB` }
+
+// A translation is a library entry; book/track identities stay unchanged for
+// existing downloads, Android Auto queues, and listening progress.
+export const bibleAudioTranslations = [...audioBooks.filter(book => book.kind === 'bible').reduce((groups, book) => {
+  const translation = book.editions[0]?.tracks[0]?.bible?.translation
+  if (!translation) return groups
+  if (!groups.has(translation)) groups.set(translation, { id: translation, title: `${translation} Audio Bible`, author: book.author, books: [] })
+  groups.get(translation).books.push(book)
+  return groups
+}, new Map()).values()]

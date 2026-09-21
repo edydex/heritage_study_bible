@@ -37,7 +37,7 @@ html { scroll-padding-bottom: calc(var(--audio-player-height, 0px) + 70px); }
 
 .audio-library button[aria-pressed="true"] { background: #1d4ed8; color: white; border-color: #1d4ed8; }
 
-.book-text-paragraph[data-audio-paragraph="true"] { background: rgb(148 163 184 / .2); border-radius: .25rem; outline: 2px solid rgb(148 163 184 / .55); scroll-margin-block: 9rem; }
+.book-text-paragraph[data-audio-paragraph="true"]:not([data-audio-following]) { background: rgb(148 163 184 / .2); border-radius: .25rem; outline: 2px solid rgb(148 163 184 / .55); scroll-margin-block: 9rem; }
 
 .audio-player-inline { position: static; border: 1px solid #cbd5e1; border-radius: 12px; box-shadow: none; margin: 16px 0; }
 .reader-audio-button { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 8px; }
@@ -45,3 +45,24 @@ html { scroll-padding-bottom: calc(var(--audio-player-height, 0px) + 70px); }
 .reader-audio-button:disabled { opacity: .45; }
 
 .audio-library input[type="checkbox"] { width: 18px; height: 18px; min-height: 0; padding: 0; margin-right: 6px; vertical-align: middle; }
+
+/* Page padding, never nested book/track cards. Native values account for
+   WebViews which already sit below the status bar, as well as edge-to-edge. */
+main.audio-library { padding-top: calc(18px + var(--native-safe-top, env(safe-area-inset-top, 0px))); padding-bottom: calc(24px + var(--native-safe-bottom, env(safe-area-inset-bottom, 0px))); }
+html.capacitor-android main.audio-library { padding-top: calc(18px + var(--native-safe-top, max(env(safe-area-inset-top, 0px), 24px))); }
+.audio-player-dialog { width: min(94vw, 680px); max-height: calc(100dvh - var(--native-safe-top, env(safe-area-inset-top, 24px)) - var(--native-safe-bottom, env(safe-area-inset-bottom, 24px)) - 48px); overflow-y: auto; margin: auto; padding: 18px; border: 1px solid #94a3b8; border-radius: 16px; color: #172033; background: white; }
+.audio-player-dialog::backdrop { background: #0008; }
+.audio-dialog-heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.audio-dialog-heading h2 { font-size: 20px; font-weight: 600; }
+.audio-dialog-heading button { padding: 8px 12px; border-radius: 8px; border: 1px solid #94a3b8; }
+.dark .audio-player-dialog { color: #e5e7eb; background: #111827; }
+.reader-audio-button { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.book-audio-rewind { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: calc(68px + var(--native-safe-bottom, env(safe-area-inset-bottom, 0px))); z-index: 41; border-radius: 50%; width: 48px; height: 48px; border: 1px solid #94a3b8; background: #fff; color: #172033; box-shadow: 0 2px 8px #0003; font-weight: 600; }
+.dark .book-audio-rewind { background: #111827; color: #e5e7eb; }
+
+[data-audio-sentence="true"] { background: #d1d5db; border-radius: 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.dark [data-audio-sentence="true"] { background: #4b5563; }
+
+.audio-player-dialog .audio-player-row { flex-wrap: wrap; justify-content: center; }
+.audio-player-dialog .audio-player-title { flex: 0 0 100%; text-align: center; margin-bottom: 8px; }
+.audio-player-dialog .audio-player-title strong, .audio-player-dialog .audio-player-title span { white-space: normal; }

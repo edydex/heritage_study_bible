@@ -1,4 +1,3 @@
-import { useHeritageAudio } from './audio/AudioProvider'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { translations, parallelTranslations } from '../data/translations'
 import { isNativeAndroid, setNativeReaderChromeHidden } from '../services/androidControls'
@@ -24,8 +23,6 @@ function Header({
   onTextSizeChange,
   commentaryTextSize = 14,
   onCommentaryTextSizeChange,
-  verseStacking = false,
-  onVerseStackingChange,
   translationId,
   onTranslationChange,
   translationLoading,
@@ -36,12 +33,7 @@ function Header({
   onParallelDisable,
   darkMode = false,
   onDarkModeChange,
-  sideButtonScroll = false,
-  onSideButtonScrollChange,
-  showVolumeScrollSetting = false,
   onSearchKeyboardCaptureChange,
-  onAudioSettingsClick,
-  onSyncSettingsClick,
   onAdvancedSettingsClick,
   hidden = false,
 }) {
@@ -51,7 +43,6 @@ function Header({
   const [showParallelModal, setShowParallelModal] = useState(false)
   const [autoHidden, setAutoHidden] = useState(false)
   const [selectedParallelLanguage, setSelectedParallelLanguage] = useState('')
-  const audio = useHeritageAudio()
   const settingsRef = useRef(null)
   const translationsRef = useRef(null)
   const suppressShowUntilRef = useRef(0)
@@ -461,62 +452,6 @@ function Header({
                   >+</button>
                 </div>
 
-                <button type="button" aria-label="Audio Settings" onClick={event => { event.stopPropagation(); setShowSettings(false); onAudioSettingsClick?.() }} className="w-full flex items-center justify-between px-1 py-2 text-sm text-gray-700 dark:text-gray-200"><span>Audio Settings</span><span>›</span></button>
-                <label className="flex items-center gap-2 px-1 py-2 text-sm text-gray-700 dark:text-gray-200"><input type="checkbox" checked={audio?.settings.parallelMonochrome ?? false} onChange={event => audio?.updateSettings({ parallelMonochrome: event.target.checked })} /> B&amp;W word links</label>
-                {/* Verse Layout */}
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      setShowSettings(false)
-                      onSyncSettingsClick?.()
-                    }}
-                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <span className="text-sm text-gray-700 dark:text-gray-200 font-medium">Sync</span>
-                    <span className="text-gray-400 dark:text-gray-500">›</span>
-                  </button>
-                </div>
-
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); onVerseStackingChange?.(!verseStacking) }}
-                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <span className="text-sm text-gray-700 dark:text-gray-200 font-medium flex items-center gap-1.5">
-                      📜 Verse Stacking
-                    </span>
-                    <div className={`w-11 h-6 rounded-full transition-colors relative ${verseStacking ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
-                      <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${verseStacking ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </div>
-                  </button>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 px-1 mt-1">
-                    {verseStacking ? '1 text 2 text' : '1 text\n2 text'}
-                  </p>
-                </div>
-
-                {showVolumeScrollSetting && (
-                  <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); onSideButtonScrollChange?.(!sideButtonScroll) }}
-                      className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <span className="text-sm text-gray-700 dark:text-gray-200 font-medium flex items-center gap-1.5">
-                        🔊 Volume Scroll
-                      </span>
-                      <div className={`w-11 h-6 rounded-full transition-colors relative ${sideButtonScroll ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
-                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${sideButtonScroll ? 'translate-x-5' : 'translate-x-0'}`} />
-                      </div>
-                    </button>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 px-1 mt-1">
-                      Use volume keys to page-scroll reader screens
-                    </p>
-                  </div>
-                )}
-
                 {/* Dark Mode */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
                   <button
@@ -533,6 +468,7 @@ function Header({
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
                   <button
+                    aria-label="More settings"
                     type="button"
                     onClick={(event) => {
                       event.stopPropagation()

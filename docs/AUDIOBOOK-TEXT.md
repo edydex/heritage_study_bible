@@ -13,9 +13,9 @@ failure. Audio playback and saved position are independent of timing data.
 ## Follow while listening
 
 Audio Settings enables **Auto-scroll audiobooks** by default. When the matching
-text edition is open, its checked playing paragraph receives a gray marker and
+text edition is open, its checked playing sentence receives a gray marker and
 stays in view, including across chapter boundaries. The bottom chapter bar has
-Play/Pause; there is no extra fixed player covering the text. Disable following
+Play/Pause. Hold it (or right-click / Shift+Enter) for the seek timeline and ten-second controls. A floating −10 button appears above the bottom bar while the audiobook plays. Disable following
 in Audio Settings to browse freely. Live following leaves unmatched speech blank;
 the explicit nearby-text button can still use its bounded 20-second fallback.
 Live following does not steal keyboard focus or create saved annotations.
@@ -29,7 +29,7 @@ overlapping destinations. At playback time, navigation can select a checked
 phrase at most 20 seconds away. The reader verifies the exact current paragraph
 before focusing it; a changed text cannot silently redirect to an old location.
 
-These are automatic **paragraph** matches, not word-perfect synchronization.
+Navigation uses automatic **paragraph** matches. Live highlighting uses separate **sentence** ranges, built from the original recognized word times inside exact seven-word matches. Sentence boundaries come from `Intl.Segmenter` in the reference exporter, including UTF-16 character offsets checked against the unchanged text. Short sentences can be recognized by their surrounding phrase. Ambiguous overlapping words, low-confidence speech and long gaps are excluded. No paragraph duration is split into estimated sentence timestamps. This is automatic alignment, not word-perfect or independently listened-through synchronization.
 The audio player opens the named text edition that matches each recording.
 Polycarp uses Kirsopp Lake (1912); Tertullian uses Charles Dodgson (1842).
 The Institutes audio text combines both printed volumes of John Allen’s
@@ -54,7 +54,7 @@ dialogue is separated by speaker for phone reading. The source manifest is
 The index in `src/data/audiobookTextIndex.json` records exactly which books have
 installed data. Each `public/data/audio/books` file records its actual track IDs,
 recording URLs/byte counts/full SHA-256 hashes, model file hashes, source text
-hash, accepted spans and exact reference paragraphs. Only installed data is used;
+hash, accepted paragraph and sentence spans and exact reference paragraphs. Only installed data is used;
 partially generated local files outside the repository do not affect the app.
 
 The installed set covers 384 recordings in ten books. Accepted phrase spans
@@ -186,3 +186,5 @@ speaker are editorial formatting only. Its one recording was processed locally
 with MLX Whisper large-v3-turbo, revision
 `a4aaeec0636e6fef84abdcbe3544cb2bf7e9f6fb`, and the same exact-phrase matcher.
 The preceding nine books’ timing files are unchanged.
+
+Sentence ranges were regenerated for all ten books / 384 recordings from the retained original transcripts without running recognition again. Existing paragraph anchors, model hashes, source text hashes and recording hashes are unchanged. The native reader registers sentence boundaries with the playback service, so it does not wait for its general one-second progress tick. Navigation-only links may mark a paragraph; live following marks only the current sentence.

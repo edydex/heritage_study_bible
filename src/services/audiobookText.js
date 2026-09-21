@@ -9,6 +9,12 @@ export function validateAudiobookTiming(data, track) {
     if (!Number.isFinite(span.start) || !Number.isFinite(span.end) || span.start < previous || span.end <= span.start || span.end > track.duration || !Number.isSafeInteger(paragraph?.chapterIndex) || paragraph.chapterIndex < 0 || !Number.isSafeInteger(paragraph.paragraphIndex) || paragraph.paragraphIndex < 0 || typeof paragraph.text !== 'string' || !paragraph.text.trim()) throw new Error('Recording text timings are invalid.')
     previous = span.end
   }
+  previous = 0
+  for (const span of recording.sentenceSpans || []) {
+    const paragraph = data.paragraphs?.[span.paragraph]
+    if (!Number.isFinite(span.start) || !Number.isFinite(span.end) || span.start < previous || span.end <= span.start || span.end > track.duration || !paragraph || !Number.isSafeInteger(span.textStart) || !Number.isSafeInteger(span.textEnd) || span.textStart < 0 || span.textEnd <= span.textStart || span.textEnd > paragraph.text.length || !paragraph.text.slice(span.textStart, span.textEnd).trim()) throw new Error('Recording sentence timings are invalid.')
+    previous = span.end
+  }
   return { ...recording, trackId: track.id, textBookId: data.textBookId || data.bookId, paragraphs: data.paragraphs }
 }
 export async function loadAudiobookTiming(track) {
@@ -51,4 +57,15 @@ export function activeAudiobookParagraph(track, timing, position) {
   const span = timing.spans.find(span => position >= span.start && position < span.end)
   const paragraph = span && timing.paragraphs[span.paragraph]
   return paragraph ? { ...paragraph, trackId: track.id } : null
+}
+
+export function activeAudiobookSentence(track, timing, position) {
+  if (!track || timing?.trackId !== track.id || !Number.isFinite(position)) return null
+  const spans = timing.sentenceSpans || []
+  let lo = 0, hi = spans.length
+  while (lo < hi) { const mid = (lo + hi) >>> 1; if (spans[mid].start <= position) lo = mid + 1; else hi = mid }
+  const span = spans[lo - 1]
+  if (!span || position >= span.end) return null
+  const paragraph = timing.paragraphs[span.paragraph]
+  return { ...paragraph, textStart: span.textStart, textEnd: span.textEnd, trackId: track.id }
 }

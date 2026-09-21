@@ -44,7 +44,7 @@ def run(args):
     for book in books:
         reference=refs[book.get('textBookId',book['id'])]
         reference_index=index_reference(reference)
-        result={'schemaVersion':1,'bookId':book['id'],'textSha256':reference['textSha256'],'textSourceUrl':reference['sourceUrl'],'method':'Unique exact seven-word anchors; automatic paragraph navigation, not word-perfect synchronization.', 'model':model_info,'paragraphs':{},'tracks':{}}
+        result={'schemaVersion':1,'bookId':book['id'],'textSha256':reference['textSha256'],'textSourceUrl':reference['sourceUrl'],'method':'Unique exact seven-word anchors; paragraph navigation and sentence highlighting from recognized word timestamps. No interpolated sentence boundaries.', 'model':model_info,'paragraphs':{},'tracks':{}}
         if book.get('textBookId'):result['textBookId']=book['textBookId']
         for edition in book['editions']:
             for track in edition['tracks']:
