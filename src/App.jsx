@@ -478,8 +478,9 @@ function ScrollToTopOnRouteChange() {
   }, [])
 
   useLayoutEffect(() => {
-    // Verse navigation owns its scroll once the target chapter has rendered.
-    if (location.state?.scrollToVerse) return
+    // Verse navigation and the book reader own their scroll after text renders.
+    // Delayed route resets must not undo a book's audio-paragraph destination.
+    if (location.state?.scrollToVerse || location.pathname.startsWith('/resources/books/')) return
     forceScrollTop()
     const raf1 = window.requestAnimationFrame(() => forceScrollTop())
     const raf2 = window.requestAnimationFrame(() => window.requestAnimationFrame(() => forceScrollTop()))

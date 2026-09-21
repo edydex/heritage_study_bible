@@ -38,7 +38,7 @@ for (const book of RESOURCE_CATEGORIES.find(category => category.id === 'books')
       })),
     })
   }
-  if (editions.length) books.push({ id: book.id, title: book.title, author: book.author, editions })
+  if (editions.length) books.push({ id: book.id, ...(book.audioTextBookId ? { textBookId: book.audioTextBookId } : {}), title: book.title, author: book.author, editions })
 }
 await writeFile('src/data/audioCatalog.json', `${JSON.stringify({ schemaVersion: 1, books: [...books, ...bibleAudio.books] }, null, 2)}\n`)
 console.log(`${books.length} books; ${books.flatMap(book => book.editions.flatMap(edition => edition.tracks)).length} tracks`)

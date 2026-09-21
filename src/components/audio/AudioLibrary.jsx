@@ -18,7 +18,7 @@ export default function AudioLibrary() {
     {selected ? <><button type="button" onClick={() => setParams({})}>← Audio library</button><BookAudioPanel key={selected.id} bookId={selected.id} full /></> : <>
       <div className="audio-actions"><button type="button" aria-pressed={kind === 'bible'} onClick={() => setKind('bible')}>Bible</button><button type="button" aria-pressed={kind === 'audiobook'} onClick={() => setKind('audiobook')}>Audiobooks</button></div><label htmlFor="audio-search">Search audio library</label><input id="audio-search" className="w-full mt-2" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Title or author" />
       {audioBooks.filter(book => (book.kind || 'audiobook') === kind).filter(book => `${book.title} ${book.author}`.toLowerCase().includes(query.toLowerCase())).map(book => <section key={book.id}>
-        <h2>{book.title}</h2><p>{book.author}</p><div className="audio-actions"><button type="button" onClick={() => setParams({ book: book.id })}>Tracks and downloads</button><button type="button" onClick={() => book.kind === 'bible' ? navigate(`/${book.bibleSlug}/1`, { state: { audioTranslation: 'BSB' } }) : navigate(`/resources/books/${book.id}`)}>Read</button></div>
+        <h2>{book.title}</h2><p>{book.author}</p><div className="audio-actions"><button type="button" onClick={() => setParams({ book: book.id })}>Tracks and downloads</button><button type="button" onClick={() => book.kind === 'bible' ? navigate(`/${book.bibleSlug}/1`, { state: { audioTranslation: 'BSB' } }) : navigate(`/resources/books/${book.textBookId || book.id}`)}>Read</button></div>
       </section>)}
     </>}
   </main>

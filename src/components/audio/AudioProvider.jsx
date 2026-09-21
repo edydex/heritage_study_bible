@@ -55,7 +55,7 @@ function PlayerHost({ player, state }) {
             <button type="button" disabled={!nextAudioTrack(track.id, -1)} onClick={() => player.skip(-1)}>Previous track</button>
             <button type="button" disabled={!nextAudioTrack(track.id, 1)} onClick={() => player.skip(1)}>Next track</button>
             <label>Speed <select aria-label="Playback speed" value={state.rate} onChange={event => player.setRate(event.target.value)}>{[0.75, 1, 1.25, 1.5, 1.75, 2].map(rate => <option key={rate} value={rate}>{rate}×</option>)}</select></label>
-            <button type="button" onClick={() => destination ? navigate(destination.path, { state: destination.state }) : navigate(`/resources/books/${track.bookId}`)}>{destination ? destination.state.audioParagraph ? 'Go to nearby text' : destination.state.scrollToVerse ? 'Go to playing verse' : 'Open chapter text' : 'Open book text'}</button>
+            <button type="button" onClick={() => destination ? navigate(destination.path, { state: destination.state }) : navigate(`/resources/books/${track.textBookId || track.bookId}`)}>{destination ? destination.state.audioParagraph ? 'Go to nearby text' : destination.state.scrollToVerse ? 'Go to playing verse' : 'Open chapter text' : 'Open book text'}</button>
             <button type="button" onClick={() => navigate('/audio')}>Audio library</button>
           </div>
         </div>}

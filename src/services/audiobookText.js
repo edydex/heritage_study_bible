@@ -2,14 +2,14 @@ import index from '../data/audiobookTextIndex.json'
 const requests = new Map()
 export function validateAudiobookTiming(data, track) {
   const recording = data?.tracks?.[track.id]
-  if (data?.schemaVersion !== 1 || data.bookId !== track.bookId || recording?.url !== track.url || recording.bytes !== track.bytes || !Array.isArray(recording.spans)) throw new Error('Recording text timings do not match this edition.')
+  if (data?.schemaVersion !== 1 || data.bookId !== track.bookId || (data.textBookId || data.bookId) !== (track.textBookId || track.bookId) || recording?.url !== track.url || recording.bytes !== track.bytes || !Array.isArray(recording.spans)) throw new Error('Recording text timings do not match this edition.')
   let previous = 0
   for (const span of recording.spans) {
     const paragraph = data.paragraphs?.[span.paragraph]
     if (!Number.isFinite(span.start) || !Number.isFinite(span.end) || span.start < previous || span.end <= span.start || span.end > track.duration || !Number.isSafeInteger(paragraph?.chapterIndex) || paragraph.chapterIndex < 0 || !Number.isSafeInteger(paragraph.paragraphIndex) || paragraph.paragraphIndex < 0 || typeof paragraph.text !== 'string' || !paragraph.text.trim()) throw new Error('Recording text timings are invalid.')
     previous = span.end
   }
-  return { ...recording, trackId: track.id, paragraphs: data.paragraphs }
+  return { ...recording, trackId: track.id, textBookId: data.textBookId || data.bookId, paragraphs: data.paragraphs }
 }
 export async function loadAudiobookTiming(track) {
   const entry = track && index[track.bookId]
@@ -34,7 +34,7 @@ export function audiobookDestination(track, timing, position) {
   const span = timing.spans.reduce((best, span) => distance(span) < distance(best) ? span : best)
   if (distance(span) > 20) return null
   const paragraph = timing.paragraphs[span.paragraph]
-  return { path: `/resources/books/${track.bookId}?audioTrack=${encodeURIComponent(track.id)}&at=${Math.round(position)}`, state: {
+  return { path: `/resources/books/${track.textBookId || track.bookId}?audioTrack=${encodeURIComponent(track.id)}&at=${Math.round(position)}`, state: {
     chapterIndex: paragraph.chapterIndex,
     audioParagraph: { chapterIndex: paragraph.chapterIndex, paragraphIndex: paragraph.paragraphIndex, text: paragraph.text, trackId: track.id },
   } }

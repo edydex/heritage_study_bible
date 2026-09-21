@@ -146,7 +146,7 @@ function pickCommentarySelection(authorsData, bookName, chapter, preferredAuthor
   }
 }
 
-function BookViewer() {
+function BookReader() {
   const { itemId } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
@@ -178,6 +178,7 @@ function BookViewer() {
   })
   const [resourceBookmarks, setResourceBookmarks] = useState([])
   const [bookmarkStatus, setBookmarkStatus] = useState('')
+  const [progressReady, setProgressReady] = useState(false)
   const pendingChapterRef = useRef(null)
   const [linkedAudioParagraph, setLinkedAudioParagraph] = useState(null)
   const audioTarget = location.state?.audioParagraph || linkedAudioParagraph
@@ -186,6 +187,8 @@ function BookViewer() {
 
   const category = RESOURCE_CATEGORIES.find(c => c.id === 'books')
   const book = category?.items.find(i => i.id === itemId)
+  const audioBook = book?.audioBookId ? category.items.find(item => item.id === book.audioBookId) : book
+  const alternativeEdition = category?.items.find(item => item.id === book?.alternativeEditionId)
 
   useEffect(() => {
     let cancelled = false
@@ -256,7 +259,7 @@ function BookViewer() {
     const query = new URLSearchParams(location.search)
     const track = getAudioTrack(query.get('audioTrack'))
     const position = Number(query.get('at'))
-    if (!query.has('at') || track?.bookId !== itemId || !Number.isFinite(position) || position < 0 || position > track.duration) return
+    if (!query.has('at') || (track?.textBookId || track?.bookId) !== itemId || !Number.isFinite(position) || position < 0 || position > track.duration) return
     loadAudiobookTiming(track).then(timing => {
       const destination = audiobookDestination(track, timing, position)
       if (!cancelled && destination) {
@@ -336,14 +339,14 @@ function BookViewer() {
   }, [bookGroups, navigatorGroup, selectedBookGroup, shouldShowBookSelector])
 
   useEffect(() => {
-    if (!audioParagraph || selectedChapterIndex !== audioParagraph.chapterIndex) return
+    if (textLoading || !audioParagraph || selectedChapterIndex !== audioParagraph.chapterIndex) return
     const frame = requestAnimationFrame(() => {
       const paragraph = document.getElementById(`book-paragraph-${audioParagraph.paragraphIndex}`)
       paragraph?.scrollIntoView({ block: 'center', behavior: 'instant' })
       paragraph?.focus({ preventScroll: true })
     })
     return () => cancelAnimationFrame(frame)
-  }, [audioParagraph, selectedChapterIndex, location.key])
+  }, [audioParagraph, selectedChapterIndex, location.key, textLoading])
 
   const navigatorChapterEntries = shouldShowBookSelector
     ? chapterEntries.filter(entry => entry.groupKey === (navigatorGroup || selectedBookGroup))
@@ -352,7 +355,11 @@ function BookViewer() {
   useEffect(() => {
     let cancelled = false
     const restoreProgress = async () => {
-      if (!book?.id || chapters.length === 0 || Number.isInteger(location.state?.chapterIndex) || new URLSearchParams(location.search).has('audioTrack')) return
+      if (!book?.id || chapters.length === 0) return
+      if (Number.isInteger(location.state?.chapterIndex) || new URLSearchParams(location.search).has('audioTrack')) {
+        setProgressReady(true)
+        return
+      }
       try {
         const progress = await getReaderProgress()
         const resourceProgress = progress.resources?.[book.id]
@@ -360,16 +367,16 @@ function BookViewer() {
           const nextIndex = Math.max(0, Math.min(chapters.length - 1, resourceProgress.chapterIndex))
           setSelectedChapterIndex(nextIndex)
         }
-      } catch {}
+      } catch {} finally { if (!cancelled) setProgressReady(true) }
     }
     restoreProgress()
     return () => { cancelled = true }
   }, [book?.id, chapters.length, location.key])
 
   useEffect(() => {
-    if (!book?.id || chapters.length === 0) return
+    if (!progressReady || !book?.id || chapters.length === 0) return
     saveResourceProgress(book.id, selectedChapterIndex, selectedEntry?.chapterLabel || selectedChapter?.title || '').catch(() => {})
-  }, [book?.id, chapters.length, selectedChapterIndex, selectedEntry?.chapterLabel, selectedChapter?.title])
+  }, [progressReady, book?.id, chapters.length, selectedChapterIndex, selectedEntry?.chapterLabel, selectedChapter?.title])
 
   useEffect(() => {
     let cancelled = false
@@ -406,20 +413,20 @@ function BookViewer() {
   }, [book?.librivoxChapterRanges, selectedChapterNumber])
 
   const activeLibrivox = useMemo(() => {
-    if (Array.isArray(book?.librivoxVolumes) && book.librivoxVolumes.length) {
+    if (Array.isArray(audioBook?.librivoxVolumes) && audioBook.librivoxVolumes.length) {
       const internalBookNumber = parseInternalBookNumber(selectedBookGroup)
       if (internalBookNumber != null) {
-        const matched = book.librivoxVolumes.find(
+        const matched = audioBook.librivoxVolumes.find(
           volume =>
             internalBookNumber >= volume.startBook &&
             internalBookNumber <= volume.endBook
         )
         if (matched) return matched
       }
-      return book.librivoxVolumes[0]
+      return audioBook.librivoxVolumes[0]
     }
-    return book?.librivox || null
-  }, [book?.librivox, book?.librivoxVolumes, selectedBookGroup])
+    return audioBook?.librivox || null
+  }, [audioBook?.librivox, audioBook?.librivoxVolumes, selectedBookGroup])
 
   const searchState = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -878,9 +885,14 @@ function BookViewer() {
           </p>
         </div>
 
+        {book.editionLabel && <div className="text-center text-sm mb-4">
+          <p>{book.editionLabel}</p>
+          {alternativeEdition && <button type="button" className="text-primary underline mt-2" onClick={() => navigate(`/resources/books/${alternativeEdition.id}`)}>Read {alternativeEdition.editionLabel}</button>}
+        </div>}
+
         <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
-        {activeLibrivox && <BookAudioPanel key={`${book.id}:${activeLibrivox.archiveId || ''}`} bookId={book.id} editionId={activeLibrivox.archiveId} />}
+        {activeLibrivox && <BookAudioPanel key={`${book.id}:${activeLibrivox.archiveId || ''}`} bookId={audioBook.id} editionId={activeLibrivox.archiveId} />}
 
         {/* In-app Book Text */}
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">
@@ -1165,4 +1177,9 @@ function BookViewer() {
   )
 }
 
-export default BookViewer
+export default function BookViewer() {
+  const { itemId } = useParams()
+  // A different edition has different chapter indexes. Never persist the old
+  // reader's chapter under the newly selected resource ID while its text loads.
+  return <BookReader key={itemId} />
+}
