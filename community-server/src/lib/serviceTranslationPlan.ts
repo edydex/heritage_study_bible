@@ -1,6 +1,7 @@
 import { SyncShowProtocolError } from './syncShowProtocol.ts'
 
 export interface TranslationSettings {
+  transcriptionProvider?: 'auto' | 'muse' | 'openai'
   sourceLanguage: 'en' | 'ru'
   translationProfile: 'quality' | 'economy'
   speechEnabled: boolean
@@ -35,13 +36,17 @@ function exact(value: unknown, keys: string[]): Record<string, unknown> {
   return object
 }
 export function parseTranslationSettings(value: unknown): TranslationSettings {
-  const item = exact(value, ['sourceLanguage', 'translationProfile', 'speechEnabled', 'contextDocumentIds'])
+  const hasRecognition = Boolean(value && typeof value === 'object' && Object.hasOwn(value, 'transcriptionProvider'))
+  const item = exact(value, ['sourceLanguage', 'translationProfile', 'speechEnabled', 'contextDocumentIds', ...(hasRecognition ? ['transcriptionProvider'] : [])])
+  if (hasRecognition && !['auto', 'muse', 'openai'].includes(String(item.transcriptionProvider))) return fail()
+  if (item.transcriptionProvider === 'muse' && item.sourceLanguage !== 'en') return fail('Muse recognition supports English. Choose Automatic or OpenAI for Russian.')
   if (typeof item.sourceLanguage !== 'string' || !['en', 'ru'].includes(item.sourceLanguage)
     || typeof item.translationProfile !== 'string' || !['quality', 'economy'].includes(item.translationProfile)
     || typeof item.speechEnabled !== 'boolean' || !Array.isArray(item.contextDocumentIds)
     || item.contextDocumentIds.length > 8 || item.contextDocumentIds.some(id => typeof id !== 'string' || !uuidPattern.test(id))
     || new Set(item.contextDocumentIds).size !== item.contextDocumentIds.length) return fail()
   return { sourceLanguage: item.sourceLanguage as 'en' | 'ru', translationProfile: item.translationProfile as 'quality' | 'economy',
+    ...(hasRecognition ? { transcriptionProvider: item.transcriptionProvider as 'auto' | 'muse' | 'openai' } : {}),
     speechEnabled: item.speechEnabled, contextDocumentIds: [...item.contextDocumentIds].sort() }
 }
 export function parseTranslationPlanWrite(value: unknown) {

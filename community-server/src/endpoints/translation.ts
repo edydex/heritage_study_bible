@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import type { Endpoint, PayloadRequest } from 'payload'
 import { SyncShowProtocolError } from '../lib/syncShowProtocol.ts'
 import { translationPlanEndpoints } from './translationPlans.ts'
+import { translationProviderSettingsEndpoints } from './translationProviderSettings.ts'
 
 async function accessPurpose(req: PayloadRequest): Promise<'live' | 'archive-review'> {
   if (!req.body) return 'live'
@@ -60,4 +61,4 @@ export async function translationAccessResponse(req: PayloadRequest, options: {
   }
 }
 
-export const translationEndpoints: Endpoint[] = [{ path: '/community/translation/access', method: 'post', handler: req => translationAccessResponse(req) }, ...translationPlanEndpoints]
+export const translationEndpoints: Endpoint[] = [{ path: '/community/translation/access', method: 'post', handler: req => translationAccessResponse(req) }, ...translationPlanEndpoints, ...translationProviderSettingsEndpoints]

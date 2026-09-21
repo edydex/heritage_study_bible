@@ -12,6 +12,13 @@ async function requestAccess(purpose?: 'archive-review'): Promise<ControlLease> 
 }
 
 const requestArchiveAccess = () => requestAccess('archive-review')
+async function museRequest(method = 'GET', apiKey?: string) {
+  const response = await fetch('/api/community/translation/settings/muse', { method, credentials: 'same-origin', cache: 'no-store', headers: { 'content-type': 'application/json' }, ...(apiKey !== undefined ? { body: JSON.stringify({ apiKey }) } : {}) })
+  const body = await response.json()
+  if (!response.ok) throw new Error(body.error || 'Could not update Muse settings.')
+  return body as { configured: boolean; source: string; verifiedAt: string | null }
+}
+const museSettings = { read: () => museRequest(), save: (apiKey: string) => museRequest('PUT', apiKey), remove: () => museRequest('DELETE') }
 
 async function loadServicePlans(serviceId?: string): Promise<{ schemaVersion: 1; services: ServiceTranslationPlan[] }> {
   const response = await fetch(`/api/community/translation/plans${serviceId ? `?serviceId=${encodeURIComponent(serviceId)}` : ''}`, { credentials: 'same-origin', cache: 'no-store' })
@@ -48,13 +55,14 @@ export default function LiveTranslationClient() {
           clientVersion: number
           servicePlanVersion: number
           archiveReviewVersion?: number
-          mount(element: HTMLElement, options: { initialLease: ControlLease; requestAccess: typeof requestAccess; requestArchiveAccess?: typeof requestArchiveAccess; loadServicePlans: typeof loadServicePlans; saveServicePlan: typeof saveServicePlan; preferredServiceId?: string }): () => void
+          museSettingsVersion?: number
+          mount(element: HTMLElement, options: { initialLease: ControlLease; requestAccess: typeof requestAccess; requestArchiveAccess?: typeof requestArchiveAccess; loadServicePlans: typeof loadServicePlans; saveServicePlan: typeof saveServicePlan; preferredServiceId?: string; museSettings?: typeof museSettings }): () => void
         }
         if (stopped) return
         if (client.clientVersion !== 1 || client.servicePlanVersion !== 1 || typeof client.mount !== 'function') throw new Error('Update the translation processor to use these controls.')
         const preferred = new URL(window.location.href).searchParams.get('service')
         const preferredServiceId = preferred && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(preferred) ? preferred : undefined
-        dispose = client.mount(element, { initialLease, requestAccess, ...(client.archiveReviewVersion === 1 ? { requestArchiveAccess } : {}), loadServicePlans, saveServicePlan, preferredServiceId })
+        dispose = client.mount(element, { initialLease, requestAccess, ...(client.archiveReviewVersion === 1 ? { requestArchiveAccess } : {}), ...(client.museSettingsVersion === 1 ? { museSettings } : {}), loadServicePlans, saveServicePlan, preferredServiceId })
         setLoading(false)
       } catch (cause) {
         if (!stopped) {
