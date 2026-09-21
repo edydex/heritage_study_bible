@@ -46,6 +46,46 @@ permission; keep unavailable downloads disabled and validate verse numbering.
 3. From the Heritage repository root, run `BSB_ALIGNMENT_DIR=/path/to/bsb-align node scripts/bible-audio/generate.mjs`.
 4. This writes the Bible catalog, combined native/web audio catalog, per-book timing files and `timing-audit.json` with source/text hashes. `scripts/generateAudioCatalog.mjs` preserves the generated Bible catalog when refreshing LibriVox metadata.
 
+## Complete-text alignment staging
+
+`scripts/bible-audio/export-reference.mjs` exports all 31,102 displayed verses
+and the pinned recording identities. `align-full-text.py` runs separately on a
+CUDA worker against that complete text. It does **not** install timings in the
+app, edit Bible wording, or change the current coverage reported above.
+
+```sh
+node scripts/bible-audio/export-reference.mjs /outside-repo/reference.json
+# On the worker: ffmpeg, NumPy 2.2.6, and official PyTorch/TorchAudio 2.8 CUDA wheels.
+python scripts/bible-audio/align-full-text.py \
+  --reference /outside-repo/reference.json \
+  --work /outside-repo/media --output /outside-repo/timings \
+  --stop-file /outside-repo/STOP
+python -m unittest discover -s scripts/bible-audio -p 'test_*.py'
+```
+
+The model is [Meta MMS](https://github.com/facebookresearch/fairseq/tree/main/examples/mms),
+whose weights carry **CC-BY-NC 4.0**; no weights or audio are distributed in the
+repository or APK. The pipeline uses the official
+[TorchAudio forced-alignment API](https://docs.pytorch.org/audio/2.8/tutorials/forced_alignment_for_multilingual_data_tutorial.html),
+pinned to 2.8 because that API is removed in 2.9. Model, pipeline, reference,
+recording header and full recording hashes are retained with every result.
+Thirty-second windows with one-second context bound GPU memory. Convolution
+frame centers are mapped back to source time, and discontinuous frames fail.
+
+This is an automatic candidate generator. It rejects changed recording identity,
+out-of-bounds/overlapping spans, implausible durations, low average or boundary
+scores, and verses with numeric tokens whose spoken form has not been reviewed.
+Numbers are not removed from the canonical text. Validated caches can resume;
+a changed reference/model requires a new output directory. A STOP file stops
+between recordings without touching the current app data.
+
+Before import, validate every chapter against the current catalog and exact
+displayed text, compare independent recognition and listening samples, and
+record coverage/rejection counts. The first three-chapter prototype covered
+Genesis 1, Psalm 119 and Romans 1; its 16 independent Whisper crop checks are
+automatic evidence, not a human listening review. No full-library candidate
+timings are claimed as published here.
+
 ## Acceptance
 
 - 267 unit tests and 124 protocol tests passed, including all imported spans against displayed Bible text, media duration, track identity, gaps, changed text and translation boundaries.
