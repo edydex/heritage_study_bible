@@ -25,6 +25,9 @@ jobs:
       - name: Check audiobook phrase matching
         run: python3 scripts/audiobook-alignment/test_match.py
 
+      - name: Check complete Bible timing validation
+        run: python3 -m unittest discover -s scripts/bible-audio -p 'test_*.py'
+
       - name: Run tests
         run: npm test
 

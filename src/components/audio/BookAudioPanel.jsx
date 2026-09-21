@@ -47,7 +47,7 @@ export default function BookAudioPanel({ bookId, editionId, full = false }) {
     <h2>Listen · {book.title}</h2>
     <p>{editionId ? book.editions.find(edition => edition.id === editionId)?.title : `${tracks.length} ${book.kind === 'bible' ? 'chapters · Barry Hays' : 'tracks · LibriVox'}`}</p>
     <div className="audio-actions">
-      <button type="button" disabled={!audio?.player} onClick={() => audio.player.play(selectedTrack.id)}>{activeTrack ? `Resume at ${formatAudioTime(audio.state.position)}` : 'Listen from the beginning'}</button>
+      <button type="button" disabled={!audio?.player} onClick={() => activeTrack && audio.state.status === 'playing' ? audio.player.pause() : audio.player.play(selectedTrack.id)}>{activeTrack && audio.state.status === 'playing' ? 'Pause' : activeTrack ? `Resume at ${formatAudioTime(audio.state.position)}` : 'Listen from the beginning'}</button>
       <button type="button" onClick={() => setOpen(value => !value)} aria-expanded={open}>{open ? 'Hide tracks' : 'Choose a track'}</button>
       <button type="button" onClick={() => navigate('/audio')}>Audio library</button>
       {canUseNativeAudioDownloads() && <button type="button" disabled={busy || tracks.every(track => downloaded.has(track.id))} onClick={() => transferTracks(tracks.filter(track => !downloaded.has(track.id)))}>Download {editionId ? 'volume' : 'book'} · {formatAudioBytes(tracks.filter(track => !downloaded.has(track.id)).reduce((sum, track) => sum + track.bytes, 0))}</button>}

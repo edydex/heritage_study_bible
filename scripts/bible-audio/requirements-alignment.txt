@@ -1,0 +1,5 @@
+# Install torch/torchaudio from the official CUDA index appropriate to the GPU.
+# 2.9 removes the forced-alignment API used here.
+torch==2.8.0
+torchaudio==2.8.0
+numpy==2.2.6

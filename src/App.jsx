@@ -1,4 +1,5 @@
-import BibleAudioControls from './components/audio/BibleAudioControls'
+import useBibleAudio from './components/audio/useBibleAudio'
+import AudioPlayButton from './components/audio/AudioPlayButton'
 import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import Header from './components/Header'
@@ -42,6 +43,7 @@ import {
   scaleVolumeScrollDistance,
 } from './utils/advancedSettings'
 
+const AudioSettings = lazy(() => import('./components/audio/AudioSettings'))
 const AudioLibrary = lazy(() => import('./components/audio/AudioLibrary'))
 const InternalStorage = lazy(() => import('./components/audio/InternalStorage'))
 const TranscriptViewer = lazy(() => import('./components/TranscriptViewer'))
@@ -649,6 +651,9 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
       </header>
 
       <main className="container mx-auto max-w-2xl px-4 py-5 pb-20 space-y-4">
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <button type="button" onClick={() => navigate('/settings/audio')} className="w-full text-left"><h2 className="text-sm font-semibold">Audio Settings</h2><p className="text-xs mt-1">Text following, chapters and downloads.</p></button>
+        </section>
         <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <button type="button" onClick={() => navigate('/settings/storage')} className="w-full text-left">
             <h2 className="text-sm font-semibold">Internal Storage</h2>
@@ -1638,7 +1643,12 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
     return { hasPrevious: hasPrev, hasNext: hasNxt, goToPrevious: goPrev, goToNext: goNxt }
   }, [currentBook, currentChapter, currentBookMeta])
 
-  // Handle verse click - opens sidebar panel
+  const bibleAudio = useBibleAudio({ book: currentBook, chapter: currentChapterData, translationId,
+    selectionMode: multiSelectMode || Boolean(textSelection), renderKey: `${parallelMode}:${parallelLoading}:${translationLoading}`, onMessage: message => showToast(message) })
+
+  useEffect(() => { if (parallelMode) setIsSidebarOpen(false) }, [parallelMode])
+
+  // Audio taps seek; ordinary reading retains notes.
   const handleVerseClick = (chapter, verse, verseText) => {
     if (textSelection) {
       clearTextSelection()
@@ -1646,6 +1656,9 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
       setShowGoToPassageButton(false)
       return
     }
+
+    if (bibleAudio.seekVerse(verse)) return
+    if (parallelMode && !multiSelectMode) return
 
     const clickedVerse = { book: currentBook, chapter, verse, text: verseText }
 
@@ -2045,6 +2058,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
           onSideButtonScrollChange={onSideButtonScrollChange}
           showVolumeScrollSetting={isNativeAndroid()}
           onSearchKeyboardCaptureChange={setNativeSearchKeyboardCaptureInputEnabled}
+          onAudioSettingsClick={() => navigate('/settings/audio')}
           onSyncSettingsClick={() => navigate('/settings/sync')}
           onAdvancedSettingsClick={() => navigate('/settings/advanced')}
         />
@@ -2128,7 +2142,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
                     {currentBook} {currentChapter}
                   </h2>
 
-                  {!translationLoading && currentChapterData && <BibleAudioControls book={currentBook} chapter={currentChapterData} translationId={translationId} selectionMode={multiSelectMode} />}
 
                   {/* Translation loading overlay */}
                   {(translationLoading || (parallelMode && parallelLoading)) && (
@@ -2143,6 +2156,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
                       <ParallelBibleChapter
                         bookName={currentBook}
                         primaryChapter={currentChapterData}
+                        onOccurrenceNavigate={navigateToVerse}
                         secondaryChapter={secondaryChapterData}
                         primaryTranslationId={translationId}
                         secondaryTranslationId={parallelTranslationId}
@@ -2199,7 +2213,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
                   )}
 
                   {/* Toggle Sidebar Button (desktop only — phones use verse tap) */}
-                  {!isSidebarOpen && !multiSelectMode && (
+                  {!parallelMode && !isSidebarOpen && !multiSelectMode && (
                     <button 
                       onClick={() => setIsSidebarOpen(true)}
                       className="hidden lg:block fixed bottom-20 right-4 sm:right-6 p-3 bg-secondary text-white rounded-full shadow-lg hover:bg-amber-600 transition-all duration-300 z-40"
@@ -2403,6 +2417,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
           <BottomNav
             currentBook={currentBook}
             currentChapter={currentChapter}
+            audioControl={<AudioPlayButton track={bibleAudio.track} />}
             books={bibleBooks}
             onNavigate={handleNavigate}
             onPlanNavigate={handlePlanNavigate}
@@ -2472,6 +2487,7 @@ function App() {
       />
       <Suspense fallback={<div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">Loading…</div>}>
         <Routes>
+          <Route path="/settings/audio" element={<AudioSettings />} />
           <Route path="/audio" element={<AudioLibrary />} />
           <Route path="/settings/storage" element={<InternalStorage />} />
           <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />

@@ -55,13 +55,15 @@ Device acceptance still required before calling car support fully verified:
    restart. A normal app launch must offer Resume without starting audio itself.
 
 Find the library from **Resources → Books → Audio library**. Each book also has
-its own listening panel and track picker. The compact player expands to show
-seeking, previous/next, speed, the book's text, and the audio library.
+its own listening panel and track picker. Audio Settings and Audio library show
+seeking, previous/next, speed and a link to the playing text. Bible and book
+readers have Play/Pause beside their existing bottom chapter selector, without
+an extra fixed player. Auto-scroll preferences default on and persist locally.
 
 ## Offline storage
 
 Android uses Capacitor's official File Transfer plugin and private app storage.
-Download individual tracks or the selected book/volume. **Settings → More
+Download individual tracks, the selected book/volume, or the whole BSB translation from Audio Settings (with size and confirmation). **Settings → More
 settings → Internal Storage** lists saved recordings and deletes selected tracks
 or all audio with confirmation. Deletion keeps notes, text and resume positions.
 A browser streams audio; it does not claim to save recordings offline.

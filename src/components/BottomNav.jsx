@@ -77,6 +77,7 @@ function getPlanNoteSources(item) {
 
 function BottomNav({ 
   currentBook, 
+  audioControl = null,
   currentChapter, 
   books = [],
   onNavigate,
@@ -610,10 +611,12 @@ function BottomNav({
             </svg>
           </button>
 
+          <div className="flex flex-1 min-w-0 items-center justify-center">
+          {audioControl}
           {/* Chapter Selector Button */}
           <button
             onClick={() => activePlan?.planId ? setShowPlanPanel(true) : setShowPicker(true)}
-            className="flex-1 min-w-0 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
+            className="min-w-0 flex items-center justify-center gap-2 h-14 mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
           >
             <span className="text-base font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[160px] sm:max-w-[200px]">
               {activePlan?.planId ? getPlanModeLabel(currentPlanItem, currentBook, currentChapter) : `${currentBook} ${currentChapter}`}
@@ -623,6 +626,7 @@ function BottomNav({
             </svg>
           </button>
 
+          </div>
           {/* Next Button */}
           <button
             onClick={handlePlanNext}

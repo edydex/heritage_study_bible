@@ -1,3 +1,4 @@
+import { useHeritageAudio } from './audio/AudioProvider'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { translations, parallelTranslations } from '../data/translations'
 import { isNativeAndroid, setNativeReaderChromeHidden } from '../services/androidControls'
@@ -39,6 +40,7 @@ function Header({
   onSideButtonScrollChange,
   showVolumeScrollSetting = false,
   onSearchKeyboardCaptureChange,
+  onAudioSettingsClick,
   onSyncSettingsClick,
   onAdvancedSettingsClick,
   hidden = false,
@@ -49,6 +51,7 @@ function Header({
   const [showParallelModal, setShowParallelModal] = useState(false)
   const [autoHidden, setAutoHidden] = useState(false)
   const [selectedParallelLanguage, setSelectedParallelLanguage] = useState('')
+  const audio = useHeritageAudio()
   const settingsRef = useRef(null)
   const translationsRef = useRef(null)
   const suppressShowUntilRef = useRef(0)
@@ -458,6 +461,8 @@ function Header({
                   >+</button>
                 </div>
 
+                <button type="button" aria-label="Audio Settings" onClick={event => { event.stopPropagation(); setShowSettings(false); onAudioSettingsClick?.() }} className="w-full flex items-center justify-between px-1 py-2 text-sm text-gray-700 dark:text-gray-200"><span>Audio Settings</span><span>›</span></button>
+                <label className="flex items-center gap-2 px-1 py-2 text-sm text-gray-700 dark:text-gray-200"><input type="checkbox" checked={audio?.settings.parallelMonochrome ?? false} onChange={event => audio?.updateSettings({ parallelMonochrome: event.target.checked })} /> B&amp;W word links</label>
                 {/* Verse Layout */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
                   <button

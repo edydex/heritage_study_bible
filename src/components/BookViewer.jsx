@@ -1,5 +1,7 @@
-import { audiobookDestination, loadAudiobookTiming, matchingAudioParagraph } from '../services/audiobookText'
-import { getAudioTrack } from '../services/audioCatalog'
+import { useHeritageAudio } from './audio/AudioProvider'
+import AudioPlayButton from './audio/AudioPlayButton'
+import { activeAudiobookParagraph, audiobookDestination, loadAudiobookTiming, matchingAudioParagraph } from '../services/audiobookText'
+import { getAudioTrack, getBookAudioTracks } from '../services/audioCatalog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
@@ -180,6 +182,9 @@ function BookReader() {
   const [bookmarkStatus, setBookmarkStatus] = useState('')
   const [progressReady, setProgressReady] = useState(false)
   const pendingChapterRef = useRef(null)
+  const audio = useHeritageAudio()
+  const playingTrack = getAudioTrack(audio?.state.trackId)
+  const [playingTiming, setPlayingTiming] = useState(null)
   const [linkedAudioParagraph, setLinkedAudioParagraph] = useState(null)
   const audioTarget = location.state?.audioParagraph || linkedAudioParagraph
   const crossSearchRequestRef = useRef(0)
@@ -270,8 +275,30 @@ function BookReader() {
     return () => { cancelled = true }
   }, [itemId, location.key, location.search, location.state?.audioParagraph])
 
+  useEffect(() => {
+    let cancelled = false
+    setPlayingTiming(null)
+    if (playingTrack && !playingTrack.bible && (playingTrack.textBookId || playingTrack.bookId) === itemId) {
+      loadAudiobookTiming(playingTrack).then(value => { if (!cancelled) setPlayingTiming(value) }).catch(() => {})
+    }
+    return () => { cancelled = true }
+  }, [playingTrack?.id, itemId])
+
   const chapters = useMemo(() => parseBookChapters(bookText), [bookText])
   const audioParagraph = useMemo(() => matchingAudioParagraph(chapters, audioTarget), [chapters, audioTarget])
+  const liveTarget = useMemo(() => activeAudiobookParagraph(playingTrack, playingTiming, audio?.state.position), [playingTrack?.id, playingTiming, audio?.state.position])
+  const liveParagraph = useMemo(() => matchingAudioParagraph(chapters, liveTarget), [chapters, liveTarget])
+  const shownAudioParagraph = playingTiming ? liveParagraph : audioParagraph
+  useEffect(() => {
+    if (!audio?.settings.followBooks || audio.state.status !== 'playing' || !liveParagraph || textLoading || !progressReady) return
+    if (selectedChapterIndex !== liveParagraph.chapterIndex) { setSelectedChapterIndex(liveParagraph.chapterIndex); return }
+    const frame = requestAnimationFrame(() => {
+      const paragraph = document.getElementById(`book-paragraph-${liveParagraph.paragraphIndex}`)
+      const rect = paragraph?.getBoundingClientRect()
+      if (rect && (rect.top < 130 || rect.bottom > window.innerHeight - 80)) paragraph.scrollIntoView({ block: rect.height > window.innerHeight - 220 ? 'start' : 'center', behavior: 'instant' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [liveParagraph?.chapterIndex, liveParagraph?.paragraphIndex, selectedChapterIndex, audio?.settings.followBooks, audio?.state.status, textLoading, progressReady])
   const footnotesById = useMemo(() => extractBookFootnotes(bookText), [bookText])
   const selectedChapter = chapters[selectedChapterIndex] || null
   const selectedChapterNumber = extractChapterNumber(selectedChapter?.title || '')
@@ -339,6 +366,7 @@ function BookReader() {
   }, [bookGroups, navigatorGroup, selectedBookGroup, shouldShowBookSelector])
 
   useEffect(() => {
+    if (audio?.state.status === 'playing' && playingTiming) return
     if (textLoading || !audioParagraph || selectedChapterIndex !== audioParagraph.chapterIndex) return
     const frame = requestAnimationFrame(() => {
       const paragraph = document.getElementById(`book-paragraph-${audioParagraph.paragraphIndex}`)
@@ -346,7 +374,7 @@ function BookReader() {
       paragraph?.focus({ preventScroll: true })
     })
     return () => cancelAnimationFrame(frame)
-  }, [audioParagraph, selectedChapterIndex, location.key, textLoading])
+  }, [audioParagraph, selectedChapterIndex, location.key, textLoading, playingTiming, audio?.state.status])
 
   const navigatorChapterEntries = shouldShowBookSelector
     ? chapterEntries.filter(entry => entry.groupKey === (navigatorGroup || selectedBookGroup))
@@ -974,7 +1002,7 @@ function BookReader() {
               {audioTarget && <p role="status" className="mb-3 text-sm text-gray-500 dark:text-gray-400">{audioParagraph ? 'Nearby passage from the recording. The narrator may use a different translation; this is an automatic paragraph match.' : 'The book text has changed, so the recorded location could not be verified.'}</p>}
               <div className="space-y-4">
                 {(selectedChapter?.paragraphs || []).map((paragraph, index) => (
-                  <p key={index} id={`book-paragraph-${index}`} tabIndex={-1} data-audio-paragraph={audioParagraph?.chapterIndex === selectedChapterIndex && audioParagraph?.paragraphIndex === index ? 'true' : undefined} className="book-text-paragraph text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
+                  <p key={index} id={`book-paragraph-${index}`} tabIndex={-1} data-audio-paragraph={shownAudioParagraph?.chapterIndex === selectedChapterIndex && shownAudioParagraph?.paragraphIndex === index ? 'true' : undefined} className="book-text-paragraph text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
                     {renderParagraphWithFootnotes(paragraph, searchQuery, footnotesById, openFootnote)}
                   </p>
                 ))}
@@ -1040,6 +1068,7 @@ function BookReader() {
                 </svg>
               </button>
 
+              <AudioPlayButton track={getBookAudioTracks(audioBook?.id).find(track => track.id === audio?.state.trackId) || getBookAudioTracks(audioBook?.id)[0]} label="book" />
               <button
                 onClick={() => setShowNavigator(true)}
                 className="flex-1 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
