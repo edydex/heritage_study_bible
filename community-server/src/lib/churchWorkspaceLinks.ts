@@ -6,6 +6,7 @@ export const churchWorkspaceLinks = [
   { href: '/admin/sermon-publications', label: 'Publish sermons' },
   { href: '/admin/collections/songs', label: 'Song library' },
   { href: '/admin/collections/sermons', label: 'Sermon library' },
+  { href: '/admin/bible-translations', label: 'Bible translations' },
   { href: '/admin/collections/media', label: 'Media library' },
 ] as const
 

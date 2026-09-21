@@ -147,7 +147,12 @@ export async function loadHeritageServiceBiblePassage(
   {
     fetchImpl = globalThis.fetch,
     heritageAppUrl = process.env.HERITAGE_APP_URL,
-  }: { fetchImpl?: FetchLike; heritageAppUrl?: string } = {},
+    translations = { english: 'BSB', russian: 'SYNO-W' },
+    importedPassage,
+  }: { fetchImpl?: FetchLike; heritageAppUrl?: string;
+    translations?: { english: string; russian: string };
+    importedPassage?: (id: string, range: CanonicalBibleRange) => Promise<{ passage: { reference: string; translationId: string; attribution: string; verses: { number: number; text: string }[] }; sourceUrl: string }>;
+  } = {},
 ) {
   let range: CanonicalBibleRange
   try {
@@ -174,32 +179,20 @@ export async function loadHeritageServiceBiblePassage(
   }
   const fileName = bookFileName(book.name)
   const baseUrl = heritageReaderBaseUrl(heritageAppUrl)
-  const [english, russian] = await Promise.all([
-    fetchTranslationBook(fetchImpl, baseUrl, TRANSLATIONS.english.id, fileName),
-    fetchTranslationBook(fetchImpl, baseUrl, TRANSLATIONS.russian.id, fileName),
-  ])
-  for (const candidate of [english.value, russian.value]) {
-    if (candidate.name !== book.name) {
-      throw new HeritageServiceBibleLookupError(
-        'INVALID_BIBLE_SOURCE',
-        'Heritage reader data returned the wrong Bible book.',
-        502,
-      )
-    }
-  }
   const reference = formatBibleRange(range)
-  const englishPassage = {
-    reference,
-    translationId: TRANSLATIONS.english.id,
-    attribution: TRANSLATIONS.english.attribution,
-    verses: exactVerses(english.value, range, TRANSLATIONS.english.id),
+  async function channel(id: string) {
+    const builtIn = Object.values(TRANSLATIONS).find(value => value.id === id)
+    if (!builtIn) {
+      if (!importedPassage) throw new HeritageServiceBibleLookupError('BIBLE_NOT_INSTALLED', 'That Bible edition is not installed for this church.', 404)
+      return importedPassage(id, range)
+    }
+    const result = await fetchTranslationBook(fetchImpl, baseUrl, id, fileName)
+    if (result.value.name !== book!.name) throw new HeritageServiceBibleLookupError('INVALID_BIBLE_SOURCE', 'Heritage reader data returned the wrong Bible book.', 502)
+    return { passage: { reference, translationId: id, attribution: builtIn.attribution, verses: exactVerses(result.value, range, id) }, sourceUrl: result.sourceUrl }
   }
-  const russianPassage = {
-    reference,
-    translationId: TRANSLATIONS.russian.id,
-    attribution: TRANSLATIONS.russian.attribution,
-    verses: exactVerses(russian.value, range, TRANSLATIONS.russian.id),
-  }
+  const [english, russian] = await Promise.all([channel(translations.english), channel(translations.russian)])
+  const englishPassage = english.passage
+  const russianPassage = russian.passage
   return Object.freeze({
     schemaVersion: 1,
     range,

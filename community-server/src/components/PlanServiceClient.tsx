@@ -327,6 +327,9 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   const [sermonLibrary, setSermonLibrary] = useState<any[]>([])
   const [sermonChoice, setSermonChoice] = useState('')
   const [bibleBooks, setBibleBooks] = useState<BibleBookOption[]>([])
+  const [bibleTranslations, setBibleTranslations] = useState<{ id: string; name: string; language: string }[]>([{ id: 'BSB', name: 'Berean Standard Bible', language: 'en' }, { id: 'SYNO-W', name: 'Russian Synodal Bible', language: 'ru' }])
+  const [bibleEnglish, setBibleEnglish] = useState('BSB')
+  const [bibleRussian, setBibleRussian] = useState('SYNO-W')
   const [bibleBookId, setBibleBookId] = useState('Eph')
   const [bibleChapter, setBibleChapter] = useState(3)
   const [bibleStartVerse, setBibleStartVerse] = useState(14)
@@ -444,6 +447,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
       setSongLibrary(nextSongs)
       setSongChoice(current => current || nextSongs[0]?.syncId || '')
       setBibleBooks(bible.books || [])
+      if (bible.translations?.length) setBibleTranslations(bible.translations)
       setSermonLibrary(sermons.items || [])
       setSermonChoice(current => current || sermons.items?.[0]?.syncId || '')
     } catch (caught) {
@@ -822,17 +826,18 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
           chapter: visibleBibleChapter,
           startVerse: visibleBibleStartVerse,
           endVerse: visibleBibleEndVerse,
+          translations: { english: bibleEnglish, russian: bibleRussian },
         }),
       })
       const passage = response.passage
       const itemId = `bible-${uuid()}`
       const project = serviceCore.addBibleItem(draft, {
         id: itemId,
-        title: `${passage.title} · BSB / SYNO-W`,
+        title: `${passage.title} · ${passage.passagesByChannel.english.translationId} / ${passage.passagesByChannel.russian.translationId}`,
         range: passage.range,
         passagesByChannel: passage.passagesByChannel,
         presetId: sermonPassage ? 'wotbc-sermon-verse' : 'scripture-large',
-        operatorNotes: 'Exact Bible text pinned from the configured Heritage reader data.',
+        operatorNotes: 'Exact Bible text and attribution pinned from the selected editions.',
         ...insertionPoint(draft, selectedId),
         now: new Date().toISOString(),
       })
@@ -1272,6 +1277,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                           <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
                           <SlideText text={formatting.scriptureFlowText(block.verses)} spans={block.spans} label={`Slide ${activeSlide?.number} ${previewChannel} Scripture — select text to format`} role="body" readOnly canFormat={!preview.singer}
                             onCommit={(text, spans) => activeSlide && slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text, spans))} />
+                          {block.attribution ? <p className="heritage-scripture-credit">{block.attribution}</p> : null}
                         </div>
                         return activeSlide && block.type === 'text'
                           ? <SlideText key={`${activeSlide.id}:${previewChannel}:${index}`} text={previewBlockText(block)} role={block.role}
@@ -1375,6 +1381,8 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               {selected?.kind === 'picture' ? CHANNEL_IDS.map(channelId => <button key={channelId} type="button" disabled={uploadingPicture} onClick={() => choosePicture(channelId)}>Replace {draft?.channels[channelId]?.label || channelId}</button>) : null}
             </> : null}
             {resourceTab === 'scripture' ? <>
+              <label><span>English screen translation</span><select aria-label="English screen translation" value={bibleEnglish} onChange={event => setBibleEnglish(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
+              <label><span>Russian / stage screen translation</span><select aria-label="Russian / stage screen translation" value={bibleRussian} onChange={event => setBibleRussian(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
               <PassageReferenceInput key={referenceKey} books={bibleBooks} singleChapter onValidityChange={setReferenceValid} onResolve={passage => { setBibleBookId(passage.bookId); setBibleChapter(passage.startChapter); setBibleStartVerse(passage.startVerse); setBibleEndVerse(passage.endVerse) }} />
               <details className="heritage-passage-manual"><summary>Choose book and verses</summary><div>
               <label><span>Book</span><select ref={bibleBookInput} value={bibleBookId} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleBookId(event.target.value); const chapters = bibleBooks.find(book => book.id === event.target.value)?.chapters || 1; setBibleChapter(current => Math.min(current, chapters)) }}>{bibleBooks.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>

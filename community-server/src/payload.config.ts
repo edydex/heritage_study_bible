@@ -1,3 +1,5 @@
+import { BibleTranslations } from './collections/BibleTranslations'
+import { bibleImportEndpoints } from './endpoints/bibleImports'
 import { sermonPresentationEndpoints } from './endpoints/sermonPresentations'
 import { calendarEndpoints } from './endpoints/calendar'
 import { postgresAdapter, type PostgresAdapterArgs } from '@payloadcms/db-postgres'
@@ -142,6 +144,10 @@ export default buildConfig({
             title: 'Church workspace',
           },
         },
+        bibleTranslations: {
+          Component: '@/components/BibleTranslations', exact: true,
+          meta: { title: 'Bible translations' }, path: '/bible-translations',
+        },
         liveTranslation: {
           Component: '@/components/LiveTranslation',
           exact: true,
@@ -179,6 +185,7 @@ export default buildConfig({
     },
   },
   collections: [
+    BibleTranslations,
     Users,
     CommunitySessions,
     CommunityAuthChallenges,
@@ -236,6 +243,7 @@ export default buildConfig({
       : { jsonTransport: true },
   }),
   endpoints: [
+    ...bibleImportEndpoints,
     ...calendarEndpoints,
     ...sermonPresentationEndpoints,
     ...authEndpoints,

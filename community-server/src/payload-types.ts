@@ -67,6 +67,7 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    'bible-translations': BibleTranslation;
     users: User;
     'community-sessions': CommunitySession;
     'community-auth-challenges': CommunityAuthChallenge;
@@ -106,6 +107,7 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    'bible-translations': BibleTranslationsSelect<false> | BibleTranslationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'community-sessions': CommunitySessionsSelect<false> | CommunitySessionsSelect<true>;
     'community-auth-challenges': CommunityAuthChallengesSelect<false> | CommunityAuthChallengesSelect<true>;
@@ -176,6 +178,106 @@ export interface UserAuthOperations {
     email: string;
     password: string;
   };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bible-translations".
+ */
+export interface BibleTranslation {
+  id: number;
+  community: number | Community;
+  translationId: string;
+  name: string;
+  language: string;
+  edition: string;
+  attribution: string;
+  sourceUrl: string;
+  license: string;
+  digest: string;
+  bookCount: number;
+  chapterCount: number;
+  verseCount: number;
+  documentSource: string;
+  permissionConfirmed: boolean;
+  permissionReference: string;
+  installedBy: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * The public name, description, logo, time zone, and joining policy for this Heritage Community.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "communities".
+ */
+export interface Community {
+  id: number;
+  name: string;
+  /**
+   * Set during installation. Heritage uses this ID to recognize the same church after updates.
+   */
+  slug: string;
+  description?: string | null;
+  website?: string | null;
+  logo?: (number | null) | Media;
+  /**
+   * For example: America/Los_Angeles.
+   */
+  timeZone: string;
+  /**
+   * Invite-only prevents strangers from creating member accounts on a public server.
+   */
+  joinPolicy: 'invite' | 'open';
+  /**
+   * Events can inherit this setting or choose their own visibility.
+   */
+  calendarDefaultVisibility: 'members' | 'public';
+  allowDirectoryListing?: boolean | null;
+  contentServerEnabled?: boolean | null;
+  liveService?: {
+    /**
+     * The church channel, for example https://www.youtube.com/@wordoftruthbiblech.
+     */
+    youtubeChannelUrl?: string | null;
+    /**
+     * Paste the scheduled or current YouTube stream link. Clear it when no video should be embedded.
+     */
+    youtubeVideoUrl?: string | null;
+    /**
+     * Use /translate for the integrated listener, or the public HTTPS address of your existing Multilinguum listener. Never enter a processor address or access token.
+     */
+    translationUrl?: string | null;
+    /**
+     * Measured delay from the church sound feed to the YouTube broadcast. This is a starting point for alignment; verify against the current stream.
+     */
+    broadcastDelaySeconds?: number | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Uploaded artwork, documents, audio, video, scores, and other files used by published resources.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  community: number | Community;
+  status?: ('draft' | 'published') | null;
+  alt?: string | null;
+  credit?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * People who have signed in. Use Member invitations before their first sign-in; use Memberships to change an existing person’s church role.
@@ -276,81 +378,6 @@ export interface CommunityAuthRateLimit {
   resetAt: string;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * The public name, description, logo, time zone, and joining policy for this Heritage Community.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "communities".
- */
-export interface Community {
-  id: number;
-  name: string;
-  /**
-   * Set during installation. Heritage uses this ID to recognize the same church after updates.
-   */
-  slug: string;
-  description?: string | null;
-  website?: string | null;
-  logo?: (number | null) | Media;
-  /**
-   * For example: America/Los_Angeles.
-   */
-  timeZone: string;
-  /**
-   * Invite-only prevents strangers from creating member accounts on a public server.
-   */
-  joinPolicy: 'invite' | 'open';
-  /**
-   * Events can inherit this setting or choose their own visibility.
-   */
-  calendarDefaultVisibility: 'members' | 'public';
-  allowDirectoryListing?: boolean | null;
-  contentServerEnabled?: boolean | null;
-  liveService?: {
-    /**
-     * The church channel, for example https://www.youtube.com/@wordoftruthbiblech.
-     */
-    youtubeChannelUrl?: string | null;
-    /**
-     * Paste the scheduled or current YouTube stream link. Clear it when no video should be embedded.
-     */
-    youtubeVideoUrl?: string | null;
-    /**
-     * Use /translate for the integrated listener, or the public HTTPS address of your existing Multilinguum listener. Never enter a processor address or access token.
-     */
-    translationUrl?: string | null;
-    /**
-     * Measured delay from the church sound feed to the YouTube broadcast. This is a starting point for alignment; verify against the current stream.
-     */
-    broadcastDelaySeconds?: number | null;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Uploaded artwork, documents, audio, video, scores, and other files used by published resources.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  community: number | Community;
-  status?: ('draft' | 'published') | null;
-  alt?: string | null;
-  credit?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
 }
 /**
  * The role an existing account has in this church. New people should normally be added through Member invitations.
@@ -1198,7 +1225,7 @@ export interface Event {
   startsAt: string;
   endsAt?: string | null;
   /**
-   * For example: America/Los_Angeles.
+   * Use America/Los_Angeles for Pacific time, including daylight saving. PST and PDT are converted automatically.
    */
   timeZone: string;
   /**
@@ -1212,6 +1239,9 @@ export interface Event {
    */
   repeatUntil?: string | null;
   location?: string | null;
+  /**
+   * An external website for registration or more information. Use a complete https:// address, or leave blank. The church event details page is created automatically.
+   */
   url?: string | null;
   rsvpEnabled?: boolean | null;
   defaultReminderMinutes?: number | null;
@@ -1498,6 +1528,30 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bible-translations_select".
+ */
+export interface BibleTranslationsSelect<T extends boolean = true> {
+  community?: T;
+  translationId?: T;
+  name?: T;
+  language?: T;
+  edition?: T;
+  attribution?: T;
+  sourceUrl?: T;
+  license?: T;
+  digest?: T;
+  bookCount?: T;
+  chapterCount?: T;
+  verseCount?: T;
+  documentSource?: T;
+  permissionConfirmed?: T;
+  permissionReference?: T;
+  installedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

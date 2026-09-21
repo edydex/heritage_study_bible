@@ -45,7 +45,7 @@ jobs:
           npm run test:appliance
           npm run typecheck
           npm run test:syncshow
-          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-provider-settings.test.ts tests/translation-plans.test.ts tests/calendar.test.ts tests/sermon-presentation.test.ts tests/planner-templates.test.ts tests/passage-shortcuts.test.ts tests/presentation-palette.test.ts
+          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-provider-settings.test.ts tests/translation-plans.test.ts tests/calendar.test.ts tests/sermon-presentation.test.ts tests/planner-templates.test.ts tests/passage-shortcuts.test.ts tests/presentation-palette.test.ts tests/bible-import.test.ts
           npm run build
 
       - name: Create isolated test configuration
@@ -329,3 +329,43 @@ jobs:
             sleep 1
           done
           node --import tsx --test tests/community-workflows-http.test.ts
+
+  bible-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: heritage_ci
+          POSTGRES_PASSWORD: disposable-bible-import-password
+          POSTGRES_DB: bible_import_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage_ci -d bible_import_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://heritage_ci:disposable-bible-import-password@127.0.0.1:5432/bible_import_ci
+      HERITAGE_BIBLE_IMPORT_TEST_DATABASE: postgresql://heritage_ci:disposable-bible-import-password@127.0.0.1:5432/bible_import_ci
+      HERITAGE_DISPOSABLE_CI: bible-import
+      PAYLOAD_SECRET: disposable-bible-import-acceptance-secret
+      COMMUNITY_ID: bible-import-ci
+      COMMUNITY_PUBLIC_URL: http://127.0.0.1:4389
+      COMMUNITY_AUTH_ENABLED: 'false'
+      HERITAGE_SERMON_MEDIA_PATH: /tmp/heritage-bible-import-media
+      BOOTSTRAP_ADMIN_EMAIL: bible-import-ci@example.org
+      BOOTSTRAP_ADMIN_PASSWORD: disposable-bible-import-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - run: npm ci --include=dev --legacy-peer-deps
+      - run: npm run migrate
+      - run: node --import tsx --test --test-force-exit tests/bible-import-payload.test.ts tests/bible-import.test.ts

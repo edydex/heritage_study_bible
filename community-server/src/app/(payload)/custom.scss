@@ -1795,3 +1795,8 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-service-planner__preview-actions > button { border:1px solid #50665a; border-radius:.3rem; padding:.35rem .55rem; color:#eef5f0; background:#26382e; font-size:.72rem; cursor:pointer; }
 .heritage-service-planner__preview-actions > button:disabled { opacity:.45; cursor:default; }
 @media(max-width:1150px) { .heritage-service-planner__preview-context .heritage-service-planner__preview-title { max-width:6rem; } }
+
+.heritage-service-planner__stage .heritage-service-planner__scripture-page .heritage-scripture-credit {
+  font-size: calc(var(--slide-text-size, 1.5rem) * .28);
+  line-height: 1.2; font-weight: 400; text-align: center; margin-top: 1em; color: inherit;
+}

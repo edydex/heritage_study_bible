@@ -29,6 +29,7 @@ import { default as default_11da70e19fc4e82f9e441f9ef3707d09 } from '@/component
 import { default as default_a202ad21aea188adfad41087711ba85c } from '@/components/AdminNav'
 import { default as default_fa4a20611f8e562519785c8b58bf013b } from '@/components/WorkspaceSignInGuide'
 import { default as default_d2e5e8cdcf265e3c61c4d683161d9698 } from '@/components/AdminDashboard'
+import { default as default_e0426a678041ec284c3119b11a0f7516 } from '@/components/BibleTranslations'
 import { default as default_c47a6a2000b141a0bb5c4ccc6ddb6ea0 } from '@/components/LiveTranslation'
 import { default as default_7625f2337a08dca3f9d12b0a78287a4d } from '@/components/PlanService'
 import { default as default_b44c3e81d020f6d739a9474c1ba127b9 } from '@/components/PrepareSermon'
@@ -68,6 +69,7 @@ export const importMap = {
   "@/components/AdminNav#default": default_a202ad21aea188adfad41087711ba85c,
   "@/components/WorkspaceSignInGuide#default": default_fa4a20611f8e562519785c8b58bf013b,
   "@/components/AdminDashboard#default": default_d2e5e8cdcf265e3c61c4d683161d9698,
+  "@/components/BibleTranslations#default": default_e0426a678041ec284c3119b11a0f7516,
   "@/components/LiveTranslation#default": default_c47a6a2000b141a0bb5c4ccc6ddb6ea0,
   "@/components/PlanService#default": default_7625f2337a08dca3f9d12b0a78287a4d,
   "@/components/PrepareSermon#default": default_b44c3e81d020f6d739a9474c1ba127b9,

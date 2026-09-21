@@ -1,3 +1,5 @@
+import { BibleImportError } from '../../packages/bible-import/index.js'
+import { BUILTIN_BIBLES, installedBibleCatalog, installedBiblePassage } from '../lib/bible/InstalledBibles'
 import { firstSongSections } from '../../packages/song-text/index.js'
 import { createHash, randomUUID } from 'node:crypto'
 import {
@@ -85,7 +87,7 @@ export function editorError(req: PayloadRequest, error: unknown) {
       headers: error.retryable ? { 'Retry-After': '5' } : {},
     })
   }
-  if (error instanceof HeritageServiceBibleLookupError) {
+  if (error instanceof HeritageServiceBibleLookupError || error instanceof BibleImportError) {
     return json(req, { code: error.code, error: error.message }, { status: error.status })
   }
   req.payload.logger.error({ err: error }, 'Manager service-document endpoint failed')
@@ -486,9 +488,10 @@ const bibleLibraryRead: Endpoint = {
   method: 'post',
   handler: async req => {
     try {
-      await managerContext(req)
+      const { communityId } = await managerContext(req)
       const data = await boundedJson(req)
-      if (!exactKeys(data, ['schemaVersion', 'bookId', 'chapter', 'startVerse', 'endVerse'])
+      const lookupKeys = ['schemaVersion', 'bookId', 'chapter', 'startVerse', 'endVerse']
+      if (!(exactKeys(data, lookupKeys) || exactKeys(data, [...lookupKeys, 'translations']))
         || data.schemaVersion !== 1) {
         throw new ServiceDocumentEditorError(
           'INVALID_BIBLE_RANGE',
@@ -496,12 +499,21 @@ const bibleLibraryRead: Endpoint = {
           400,
         )
       }
+      let translations: { english: string; russian: string } | undefined
+      if (data.translations !== undefined) {
+        const selected = data.translations as RequestDoc
+        if (!selected || typeof selected !== 'object' || !exactKeys(selected, ['english', 'russian'])
+          || ![selected.english, selected.russian].every(value => typeof value === 'string' && /^[A-Z][A-Z0-9-]{1,31}$/.test(value))) {
+          throw new BibleImportError('INVALID_BIBLE_SELECTION', 'Choose an installed translation for each screen.')
+        }
+        translations = selected as { english: string; russian: string }
+      }
       const passage = await loadHeritageServiceBiblePassage({
         schemaVersion: 1,
         bookId: data.bookId,
         start: { chapter: data.chapter, verse: data.startVerse },
         end: { chapter: data.chapter, verse: data.endVerse },
-      })
+      }, { translations, importedPassage: (id, range) => installedBiblePassage(req, communityId, id, range) })
       return json(req, { schemaVersion: 1, passage })
     } catch (error) {
       return editorError(req, error)
@@ -514,9 +526,10 @@ const bibleLibraryCatalog: Endpoint = {
   method: 'get',
   handler: async req => {
     try {
-      await managerContext(req)
+      const { communityId } = await managerContext(req)
       return json(req, {
         schemaVersion: 1,
+        translations: [...BUILTIN_BIBLES, ...await installedBibleCatalog(req, communityId)],
         books: CANONICAL_BIBLE_BOOKS.map(book => ({
           id: book.id,
           name: book.name,
