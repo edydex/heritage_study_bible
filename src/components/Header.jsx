@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { translations } from '../data/translations'
+import { translations, parallelTranslations } from '../data/translations'
 import { isNativeAndroid, setNativeReaderChromeHidden } from '../services/androidControls'
 
 const NATIVE_VOLUME_NEXT_EVENT = 'heritage:native-volume-next'
@@ -65,7 +65,7 @@ function Header({
   const [isSmallScreen, setIsSmallScreen] = useState(false)
   const translationGroups = useMemo(() => {
     const groups = new Map()
-    for (const translation of translations) {
+    for (const translation of parallelTranslations) {
       const language = translation.language || 'Other'
       if (!groups.has(language)) groups.set(language, [])
       groups.get(language).push(translation)
@@ -77,7 +77,7 @@ function Header({
   }, [])
 
   const availableParallelTranslations = useMemo(() => {
-    return translations.filter(t => t.id !== translationId)
+    return parallelTranslations.filter(t => t.id !== translationId)
   }, [translationId])
 
   // Track screen size for responsive placeholder
@@ -365,7 +365,7 @@ function Header({
             <span className="text-xs sm:text-sm font-bold tracking-wide">| |</span>
             {parallelMode && (
               <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">
-                {parallelSecondaryId || 'ON'}
+                {parallelSecondaryId === 'ORIGINAL' ? 'Original' : parallelSecondaryId || 'ON'}
               </span>
             )}
           </button>

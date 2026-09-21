@@ -1,3 +1,5 @@
+import { originalLanguages } from './originalLanguages'
+
 /**
  * Available Bible translations.
  * All translations are lazy-fetched from /data/translations/<id>.json.
@@ -70,6 +72,8 @@ export const translations = [
   },
 ]
 
+export const parallelTranslations = [...translations, originalLanguages]
+
 export const DEFAULT_TRANSLATION = 'BSB'
 
 // Module-level cache for loaded translations
@@ -78,7 +82,7 @@ const versificationCache = new Map()
 const verseLayoutCache = new Map()
 
 export function getTranslationById(translationId) {
-  return translations.find(t => t.id === translationId) || null
+  return parallelTranslations.find(t => t.id === translationId) || null
 }
 
 /**
@@ -91,7 +95,9 @@ export async function loadTranslation(translationId) {
   }
 
   // Fetch from public/data/translations/<ID>.json
-  const url = `${import.meta.env.BASE_URL}data/translations/${translationId}.json`
+  const url = translationId === 'ORIGINAL'
+    ? `${import.meta.env.BASE_URL}data/original-languages/greek-nt-n1904.json`
+    : `${import.meta.env.BASE_URL}data/translations/${translationId}.json`
   const resp = await fetch(url)
   if (!resp.ok) throw new Error(`Failed to load ${translationId}: ${resp.status}`)
   const data = await resp.json()
@@ -104,6 +110,7 @@ export async function loadTranslation(translationId) {
  * intentionally stay compact, so richer USFM layout is stored separately.
  */
 export async function loadTranslationLayout(translationId) {
+  if (translationId === 'ORIGINAL') return null
   if (verseLayoutCache.has(translationId)) {
     return verseLayoutCache.get(translationId)
   }

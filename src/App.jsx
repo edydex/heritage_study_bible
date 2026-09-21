@@ -14,7 +14,7 @@ import BookReferenceChooser from './components/BookReferenceChooser'
 import { useBookmarks } from './hooks/useBookmarks'
 import { useAutomaticSync } from './hooks/useAutomaticSync'
 import { bibleBooks } from './data/bible-books.js'
-import { translations, DEFAULT_TRANSLATION, loadTranslation, loadTranslationLayout } from './data/translations'
+import { translations, parallelTranslations, DEFAULT_TRANSLATION, loadTranslation, loadTranslationLayout } from './data/translations'
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
 import { getBookReferenceChoices, parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
@@ -1106,7 +1106,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
   const [parallelTranslationId, setParallelTranslationId] = useState(() => {
     try {
       const saved = localStorage.getItem('heritage-parallel-translation')
-      if (saved && translations.some(t => t.id === saved)) return saved
+      if (saved && parallelTranslations.some(t => t.id === saved)) return saved
     } catch {}
     return translations.find(t => t.id !== DEFAULT_TRANSLATION)?.id || null
   })

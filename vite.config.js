@@ -6,6 +6,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/',
+  // Community has its own Next.js build; do not scan its HTML/test fixtures.
+  optimizeDeps: { entries: ['index.html'] },
   resolve: { dedupe: ['react', 'react-dom'] },
   test: {
     environment: 'happy-dom',
