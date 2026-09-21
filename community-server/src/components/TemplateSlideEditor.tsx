@@ -10,7 +10,7 @@ export default function TemplateSlideEditor({ item, channelId, uploading, onImag
   const showText = !isTitle || item.sermonPresentation?.showText !== false
   const body = item.textByChannel[channelId] || ''
   return <>
-    {isTitle && !item.backgroundAssetId ? <button type="button" className="heritage-service-planner__image-placeholder" disabled={uploading} onClick={onImage}>
+    {isTitle && !(item.backgroundAssetIdsByChannel?.[channelId] || item.backgroundAssetId) ? <button type="button" className="heritage-service-planner__image-placeholder" disabled={uploading} onClick={onImage}>
       <span aria-hidden="true">▧</span>{uploading ? 'Uploading image…' : 'Choose title image'}
     </button> : null}
     {showText ? <>

@@ -1,3 +1,4 @@
+import { default as default_7981ca6a0bab43e438b9c17684a0ac46 } from '@/components/SongLanguageCell'
 import { default as default_145c1c3129d7134cb5a8d152b65cb7d4 } from '@/components/SongPublicationCell'
 import { default as default_25b9636a1e769af9196ea72af4ecbc87 } from '@/components/SongPublicationField'
 import { default as default_efacbf2b3cb153771eef2d90d3988c93 } from '@/components/SongTitleCell'
@@ -38,6 +39,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "@/components/SongLanguageCell#default": default_7981ca6a0bab43e438b9c17684a0ac46,
   "@/components/SongPublicationCell#default": default_145c1c3129d7134cb5a8d152b65cb7d4,
   "@/components/SongPublicationField#default": default_25b9636a1e769af9196ea72af4ecbc87,
   "@/components/SongTitleCell#default": default_efacbf2b3cb153771eef2d90d3988c93,

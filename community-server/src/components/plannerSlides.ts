@@ -101,9 +101,10 @@ export function editablePreviewBlock(project: RecordValue, slide: PlannerSlide, 
 export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, channelId: string, blockIndex: number, text: string, spans?: RecordValue[]) {
   const block = slide.cue?.channels[channelId]?.blocks[blockIndex]
   if (block?.type === 'bible' && spans !== undefined) {
-    if (text !== formatting.scriptureFlowText(block.verses)) throw new Error('Scripture text stays pinned. Only its formatting can change.')
+    const display = formatting.scriptureDisplay(block, slide.cue?.presetId)
+    if (text !== display.text) throw new Error('Scripture text stays pinned. Only its formatting can change.')
     const next = copy(project)
-    next.items[slide.itemId].passagesByChannel[channelId].spans = spans
+    next.items[slide.itemId].passagesByChannel[channelId].spans = spans.filter(span=>span.end>display.bodyStart).map(span=>({...span,start:Math.max(display.sourceStart,span.start-display.prefixLength),end:span.end-display.prefixLength}))
     return copy(serviceCore.normalizeServiceProject(next))
   }
   if (!text.trim() && block?.role !== 'credit') throw new Error('Slide text cannot be empty. Use Delete in the slide menu instead.')

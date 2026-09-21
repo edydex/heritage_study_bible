@@ -135,30 +135,18 @@ Same chorus
 
   assert.deepEqual(
     parsed.document.sections.map((section: AnyRecord) => section.id),
-    ['verse-1', 'chorus', 'verse-2'],
+    ['verse-1', 'chorus', 'verse-2', 'chorus-repeat-2'],
   )
   assert.deepEqual(
     parsed.arrangementSectionIds,
-    ['verse-1', 'chorus', 'verse-2', 'chorus'],
+    ['verse-1', 'chorus', 'verse-2', 'chorus-repeat-2'],
   )
 })
 
-test('planner does not discard repeated section markers with different lyrics', () => {
-  assert.throws(
-    () => parsePlannerLibrarySongDocument(`---
-id: changed-chorus
-title: Changed Chorus
-language: en
----
-
-^chorus
-First wording
-
-^chorus
-Different wording
-`, { fileName: 'changed-chorus.md' }),
-    /appears more than once/i,
-  )
+test('planner preserves changed repeated chorus words as separate editable sections', () => {
+  const result = parsePlannerLibrarySongDocument(`---\nid: changed\ntitle: Changed\nlanguage: en\n---\n^chorus\nFirst wording\n^chorus\nDifferent wording`, {fileName:'changed.md'})
+  assert.deepEqual(result.document.sections.map((section:any)=>section.slides[0].lines), [['First wording'],['Different wording']])
+  assert.deepEqual(result.arrangementSectionIds,['chorus','chorus-repeat-2'])
 })
 
 test('editing a ready revision creates a new planning revision', async () => {

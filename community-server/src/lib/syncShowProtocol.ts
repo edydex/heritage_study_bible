@@ -1,3 +1,4 @@
+import { songDocumentBody } from './songSourceSyntax.ts'
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
 import {
   isSongMemberShareCurrent,
@@ -224,38 +225,6 @@ function yamlScalar(value: string) {
   return JSON.stringify(value)
 }
 
-function songDocumentBody(lyrics: unknown) {
-  const body = String(lyrics || '').replace(/\r\n?/g, '\n').trim()
-  if (!body) return ''
-  if (/^\^[^\s]/m.test(body)) return body
-
-  const heading = /^(verse|stanza|chorus|refrain|bridge|tag|intro|outro|ending|куплет|припев|бридж|вступление|окончание)\s*(\d*)\s*:?\s*$/iu
-  return body
-    .split(/\n{2,}/)
-    .map((block, index) => {
-      const lines = block.split('\n').map(line => line.trimEnd()).filter((line, lineIndex, all) => (
-        line.trim() || (lineIndex > 0 && lineIndex < all.length - 1)
-      ))
-      const match = heading.exec(lines[0] || '')
-      let marker = String(index + 1)
-      let content = lines
-      if (match) {
-        const kind = match[1].toLocaleLowerCase()
-        marker = match[2] || (
-          ['chorus', 'refrain', 'припев'].includes(kind) ? 'chorus'
-            : ['bridge', 'бридж'].includes(kind) ? 'bridge'
-              : ['tag'].includes(kind) ? 'tag'
-                : ['intro', 'вступление'].includes(kind) ? 'intro'
-                  : ['outro', 'ending', 'окончание'].includes(kind) ? 'outro'
-                    : String(index + 1)
-        )
-        content = lines.slice(1)
-      }
-      return `^${marker}\n${content.join('\n')}`.trimEnd()
-    })
-    .filter(Boolean)
-    .join('\n\n')
-}
 
 function safeDocumentId(base: string, suffix = '') {
   const preferred = `${base}${suffix}`
@@ -834,6 +803,7 @@ export function serializeSongForSync(song: Record<string, unknown>, now = new Da
     title: song.title || '',
     description: song.description || '',
     russianTitle: song.russianTitle || '',
+    defaultSongLanguage: song.defaultSongLanguage === 'en' ? 'en' : 'ru',
     alternateTitles: Array.isArray(song.alternateTitles) ? song.alternateTitles : [],
     authors: Array.isArray(song.authors) ? song.authors : [],
     lyrics: song.lyrics || '',

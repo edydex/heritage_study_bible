@@ -19,7 +19,7 @@ import PreviewCanvas from './PreviewCanvas'
 import ServicePreview from './ServicePreview'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 import { SERMON_TEMPLATES, createTemplateDraft, editTemplateField, editCanvasObjects, insertionPoint, type SermonTemplateId } from './plannerTemplates'
-import { preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
+import { addReadingTitle, preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
 import { editablePreviewBlock, editPlannerSlide, isSongTitleSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
 import { changePlannerSelection, plannerRangeSelection, selectedPlannerSlides, type SelectionResult } from './plannerSelection'
 import {
@@ -192,7 +192,7 @@ function itemPreset(item: ProjectItem) {
 
 function presetChoices(item: ProjectItem) {
   if (item.kind === 'song') return ['wotbc-song-stacked', 'wotbc-song-lyrics', 'song-lyrics']
-  if (item.kind === 'bible') return ['wotbc-reading', 'wotbc-sermon-verse', 'scripture-large', 'scripture-text']
+  if (item.kind === 'bible') return ['wotbc-reading', 'wotbc-sermon-scripture', 'wotbc-sermon-verse', 'scripture-large', 'scripture-text']
   if (item.kind === 'sermon') return ['wotbc-sermon-title', 'wotbc-sermon', 'wotbc-sermon-quote', 'sermon-point', 'sermon-notes']
   if (item.kind === 'notice') return ['notice-text', 'sermon-point']
   if (item.kind === 'picture') return ['picture-fullscreen']
@@ -734,7 +734,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
       })
       const english = pinned.find((value: any) => value.document.language === 'en')
       const russian = pinned.find((value: any) => value.document.language === 'ru')
-      const primary = english || russian || pinned[0]
+      const primary = (librarySong.defaultSongLanguage === 'en' ? english : russian) || english || russian || pinned[0]
       const compatible = (candidate: any) => (
         !candidate
         || candidate.resourceId === primary.resourceId
@@ -776,17 +776,16 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
           sectionId,
         })),
         primaryChannelId,
-        titlePresetId: 'song-title',
-        lyricsPresetId: 'song-lyrics',
+        songPresentation: { stackedTranslation: Boolean(alignedEnglish && alignedRussian && alignedEnglish.resourceId !== alignedRussian.resourceId), primaryChannelId,
+          secondaryChannelId: alignedEnglish && alignedRussian ? (primaryChannelId === 'english' ? 'russian' : 'english') : null,
+          credits: [...new Set(pinned.flatMap((value:any) => [...(value.document.authors || []), ...(value.document.composers || []), ...(value.document.translators || [])]))].join(' / ').slice(0,500) },
+        titlePresetId: 'wotbc-song-title',
+        lyricsPresetId: alignedEnglish && alignedRussian ? 'wotbc-song-stacked' : 'wotbc-song-lyrics',
       }, {
         ...insertionPoint(draft, selectedId),
         now: new Date().toISOString(),
       })
-      const singersSourceChannelId = alignedRussian
-        ? 'russian'
-        : alignedEnglish
-          ? 'english'
-          : primaryChannelId
+      const singersSourceChannelId = primaryChannelId
       project = serviceCore.setSongChannelTreatment(project, {
         itemId,
         channelId: 'media',
@@ -831,16 +830,17 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
       })
       const passage = response.passage
       const itemId = `bible-${uuid()}`
-      const project = serviceCore.addBibleItem(draft, {
+      let project = serviceCore.addBibleItem(draft, {
         id: itemId,
         title: `${passage.title} · ${passage.passagesByChannel.english.translationId} / ${passage.passagesByChannel.russian.translationId}`,
         range: passage.range,
         passagesByChannel: passage.passagesByChannel,
-        presetId: sermonPassage ? 'wotbc-sermon-verse' : 'scripture-large',
+        presetId: sermonPassage ? 'wotbc-sermon-scripture' : 'wotbc-reading',
         operatorNotes: 'Exact Bible text and attribution pinned from the selected editions.',
         ...insertionPoint(draft, selectedId),
         now: new Date().toISOString(),
       })
+      if (!sermonPassage) project = addReadingTitle(project, itemId, { english: bibleTranslations.find(value=>value.id===bibleEnglish)?.name || bibleEnglish, russian: bibleTranslations.find(value=>value.id===bibleRussian)?.name || bibleRussian })
       acceptCoreProject(
         project,
         itemId,
@@ -961,7 +961,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
         setSelectedRowIds([])
         rangeAnchor.current = null
       } else if (target === 'background' && selected?.kind === 'sermon') {
-        change(project => { project.assets[asset.id] = asset; project.items[selected.id].backgroundAssetId = asset.id })
+        change(project => { project.assets[asset.id] = asset; const item = project.items[selected.id]; item.backgroundAssetIdsByChannel = { ...item.backgroundAssetIdsByChannel, [previewChannel]: asset.id }; if (previewChannel === 'russian') item.backgroundAssetIdsByChannel.media = asset.id })
       } else if (selected?.kind === 'picture') {
         change(project => {
           project.assets[asset.id] = asset
@@ -1250,12 +1250,12 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 </select></label> : <span>{selected.songPresentation.secondaryChannelId ? 'One language per screen' : 'Single-language song'}</span>}
               </div> : null}
               {selected.kind === 'sermon' && (selected.sermonTemplate === 'title' || selected.presetId === 'wotbc-sermon-title') && !preview.singer ? <div className="heritage-service-planner__song-layout">
-                <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>{uploadingPicture ? 'Uploading…' : selected.backgroundAssetId ? 'Replace image' : 'Choose image'}</button>
+                <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>{uploadingPicture ? 'Uploading…' : (selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? `Replace ${previewChannel === 'russian' ? 'Russian' : 'English'} image` : `Choose ${previewChannel === 'russian' ? 'Russian' : 'English'} image`}</button>
                 <label><input type="checkbox" checked={selected.sermonPresentation?.showText ?? true} onChange={event => updateSelected({ sermonPresentation: {darkenBackground: true, ...selected.sermonPresentation, showText: event.target.checked} })} /> Show title text</label>
                 <label><input type="checkbox" checked={selected.sermonPresentation?.darkenBackground ?? true} onChange={event => updateSelected({ sermonPresentation: {showText: true, ...selected.sermonPresentation, darkenBackground: event.target.checked} })} /> Darken image</label>
               </div> : null}
               <div className="heritage-service-planner__slide-workspace" data-canvas={selected.sermonTemplate === 'other' && !preview.singer || undefined}>
-              <PreviewCanvas kind={selected.kind} presetId={preview.presetId} template={selected.sermonTemplate} titleCard={Boolean(activeSlide && isSongTitleSlide(activeSlide))} singer={preview.singer} next={preview.next} backgroundDimOpacity={selected.sermonPresentation?.darkenBackground === false ? 0 : 0.55} backgroundUrl={selected.backgroundAssetId ? mediaPreviews[selected.backgroundAssetId] || (envelope?.project.assets?.[selected.backgroundAssetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetId)}` : undefined) : undefined}>
+              <PreviewCanvas kind={selected.kind} presetId={preview.presetId} template={selected.sermonTemplate} titleCard={Boolean(activeSlide && isSongTitleSlide(activeSlide))} singer={preview.singer} next={preview.next} backgroundDimOpacity={selected.sermonPresentation?.darkenBackground === false ? 0 : 0.55} backgroundUrl={(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? mediaPreviews[selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId)}` : undefined}>
                 {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
                   : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
                   : selected.sermonTemplate === 'other' && !preview.singer ? <CanvasSlide key={`${selected.id}:${previewChannel}`} objects={selected.objectsByChannel[previewChannel] || []} mediaUrl={id=>mediaPreviews[id] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(id)}`} uploading={uploadingPicture} onImage={()=>choosePicture('canvas')} onChange={objects=>slideMutation(()=>editCanvasObjects(draft!,selected.id,previewChannel,objects))} />
@@ -1275,7 +1275,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                         }
                         if (block.type === 'bible') return <div key={index} className="heritage-service-planner__scripture-page" data-fit-text>
                           <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
-                          <SlideText text={formatting.scriptureFlowText(block.verses)} spans={block.spans} label={`Slide ${activeSlide?.number} ${previewChannel} Scripture — select text to format`} role="body" readOnly canFormat={!preview.singer}
+                          <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} label={`Slide ${activeSlide?.number} ${previewChannel} Scripture — select text to format`} role="body" readOnly canFormat={!preview.singer}
                             onCommit={(text, spans) => activeSlide && slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text, spans))} />
                           {block.attribution ? <p className="heritage-scripture-credit">{block.attribution}</p> : null}
                         </div>
@@ -1312,7 +1312,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 {selected.kind === 'song' && selected.songPresentation ? <label><span>Song credit · bottom right of title slide</span><input aria-label="Song credit" value={selected.songPresentation.credits} maxLength={500}
                   onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, credits: event.target.value } })} /></label> : null}
 
-            {selected.backgroundAssetId ? <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>Replace title image</button> : null}
+            {(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>Replace title image</button> : null}
             {selected.kind === 'picture' ? <div className="heritage-service-planner__picture-editor">
               <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('all')}>{uploadingPicture ? 'Uploading…' : 'Replace on every output'}</button>
               <label><span>Image description</span><input value={selected.altText || ''} onChange={event => updateSelected({ altText: event.target.value })} /></label>
