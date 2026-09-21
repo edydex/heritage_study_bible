@@ -808,6 +808,10 @@ if ! $REUSE_CONFIG; then
       printf 'COMMUNITY_LOCAL_PORT=%s\n' "$LOCAL_PORT"
       printf 'BACKUP_RETENTION_DAYS=%s\n' "$BACKUP_RETENTION_DAYS"
       printf 'TUNNEL_TOKEN=%s\n' "$(dotenv_quote "$TUNNEL_TOKEN")"
+      # Keep optional companion settings when reconfiguring church identity or email.
+      if [[ -f $ENV_FILE ]]; then
+        awk '/^(HERITAGE_TRANSLATION_|TRANSLATION_)[A-Z0-9_]*=/ { print }' "$ENV_FILE"
+      fi
       if [[ -n $ADMIN_PASSWORD && ! -f ${STATE_DIR}/bootstrap-complete ]]; then
         printf 'BOOTSTRAP_ADMIN_NAME=%s\n' "$(dotenv_quote "$ADMIN_NAME")"
         printf 'BOOTSTRAP_ADMIN_EMAIL=%s\n' "$(dotenv_quote "$ADMIN_EMAIL")"
@@ -970,6 +974,7 @@ fi
 compose() {
   local profile_args=()
   [[ $TUNNEL_MODE != token ]] || profile_args=(--profile cloudflare-token)
+  [[ $(env_value HERITAGE_TRANSLATION_ENABLED) != true ]] || profile_args+=(--profile translation)
   docker compose --project-name heritage-community --env-file "$ENV_FILE" --file "$COMPOSE_FILE" "${profile_args[@]}" "$@"
 }
 
@@ -992,6 +997,11 @@ if $DRY_RUN; then
   note "Would validate Compose, pull PostgreSQL, build immutable app/migration images, run migrations, and start the app."
 else
   compose config --quiet
+  if [[ $(env_value HERITAGE_TRANSLATION_ENABLED) == true ]]; then
+    # The companion requires the same live-service guard as normal updates.
+    HERITAGE_INSTALL_DIR="$SOURCE_DIR" HERITAGE_ENV_FILE="$ENV_FILE" HERITAGE_BACKUP_DIR="$BACKUP_DIR" \
+      "${SCRIPT_DIR}/update.sh" --no-pull
+  else
   if compose ps --status running --services 2>/dev/null | grep -qx community && [[ -x ${SCRIPT_DIR}/backup.sh ]]; then
     note "A running installation was found; creating a safety backup before migrations."
     HERITAGE_INSTALL_DIR="$SOURCE_DIR" HERITAGE_ENV_FILE="$ENV_FILE" HERITAGE_BACKUP_DIR="$BACKUP_DIR" \
@@ -1006,6 +1016,7 @@ else
   compose up -d community
   if [[ $TUNNEL_MODE == token ]]; then
     compose up -d cloudflared
+  fi
   fi
 
   wait_for_local_server 240 || {
@@ -1231,7 +1242,15 @@ set_phase "installing backups and operator commands"
 if $DRY_RUN; then
   note "Would install the nightly backup timer and the heritage-community lifecycle command."
 else
-  for script in heritage-community backup.sh restore.sh status.sh update.sh uninstall.sh; do
+  for script in \
+    heritage-community \
+    backup.sh \
+    restore.sh \
+    sermon-media-maintenance.sh \
+    status.sh \
+    translation.sh \
+    update.sh \
+    uninstall.sh; do
     [[ -f ${SCRIPT_DIR}/${script} ]] || fail "Operator tool is missing: ${SCRIPT_DIR}/${script}"
     chmod 0755 "${SCRIPT_DIR}/${script}"
   done

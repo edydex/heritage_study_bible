@@ -1,0 +1,20 @@
+.heritage-bible-library { max-width: 960px; margin: auto; padding: 24px; line-height: 1.55; }
+.heritage-bible-library h1 { margin-bottom: 8px; }
+.heritage-bible-library section { border: 1px solid var(--theme-elevation-200); border-radius: 12px; padding: 24px; margin-top: 24px; }
+.heritage-bible-library ul { list-style: none; padding: 0; }
+.heritage-bible-library li { padding: 14px 0; border-bottom: 1px solid var(--theme-elevation-150); }
+.heritage-bible-library li:last-child { border: 0; }
+.heritage-bible-library li p { margin: 4px 0; }
+.heritage-bible-library small { font-weight: normal; opacity: .8; }
+.heritage-bible-library label { display: block; margin: 16px 0; }
+.heritage-bible-library input[type=text] { display: block; width: 100%; padding: 12px; margin-top: 6px; border: 1px solid var(--theme-elevation-300); border-radius: 6px; background: var(--theme-input-bg); color: inherit; }
+.heritage-bible-library__permission { display: flex !important; align-items: flex-start; gap: 10px; }
+.heritage-bible-library__permission input { margin-top: 5px; }
+.heritage-bible-library button { padding: 12px 20px; background: var(--theme-elevation-900); color: var(--theme-elevation-0); border-radius: 6px; border: 0; cursor: pointer; }
+.heritage-bible-library button:disabled { opacity: .5; cursor: default; }
+.heritage-bible-library__preview { border-top: 1px solid var(--theme-elevation-200); margin-top: 24px; padding-top: 16px; }
+.heritage-bible-library blockquote { margin: 16px 0; padding: 16px 20px; border-left: 3px solid #718f80; background: var(--theme-elevation-50); white-space: pre-wrap; }
+.heritage-bible-library__error, .heritage-bible-library__notice { padding: 12px; border: 1px solid currentColor; border-radius: 6px; }
+.heritage-bible-library__error { color: var(--theme-error-600, #b42318); }
+.heritage-bible-library a { overflow-wrap: anywhere; }
+@media(max-width:600px) { .heritage-bible-library { padding: 12px; } .heritage-bible-library section { padding: 16px; } }

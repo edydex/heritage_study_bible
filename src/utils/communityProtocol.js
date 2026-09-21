@@ -22,7 +22,16 @@ export function normalizeCommunityManifestUrl(value) {
 function httpUrl(value, base) {
   const url = new URL(String(value || ''), base)
   if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Community endpoints must use HTTP or HTTPS.')
+  if (url.username || url.password) throw new Error('Community URLs must not contain credentials.')
   return url.href
+}
+
+function sameOriginHttpUrl(value, base, expectedOrigin) {
+  const resolved = httpUrl(value, base)
+  if (new URL(resolved).origin !== expectedOrigin) {
+    throw new Error('Community account endpoints must stay on the Community server.')
+  }
+  return resolved
 }
 
 export function validateCommunityManifest(input, manifestUrl) {
@@ -35,6 +44,39 @@ export function validateCommunityManifest(input, manifestUrl) {
   if (input.auth?.method !== 'email-magic-link') throw new Error('This community does not support Heritage email sign-in.')
 
   const apiBaseUrl = httpUrl(input.apiBaseUrl, manifestUrl).replace(/\/+$/, '')
+  const apiOrigin = new URL(apiBaseUrl).origin
+  const requestUrl = sameOriginHttpUrl(String(input.auth.requestPath || input.auth.requestUrl || '').replace(/^\/+/, ''), `${apiBaseUrl}/`, apiOrigin)
+  const sessionUrl = sameOriginHttpUrl(String(input.auth.sessionPath || input.auth.sessionUrl || '').replace(/^\/+/, ''), `${apiBaseUrl}/`, apiOrigin)
+  const optionalAuthUrl = (pathKey, urlKey) => input.auth?.[pathKey] || input.auth?.[urlKey]
+    ? sameOriginHttpUrl(String(input.auth[pathKey] || input.auth[urlKey]).replace(/^\/+/, ''), `${apiBaseUrl}/`, apiOrigin)
+    : ''
+  const syncEndpoint = (pathKey, urlKey) => {
+    const value = input.sync?.[pathKey] || input.sync?.[urlKey]
+    if (!value) throw new Error('The Community sync manifest is incomplete.')
+    return sameOriginHttpUrl(String(value).replace(/^\/+/, ''), `${apiBaseUrl}/`, apiOrigin)
+  }
+  const optionalSyncEndpoint = (pathKey, urlKey) => {
+    const value = input.sync?.[pathKey] || input.sync?.[urlKey]
+    return value ? sameOriginHttpUrl(String(value).replace(/^\/+/, ''), `${apiBaseUrl}/`, apiOrigin) : ''
+  }
+  const sync = input.sync && typeof input.sync === 'object' && Number(input.sync.schemaVersion) === 1
+    ? {
+        schemaVersion: 1,
+        recordsUrl: syncEndpoint('recordsPath', 'recordsUrl'),
+        accountUrl: syncEndpoint('accountPath', 'accountUrl'),
+        protectionUrl: syncEndpoint('protectionPath', 'protectionUrl'),
+        revokeDeviceUrl: syncEndpoint('revokeDevicePath', 'revokeDeviceUrl'),
+        ...(optionalSyncEndpoint('conflictsPath', 'conflictsUrl') ? {
+          conflictsUrl: optionalSyncEndpoint('conflictsPath', 'conflictsUrl'),
+        } : {}),
+        ...(optionalSyncEndpoint('resolveConflictPath', 'resolveConflictUrl') ? {
+          resolveConflictUrl: optionalSyncEndpoint('resolveConflictPath', 'resolveConflictUrl'),
+        } : {}),
+        exportUrl: syncEndpoint('exportPath', 'exportUrl'),
+        eraseUrl: syncEndpoint('erasePath', 'eraseUrl'),
+        privacyModel: String(input.sync.privacyModel || ''),
+      }
+    : null
   return {
     schemaVersion: COMMUNITY_PROTOCOL_VERSION,
     kind: COMMUNITY_KIND,
@@ -46,9 +88,20 @@ export function validateCommunityManifest(input, manifestUrl) {
     apiBaseUrl,
     auth: {
       method: 'email-magic-link',
-      requestUrl: httpUrl(String(input.auth.requestPath || '').replace(/^\/+/, ''), `${apiBaseUrl}/`),
-      sessionUrl: httpUrl(String(input.auth.sessionPath || '').replace(/^\/+/, ''), `${apiBaseUrl}/`),
+      requestUrl,
+      sessionUrl,
+      reverifyUrl: optionalAuthUrl('reverifyPath', 'reverifyUrl'),
+      logoutUrl: optionalAuthUrl('logoutPath', 'logoutUrl'),
     },
     capabilities: input.capabilities && typeof input.capabilities === 'object' ? input.capabilities : {},
+    sync,
+    publicPages: Object.fromEntries(['live', 'translation', 'calendar'].flatMap(key => {
+      // Public navigation is optional; a malformed link must not break sign-in.
+      try {
+        if (!input.publicPages?.[key]) return []
+        const url = httpUrl(input.publicPages[key], manifestUrl)
+        return new URL(url).origin === new URL(manifestUrl).origin ? [[key, url]] : []
+      } catch { return [] }
+    })),
   }
 }

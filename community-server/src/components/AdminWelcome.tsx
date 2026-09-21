@@ -2,39 +2,29 @@ import { communityPublicConfig } from '@/lib/publicConfig'
 
 const actions = [
   {
-    href: '/admin/collections/songs/create',
-    title: 'Add a song',
-    text: 'Create one bilingual listing, then add the lyrics, chords, scores, or recordings you have.',
+    href: '/admin/plan-service',
+    title: 'Plan Sunday’s service',
+    text: 'Build the order with songs, Scripture, sermon slides, and media in one simple workspace.',
   },
   {
-    href: '/admin/collections/sermons/create',
-    title: 'Add a sermon',
-    text: 'Publish a message, transcript, Scripture references, and recordings.',
+    href: '/admin/prepare-sermon',
+    title: 'Prepare a sermon',
+    text: 'Create a private sermon draft, build its slides, and add the whole sermon to a service.',
   },
   {
-    href: '/admin/collections/reading-plans/create',
-    title: 'Build a Bible plan',
-    text: 'Arrange passages and short notes into ordered reading days.',
-  },
-  {
-    href: '/admin/collections/community-invites/create',
-    title: 'Invite a person',
-    text: 'Email a one-time join link and allow that address into the church Community.',
-  },
-  {
-    href: '/admin/collections/events/create',
-    title: 'Create an event',
-    text: 'Add the time, place, reminder, and RSVP choice members will see.',
+    href: '/admin/sermon-publications',
+    title: 'Publish a sermon',
+    text: 'Review the exact sermon text, audio, and video before it appears on the public website.',
   },
 ]
 
 export default function AdminWelcome() {
   return (
     <section className="heritage-admin-welcome">
-      <p className="heritage-admin-eyebrow">Heritage Community</p>
-      <h1>{communityPublicConfig.name} admin</h1>
+      <p className="heritage-admin-eyebrow">Church workspace</p>
+      <h1>What are you working on?</h1>
       <p className="heritage-admin-intro">
-        Start with one ordinary task. Draft content stays private until its status is changed to Published.
+        Start with the Sunday service. The song and sermon libraries are always available from the workspace menu.
       </p>
       <div className="heritage-admin-actions">
         {actions.map(action => (
@@ -45,9 +35,9 @@ export default function AdminWelcome() {
         ))}
       </div>
       <div className="heritage-admin-links">
-        <a href="/" target="_blank">Open server home</a>
-        <a href="/heritage-content.json" target="_blank">Check public content feed</a>
-        <span>Server health and backups: <code>sudo heritage-community status</code></span>
+        <a href="/" target="_blank">Open {communityPublicConfig.name} website</a>
+        <a href="/songs">Browse public song titles</a>
+        <a href="/sermons">Browse public sermons</a>
       </div>
     </section>
   )

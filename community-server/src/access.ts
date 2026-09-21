@@ -44,13 +44,21 @@ function relationId(value: unknown) {
 export const createCommunityContent: Access = async ({ req, data }) => {
   if (req.user?.systemRole === 'system-admin') return true
   const communityIds = await membershipCommunityIds(req, ['owner', 'admin', 'leader'])
-  return communityIds.map(String).includes(relationId(data?.community))
+  const communityId = relationId(data?.community)
+  // Payload calls create access without document data when deciding whether to
+  // render the create form. Missing relationships still fail each collection's
+  // required-field validation on a real write; a supplied ID remains scoped to
+  // the user's eligible communities below.
+  if (!communityId) return communityIds.length > 0
+  return communityIds.map(String).includes(communityId)
 }
 
 export const createMemberCommunityContent: Access = async ({ req, data }) => {
   if (req.user?.systemRole === 'system-admin') return true
   const communityIds = await membershipCommunityIds(req)
-  return communityIds.map(String).includes(relationId(data?.community))
+  const communityId = relationId(data?.community)
+  if (!communityId) return communityIds.length > 0
+  return communityIds.map(String).includes(communityId)
 }
 
 export const readCommunityMembership: Access = async ({ req }) => {
@@ -65,6 +73,50 @@ export const readMemberCommunityContent: Access = async ({ req }) => {
   const communityIds = await membershipCommunityIds(req)
   if (!communityIds.length) return false
   return { community: { in: communityIds } }
+}
+
+export const readSongsByVisibility: Access = async ({ req }) => {
+  if (req.user?.systemRole === 'system-admin') return true
+  if (!req.user) return false
+  const communityIds = await membershipCommunityIds(req)
+  if (!communityIds.length) return false
+  const managerCommunityIds = await membershipCommunityIds(req, ['owner', 'admin', 'leader'])
+  const now = new Date().toISOString()
+  const clauses: Where[] = [
+    {
+      and: [
+        { community: { in: communityIds } },
+        { status: { equals: 'published' } },
+        {
+          or: [
+            {
+              and: [
+                { visibility: { equals: 'public' } },
+                { memberShareVisibility: { equals: 'public' } },
+              ],
+            },
+            {
+              and: [
+                { visibility: { equals: 'scheduled-public' } },
+                { publishAt: { less_than_equal: now } },
+                { memberShareVisibility: { equals: 'scheduled-public' } },
+                { memberSharePublishAt: { less_than_equal: now } },
+              ],
+            },
+          ],
+        },
+        { memberShareReceiptId: { exists: true } },
+        {
+          or: [
+            { memberShareValidThrough: { exists: false } },
+            { memberShareValidThrough: { greater_than_equal: now } },
+          ],
+        },
+      ],
+    },
+  ]
+  if (managerCommunityIds.length) clauses.push({ community: { in: managerCommunityIds } })
+  return { or: clauses }
 }
 
 export const readSharedPlanNotes: Access = async ({ req }) => {

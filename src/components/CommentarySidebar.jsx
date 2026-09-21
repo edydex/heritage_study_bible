@@ -6,6 +6,7 @@ import { formatVersesForCopy, writeTextToClipboard } from '../utils/verseSelecti
 import { addNativeBackListener } from '../services/androidControls'
 import { annotationIncludesVerse, getAnnotationVerses } from '../utils/verseAnnotations'
 import { HighlightColorPicker } from './HighlightColorPicker'
+import PassageSermonsPanel from './PassageSermonsPanel'
 
 // Regex fallback for entries without <vq> markup (older data or books CCEL didn't tag)
 const CALVIN_QUOTE_RE1 = /^(\s*\d+\.?\s+\S+(?:\s+\S+){0,12}?(?:\betc\b\.?\s*(?:[\u2014-]\s*)?|[.]))\s+/
@@ -545,6 +546,7 @@ function CommentarySidebar({
   onRetryCommentaryLoad,
   selectedVerse,
   selectedVerses = [],
+  sermonPublicationSources = [],
   multiSelectMode = false,
   translationId,
   bibleData,
@@ -1010,6 +1012,13 @@ function CommentarySidebar({
             )}
           </div>
         )}
+
+        <PassageSermonsPanel
+          publicationSources={sermonPublicationSources}
+          selectedVerse={selectedVerse}
+          selectedVerses={selectedVerses}
+          bookName={bookName}
+        />
 
         {/* Author Selection */}
         <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">

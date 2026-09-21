@@ -1,8 +1,8 @@
+import { publishedSongContent, songbookVisibility } from '@/lib/songPublication'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
-import { isCommunityMemberRequest } from '@/lib/communityMemberRequest'
-import { publicJson } from '@/lib/publicConfig'
+import { privateAuthorizationJson, publicJson } from '@/lib/publicConfig'
 
 const typeToCollection = {
   readingPlans: 'reading-plans',
@@ -24,50 +24,43 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
   const { type } = await context.params
   const collection = typeToCollection[type as keyof typeof typeToCollection]
   if (!collection) return publicJson({ error: 'Unknown catalog.' }, { status: 404 })
+  const catalogJson = type === 'songs' ? privateAuthorizationJson : publicJson
 
   const payload = await getPayload({ config })
   const communityId = await getConfiguredCommunityId(payload)
   if (communityId == null) {
-    return publicJson({ error: 'The configured community does not exist.' }, { status: 503 })
+    return catalogJson({ error: 'The configured community does not exist.' }, { status: 503 })
   }
-  const songCatalogVisible = type !== 'songs'
-    || await isCommunityMemberRequest(payload, request.headers, communityId)
-  if (!songCatalogVisible) {
-    return publicJson(
-      {
-        schemaVersion: 2,
-        contentType: type,
-        updatedAt: new Date().toISOString(),
-        items: [],
-      },
-      {
-        headers: {
-          'Cache-Control': 'private, no-store',
-          Vary: 'Authorization',
-          'X-Robots-Tag': 'noindex, nofollow, noarchive',
-        },
-      },
-    )
-  }
-  const result = await payload.find({
-    collection,
-    depth: 0,
-    limit: 1000,
-    overrideAccess: true,
-    where: {
-      and: [
-        { status: { equals: 'published' } },
+  const records: Record<string, any>[] = []
+  let page = 1
+  for (;;) {
+    const result = await payload.find({
+      collection, depth: 0, limit: type === 'songs' ? 200 : 1000, page,
+      overrideAccess: true, showHiddenFields: type === 'songs', sort: 'id',
+      where: { and: [
         { community: { equals: communityId } },
-      ],
-    },
-  })
+        type === 'songs' ? { status: { not_equals: 'archived' } } : { status: { equals: 'published' } },
+        ...(type === 'songs' ? [{ songbookVisibility: { equals: 'published' } }] : []),
+      ] },
+    })
+    records.push(...result.docs)
+    if (type !== 'songs' || !result.hasNextPage) break
+    page++
+  }
+  const docs = type === 'songs' ? records.flatMap<Record<string, any>>(doc => {
+    const raw = doc as unknown as Record<string, unknown>
+    const content = publishedSongContent(raw)
+    if (songbookVisibility(raw) === 'published' && content) return [{ ...content, id: doc.id }]
+    return []
+  }) : records
 
-  return publicJson(
+  return catalogJson(
     {
       schemaVersion: 2,
       contentType: type,
+      ...(type === 'songs' ? { songbookPolicy: 'published-only-v1' } : {}),
       updatedAt: new Date().toISOString(),
-      items: result.docs.map(doc => ({
+      items: docs.map(doc => ({
         id: String(doc.id),
         title: doc.title,
         description: doc.description || '',
@@ -75,22 +68,16 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
         authors: 'authors' in doc ? doc.authors : undefined,
         alternateTitle: 'russianTitle' in doc ? doc.russianTitle : undefined,
         russianTitle: 'russianTitle' in doc ? doc.russianTitle : undefined,
-        rightsStatus: 'rightsStatus' in doc ? doc.rightsStatus : undefined,
+        rightsStatus:
+          type !== 'songs' && 'rightsStatus' in doc
+            ? doc.rightsStatus
+            : undefined,
         content: {
           url: `/content/${type}/${doc.id}`,
           mediaType: mediaTypes[type as keyof typeof mediaTypes],
         },
       })),
     },
-    type === 'songs'
-      ? {
-          headers: {
-            'Cache-Control': 'private, no-store',
-            Vary: 'Authorization',
-            'X-Robots-Tag': 'noindex, nofollow, noarchive',
-          },
-        }
-      : {},
   )
 }
 

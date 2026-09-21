@@ -1,9 +1,11 @@
+import { parseSongLyrics, normalizeSongSections } from '../../community-server/packages/song-text/index.js'
 import { HERITAGE_BUILT_IN_SONGS } from '../data/builtInSongs.js'
 import { HYMNS } from '../components/HymnsViewer.jsx'
-import { getCommunities, getCommunitySessions } from './communities.js'
+import { getCommunities } from './communities.js'
 import { getRemoteContentItemsForCategory } from './contentServers.js'
+import { readSavedSong, saveSong } from './savedSongs.js'
 
-const SONG_REQUEST_TIMEOUT_MS = 8000
+const SONG_REQUEST_TIMEOUT_MS = 5000
 const TRAILING_DESCRIPTOR = /\s*\([^)]*\)\s*$/
 const TITLE_ALIASES = new Map([
   ['arise my soul arise', 'o my soul arise'],
@@ -132,14 +134,15 @@ export function mergeSongCatalog({
     group.references.sort((left, right) => left.source.priority - right.source.priority)
     const builtIn = group.references.find(reference => reference.kind === 'built-in')
     const preferred = builtIn || group.references[0]
+    const russianTitle = group.references.find(reference => reference.russianTitle)?.russianTitle || ''
     const sourceNames = [...new Set(group.references.map(reference => reference.source.name))]
     return {
       id: builtIn?.id || `song-${routeIdForTitle(preferred.title)}`,
       songKey: group.songKey,
       songGroup: true,
       title: preferred.title,
-      alternateTitle: preferred.russianTitle,
-      russianTitle: preferred.russianTitle,
+      alternateTitle: russianTitle,
+      russianTitle,
       description: preferred.description,
       author: preferred.author,
       authors: preferred.authors,
@@ -169,30 +172,8 @@ function sectionsFromStanzas(stanzas) {
     .filter(section => section.lines.length)
 }
 
-function sectionsFromSongSections(sections) {
-  return (Array.isArray(sections) ? sections : [])
-    .map((section, index) => {
-      const rawLines = Array.isArray(section?.lines) ? section.lines : []
-      return {
-        label: plainText(section?.label) || `Section ${index + 1}`,
-        lines: rawLines.map(line => plainText(line?.text ?? line)).filter(Boolean),
-      }
-    })
-    .filter(section => section.lines.length)
-}
-
-export function sectionsFromText(value) {
-  const text = plainText(value).replace(/\r\n?/g, '\n')
-  if (!text) return []
-  return text.split(/\n{2,}/).map((block, index) => {
-    const lines = block.split('\n').map(plainText).filter(Boolean)
-    const heading = lines[0]?.match(/^(verse|stanza|chorus|refrain|bridge|ending|куплет|припев|бридж|окончание)\s*(\d*)\s*:?\s*$/iu)
-    return {
-      label: heading ? `${heading[1]}${heading[2] ? ` ${heading[2]}` : ''}` : `Section ${index + 1}`,
-      lines: heading ? lines.slice(1) : lines,
-    }
-  }).filter(section => section.lines.length)
-}
+const sectionsFromSongSections = normalizeSongSections
+export const sectionsFromText = parseSongLyrics
 
 function lyricsSignature(sections) {
   return sections
@@ -263,9 +244,9 @@ function remoteLanguageVariants(reference, document) {
   }
 
   add('en', sectionsFromText(document?.lyrics))
-  add('ru', sectionsFromText(document?.russianLyrics))
+  add('ru', sectionsFromText(document?.russianLyrics, { language: 'ru' }))
 
-  const primarySections = sectionsFromSongSections(document?.songSections)
+  const primarySections = sectionsFromSongSections(document?.songSections, document?.language)
   if (primarySections.length) add(plainText(document?.language).toLowerCase() === 'ru' ? 'ru' : 'en', primarySections)
 
   const translations = [
@@ -274,8 +255,8 @@ function remoteLanguageVariants(reference, document) {
   ]
   translations.forEach(translation => {
     const language = plainText(translation?.language || translation?.locale).toLowerCase().startsWith('ru') ? 'ru' : 'en'
-    const sections = sectionsFromSongSections(translation?.songSections)
-    add(language, sections.length ? sections : sectionsFromText(translation?.lyrics || translation?.text))
+    const sections = sectionsFromSongSections(translation?.songSections, language)
+    add(language, sections.length ? sections : sectionsFromText(translation?.lyrics || translation?.text, { language }))
   })
   return variants
 }
@@ -283,38 +264,28 @@ function remoteLanguageVariants(reference, document) {
 async function fetchSongDocument(reference) {
   const url = reference.item?.content?.url
   if (!url) return null
-  const community = getCommunities().find(record => (
-    communityContentServerId(record) === reference.item?.sourceServerId
-  ))
-  let authorization = ''
-  if (community) {
-    try {
-      const destinationOrigin = new URL(url).origin
-      const allowedOrigins = [
-        community.manifest?.apiBaseUrl,
-        community.manifest?.contentServerUrl,
-      ].filter(Boolean).map(value => new URL(value).origin)
-      const token = getCommunitySessions()[community.manifest.id]?.token
-      if (token && allowedOrigins.includes(destinationOrigin)) {
-        authorization = `Community ${token}`
-      }
-    } catch {
-      // A malformed or cross-origin Community content URL must never receive
-      // the member session token. The ordinary fetch below will fail safely.
-    }
-  }
+  // The browsable songbook is public, even for church administrators. Member
+  // links use their separate authenticated viewer and never enter this cache.
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), SONG_REQUEST_TIMEOUT_MS)
   try {
     const response = await fetch(url, {
       cache: 'no-store',
       credentials: 'omit',
-      headers: authorization ? { Authorization: authorization } : {},
       referrerPolicy: 'no-referrer',
       signal: controller.signal,
     })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    return await response.json()
+    if (Number(response.headers.get('content-length')) > 1024 * 1024) throw new Error('Song response is too large.')
+    const text = await response.text()
+    if (controller.signal.aborted) throw new Error('Refresh timed out.')
+    if (new TextEncoder().encode(text).byteLength > 1024 * 1024) throw new Error('Song response is too large.')
+    const document = JSON.parse(text)
+    if (!document || Array.isArray(document) || typeof document !== 'object'
+      || !['title', 'lyrics', 'russianLyrics', 'songSections'].some(key => Object.hasOwn(document, key))) {
+      throw new Error('The server returned an invalid song.')
+    }
+    return document
   } finally {
     window.clearTimeout(timeout)
   }
@@ -356,7 +327,7 @@ function assembledSong(group, loaded) {
   return {
     ...group,
     loaded,
-    pendingSourceCount: Math.max(group.references.length - loaded.length, 0),
+    pendingSourceCount: Math.max(group.references.length - loaded.length, 0) + loaded.filter(result => result.refreshing).length,
     languages: {
       en: collapseLanguageVariants(allVariants.filter(variant => variant.language === 'en')),
       ru: collapseLanguageVariants(allVariants.filter(variant => variant.language === 'ru')),
@@ -385,14 +356,18 @@ export async function loadMergedSong(routeId, { onProgress } = {}) {
   onProgress?.(snapshot())
 
   await Promise.all(group.references.filter(reference => reference.kind === 'remote').map(async reference => {
+    const cached = await readSavedSong(reference)
+    if (cached) {
+      loadedByReference.set(reference, { reference, document: cached, variants: remoteLanguageVariants(reference, cached), cached: true, refreshing: true, error: null })
+      onProgress?.(snapshot())
+    }
     let result
-    if (reference.kind === 'built-in') {
-      result = { reference, variants: builtInLanguageVariants(reference), document: reference.song, error: null }
-    } else try {
+    try {
       const document = await fetchSongDocument(reference)
       result = { reference, variants: remoteLanguageVariants(reference, document), document, error: null }
+      if (document) await saveSong(reference, document)
     } catch (error) {
-      result = { reference, variants: [], document: null, error }
+      result = { reference, variants: cached ? remoteLanguageVariants(reference, cached) : [], document: cached, cached: Boolean(cached), error }
     }
     loadedByReference.set(reference, result)
     onProgress?.(snapshot())

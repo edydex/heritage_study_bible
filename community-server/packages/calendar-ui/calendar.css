@@ -1,0 +1,41 @@
+.church-calendar { --cal-line: #b5bdb744; --cal-accent: #4d9475; color: inherit; width: 100%; }
+.church-calendar button,.church-calendar a { font: inherit; color: inherit; cursor: pointer; }
+.church-calendar button:focus-visible,.church-calendar a:focus-visible { outline: 3px solid var(--cal-accent); outline-offset: -2px; }
+.church-calendar__toolbar { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; }
+.church-calendar__toolbar h3 { flex: 1; margin: 0; font-size: 1.15rem; }
+.church-calendar__toolbar button { min-width: 2.75rem; min-height: 2.75rem; border: 1px solid var(--cal-line); border-radius: .5rem; background: transparent; padding: .4rem .6rem; }
+.church-calendar__filters { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1.25rem; padding: .25rem 0 1rem; }
+.church-calendar__filters label { display: flex; align-items: center; gap: .4rem; min-height: 2rem; }
+.church-calendar__filters input { width: 1.1rem; height: 1.1rem; accent-color: var(--cal-accent); }
+.church-calendar__filters small { opacity: .7; font-size: .75rem; }
+.church-calendar__weekdays,.church-calendar__week { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); }
+.church-calendar__week { min-height: 6.5rem; }
+.church-calendar__weekdays { font-size: .75rem; text-align: center; padding: .4rem 0; }
+.church-calendar__grid { border-top: 1px solid var(--cal-line); border-left: 1px solid var(--cal-line); }
+.church-calendar__day { min-width: 0; border-right: 1px solid var(--cal-line); border-bottom: 1px solid var(--cal-line); padding: .2rem; }
+.church-calendar__day[data-outside] { opacity: .45; }
+.church-calendar__day[data-selected] { box-shadow: inset 0 0 0 2px var(--cal-accent); }
+.church-calendar__date { display: block; min-height: 2.5rem; width: 100%; text-align: left; padding: .3rem; border: 0; background: transparent; font-weight: 600 !important; }
+.church-calendar__event { position: relative; z-index: 1; display: block; background: color-mix(in srgb, var(--cal-accent) 22%, var(--cal-background, #fff)); border: 1px solid #4d94752b; border-radius: .3rem; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: .3rem .4rem; margin: 0 .15rem .2rem; text-align: left; font-size: .75rem !important; }
+.church-calendar__event[data-continues-before] { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.church-calendar__event[data-continues-after] { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.dark .church-calendar { --cal-background: #1f2937; }
+[data-theme="dark"] .church-calendar { --cal-background: #171717; }
+.church-calendar__more { background: transparent; border: 0; font-size: .7rem !important; }
+.church-calendar__empty { font-size: .9rem; opacity: .7; padding-top: .75rem; }
+.church-calendar__details article { padding: 18px 0; border-bottom: 1px solid var(--cal-line, #8884); }
+.church-calendar__details h3 { font-size: 1.15rem; }
+.church-calendar__details p { margin: 8px 0; }
+@media(max-width:520px){ .church-calendar__week{min-height:5.3rem}.church-calendar__day{padding:.1rem}.church-calendar__event{font-size:.7rem!important;padding:.2rem}.church-calendar__toolbar h3{font-size:1rem}.church-calendar__filters{gap:.4rem 1rem} }
+
+.church-calendar__event { text-decoration: none; }
+.church-event { max-width: 46rem; margin: 0 auto; }
+.church-event__back { display: inline-block; margin-bottom: 1.8rem; text-decoration: underline; }
+.church-event article { border: 1px solid #8884; border-radius: 1rem; padding: clamp(1rem,4vw,2.5rem); }
+.church-event h1 { font-size: clamp(1.7rem,5vw,2.5rem); line-height: 1.2; margin: .6rem 0 1.8rem; }
+.church-event__eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; opacity: .7; }
+.church-event dl { display: grid; gap: 1rem; }
+.church-event dt { font-size: .8rem; opacity: .7; }
+.church-event dd { margin: .3rem 0 0; }
+.church-event__description { white-space: pre-wrap; margin: 2rem 0; }
+.church-event__website { display: inline-block; text-decoration: underline; margin: 1.5rem 0; }

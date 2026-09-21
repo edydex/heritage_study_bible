@@ -1,8 +1,10 @@
+import SongLyrics from '../../community-server/packages/song-text/SongLyrics.jsx'
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { loadMergedSong } from '../services/songCatalog'
-import { buildCommunitySongShareUrl } from '../utils/communitySongLinks'
+import { normalizeCommunitySongPublicPageUrl } from '../utils/communitySongLinks'
 import { writeTextToClipboard } from '../utils/verseSelection'
+import SongShareDialog from './SongShareDialog'
 import SongRightsDisclosure from './SongRightsDisclosure'
 
 function sourceNames(sources = []) {
@@ -10,6 +12,7 @@ function sourceNames(sources = []) {
 }
 
 function explanationFor(result, language) {
+  if (result.error && result.cached) return 'Refresh failed—showing saved words.'
   if (result.error) return `Could not load this source: ${result.error.message}`
   if (result.reference.kind === 'built-in') {
     const rightsLabel = language === 'ru'
@@ -44,18 +47,21 @@ function linksFor(result) {
 function BuiltInSongViewer() {
   const { itemId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const communityId = searchParams.get('community')
+  const catalogPath = `/resources/songs${communityId ? `?community=${encodeURIComponent(communityId)}` : ''}`
   const [language, setLanguage] = useState('en')
   const [variantIndex, setVariantIndex] = useState(0)
   const [song, setSong] = useState(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
-  const [shareMessage, setShareMessage] = useState('')
+  const [share, setShare] = useState(null)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setLoadError('')
-    setShareMessage('')
+    setShare(null)
     setLanguage('en')
     setVariantIndex(0)
 
@@ -102,7 +108,7 @@ function BuiltInSongViewer() {
     ? song?.loaded?.find(result => result.reference.source.id === selectedVariant.preferredSource.id)
     : null
   const selectedContentUrl = selectedResult?.reference?.item?.content?.url || ''
-  const shareUrl = buildCommunitySongShareUrl(selectedContentUrl)
+  const publicShareUrl = normalizeCommunitySongPublicPageUrl(selectedResult?.document?.publicPageUrl, selectedContentUrl)
   const selectedRightsDocument = selectedResult?.document
     ? {
         ...selectedResult.document,
@@ -113,19 +119,11 @@ function BuiltInSongViewer() {
     : null
 
   const shareSong = async () => {
-    if (!shareUrl) return
+    if (!publicShareUrl) return
     const title = russian && song.russianTitle ? song.russianTitle : song.title
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, text: `${title} — Community song sheet`, url: shareUrl })
-        setShareMessage('Song link shared.')
-      } else {
-        await writeTextToClipboard(shareUrl)
-        setShareMessage('Unlisted song link copied.')
-      }
-    } catch (error) {
-      if (error?.name !== 'AbortError') setShareMessage(`Could not share this song: ${error.message}`)
-    }
+    let copied = false
+    try { await writeTextToClipboard(publicShareUrl); copied = true } catch { /* The dialog provides a selectable link when clipboard access is denied. */ }
+    setShare({ title, url: publicShareUrl, copied })
   }
 
   if (loading) {
@@ -142,7 +140,7 @@ function BuiltInSongViewer() {
         <div className="max-w-md rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 text-center">
           <h1 className="font-semibold text-gray-900 dark:text-gray-100">Song not found</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{loadError || 'This song is no longer in an installed catalog.'}</p>
-          <button onClick={() => navigate('/resources/songs')} className="mt-4 text-sm font-semibold text-primary dark:text-blue-300 underline">
+          <button onClick={() => navigate(catalogPath)} className="mt-4 text-sm font-semibold text-primary dark:text-blue-300 underline">
             Back to Songs
           </button>
         </div>
@@ -154,7 +152,7 @@ function BuiltInSongViewer() {
     <div className="min-h-screen bg-background dark:bg-gray-900">
       <header className="bg-primary text-white sticky top-0 z-40 shadow-lg">
         <div className="h-14 px-4 sm:px-6 flex items-center gap-3">
-          <button onClick={() => navigate('/resources/songs')} className="p-1.5 rounded-lg hover:bg-white/20" aria-label="Back">←</button>
+          <button onClick={() => navigate(catalogPath)} className="p-1.5 rounded-lg hover:bg-white/20" aria-label="Back">←</button>
           <h1 className="min-w-0 flex-1 truncate text-base sm:text-lg font-bold">
             {russian && song.russianTitle ? song.russianTitle : song.title}
           </h1>
@@ -206,6 +204,9 @@ function BuiltInSongViewer() {
               Showing available words now; checking {song.pendingSourceCount} connected {song.pendingSourceCount === 1 ? 'source' : 'sources'} in the background…
             </p>
           )}
+          {!song.pendingSourceCount && failedSourceCount > 0 && selectedVariant && (
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400" role="status">Refresh failed—showing saved songs.</p>
+          )}
 
           {variants.length > 1 && (
             <section className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/30">
@@ -241,16 +242,7 @@ function BuiltInSongViewer() {
                 </div>
               )}
 
-              <div className="mt-6 space-y-5">
-                {selectedVariant.sections.map((section, index) => (
-                  <section key={`${selectedVariant.signature}-${index}`}>
-                    <h2 className="text-xs font-bold uppercase tracking-wide text-gray-400">{section.label}</h2>
-                    <p className="mt-1 whitespace-pre-line text-base leading-relaxed text-gray-800 dark:text-gray-200">
-                      {section.lines.join('\n')}
-                    </p>
-                  </section>
-                ))}
-              </div>
+              <div className="mt-6 text-gray-800 dark:text-gray-200"><SongLyrics sections={selectedVariant.sections} language={language} /></div>
 
               <div className="mt-6">
                 <SongRightsDisclosure
@@ -264,12 +256,15 @@ function BuiltInSongViewer() {
                   Source: {selectedVariant.rights.sourceLabel}
                 </p>
               )}
-              {shareUrl && (
-                <button onClick={shareSong} className="mt-3 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-200">
-                  Share unlisted song link
-                </button>
+              {publicShareUrl && (
+                <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100">
+                  <p>Published by {selectedResult.reference.source.name}. This song link opens without signing in.</p>
+                  <button onClick={shareSong} className="mt-2 rounded-lg border border-blue-300 px-4 py-2 text-sm font-semibold dark:border-blue-700">
+                    Share song
+                  </button>
+                </div>
               )}
-              {shareMessage && <p className="mt-2 text-sm text-gray-600 dark:text-gray-300" role="status">{shareMessage}</p>}
+              {share && <SongShareDialog share={share} onClose={() => setShare(null)} />}
             </>
           ) : song.pendingSourceCount > 0 ? (
             <section className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100">

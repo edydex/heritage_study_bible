@@ -1,0 +1,25 @@
+.presentation-accessibility { margin:.5rem 0; padding:.5rem; border:1px solid var(--theme-elevation-250,#888); border-radius:.4rem; font-size:.75rem; }
+.presentation-accessibility label { display:flex; gap:.35rem; align-items:center; }
+.presentation-accessibility p { font-size:.72rem; line-height:1.4; margin:.4rem 0; }
+.presentation-accessibility ul { list-style:none; padding:0; margin:.4rem 0; display:grid; gap:.4rem; }
+.presentation-accessibility li { display:flex; align-items:center; gap:.5rem; overflow-wrap:anywhere; }
+.presentation-accessibility i,.presentation-color-picker i { display:inline-block; flex:0 0 1.5rem; width:1.5rem; height:1.5rem; border:1px solid #555; background-color:white; vertical-align:middle; }
+.presentation-color-picker { position:relative; min-width:0; }
+.presentation-color-picker button { display:flex; align-items:center; gap:.4rem; text-align:left; white-space:normal; font-size:.75rem; }
+.presentation-color-options { position:absolute; z-index:30; top:100%; right:0; max-height:17rem; overflow:auto; min-width:12rem; padding:.3rem; border:1px solid #555; border-radius:.3rem; background:white; box-shadow:0 3px 10px #0005; }
+.presentation-color-options button { width:100%; background:white!important; color:black!important; border:1px solid #aaa!important; margin:2px 0; padding:.35rem!important; }
+.presentation-color-options button[aria-pressed=true] { outline:2px solid black; outline-offset:-3px; font-weight:bold; }
+.heritage-service-planner__stage[data-monochrome] { color:#111!important; background-color:white!important; background-image:none!important; }
+.heritage-service-planner__stage[data-monochrome] :is([data-role],.heritage-service-planner__scripture-reference,.heritage-service-planner__stage-status) { color:inherit; }
+.heritage-service-planner__stage[data-monochrome] :is(img,video) { filter:grayscale(1); }
+.heritage-service-planner__stage[data-monochrome] .heritage-canvas__object[data-selected] { outline:2px solid black; }
+.heritage-service-planner__stage[data-monochrome] .heritage-canvas__handle { color:black; background:white; border:1px solid black; }
+.presentation-pattern-foreground { padding-bottom:4px; background-repeat:repeat-x; background-position:left bottom; background-size:8px 4px; }
+
+.presentation-monochrome-background { position:absolute; inset:0; background-size:cover; background-position:center; filter:grayscale(1); }
+.heritage-service-planner__stage[data-monochrome-background] .heritage-service-planner__slide-content { background:rgb(255 255 255 / 90%); }
+
+.heritage-service-planner .presentation-accessibility > label { display:flex; flex-direction:row; align-items:center; font-size:.75rem; gap:.4rem; }
+.heritage-service-planner .presentation-accessibility > label input { width:1rem; min-width:1rem; height:1rem; margin:0; }
+.presentation-color-sample { display:flex; flex:0 0 1.7rem; flex-direction:column; align-items:center; gap:3px; }
+.presentation-color-sample svg { display:block; width:1.7rem; height:6px; background:white; }

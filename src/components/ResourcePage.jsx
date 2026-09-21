@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
 import { DEFAULT_TRANSLATION, loadTranslation } from '../data/translations'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from '../utils/librarySearch'
@@ -7,7 +7,10 @@ import SearchResults from './SearchResults'
 import {
   CONTENT_SERVERS_CHANGE_EVENT,
   getRemoteContentItemsForCategory,
+  refreshSongCatalogs,
 } from '../services/contentServers'
+import PullToRefresh from './PullToRefresh'
+import SongCatalogPreview from './SongCatalogPreview'
 import { COMMUNITIES_CHANGE_EVENT, getCommunities } from '../services/communities'
 import { mergeSongCatalog } from '../services/songCatalog'
 
@@ -80,6 +83,10 @@ const CLICKABLE_CATEGORIES = ['confessions', 'books', 'reading-plans', 'tools', 
 function ResourcePage() {
   const { categoryId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const communityId = ['songs', 'sermons', 'commentaries'].includes(categoryId) ? searchParams.get('community') : null
+  const community = communityId ? getCommunities().find(record => record.manifest.id === communityId) : null
+  const communitySourceId = community?.contentPreview?.manifest?.id
 
   const [searchQuery, setSearchQuery] = useState('')
   const [showFilters, setShowFilters] = useState(false)
@@ -95,6 +102,28 @@ function ResourcePage() {
   const [searchResults, setSearchResults] = useState(null)
   const [bibleSearchData, setBibleSearchData] = useState(null)
   const [remoteItems, setRemoteItems] = useState(() => getRemoteContentItemsForCategory(categoryId))
+  const [refreshing, setRefreshing] = useState(false)
+  const [refreshMessage, setRefreshMessage] = useState('')
+  const refreshPending = useRef(false)
+  const refreshSongs = useCallback(async () => {
+    if (refreshPending.current || categoryId !== 'songs' || (communityId && !communitySourceId)) return
+    refreshPending.current = true
+    setRefreshing(true)
+    setRefreshMessage('')
+    try {
+      const count = await refreshSongCatalogs(communitySourceId || null)
+      setRefreshMessage(count ? 'Songs are up to date.' : 'No Community songbooks are connected yet.')
+    } catch (error) {
+      setRefreshMessage(error.message || 'Could not refresh songs. Try again when connected.')
+    } finally {
+      refreshPending.current = false
+      setRefreshing(false)
+    }
+  }, [categoryId, communityId, communitySourceId])
+
+  useEffect(() => {
+    if (categoryId === 'songs' && navigator.onLine !== false) void refreshSongs()
+  }, [categoryId, refreshSongs])
 
   useEffect(() => {
     const refresh = () => setRemoteItems(getRemoteContentItemsForCategory(categoryId))
@@ -153,12 +182,15 @@ function ResourcePage() {
 
   const items = useMemo(() => {
     if (isSongs) {
-      return mergeSongCatalog({
-        remoteItems,
-        communities: getCommunities(),
-      })
+      const songs = mergeSongCatalog({ remoteItems, communities: getCommunities() })
+      // Filter after merging so song URLs still identify the same group in the viewer.
+      return communityId ? songs.filter(song => communitySourceId && song.references.some(
+        reference => reference.kind === 'remote' && reference.item.sourceServerId === communitySourceId,
+      )) : songs
     }
-    const combined = [...category.items, ...remoteItems]
+    const combined = communityId
+      ? remoteItems.filter(item => communitySourceId && item.sourceServerId === communitySourceId)
+      : [...category.items, ...remoteItems]
     if (isSongs) return combined.sort((a, b) => a.title.localeCompare(b.title))
     if (!isConfessions && !isBooks) return combined
     return combined.sort((a, b) => {
@@ -167,7 +199,7 @@ function ResourcePage() {
       if (ay !== by) return ay - by
       return a.title.localeCompare(b.title)
     })
-  }, [category.items, isBooks, isConfessions, isSongs, remoteItems])
+  }, [category.items, isBooks, isConfessions, isSongs, remoteItems, communityId, communitySourceId])
 
   const availableTags = useMemo(() => {
     if (!isBooks) return []
@@ -284,7 +316,7 @@ function ResourcePage() {
 
   const handleItemClick = (item) => {
     if (isSongs) {
-      navigate(`/resources/songs/${encodeURIComponent(item.id)}`)
+      navigate(`/resources/songs/${encodeURIComponent(item.id)}${communityId ? `?community=${encodeURIComponent(communityId)}` : ''}`)
       return
     }
     if (item.remote) {
@@ -303,9 +335,9 @@ function ResourcePage() {
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900">
       <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
-        <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
+        <div className="px-4 sm:px-6 min-h-14 py-2 flex flex-wrap sm:flex-nowrap items-center gap-3">
           <button
-            onClick={() => navigate('/genesis/1')}
+            onClick={() => navigate(communityId ? '/community' : '/genesis/1')}
             className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
           >
             <span className="text-lg">{'\u2190'}</span>
@@ -317,7 +349,7 @@ function ResourcePage() {
           {(isBooks || isSongs) && (
             <>
               <form
-                className="flex-1 min-w-0 max-w-xl"
+                className="w-full sm:w-auto sm:flex-1 order-last sm:order-none min-w-0 max-w-xl"
                 onSubmit={(event) => {
                   event.preventDefault()
                 }}
@@ -351,7 +383,18 @@ function ResourcePage() {
         </div>
       </header>
 
+      <PullToRefresh enabled={isSongs} refreshing={refreshing} onRefresh={refreshSongs}>
       <main className="container mx-auto max-w-2xl px-4 py-6">
+        {categoryId === 'books' && <button type="button" onClick={() => navigate('/audio')} className="w-full mb-4 rounded-lg border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 px-4 py-3 text-left text-primary dark:text-blue-300 font-semibold">Audio library · resume listening and downloads →</button>}
+
+        {isSongs && <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
+          <p role="status">{refreshMessage || 'Pull down from the top to refresh Community songs.'}</p>
+          <button type="button" onClick={refreshSongs} disabled={refreshing} className="shrink-0 min-h-11 rounded-lg border border-gray-300 dark:border-gray-600 px-3 text-primary dark:text-blue-300 disabled:opacity-50">{refreshing ? 'Refreshing…' : 'Refresh'}</button>
+        </div>}
+        {communityId && <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
+          <p>{community?.manifest.name || 'Community unavailable'}</p>
+          <button onClick={() => navigate(`/resources/${categoryId}`)} className="text-primary dark:text-blue-300 underline">Show all {category.title.toLowerCase()}</button>
+        </div>}
         {isBooks && showFilters && (
           <div className="mb-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
@@ -498,7 +541,7 @@ function ResourcePage() {
             <div className="space-y-3">
               {visibleItems.map(item => {
                 const Wrapper = isClickable ? 'button' : 'div'
-                return (
+                const card = (
                   <Wrapper
                     key={item.id}
                     onClick={isClickable ? () => handleItemClick(item) : undefined}
@@ -560,6 +603,7 @@ function ResourcePage() {
                     )}
                   </Wrapper>
                 )
+                return isSongs ? <SongCatalogPreview key={item.id} item={item}>{card}</SongCatalogPreview> : card
               })}
             </div>
 
@@ -568,7 +612,7 @@ function ResourcePage() {
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   {trimmedQuery ? 'No songs match that search.' : 'No resources in this category yet.'}
                 </p>
-                {!trimmedQuery && <button onClick={() => navigate('/settings/content-servers')} className="mt-2 text-sm font-semibold text-primary dark:text-blue-300 underline underline-offset-2">Add a Content Server</button>}
+                {!trimmedQuery && <button onClick={() => navigate(communityId ? '/community' : '/settings/content-servers')} className="mt-2 text-sm font-semibold text-primary dark:text-blue-300 underline underline-offset-2">{communityId ? 'Back to Community Home' : 'Add a Content Server'}</button>}
               </div>
             )}
 
@@ -598,6 +642,7 @@ function ResourcePage() {
           </>
         )}
       </main>
+      </PullToRefresh>
     </div>
   )
 }

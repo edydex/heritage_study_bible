@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - 'community-server/**'
+      - 'tests/fixtures/community-service-plan-conformance-*.json'
       - '.github/workflows/community-server.yml'
   push:
     branches: ['main']
     paths:
       - 'community-server/**'
+      - 'tests/fixtures/community-service-plan-conformance-*.json'
       - '.github/workflows/community-server.yml'
   workflow_dispatch:
 
@@ -42,6 +44,8 @@ jobs:
           npm run test:deploy
           npm run test:appliance
           npm run typecheck
+          npm run test:syncshow
+          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-provider-settings.test.ts tests/translation-plans.test.ts tests/calendar.test.ts tests/sermon-presentation.test.ts tests/planner-templates.test.ts tests/passage-shortcuts.test.ts tests/presentation-palette.test.ts tests/bible-import.test.ts
           npm run build
 
       - name: Create isolated test configuration
@@ -148,6 +152,9 @@ jobs:
           HERITAGE_BACKUP_DIR=/tmp/heritage-ci-backups deploy/backup.sh --online --label ci
           HERITAGE_BACKUP_DIR=/tmp/heritage-ci-backups deploy/status.sh --verify-backup
 
+      - name: Verify saved translation plans against real PostgreSQL
+        run: node tests/translation-plans-http.mjs
+
       - name: Verify local-only mode without SMTP
         run: |
           sed -i \
@@ -183,3 +190,182 @@ jobs:
       - name: Clean up
         if: always()
         run: docker compose --env-file .env.production -f docker-compose.production.yml down --volumes --remove-orphans
+
+  syncshow-payload-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: heritage_ci
+          POSTGRES_PASSWORD: disposable-ci-database-password
+          POSTGRES_DB: heritage_syncshow_payload_live
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage_ci -d heritage_syncshow_payload_live"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://heritage_ci:disposable-ci-database-password@127.0.0.1:5432/heritage_syncshow_payload_live
+      SERVICE_PLAN_LIVE_DATABASE_URL: postgresql://heritage_ci:disposable-ci-database-password@127.0.0.1:5432/heritage_syncshow_payload_live
+      SONG_PUBLIC_LINK_LIVE_DATABASE_URL: postgresql://heritage_ci:disposable-ci-database-password@127.0.0.1:5432/heritage_syncshow_payload_live
+      HERITAGE_DISPOSABLE_CI: heritage-community-syncshow-payload-live-v1
+      PAYLOAD_SECRET: disposable-ci-payload-secret-at-least-thirty-two-characters
+      COMMUNITY_PUBLIC_URL: http://127.0.0.1:3000
+      COMMUNITY_ID: local-church
+      HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED: 'true'
+      BOOTSTRAP_ADMIN_EMAIL: fixture-admin@example.test
+      BOOTSTRAP_ADMIN_PASSWORD: disposable-ci-administrator-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Migrate the disposable lifecycle database
+        env:
+          NODE_ENV: production
+        run: npm run migrate
+      - name: Check service planning, recording actors, storage and recovery
+        env:
+          NODE_ENV: production
+        run: npm run test:syncshow:service-plan-live
+      - name: Check song publication lifecycle
+        run: npm run test:syncshow:song-link-live
+
+  syncshow-sermon-history-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: heritage_ci
+          POSTGRES_PASSWORD: disposable-ci-history-password
+          POSTGRES_DB: heritage_syncshow_sermon_history_live
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage_ci -d heritage_syncshow_sermon_history_live"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://heritage_ci:disposable-ci-history-password@127.0.0.1:5432/heritage_syncshow_sermon_history_live
+      SERMON_HISTORY_LIVE_DATABASE_URL: postgresql://heritage_ci:disposable-ci-history-password@127.0.0.1:5432/heritage_syncshow_sermon_history_live
+      HERITAGE_DISPOSABLE_CI: heritage-community-syncshow-sermon-history-live-v1
+      PAYLOAD_SECRET: disposable-ci-history-secret-at-least-thirty-two-characters
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      # This check creates and tears down its own history tables. It must never
+      # share the migrated lifecycle database above or inherit bootstrap users.
+      - name: Check isolated sermon-history constraints
+        env:
+          NODE_ENV: test
+        run: npm run test:syncshow:sermon-history-live
+
+  songbook-publication:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: songbook_ci
+          POSTGRES_PASSWORD: songbook-ci-database-password
+          POSTGRES_DB: songbook_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U songbook_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://songbook_ci:songbook-ci-database-password@127.0.0.1:5432/songbook_ci
+      HERITAGE_SONGBOOK_TEST_DATABASE: postgresql://songbook_ci:songbook-ci-database-password@127.0.0.1:5432/songbook_ci
+      HERITAGE_DISPOSABLE_CI: songbook-publication
+      PAYLOAD_SECRET: disposable-songbook-ci-secret-at-least-thirty-two-characters
+      COMMUNITY_ID: songbook-ci
+      COMMUNITY_NAME: Songbook CI Church
+      COMMUNITY_PUBLIC_URL: http://127.0.0.1:3300
+      COMMUNITY_AUTH_ENABLED: 'false'
+      HERITAGE_SERMON_MEDIA_PATH: /tmp/heritage-songbook-ci-media
+      BOOTSTRAP_ADMIN_EMAIL: songbook-ci@example.org
+      BOOTSTRAP_ADMIN_PASSWORD: disposable-songbook-ci-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - run: npm ci --include=dev --legacy-peer-deps
+      - run: npm run migrate
+      - run: node --import tsx --test --test-force-exit tests/songbook-publication-payload.test.ts tests/songbook-publication.test.ts tests/songbook-search.test.ts
+      - name: Build calendar and sermon rehearsal server
+        run: npm run build
+      - name: Exercise calendar and sermon workflows over HTTP
+        run: |
+          npm run start -- --hostname 127.0.0.1 --port 3300 > /tmp/community-workflows.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --silent --fail http://127.0.0.1:3300/.well-known/heritage-community.json > /dev/null; then break; fi
+            sleep 1
+          done
+          node --import tsx --test tests/community-workflows-http.test.ts
+
+  bible-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: heritage_ci
+          POSTGRES_PASSWORD: disposable-bible-import-password
+          POSTGRES_DB: bible_import_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage_ci -d bible_import_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://heritage_ci:disposable-bible-import-password@127.0.0.1:5432/bible_import_ci
+      HERITAGE_BIBLE_IMPORT_TEST_DATABASE: postgresql://heritage_ci:disposable-bible-import-password@127.0.0.1:5432/bible_import_ci
+      HERITAGE_DISPOSABLE_CI: bible-import
+      PAYLOAD_SECRET: disposable-bible-import-acceptance-secret
+      COMMUNITY_ID: bible-import-ci
+      COMMUNITY_PUBLIC_URL: http://127.0.0.1:4389
+      COMMUNITY_AUTH_ENABLED: 'false'
+      HERITAGE_SERMON_MEDIA_PATH: /tmp/heritage-bible-import-media
+      BOOTSTRAP_ADMIN_EMAIL: bible-import-ci@example.org
+      BOOTSTRAP_ADMIN_PASSWORD: disposable-bible-import-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - run: npm ci --include=dev --legacy-peer-deps
+      - run: npm run migrate
+      - run: node --import tsx --test --test-force-exit tests/bible-import-payload.test.ts tests/bible-import.test.ts

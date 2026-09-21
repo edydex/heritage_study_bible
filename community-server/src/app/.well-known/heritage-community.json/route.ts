@@ -1,6 +1,19 @@
 import { communityAuthEnabled, communityPublicConfig, publicJson } from '@/lib/publicConfig'
+import { sermonMediaEnabled } from '@/lib/syncshow/SermonMedia'
+
+export const dynamic = 'force-dynamic'
 
 export function GET() {
+  const translationEnabled = Boolean(process.env.TRANSLATION_PROCESSOR_URL && process.env.TRANSLATION_CONTROL_TOKEN)
+  const translation = {
+    schemaVersion: 1,
+    operatorPath: '/admin/live-translation',
+    accessPath: '/api/community/translation/access',
+    eventsPath: '/translation/api/public/events',
+    scopes: ['syncshow:translation:control'],
+    archiveReview: { schemaVersion: 1, scope: 'syncshow:translation:archives:read' },
+  }
+
   return publicJson({
     schemaVersion: 1,
     kind: 'heritage-community',
@@ -10,17 +23,124 @@ export function GET() {
     website: communityPublicConfig.publicUrl,
     contentServerUrl: `${communityPublicConfig.publicUrl}/heritage-content.json`,
     apiBaseUrl: `${communityPublicConfig.publicUrl}/api`,
+    publicPages: {
+      calendar: `${communityPublicConfig.publicUrl}/calendar`,
+      live: `${communityPublicConfig.publicUrl}/live`,
+      ...(translationEnabled ? { translation: `${communityPublicConfig.publicUrl}/translate` } : {}),
+    },
+    integrations: {
+      ...(translationEnabled ? { translation } : {}),
+      syncShow: {
+        schemaVersion: 2,
+        apiBaseUrl: `${communityPublicConfig.publicUrl}/api/community/syncshow/v1`,
+        deviceAuthorization: true,
+        // Keep the v1 song aliases for older SyncShow installations while the
+        // v2 resources map advertises each lane independently.
+        songLibrary: true,
+        scopes: ['syncshow:songs:read', 'syncshow:songs:write'],
+        endpoints: {
+          deviceStart: 'auth/device/start',
+          deviceStatus: 'auth/device/status',
+          deviceToken: 'auth/device/token',
+          deviceCancel: 'auth/device/cancel',
+          revoke: 'auth/revoke',
+          songs: 'songs',
+        },
+        resources: {
+          ...(translationEnabled ? { translation } : {}),
+          songs: {
+            schemaVersion: 1,
+            endpoint: 'songs',
+            scopes: ['syncshow:songs:read', 'syncshow:songs:write'],
+            memberSharing: {
+              schemaVersion: 1,
+              endpoint: 'song-member-sharing',
+              reviewScope: 'community-members',
+            },
+          },
+          songPublicLinks: {
+            schemaVersion: 1,
+            endpoint: 'song-public-links',
+            publicBaseUrl:
+              `${communityPublicConfig.publicUrl}/community/songs/shared/`,
+            scopes: [
+              'syncshow:song-public-links:read',
+              'syncshow:song-public-links:write',
+            ],
+          },
+          sermons: {
+            schemaVersion: 1,
+            endpoint: 'sermons',
+            scopes: ['syncshow:sermons:read', 'syncshow:sermons:write'],
+          },
+          ...(sermonMediaEnabled()
+            ? {
+                // A sibling capability keeps strict v1 clients compatible.
+                sermonMediaFormats: { schemaVersion: 1, additionalAcceptedMediaTypes: ['audio/ogg'] },
+                sermonMedia: {
+                  schemaVersion: 1,
+                  endpoint: 'sermon-media',
+                  scopes: [
+                    'syncshow:sermon-media:read',
+                    'syncshow:sermon-media:write',
+                  ],
+                  chunkSizeBytes: 8388608,
+                  maximumBytes: 1073741824,
+                  acceptedMediaTypes: ['audio/mpeg', 'audio/mp4'],
+                  sessionTtlSeconds: 604800,
+                },
+              }
+            : {}),
+          sermonPublications: {
+            schemaVersion: 1,
+            endpoint: 'sermon-publications',
+            scopes: ['syncshow:sermon-publications:read'],
+          },
+          servicePlans: {
+            schemaVersion: 2,
+            endpoint: 'service-plans',
+            scopes: ['syncshow:service-plans:read'],
+          },
+          serviceDocuments: {
+            schemaVersion: 1,
+            endpoint: 'service-documents',
+            changesEndpoint: 'service-documents/changes',
+            scopes: [
+              'syncshow:service-documents:read',
+              'syncshow:service-documents:write',
+            ],
+          },
+        },
+      },
+    },
     ...(communityAuthEnabled
       ? {
           auth: {
             method: 'email-magic-link',
             requestPath: '/community/auth/magic-link',
             sessionPath: '/community/auth/session',
+            reverifyPath: '/community/auth/reverify',
+            logoutPath: '/community/auth/logout',
           },
           capabilities: {
             events: true,
             rsvps: true,
             calendarExport: true,
+            personalProgressSync: true,
+            strictPasswordProtection: true,
+            connectedDevices: true,
+          },
+          sync: {
+            schemaVersion: 1,
+            recordsPath: '/community/sync/v1/records',
+            accountPath: '/community/account',
+            protectionPath: '/community/account/protection',
+            revokeDevicePath: '/community/account/devices/revoke',
+            conflictsPath: '/community/account/conflicts',
+            resolveConflictPath: '/community/account/conflicts/resolve',
+            exportPath: '/community/account/export',
+            erasePath: '/community/account/erase-synchronized-data',
+            privacyModel: 'server-authorized-encrypted-at-rest',
           },
         }
       : {}),

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { translations } from '../data/translations'
+import { translations, parallelTranslations } from '../data/translations'
 import { isNativeAndroid, setNativeReaderChromeHidden } from '../services/androidControls'
 
 const NATIVE_VOLUME_NEXT_EVENT = 'heritage:native-volume-next'
@@ -39,6 +39,7 @@ function Header({
   onSideButtonScrollChange,
   showVolumeScrollSetting = false,
   onSearchKeyboardCaptureChange,
+  onSyncSettingsClick,
   onAdvancedSettingsClick,
   hidden = false,
 }) {
@@ -64,7 +65,7 @@ function Header({
   const [isSmallScreen, setIsSmallScreen] = useState(false)
   const translationGroups = useMemo(() => {
     const groups = new Map()
-    for (const translation of translations) {
+    for (const translation of parallelTranslations) {
       const language = translation.language || 'Other'
       if (!groups.has(language)) groups.set(language, [])
       groups.get(language).push(translation)
@@ -76,7 +77,7 @@ function Header({
   }, [])
 
   const availableParallelTranslations = useMemo(() => {
-    return translations.filter(t => t.id !== translationId)
+    return parallelTranslations.filter(t => t.id !== translationId)
   }, [translationId])
 
   // Track screen size for responsive placeholder
@@ -364,7 +365,7 @@ function Header({
             <span className="text-xs sm:text-sm font-bold tracking-wide">| |</span>
             {parallelMode && (
               <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">
-                {parallelSecondaryId || 'ON'}
+                {parallelSecondaryId === 'ORIGINAL' ? 'Original' : parallelSecondaryId || 'ON'}
               </span>
             )}
           </button>
@@ -458,6 +459,21 @@ function Header({
                 </div>
 
                 {/* Verse Layout */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setShowSettings(false)
+                      onSyncSettingsClick?.()
+                    }}
+                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <span className="text-sm text-gray-700 dark:text-gray-200 font-medium">Sync</span>
+                    <span className="text-gray-400 dark:text-gray-500">›</span>
+                  </button>
+                </div>
+
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
                   <button
                     type="button"

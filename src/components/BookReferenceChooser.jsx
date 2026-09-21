@@ -9,8 +9,9 @@ export default function BookReferenceChooser({ choices, onChoose, onCancel }) {
   const optionRefs = useRef([])
 
   useEffect(() => {
-    setSelectedIndex(0)
-    optionRefs.current[0]?.focus()
+    const first = Math.max(0, choices.findIndex(choice => !choice.invalidReason))
+    setSelectedIndex(first)
+    optionRefs.current[first]?.focus()
   }, [choices])
 
   useEffect(() => {
@@ -32,7 +33,7 @@ export default function BookReferenceChooser({ choices, onChoose, onCancel }) {
 
       if (event.key === 'Enter') {
         event.preventDefault()
-        onChoose(choices[selectedIndex])
+        if (!choices[selectedIndex].invalidReason) onChoose(choices[selectedIndex])
       }
     }
 
@@ -59,7 +60,7 @@ export default function BookReferenceChooser({ choices, onChoose, onCancel }) {
             Which book did you mean?
           </h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            The first choice is selected. Press Enter to continue.
+            Choose a book below, or use the arrow keys and Enter.
           </p>
         </div>
 
@@ -76,7 +77,8 @@ export default function BookReferenceChooser({ choices, onChoose, onCancel }) {
                 aria-selected={selected}
                 onFocus={() => setSelectedIndex(index)}
                 onPointerMove={() => setSelectedIndex(index)}
-                onClick={() => onChoose(choice)}
+                aria-disabled={Boolean(choice.invalidReason)}
+                onClick={() => { if (!choice.invalidReason) onChoose(choice) }}
                 className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-primary/60 ${
                   selected
                     ? 'bg-primary/10 text-primary dark:bg-blue-500/20 dark:text-blue-300'
@@ -88,7 +90,7 @@ export default function BookReferenceChooser({ choices, onChoose, onCancel }) {
                 }`}>
                   {index + 1}
                 </span>
-                <span className="font-medium">{label}</span>
+                <span className="font-medium">{label}{choice.invalidReason && <small className="block font-normal text-gray-500">{choice.invalidReason}</small>}</span>
                 {selected && <span className="ml-auto text-xs font-semibold uppercase tracking-wide">Selected</span>}
               </button>
             )

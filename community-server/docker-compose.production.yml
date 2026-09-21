@@ -12,6 +12,8 @@ x-community-environment: &community-environment
   COMMUNITY_PUBLIC_URL: ${COMMUNITY_PUBLIC_URL:?Set COMMUNITY_PUBLIC_URL in .env.production}
   COMMUNITY_ID: ${COMMUNITY_ID:?Set COMMUNITY_ID in .env.production}
   COMMUNITY_NAME: ${COMMUNITY_NAME:?Set COMMUNITY_NAME in .env.production}
+  TRANSLATION_CONTROL_TOKEN: ${TRANSLATION_CONTROL_TOKEN:-}
+  TRANSLATION_PROCESSOR_URL: ${TRANSLATION_PROCESSOR_URL:-http://translation-processor:4310}
   COMMUNITY_DESCRIPTION: ${COMMUNITY_DESCRIPTION:-A Heritage church community.}
   COMMUNITY_CCLI_LICENSE_NUMBER: ${COMMUNITY_CCLI_LICENSE_NUMBER:-}
   COMMUNITY_TIME_ZONE: ${COMMUNITY_TIME_ZONE:-UTC}
@@ -30,6 +32,15 @@ x-community-environment: &community-environment
   BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
   BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-}
   BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+  HERITAGE_SERMON_MEDIA_PATH: /app/private/sermon-media
+  HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED: ${HERITAGE_SYNCSHOW_SERMON_MEDIA_ENABLED:-false}
+  HERITAGE_SERMON_MEDIA_MAX_ACTIVE_GLOBAL: ${HERITAGE_SERMON_MEDIA_MAX_ACTIVE_GLOBAL:-8}
+  HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_COMMUNITY: ${HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_COMMUNITY:-4}
+  HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_CONNECTION: ${HERITAGE_SERMON_MEDIA_MAX_ACTIVE_PER_CONNECTION:-2}
+  HERITAGE_SERMON_MEDIA_MAX_FINALIZING_GLOBAL: ${HERITAGE_SERMON_MEDIA_MAX_FINALIZING_GLOBAL:-1}
+  HERITAGE_SERMON_MEDIA_MAX_RETAINED_BYTES_PER_COMMUNITY: ${HERITAGE_SERMON_MEDIA_MAX_RETAINED_BYTES_PER_COMMUNITY:-53687091200}
+  HERITAGE_SERMON_MEDIA_MAX_RETAINED_OBJECTS_PER_COMMUNITY: ${HERITAGE_SERMON_MEDIA_MAX_RETAINED_OBJECTS_PER_COMMUNITY:-2000}
+  HERITAGE_SERMON_MEDIA_STORAGE_RESERVE_BYTES: ${HERITAGE_SERMON_MEDIA_STORAGE_RESERVE_BYTES:-5368709120}
 
 services:
   postgres:
@@ -54,12 +65,66 @@ services:
     stop_grace_period: 1m
     logging: *default-logging
 
+  translation-processor:
+    profiles: [translation]
+    image: ${HERITAGE_TRANSLATION_IMAGE:-heritage-translation:local}
+    build:
+      context: ${HERITAGE_TRANSLATION_SOURCE:-./.translation-not-installed}
+      dockerfile: services/processor/Dockerfile
+    init: true
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PROCESSOR_HOST: 0.0.0.0
+      PROCESSOR_PORT: 4310
+      PROCESSOR_PUBLIC_URL: ${COMMUNITY_PUBLIC_URL}/translation/
+      PROCESSOR_CONTROL_TOKEN: ${TRANSLATION_CONTROL_TOKEN:-}
+      OPERATOR_ALLOWED_ORIGINS: ${COMMUNITY_PUBLIC_URL},tauri://localhost,http://tauri.localhost,https://tauri.localhost
+      CHURCH_NAME: ${COMMUNITY_NAME}
+      ARCHIVE_ROOT: /var/lib/multilinguum/archives
+      ARCHIVE_RETENTION_DAYS: ${TRANSLATION_ARCHIVE_RETENTION_DAYS:-30}
+      OPENAI_API_KEY: ${TRANSLATION_OPENAI_API_KEY:-}
+      OPENAI_QUALITY_TEXT_API_KEY: ${TRANSLATION_QUALITY_TEXT_API_KEY:-}
+      OPENAI_QUALITY_TEXT_MODEL: ${TRANSLATION_QUALITY_TEXT_MODEL:-gpt-6-astra}
+      OPENAI_QUALITY_REASONING_EFFORT: ${TRANSLATION_QUALITY_REASONING_EFFORT:-low}
+      OPENAI_ECONOMY_TEXT_API_KEY: ${TRANSLATION_ECONOMY_TEXT_API_KEY:-}
+      OPENAI_ECONOMY_TEXT_MODEL: ${TRANSLATION_ECONOMY_TEXT_MODEL:-gpt-5.6-terra}
+      OPENAI_ECONOMY_REASONING_EFFORT: ${TRANSLATION_ECONOMY_REASONING_EFFORT:-none}
+      OPENAI_ECONOMY_SHARING_CONFIRMED: ${TRANSLATION_ECONOMY_SHARING_CONFIRMED:-false}
+      OPENAI_ECONOMY_OVERAGE_POLICY: ${TRANSLATION_ECONOMY_OVERAGE_POLICY:-block}
+      OPENAI_TRANSLATE_MODEL: ${TRANSLATION_REALTIME_MODEL:-gpt-realtime-translate}
+      OPENAI_TRANSCRIBE_MODEL: ${TRANSLATION_TRANSCRIBE_MODEL:-gpt-live-transcribe}
+      OPENAI_FILE_TRANSCRIBE_MODEL: ${TRANSLATION_FILE_TRANSCRIBE_MODEL:-gpt-4o-transcribe}
+      OPENAI_TEXT_MODEL: ${TRANSLATION_TEXT_MODEL:-gpt-5.6-terra}
+      OPENAI_TTS_MODEL: ${TRANSLATION_TTS_MODEL:-gpt-4o-mini-tts}
+      LIVEKIT_URL: ${TRANSLATION_LIVEKIT_URL:-}
+      LIVEKIT_API_KEY: ${TRANSLATION_LIVEKIT_API_KEY:-}
+      LIVEKIT_API_SECRET: ${TRANSLATION_LIVEKIT_API_SECRET:-}
+      VOICE_WORKER_URL: ""
+    volumes:
+      - translation-data:/var/lib/multilinguum
+    networks: [backend, edge]
+    read_only: true
+    tmpfs: ["/tmp:size=256m,mode=1777"]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    stop_grace_period: 60s
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:4310/health').then(r=>{if(!r.ok)process.exit(1)})"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    logging: *default-logging
+
   community:
     image: ${HERITAGE_COMMUNITY_IMAGE:-heritage-community:local}
     build:
       context: .
       dockerfile: Dockerfile
       target: runner
+      args:
+        TRANSLATION_PROCESSOR_URL: ${TRANSLATION_PROCESSOR_URL:-http://translation-processor:4310}
     init: true
     restart: unless-stopped
     environment:
@@ -72,6 +137,7 @@ services:
       - "127.0.0.1:${COMMUNITY_LOCAL_PORT:-3000}:3000"
     volumes:
       - media:/app/media
+      - sermon-media:/app/private/sermon-media
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
       - /app/.next/cache:rw,noexec,nosuid,size=128m
@@ -126,6 +192,44 @@ services:
       - no-new-privileges:true
     logging: *default-logging
 
+  sermon-media-maintenance:
+    image: ${HERITAGE_MIGRATION_IMAGE:-heritage-community:migrations-local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrations
+    profiles:
+      - operations
+    init: true
+    user: "1001:1001"
+    environment:
+      <<: *community-environment
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      HERITAGE_SERMON_MEDIA_MAINTENANCE_QUIESCED: "false"
+      HERITAGE_SERMON_MEDIA_MAINTENANCE_REQUIRE_BACKUP_READY: "false"
+      HERITAGE_SERMON_MEDIA_ORPHAN_GRACE_SECONDS: ${HERITAGE_SERMON_MEDIA_ORPHAN_GRACE_SECONDS:-86400}
+    volumes:
+      - sermon-media:/app/private/sermon-media
+    networks:
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - node
+      - --import
+      - tsx
+      - scripts/sermon-media-maintenance.mjs
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
+
   cloudflared:
     image: ${CLOUDFLARED_IMAGE:-cloudflare/cloudflared:2026.7.1}
     profiles:
@@ -169,7 +273,11 @@ networks:
   edge:
 
 volumes:
+  translation-data:
+    name: ${HERITAGE_TRANSLATION_VOLUME:-heritage-community-translation}
   postgres-data:
-    name: heritage-community-postgres
+    name: ${HERITAGE_POSTGRES_VOLUME:-heritage-community-postgres}
   media:
-    name: heritage-community-media
+    name: ${HERITAGE_MEDIA_VOLUME:-heritage-community-media}
+  sermon-media:
+    name: ${HERITAGE_SERMON_MEDIA_VOLUME:-heritage-community-sermon-media}

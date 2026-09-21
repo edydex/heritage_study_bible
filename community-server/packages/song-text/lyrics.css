@@ -1,0 +1,5 @@
+.song-lyrics { font-size: 1.05rem; line-height: 1.8; overflow-wrap: break-word; }
+.song-lyrics__section + .song-lyrics__section { margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid #8883; }
+.song-lyrics__section > h3 { margin: 0 0 .65rem; font-family: inherit; font-size: .75rem; line-height: 1.5; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; opacity: .65; }
+.song-lyrics__section > p { margin: 0; white-space: pre-line; }
+.song-lyrics__section > p + p { margin-top: 1rem; }

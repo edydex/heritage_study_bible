@@ -26,8 +26,8 @@ export const communityPublicConfig = {
 
 export function publicCorsHeaders() {
   return {
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, If-Match, If-None-Match',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Origin': '*',
     'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
     'Content-Type': 'application/json; charset=utf-8',
@@ -37,8 +37,25 @@ export function publicCorsHeaders() {
 export function publicJson(value: unknown, init: ResponseInit = {}) {
   const status = init.status || 200
   const bodyless = status === 204 || status === 205 || status === 304
+  const headers = new Headers(publicCorsHeaders())
+  new Headers(init.headers).forEach((headerValue, headerName) => {
+    headers.set(headerName, headerValue)
+  })
   return new Response(bodyless ? null : JSON.stringify(value), {
     ...init,
-    headers: { ...publicCorsHeaders(), ...(init.headers || {}) },
+    headers,
   })
+}
+
+export function privateAuthorizationJson(value: unknown, init: ResponseInit = {}) {
+  const headers = new Headers(init.headers)
+  headers.set('Cache-Control', 'private, no-store')
+  const vary = (headers.get('Vary') || '')
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean)
+  if (!vary.some(value => value.toLowerCase() === 'authorization')) vary.push('Authorization')
+  headers.set('Vary', vary.join(', '))
+  headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+  return publicJson(value, { ...init, headers })
 }

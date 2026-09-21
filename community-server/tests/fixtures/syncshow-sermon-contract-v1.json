@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "bibleRanges": {
+    "wholeChapter": {
+      "schemaVersion": 1,
+      "bookId": "Eph",
+      "start": { "chapter": 3, "verse": null },
+      "end": { "chapter": 3, "verse": null }
+    },
+    "verseBounded": {
+      "schemaVersion": 1,
+      "bookId": "John",
+      "start": { "chapter": 15, "verse": 5 },
+      "end": { "chapter": 15, "verse": 8 }
+    }
+  },
+  "sermons": {
+    "v1": {
+      "document": {
+        "schemaVersion": 1,
+        "kind": "syncshow-sermon",
+        "titles": { "en": "Faithful Prayer" },
+        "defaultLanguage": "en",
+        "speaker": { "id": null, "name": "Pastor Example" },
+        "serviceDate": "2026-07-26",
+        "series": null,
+        "outline": [],
+        "references": [],
+        "media": [],
+        "publication": {
+          "status": "draft",
+          "visibility": "private",
+          "publishedAt": null,
+          "canonicalUrl": null
+        },
+        "id": "sermon-golden-v1",
+        "sources": [{
+          "id": "legacy-manuscript",
+          "kind": "manuscript",
+          "fileName": "legacy-sermon.pdf",
+          "mediaType": "application/pdf",
+          "language": "en",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "sizeBytes": 2048,
+          "provenance": {
+            "providedBy": "Pastor Example",
+            "receivedAt": "2026-07-25T18:00:00.000Z",
+            "sourceSystem": "manual-file-picker",
+            "externalId": ""
+          }
+        }]
+      },
+      "canonicalSource": "{\"defaultLanguage\":\"en\",\"id\":\"sermon-golden-v1\",\"kind\":\"syncshow-sermon\",\"media\":[],\"outline\":[],\"publication\":{\"canonicalUrl\":null,\"publishedAt\":null,\"status\":\"draft\",\"visibility\":\"private\"},\"references\":[],\"schemaVersion\":1,\"series\":null,\"serviceDate\":\"2026-07-26\",\"sources\":[{\"fileName\":\"legacy-sermon.pdf\",\"id\":\"legacy-manuscript\",\"kind\":\"manuscript\",\"language\":\"en\",\"mediaType\":\"application/pdf\",\"provenance\":{\"externalId\":\"\",\"providedBy\":\"Pastor Example\",\"receivedAt\":\"2026-07-25T18:00:00.000Z\",\"sourceSystem\":\"manual-file-picker\"},\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"sizeBytes\":2048}],\"speaker\":{\"id\":null,\"name\":\"Pastor Example\"},\"titles\":{\"en\":\"Faithful Prayer\"}}\n",
+      "revision": "f3c79f79d405761ca0677850b9fcda002e8ddfaefce2774630ba8be29d320a45"
+    },
+    "v2": {
+      "document": {
+        "schemaVersion": 2,
+        "kind": "syncshow-sermon",
+        "titles": {
+          "ru": "Верная молитва",
+          "en": "Faithful Prayer"
+        },
+        "defaultLanguage": "en",
+        "speaker": { "id": null, "name": "Pastor Example" },
+        "serviceDate": "2026-07-26",
+        "series": null,
+        "outline": [{
+          "id": "prayer",
+          "parentId": null,
+          "kind": "section",
+          "titles": {
+            "ru": "Молитва",
+            "en": "Prayer"
+          }
+        }],
+        "references": [{
+          "id": "primary-eph-3",
+          "range": {
+            "schemaVersion": 1,
+            "bookId": "Eph",
+            "start": { "chapter": 3, "verse": null },
+            "end": { "chapter": 3, "verse": null }
+          },
+          "role": "primary",
+          "source": "pastor",
+          "reviewStatus": "confirmed",
+          "enteredText": "Ephesians 3",
+          "sourceId": "pastor-manuscript",
+          "sectionId": "prayer",
+          "startOffset": null,
+          "endOffset": null
+        }],
+        "media": [],
+        "publication": {
+          "status": "ready",
+          "visibility": "private",
+          "publishedAt": null,
+          "canonicalUrl": null
+        },
+        "id": "sermon-golden-v2",
+        "sources": [{
+          "id": "pastor-manuscript",
+          "kind": "manuscript",
+          "fileName": "sermon.pdf",
+          "mediaType": "application/pdf",
+          "languages": ["ru", "en"],
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "sizeBytes": 4096,
+          "provenance": {
+            "providedBy": "Pastor Example",
+            "receivedAt": "2026-07-25T18:00:00.000Z",
+            "sourceSystem": "manual-file-picker",
+            "externalId": ""
+          }
+        }]
+      },
+      "canonicalSource": "{\"defaultLanguage\":\"en\",\"id\":\"sermon-golden-v2\",\"kind\":\"syncshow-sermon\",\"media\":[],\"outline\":[{\"id\":\"prayer\",\"kind\":\"section\",\"parentId\":null,\"titles\":{\"en\":\"Prayer\",\"ru\":\"Молитва\"}}],\"publication\":{\"canonicalUrl\":null,\"publishedAt\":null,\"status\":\"ready\",\"visibility\":\"private\"},\"references\":[{\"endOffset\":null,\"enteredText\":\"Ephesians 3\",\"id\":\"primary-eph-3\",\"range\":{\"bookId\":\"Eph\",\"end\":{\"chapter\":3,\"verse\":null},\"schemaVersion\":1,\"start\":{\"chapter\":3,\"verse\":null}},\"reviewStatus\":\"confirmed\",\"role\":\"primary\",\"sectionId\":\"prayer\",\"source\":\"pastor\",\"sourceId\":\"pastor-manuscript\",\"startOffset\":null}],\"schemaVersion\":2,\"series\":null,\"serviceDate\":\"2026-07-26\",\"sources\":[{\"fileName\":\"sermon.pdf\",\"id\":\"pastor-manuscript\",\"kind\":\"manuscript\",\"languages\":[\"en\",\"ru\"],\"mediaType\":\"application/pdf\",\"provenance\":{\"externalId\":\"\",\"providedBy\":\"Pastor Example\",\"receivedAt\":\"2026-07-25T18:00:00.000Z\",\"sourceSystem\":\"manual-file-picker\"},\"sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"sizeBytes\":4096}],\"speaker\":{\"id\":null,\"name\":\"Pastor Example\"},\"titles\":{\"en\":\"Faithful Prayer\",\"ru\":\"Верная молитва\"}}\n",
+      "revision": "21e8034b0ce2dffd05e9b4a34a17a5f956f11615e28841b3eef53181a70d0ec0"
+    },
+    "v3": {
+      "document": {
+        "schemaVersion": 3,
+        "kind": "syncshow-sermon",
+        "titles": {
+          "ru": "Верная молитва",
+          "en": "Faithful Prayer"
+        },
+        "defaultLanguage": "en",
+        "speaker": { "id": null, "name": "Pastor Example" },
+        "serviceDate": "2026-07-26",
+        "series": null,
+        "outline": [{
+          "id": "prayer",
+          "parentId": null,
+          "kind": "section",
+          "titles": {
+            "ru": "Молитва",
+            "en": "Prayer"
+          }
+        }],
+        "references": [{
+          "id": "primary-eph-3",
+          "range": {
+            "schemaVersion": 1,
+            "bookId": "Eph",
+            "start": { "chapter": 3, "verse": null },
+            "end": { "chapter": 3, "verse": null }
+          },
+          "role": "primary",
+          "source": "pastor",
+          "reviewStatus": "confirmed",
+          "enteredText": "Ephesians 3",
+          "sourceId": "pastor-manuscript",
+          "sectionId": "prayer",
+          "startOffset": null,
+          "endOffset": null
+        }, {
+          "id": "mentioned-john-15",
+          "range": {
+            "schemaVersion": 1,
+            "bookId": "John",
+            "start": { "chapter": 15, "verse": 5 },
+            "end": { "chapter": 15, "verse": 5 }
+          },
+          "role": "mentioned",
+          "source": "slide-notes",
+          "reviewStatus": "confirmed",
+          "enteredText": "John 15:5",
+          "sourceId": "sermon-slides",
+          "sectionId": null,
+          "startOffset": null,
+          "endOffset": null
+        }],
+        "media": [],
+        "publication": {
+          "status": "ready",
+          "visibility": "private",
+          "publishedAt": null,
+          "canonicalUrl": null
+        },
+        "id": "sermon-golden-v3",
+        "sources": [{
+          "id": "pastor-manuscript",
+          "kind": "manuscript",
+          "fileName": "sermon.pdf",
+          "mediaType": "application/pdf",
+          "languages": ["ru", "en"],
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "sizeBytes": 4096,
+          "provenance": {
+            "providedBy": "Pastor Example",
+            "receivedAt": "2026-07-25T18:00:00.000Z",
+            "sourceSystem": "manual-file-picker",
+            "externalId": ""
+          }
+        }, {
+          "id": "sermon-slides",
+          "kind": "slide-notes",
+          "fileName": "sermon-slides.pptx",
+          "mediaType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "languages": ["en"],
+          "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "sizeBytes": 8192,
+          "provenance": {
+            "providedBy": "Media team",
+            "receivedAt": "2026-07-25T18:00:00.000Z",
+            "sourceSystem": "church-drive",
+            "externalId": ""
+          }
+        }],
+        "body": [{
+          "id": "manuscript-opening",
+          "kind": "manuscript",
+          "language": "en",
+          "sourceId": "pastor-manuscript",
+          "sectionId": "prayer",
+          "text": "For this reason I bow my knees before the Father.\n\nThis text was reviewed."
+        }, {
+          "id": "slides-summary",
+          "kind": "slide-notes",
+          "language": "ru",
+          "sourceId": "sermon-slides",
+          "sectionId": null,
+          "text": "Молитва укрепляет церковь."
+        }]
+      },
+      "canonicalSource": "{\"body\":[{\"id\":\"manuscript-opening\",\"kind\":\"manuscript\",\"language\":\"en\",\"sectionId\":\"prayer\",\"sourceId\":\"pastor-manuscript\",\"text\":\"For this reason I bow my knees before the Father.\\n\\nThis text was reviewed.\"},{\"id\":\"slides-summary\",\"kind\":\"slide-notes\",\"language\":\"ru\",\"sectionId\":null,\"sourceId\":\"sermon-slides\",\"text\":\"Молитва укрепляет церковь.\"}],\"defaultLanguage\":\"en\",\"id\":\"sermon-golden-v3\",\"kind\":\"syncshow-sermon\",\"media\":[],\"outline\":[{\"id\":\"prayer\",\"kind\":\"section\",\"parentId\":null,\"titles\":{\"en\":\"Prayer\",\"ru\":\"Молитва\"}}],\"publication\":{\"canonicalUrl\":null,\"publishedAt\":null,\"status\":\"ready\",\"visibility\":\"private\"},\"references\":[{\"endOffset\":null,\"enteredText\":\"Ephesians 3\",\"id\":\"primary-eph-3\",\"range\":{\"bookId\":\"Eph\",\"end\":{\"chapter\":3,\"verse\":null},\"schemaVersion\":1,\"start\":{\"chapter\":3,\"verse\":null}},\"reviewStatus\":\"confirmed\",\"role\":\"primary\",\"sectionId\":\"prayer\",\"source\":\"pastor\",\"sourceId\":\"pastor-manuscript\",\"startOffset\":null},{\"endOffset\":null,\"enteredText\":\"John 15:5\",\"id\":\"mentioned-john-15\",\"range\":{\"bookId\":\"John\",\"end\":{\"chapter\":15,\"verse\":5},\"schemaVersion\":1,\"start\":{\"chapter\":15,\"verse\":5}},\"reviewStatus\":\"confirmed\",\"role\":\"mentioned\",\"sectionId\":null,\"source\":\"slide-notes\",\"sourceId\":\"sermon-slides\",\"startOffset\":null}],\"schemaVersion\":3,\"series\":null,\"serviceDate\":\"2026-07-26\",\"sources\":[{\"fileName\":\"sermon.pdf\",\"id\":\"pastor-manuscript\",\"kind\":\"manuscript\",\"languages\":[\"en\",\"ru\"],\"mediaType\":\"application/pdf\",\"provenance\":{\"externalId\":\"\",\"providedBy\":\"Pastor Example\",\"receivedAt\":\"2026-07-25T18:00:00.000Z\",\"sourceSystem\":\"manual-file-picker\"},\"sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"sizeBytes\":4096},{\"fileName\":\"sermon-slides.pptx\",\"id\":\"sermon-slides\",\"kind\":\"slide-notes\",\"languages\":[\"en\"],\"mediaType\":\"application/vnd.openxmlformats-officedocument.presentationml.presentation\",\"provenance\":{\"externalId\":\"\",\"providedBy\":\"Media team\",\"receivedAt\":\"2026-07-25T18:00:00.000Z\",\"sourceSystem\":\"church-drive\"},\"sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"sizeBytes\":8192}],\"speaker\":{\"id\":null,\"name\":\"Pastor Example\"},\"titles\":{\"en\":\"Faithful Prayer\",\"ru\":\"Верная молитва\"}}\n",
+      "revision": "7e57e0f46d027c34991822f006387e380de5fd1f8322bbfe1cd2de99989cd57a"
+    }
+  }
+}

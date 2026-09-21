@@ -34,7 +34,7 @@ function stripTranslationPrefix(text, chapterNumber, translationId) {
 }
 
 export function withPsalmSuperscriptionVerse(chapter, bookName, translationId) {
-  if (!chapter || !isPsalms(bookName)) return chapter
+  if (!chapter || !isPsalms(bookName) || translationId === 'ORIGINAL') return chapter
 
   const text = getPsalmSuperscription(chapter.number)
   if (!text) return chapter

@@ -1,11 +1,28 @@
 import type { ReactNode } from 'react'
+import { PublicSiteHeader } from '@/components/PublicSiteHeader'
+import { loadLiveService } from '@/lib/loadLiveService'
 import './styles.css'
 
-export const metadata = {
-  title: 'Heritage Community Server',
-  description: 'A self-hosted church community and content server for Heritage Study Bible.',
+export async function generateMetadata() {
+  const { churchName } = await loadLiveService()
+  return {
+    title: { default: churchName, template: `%s — ${churchName}` },
+    description: `Sermons, songs, and live translated audio from ${churchName}.`,
+  }
 }
 
-export default function Layout({ children }: { children: ReactNode }) {
-  return <html lang="en"><body>{children}</body></html>
+export default async function Layout({ children }: { children: ReactNode }) {
+  const { churchName } = await loadLiveService()
+  return (
+    <html lang="en">
+      <body>
+        <PublicSiteHeader churchName={churchName} />
+        {children}
+        <footer className="site-footer">
+          <p>{churchName}</p>
+          <a href="/admin">Church admin</a>
+        </footer>
+      </body>
+    </html>
+  )
 }

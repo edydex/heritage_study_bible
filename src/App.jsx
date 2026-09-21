@@ -1,6 +1,9 @@
+import BibleAudioControls from './components/audio/BibleAudioControls'
 import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import Header from './components/Header'
+import AudioProvider from './components/audio/AudioProvider'
+import HomeRedirect from './components/HomeRedirect'
 import BibleChapter from './components/BibleChapter'
 import ParallelBibleChapter from './components/ParallelBibleChapter'
 import CommentarySidebar from './components/CommentarySidebar'
@@ -12,16 +15,17 @@ import TextSelectionBar from './components/TextSelectionBar'
 import ResourcesModal from './components/ResourcesModal'
 import BookReferenceChooser from './components/BookReferenceChooser'
 import { useBookmarks } from './hooks/useBookmarks'
+import { useAutomaticSync } from './hooks/useAutomaticSync'
 import { bibleBooks } from './data/bible-books.js'
-import { translations, DEFAULT_TRANSLATION, loadTranslation, loadTranslationLayout } from './data/translations'
+import { translations, parallelTranslations, DEFAULT_TRANSLATION, loadTranslation, loadTranslationLayout } from './data/translations'
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
-import { getNumberedBookReferenceChoices, parseBibleReference } from './utils/parseBibleReference'
+import { getBookReferenceChoices, parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
 import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, setNativeSideButtonScrollEnabled, setNativeSearchKeyboardCaptureInputEnabled, setNativeTextSelectionMenuSuppressed } from './services/androidControls'
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
 import { getActiveReadingPlan } from './services/readingPlanProgress'
-import { refreshStaleContentServers } from './services/contentServers'
+import { CONTENT_SERVERS_CHANGE_EVENT, CONTENT_SERVERS_STORAGE_KEY, getPublicSermonPublicationSources, refreshStaleContentServers } from './services/contentServers'
 import { checkForApkUpdate, openApkDownload } from './services/appUpdates'
 import { getVerseTextWithPsalmSuperscription, withPsalmSuperscriptionVerse } from './utils/psalmSuperscriptions'
 import { toggleVerseInSelection } from './utils/verseSelection'
@@ -38,6 +42,8 @@ import {
   scaleVolumeScrollDistance,
 } from './utils/advancedSettings'
 
+const AudioLibrary = lazy(() => import('./components/audio/AudioLibrary'))
+const InternalStorage = lazy(() => import('./components/audio/InternalStorage'))
 const TranscriptViewer = lazy(() => import('./components/TranscriptViewer'))
 const ResourcePage = lazy(() => import('./components/ResourcePage'))
 const ConfessionViewer = lazy(() => import('./components/ConfessionViewer'))
@@ -48,8 +54,11 @@ const ToolViewer = lazy(() => import('./components/ToolViewer'))
 const ContentServersPage = lazy(() => import('./components/ContentServersPage'))
 const RemoteResourceViewer = lazy(() => import('./components/RemoteResourceViewer'))
 const BuiltInSongViewer = lazy(() => import('./components/BuiltInSongViewer'))
+const PublishedSermonArchivePage = lazy(() => import('./components/PublishedSermonArchivePage'))
 const CommunityHomePage = lazy(() => import('./components/CommunityHomePage'))
+const CommunityCalendarPage = lazy(() => import('./components/CommunityCalendarPage'))
 const CommunityCallbackPage = lazy(() => import('./components/CommunityCallbackPage'))
+const SyncSettingsPage = lazy(() => import('./components/SyncSettingsPage'))
 
 const COMMENTARY_RETRY_DELAYS_MS = [300, 900]
 const NATIVE_SCROLL_MARKER_ID = 'heritage-volume-scroll-marker'
@@ -469,6 +478,8 @@ function ScrollToTopOnRouteChange() {
   }, [])
 
   useLayoutEffect(() => {
+    // Verse navigation owns its scroll once the target chapter has rendered.
+    if (location.state?.scrollToVerse) return
     forceScrollTop()
     const raf1 = window.requestAnimationFrame(() => forceScrollTop())
     const raf2 = window.requestAnimationFrame(() => window.requestAnimationFrame(() => forceScrollTop()))
@@ -545,43 +556,6 @@ function NativeBackNavigation() {
   return null
 }
 
-function HomeRedirect() {
-  const [target, setTarget] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    getReaderProgress()
-      .then(progress => {
-        if (cancelled) return
-
-        const saved = progress?.bible
-        const bookMeta = saved?.book ? bibleBooks.find(book => book.name === saved.book) : null
-        const chapter = Number(saved?.chapter)
-        if (bookMeta && Number.isInteger(chapter) && chapter >= 1 && chapter <= bookMeta.chapters) {
-          setTarget(`/${bookToSlug(bookMeta.name)}/${chapter}`)
-          return
-        }
-
-        setTarget('/genesis/1')
-      })
-      .catch(() => {
-        if (!cancelled) setTarget('/genesis/1')
-      })
-
-    return () => { cancelled = true }
-  }, [])
-
-  if (!target) {
-    return (
-      <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center p-6">
-        <p className="text-gray-500 dark:text-gray-400 animate-pulse">Opening last passage...</p>
-      </div>
-    )
-  }
-
-  return <Navigate to={target} replace />
-}
 
 function ReadingPlanInviteRedirect() {
   const location = useLocation()
@@ -674,6 +648,23 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
       </header>
 
       <main className="container mx-auto max-w-2xl px-4 py-5 pb-20 space-y-4">
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <button type="button" onClick={() => navigate('/settings/storage')} className="w-full text-left">
+            <h2 className="text-sm font-semibold">Internal Storage</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Manage downloaded audiobooks and free space on this device.</p>
+          </button>
+        </section>
+
+        <section className="rounded-lg border border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-800 p-4">
+          <button type="button" onClick={() => navigate('/settings/sync')} className="w-full flex items-center justify-between gap-4 text-left">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Sync</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Keep reading progress, plans, bookmarks, notes, and highlights on your other devices.</p>
+            </div>
+            <span className="text-2xl leading-none text-gray-400 dark:text-gray-500">›</span>
+          </button>
+        </section>
+
         <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <button
             type="button"
@@ -992,7 +983,7 @@ function AboutPage() {
   )
 }
 
-function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
+function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderReady }) {
   const { bookSlug, chapterNum } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -1003,6 +994,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
   const [currentBook, setCurrentBook] = useState(urlBook || 'Genesis')
   const [currentChapter, setCurrentChapter] = useState(urlChapter || 1)
+  const lastPassageUrlRef = useRef({ book: urlBook, chapter: urlChapter })
   const [showBookmarkManager, setShowBookmarkManager] = useState(false)
   const [showResources, setShowResources] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -1057,6 +1049,19 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const bibleContainerRef = useRef(null)
   const searchRequestRef = useRef(0)
   const [activeReadingPlan, setActiveReadingPlan] = useState(() => getActiveReadingPlan())
+  const [sermonPublicationSources, setSermonPublicationSources] = useState(() => getPublicSermonPublicationSources())
+  useEffect(() => {
+    const refreshSources = () => setSermonPublicationSources(getPublicSermonPublicationSources())
+    const handleStorage = event => {
+      if (event.key === CONTENT_SERVERS_STORAGE_KEY) refreshSources()
+    }
+    window.addEventListener(CONTENT_SERVERS_CHANGE_EVENT, refreshSources)
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener(CONTENT_SERVERS_CHANGE_EVENT, refreshSources)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [])
   
   // Translation state
   const [translationId, setTranslationId] = useState(() => {
@@ -1067,6 +1072,9 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       return saved || DEFAULT_TRANSLATION
     } catch { return DEFAULT_TRANSLATION }
   })
+  useEffect(() => {
+    if (location.state?.audioTranslation === 'BSB') setTranslationId('BSB')
+  }, [location.key, location.state?.audioTranslation])
   const [bibleData, setBibleData] = useState(null)
   const [bibleVerseLayout, setBibleVerseLayout] = useState(null)
   const [translationLoading, setTranslationLoading] = useState(false)
@@ -1076,7 +1084,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
   const [parallelTranslationId, setParallelTranslationId] = useState(() => {
     try {
       const saved = localStorage.getItem('heritage-parallel-translation')
-      if (saved && translations.some(t => t.id === saved)) return saved
+      if (saved && parallelTranslations.some(t => t.id === saved)) return saved
     } catch {}
     return translations.find(t => t.id !== DEFAULT_TRANSLATION)?.id || null
   })
@@ -1153,7 +1161,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       setParallelLoading(true)
       try {
         const [data, layout] = await Promise.all([
-          loadTranslation(parallelTranslationId),
+          loadTranslation(parallelTranslationId, currentBook),
           loadTranslationLayout(parallelTranslationId),
         ])
         if (!cancelled) {
@@ -1174,7 +1182,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
     loadParallel()
     return () => { cancelled = true }
-  }, [parallelMode, parallelTranslationId])
+  }, [parallelMode, parallelTranslationId, currentBook])
 
   // Author/Work state
   const [authorsData, setAuthorsData] = useState(initialAuthors)
@@ -1383,8 +1391,12 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     notes, saveNote, saveNotes, deleteNote, deleteNoteById,
     addHighlight, removeHighlights, isHighlighted, getVerseHighlightColor,
     addTextHighlight, removeTextHighlight, isTextSelectionHighlighted, getTextSelectionHighlight,
-    getTextHighlights, saveTextNote,
+    getTextHighlights, saveTextNote, hydrated,
   } = useBookmarks()
+
+  useEffect(() => {
+    if (bibleData && !translationLoading && hydrated) onReaderReady?.(true)
+  }, [bibleData, translationLoading, hydrated, onReaderReady])
 
   const existingTextSelectionNote = useMemo(() => (
     textSelection
@@ -1470,15 +1482,24 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     navigate(location.pathname, { replace: true, state: null })
   }, [location.pathname, location.state, navigate])
 
-  // Sync URL to state when URL changes
+  // An incoming route wins over the previous render's passage state. Keep both
+  // directions in one effect so a changing navigate callback cannot write the
+  // old chapter back while the new URL is being adopted.
   useEffect(() => {
-    if (urlBook && urlBook !== currentBook) {
-      setCurrentBook(urlBook)
+    const previous = lastPassageUrlRef.current
+    const urlChanged = previous.book !== urlBook || previous.chapter !== urlChapter
+    lastPassageUrlRef.current = { book: urlBook, chapter: urlChapter }
+    if (urlChanged) {
+      if (urlBook && urlBook !== currentBook) setCurrentBook(urlBook)
+      if (urlChapter && urlChapter !== currentChapter) setCurrentChapter(urlChapter)
+      return
     }
-    if (urlChapter && urlChapter !== currentChapter) {
-      setCurrentChapter(urlChapter)
+
+    const expectedSlug = bookToSlug(currentBook)
+    if (bookSlug !== expectedSlug || urlChapter !== currentChapter) {
+      navigate(`/${expectedSlug}/${currentChapter}`, { replace: true })
     }
-  }, [urlBook, urlChapter])
+  }, [bookSlug, urlBook, urlChapter, currentBook, currentChapter, navigate])
 
   // Handle external deep links that should open commentary at a specific verse
   useEffect(() => {
@@ -1519,17 +1540,6 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       return null
     })
   }, [currentBook, currentChapter])
-
-  // Update URL when book/chapter changes (but avoid loops)
-  useEffect(() => {
-    const expectedSlug = bookToSlug(currentBook)
-    const currentPath = `/${expectedSlug}/${currentChapter}`
-    
-    // Only navigate if URL doesn't match current state
-    if (bookSlug !== expectedSlug || parseInt(chapterNum) !== currentChapter) {
-      navigate(currentPath, { replace: true })
-    }
-  }, [currentBook, currentChapter, navigate])
 
   // Check screen size for responsive behavior
   useEffect(() => {
@@ -1857,7 +1867,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
       return
     }
 
-    const numberedBookChoices = getNumberedBookReferenceChoices(trimmedQuery)
+    const numberedBookChoices = getBookReferenceChoices(trimmedQuery)
     if (numberedBookChoices.length > 1) {
       setSearchResults(null)
       setSearchLoading(false)
@@ -1867,6 +1877,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
     if (numberedBookChoices.length === 1) {
       const [choice] = numberedBookChoices
+      if (choice.invalidReason) { setSearchLoading(false); showToast(choice.invalidReason); return }
       setSearchQuery('')
       setSearchResults(null)
       setSearchLoading(false)
@@ -1935,23 +1946,31 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
     }
   }
 
-  // Navigate to verse from search or bookmark
+  // Store the destination with the route, so the chapter reset cannot race it.
   const navigateToVerse = (book, chapter, verse) => {
-    if (book) setCurrentBook(book)
-    setCurrentChapter(chapter)
+    const targetBook = book || currentBook
     setSearchResults(null)
     setShowBookmarkManager(false)
     setShowGoToPassageButton(false)
-    // Scroll to verse after render
-    setTimeout(() => {
-      const element = document.getElementById(`verse-${chapter}-${verse}`)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        element.classList.add('bg-yellow-100')
-        setTimeout(() => element.classList.remove('bg-yellow-100'), 2000)
-      }
-    }, 100)
+    navigate(`/${bookToSlug(targetBook)}/${chapter}`, {
+      replace: true, state: { scrollToVerse: { book: targetBook, chapter: Number(chapter), verse: Number(verse) } },
+    })
   }
+
+  useLayoutEffect(() => {
+    const target = location.state?.scrollToVerse
+    if (location.state?.audioTranslation && location.state.audioTranslation !== translationId) return
+    if (!target || target.book !== currentBook || target.chapter !== currentChapter || !bibleData || translationLoading) return
+    const element = bibleContainerRef.current?.querySelector(`#verse-${target.chapter}-${target.verse}`)
+    if (!element) return
+    let highlightTimer
+    const frame = requestAnimationFrame(() => {
+      element.scrollIntoView({ behavior: 'instant', block: 'center' })
+      if (!location.state?.audioNavigation) element.classList.add('bg-yellow-100')
+      highlightTimer = setTimeout(() => element.classList.remove('bg-yellow-100'), 2000)
+    })
+    return () => { cancelAnimationFrame(frame); clearTimeout(highlightTimer); element.classList.remove('bg-yellow-100') }
+  }, [location.key, location.state, currentBook, currentChapter, bibleData, translationLoading, translationId, parallelMode, showBookmarkManager])
 
   // Navigate to book and chapter
   const handleNavigate = (bookName, chapter) => {
@@ -2025,6 +2044,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
           onSideButtonScrollChange={onSideButtonScrollChange}
           showVolumeScrollSetting={isNativeAndroid()}
           onSearchKeyboardCaptureChange={setNativeSearchKeyboardCaptureInputEnabled}
+          onSyncSettingsClick={() => navigate('/settings/sync')}
           onAdvancedSettingsClick={() => navigate('/settings/advanced')}
         />
 
@@ -2106,6 +2126,8 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
                   <h2 className="text-center text-xl font-bold text-primary dark:text-blue-400 mb-4 heading-text">
                     {currentBook} {currentChapter}
                   </h2>
+
+                  {!translationLoading && currentChapterData && <BibleAudioControls book={currentBook} chapter={currentChapterData} translationId={translationId} selectionMode={multiSelectMode} />}
 
                   {/* Translation loading overlay */}
                   {(translationLoading || (parallelMode && parallelLoading)) && (
@@ -2218,6 +2240,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
               versePositions={versePositions}
               selectedVerse={selectedVerse}
               selectedVerses={selectedVerses}
+              sermonPublicationSources={sermonPublicationSources}
               multiSelectMode={multiSelectMode}
               onToggleMultiSelect={toggleMultiSelectMode}
               translationId={translationId}
@@ -2405,6 +2428,8 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange }) {
 
 // Main App with Router
 function App() {
+  const [readerReady, setReaderReady] = useState(false)
+  useAutomaticSync(readerReady)
   const [sideButtonScroll, setSideButtonScrollState] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.sideButtonScroll)
@@ -2436,6 +2461,7 @@ function App() {
 
   return (
     <Router>
+      <AudioProvider>
       <ScrollToTopOnRouteChange />
       <NativeBackNavigation />
       <AndroidReaderControls
@@ -2445,6 +2471,8 @@ function App() {
       />
       <Suspense fallback={<div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">Loading…</div>}>
         <Routes>
+          <Route path="/audio" element={<AudioLibrary />} />
+          <Route path="/settings/storage" element={<InternalStorage />} />
           <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />
           <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />
           <Route path="/resources/books/:itemId" element={<BookViewer />} />
@@ -2455,18 +2483,24 @@ function App() {
           <Route path="/resources/content/:contentKey" element={<RemoteResourceViewer />} />
           <Route path="/community-song" element={<RemoteResourceViewer directSong />} />
           <Route path="/resources/songs/:itemId" element={<BuiltInSongViewer />} />
+          <Route path="/resources/sermons/:serverId/:publicId" element={<PublishedSermonArchivePage />} />
+          <Route path="/resources/sermons" element={<PublishedSermonArchivePage />} />
           <Route path="/resources/:categoryId" element={<ResourcePage />} />
           <Route path="/settings/about" element={<AboutPage />} />
           <Route path="/settings/advanced" element={<AdvancedSettingsPage settings={advancedSettings} onSettingsChange={setAdvancedSettings} />} />
+          <Route path="/settings/sync" element={<SyncSettingsPage />} />
           <Route path="/settings/content-servers" element={<ContentServersPage />} />
           <Route path="/community/callback" element={<CommunityCallbackPage />} />
           <Route path="/community" element={<CommunityHomePage />} />
-          <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
-          <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} />} />
+          <Route path="/community/calendar" element={<CommunityCalendarPage />} />
+          <Route path="/community/calendar/events/:eventId" element={<CommunityCalendarPage />} />
+          <Route path="/:bookSlug/:chapterNum" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} onReaderReady={setReaderReady} />} />
+          <Route path="/:bookSlug" element={<BibleStudyApp sideButtonScroll={sideButtonScroll} onSideButtonScrollChange={setSideButtonScroll} onReaderReady={setReaderReady} />} />
           <Route path="/" element={<HomeRedirect />} />
           <Route path="*" element={<Navigate to="/genesis/1" replace />} />
         </Routes>
       </Suspense>
+      </AudioProvider>
     </Router>
   )
 }

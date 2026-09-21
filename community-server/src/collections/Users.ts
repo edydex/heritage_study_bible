@@ -1,4 +1,5 @@
 import type { CollectionConfig, FieldAccess } from 'payload'
+import { markCommunitySessionUser } from '@/lib/communitySession'
 import { communityAuthEnabled } from '@/lib/publicConfig'
 import { hashOpaqueToken } from '@/lib/tokens'
 
@@ -66,9 +67,12 @@ export const Users: CollectionConfig = {
           // Community bearer tokens are stored by the client and must never
           // inherit Payload's server-wide administrator role. Memberships
           // still grant owner/admin/leader permissions within their church.
+          const authenticatedUser = user
+            ? { ...user, collection: 'users' as const, systemRole: 'member' as const }
+            : null
           return {
-            user: user
-              ? { ...user, collection: 'users', systemRole: 'member' }
+            user: authenticatedUser
+              ? markCommunitySessionUser(authenticatedUser, session.id)
               : null,
           }
         },
@@ -82,7 +86,10 @@ export const Users: CollectionConfig = {
       return existing.totalDocs === 0
     },
     read: ({ req }) => req.user?.systemRole === 'system-admin' ? true : { id: { equals: req.user?.id } },
-    update: ({ req }) => req.user?.systemRole === 'system-admin' ? true : { id: { equals: req.user?.id } },
+    // Personal-account changes use the narrowly scoped, reverified account
+    // endpoints. A bearer session must not gain Payload's generic user update
+    // surface (which includes the auth collection's email and password fields).
+    update: ({ req }) => req.user?.systemRole === 'system-admin',
     delete: ({ req }) => req.user?.systemRole === 'system-admin',
   },
   fields: [
@@ -105,5 +112,29 @@ export const Users: CollectionConfig = {
     },
     { name: 'magicLinkTokenHash', type: 'text', hidden: true, index: true, access: protectedCredentialFieldAccess },
     { name: 'magicLinkExpiresAt', type: 'date', hidden: true, index: true, access: protectedCredentialFieldAccess },
+    {
+      name: 'accountProtection',
+      type: 'select',
+      required: true,
+      defaultValue: 'email',
+      options: [
+        { label: 'Email verification', value: 'email' },
+        { label: 'Strict password protection', value: 'strict-password' },
+      ],
+      hidden: true,
+      access: protectedCredentialFieldAccess,
+    },
+    { name: 'strictPasswordHash', type: 'textarea', hidden: true, access: protectedCredentialFieldAccess },
+    { name: 'strictPasswordAlgorithm', type: 'text', hidden: true, access: protectedCredentialFieldAccess },
+    { name: 'strictPasswordParams', type: 'json', hidden: true, access: protectedCredentialFieldAccess },
+    {
+      name: 'syncGeneration',
+      type: 'number',
+      required: true,
+      min: 1,
+      defaultValue: 1,
+      hidden: true,
+      access: protectedCredentialFieldAccess,
+    },
   ],
 }

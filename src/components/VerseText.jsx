@@ -1,9 +1,27 @@
 import { splitParagraphText } from '../utils/verseLayout'
 import { getTextHighlightClasses } from '../utils/highlightColors'
 
-function renderHighlightedText(text, startOffset, highlights, keyPrefix) {
+function WordLink({ link, activeWordLink, onWordLink, children }) {
+  const activate = event => {
+    if (globalThis.window?.getSelection?.()?.isCollapsed === false) return
+    event.stopPropagation()
+    onWordLink?.(link)
+  }
+  return <span
+    className={`bible-word-link${activeWordLink === link.id ? ' bible-word-link-active' : ''}`}
+    data-word-link={link.id} data-word-pattern={link.pattern}
+    title={link.label} role="button" tabIndex={0} aria-label={link.label}
+    aria-pressed={activeWordLink === link.id}
+    onMouseEnter={() => onWordLink?.(link)} onFocus={() => onWordLink?.(link)}
+    onClick={activate}
+    onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(event) } }}
+  >{children}</span>
+}
+
+function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLinks, activeWordLink, onWordLink) {
   const boundaries = new Set([0, text.length])
-  highlights.forEach(highlight => {
+  const annotations = [...highlights, ...wordLinks]
+  annotations.forEach(highlight => {
     const start = Math.max(0, Math.min(text.length, highlight.startOffset - startOffset))
     const end = Math.max(0, Math.min(text.length, highlight.endOffset - startOffset))
     if (start < end) {
@@ -20,7 +38,7 @@ function renderHighlightedText(text, startOffset, highlights, keyPrefix) {
     )
     const highlight = overlappingHighlights.find(item => item.selectionPreview === true)
       || overlappingHighlights[0]
-    return highlight
+    const rendered = highlight
       ? highlight.selectionPreview
         ? (
           <mark
@@ -33,15 +51,19 @@ function renderHighlightedText(text, startOffset, highlights, keyPrefix) {
         )
         : <mark key={`${keyPrefix}-h${index}`} data-highlight-color={highlight.color || 'yellow'} className={`rounded-sm px-0 ${getTextHighlightClasses(highlight.color)}`}>{value}</mark>
       : <span key={`${keyPrefix}-t${index}`}>{value}</span>
+    const link = wordLinks.find(item => item.startOffset < startOffset + end && item.endOffset > startOffset + start)
+    return link
+      ? <WordLink key={`${keyPrefix}-w${index}`} link={link} activeWordLink={activeWordLink} onWordLink={onWordLink}>{rendered}</WordLink>
+      : rendered
   })
 }
 
-function renderFormattedLine(line, keyPrefix, startOffset, highlights) {
+function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks, activeWordLink, onWordLink) {
   let cursor = startOffset
   return line.split(/(<b>.*?<\/b>)/g).map((part, index) => {
     const match = part.match(/^<b>(.*?)<\/b>$/)
     const value = match ? match[1] : part
-    const rendered = renderHighlightedText(value, cursor, highlights, `${keyPrefix}-${index}`)
+    const rendered = renderHighlightedText(value, cursor, highlights, `${keyPrefix}-${index}`, wordLinks, activeWordLink, onWordLink)
     cursor += value.length
     if (match) {
       return <strong key={`${keyPrefix}-b${index}`} className="font-bold">{rendered}</strong>
@@ -66,7 +88,7 @@ function ParagraphMarker() {
   )
 }
 
-export default function VerseText({ text, layout = null, highlights = [] }) {
+export default function VerseText({ text, layout = null, highlights = [], wordLinks = [], activeWordLink = null, onWordLink }) {
   const { startsParagraph, segments } = splitParagraphText(text)
   const showLeadingMarker = startsParagraph || Boolean(layout?.breakBefore)
   let currentOffset = 0
@@ -94,7 +116,7 @@ export default function VerseText({ text, layout = null, highlights = [] }) {
                 return (
                   <span key={`line-${lineIndex}`}>
                     {lineIndex > 0 && <><br /><span data-selection-ignore className="inline-block w-4" /></>}
-                    {renderFormattedLine(line, `${segmentIndex}-${lineIndex}`, lineOffset, highlights)}
+                    {renderFormattedLine(line, `${segmentIndex}-${lineIndex}`, lineOffset, highlights, wordLinks, activeWordLink, onWordLink)}
                   </span>
                 )
               })()

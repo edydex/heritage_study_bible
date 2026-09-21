@@ -2,6 +2,12 @@ name: Android Debug APK
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the verified package after acceptance
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -14,25 +20,40 @@ on:
       - 'capacitor.config.json'
       - 'vite.config.js'
       - '.github/workflows/android-debug.yml'
+      - 'scripts/publish-android-release.mjs'
+      - 'scripts/verify_android_apk.py'
+      - 'scripts/run-android-acceptance.sh'
+      - 'tests/android-release-publishing.test.mjs'
 
 permissions:
   contents: write
+
+# One update feed, including labelled previews. An older build must not replace it.
+concurrency:
+  group: heritage-android-release
+  cancel-in-progress: false
 
 jobs:
   build-debug-apk:
     name: Build debug APK
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify failed-emulator cleanup
+        run: python3 scripts/test_android_runner_cleanup.py
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
+      - name: Verify Android update publication
+        run: node --test tests/android-release-publishing.test.mjs
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -45,9 +66,13 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The old SDK "tools" package is no longer available. The action
+          # supplies cmdline-tools; install only the supported adb package here.
+          packages: platform-tools
 
       - name: Install Android platform packages
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "emulator" "system-images;android-35;google_apis;x86_64"
 
       - name: Install dependencies
         run: npm ci
@@ -60,38 +85,46 @@ jobs:
 
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
 
-      - name: Upload debug APK
+      - name: Enable emulator acceleration
+        run: sudo chmod 666 /dev/kvm
+
+      - name: Run native reader, storage and media acceptance
+        run: bash scripts/run-android-acceptance.sh
+
+      - name: Retain native test evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: heritage-study-bible-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          retention-days: 14
+          name: heritage-android-native-acceptance
+          path: |
+            android/app/build/reports/androidTests/
+            android/app/build/outputs/androidTest-results/
+            android/app/build/native-acceptance/
+          if-no-files-found: warn
+          retention-days: 30
 
-      - name: Prepare APK release
-        id: release
-        run: |
-          VERSION_NAME=$(grep -m1 'versionName' android/app/build.gradle | sed -E 's/.*versionName "([^"]+)".*/\1/')
-          TAG="v${VERSION_NAME}"
-          APK_NAME="heritage-study-bible-${VERSION_NAME}-debug.apk"
-          cp android/app/build/outputs/apk/debug/app-debug.apk "${APK_NAME}"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "apk_name=${APK_NAME}" >> "$GITHUB_OUTPUT"
-
-      - name: Publish APK release
+      - name: Download the previous signed APK
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${{ steps.release.outputs.tag }}"
-          APK_NAME="${{ steps.release.outputs.apk_name }}"
-          if gh release view "${TAG}" >/dev/null 2>&1; then
-            gh release upload "${TAG}" "${APK_NAME}" --clobber
-            gh release edit "${TAG}" --latest
-          else
-            gh release create "${TAG}" "${APK_NAME}" \
-              --title "Heritage Study Bible ${TAG}" \
-              --notes "Debug APK built from ${GITHUB_SHA}." \
-              --latest
-          fi
+          mkdir -p "$RUNNER_TEMP/heritage-previous"
+          gh release download v1.1.32 --pattern heritage-study-bible-1.1.32-debug.apk --dir "$RUNNER_TEMP/heritage-previous"
+
+      - name: Verify package, signer, web assets and native tests
+        run: python3 scripts/verify_android_apk.py --previous-apk "$RUNNER_TEMP/heritage-previous/heritage-study-bible-1.1.32-debug.apk"
+
+      - name: Upload verified Android package
+        uses: actions/upload-artifact@v4
+        with:
+          name: heritage-study-bible-debug-apk
+          path: android-release/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish the verified Android release
+        if: github.ref == 'refs/heads/main' || inputs.publish == true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/publish-android-release.mjs

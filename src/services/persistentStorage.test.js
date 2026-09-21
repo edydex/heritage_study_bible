@@ -59,6 +59,73 @@ describe('persistentStorage', () => {
     )
   })
 
+  it('merges an older backup without replacing newer synchronized records', async () => {
+    await setStoredJson(STORAGE_KEYS.notes, [
+      { id: 'same', text: 'new local text', dateModified: '2026-09-03T12:00:00.000Z' },
+      { id: 'local-only', text: 'keep me', dateModified: '2026-09-03T11:00:00.000Z' },
+    ])
+    await setStoredJson(STORAGE_KEYS.readerProgress, {
+      bible: { book: 'John', chapter: 3, updatedAt: '2026-09-03T12:00:00.000Z' },
+      resources: {},
+    })
+    await setStoredJson(STORAGE_KEYS.syncState, {
+      records: {
+        ['note\u0000deleted-note']: { deleted: true, serverRevision: 9 },
+      },
+    })
+
+    await importHeritageData({
+      app: 'Heritage Study Bible',
+      data: {
+        [STORAGE_KEYS.notes]: JSON.stringify([
+          { id: 'same', text: 'old backup text', dateModified: '2026-08-01T12:00:00.000Z' },
+          { id: 'backup-only', text: 'restore me', dateModified: '2026-08-01T12:00:00.000Z' },
+          { id: 'deleted-note', text: 'do not resurrect', dateModified: '2026-08-01T12:00:00.000Z' },
+        ]),
+        [STORAGE_KEYS.readerProgress]: JSON.stringify({
+          bible: { book: 'Genesis', chapter: 1, updatedAt: '2026-08-01T12:00:00.000Z' },
+          resources: {},
+        }),
+      },
+    })
+
+    const notes = await getStoredJson(STORAGE_KEYS.notes, [])
+    expect(notes.map(note => note.id)).toEqual(['same', 'local-only', 'backup-only'])
+    expect(notes.find(note => note.id === 'same')?.text).toBe('new local text')
+    await expect(getStoredJson(STORAGE_KEYS.readerProgress, null)).resolves.toMatchObject({
+      bible: { book: 'John', chapter: 3 },
+    })
+  })
+
+  it('merges reading-plan completion while honoring synchronized tombstones', async () => {
+    const key = `${STORAGE_KEYS.readingPlanPrefix}annual:progress`
+    await setStoredJson(key, {
+      completedItems: { 1: ['current-item'] },
+      dayNotes: { 1: 'new note' },
+      updatedAt: '2026-09-03T12:00:00.000Z',
+    })
+    await setStoredJson(STORAGE_KEYS.syncState, {
+      records: {
+        ['reading-plan-item\u0000annual|1|removed-item']: { deleted: true, serverRevision: 12 },
+      },
+    })
+
+    await importHeritageData({
+      app: 'Heritage Study Bible',
+      data: {
+        [key]: JSON.stringify({
+          completedItems: { 1: ['backup-item', 'removed-item'] },
+          dayNotes: { 1: 'old note', 2: 'restored note' },
+          updatedAt: '2026-08-01T12:00:00.000Z',
+        }),
+      },
+    })
+
+    const progress = await getStoredJson(key, null)
+    expect(progress.completedItems['1']).toEqual(['current-item', 'backup-item'])
+    expect(progress.dayNotes).toEqual({ 1: 'new note', 2: 'restored note' })
+  })
+
   it('documents exportable keys for backup tooling', () => {
     expect(EXPORTABLE_EXACT_KEYS).toContain(STORAGE_KEYS.bookmarks)
     expect(EXPORTABLE_EXACT_KEYS).toContain(STORAGE_KEYS.highlights)
