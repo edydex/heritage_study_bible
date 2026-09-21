@@ -594,7 +594,7 @@ function BottomNav({
     <>
       {/* Bottom Navigation Bar */}
       <nav
-        className="fixed bottom-0 left-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg z-40 safe-area-bottom transition-all duration-300"
+        className="reader-bottom-nav fixed bottom-0 left-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg z-40 safe-area-bottom transition-all duration-300"
         style={{ right: isSidebarOpen ? `${sidebarWidth}px` : 0 }}
       >
         <div className="flex items-center justify-between h-14 px-2">

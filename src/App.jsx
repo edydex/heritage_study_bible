@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import Header from './components/Header'
+import AudioProvider from './components/audio/AudioProvider'
 import BibleChapter from './components/BibleChapter'
 import ParallelBibleChapter from './components/ParallelBibleChapter'
 import CommentarySidebar from './components/CommentarySidebar'
@@ -39,6 +40,8 @@ import {
   scaleVolumeScrollDistance,
 } from './utils/advancedSettings'
 
+const AudioLibrary = lazy(() => import('./components/audio/AudioLibrary'))
+const InternalStorage = lazy(() => import('./components/audio/InternalStorage'))
 const TranscriptViewer = lazy(() => import('./components/TranscriptViewer'))
 const ResourcePage = lazy(() => import('./components/ResourcePage'))
 const ConfessionViewer = lazy(() => import('./components/ConfessionViewer'))
@@ -680,6 +683,13 @@ function AdvancedSettingsPage({ settings, onSettingsChange }) {
       </header>
 
       <main className="container mx-auto max-w-2xl px-4 py-5 pb-20 space-y-4">
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <button type="button" onClick={() => navigate('/settings/storage')} className="w-full text-left">
+            <h2 className="text-sm font-semibold">Internal Storage</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Manage downloaded audiobooks and free space on this device.</p>
+          </button>
+        </section>
+
         <section className="rounded-lg border border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-800 p-4">
           <button type="button" onClick={() => navigate('/settings/sync')} className="w-full flex items-center justify-between gap-4 text-left">
             <div>
@@ -2480,6 +2490,7 @@ function App() {
 
   return (
     <Router>
+      <AudioProvider>
       <ScrollToTopOnRouteChange />
       <NativeBackNavigation />
       <AndroidReaderControls
@@ -2489,6 +2500,8 @@ function App() {
       />
       <Suspense fallback={<div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">Loading…</div>}>
         <Routes>
+          <Route path="/audio" element={<AudioLibrary />} />
+          <Route path="/settings/storage" element={<InternalStorage />} />
           <Route path="/transcript/:transcriptId" element={<TranscriptViewer />} />
           <Route path="/resources/confessions/:itemId" element={<ConfessionViewer />} />
           <Route path="/resources/books/:itemId" element={<BookViewer />} />
@@ -2516,6 +2529,7 @@ function App() {
           <Route path="*" element={<Navigate to="/genesis/1" replace />} />
         </Routes>
       </Suspense>
+      </AudioProvider>
     </Router>
   )
 }

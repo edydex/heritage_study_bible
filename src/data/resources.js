@@ -1,4 +1,4 @@
-import { HERITAGE_BUILT_IN_SONGS } from './builtInSongs'
+import { HERITAGE_BUILT_IN_SONGS } from './builtInSongs.js'
 
 export const RESOURCE_CATEGORIES = [
   {

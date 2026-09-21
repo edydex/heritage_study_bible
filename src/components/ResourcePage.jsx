@@ -385,6 +385,8 @@ function ResourcePage() {
 
       <PullToRefresh enabled={isSongs} refreshing={refreshing} onRefresh={refreshSongs}>
       <main className="container mx-auto max-w-2xl px-4 py-6">
+        {categoryId === 'books' && <button type="button" onClick={() => navigate('/audio')} className="w-full mb-4 rounded-lg border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 px-4 py-3 text-left text-primary dark:text-blue-300 font-semibold">Audio library · resume listening and downloads →</button>}
+
         {isSongs && <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
           <p role="status">{refreshMessage || 'Pull down from the top to refresh Community songs.'}</p>
           <button type="button" onClick={refreshSongs} disabled={refreshing} className="shrink-0 min-h-11 rounded-lg border border-gray-300 dark:border-gray-600 px-3 text-primary dark:text-blue-300 disabled:opacity-50">{refreshing ? 'Refreshing…' : 'Refresh'}</button>
