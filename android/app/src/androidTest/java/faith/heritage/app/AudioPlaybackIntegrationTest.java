@@ -29,6 +29,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,6 +64,25 @@ public class AudioPlaybackIntegrationTest {
         return new JSONObject(result.extras.getString("state"));
     }
     private JSONObject state() throws Exception { return command("state", new Bundle()); }
+    private JSONObject observeVerseBoundary(int verse, double boundary, double rate) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+        while (System.nanoTime() < deadline) {
+            double before = state().getDouble("position") * 1000;
+            String marked = js("document.querySelector('[data-audio-active=true]')?.getAttribute('data-verse') || ''");
+            if (marked.equals("\"" + verse + "\"")) {
+                // Read the service's actual ExoPlayer clock after observing the
+                // DOM. Include the observation round-trip in the upper bound.
+                double after = state().getDouble("position") * 1000;
+                double latenessMs = (after - boundary * 1000) / rate;
+                assertTrue("Marker preceded the playback boundary: " + marked, before >= boundary * 1000 - 80);
+                assertTrue("Verse " + verse + " highlight delayed " + latenessMs + " ms", latenessMs < 300);
+                return new JSONObject().put("verse", verse).put("boundary", boundary).put("rate", rate)
+                    .put("observedUpperLatencyMs", latenessMs);
+            }
+            Thread.sleep(20);
+        }
+        throw new AssertionError("Verse marker never reached " + verse);
+    }
     private String js(String source) throws Exception {
         CountDownLatch done = new CountDownLatch(1); AtomicReference<String> result = new AtomicReference<>("null");
         reader.onActivity(activity -> {
@@ -170,6 +190,52 @@ public class AudioPlaybackIntegrationTest {
         assertNull(catalog.downloadedFile(ID));
         assertNull(catalog.downloadedFile("unknown"));
         assertEquals("https", catalog.item(ID, true).localConfiguration.uri.getScheme());
+    }
+    @Test public void ezekielVerseHighlightsFollowTheNativeClockAtRealBoundaries() throws Exception {
+        String bibleId = "bsb-hays-26-042";
+        JSONObject downloads = new JSONObject(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE)
+            .getString(HeritageAudioCatalog.DOWNLOAD_INDEX, "{}"));
+        downloads.put(bibleId, new JSONObject().put("trackId", bibleId).put("path", "heritage-audio/playback-acceptance.mp3"));
+        assertTrue(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit()
+            .putString(HeritageAudioCatalog.DOWNLOAD_INDEX, downloads.toString()).commit());
+        reader = ActivityScenario.launch(MainActivity.class);
+        await(() -> "true".equals(js("Boolean(window.Capacitor?.Plugins?.HeritageAudio) && Boolean(document.querySelector('main'))")));
+        js("localStorage.setItem('heritage-translation','BSB');localStorage.setItem('heritage-default-translation-v2','done');location.hash='#/ezekiel/42'");
+        await(() -> "true".equals(js("Boolean(document.querySelector('#verse-42-1 [data-translation=BSB]'))")));
+        // The PCM fixture exercises ExoPlayer's clock without network or a
+        // recognition model. Boundaries are the exact shipped Ezekiel timings.
+        JSONObject timing;
+        try (java.io.InputStream input = context.getAssets().open("public/data/audio/bsb-hays/ezekiel.json")) {
+            timing = new JSONObject(new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+        }
+        JSONArray spans = timing.getJSONObject("chapters").getJSONObject("42").getJSONArray("verses");
+        double[] boundaries = {spans.getJSONObject(0).getDouble("start"), spans.getJSONObject(0).getDouble("end"),
+            spans.getJSONObject(1).getDouble("end"), spans.getJSONObject(2).getDouble("end")};
+        Bundle rate = new Bundle(); rate.putDouble("rate", 2); command("rate", rate);
+        Bundle play = new Bundle(); play.putString("trackId", bibleId); play.putBoolean("restart", true); command("play", play);
+        await(() -> main(() -> browser.isPlaying()));
+        JSONArray observed = new JSONArray();
+        for (int i = 0; i < boundaries.length; i++) {
+            observed.put(observeVerseBoundary(i + 1, boundaries[i], 2));
+        }
+        command("pause", new Bundle());
+        Bundle seek = new Bundle(); seek.putDouble("position", boundaries[1] - .35); command("seek", seek);
+        await(() -> "\"1\"".equals(js("document.querySelector('[data-audio-active=true]')?.getAttribute('data-verse')")));
+        double paused = state().getDouble("position");
+        Thread.sleep(450); // A scheduled boundary must not advance while paused.
+        assertEquals(paused, state().getDouble("position"), .01);
+        assertEquals("\"1\"", js("document.querySelector('[data-audio-active=true]')?.getAttribute('data-verse')"));
+        rate.putDouble("rate", 1); command("rate", rate); play.putBoolean("restart", false); command("play", play);
+        observed.put(observeVerseBoundary(2, boundaries[1], 1));
+        rate.putDouble("rate", .75); command("rate", rate);
+        seek.putDouble("position", boundaries[2] - .4); command("seek", seek);
+        observed.put(observeVerseBoundary(3, boundaries[2], .75));
+        File output = new File(context.getExternalFilesDir(null), "native-acceptance/ezekiel-highlight-latency.json");
+        assertTrue(output.getParentFile().isDirectory() || output.getParentFile().mkdirs());
+        try (FileOutputStream stream = new FileOutputStream(output)) {
+            stream.write(observed.toString(2).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        command("pause", new Bundle());
     }
     @Test public void legacyCarBrowserCanDiscoverTheLibraryWithoutOpeningTheReader() throws Exception {
         CountDownLatch connected = new CountDownLatch(1), listed = new CountDownLatch(1);

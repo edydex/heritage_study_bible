@@ -2,6 +2,12 @@ import { Capacitor, registerPlugin } from '@capacitor/core'
 import { getAudioTrack } from './audioCatalog'
 import { createAudioPlayer } from './audioPlayer'
 const HeritageAudio = registerPlugin('HeritageAudio')
+// Serialize registrations across StrictMode player instances. A late cleanup
+// must not clear the next reader's boundary watch.
+let boundaryWrites = Promise.resolve()
+const setNativeBoundaries = (plugin, trackId, positions) => {
+  boundaryWrites = boundaryWrites.catch(() => {}).then(() => plugin.watchPositions({ trackId, positions })).catch(() => {})
+}
 
 // Android owns playback and persistence. Never create an HTMLAudioElement or
 // write a cached WebView position back over the service's newer car/headset state.
@@ -45,6 +51,11 @@ export function createNativeAudioPlayer({ plugin = HeritageAudio, openLibrary = 
     pause: () => control('pause'), seek: position => control('seek', { position: Math.max(0, Number(position) || 0) }),
     setRate: rate => control('rate', { rate: Number(rate) }), skip: direction => control('skip', { direction }),
     unload: () => command('unload'), persist: () => control('persist'),
+    watchPositions: (trackId, positions) => {
+      let cancelled = false
+      initialized.then(() => { if (!cancelled && !disposed) setNativeBoundaries(plugin, trackId, positions) })
+      return () => { cancelled = true; setNativeBoundaries(plugin, null, []) }
+    },
     positionFor: id => id === state.trackId ? state.position : 0,
     dispose: () => { disposed = true; listeners.clear(); subscription?.remove().catch(() => {}); openSubscription?.remove().catch(() => {}) },
   }
