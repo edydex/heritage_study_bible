@@ -1,3 +1,4 @@
+import { bibleAudioDestination, loadBibleAudioTiming } from '../../services/bibleAudio'
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createPlatformAudioPlayer } from '../../services/nativeAudioPlayer'
@@ -11,6 +12,14 @@ function PlayerHost({ player, state }) {
   const [expanded, setExpanded] = useState(false)
   const track = getAudioTrack(state.trackId)
   const bar = useRef(null)
+  const [timing, setTiming] = useState(null)
+  useEffect(() => {
+    let cancelled = false
+    setTiming(null)
+    if (track?.bible) loadBibleAudioTiming(track).then(value => { if (!cancelled) setTiming(value) }).catch(() => {})
+    return () => { cancelled = true }
+  }, [track?.id])
+  const destination = bibleAudioDestination(track, timing, state.position)
   useEffect(() => {
     const persist = () => player.persist()
     window.addEventListener('pagehide', persist)
@@ -45,7 +54,7 @@ function PlayerHost({ player, state }) {
             <button type="button" disabled={!nextAudioTrack(track.id, -1)} onClick={() => player.skip(-1)}>Previous track</button>
             <button type="button" disabled={!nextAudioTrack(track.id, 1)} onClick={() => player.skip(1)}>Next track</button>
             <label>Speed <select aria-label="Playback speed" value={state.rate} onChange={event => player.setRate(event.target.value)}>{[0.75, 1, 1.25, 1.5, 1.75, 2].map(rate => <option key={rate} value={rate}>{rate}×</option>)}</select></label>
-            <button type="button" onClick={() => navigate(`/resources/books/${track.bookId}`)}>Open book text</button>
+            <button type="button" onClick={() => destination ? navigate(destination.path, { state: destination.state }) : navigate(`/resources/books/${track.bookId}`)}>{destination ? destination.state.scrollToVerse ? 'Go to playing verse' : 'Open chapter text' : 'Open book text'}</button>
             <button type="button" onClick={() => navigate('/audio')}>Audio library</button>
           </div>
         </div>}

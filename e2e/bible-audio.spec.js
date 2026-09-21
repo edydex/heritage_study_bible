@@ -1,0 +1,58 @@
+import { test, expect } from '@playwright/test'
+import { readFileSync } from 'node:fs'
+const timing = JSON.parse(readFileSync('public/data/audio/bsb-hays/romans.json', 'utf8')).chapters[1]
+const first = timing.verses[0], late = timing.verses.find(span => span.verse >= 25)
+const wave = Buffer.alloc(44 + 360 * 8000 * 2)
+wave.write('RIFF', 0); wave.writeUInt32LE(wave.length - 8, 4); wave.write('WAVEfmt ', 8)
+wave.writeUInt32LE(16, 16); wave.writeUInt16LE(1, 20); wave.writeUInt16LE(1, 22)
+wave.writeUInt32LE(8000, 24); wave.writeUInt32LE(16000, 28); wave.writeUInt16LE(2, 32); wave.writeUInt16LE(16, 34)
+wave.write('data', 36); wave.writeUInt32LE(wave.length - 44, 40)
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => { localStorage.setItem('heritage-translation', 'BSB'); localStorage.setItem('heritage-default-translation-v2', 'done') })
+  await page.route('https://openbible.com/audio/hays/**', route => {
+    const range = route.request().headers().range?.match(/bytes=(\d+)-(\d*)/)
+    const start = Number(range?.[1] || 0), end = range?.[2] ? Math.min(Number(range[2]), wave.length - 1) : wave.length - 1
+    return route.fulfill({ status: range ? 206 : 200, contentType: 'audio/wav', body: wave.subarray(start, end + 1), headers: {
+      'Accept-Ranges': 'bytes', 'Content-Length': String(end - start + 1), ...(range ? { 'Content-Range': `bytes ${start}-${end}/${wave.length}` } : {}),
+    } })
+  })
+})
+test('chapter audio marks only matching verses, follows optionally and navigates back without creating annotations', async ({ page }) => {
+  await page.goto('/#/romans/1')
+  await page.getByRole('button', { name: 'Listen · BSB', exact: true }).click()
+  const player = page.getByRole('region', { name: 'Audio player', exact: true })
+  await expect(player.getByRole('button', { name: 'Pause', exact: true })).toBeVisible()
+  await player.locator('.audio-player-title').click()
+  await player.getByLabel('Audio position', { exact: true }).fill(String(Math.ceil(first.start)))
+  await expect(page.locator('[data-audio-active="true"]')).toHaveAttribute('data-verse', String(first.verse))
+  await player.getByRole('button', { name: 'Pause', exact: true }).click()
+  const before = await page.evaluate(() => Object.fromEntries(Object.entries(localStorage).filter(([key]) => /note|highlight|bookmark/.test(key))))
+  await player.getByLabel('Audio position', { exact: true }).fill('1')
+  await expect(page.locator('[data-audio-active="true"]')).toHaveCount(0)
+  await page.getByLabel('Auto-scroll this chapter').check()
+  await player.getByLabel('Audio position', { exact: true }).fill(String(Math.ceil(late.start)))
+  await player.getByRole('button', { name: 'Play', exact: true }).click()
+  await expect(page.locator('[data-audio-active="true"]')).toHaveAttribute('data-verse', String(late.verse))
+  await expect(page.locator('[data-audio-active="true"]')).toBeInViewport()
+  await player.getByRole('button', { name: 'Pause', exact: true }).click()
+  await player.getByRole('button', { name: 'Audio library', exact: true }).click()
+  await expect(page.locator('[data-audio-active="true"]')).toHaveCount(0)
+  await player.getByRole('button', { name: 'Go to playing verse', exact: true }).click()
+  await expect(page).toHaveURL(/#\/romans\/1$/)
+  await expect(page.locator('[data-audio-active="true"]')).toHaveAttribute('data-verse', String(late.verse))
+  await expect(page.locator('[data-audio-active="true"]')).toBeInViewport()
+  expect(await page.evaluate(() => Object.fromEntries(Object.entries(localStorage).filter(([key]) => /note|highlight|bookmark/.test(key))))).toEqual(before)
+})
+test('Bible library has separate chapters and phone controls fit, with failed timing retaining playback', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.route('**/data/audio/bsb-hays/romans.json', route => route.abort())
+  await page.goto('/#/romans/1')
+  await expect(page.getByText('Verse timing could not load. Audio is still available.')).toBeVisible()
+  await page.getByRole('button', { name: 'Listen · BSB', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Pause chapter', exact: true })).toBeVisible()
+  await expect(page.locator('[data-audio-active="true"]')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Chapters & downloads' }).click()
+  await expect(page.getByRole('heading', { name: 'Listen · Romans' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Play Romans/ })).toHaveCount(16)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
+})

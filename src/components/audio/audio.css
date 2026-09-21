@@ -27,3 +27,12 @@ html { scroll-padding-bottom: calc(var(--audio-player-height, 0px) + 70px); }
 @media(max-width: 480px) { .audio-player-row { gap: 4px; } .audio-player-row > button:not(.audio-player-title) { padding: 6px; font-size: 12px; } .audio-library { padding: 12px; } }
 
 .reader-bottom-nav { bottom: var(--audio-player-height, 0px); }
+
+.bible-audio-controls { margin: 0 0 16px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 13px; }
+.bible-audio-controls .audio-actions { margin: 0 0 4px; }
+.bible-audio-controls button { padding: 6px 9px; border: 1px solid #9ca3af; border-radius: 6px; }
+.bible-audio-controls small { display: block; opacity: .8; }
+[data-audio-active="true"] { background-color: #d1d5db; border-radius: 4px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.dark [data-audio-active="true"] { background-color: #4b5563; }
+
+.audio-library button[aria-pressed="true"] { background: #1d4ed8; color: white; border-color: #1d4ed8; }

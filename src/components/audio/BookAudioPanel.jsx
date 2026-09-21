@@ -45,7 +45,7 @@ export default function BookAudioPanel({ bookId, editionId, full = false }) {
   }
   return <section className="audio-library" aria-label={`Listen to ${book.title}`}>
     <h2>Listen · {book.title}</h2>
-    <p>{editionId ? book.editions.find(edition => edition.id === editionId)?.title : `${tracks.length} tracks · LibriVox`}</p>
+    <p>{editionId ? book.editions.find(edition => edition.id === editionId)?.title : `${tracks.length} ${book.kind === 'bible' ? 'chapters · Barry Hays' : 'tracks · LibriVox'}`}</p>
     <div className="audio-actions">
       <button type="button" disabled={!audio?.player} onClick={() => audio.player.play(selectedTrack.id)}>{activeTrack ? `Resume at ${formatAudioTime(audio.state.position)}` : 'Listen from the beginning'}</button>
       <button type="button" onClick={() => setOpen(value => !value)} aria-expanded={open}>{open ? 'Hide tracks' : 'Choose a track'}</button>
@@ -58,6 +58,6 @@ export default function BookAudioPanel({ bookId, editionId, full = false }) {
       <button type="button" disabled={!audio?.player} onClick={() => audio.player.play(track.id)} aria-label={`Play ${track.title}`}>Play</button>
       {canUseNativeAudioDownloads() && !downloaded.has(track.id) && <button type="button" disabled={busy} onClick={() => transferTracks([track])} aria-label={`Download ${track.title}`}>↓</button>}
     </li>)}</ul>}
-    <p className="mt-3 text-xs"><a href={book.editions.find(edition => edition.id === editionId)?.sourceUrl || book.editions[0].sourceUrl} target="_blank" rel="noopener noreferrer">Recording and readers at LibriVox ↗</a></p>
+    <p className="mt-3 text-xs"><a href={book.editions.find(edition => edition.id === editionId)?.sourceUrl || book.editions[0].sourceUrl} target="_blank" rel="noopener noreferrer">{book.kind === 'bible' ? 'BSB recording · Public domain (CC0) ↗' : 'Recording and readers at LibriVox ↗'}</a></p>
   </section>
 }

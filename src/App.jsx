@@ -1,3 +1,4 @@
+import BibleAudioControls from './components/audio/BibleAudioControls'
 import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import Header from './components/Header'
@@ -1071,6 +1072,9 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
       return saved || DEFAULT_TRANSLATION
     } catch { return DEFAULT_TRANSLATION }
   })
+  useEffect(() => {
+    if (location.state?.audioTranslation === 'BSB') setTranslationId('BSB')
+  }, [location.key, location.state?.audioTranslation])
   const [bibleData, setBibleData] = useState(null)
   const [bibleVerseLayout, setBibleVerseLayout] = useState(null)
   const [translationLoading, setTranslationLoading] = useState(false)
@@ -1955,17 +1959,18 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
 
   useLayoutEffect(() => {
     const target = location.state?.scrollToVerse
+    if (location.state?.audioTranslation && location.state.audioTranslation !== translationId) return
     if (!target || target.book !== currentBook || target.chapter !== currentChapter || !bibleData || translationLoading) return
     const element = bibleContainerRef.current?.querySelector(`#verse-${target.chapter}-${target.verse}`)
     if (!element) return
     let highlightTimer
     const frame = requestAnimationFrame(() => {
       element.scrollIntoView({ behavior: 'instant', block: 'center' })
-      element.classList.add('bg-yellow-100')
+      if (!location.state?.audioNavigation) element.classList.add('bg-yellow-100')
       highlightTimer = setTimeout(() => element.classList.remove('bg-yellow-100'), 2000)
     })
     return () => { cancelAnimationFrame(frame); clearTimeout(highlightTimer); element.classList.remove('bg-yellow-100') }
-  }, [location.key, location.state, currentBook, currentChapter, bibleData, translationLoading, parallelMode, showBookmarkManager])
+  }, [location.key, location.state, currentBook, currentChapter, bibleData, translationLoading, translationId, parallelMode, showBookmarkManager])
 
   // Navigate to book and chapter
   const handleNavigate = (bookName, chapter) => {
@@ -2121,6 +2126,8 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
                   <h2 className="text-center text-xl font-bold text-primary dark:text-blue-400 mb-4 heading-text">
                     {currentBook} {currentChapter}
                   </h2>
+
+                  {!translationLoading && currentChapterData && <BibleAudioControls book={currentBook} chapter={currentChapterData} translationId={translationId} selectionMode={multiSelectMode} />}
 
                   {/* Translation loading overlay */}
                   {(translationLoading || (parallelMode && parallelLoading)) && (

@@ -4,6 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { RESOURCE_CATEGORIES } from '../src/data/resources.js'
 
 const books = []
+const bibleAudio = JSON.parse(await readFile('src/data/bibleAudioCatalog.json', 'utf8'))
 for (const book of RESOURCE_CATEGORIES.find(category => category.id === 'books').items) {
   const editions = []
   for (const recording of book.librivoxVolumes || [book.librivox].filter(Boolean)) {
@@ -39,5 +40,5 @@ for (const book of RESOURCE_CATEGORIES.find(category => category.id === 'books')
   }
   if (editions.length) books.push({ id: book.id, title: book.title, author: book.author, editions })
 }
-await writeFile('src/data/audioCatalog.json', `${JSON.stringify({ schemaVersion: 1, books }, null, 2)}\n`)
+await writeFile('src/data/audioCatalog.json', `${JSON.stringify({ schemaVersion: 1, books: [...books, ...bibleAudio.books] }, null, 2)}\n`)
 console.log(`${books.length} books; ${books.flatMap(book => book.editions.flatMap(edition => edition.tracks)).length} tracks`)

@@ -140,3 +140,7 @@ implementation work. No Whisper alignment or model charges were incurred here.
 Emulator evidence is separate from physical phone/headset, car head-unit and
 long-running mobile-network acceptance. The new native playback increment has
 not yet been published as an Android release.
+
+## BSB Bible audio increment
+
+The shared catalog now also contains 66 BSB books / 1,189 chapter recordings by Barry Hays, with a separate Bible section in the reader and Android Auto. Reader chapters offer playback and optional scrolling with an independent gray marker. Timing coverage is partial and automatic, with mismatches/gaps deliberately excluded. See [BIBLE-AUDIO.md](BIBLE-AUDIO.md) for sources, rights, exact coverage, reproduction and limitations.

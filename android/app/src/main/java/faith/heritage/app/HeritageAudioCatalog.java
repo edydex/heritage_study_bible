@@ -20,7 +20,7 @@ import org.json.JSONObject;
 
 /** The bundled public catalog is the only authority for playable URLs and IDs. */
 public final class HeritageAudioCatalog {
-    public static final String ROOT = "heritage-audio", BOOKS = "books", DOWNLOADS = "downloads", CONTINUE = "continue";
+    public static final String ROOT = "heritage-audio", BOOKS = "books", BIBLES = "bibles", DOWNLOADS = "downloads", CONTINUE = "continue";
     public static final String DOWNLOAD_INDEX = "heritage-audio-downloads-v2";
     public static final class Track {
         public final String id, bookId, editionId, title, bookTitle, author, url;
@@ -29,7 +29,9 @@ public final class HeritageAudioCatalog {
             id = row.optString("id"); bookId = book.optString("id"); editionId = edition;
             title = row.optString("title"); bookTitle = book.optString("title"); author = book.optString("author");
             url = row.optString("url"); durationMs = (long) (row.optDouble("duration", 0) * 1000);
-            if (!id.matches("lv-[a-f0-9]{24}") || !url.startsWith("https://archive.org/download/")) throw new IllegalArgumentException("Invalid bundled audio track");
+            boolean librivox = id.matches("lv-[a-f0-9]{24}") && url.startsWith("https://archive.org/download/");
+            boolean bible = id.matches("bsb-hays-[0-9]{2}-[0-9]{3}") && url.matches("https://openbible\\.com/audio/hays/BSB_[0-9]{2}_[A-Za-z0-9]+_[0-9]{3}_H\\.mp3");
+            if (!librivox && !bible) throw new IllegalArgumentException("Invalid bundled audio track");
         }
     }
     private final Context context;
@@ -43,7 +45,7 @@ public final class HeritageAudioCatalog {
         this.context = context.getApplicationContext();
         preferences = this.context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
         folder(ROOT, "Heritage audio", null);
-        folder(CONTINUE, "Continue listening", ROOT); folder(DOWNLOADS, "Downloaded", ROOT); folder(BOOKS, "Audiobooks", ROOT);
+        folder(CONTINUE, "Continue listening", ROOT); folder(DOWNLOADS, "Downloaded", ROOT); folder(BOOKS, "Audiobooks", ROOT); folder(BIBLES, "Bible · BSB", ROOT);
         try (InputStream input = this.context.getAssets().open("audio-catalog.json")) {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             byte[] chunk = new byte[8192]; int count;
@@ -52,7 +54,7 @@ public final class HeritageAudioCatalog {
             for (int b = 0; b < books.length(); b++) {
                 JSONObject book = books.getJSONObject(b);
                 String bookNode = "book:" + book.getString("id");
-                folder(bookNode, book.getString("title"), BOOKS);
+                folder(bookNode, book.getString("title"), "bible".equals(book.optString("kind")) ? BIBLES : BOOKS);
                 JSONArray editions = book.getJSONArray("editions");
                 for (int e = 0; e < editions.length(); e++) {
                     JSONObject edition = editions.getJSONObject(e);

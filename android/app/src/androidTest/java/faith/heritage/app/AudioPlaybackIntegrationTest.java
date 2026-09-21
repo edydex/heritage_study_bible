@@ -107,6 +107,15 @@ public class AudioPlaybackIntegrationTest {
         assertEquals(HeritageAudioCatalog.ROOT, root.value.mediaId);
         LibraryResult<ImmutableList<MediaItem>> books = main(() -> browser.getChildren(HeritageAudioCatalog.BOOKS, 0, 100, null)).get(10, TimeUnit.SECONDS);
         assertEquals(10, books.value.size());
+        LibraryResult<ImmutableList<MediaItem>> bibles = main(() -> browser.getChildren(HeritageAudioCatalog.BIBLES, 0, 100, null)).get(10, TimeUnit.SECONDS);
+        assertEquals(66, bibles.value.size());
+        LibraryResult<ImmutableList<MediaItem>> romans = main(() -> browser.getChildren("book:bible-bsb-romans", 0, 100, null)).get(10, TimeUnit.SECONDS);
+        assertEquals(16, romans.value.size());
+        assertEquals("bsb-hays-45-001", romans.value.get(0).mediaId);
+        assertNull(romans.value.get(0).localConfiguration);
+        HeritageAudioCatalog catalog = new HeritageAudioCatalog(context);
+        assertEquals("https://openbible.com/audio/hays/BSB_45_Rom_001_H.mp3", catalog.item("bsb-hays-45-001", true).localConfiguration.uri.toString());
+        assertEquals(16, catalog.queue("bsb-hays-45-001").size());
         LibraryResult<ImmutableList<MediaItem>> volumes = main(() -> browser.getChildren("book:josephus-antiquities", 0, 100, null)).get(10, TimeUnit.SECONDS);
         assertEquals(4, volumes.value.size());
         assertEquals(Boolean.TRUE, volumes.value.get(0).mediaMetadata.isBrowsable);
