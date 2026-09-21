@@ -2,23 +2,24 @@ import { splitParagraphText } from '../utils/verseLayout'
 
 export const originalLanguages = {
   id: 'ORIGINAL', abbr: 'Original', name: 'Original languages', language: 'Original languages',
-  description: 'Hebrew/Aramaic · WLC/OSHB; Greek · Nestle 1904. Romans word links with BSB.',
+  description: 'Hebrew/Aramaic · WLC/OSHB; Greek · Nestle 1904. Checked Greek word links with BSB.',
   license: 'Public domain / CC0; OSHB metadata CC BY 4.0', parallelOnly: true,
 }
 
-let linksPromise
-export function loadRomansWordLinks() {
-  if (!linksPromise) {
-    linksPromise = fetch(`${import.meta.env.BASE_URL}data/original-languages/romans-bsb-links.json`)
-      .then(response => {
-        if (!response.ok) throw new Error('Word links could not be loaded.')
-        return response.json()
-      }).then(data => {
-        if (data?.schemaVersion !== 1 || data.sourceId !== 'N1904' || data.targetId !== 'BSB' || data.book !== 'Romans') throw new Error('Unrecognized word-link source.')
+const translationLinks = new Map()
+export function loadGreekWordLinks(book) {
+  if (!translationLinks.has(book)) {
+    const filename = encodeURIComponent(book.toLowerCase().replaceAll(' ', '-'))
+    const request = fetch(`${import.meta.env.BASE_URL}data/original-languages/bsb-word-links/${filename}.json`)
+      .then(response => { if (!response.ok) throw new Error('Word mappings could not load.'); return response.json() })
+      .then(data => {
+        if (data.schemaVersion !== 1 || data.sourceId !== 'N1904' || data.targetId !== 'BSB' || data.book !== book
+          || data.provenance?.greekSha256 !== '3beee6abb6302f691110fe0fc949fc195593b999cf2d0e463c9b573c1bb67150') throw new Error('Word mapping source does not match.')
         return data
-      }).catch(error => { linksPromise = null; throw error })
+      }).catch(error => { translationLinks.delete(book); throw error })
+    translationLinks.set(book, request)
   }
-  return linksPromise
+  return translationLinks.get(book)
 }
 
 export function visibleVerseText(text) {

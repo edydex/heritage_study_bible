@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the named Greek NT source and conservative Romans–BSB links.
+"""Generate the named Greek NT source and conservative Greek–BSB links.
 
 Inputs are publisher/source downloads, never AI-generated text. Source words
 must agree for the whole verse before transferring the Berean row links.
@@ -35,7 +35,7 @@ def visible_text(value):
     value = re.sub(r'\s*\|\|\s*', '\n', value)
     return re.sub(r'</?b>', '', value)
 
-def generate(nestle_path, berean_path, bsb_path, output):
+def generate(nestle_path, berean_path, bsb_path, output, all_nt_links=False):
     if checksum(nestle_path) != NESTLE_SHA256:
         raise ValueError('Greek source differs from the pinned edition. Review and update provenance before regeneration.')
     source = {
@@ -67,7 +67,7 @@ def generate(nestle_path, berean_path, bsb_path, output):
         books.append({'name': name, 'sourceId': 'N1904', 'chapters': [{'number': c, 'verses': sorted(v, key=lambda x:x['number'])} for c,v in sorted(chapters.items())]})
     original = {'translation': 'ORIGINAL', 'name': 'Original languages', 'schemaVersion': 1, 'coverage': 'New Testament', 'sources': [source], 'books': books}
     bsb = json.loads(bsb_path.read_text())
-    bsb_verses = {f"{b['name']} {c['number']}:{v['number']}": visible_text(v['text']) for b in bsb['books'] if b['name']=='Romans' for c in b['chapters'] for v in c['verses']}
+    bsb_verses = {f"{b['name']} {c['number']}:{v['number']}": visible_text(v['text']) for b in bsb['books'] if b['name'] in (NAMES if all_nt_links else ['Romans']) for c in b['chapters'] for v in c['verses']}
     with berean_path.open(encoding='utf-8-sig', newline='') as file:
         rows = list(csv.reader(file, delimiter='\t'))
     assert rows[0][12] == 'VerseId' and rows[0][18].strip() == 'BSB version'
@@ -75,12 +75,13 @@ def generate(nestle_path, berean_path, bsb_path, output):
     table = defaultdict(list)
     for row in rows[1:]:
         ref = refs.get(row[3], '')
-        if ref.startswith('Romans '): table[ref].append(row)
-    aligned = {}
-    unavailable = {}
+        if ref in bsb_verses: table[ref].append(row)
+    aligned_books = defaultdict(dict)
+    unavailable_books = defaultdict(dict)
     for key, words in words_by_ref.items():
         book, chapter, verse = key
-        if book != 'Romans': continue
+        if not all_nt_links and book != 'Romans': continue
+        aligned, unavailable = aligned_books[book], unavailable_books[book]
         ref = f'{book} {chapter}:{verse}'
         source_text, target_text = source_verses[ref], bsb_verses.get(ref, '')
         # Character offsets are consumed by JS. Current Greek/English corpora
@@ -112,6 +113,7 @@ def generate(nestle_path, berean_path, bsb_path, output):
             index, source_start, source_end = link
             groups.append({'id': index, 'source': [source_start, source_end], 'target': [start, end]})
         aligned[f'{chapter}:{verse}'] = {'sourceText': source_text, 'targetText': target_text, 'groups': groups}
+    aligned, unavailable = aligned_books['Romans'], unavailable_books['Romans']
     alignment = {
         'schemaVersion': 1, 'book': 'Romans', 'sourceId': 'N1904', 'targetId': 'BSB',
         'provenance': {'url': 'https://bereanbible.com/bsb_tables.tsv', 'license': 'CC0', 'licenseUrl': 'https://berean.bible/terms.htm', 'tableSha256': checksum(berean_path), 'targetSha256': checksum(bsb_path), 'greekSha256': source['sha256']},
@@ -121,13 +123,25 @@ def generate(nestle_path, berean_path, bsb_path, output):
     output.mkdir(parents=True, exist_ok=True)
     for name, value in [('greek-nt-n1904.json', original), ('romans-bsb-links.json', alignment)]:
         (output/name).write_text(json.dumps(value, ensure_ascii=False, separators=(',', ':'))+'\n')
+    if all_nt_links:
+        folder = output/'bsb-word-links'
+        folder.mkdir(parents=True, exist_ok=True)
+        manifest = {}
+        for name in NAMES:
+            item = {**alignment, 'book': name, 'verses': aligned_books[name], 'unavailable': unavailable_books[name]}
+            filename = name.lower().replace(' ', '-') + '.json'
+            path = folder/filename
+            path.write_text(json.dumps(item, ensure_ascii=False, separators=(',', ':'))+'\n')
+            manifest[name] = {'file': filename, 'sha256': checksum(path), 'linkedVerses': len(item['verses']), 'unlinkedVerses': len(item['unavailable']), 'groups': sum(len(v['groups']) for v in item['verses'].values())}
+        (folder/'index.json').write_text(json.dumps({'schemaVersion': 1, 'sourceId': 'N1904', 'targetId': 'BSB', 'provenance': alignment['provenance'], 'books': manifest}, ensure_ascii=False, indent=2)+'\n')
     print(json.dumps({'books': len(books), 'chapters': sum(len(b['chapters']) for b in books), 'verses': len(source_verses), 'linkedRomansVerses': len(aligned), 'unlinkedRomansVerses': len(unavailable), 'groups': sum(len(v['groups']) for v in aligned.values())}))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--nestle', type=Path, required=True)
     parser.add_argument('--berean', type=Path, required=True)
+    parser.add_argument('--all-nt-links', action='store_true', help='Also generate per-book BSB mappings for New Testament occurrence results.')
     parser.add_argument('--bsb', type=Path, default=ROOT/'public/data/translations/BSB.json')
     parser.add_argument('--output', type=Path, default=ROOT/'public/data/original-languages')
     args = parser.parse_args()
-    generate(args.nestle, args.berean, args.bsb, args.output)
+    generate(args.nestle, args.berean, args.bsb, args.output, args.all_nt_links)

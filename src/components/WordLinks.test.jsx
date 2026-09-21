@@ -4,7 +4,7 @@ import VerseText from './VerseText'
 import ParallelBibleChapter from './ParallelBibleChapter'
 import alignment from '../../public/data/original-languages/romans-bsb-links.json'
 vi.mock('../data/originalLanguages', async importOriginal => ({
-  ...await importOriginal(), loadRomansWordLinks: () => Promise.resolve(alignment),
+  ...await importOriginal(), loadGreekWordLinks: () => Promise.resolve(alignment),
 }))
 
 it('keeps annotation offsets and text intact when links split saved highlights', () => {
