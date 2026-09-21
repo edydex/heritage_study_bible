@@ -8,6 +8,15 @@ import { publishAndroidRelease, assertDiscoverableVersion } from '../scripts/pub
 
 const hash = data => createHash('sha256').update(data).digest('hex');
 const revision = 'a'.repeat(40);
+
+test('the checked-in Android version has release notes before packaging begins', () => {
+  const gradle = readFileSync(new URL('../android/app/build.gradle', import.meta.url), 'utf8');
+  const version = gradle.match(/versionName\s+"(\d+\.\d+\.\d+(?:-[a-z0-9.]+)?)"/)?.[1];
+  assert.ok(version, 'Android versionName must be a release version');
+  const notes = readFileSync(new URL(`../docs/releases/android-${version}.md`, import.meta.url), 'utf8');
+  assert.ok(notes.trim(), `Write release notes for Android ${version} before starting the build`);
+});
+
 function fixture(t, options = {}) {
   const root = mkdtempSync(join(tmpdir(), 'heritage-release-test-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
