@@ -33,7 +33,7 @@ describe('Bible audio edition and timing boundaries', () => {
       }
     }
   })
-  it('does not highlight narrator pauses, unaligned verses or a changed verse text', () => {
+  it('keeps accepted timestamp lookup strict and rejects a changed verse text', () => {
     const timing = { verses: [{ verse: 1, start: 4, end: 10, text: 'in the beginning' }, { verse: 3, start: 20, end: 26, text: 'and god said' }] }
     expect(activeAudioVerse(timing, 0)).toBeNull()
     expect(activeAudioVerse(timing, 10)).toBeNull()
@@ -61,4 +61,42 @@ describe('Bible audio edition and timing boundaries', () => {
     expect(matthew.verses.some(row => row.verse === 21)).toBe(false)
     expect(matthew.verses.some(row => row.verse === 22)).toBe(true)
   })
+})
+
+it('advances the reading marker as soon as the previous verse ends, including missing timings', () => {
+  const timing = { verses: [{ verse: 1, start: 4, end: 10, text: 'the first verse' }, { verse: 3, start: 20, end: 26, text: 'the third verse' }] }
+  const chapter = { verses: [{ number: 1, text: 'The first verse.' }, { number: 2, text: 'The second verse.' }, { number: 3, text: 'The third verse.' }] }
+  expect(matchingAudioVerse(timing, 3.99, chapter)).toBeNull()
+  expect(matchingAudioVerse(timing, 9.99, chapter)).toBe(1)
+  for (const at of [10, 10.01, 15, 19.99]) expect(matchingAudioVerse(timing, at, chapter)).toBe(2)
+  expect(matchingAudioVerse(timing, 20, chapter)).toBe(3)
+  expect(matchingAudioVerse(timing, 26, chapter)).toBe(3)
+  expect(matchingAudioVerse(timing, NaN, chapter)).toBeNull()
+  expect(matchingAudioVerse(timing, -1, chapter)).toBeNull()
+  expect(matchingAudioVerse(timing, 12, { verses: [{ number: 1, text: 'Changed edition' }, chapter.verses[1]] })).toBeNull()
+  // Display continuity does not manufacture an accepted seek target.
+  expect(activeAudioVerse(timing, 15)).toBeNull()
+  expect(timing.verses.some(span => span.verse === 2)).toBe(false)
+})
+
+it('the Romans 8 reading marker has no blank gaps and can follow untimed verse 9', () => {
+  const timing = JSON.parse(readFileSync('public/data/audio/bsb-hays/romans.json', 'utf8')).chapters[8]
+  const chapter = JSON.parse(readFileSync('public/data/translations/BSB/romans.json', 'utf8')).chapters.find(chapter => chapter.number === 8)
+  for (const [index, current] of timing.verses.entries()) {
+    const next = timing.verses[index + 1]
+    if (!next) continue
+    expect(matchingAudioVerse(timing, current.end, chapter)).toBe(current.verse + 1)
+    expect(matchingAudioVerse(timing, (current.end + next.start) / 2, chapter)).toBe(current.verse + 1)
+    expect(matchingAudioVerse(timing, next.start, chapter)).toBe(next.verse)
+  }
+  const eight = timing.verses.find(span => span.verse === 8)
+  expect(matchingAudioVerse(timing, eight.end + 0.01, chapter)).toBe(9)
+})
+
+it('does not invent progress through multiple untimed verses or highlight blank verse entries', () => {
+  const timing = { verses: [{ verse: 1, start: 2, end: 5, text: 'first verse' }, { verse: 5, start: 30, end: 40, text: 'last verse' }] }
+  const chapter = { verses: [{ number: 1, text: 'First verse' }, { number: 2, text: '' }, { number: 3, text: 'Third verse' }, { number: 4, text: 'Fourth verse' }, { number: 5, text: 'Last verse' }] }
+  expect(matchingAudioVerse(timing, 5, chapter)).toBe(3)
+  expect(matchingAudioVerse(timing, 29, chapter)).toBe(3)
+  expect(matchingAudioVerse(timing, 30, chapter)).toBe(5)
 })

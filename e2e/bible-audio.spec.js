@@ -86,3 +86,31 @@ test('phone parallel playback marks only BSB, with no additional player pane', a
   await expect(page.locator('[data-translation="ORIGINAL"][data-audio-active]')).toHaveCount(0)
   await expect(page.getByRole('region', { name: 'Audio player' })).toHaveCount(0)
 })
+
+test('playback advances continuously into an untimed verse without inventing a seek timestamp', async ({ page }) => {
+  const chapter = JSON.parse(readFileSync('public/data/audio/bsb-hays/romans.json', 'utf8')).chapters[8]
+  const eight = chapter.verses.find(span => span.verse === 8)
+  await page.addInitScript(position => localStorage.setItem('heritage-audio-progress-v1', JSON.stringify({ lastTrackId: 'bsb-hays-45-008', positions: { 'bsb-hays-45-008': position }, rate: 1 })), eight.end - 0.8)
+  await page.goto('/#/romans/8')
+  const marked = page.locator('[data-audio-active="true"]')
+  await expect(marked).toHaveAttribute('data-verse', '8')
+  await page.evaluate(() => {
+    window.audioReadingFrames = []
+    const sample = () => {
+      const verse = document.querySelector('[data-audio-active="true"]')?.getAttribute('data-verse') || null
+      window.audioReadingFrames.push(verse)
+      if (verse !== '9' && window.audioReadingFrames.length < 300) requestAnimationFrame(sample)
+    }
+    requestAnimationFrame(sample)
+  })
+  await page.getByRole('button', { name: 'Play chapter audio' }).click()
+  await expect(marked).toHaveAttribute('data-verse', '9', { timeout: 4000 })
+  expect(await page.evaluate(() => window.audioReadingFrames)).not.toContain(null)
+  await expect(marked).toBeInViewport()
+  await page.locator('#verse-8-9 [data-verse-content]').click()
+  await expect(page.getByText('This verse has no verified audio position yet.')).toBeVisible()
+  await expect(marked).toHaveAttribute('data-verse', '9')
+  await page.locator('#verse-8-10 [data-verse-content]').click()
+  await expect(marked).toHaveAttribute('data-verse', '10')
+  await page.getByRole('button', { name: 'Pause chapter audio' }).click()
+})
