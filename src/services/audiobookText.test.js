@@ -83,3 +83,33 @@ it('live following leaves unmatched narration blank instead of jumping to a near
   expect(activeAudiobookParagraph(track, timing, 20)).toBeNull()
   expect(activeAudiobookParagraph({ id: 'other' }, timing, 15)).toBeNull()
 })
+
+it('every bundled LibriVox book now has its matching internal reading text and installed timings', () => {
+  const books = RESOURCE_CATEGORIES.find(category => category.id === 'books').items
+  const bookIds = [...new Set(audioTracks.filter(track => track.id.startsWith('lv-')).map(track => track.bookId))]
+  for (const id of bookIds) {
+    const textId = audioTracks.find(track => track.bookId === id).textBookId
+    expect(books.find(book => book.id === textId)?.textPath).toBeTruthy()
+    expect(index[id]?.tracks).toBeGreaterThan(0)
+  }
+})
+
+it('Maximus uses the complete historical recording excerpt with stable audio identity', () => {
+  const book = RESOURCE_CATEGORIES.find(category => category.id === 'books').items.find(book => book.id === 'maximus-cosmic-mystery')
+  const manifest = JSON.parse(readFileSync('public/data/books/maximus-disputation-source.json', 'utf8'))
+  const bytes = readFileSync(`public/${book.textPath}`)
+  expect(createHash('sha256').update(bytes).digest('hex')).toBe(manifest.textSha256)
+  expect(book.author).toBe('Charles Joseph Hefele')
+  expect(book.editionLabel).toContain('William R. Clark, 1896')
+  const chapters = parseBookChapters(bytes.toString('utf8'))
+  expect(chapters).toHaveLength(1)
+  expect(chapters[0].paragraphs).toHaveLength(103)
+  expect(chapters[0].paragraphs[0]).toMatch(/^In the meantime the Abbot Maximus/)
+  expect(chapters[0].paragraphs.at(-1)).toMatch(/united himself again with the Church\.$/)
+  expect(bytes.toString('utf8')).toContain('ἄλλο καὶ ἄλλο')
+  expect(bytes.toString('utf8')).not.toMatch(/Mansi,|SEC\. 304|HISTORY OF THE COUNCILS/)
+  const tracks = audioTracks.filter(track => track.bookId === book.id)
+  expect(tracks).toHaveLength(1)
+  expect(tracks[0]).toMatchObject({ id: 'lv-b61af91e3bbc5c0154f8cc06', bytes: 19296652, textBookId: book.id })
+  expect(tracks[0].url).toBe('https://archive.org/download/earlychurchcollection5_2502_librivox/ecc05_09_disputation_maximus_64kb.mp3')
+})
