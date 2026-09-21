@@ -127,17 +127,22 @@ export const prepareSongSyncFields: CollectionBeforeValidateHook = ({
   }
 
   const hasIncomingDocuments = hasOwn(next, 'syncDocuments')
-  if (hasIncomingDocuments) {
-    next.syncDocuments = normalizeSyncDocuments(next.syncDocuments) || []
-  } else {
-    const legacyDocumentChanged = operation === 'create'
-      || Object.keys(next).some(key => LEGACY_DOCUMENT_FIELDS.has(key))
-    if (legacyDocumentChanged) {
-      // Community-admin edits are authoritative too. Rebuild deterministic
-      // canonical fields while preserving other translations, arrangements,
-      // custom metadata, and unedited section bodies byte-for-byte.
-      next.syncDocuments = mergeLegacyEditsIntoSyncDocuments(existing, next)
-    }
+  const incomingDocuments = hasIncomingDocuments ? normalizeSyncDocuments(next.syncDocuments) || [] : undefined
+  const existingDocuments = normalizeSyncDocuments(existing.syncDocuments) || []
+  const changedLegacyFields = Object.fromEntries(Object.entries(next).filter(([key, value]) => (
+    LEGACY_DOCUMENT_FIELDS.has(key) && JSON.stringify(value) !== JSON.stringify(existing[key])
+  )))
+  // Payload includes hidden JSON in a full admin form. An unchanged hidden copy
+  // must not defeat visible lyric edits. A changed canonical document remains
+  // authoritative for SyncShow clients; metadata-only admin edits retain bytes.
+  const unchangedHiddenCopy = hasIncomingDocuments
+    && JSON.stringify(incomingDocuments) === JSON.stringify(existingDocuments)
+  if (hasIncomingDocuments && !unchangedHiddenCopy) {
+    next.syncDocuments = incomingDocuments
+  } else if (operation === 'create' || Object.keys(changedLegacyFields).length) {
+    next.syncDocuments = mergeLegacyEditsIntoSyncDocuments(existing, operation === 'create' ? next : changedLegacyFields)
+  } else if (hasIncomingDocuments) {
+    next.syncDocuments = incomingDocuments
   }
 
   const currentVersion = Number(existing.syncVersion || 0)
