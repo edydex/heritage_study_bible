@@ -7,6 +7,7 @@ import { songDocumentBody } from '../src/lib/songSourceSyntax.ts'
 import { synthesizeLegacySyncDocuments } from '../src/lib/syncShowProtocol.ts'
 import { createTemplateSlide } from '../src/components/plannerTemplates.ts'
 import { plannerSlides, deletePlannerSlide, editPlannerSlide } from '../src/components/plannerSlides.ts'
+import {prepareSongSyncFields} from '../src/lib/syncShowSongHooks.ts'
 import formatting from '../packages/service-core/node/services/project/SlideFormatting.js'
 const project=()=>core.createServiceProject({id:'reference',title:'Reference',serviceDate:'2026-09-20',preferredProfileId:'main-sanctuary',presetPack:{id:'main-sanctuary',version:1,sha256:null},channels:[{id:'english',label:'English',language:'en'},{id:'russian',label:'Russian',language:'ru'},{id:'media',label:'Stage',language:'ru'}]})
 const passage={translationId:'BSB',reference:'Ephesians 4:25',verses:[{number:25,text:'Therefore each of you must put off falsehood and speak truthfully to his neighbor.'}],attribution:'Berean Standard Bible'}
@@ -70,4 +71,19 @@ test('deck-style verse parts, repeated choruses, separators and old wrappers pre
  const repaired=parsePlannerLibrarySongDocument('---\nid: old\ntitle: Old\nlanguage: en\n---\n^1\nVerse 1 (a)\nOpening words\n^2\nVerse 1 (b)\nMore words',{fileName:'old.md'})
  assert.deepEqual(repaired.document.sections.map((v:any)=>v.slides[0].lines),old.sections.slice(0,2).map((v:any)=>v.slides[0].lines))
  assert.ok(songDocumentBody('Verse of praise is sung\nThese words stay').includes('Verse of praise is sung'))
+})
+
+test('a full manager form cannot let unchanged hidden documents override edited verse parts', async()=>{
+ const old={syncId:'edited',title:'Example',lyrics:'Verse 1\nFirst line\nSecond line',syncVersion:3}
+ const docs=synthesizeLegacySyncDocuments(old)
+ const lyrics='Verse 1 (a)\nFirst line\n\nVerse 1 b\nSecond line'
+ const result=await prepareSongSyncFields({operation:'update',originalDoc:{...old,syncDocuments:docs},data:{...old,lyrics,syncDocuments:docs},context:{}} as any)
+ const parsed=parsePlannerLibrarySongDocument(result!.syncDocuments[0].source,{fileName:'edited.md'})
+ assert.deepEqual(parsed.document.sections.map((section:any)=>section.id),['1-a','1-b'])
+ assert.equal(result!.syncVersion,4)
+ const metadata=await prepareSongSyncFields({operation:'update',originalDoc:{...old,syncDocuments:docs},data:{...old,defaultSongLanguage:'en',syncDocuments:docs},context:{}} as any)
+ assert.deepEqual(metadata!.syncDocuments,docs)
+ const replacement=synthesizeLegacySyncDocuments({...old,lyrics:'Verse 2\nCanonical replacement'})
+ const canonical=await prepareSongSyncFields({operation:'update',originalDoc:{...old,syncDocuments:docs},data:{lyrics,syncDocuments:replacement},context:{}} as any)
+ assert.deepEqual(canonical!.syncDocuments,replacement)
 })

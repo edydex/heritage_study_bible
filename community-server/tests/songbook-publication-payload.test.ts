@@ -28,6 +28,16 @@ test('real songbook publishing, serving, withdrawal, and tenant boundaries', { s
       community: community.id, title: 'A songbook test', russianTitle: 'Песня для проверки', slug: prefix,
       lyrics: 'English rehearsal words', russianLyrics: 'Русские слова для проверки', rightsNotes: 'PRIVATE_NOTES_SENTINEL',
     } as never })
+    const fullSong = await payload.findByID({ collection: 'songs', id: song.id, showHiddenFields: true })
+    const editedLyrics = 'Verse 1 (a)\nEnglish rehearsal words\n\nVerse 1 b\nMore rehearsal words'
+    await payload.update({ collection: 'songs', id: song.id, user: admin, overrideAccess: false,
+      data: { lyrics: editedLyrics, syncDocuments: fullSong.syncDocuments } })
+    const updatedSource = await payload.findByID({ collection: 'songs', id: song.id, showHiddenFields: true })
+    assert.ok(effectiveSyncDocuments(updatedSource as unknown as Record<string, unknown>)[0].source.includes('^1-a'))
+    assert.ok(effectiveSyncDocuments(updatedSource as unknown as Record<string, unknown>)[0].source.includes('^1-b'))
+    // Restore the fixture words for the publication assertions below.
+    await payload.update({ collection: 'songs', id: song.id, user: admin, overrideAccess: false,
+      data: { lyrics: 'English rehearsal words', syncDocuments: updatedSource.syncDocuments } })
     assert.equal(song.songbookVisibility, 'private')
     assert.equal(await loadPublicSong(prefix), null)
     assert.equal((await getContent(song.id)).status, 404)

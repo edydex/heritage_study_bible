@@ -12,7 +12,7 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  const browser=await engine.launch({headless:true}),page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[]
  page.on('pageerror',e=>errors.push(e.message))
  const initial=core.createServiceProject({id:'canvas-rehearsal',title:'Reference',serviceDate:'2026-09-20',preferredProfileId:'main-sanctuary',presetPack:{id:'main-sanctuary',version:1,sha256:null},channels:[{id:'english',label:'English',language:'en'},{id:'russian',label:'Russian',language:'ru'},{id:'media',label:'Stage',language:'ru'}]})
- let project=core.addProjectItem(initial,{id:'point',kind:'sermon',sermonTemplate:'point',title:'Therefore',presetId:'wotbc-sermon',titlesByChannel:{english:'From lies to truth',russian:'От лжи к истине'},textByChannel:{english:'I. Therefore',russian:'I. Поэтому'}})
+ let project=core.addProjectItem(initial,{id:'point',kind:'sermon',sermonTemplate:'point',title:'Therefore',presetId:'wotbc-sermon',titlesByChannel:{english:'From lies to truth',russian:'От лжи к истине'},textByChannel:{english:'III. Speak truth each one of you with his neighbor',russian:'I. Поэтому'}})
  let saved={syncId:'canvas-rehearsal',syncVersion:1,revision:1,status:'planning',project}
  const song={syncId:'example',syncVersion:1,title:'Example song',russianTitle:'Пример',defaultSongLanguage:'en',lyrics:'Verse 1 (a)\nFirst words\n\nVerse 1 b\nSecond words\n\nChorus\nWe Rejoice\n\nChorus\nWe rejoice',russianLyrics:'Куплет 1 (a)\nПервые слова\n\nVerse 1 b\nДругие слова\n\nПрипев\nРадуйтесь\n\nПрипев\nРадуйтесь'}
  song.syncDocuments=synthesizeLegacySyncDocuments(song)
@@ -35,8 +35,9 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  await page.getByRole('button',{name:/Bible passage Exact verses/}).click()
  await page.getByRole('textbox',{name:'Passage shortcut'}).fill('Eph 4 25')
  await page.getByRole('button',{name:'Add sermon passage',exact:true}).click()
- await expect(page.locator('.heritage-service-planner__stage [data-role="title"]')).toHaveText('I. Therefore')
+ await expect(page.locator('.heritage-service-planner__stage [data-role="title"]')).toHaveText('III. Speak truth each one of you with his neighbor')
  await expect(page.locator('.heritage-service-planner__stage [data-role="body"]')).toContainText('Ephesians 4:25')
+ const headingBox=await page.locator('.heritage-service-planner__stage [data-role="title"]').boundingBox(), bodyBox=await page.locator('.heritage-service-planner__stage [data-role="body"]').boundingBox();assert(bodyBox.y >= headingBox.y+headingBox.height, 'Scripture overlaps the current heading');
  await page.screenshot({path:`${evidence}/sermon-${name}.png`})
  await page.getByRole('button',{name:'Save sermon slides',exact:true}).click()
  await expect(page.getByRole('button',{name:'Save sermon slides',exact:true})).toBeDisabled()

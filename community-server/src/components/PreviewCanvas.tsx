@@ -15,6 +15,15 @@ export default function PreviewCanvas({ kind, presetId, template, titleCard, sin
       element.style.setProperty('--slide-text-size', `${size}px`)
       const overflows = () => {
         const content = element.querySelector<HTMLElement>('.heritage-service-planner__slide-content')!
+        if (presetId === 'wotbc-sermon-scripture' && !singer) {
+          const heading = content.querySelector<HTMLElement>('[data-role="title"]')
+          const passage = content.querySelector<HTMLElement>('.heritage-service-planner__scripture-page')
+          if (passage) {
+            const top = Math.max(element.clientHeight * .16, heading ? heading.offsetTop + heading.offsetHeight + element.clientHeight * .02 : 0)
+            passage.style.top = `${top}px`
+            passage.style.maxHeight = `${Math.max(1, element.clientHeight - top - element.clientHeight * .02)}px`
+          }
+        }
         const textOverflow = [...element.querySelectorAll<HTMLElement>('[data-fit-text]')].some(node => node.scrollHeight > node.clientHeight + 1 || node.scrollWidth > node.clientWidth + 1)
         // Credits deliberately sit outside the centered title region.
         if (titleCard) return textOverflow || [...content.querySelectorAll<HTMLElement>('[data-role="title"], [data-role="subtitle"]')].reduce((height, node) => height + node.offsetHeight, 0) > content.clientHeight

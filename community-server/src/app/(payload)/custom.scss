@@ -1804,7 +1804,7 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 /* September 20 service reference: a centered context heading, inline gold
    reference, and uninterrupted Scripture. Reading titles stand alone. */
 .heritage-service-planner__stage[data-preset="wotbc-sermon-scripture"] .heritage-service-planner__slide-content { position:absolute; inset:0; padding:0; }
-.heritage-service-planner__stage[data-preset="wotbc-sermon-scripture"] [data-role="title"] { position:absolute; top:2%; left:1.5%; width:97%; color:#ffc000; font-weight:700; font-size:calc(var(--slide-text-size) * 1.128); text-align:center; }
+.heritage-service-planner__stage[data-preset="wotbc-sermon-scripture"] [data-role="title"] { position:absolute; top:2%; left:1.5%; width:97%; color:#ffc000; font-weight:700; font-size:calc(var(--slide-text-size) * 1.128); text-align:center; max-height:16%; }
 .heritage-service-planner__stage[data-preset="wotbc-sermon-scripture"] .heritage-service-planner__scripture-page { position:absolute; top:16%; left:1.5%; width:97%; max-height:81%; }
 .heritage-service-planner__stage[data-preset="wotbc-sermon-scripture"] .heritage-service-planner__scripture-reference { display:none; }
 .heritage-service-planner__stage[data-preset="wotbc-sermon-scripture"] .heritage-service-planner__scripture-page [data-role="body"] { font-weight:400; }
