@@ -1,3 +1,5 @@
+import { audiobookDestination, loadAudiobookTiming, matchingAudioParagraph } from '../services/audiobookText'
+import { getAudioTrack } from '../services/audioCatalog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
@@ -177,6 +179,8 @@ function BookViewer() {
   const [resourceBookmarks, setResourceBookmarks] = useState([])
   const [bookmarkStatus, setBookmarkStatus] = useState('')
   const pendingChapterRef = useRef(null)
+  const [linkedAudioParagraph, setLinkedAudioParagraph] = useState(null)
+  const audioTarget = location.state?.audioParagraph || linkedAudioParagraph
   const crossSearchRequestRef = useRef(0)
   const searchInputRef = useRef(null)
 
@@ -245,7 +249,26 @@ function BookViewer() {
     }
   }, [itemId, location.key])
 
+  useEffect(() => {
+    let cancelled = false
+    setLinkedAudioParagraph(null)
+    if (location.state?.audioParagraph) return
+    const query = new URLSearchParams(location.search)
+    const track = getAudioTrack(query.get('audioTrack'))
+    const position = Number(query.get('at'))
+    if (!query.has('at') || track?.bookId !== itemId || !Number.isFinite(position) || position < 0 || position > track.duration) return
+    loadAudiobookTiming(track).then(timing => {
+      const destination = audiobookDestination(track, timing, position)
+      if (!cancelled && destination) {
+        pendingChapterRef.current = destination.state.chapterIndex
+        setLinkedAudioParagraph(destination.state.audioParagraph)
+      }
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [itemId, location.key, location.search, location.state?.audioParagraph])
+
   const chapters = useMemo(() => parseBookChapters(bookText), [bookText])
+  const audioParagraph = useMemo(() => matchingAudioParagraph(chapters, audioTarget), [chapters, audioTarget])
   const footnotesById = useMemo(() => extractBookFootnotes(bookText), [bookText])
   const selectedChapter = chapters[selectedChapterIndex] || null
   const selectedChapterNumber = extractChapterNumber(selectedChapter?.title || '')
@@ -295,10 +318,11 @@ function BookViewer() {
 
   useEffect(() => {
     if (pendingChapterRef.current == null || chapters.length === 0) return
+    if (audioTarget && !matchingAudioParagraph(chapters, audioTarget)) { pendingChapterRef.current = null; return }
     const clamped = Math.max(0, Math.min(pendingChapterRef.current, chapters.length - 1))
     setSelectedChapterIndex(clamped)
     pendingChapterRef.current = null
-  }, [chapters.length, location.key])
+  }, [chapters.length, location.key, audioTarget])
 
   useEffect(() => {
     if (!shouldShowBookSelector) {
@@ -311,6 +335,16 @@ function BookViewer() {
     }
   }, [bookGroups, navigatorGroup, selectedBookGroup, shouldShowBookSelector])
 
+  useEffect(() => {
+    if (!audioParagraph || selectedChapterIndex !== audioParagraph.chapterIndex) return
+    const frame = requestAnimationFrame(() => {
+      const paragraph = document.getElementById(`book-paragraph-${audioParagraph.paragraphIndex}`)
+      paragraph?.scrollIntoView({ block: 'center', behavior: 'instant' })
+      paragraph?.focus({ preventScroll: true })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [audioParagraph, selectedChapterIndex, location.key])
+
   const navigatorChapterEntries = shouldShowBookSelector
     ? chapterEntries.filter(entry => entry.groupKey === (navigatorGroup || selectedBookGroup))
     : chapterEntries
@@ -318,7 +352,7 @@ function BookViewer() {
   useEffect(() => {
     let cancelled = false
     const restoreProgress = async () => {
-      if (!book?.id || chapters.length === 0 || Number.isInteger(location.state?.chapterIndex)) return
+      if (!book?.id || chapters.length === 0 || Number.isInteger(location.state?.chapterIndex) || new URLSearchParams(location.search).has('audioTrack')) return
       try {
         const progress = await getReaderProgress()
         const resourceProgress = progress.resources?.[book.id]
@@ -925,9 +959,10 @@ function BookViewer() {
                 </div>
               )}
 
+              {audioTarget && <p role="status" className="mb-3 text-sm text-gray-500 dark:text-gray-400">{audioParagraph ? 'Nearby passage from the recording. The narrator may use a different translation; this is an automatic paragraph match.' : 'The book text has changed, so the recorded location could not be verified.'}</p>}
               <div className="space-y-4">
                 {(selectedChapter?.paragraphs || []).map((paragraph, index) => (
-                  <p key={index} className="text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
+                  <p key={index} id={`book-paragraph-${index}`} tabIndex={-1} data-audio-paragraph={audioParagraph?.chapterIndex === selectedChapterIndex && audioParagraph?.paragraphIndex === index ? 'true' : undefined} className="book-text-paragraph text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
                     {renderParagraphWithFootnotes(paragraph, searchQuery, footnotesById, openFootnote)}
                   </p>
                 ))}

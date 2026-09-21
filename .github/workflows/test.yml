@@ -22,6 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check audiobook phrase matching
+        run: python3 scripts/audiobook-alignment/test_match.py
+
       - name: Run tests
         run: npm test
 

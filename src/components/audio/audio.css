@@ -36,3 +36,5 @@ html { scroll-padding-bottom: calc(var(--audio-player-height, 0px) + 70px); }
 .dark [data-audio-active="true"] { background-color: #4b5563; }
 
 .audio-library button[aria-pressed="true"] { background: #1d4ed8; color: white; border-color: #1d4ed8; }
+
+.book-text-paragraph[data-audio-paragraph="true"] { background: rgb(148 163 184 / .2); border-radius: .25rem; outline: 2px solid rgb(148 163 184 / .55); scroll-margin-block: 9rem; }

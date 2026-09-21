@@ -94,10 +94,12 @@ credited on the linked [LibriVox source pages](https://librivox.org/pages/public
 The Polycarp and Maximus selections include only their respective tracks, not all
 works in the source anthologies. Catalog regeneration does not rewrite audio.
 
-The current **Open book text** control opens the book. It does **not** claim to
-know the sentence being spoken. Exact text alignment, Bible verse timing/gray
-highlight/autoscroll and additional authorized Bible recordings remain separate
-implementation work. No Whisper alignment or model charges were incurred here.
+Where local alignment is available, **Go to nearby text** opens and focuses a
+checked paragraph near the current timestamp. Elsewhere the control remains
+**Open book text**. The audio-linked URL survives reloads; navigation never starts
+playback. These are automatic paragraph matches, not word-perfect synchronization.
+Recordings may use a different English translation from the bundled text.
+See [audiobook text navigation](AUDIOBOOK-TEXT.md) for coverage and reproduction.
 
 ## Verification
 

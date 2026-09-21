@@ -22,6 +22,23 @@ Current coverage is **14,912 of 31,102 verse records**. Rejected: 15,036 text mi
 
 SYNO and UKRK recordings are not included: a public-domain text does not automatically license a particular recording. A future recording must have explicit distribution/download permission and match the exact displayed edition before verse following is enabled.
 
+### Russian and Ukrainian source review (2026-09-20)
+
+The bundled texts come from eBible's [Russian Synodal](https://ebible.org/bible/details.php?id=russyn)
+and [Kulish/Pulyui](https://ebible.org/details.php?id=ukr1871) editions. Those pages
+identify the texts as public domain; they do not supply an audio license or a
+matching recording. A Ukrainian recording of another translation must not be
+labeled UKRK.
+
+[Bible Brain](https://www.faithcomesbyhearing.com/bible-brain/developer-documentation)
+is a possible licensed integration source with audio and verse timings. Its
+[API license](https://www.faithcomesbyhearing.com/bible-brain/license) requires an
+assigned application key, attribution and applicable content terms. Offline use
+is limited to content provided through its download endpoint. No account or
+agreement was created, and no recording was copied from that service. Before
+adding it, confirm the exact Russian/Ukrainian edition, fileset and download
+permission; keep unavailable downloads disabled and validate verse numbering.
+
 ## Reproduce
 
 1. Clone `https://github.com/BSB-publishing/bsb-align.git` outside this repository and check out the pinned commit above. The generator rejects a different HEAD.
