@@ -23,9 +23,9 @@ python3 scripts/generateHebrewOriginal.py --oshb /path/to/morphhb
 npx vitest run src/data/hebrewOriginal.test.js
 ```
 
-## Romans word links
+## Greek New Testament word links and occurrences
 
-With BSB as the main text and Original languages as the parallel, Romans offers
+With BSB as the main text and Original languages as the parallel, the Greek New Testament offers
 **Word links**. Six subtle background tints repeat. **Settings → B&W word links**
 replaces them with patterns, including diagonal strokes distinct from dots.
 Hold a word (450 ms) or press **Shift+Enter** to identify its checked counterpart.
@@ -33,11 +33,29 @@ Moving a finger cancels the hold so scrolling is not mistaken for a word action.
 
 Tap or press Enter on a word to open occurrences. Greek words use the source's
 actual lemma metadata, including inflected forms throughout all 27 NT books.
-BSB phrases with an installed Romans correspondence look up those same Greek
+BSB phrases with an installed correspondence look up those same Greek
 lemmas. Multiple source lemmas remain separate choices. Other translations use
 explicitly labeled matching word forms; Hebrew/Aramaic currently searches the
 open book, not an unimplemented whole-OT lemma index. Tap a result to navigate to
-that verse. No verse notes are displayed or opened by ordinary parallel taps.
+that verse.
+
+Each original-language occurrence now includes its full **BSB** verse. For
+checked Greek correspondences, it also says **BSB · “translated phrase”** and
+highlights the actual translated wording and the matching Greek form. The same
+lemma can appear as “servant,” “slaves,” or “in slavery” in different contexts;
+these are the publisher's row correspondences, not generated glosses or a
+Strong-number guess. Repeated occurrences in one verse retain separate marks.
+Unmapped words, differing editions and Hebrew/Aramaic results show the whole BSB
+verse with an explicit notice that an exact word match is unavailable. Other
+translations' word-form searches remain labeled as such; this change does not
+invent Russian/Ukrainian word alignments.
+
+Mappings load by book for the visible results (40 verses at a time), reuse the
+parallel reader's cache and are bundled in Android. Loading failure keeps source
+verses available and offers **Retry translations**. Turning off link colors or
+patterns does not disable the underlying Greek lemma lookup.
+
+No verse notes are displayed or opened by ordinary parallel taps.
 Turning off correspondence colors/patterns retains word lookup. Multi-verse
 selection temporarily pauses word interactions. Saved annotations are unchanged.
 
@@ -62,11 +80,15 @@ English token sequence to match the bundled BSB wording (ignoring case and
 punctuation). It leaves differing verses unlinked. Runtime checks also require
 exact displayed texts and valid character ranges before showing any links.
 
-Current pinned data has **5,187 word/phrase groups across 376 Romans verses**.
-**56 Greek-source verses have no links** because an edition’s wording differs.
-No mapping is guessed in those cases. Other NT books display the Greek text
-without word links. Changing BSB text or the Greek source requires regenerating
-and reviewing the alignment artifact.
+Current pinned data has **94,788 word/phrase groups across 6,596 NT verses**.
+**1,347 Greek-source verse records have no links** because a Greek or English
+edition's wording differs. The original Romans subset remains byte-identical:
+5,187 groups across 376 verses, with 56 unlinked verses. No mapping is guessed
+in these cases. The per-book files and index include counts, source hashes and
+artifact hashes. Tests check every shipped mapping against both installed texts,
+plus contextual and repeated-word examples. These checks establish source
+correspondence, not a human review of every lexical interpretation. Changing
+BSB text or the Greek source requires regenerating and reviewing the artifacts.
 
 ## Sources and licensing
 
@@ -95,8 +117,8 @@ Download the pinned repository and the publisher TSV. Then, from this repo:
 ```sh
 python3 scripts/generateOriginalLanguages.py \
   --nestle /path/to/Nestle1904/morph/Nestle1904.csv \
-  --berean /path/to/bsb_tables.tsv
-npx vitest run src/data/originalLanguages.test.js src/components/WordLinks.test.jsx src/components/VerseText.test.jsx
+  --berean /path/to/bsb_tables.tsv --all-nt-links
+npx vitest run src/data/originalLanguages.test.js src/services/wordStudyTranslations.test.js src/components/WordLinks.test.jsx src/components/VerseText.test.jsx
 npm run build
 ```
 
