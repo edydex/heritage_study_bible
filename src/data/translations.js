@@ -1,4 +1,4 @@
-import { originalLanguages } from './originalLanguages'
+import { originalLanguages, hebrewOriginalBooks } from './originalLanguages'
 
 /**
  * Available Bible translations.
@@ -88,20 +88,22 @@ export function getTranslationById(translationId) {
 /**
  * Load a translation's Bible data. Returns cached version if already loaded.
  */
-export async function loadTranslation(translationId) {
+export async function loadTranslation(translationId, bookName) {
+  const originalBookFile = translationId === 'ORIGINAL' ? hebrewOriginalBooks[bookName] : null
+  const cacheKey = originalBookFile ? `ORIGINAL:${bookName}` : translationId
   // Return cached
-  if (translationCache.has(translationId)) {
-    return translationCache.get(translationId)
+  if (translationCache.has(cacheKey)) {
+    return translationCache.get(cacheKey)
   }
 
   // Fetch from public/data/translations/<ID>.json
   const url = translationId === 'ORIGINAL'
-    ? `${import.meta.env.BASE_URL}data/original-languages/greek-nt-n1904.json`
+    ? originalBookFile ? `${import.meta.env.BASE_URL}data/original-languages/hebrew/${originalBookFile}` : `${import.meta.env.BASE_URL}data/original-languages/greek-nt-n1904.json`
     : `${import.meta.env.BASE_URL}data/translations/${translationId}.json`
   const resp = await fetch(url)
   if (!resp.ok) throw new Error(`Failed to load ${translationId}: ${resp.status}`)
   const data = await resp.json()
-  translationCache.set(translationId, data)
+  translationCache.set(cacheKey, data)
   return data
 }
 

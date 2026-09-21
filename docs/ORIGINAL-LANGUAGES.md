@@ -1,18 +1,27 @@
 # Original languages in parallel reading
 
-Choose **Original languages** in the Parallel Bible selector. This first source
-package contains the complete Greek New Testament (27 books, 260 chapters,
-7,943 verse records), from **Nestle 1904**, as transcribed by Diego Renato dos
-Santos and supplied by Biblical Humanities. The source edition is visible in the
-reader. This is not the Septuagint and is not a claim to possess the lost
-physical manuscripts written by the biblical authors.
+Choose **Original languages** in the Parallel Bible selector. The reader names the actual source witness: **Westminster Leningrad Codex / Open Scriptures Hebrew Bible** for Hebrew and Aramaic, and **Nestle 1904** for the Greek New Testament. These are named textual editions, not a claim to possess the authors' lost physical manuscripts. The Septuagint is an ancient Greek translation of the Old Testament and can be a separate named option later.
 
-The product direction is Hebrew where Hebrew, Aramaic where Aramaic, and Greek
-where Greek. Hebrew and Aramaic text are not installed in this increment. Their
-future import needs an explicit edition, right-to-left rendering, language
-boundaries, and checked mapping from Hebrew verse numbering to the app’s
-canonical references. Do not fill those books with a Greek OT translation as a
-substitute. The Septuagint can be a separate named translation later.
+The NT package contains 27 books, 260 chapters and 7,943 verse records. The OT package contains all 39 books and 23,144 mapped verse records, with Hebrew/Aramaic language labels from OSHB morphology and right-to-left display. The exact written reading remains in the verse; traditional read-aloud alternatives (**qere**) appear separately, never concatenated as though both were spoken text. Pointing and cantillation are preserved without Unicode normalization; morphological slashes are display separators and are removed.
+
+## Hebrew and Aramaic source
+
+Pinned source: [Open Scriptures Hebrew Bible](https://github.com/openscriptures/morphhb/tree/3d15126fb1ef74867fc1434be1942e837932691f/wlc), commit `3d15126fb1ef74867fc1434be1942e837932691f`. The XML identifies WLC 4.20. WLC text is public domain; OSHB metadata is CC BY 4.0. **Original work of the Open Scriptures Hebrew Bible available at https://github.com/openscriptures/morphhb**. Our adaptation removes morphology slashes, separates reading notes, labels languages and maps references for BSB comparison. The source license is retained in `scripts/original-languages/OSHB-LICENSE.md`.
+
+The generator validates the pinned, unmodified source and records every source-file hash. It accounts for all **305,507 written source words** exactly once across mapped verses and separate headings. The 269 verse records containing Aramaic include mixed Hebrew/Aramaic boundaries, such as Daniel 2:4 and Genesis 31:47. Mixed verses retain both labels.
+
+OSHB's VerseMap supplies full WLC-to-KJV mappings; BSB's different partial boundaries are explicitly handled rather than assuming KJV numbering is identical. Full merge cases are 1 Samuel 20:42, 1 Kings 22:43, 1 Chronicles 12:4 and Numbers 26:1. BSB keeps WLC's full boundaries at 1 Kings 18:33–34, 20:2–3 and 22:21–22. Isaiah 63:19 / 64:1 splits before source word `23sJ1` (לוּא); Psalm 13:5–6 splits before אָשִׁירָה. Source references remain visible. Hebrew title verses in 63 Psalms are displayed separately, not folded into English verse 1. Where a title and body share one source verse, the witness's complete verse is preserved.
+
+**Nehemiah 7:68 is absent from this WLC witness.** The parallel shows that absence; it does not copy Hebrew from Ezra or invent a replacement. Other source verses are checked against the app's BSB chapter/verse reference set. This reference mapping supports comparison, not word-level Hebrew-to-English equivalence. Primary editions marked with Western numbering (including SYNO-W) use the same mapped references. With a different numbering system such as UKRK, the primary text remains visible but the source column is left empty with an explanation; no unverified mapping is implied.
+
+OT books load individually when opened, so enabling Genesis does not fetch the entire Hebrew Bible. Failed source loading leaves the primary text readable and does not substitute Greek. The APK bundles the static source files for offline use.
+
+To reproduce from an unmodified pinned OSHB clone:
+
+```sh
+python3 scripts/generateHebrewOriginal.py --oshb /path/to/morphhb
+npx vitest run src/data/hebrewOriginal.test.js
+```
 
 ## Romans word links
 
@@ -76,3 +85,13 @@ npm run build
 The Greek input hash must match the pinned source. A deliberate source upgrade
 requires reviewing and updating the generator’s commit/hash, not merely passing
 a different file. The generated files are in `public/data/original-languages`.
+
+## Verification of the Hebrew/Aramaic increment
+
+All 271 reader unit tests and 124 protocol tests passed. Chromium and Firefox
+each passed five focused browser cases covering book/source switching, Hebrew
+and Aramaic direction, Psalm headings, qere notes, missing Nehemiah 7:68, and
+the visible BSB audio marker in phone parallel mode. The production web build
+passed. The generator checks all written source-word identities and output
+hashes; these checks do not establish word alignment with every translation.
+Physical-phone and e-ink acceptance, deployment and a new APK remain separate.

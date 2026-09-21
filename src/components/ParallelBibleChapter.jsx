@@ -1,6 +1,7 @@
+import { getTranslationById } from '../data/translations'
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
 import VerseText from './VerseText'
-import { loadRomansWordLinks, verseWordLinks } from '../data/originalLanguages'
+import { loadRomansWordLinks, verseWordLinks, originalSourceForBook, originalVerseLanguage } from '../data/originalLanguages'
 import { getVerseLayout } from '../utils/verseLayout'
 import InlineVerseNotes, { getInlineNotesAfterVerse } from './InlineVerseNotes'
 import { getParallelVerseHighlightClasses } from '../utils/highlightColors'
@@ -42,7 +43,10 @@ function ParallelBibleChapter({
   const [linkError, setLinkError] = useState('')
   const [linkRetry, setLinkRetry] = useState(0)
   const original = secondaryTranslationId === 'ORIGINAL'
-  const canLink = original && primaryTranslationId === 'BSB' && bookName === 'Romans'
+  const source = originalSourceForBook(bookName)
+  const hebrew = original && source.id === 'WLC-OSHB'
+  const numberingUnsupported = original && getTranslationById(primaryTranslationId)?.versification !== 'western'
+  const canLink = original && !numberingUnsupported && primaryTranslationId === 'BSB' && bookName === 'Romans'
   useEffect(() => {
     let cancelled = false
     setAlignment(null); setActiveWord(null); setLinkError('')
@@ -58,8 +62,8 @@ function ParallelBibleChapter({
   }, [primaryChapter])
 
   const secondaryVerseMap = useMemo(() => {
-    return new Map((secondaryChapter?.verses || []).map(verse => [verse.number, verse]))
-  }, [secondaryChapter])
+    return new Map((numberingUnsupported ? [] : secondaryChapter?.verses || []).map(verse => [verse.number, verse]))
+  }, [secondaryChapter, numberingUnsupported])
 
   const verseNumbers = useMemo(() => {
     const keys = new Set([...primaryVerseMap.keys(), ...secondaryVerseMap.keys()])
@@ -124,16 +128,19 @@ function ParallelBibleChapter({
       ref={containerRef}
     >
       {original && <div className="mb-4 rounded-lg border border-gray-200 p-3 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
-        <div className="font-semibold text-gray-900 dark:text-gray-100">Original languages · Greek New Testament</div>
-        <p><a className="underline" href="https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph" target="_blank" rel="noreferrer">Nestle 1904 · Biblical Humanities</a>.</p>
+        <div className="font-semibold text-gray-900 dark:text-gray-100">Original languages · {hebrew ? 'Hebrew / Aramaic' : 'Greek New Testament'}</div>
+        <p><a className="underline" href={source.url} target="_blank" rel="noreferrer">{source.title}</a>.</p>
+        {numberingUnsupported && <p role="status" className="mt-2">The original source uses Western verse numbering. A checked mapping for {primaryTranslationId} is not installed, so its source column is left empty. Choose BSB, SYNO-W or another Western-numbered primary translation to compare.</p>}
+        {hebrew && <details className="mt-2 text-xs"><summary>Source and verse numbering</summary><p className="mt-1">WLC 4.20 as maintained by OSHB. Written readings appear in the text; traditional read-aloud alternatives (qere) are listed separately. Hebrew and Aramaic labels follow source morphology. Original source references are retained where numbering differs. Nehemiah 7:68 is absent from this witness.</p><p className="mt-1">Original work of the Open Scriptures Hebrew Bible available at <a className="underline" href="https://github.com/openscriptures/morphhb">github.com/openscriptures/morphhb</a>. WLC text is public domain; metadata is <a className="underline" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Adapted for BSB verse numbering and separate reading notes.</p></details>}
+        {hebrew && !numberingUnsupported && secondaryChapter?.superscription && <div className="mt-3 border-t pt-2"><p className="text-xs">Hebrew source heading · {secondaryChapter.superscription.sourceRefs.join(', ')}</p><p dir="rtl" lang="he" className="mt-1 text-lg">{secondaryChapter.superscription.text}</p></div>}
         {canLink ? <>
           <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={showWordLinks} onChange={event => setShowWordLinks(event.target.checked)} /> Word links</label>
-          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Matching underline patterns connect Greek words and BSB phrases. Patterns repeat; hover, tap or focus a word to identify its exact match. Links are omitted where source wording differs. Turn off Word links to open verse notes by tapping a word.</p><p className="mt-1">Links come from Berean’s published translation tables. This is a named scholarly edition of the Greek New Testament. Hebrew and Aramaic are not installed yet.</p></details>}
+          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Matching underline patterns connect Greek words and BSB phrases. Patterns repeat; hover, tap or focus a word to identify its exact match. Links are omitted where source wording differs. Turn off Word links to open verse notes by tapping a word.</p><p className="mt-1">Links come from Berean’s published translation tables. This is a named scholarly edition of the Greek New Testament.</p></details>}
           {selectionMode && showWordLinks && <p className="mt-1 text-xs">Word links pause while selecting verses.</p>}
           {linkError && <p role="status" className="mt-2">{linkError} <button className="underline" onClick={() => setLinkRetry(value => value + 1)}>Retry links</button></p>}
           {showWordLinks && !alignment && !linkError && <p role="status" className="mt-1 text-xs">Loading word links…</p>}
           {showWordLinks && activeWord && !selectionMode && <p aria-live="polite" className="mt-2 font-medium">{activeWord.label}</p>}
-        </> : <p className="mt-1 text-xs">Word links are available with BSB in Romans.{!secondaryChapter && ' Hebrew and Aramaic are not installed yet.'}</p>}
+        </> : <p className="mt-1 text-xs">Word links are available with BSB in Romans.</p>}
       </div>}
       <div className="space-y-2">
         {verseNumbers.map((verseNumber) => {
@@ -236,6 +243,8 @@ function ParallelBibleChapter({
                     data-chapter={primaryChapter.number}
                     data-verse={verseNumber}
                     data-translation={secondaryTranslationId}
+                    dir={original ? source.direction : undefined}
+                    lang={hebrew ? secondaryVerse?.languages?.length === 1 ? secondaryVerse.languages[0] : 'he' : original ? 'grc' : undefined}
                   >
                     {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} wordLinks={links?.source} activeWordLink={activeWord?.id} onWordLink={setActiveWord} /> : <MissingVerse translationId={secondaryTranslationId} />}
                   </p>
@@ -276,7 +285,7 @@ function ParallelBibleChapter({
                 </div>
 
                 <div className="rounded-md bg-white/70 dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-1">{original ? 'Greek · Nestle 1904' : secondaryTranslationId}</div>
+                  <div className="text-[11px] uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-1">{original ? hebrew ? `${originalVerseLanguage(secondaryVerse)} · WLC / OSHB` : source.label : secondaryTranslationId}</div>
                   <div className="flex items-start gap-2">
                     <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
                     <p
@@ -287,12 +296,18 @@ function ParallelBibleChapter({
                       data-chapter={primaryChapter.number}
                       data-verse={verseNumber}
                       data-translation={secondaryTranslationId}
+                      dir={original ? source.direction : undefined}
+                      lang={hebrew ? secondaryVerse?.languages?.length === 1 ? secondaryVerse.languages[0] : 'he' : original ? 'grc' : undefined}
                     >
                       {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} wordLinks={links?.source} activeWordLink={activeWord?.id} onWordLink={setActiveWord} /> : <MissingVerse translationId={secondaryTranslationId} />}
                     </p>
                   </div>
                 </div>
               </div>
+              {hebrew && secondaryVerse && <div className="px-3 pb-2 text-xs text-gray-500 dark:text-gray-400" onClick={event => event.stopPropagation()}>
+                <span>{originalVerseLanguage(secondaryVerse)} · WLC {secondaryVerse.sourceRefs?.join(', ')}</span>
+                {secondaryVerse.variants?.length > 0 && <details className="mt-1"><summary>Readings (qere)</summary>{secondaryVerse.variants.map((variant, i) => <p key={i} className="mt-1">Written: <bdi dir="rtl" className="text-base">{variant.written}</bdi> · Read: <bdi dir="rtl" className="text-base">{variant.reading}</bdi></p>)}</details>}
+              </div>}
               <InlineVerseNotes notes={inlineNotes} />
             </div>
           )

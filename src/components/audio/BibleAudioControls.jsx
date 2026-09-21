@@ -19,15 +19,16 @@ export default function BibleAudioControls({ book, chapter, translationId, selec
   useEffect(() => {
     if (!verse) return
     const row = document.getElementById(`verse-${chapter.number}-${verse}`)
-    const text = row?.querySelector('[data-verse-content][data-translation="BSB"]')
-    if (!text || text.dataset.book !== book) return
-    text.setAttribute('data-audio-active', 'true')
-    if (follow && audio?.state.status === 'playing') {
+    const texts = [...(row?.querySelectorAll('[data-verse-content][data-translation="BSB"]') || [])].filter(text => text.dataset.book === book)
+    if (!texts.length) return
+    texts.forEach(text => text.setAttribute('data-audio-active', 'true'))
+    const text = texts.find(text => text.getBoundingClientRect().height > 0)
+    if (text && follow && audio?.state.status === 'playing') {
       const rect = text.getBoundingClientRect()
       const playerHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--audio-player-height')) || 100
       if (rect.top < 150 || rect.bottom > window.innerHeight - playerHeight - 75) row.scrollIntoView({ block: 'center', behavior: 'instant' })
     }
-    return () => text.removeAttribute('data-audio-active')
+    return () => texts.forEach(text => text.removeAttribute('data-audio-active'))
   }, [verse, chapter?.number, book, follow, audio?.state.status])
   if (!track) return null
   return <div className="bible-audio-controls" aria-label="Chapter audio">

@@ -1161,7 +1161,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
       setParallelLoading(true)
       try {
         const [data, layout] = await Promise.all([
-          loadTranslation(parallelTranslationId),
+          loadTranslation(parallelTranslationId, currentBook),
           loadTranslationLayout(parallelTranslationId),
         ])
         if (!cancelled) {
@@ -1182,7 +1182,7 @@ function BibleStudyApp({ sideButtonScroll, onSideButtonScrollChange, onReaderRea
 
     loadParallel()
     return () => { cancelled = true }
-  }, [parallelMode, parallelTranslationId])
+  }, [parallelMode, parallelTranslationId, currentBook])
 
   // Author/Work state
   const [authorsData, setAuthorsData] = useState(initialAuthors)

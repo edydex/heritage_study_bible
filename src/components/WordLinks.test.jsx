@@ -44,3 +44,11 @@ describe('parallel word links', () => {
     expect(props.onVerseClick).toHaveBeenCalledWith(1, 1, first.targetText)
   })
 })
+
+
+it('keeps the primary text but refuses an unverified original-language verse mapping', () => {
+  const { container } = render(<ParallelBibleChapter {...props} primaryTranslationId="UKRK" />)
+  expect(screen.getByRole('status')).toHaveTextContent('checked mapping for UKRK is not installed')
+  expect(container.querySelector('[data-translation="UKRK"]').textContent).toContain(first.targetText)
+  expect(container.querySelector('[data-translation="ORIGINAL"][data-verse-content]')).toBeNull()
+})
