@@ -134,6 +134,14 @@ public class AudioPlaybackIntegrationTest {
                 .anyMatch(service -> HeritagePlaybackService.class.getName().equals(service.service.getClassName()));
             if (running) Thread.sleep(20);
         } while (running && System.nanoTime() < stoppedBy);
+        if (running) {
+            File trace = new File(context.getExternalFilesDir(null), "native-acceptance/playback-stop-timeout.txt");
+            trace.getParentFile().mkdirs();
+            try (android.os.ParcelFileDescriptor result = InstrumentationRegistry.getInstrumentation().getUiAutomation()
+                    .executeShellCommand("dumpsys activity services faith.heritage.app");
+                 java.io.FileInputStream in = new java.io.FileInputStream(result.getFileDescriptor());
+                 FileOutputStream out = new FileOutputStream(trace)) { in.transferTo(out); }
+        }
         assertFalse("Previous playback service did not finish stopping", running);
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
         context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit().remove(HeritageAudioCatalog.DOWNLOAD_INDEX).remove(HeritagePlaybackService.PROGRESS).commit();
@@ -183,8 +191,14 @@ public class AudioPlaybackIntegrationTest {
             if (insets != null) requiredTop.set((double) Math.max(0, insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars() | androidx.core.view.WindowInsetsCompat.Type.displayCutout()).top - origin[1]) / activity.getResources().getDisplayMetrics().density);
         });
         assertTrue("Audio library overlaps the native status bar", Double.parseDouble(js("document.querySelector('main.audio-library header').getBoundingClientRect().top")) >= requiredTop.get() + 12);
+        // Android 15 can inset the WebView while keeping the system bar
+        // transparent: zero uncovered inset must not imply a blue background.
+        if (android.os.Build.VERSION.SDK_INT >= 35) reader.onActivity(activity ->
+            assertTrue("Light audio page requires dark status icons",
+                androidx.core.view.WindowCompat.getInsetsController(activity.getWindow(), activity.getWindow().getDecorView()).isAppearanceLightStatusBars()));
         File screen = new File(context.getExternalFilesDir(null), "native-acceptance/audio-library.png");
         assertTrue(screen.getParentFile().isDirectory() || screen.getParentFile().mkdirs());
+        InstrumentationRegistry.getInstrumentation().getUiAutomation().waitForIdle(200, 5000);
         android.graphics.Bitmap screenshot = InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();
         try (FileOutputStream out = new FileOutputStream(screen)) { assertTrue(screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)); }
         screenshot.recycle();
