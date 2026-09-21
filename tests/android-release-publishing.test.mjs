@@ -41,7 +41,12 @@ function fixture(t, options = {}) {
       }
       if (path.startsWith('releases/assets/')) return state.previousData;
       if (path.startsWith('git/ref/')) return JSON.stringify({object:{sha:state.tagRevision}});
-      if (path.startsWith('commits/')) return JSON.stringify({sha:state.tagRevision});
+      if (path.startsWith('commits/')) {
+        if (args.at(-2) !== '--jq' || args.at(-1) !== '.sha') {
+          throw Object.assign(Error('Large merge diff exceeds stdout buffer'), {code:'ENOBUFS'});
+        }
+        return state.tagRevision + '\n';
+      }
       if (path.startsWith('releases?')) return state.release ? JSON.stringify(state.release) : '';
       if (path.startsWith('releases/tags/')) {
         if (!state.release || state.release.draft) throw Object.assign(Error('not found'), {stderr:'HTTP 404'});
@@ -183,4 +188,11 @@ test('a newer publisher winning before promotion leaves this draft unpromoted',t
 
 test('publication is not reported successful unless the actual Latest endpoint changed',t=>{
   const f=fixture(t,{ignorePromotion:true}); assert.throws(f.run,/not discoverable/);
+});
+
+test('large merge commits resolve to a bounded SHA before, during and after publication', t => {
+  const f=fixture(t); f.run();
+  const reads=f.state.calls.filter(c=>c[0]==='api' && c[1].includes('/commits/'));
+  assert.equal(reads.length,3);
+  for (const args of reads) assert.deepEqual(args.slice(-2),['--jq','.sha']);
 });
