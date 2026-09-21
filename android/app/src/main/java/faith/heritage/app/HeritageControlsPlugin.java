@@ -148,10 +148,11 @@ public class HeritageControlsPlugin extends Plugin {
                 Boolean darkStatusIcons = call.getBoolean("darkStatusIcons");
                 if (darkStatusIcons != null) {
                     Window window = getActivity().getWindow();
-                    // Older Android retains the app's blue status bar above the
-                    // WebView; only edge-to-edge pages need dark icons on white.
+                    // Android 15+ makes the status bar transparent even when the
+                    // WebView already applies its inset. Older Android retains
+                    // the app's blue bar unless content extends underneath it.
                     WindowCompat.getInsetsController(window, window.getDecorView())
-                        .setAppearanceLightStatusBars(darkStatusIcons && coveredTop > 0);
+                        .setAppearanceLightStatusBars(darkStatusIcons && (Build.VERSION.SDK_INT >= 35 || coveredTop > 0));
                 }
                 result.put("top", coveredTop / density);
                 result.put("bottom", Math.max(0, insets.bottom - (decor.getHeight() - location[1] - web.getHeight())) / density);
