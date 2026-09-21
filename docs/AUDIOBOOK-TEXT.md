@@ -42,9 +42,14 @@ The public-domain historical texts are imported from the source URLs recorded in
 `public/data/books/audio-editions-sources.json`; no AI translation is used.
 Scholarly notes remain available at the original source link.
 
-No speculative interpolation fills long unmatched intervals. Maximus currently
-links to an external source rather than bundled book text, so it has no internal
-paragraph destinations.
+No speculative interpolation fills long unmatched intervals. Maximus uses the
+historical text linked by LibriVox: Charles Joseph Hefele’s *History of the
+Councils*, Volume V, translated by William R. Clark (1896), section 303,
+printed pages 73–89. This is Hefele’s account of the disputation, not a modern
+Maximus translation. The source scan remains linked in the reader. Scan headers
+and footnotes are omitted, OCR is repaired against the printed pages, and the
+dialogue is separated by speaker for phone reading. The source manifest is
+`public/data/books/maximus-disputation-source.json`.
 
 The index in `src/data/audiobookTextIndex.json` records exactly which books have
 installed data. Each `public/data/audio/books` file records its actual track IDs,
@@ -52,10 +57,10 @@ recording URLs/byte counts/full SHA-256 hashes, model file hashes, source text
 hash, accepted spans and exact reference paragraphs. Only installed data is used;
 partially generated local files outside the repository do not affect the app.
 
-The installed set covers 383 recordings in nine books. Accepted phrase spans
+The installed set covers 384 recordings in ten books. Accepted phrase spans
 cover approximately 87.3% of City of God, 82.8% of Wars, 82.6% of Antiquities,
 92.1% of Institutes, 80.7% of Confessions, 86.6% of Enchiridion, 80.4% of First Apology, 81.4% of
-Martyrdom of Polycarp and 81.8% of Tertullian’s Apology by recording duration.
+Martyrdom of Polycarp, 81.8% of Tertullian’s Apology and 77.7% of Maximus by recording duration.
 Those percentages measure matched time, not independently measured accuracy.
 All catalog recordings with bundled reading text have completed generation.
 
@@ -170,3 +175,14 @@ footnotes (available at the sources), never rewrites the main text, and uses a
 new book ID to preserve older volume-one bookmarks. Rematch the existing GPU
 transcripts with `--book institutes`; `--catalog` allows this on a separate
 compute machine without copying the reader repository.
+
+The Maximus text is reproducible with
+`python3 scripts/import-maximus-text.py /work/volume5.xml`. Download the pinned
+DjVu XML from the manifest’s `sourceDownloadUrl`; changed source bytes or missing
+correction anchors are rejected. Corrections are recorded by scan page in
+`scripts/audiobook-sources/maximus-corrections.json`. They were checked against
+the page images, independently of speech recognition. Paragraph breaks at each
+speaker are editorial formatting only. Its one recording was processed locally
+with MLX Whisper large-v3-turbo, revision
+`a4aaeec0636e6fef84abdcbe3544cb2bf7e9f6fb`, and the same exact-phrase matcher.
+The preceding nine books’ timing files are unchanged.

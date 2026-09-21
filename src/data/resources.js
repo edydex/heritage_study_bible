@@ -388,10 +388,12 @@ export const RESOURCE_CATEGORIES = [
       {
         id: 'maximus-cosmic-mystery',
         title: 'Abbot Maximus and His Disputation with Pyrrhus',
-        author: 'Maximus the Confessor',
-        year: 645,
+        author: 'Charles Joseph Hefele',
+        year: 1896,
         tag: 'Church Fathers',
-        description: 'Public-domain source text and LibriVox track are available for this Maximus dialogue on Christology. The modern "Cosmic Mystery of Christ" edition remains under modern copyright.',
+        description: 'Hefele’s historical account of Maximus and Pyrrhus, translated by William R. Clark (1896), section 303. Matches the LibriVox recording; includes an internal reading text.',
+        editionLabel: 'William R. Clark, 1896 · Audio text',
+        textPath: 'data/books/maximus-disputation-clark.txt',
         textUrl: 'https://archive.org/details/ahistoryofthecou05hefeuoft/page/n92/mode/1up',
         librivox: {
           title: 'Abbot Maximus and His Disputation with Pyrrhus (Early Church Collection, Vol. 5, Track 09)',
