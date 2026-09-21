@@ -31,9 +31,20 @@ export function activeAudioVerse(timing, position) {
   return timing?.verses.find(span => position >= span.start && position < span.end) || null
 }
 export function matchingAudioVerse(timing, position, chapter) {
+  if (!Number.isFinite(position) || position < 0) return null
   const span = activeAudioVerse(timing, position)
-  const verse = chapter?.verses.find(verse => verse.number === span?.verse)
-  return verse && normalizeSpokenText(verse.text) === span.text ? span.verse : null
+  const verses = chapter?.verses || []
+  const matches = span => span && verses.some(verse => verse.number === span.verse && normalizeSpokenText(verse.text) === span.text)
+  if (span) return matches(span) ? span.verse : null
+  // The reading marker should advance during the breath between verses, not
+  // disappear. This is a display position only: seeking still requires an
+  // accepted timestamp. A missing timing can show the next written verse, but
+  // we do not invent durations to advance through several unaligned verses.
+  const previous = timing?.verses.findLast(span => span.end <= position)
+  if (!matches(previous)) return null // Includes the narrator's introduction.
+  const previousIndex = verses.findIndex(verse => verse.number === previous.verse)
+  const next = verses.slice(previousIndex + 1).find(verse => normalizeSpokenText(verse.text))
+  return next?.number ?? previous.verse
 }
 export function bibleAudioDestination(track, timing, position) {
   if (!track?.bible) return null

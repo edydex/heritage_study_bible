@@ -46,7 +46,15 @@ numbering; no spoken verse is invented for them.
 Every accepted span has finite ordered word positions inside the exact recording,
 no overlapping verses, average word confidence at least 0.65 and boundary scores
 at least 0.3. Runtime comparison rejects a marker if the displayed wording
-changes. Intros, pauses and rejected passages remain unhighlighted.
+changes. Version 1.1.47 makes the **reading marker** continuous: at an accepted
+verse’s end, it moves to the next nonempty verse in the displayed chapter and
+stays there until a verified interval resumes. This also gives one untimed
+verse a useful reading position (for example, Romans 8:9 after verse 8). If
+several successive verses lack timestamps, it does not invent durations to
+advance through them: it holds the first following verse. The final verse stays
+marked through the outro; the introduction before the first accepted interval
+stays unmarked. Tapping to seek still requires a verified timestamp. The
+underlying alignment dataset and its accepted-verse counts are unchanged.
 
 An independent Whisper large-v3 check transcribed 60 cropped samples with no
 reference prompt: every verse of Romans 8, plus first/middle/last samples from
