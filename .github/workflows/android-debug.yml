@@ -21,6 +21,8 @@ on:
       - 'vite.config.js'
       - '.github/workflows/android-debug.yml'
       - 'scripts/publish-android-release.mjs'
+      - 'scripts/verify_android_apk.py'
+      - 'scripts/run-android-acceptance.sh'
       - 'tests/android-release-publishing.test.mjs'
 
 permissions:
@@ -88,7 +90,7 @@ jobs:
       - name: Enable emulator acceleration
         run: sudo chmod 666 /dev/kvm
 
-      - name: Run native Community acceptance
+      - name: Run native reader, storage and media acceptance
         run: bash scripts/run-android-acceptance.sh
 
       - name: Retain native test evidence

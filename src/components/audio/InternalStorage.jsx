@@ -16,7 +16,7 @@ export default function InternalStorage() {
     setPending(null); setBusy(true); setMessage('')
     try {
       for (const record of records) {
-        if (audio?.state.trackId === record.trackId && audio.state.offline) audio.player.unload()
+        if (audio?.state.trackId === record.trackId && audio.state.offline) await audio.player.unload()
         await deleteDownloadedAudio(record.trackId)
       }
       setMessage('Downloaded audio removed. Your listening positions are kept.')

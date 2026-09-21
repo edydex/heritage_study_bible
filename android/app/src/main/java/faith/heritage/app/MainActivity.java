@@ -19,6 +19,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(HeritageControlsPlugin.class);
+        registerPlugin(HeritageAudioPlugin.class);
         registerPlugin(HeritageSecureStoragePlugin.class);
         super.onCreate(savedInstanceState);
         configureSystemBars();
@@ -69,7 +70,7 @@ public class MainActivity extends BridgeActivity {
         boolean isVolumeKey = keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN;
         boolean isPageKey = keyCode == KeyEvent.KEYCODE_PAGE_UP || keyCode == KeyEvent.KEYCODE_PAGE_DOWN;
 
-        if ((isVolumeKey || isPageKey) && HeritageControlsPlugin.isSideButtonScrollEnabled()) {
+        if ((isPageKey || (isVolumeKey && !HeritagePlaybackService.isPlaybackActive())) && HeritageControlsPlugin.isSideButtonScrollEnabled()) {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 String direction = (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_PAGE_UP) ? "up" : "down";
                 if (getBridge() != null) {

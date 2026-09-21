@@ -47,11 +47,23 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    implementation 'androidx.media3:media3-exoplayer:1.11.1'
+    implementation 'androidx.media3:media3-session:1.11.1'
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
 }
+
+// Car browsing starts without the WebView. Use the exact same catalog as the UI.
+def audioCatalogAssets = layout.buildDirectory.dir('generated/audioCatalogAssets')
+tasks.register('copyAudioCatalog', Copy) {
+    from('../../src/data/audioCatalog.json')
+    into(audioCatalogAssets)
+    rename { 'audio-catalog.json' }
+}
+android.sourceSets.main.assets.srcDir(audioCatalogAssets)
+tasks.named('preBuild').configure { dependsOn('copyAudioCatalog') }
 
 apply from: 'capacitor.build.gradle'
 

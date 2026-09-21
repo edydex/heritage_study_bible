@@ -37,6 +37,8 @@ assets = {}
 web_metadata = {}
 with zipfile.ZipFile(apk) as archive:
     assert len(archive.namelist()) == len(set(archive.namelist())), 'Duplicate ZIP entries'
+    catalog = (root/'src/data/audioCatalog.json').read_bytes()
+    assert archive.read('assets/audio-catalog.json') == catalog, 'Native car catalog differs from the reader catalog'
     for path in sorted((root/'dist').rglob('*')):
         if not path.is_file(): continue
         assert not path.is_symlink()
@@ -60,13 +62,19 @@ with zipfile.ZipFile(apk) as archive:
         assets[relative] = hashlib.sha256(data).hexdigest()
 assert len(assets) > 10
 assert '.well-known/assetlinks.json' in web_metadata, 'Website app-link metadata is missing'
-expected = {'packagedCommunityScreensAndMemberLinkWorkOffline', 'secureStorageUsesNativeKeystoreAndSurvivesActivityRestart', 'encryptedValuesCannotBeSubstitutedForAnotherStorageKey', 'automaticSyncSettingSurvivesRestartAndBibleOpensOffline'}
+required = {
+    'CommunityIntegrationTest': {'packagedCommunityScreensAndMemberLinkWorkOffline', 'secureStorageUsesNativeKeystoreAndSurvivesActivityRestart', 'encryptedValuesCannotBeSubstitutedForAnotherStorageKey', 'automaticSyncSettingSurvivesRestartAndBibleOpensOffline'},
+    'AudioStorageIntegrationTest': {'deleteOfflineAudioThroughInternalStorage', 'interruptedTransferCanBeRemovedWithoutTouchingNotes'},
+    'AudioPlaybackIntegrationTest': {'carLibraryAndSavedQueueLoadWithoutOpeningTheBible', 'legacyCarBrowserCanDiscoverTheLibraryWithoutOpeningTheReader', 'appAndCarSharePlaybackWhichContinuesAfterTheReaderCloses', 'offlineResolverRejectsTraversalAndUnrelatedAppFiles'},
+}
+expected = {name+'.'+test for name, tests in required.items() for test in tests}
 found = set()
 for report in (root/'android/app/build/outputs/androidTest-results/connected').rglob('*.xml'):
     for case in ET.parse(report).iter('testcase'):
-        if case.get('classname') != 'faith.heritage.app.CommunityIntegrationTest': continue
+        classname = case.get('classname', '').removeprefix('faith.heritage.app.')
+        if classname not in required: continue
         assert not any(case.find(name) is not None for name in ['failure','error','skipped']), 'Android test did not pass'
-        found.add(case.get('name'))
+        found.add(classname+'.'+case.get('name'))
 assert found == expected, 'Missing native acceptance results: '+repr(expected-found)
 screenshots = root / 'android/app/build/native-acceptance/screenshots'
 for name in ['community-home', 'sermon-archive', 'member-sign-in', 'automatic-sync']:
@@ -79,7 +87,7 @@ for name in ['community-home', 'sermon-archive', 'member-sign-in', 'automatic-sy
 output.mkdir(parents=True, exist_ok=True)
 name = f"heritage-study-bible-{current['versionName']}-debug.apk"
 shutil.copyfile(apk, output/name)
-record = {'schemaVersion':1, 'sourceRevision':source, **current, 'apk':{'name':name,'size':apk.stat().st_size,'sha256':sha(apk)}, 'previousRelease':{'versionName':old['versionName'],'versionCode':old['versionCode'],'sha256':sha(previous)}, 'webAssets':{'count':len(assets),'manifestSha256':hashlib.sha256(json.dumps(assets,sort_keys=True,separators=(',',':')).encode()).hexdigest()}, 'websiteOnlyMetadata':web_metadata, 'nativeTests':sorted(found)}
+record = {'schemaVersion':1, 'sourceRevision':source, **current, 'apk':{'name':name,'size':apk.stat().st_size,'sha256':sha(apk)}, 'previousRelease':{'versionName':old['versionName'],'versionCode':old['versionCode'],'sha256':sha(previous)}, 'webAssets':{'count':len(assets),'manifestSha256':hashlib.sha256(json.dumps(assets,sort_keys=True,separators=(',',':')).encode()).hexdigest()}, 'websiteOnlyMetadata':web_metadata, 'nativeAudioCatalogSha256':hashlib.sha256(catalog).hexdigest(), 'nativeTests':sorted(found)}
 metadata = output/'android-build.json'
 metadata.write_text(json.dumps(record, indent=2)+'\n')
 (output/'SHA256SUMS').write_text(f"{sha(output/name)}  {name}\n{sha(metadata)}  android-build.json\n")

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createAudioPlayer } from '../../services/audioPlayer'
+import { createPlatformAudioPlayer } from '../../services/nativeAudioPlayer'
 import { formatAudioTime, getAudioTrack, nextAudioTrack } from '../../services/audioCatalog'
 import './audio.css'
 
@@ -60,7 +60,7 @@ const emptySnapshot = () => emptyState
 export default function AudioProvider({ children }) {
   const [player, setPlayer] = useState(null)
   useEffect(() => {
-    const instance = createAudioPlayer()
+    const instance = createPlatformAudioPlayer()
     setPlayer(instance)
     return () => instance.dispose()
   }, [])

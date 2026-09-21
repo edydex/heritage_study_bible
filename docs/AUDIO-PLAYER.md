@@ -8,6 +8,52 @@ including separate identities for all four Antiquities volumes. At the end of a
 track, playback advances within that book, including across volumes, then stops.
 Browser Media Session supplies supported lock-screen/headset controls.
 
+On Android, a Media3 `MediaLibraryService` owns playback, its queue and saved
+position. The app, notification, headset and car controls all connect to that
+same player. Closing the reader releases its controller but keeps playing audio
+alive. Reopening adopts the service's latest position; an old WebView cache cannot
+overwrite progress made from the car. Loading the library never starts audio.
+Speech audio focus, headphone-disconnection handling and the playback foreground
+service use Android's media APIs. While audio plays, volume buttons adjust audio
+volume even if side-button page scrolling is enabled.
+
+## Android Auto
+
+The Android app declares media support and exposes **Continue listening**,
+**Downloaded** and **Audiobooks** through both modern and legacy media-browser
+interfaces. The same bundled catalog loads without opening the reader or signing
+in. Antiquities volumes remain separate browse folders. Tracks play in book
+order; the car can pause, seek and move between tracks. Search matches catalog
+book, author and recording titles. This is phone-connected Android Auto support;
+a separately installable Android Automotive OS app is not provided.
+
+Only bundled recording IDs can be played. A browser client's supplied URL or
+metadata is ignored; the service resolves either the validated private download
+or that recording's catalog URL. Private file paths do not appear in library
+listings. App-only commands require the application's UID. Deleting the active
+download waits for the service to release playback before deleting the file;
+the saved position remains and a later Play uses the online recording.
+
+For a GitHub-installed test APK, Android Auto can hide apps installed outside
+Google Play. Enable its developer mode, then **Unknown sources**, as described in
+[Google's test instructions](https://developer.android.com/training/cars/testing#unknown-sources).
+Do this setup while parked. The implementation follows the standard
+[Android media service architecture](https://developer.android.com/media/implement/surfaces/cars).
+
+Device acceptance still required before calling car support fully verified:
+
+1. Install the matching APK, start a recording, seek and change speed. Lock the
+   phone, use its notification/headset controls, close the reader, and reopen it.
+   Playback and the displayed position must agree throughout.
+2. Download a recording, switch to airplane mode and restart the app. Play it
+   from Downloaded; verify seeking works. Delete it in Internal Storage and check
+   that its position stays saved while the offline file disappears.
+3. While parked, connect Android Auto before opening Heritage. Browse all three
+   roots, play and pause a downloaded track, move to the next track, and disconnect
+   and reconnect. The phone and car must show the same recording and position.
+4. Check interruption by another audio app, headset disconnection and a phone
+   restart. A normal app launch must offer Resume without starting audio itself.
+
 Find the library from **Resources → Books → Audio library**. Each book also has
 its own listening panel and track picker. The compact player expands to show
 seeking, previous/next, speed, the book's text, and the audio library.
@@ -50,9 +96,8 @@ works in the source anthologies. Catalog regeneration does not rewrite audio.
 
 The current **Open book text** control opens the book. It does **not** claim to
 know the sentence being spoken. Exact text alignment, Bible verse timing/gray
-highlight/autoscroll, additional authorized Bible recordings, native Android
-background playback and Android Auto browsing remain separate implementation and
-acceptance work. No Whisper alignment or model charges were incurred here.
+highlight/autoscroll and additional authorized Bible recordings remain separate
+implementation work. No Whisper alignment or model charges were incurred here.
 
 ## Verification
 
@@ -67,9 +112,20 @@ acceptance work. No Whisper alignment or model charges were incurred here.
   125 and reached 126, with no page errors.
 - The full reader suite passed: 255 unit tests, 124 protocol tests and 45 Chromium
   browser tests; the three audio browser tests also passed in Firefox.
-- The Android debug APK and instrumentation APK compiled with Java 21 / SDK 36.
-  Two packaged storage/deletion tests are included; emulator execution is pending.
+- The published audio foundation passed all seven Android packaged tests in
+  GitHub Actions, including the two real private-storage/deletion tests.
+- Native adapter tests cover shared state, stale-response rejection, StrictMode
+  listener cleanup and failed unload acknowledgement before deletion.
+- Four new tests passed on an isolated offline Android 15 arm64 emulator using
+  real Media3, the packaged WebView and a generated PCM recording. They verify
+  car browsing before any Activity, legacy browse compatibility, saved queue and
+  speed without autoplay, path-traversal rejection, caller URL replacement,
+  shared app/car controls and playback after the reader closes.
+- The complete packaged Android regression run then passed all eleven tests in
+  the offline emulator, including the existing Community/Keystore/sync checks.
+  Release verification requires all ten named Community and audio checks and
+  byte-for-byte agreement between the native and web catalog sources.
 
-The web checks and mocked native-storage contract do not constitute Android
-hardware, car/headset, background-lifecycle or real offline-download acceptance.
-Those must pass before an Android release is described as ready.
+Emulator evidence is separate from physical phone/headset, car head-unit and
+real network-download acceptance. The new native playback increment has not yet
+been published as an Android release.
