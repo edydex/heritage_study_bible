@@ -46,7 +46,15 @@ numbering; no spoken verse is invented for them.
 Every accepted span has finite ordered word positions inside the exact recording,
 no overlapping verses, average word confidence at least 0.65 and boundary scores
 at least 0.3. Runtime comparison rejects a marker if the displayed wording
-changes. Version 1.1.47 makes the **reading marker** continuous: at an accepted
+changes. Version 1.1.48 schedules Android reader updates at the exact boundaries
+using snapshots from the native playback service. The former one-second bridge
+interval could leave the marker almost a second behind. The scheduler rechecks
+the actual position after waking, respects playback speed, seek, pause and reader
+lifecycle, and uses no timestamp offset. Native acceptance measures the visible
+Ezekiel 42 marker against ExoPlayer at 0.75x, 1x and 2x. This isolates display
+latency from the separate question of speech-alignment accuracy.
+
+Version 1.1.47 makes the **reading marker** continuous: at an accepted
 verse’s end, it moves to the next nonempty verse in the displayed chapter and
 stays there until a verified interval resumes. This also gives one untimed
 verse a useful reading position (for example, Romans 8:9 after verse 8). If

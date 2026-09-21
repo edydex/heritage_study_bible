@@ -65,7 +65,7 @@ assert '.well-known/assetlinks.json' in web_metadata, 'Website app-link metadata
 required = {
     'CommunityIntegrationTest': {'packagedCommunityScreensAndMemberLinkWorkOffline', 'secureStorageUsesNativeKeystoreAndSurvivesActivityRestart', 'encryptedValuesCannotBeSubstitutedForAnotherStorageKey', 'automaticSyncSettingSurvivesRestartAndBibleOpensOffline'},
     'AudioStorageIntegrationTest': {'deleteOfflineAudioThroughInternalStorage', 'interruptedTransferCanBeRemovedWithoutTouchingNotes'},
-    'AudioPlaybackIntegrationTest': {'carLibraryAndSavedQueueLoadWithoutOpeningTheBible', 'legacyCarBrowserCanDiscoverTheLibraryWithoutOpeningTheReader', 'appAndCarSharePlaybackWhichContinuesAfterTheReaderCloses', 'offlineResolverRejectsTraversalAndUnrelatedAppFiles'},
+    'AudioPlaybackIntegrationTest': {'carLibraryAndSavedQueueLoadWithoutOpeningTheBible', 'legacyCarBrowserCanDiscoverTheLibraryWithoutOpeningTheReader', 'appAndCarSharePlaybackWhichContinuesAfterTheReaderCloses', 'offlineResolverRejectsTraversalAndUnrelatedAppFiles', 'ezekielVerseHighlightsFollowTheNativeClockAtRealBoundaries'},
 }
 expected = {name+'.'+test for name, tests in required.items() for test in tests}
 found = set()
@@ -84,10 +84,16 @@ for name in ['community-home', 'sermon-archive', 'member-sign-in', 'automatic-sy
     assert data[:8] == b'\x89PNG\r\n\x1a\n' and data[12:16] == b'IHDR', 'Invalid screenshot: '+name
     width, height = struct.unpack('>II', data[16:24])
     assert width >= 320 and height >= 640, 'Unexpected native screenshot size: '+name
+latency_files = list(screenshots.rglob('ezekiel-highlight-latency.json'))
+assert len(latency_files) == 1, 'Missing or duplicate native audio latency evidence'
+latencies = json.loads(latency_files[0].read_text())
+assert len(latencies) == 6 and {row['rate'] for row in latencies} == {.75, 1, 2}, 'Missing playback-speed coverage'
+assert all(-110 < row['observedUpperLatencyMs'] < 300 for row in latencies), 'Native reading marker missed its boundary'
 output.mkdir(parents=True, exist_ok=True)
 name = f"heritage-study-bible-{current['versionName']}-debug.apk"
 shutil.copyfile(apk, output/name)
 record = {'schemaVersion':1, 'sourceRevision':source, **current, 'apk':{'name':name,'size':apk.stat().st_size,'sha256':sha(apk)}, 'previousRelease':{'versionName':old['versionName'],'versionCode':old['versionCode'],'sha256':sha(previous)}, 'webAssets':{'count':len(assets),'manifestSha256':hashlib.sha256(json.dumps(assets,sort_keys=True,separators=(',',':')).encode()).hexdigest()}, 'websiteOnlyMetadata':web_metadata, 'nativeAudioCatalogSha256':hashlib.sha256(catalog).hexdigest(), 'nativeTests':sorted(found)}
+record['nativeAudioHighlightLatency'] = {'chapter':'Ezekiel 42', 'clock':'ExoPlayer service', 'audio':'generated PCM fixture', 'measurements':latencies}
 metadata = output/'android-build.json'
 metadata.write_text(json.dumps(record, indent=2)+'\n')
 (output/'SHA256SUMS').write_text(f"{sha(output/name)}  {name}\n{sha(metadata)}  android-build.json\n")

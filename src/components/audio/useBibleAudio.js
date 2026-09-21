@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { useHeritageAudio } from './AudioProvider'
 import { getBibleAudioTrack, loadBibleAudioTiming, matchingAudioVerse, normalizeSpokenText } from '../../services/bibleAudio'
 
@@ -13,8 +13,14 @@ export default function useBibleAudio({ book, chapter, translationId, selectionM
     if (track) loadBibleAudioTiming(track).then(value => { if (!cancelled) setTiming(value) }).catch(() => {})
     return () => { cancelled = true }
   }, [track?.id])
-  const verse = active && !selectionMode ? matchingAudioVerse(timing, audio.state.position, chapter) : null
   useEffect(() => {
+    if (!active || !timing || selectionMode) return
+    // The native playback clock wakes the UI at real timestamp boundaries.
+    // Keep both ends: display continuity advances in the breath after a verse.
+    return audio.player.watchPositions?.(track.id, timing.verses.flatMap(span => [span.start, span.end]))
+  }, [active, timing, selectionMode, audio?.player, track?.id])
+  const verse = active && !selectionMode ? matchingAudioVerse(timing, audio.state.position, chapter) : null
+  useLayoutEffect(() => {
     if (!verse) return
     const row = document.getElementById(`verse-${chapter.number}-${verse}`)
     const texts = [...(row?.querySelectorAll('[data-verse-content]') || [])].filter(text => text.dataset.book === book && text.dataset.translation === translationId)
