@@ -40,6 +40,9 @@ describe('audiobook paragraph navigation', () => {
     const books = RESOURCE_CATEGORIES.find(category => category.id === 'books').items
     for (const [bookId, entry] of Object.entries(index)) {
       const data = JSON.parse(readFileSync(`public/data/audio/books/${entry.file}`, 'utf8'))
+      const expectedIds = audioTracks.filter(track => track.bookId === bookId).map(track => track.id).sort()
+      expect(Object.keys(data.tracks).sort()).toEqual(expectedIds)
+      expect(entry.tracks).toBe(expectedIds.length)
       const bytes = readFileSync(`public/${books.find(book => book.id === bookId).textPath}`)
       expect(createHash('sha256').update(bytes).digest('hex')).toBe(entry.textSha256)
       const chapters = parseBookChapters(bytes.toString('utf8'))

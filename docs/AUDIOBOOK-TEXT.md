@@ -33,17 +33,17 @@ recording URLs/byte counts/full SHA-256 hashes, model file hashes, source text
 hash, accepted spans and exact reference paragraphs. Only installed data is used;
 partially generated local files outside the repository do not affect the app.
 
-The first installed set covers 54 recordings in five books. Accepted phrase
-spans cover about 80.7% of Confessions, 86.6% of Enchiridion, 80.4% of First
-Apology, 8.7% of Martyrdom of Polycarp and 2.0% of Tertullian's Apology by recording
+The installed set covers 126 recordings in six books. Accepted phrase
+spans cover about 82.8% of The Wars of the Jews, 80.7% of Confessions, 86.6% of
+Enchiridion, 80.4% of First Apology, 8.7% of Martyrdom of Polycarp and 2.0% of Tertullian's Apology by recording
 duration. Those percentages measure matched time, not independently measured
 accuracy. The two sparse books use different wording from the bundled text;
 most timestamps in them correctly fall back to plain book navigation. Longer
-Josephus, City of God and Institutes recordings are still being processed.
+Josephus Antiquities, City of God and Institutes recordings are still being processed.
 
 Validation includes 275 reader unit tests, 124 protocol tests, five Python
 matcher cases, and five audio/navigation browser checks each in Chromium and
-Firefox. The expanded five-book data also passes exact recording and paragraph
+Firefox. The expanded six-book data also passes exact recording and paragraph
 integrity checks. Physical Android and car testing remain separate.
 
 ## Reproduce or extend coverage
@@ -78,9 +78,42 @@ repeating recognition. Existing transcripts must match the exact recording and
 model. Failures are listed in the private work folder's `errors.json` and do not
 become successful matches. No paid API is used.
 
-After review, copy completed book JSON files into `public/data/audio/books` and
-the staged index to `src/data/audiobookTextIndex.json`. Run the data-integrity and
+After review, verify that each completed book contains exactly the track IDs in
+all its catalog editions, then copy its JSON into `public/data/audio/books` and
+merge only that book's entry into `src/data/audiobookTextIndex.json`. The staged
+index updates after each track and can include incomplete books; never copy the
+whole staged index while generation is running. Run the data-integrity and
 navigation tests. Rebuild/review the timings whenever source text or its chapter
 parser changes. Do not commit downloaded audio, raw transcripts, caches or API
 credentials. Word-perfect timing and human listening verification are separate
 from this automatic navigation feature.
+
+## NVIDIA GPU worker
+
+A Linux/NVIDIA worker can use the same reference paragraphs and conservative
+matcher through [faster-whisper](https://github.com/SYSTRAN/faster-whisper). Install
+`requirements-cuda.txt` in a separate virtual environment and configure its CUDA
+12/cuDNN 9 library paths as described by that project. Export the reference with
+`node scripts/audiobook-alignment/export-reference.mjs /work/reference.json` on
+the reader checkout; transfer that file, `src/data/audioCatalog.json`,
+`generate.py` and `match.py` to the worker. No credentials or private application
+configuration are needed.
+
+Download a pinned CTranslate2-format Whisper model into a local folder, then run:
+
+```sh
+/path/to/gpu-venv/bin/python generate.py \
+  --engine faster-whisper --model /work/model \
+  --work /work/cuda-transcripts --output /work/generated \
+  --reference /work/reference.json --catalog /work/audioCatalog.json \
+  --book city-of-god --book josephus-antiquities --book institutes \
+  --stop-file /work/STOP
+```
+
+Use a separate transcript directory for each engine/model configuration. GPU
+output records model hashes, engine/runtime versions and decoding settings; it
+does not reuse or relabel MLX transcripts. Creating the stop file lets the current
+recording finish before exiting. Remove it deliberately before resuming. Retrieve
+completed data and run the exact reader/catalog tests on the source checkout
+before installing it. The GPU worker is optional development tooling, not a
+server dependency of the reader or audio player.
