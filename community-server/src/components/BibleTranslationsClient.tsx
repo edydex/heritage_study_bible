@@ -27,7 +27,13 @@ export default function BibleTranslationsClient() {
     if (!file) return
     if (file.size > 24 * 1024 * 1024) { setError('Choose a Bible JSON file smaller than 24 MiB.'); return }
     setBusy(true)
-    try { const content = await file.text(); const result = await request('/preview', { source: content }); setSource(content); setPreview(result) }
+    try {
+      const bytes = await file.arrayBuffer()
+      let content: string
+      try { content = new TextDecoder('utf-8', { fatal: true }).decode(bytes) }
+      catch { throw new Error('The Bible file must be valid UTF-8. No text was imported.') }
+      const result = await request('/preview', { source: content }); setSource(content); setPreview(result)
+    }
     catch (error) { setError((error as Error).message) } finally { setBusy(false) }
   }
   async function install() {
