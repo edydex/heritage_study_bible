@@ -39,7 +39,7 @@ public final class HeritageAudioCatalog {
             boolean librivox = id.matches("lv-[a-f0-9]{24}") && url.startsWith("https://archive.org/download/");
             boolean bible = id.matches("bsb-hays-[0-9]{2}-[0-9]{3}") && url.matches("https://openbible\\.com/audio/hays/BSB_[0-9]{2}_[A-Za-z0-9]+_[0-9]{3}_H\\.mp3");
             boolean memberBook = privateBook && community != null && id.matches("cb-[a-f0-9]{24}-[0-9]+") && bytes > 0 && bytes <= 512L * 1024 * 1024;
-            if (!librivox && !bible && !memberBook) throw new IllegalArgumentException("Invalid audio track");
+            if (privateBook ? !memberBook : !librivox && !bible) throw new IllegalArgumentException("Invalid audio track");
         }
     }
     public synchronized void reloadCommunityBooks() {
@@ -52,6 +52,7 @@ public final class HeritageAudioCatalog {
             JSONArray books = new JSONArray(preferences.getString(CommunityAudioStore.INDEX, "[]"));
             for (int b = 0; b < Math.min(books.length(), 100); b++) {
                 JSONObject book = books.getJSONObject(b), identity = book.getJSONObject("community");
+                if (!book.optString("id").matches("remote--[A-Za-z0-9._-]+--books--[0-9]+")) continue;
                 if (!CommunityAudioStore.authorized(context, identity)) continue;
                 JSONArray rows = book.getJSONArray("editions").getJSONObject(0).getJSONArray("tracks");
                 String node = "book:" + book.getString("id");

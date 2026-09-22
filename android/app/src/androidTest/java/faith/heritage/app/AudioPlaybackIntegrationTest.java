@@ -183,6 +183,10 @@ public class AudioPlaybackIntegrationTest {
             .put("community", new JSONObject(identity.toString()).put("chapterId", "chapter-" + i)));
         JSONObject book = new JSONObject().put("id", "remote--test--books--1").put("title", "Community prayer book").put("author", "Test author")
             .put("community", identity).put("editions", new JSONArray().put(new JSONObject().put("tracks", tracks)));
+        try {
+            new HeritageAudioCatalog.Track(new JSONObject(tracks.getJSONObject(0).toString()).put("id", ID).put("url", "https://archive.org/download/example/audio.mp3"), book, "community", true);
+            fail("Private metadata replaced a bundled audio ID");
+        } catch (IllegalArgumentException expected) { }
         context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit().putString(CommunityAudioStore.INDEX, new JSONArray().put(book).toString()).commit();
         await(() -> main(() -> browser.getItem(first)).get(5, TimeUnit.SECONDS).resultCode == SessionResult.RESULT_SUCCESS);
         Bundle play = new Bundle(); play.putString("trackId", first); play.putBoolean("restart", true); command("play", play);
