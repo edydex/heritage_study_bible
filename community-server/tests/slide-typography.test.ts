@@ -63,3 +63,20 @@ test('text preferences reject arbitrary properties and invalid values',()=>{
  assert.deepEqual(typographyItemIds(p,'one'),['one','two'])
  assert.deepEqual(typographyItemIds(p,'song'),['song'])
  })
+
+test('minimum song font remains valid when a long authored line must wrap',()=>{
+ const p={items:{song:{id:'song',textStyle:{bodySize:32}}}}
+ const cues={one:{itemId:'song',kind:'song',presetId:'wotbc-song-lyrics',channels:{english:{mode:'content',blocks:[{type:'text',role:'lyrics',text:'A '.repeat(150)}]}}}} as any
+ typography.applyTimelineTypography(p,cues,{groupPathByItemId:{}})
+ assert.equal(cues.one.textStyle.bodySize,32)
+ assert.doesNotThrow(()=>typography.normalizeTextStyle(cues.one.textStyle))
+})
+
+test('opening an existing reading keeps its authored page boundaries',()=>{
+ const p=core.addBibleItem(project(),{id:'saved-page',title:'Psalm 119',range:{bookId:'Ps',start:{chapter:119,verse:1},end:{chapter:119,verse:14}},passagesByChannel:{english:{reference:'Psalm 119:1–14',translationId:'BSB',verses:Array.from({length:14},(_,i)=>({number:i+1,text:'Your word is truth. '.repeat(10)}))}},presetId:'wotbc-reading'})
+ const reopened=preparePlannerPresentation(p,{paginateItemIds:new Set()})
+ assert.equal(reopened.changed,false)
+ assert.equal(reopened.project,p)
+ const added=preparePlannerPresentation(p,{paginateItemIds:new Set(['saved-page'])})
+ assert.ok(added.readingsSplit>0)
+})

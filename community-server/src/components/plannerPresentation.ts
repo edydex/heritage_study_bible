@@ -43,7 +43,7 @@ function pageReference(reference: string, item: RecordValue, numbers: number[]) 
  * Existing SyncShow versions therefore receive exactly the same slide breaks.
  * No source lyrics, verse text, attribution, media, or library records change.
  * This is an unsaved draft change until the manager saves a new revision. */
-export function preparePlannerPresentation(project: RecordValue) {
+export function preparePlannerPresentation(project: RecordValue, options: {paginateItemIds?: ReadonlySet<string>} = {}) {
   const next = JSON.parse(JSON.stringify(project))
   let changed = false
   let readingsSplit = 0
@@ -78,6 +78,8 @@ export function preparePlannerPresentation(project: RecordValue) {
       item.presetId = 'wotbc-reading'
       changed = true
     }
+    // Loading or editing an existing service preserves authored page boundaries.
+    if (options.paginateItemIds && !options.paginateItemIds.has(item.id)) continue
     // An edited slide is an intentional excerpt; automatic repagination would lose its words.
     if (Object.values(item.passagesByChannel).some((passage: any) => passage.displayText !== undefined)
       || (item.verseNumbers && item.verseNumbers.length <= SCRIPTURE_PAGE_MAX_VERSES)) continue
