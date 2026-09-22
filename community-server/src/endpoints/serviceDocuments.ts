@@ -2,6 +2,7 @@ import typography from '../../packages/service-core/node/services/project/SlideT
 import { insertReusableSlide, extractReusableSlide } from '../components/plannerReusableSlides'
 import { BibleImportError } from '../../packages/bible-import/index.js'
 import { BUILTIN_BIBLES, installedBibleCatalog, installedBiblePassage } from '../lib/bible/InstalledBibles'
+import { ONLINE_BIBLES } from '../lib/bible/OnlineBibleSources'
 import { firstSongSections } from '../../packages/song-text/index.js'
 import { createHash, randomUUID } from 'node:crypto'
 import {
@@ -514,7 +515,7 @@ const bibleLibraryRead: Endpoint = {
         const selected = data.translations as RequestDoc
         if (!selected || typeof selected !== 'object' || !exactKeys(selected, ['english', 'russian'])
           || ![selected.english, selected.russian].every(value => typeof value === 'string' && /^[A-Z][A-Z0-9-]{1,31}$/.test(value))) {
-          throw new BibleImportError('INVALID_BIBLE_SELECTION', 'Choose an installed translation for each screen.')
+          throw new BibleImportError('INVALID_BIBLE_SELECTION', 'Choose an available translation for each screen.')
         }
         translations = selected as { english: string; russian: string }
       }
@@ -537,9 +538,10 @@ const bibleLibraryCatalog: Endpoint = {
   handler: async req => {
     try {
       const { communityId } = await managerContext(req)
+      const installed = await installedBibleCatalog(req, communityId)
       return json(req, {
         schemaVersion: 1,
-        translations: [...BUILTIN_BIBLES, ...await installedBibleCatalog(req, communityId)],
+        translations: [...BUILTIN_BIBLES, ...ONLINE_BIBLES.filter(source => !installed.some(edition => edition.id === source.id)), ...installed],
         books: CANONICAL_BIBLE_BOOKS.map(book => ({
           id: book.id,
           name: book.name,

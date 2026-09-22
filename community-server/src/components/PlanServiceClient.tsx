@@ -1,5 +1,6 @@
 'use client'
 import NumberDraftInput from './NumberDraftInput'
+import BibleSourceNotice from './BibleSourceNotice'
 import {typographyItemIds} from './plannerTypography'
 import { setReadingTemplate } from './readingTemplates'
 import { appendBlankSlide, readingOwner } from './plannerReadingGroups'
@@ -898,7 +899,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
         ...(passage.verseNumbers ? {verseNumbers: passage.verseNumbers} : {}),
         passagesByChannel: passage.passagesByChannel,
         presetId: sermonPassage ? 'wotbc-sermon-scripture' : 'wotbc-reading',
-        operatorNotes: 'Exact Bible text and attribution pinned from the selected editions.',
+        operatorNotes: `Exact Bible text and attribution pinned from the selected editions.\nEnglish source: ${passage.sources.english}\nRussian source: ${passage.sources.russian}`,
         ...insertionPoint(draft, selectedId),
         now: new Date().toISOString(),
       })
@@ -1382,7 +1383,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 })} /></label>}
                 {selected.textStyle?.bodySize && activeSlide?.cue?.textStyle?.bodySize && selected.textStyle.bodySize !== activeSlide.cue.textStyle.bodySize && <small>Fitted size: {activeSlide.cue.textStyle.bodySize} across all pages.</small>}
                 {selected.kind==='song' && <><small>One size for the whole song. Long lines can reduce it by up to 25%.</small><button type="button" disabled={busy} onClick={rememberSongLayout}>Remember for this song</button></>}
-                {selected.kind==='bible' && <small>All pages in this reading use the same size.</small>}
+                {selected.kind==='bible' && <><small>All pages in this reading use the same size.</small><BibleSourceNotice translationIds={Object.values(selected.passagesByChannel || {}).map((p:any)=>p.translationId)} /></>}
               </aside>}
               {selected.sermonTemplate === 'other' && !preview.singer && <aside className="heritage-canvas-inspector" aria-label="Slide objects">
                 {selected.presetId==='wotbc-reading-title' && <label>Reading template<select value="pre-sermon" onChange={event=>slideMutation(()=>setReadingTemplate(draft,selected.id,event.target.value))}><option value="centered">Centered title</option><option value="pre-sermon">Pre-sermon</option></select></label>}
@@ -1487,6 +1488,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               {!sermonPassage && <label>Reading title template<select aria-label="Reading title template" value={readingTemplate} onChange={event=>setReadingTemplateChoice(event.target.value)}><option value="centered">Centered reading title</option><option value="pre-sermon">Pre-sermon · passage and service topic</option></select></label>}
               <label><span>English screen translation</span><select aria-label="English screen translation" value={bibleEnglish} onChange={event => setBibleEnglish(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
               <label><span>Russian / stage screen translation</span><select aria-label="Russian / stage screen translation" value={bibleRussian} onChange={event => setBibleRussian(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
+              <BibleSourceNotice translationIds={[bibleEnglish,bibleRussian]} />
               <PassageReferenceInput key={referenceKey} books={bibleBooks} singleChapter allowVerseList onValidityChange={setReferenceValid} onResolve={passage => { setBibleBookId(passage.bookId); setBibleChapter(passage.startChapter); setBibleStartVerse(passage.startVerse); setBibleEndVerse(passage.endVerse); setBibleVerseNumbers(passage.verseNumbers) }} />
               <details className="heritage-passage-manual"><summary>Choose book and verses</summary><div>
               <label><span>Book</span><select ref={bibleBookInput} value={bibleBookId} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleBookId(event.target.value); const chapters = bibleBooks.find(book => book.id === event.target.value)?.chapters || 1; setBibleChapter(current => Math.min(current, chapters)) }}>{bibleBooks.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
