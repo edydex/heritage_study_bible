@@ -32,3 +32,33 @@ it('keeps a spoken Bible reference together when a sentence splitter sees an abb
   expect(text.slice(timing.sentenceSpans[0].textStart, timing.sentenceSpans[0].textEnd)).toBe('Read this (Лук. 9:1).')
   expect(activeAudiobookSentence(track, timing, 3).textStart).toBe(0)
 })
+
+
+it('follows spoken order when a citation is read before its printed quotation', () => {
+  const text = 'First sentence. Second sentence. Citation.'
+  const track = { id: 'chapter', bookId: 'book', community: { chapterIndex: 0, chapterId: 'one', audioSha256: 'hash' } }
+  const document = {readAlong:{language:'en',chapters:[{id:'one',audioSha256:'hash',paragraphs:[{id:'p',text}],words:[
+    {paragraphId:'p',sourceStart:33,sourceEnd:42,start:1,end:3},
+    {paragraphId:'p',sourceStart:0,sourceEnd:15,start:5,end:8},
+    {paragraphId:'p',sourceStart:16,sourceEnd:32,start:9,end:12},
+  ]}]}}
+  const timing = communityAudioTiming(document, track)
+  expect(timing.sentenceSpans.map(s=>s.start)).toEqual([1,5,9])
+  expect(activeAudiobookSentence(track,timing,2).textStart).toBe(33)
+  expect(activeAudiobookSentence(track,timing,6).textStart).toBe(0)
+  expect(activeAudiobookSentence(track,timing,10).textStart).toBe(16)
+})
+
+it('merges overlapping sentence mappings without losing the earlier spoken words', () => {
+  const text = 'First sentence. Second sentence. Citation.'
+  const track = {id:'chapter',bookId:'book',community:{chapterIndex:0,chapterId:'one',audioSha256:'hash'}}
+  const document = {readAlong:{language:'en',chapters:[{id:'one',audioSha256:'hash',paragraphs:[{id:'p',text}],words:[
+    {paragraphId:'p',sourceStart:16,sourceEnd:42,start:1,end:3},
+    {paragraphId:'p',sourceStart:0,sourceEnd:15,start:5,end:8},
+    {paragraphId:'p',sourceStart:16,sourceEnd:32,start:9,end:12},
+  ]}]}}
+  const timing = communityAudioTiming(document, track)
+  expect(timing.sentenceSpans).toEqual([{paragraph:'0:0',start:1,end:12,textStart:0,textEnd:text.length}])
+  expect(activeAudiobookSentence(track,timing,2)).not.toBeNull()
+  expect(activeAudiobookSentence(track,timing,6)).not.toBeNull()
+})
