@@ -51,6 +51,8 @@ export function insertReusableSlide(
       project[table][key] = value
     }
   project.items[id] = { ...original, id }
+  for (const objects of Object.values(project.items[id].objectsByChannel || {}) as any[])
+    for (const object of objects) if (object.id === 'welcome-topic') object.align = 'left'
   const siblings = place.parentId
     ? project.items[place.parentId].childIds
     : project.rootItemIds

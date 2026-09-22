@@ -2,8 +2,8 @@
 import SlideText from './SlideText'
 import OutlineSlideEditor from './OutlineSlideEditor'
 
-export default function TemplateSlideEditor({ item, channelId, uploading, onImage, onEdit }: {
-  item: Record<string, any>; channelId: string; uploading: boolean; onImage: () => void;
+export default function TemplateSlideEditor({ item, inheritedHeading, channelId, uploading, onImage, onEdit }: {
+  inheritedHeading?: string; item: Record<string, any>; channelId: string; uploading: boolean; onImage: () => void;
   onEdit: (field: 'heading' | 'body' | 'next' | 'credit', text: string, spans: any[]) => void
 }) {
   const isTitle = item.sermonTemplate === 'title'
@@ -14,7 +14,7 @@ export default function TemplateSlideEditor({ item, channelId, uploading, onImag
       <span aria-hidden="true">▧</span>{uploading ? 'Uploading image…' : 'Choose title image'}
     </button> : null}
     {showText ? <>
-      <SlideText text={item.titlesByChannel?.[channelId] || ''} spans={item.titleSpansByChannel?.[channelId]} role="title"
+      <SlideText text={item.titlesByChannel?.[channelId] || inheritedHeading || ''} spans={item.titleSpansByChannel?.[channelId]} role="title"
         label={`${channelId} ${isTitle ? 'sermon title' : 'heading'}`} placeholder={isTitle ? 'Sermon title' : 'Heading (optional)'} canFormat onCommit={(text, spans) => onEdit('heading', text, spans)} />
       <div className="heritage-service-planner__template-body" data-fit-text>
         {item.sermonTemplate === 'point' ? <OutlineSlideEditor text={body} spans={item.spansByChannel?.[channelId]} channelId={channelId} onCommit={(text,spans)=>onEdit('body',text,spans)} /> : <SlideText text={body} spans={item.spansByChannel?.[channelId]} role={isTitle ? 'subtitle' : 'body'}

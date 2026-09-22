@@ -16,7 +16,7 @@ export default function ServiceSlidePreview({project,rows,slide,channelId,mediaU
   const blocks=preview.output?.mode==='hide' ? [] : preview.output?.blocks || []
   const background=blocks.find((block:any)=>block.type==='image' && block.role==='background')
   const backgroundId=background?.assetId || (preview.output?.mode!=='hide' ? item.backgroundAssetId : undefined)
-  return <PreviewCanvas kind={item.kind} presetId={preview.presetId} titleCard={isSongTitleSlide(slide)} singer={preview.singer} next={preview.next}
+  return <PreviewCanvas textStyle={slide.cue?.textStyle} kind={item.kind} presetId={preview.presetId} titleCard={isSongTitleSlide(slide)} singer={preview.singer} next={preview.next}
     backgroundUrl={backgroundId ? mediaUrl(backgroundId) : undefined} backgroundDimOpacity={item.sermonPresentation?.darkenBackground===false ? 0 : .55}>
     {blocks.map((block:any,index:number)=>{
       if (block.type==='canvas') return <CanvasSlide key={`${slide.id}:${channelId}:${index}`} objects={block.objects} mediaUrl={mediaUrl} />
