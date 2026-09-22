@@ -56,7 +56,7 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
       id,
       depth: 2,
       overrideAccess: true,
-      showHiddenFields: type === 'songs',
+      showHiddenFields: type === 'songs' || type === 'books',
     })
     if (relationshipId(doc.community) !== String(communityId)) {
       return contentJson({ error: 'Not found.' }, { status: 404 })

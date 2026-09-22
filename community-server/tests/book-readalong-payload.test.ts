@@ -7,6 +7,8 @@ import { bookReadAlongEndpoints } from '../src/endpoints/bookReadAlong.ts'
 import { assertDisposableLiveDatabase } from './lib/disposableLiveDatabase.ts'
 import { communityPublicConfig } from '../src/lib/publicConfig.ts'
 import { hashOpaqueToken } from '../src/lib/tokens.ts'
+import { GET as bookContent } from '../src/app/content/[type]/[id]/route.ts'
+import { GET as bookCatalog } from '../src/app/catalogs/[type]/route.ts'
 
 test(
   'book audio attachment is atomic and every byte requires current church membership',
@@ -151,7 +153,7 @@ test(
           payload,
           routeParams,
           context: {},
-        }) as unknown as PayloadRequest
+        }) as unknown as PayloadRequest & Request
       }
       const [upload, attach, audio] = bookReadAlongEndpoints
       const route = { id: String(book.id), sha256: sha }
@@ -187,6 +189,47 @@ test(
         showHiddenFields: true,
       })
       const broken = JSON.parse(JSON.stringify(stored.readAlong))
+      // A realistic timing payload must never round-trip through the ordinary
+      // admin form, whose metadata save has a much smaller request limit.
+      const largeReadAlong = {
+        ...(stored.readAlong as Record<string, unknown>),
+        testPadding: 'x'.repeat(2 * 1024 * 1024),
+      }
+      await payload.update({
+        collection: 'books', id: book.id, overrideAccess: true,
+        data: { readAlong: largeReadAlong, status: 'draft' } as never,
+      })
+      const editable = await payload.findByID({
+        collection: 'books', id: book.id, overrideAccess: true,
+      })
+      assert.equal(editable.readAlong, undefined)
+      assert.ok(Buffer.byteLength(JSON.stringify(editable)) < 100_000)
+      await payload.update({
+        collection: 'books', id: book.id, overrideAccess: false, user: users[0],
+        data: { status: 'published', description: 'Edited after audio upload' },
+      })
+      const published = await payload.findByID({
+        collection: 'books', id: book.id, overrideAccess: true, showHiddenFields: true,
+      })
+      assert.equal(published.status, 'published')
+      assert.deepEqual(published.readAlong, largeReadAlong)
+      await payload.update({
+        collection: 'books', id: book.id, overrideAccess: true,
+        data: { readAlong: stored.readAlong } as never,
+      })
+      const contentContext = { params: Promise.resolve({ type: 'books', id: String(book.id) }) }
+      const catalogContext = { params: Promise.resolve({ type: 'books' }) }
+      for (const token of [undefined, tokens[2]]) {
+        assert.equal((await bookContent(request('GET', {}, token), contentContext)).status, 404)
+        const catalog = await (await bookCatalog(request('GET', {}, token), catalogContext)).json()
+        assert.ok(!catalog.items.some((item: any) => item.id === String(book.id)))
+      }
+      const content = await bookContent(request('GET', {}, tokens[1]), contentContext)
+      assert.equal(content.status, 200)
+      assert.equal(content.headers.get('cache-control'), 'private, no-store')
+      assert.deepEqual((await content.json()).readAlong, stored.readAlong)
+      const memberCatalog = await (await bookCatalog(request('GET', {}, tokens[1]), catalogContext)).json()
+      assert.ok(memberCatalog.items.some((item: any) => item.id === String(book.id)))
       broken.chapters[0].audioSha256 = 'f'.repeat(64)
       assert.equal(
         (
