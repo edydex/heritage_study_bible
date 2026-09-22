@@ -1,3 +1,4 @@
+import { bookReadAlongEndpoints } from '@/endpoints/bookReadAlong'
 import { BibleTranslations } from './collections/BibleTranslations'
 import { bibleImportEndpoints } from './endpoints/bibleImports'
 import { sermonPresentationEndpoints } from './endpoints/sermonPresentations'
@@ -257,6 +258,7 @@ export default buildConfig({
     ...managerSermonPublicationEndpoints,
     ...sermonMediaEndpoints,
     ...managerServiceDocumentEndpoints,
+    ...bookReadAlongEndpoints,
   ],
   onInit: async payload => {
     await bootstrapInstallation(payload)

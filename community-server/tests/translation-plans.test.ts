@@ -72,8 +72,9 @@ test('missing notes and archived services cannot be saved', async () => {
   f.change({ status: 'archived' })
   assert.equal((await translationPlansResponse(f.request('PUT', input) as never, f.options)).status, 409)
 })
-test('stored plans never include persistent sharing consent; reject malformed, duplicate and oversized writes', async () => {
-  assert.throws(() => parseTranslationPlanWrite({ ...input, settings: { ...settings, shareSermonNotesWithEconomy: true } }))
+test('service-specific sharing choice is explicit; reject malformed, duplicate and oversized writes', async () => {
+  assert.equal(parseTranslationPlanWrite({ ...input, settings: { ...settings, shareSermonNotesWithEconomy: true } }).settings.shareSermonNotesWithEconomy, true)
+  assert.throws(() => parseTranslationPlanWrite({ ...input, settings: { ...settings, shareSermonNotesWithEconomy: 'true' } }))
   assert.throws(() => parseTranslationPlanWrite({ ...input, serviceId: '../other' }))
   assert.throws(() => parseTranslationPlanWrite({ ...input, settings: { ...settings, sourceLanguage: ['ru'] } }))
   assert.throws(() => parseTranslationPlanWrite({ ...input, baseRevision: Number.MAX_SAFE_INTEGER }))

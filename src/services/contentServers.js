@@ -62,6 +62,7 @@ async function fetchJson(url, options = {}) {
     const response = await fetch(url, {
       cache: 'no-store',
       credentials: 'omit',
+      redirect: options.authorization ? 'error' : 'follow',
       headers,
       referrerPolicy: 'no-referrer',
       signal: controller.signal,

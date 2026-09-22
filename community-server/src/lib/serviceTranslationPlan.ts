@@ -4,6 +4,7 @@ export interface TranslationSettings {
   transcriptionProvider?: 'auto' | 'muse' | 'openai'
   sourceLanguage: 'en' | 'ru'
   translationProfile: 'quality' | 'economy'
+  shareSermonNotesWithEconomy?: boolean
   speechEnabled: boolean
   contextDocumentIds: string[]
 }
@@ -37,7 +38,9 @@ function exact(value: unknown, keys: string[]): Record<string, unknown> {
 }
 export function parseTranslationSettings(value: unknown): TranslationSettings {
   const hasRecognition = Boolean(value && typeof value === 'object' && Object.hasOwn(value, 'transcriptionProvider'))
-  const item = exact(value, ['sourceLanguage', 'translationProfile', 'speechEnabled', 'contextDocumentIds', ...(hasRecognition ? ['transcriptionProvider'] : [])])
+  const hasConsent = Boolean(value && typeof value === 'object' && Object.hasOwn(value, 'shareSermonNotesWithEconomy'))
+  const item = exact(value, ['sourceLanguage', 'translationProfile', 'speechEnabled', 'contextDocumentIds', ...(hasRecognition ? ['transcriptionProvider'] : []), ...(hasConsent ? ['shareSermonNotesWithEconomy'] : [])])
+  if (hasConsent && typeof item.shareSermonNotesWithEconomy !== 'boolean') return fail()
   if (hasRecognition && !['auto', 'muse', 'openai'].includes(String(item.transcriptionProvider))) return fail()
   if (item.transcriptionProvider === 'muse' && item.sourceLanguage !== 'en') return fail('Muse recognition supports English. Choose Automatic or OpenAI for Russian.')
   if (typeof item.sourceLanguage !== 'string' || !['en', 'ru'].includes(item.sourceLanguage)
@@ -47,6 +50,7 @@ export function parseTranslationSettings(value: unknown): TranslationSettings {
     || new Set(item.contextDocumentIds).size !== item.contextDocumentIds.length) return fail()
   return { sourceLanguage: item.sourceLanguage as 'en' | 'ru', translationProfile: item.translationProfile as 'quality' | 'economy',
     ...(hasRecognition ? { transcriptionProvider: item.transcriptionProvider as 'auto' | 'muse' | 'openai' } : {}),
+    ...(hasConsent ? { shareSermonNotesWithEconomy: item.shareSermonNotesWithEconomy as boolean } : {}),
     speechEnabled: item.speechEnabled, contextDocumentIds: [...item.contextDocumentIds].sort() }
 }
 export function parseTranslationPlanWrite(value: unknown) {
@@ -67,4 +71,19 @@ export function serviceTranslationPlan(document: Record<string, unknown>, commun
   return { id: String(document.syncId), communityId: String(communityId), title: String(document.title), serviceDate: String(document.serviceDate).slice(0, 10),
     serviceRevision: String(document.revision), revision: plan?.revision ?? 0, settings: plan?.settings ?? null,
     stale: Boolean(plan && plan.serviceRevision !== document.revision) }
+}
+
+/** Cue edits do not change the reviewed language, voice, or sermon context. */
+export function sameServiceApartFromTranslationCues(before: string, after: string): boolean {
+  try {
+    const strip = (source: string) => {
+      const value = JSON.parse(source)
+      delete value.project.revision; delete value.project.updatedAt
+      for (const item of Object.values(value.project.items) as Record<string, unknown>[]) {
+        delete item.translationCues; delete item.updatedAt
+      }
+      return JSON.stringify(value)
+    }
+    return strip(before) === strip(after)
+  } catch { return false }
 }

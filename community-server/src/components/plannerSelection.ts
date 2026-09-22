@@ -12,7 +12,7 @@ function groupContains(rows: PlannerSlide[], group: PlannerSlide, row: PlannerSl
 /** Section headings select their descendants; Shift ranges select numbered slides. */
 export function selectedPlannerSlides(rows: PlannerSlide[], ids: string[]) {
   const selected = new Set(ids)
-  const groups = rows.filter(row => row.kind === 'group' && selected.has(row.id))
+  const groups = rows.filter(row => (row.kind === 'group' || row.readingTitle) && selected.has(row.id))
   return rows.filter(row => row.cue && (selected.has(row.id) || groups.some(group => groupContains(rows, group, row))))
 }
 
@@ -73,9 +73,9 @@ export function changePlannerSelection(project: Project, ids: string[], operatio
   const rows = plannerSlides(project), slides = rows.filter(row => row.cue)
   if (!ids.length || ids.some(id => !rows.some(row => row.id === id))) throw new Error('Select slides from the current service first.')
   const chosen = selectedPlannerSlides(rows, ids), chosenIds = new Set(chosen.map(row => row.id))
-  const groups = rows.filter(row => row.kind === 'group' && ids.includes(row.id))
-    .filter(row => !rows.some(parent => parent.kind === 'group' && ids.includes(parent.id) && groupContains(rows, parent, row)))
-  const singles = chosen.filter(row => !groups.some(group => groupContains(rows, group, row)))
+  const groups = rows.filter(row => (row.kind === 'group' || row.readingTitle) && ids.includes(row.id))
+    .filter(row => !rows.some(parent => (parent.kind === 'group' || parent.readingTitle) && ids.includes(parent.id) && groupContains(rows, parent, row)))
+  const singles = chosen.filter(row => !groups.includes(row) && !groups.some(group => groupContains(rows, group, row)))
   const remaining = slides.filter(row => !chosenIds.has(row.id))
   const maxStart = remaining.length + 1
   if (operation === 'move' && (!Number.isInteger(destination) || destination! < 1 || destination! > maxStart)) {
@@ -89,8 +89,8 @@ export function changePlannerSelection(project: Project, ids: string[], operatio
   }
   const expanded = materialize(project, new Set([...singles.map(row => row.itemId), ...(anchor && anchor.index > 0 ? [anchor.itemId] : [])]), fresh)
   let next = expanded.project
-  const units = rows.filter(row => groups.includes(row) || singles.includes(row)).map(row => row.kind === 'group' ? row.itemId : expanded.itemForRow.get(row.id)!)
-  const anchorItemId = anchor ? expanded.itemForRow.get(anchor.id)! : null
+  const units = rows.filter(row => groups.includes(row) || singles.includes(row)).map(row => row.readingTitle ? row.parentId! : row.kind === 'group' ? row.itemId : expanded.itemForRow.get(row.id)!)
+  const anchorItemId = anchor ? anchor.readingTitle ? anchor.parentId! : expanded.itemForRow.get(anchor.id)! : null
   let selectedItems = units
   if (operation === 'delete') {
     for (const itemId of units) next = copy(core.removeProjectItemAndDescendants(next, itemId))

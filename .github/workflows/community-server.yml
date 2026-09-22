@@ -45,7 +45,7 @@ jobs:
           npm run test:appliance
           npm run typecheck
           npm run test:syncshow
-          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-provider-settings.test.ts tests/translation-plans.test.ts tests/calendar.test.ts tests/sermon-presentation.test.ts tests/planner-templates.test.ts tests/service-reference-layout.test.ts tests/passage-shortcuts.test.ts tests/presentation-palette.test.ts tests/bible-import.test.ts
+          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-provider-settings.test.ts tests/translation-plans.test.ts tests/calendar.test.ts tests/sermon-presentation.test.ts tests/planner-templates.test.ts tests/service-reference-layout.test.ts tests/service-flow.test.ts tests/book-readalong.test.ts tests/planner-presentation.test.ts tests/passage-shortcuts.test.ts tests/presentation-palette.test.ts tests/bible-import.test.ts
           npm run build
 
       - name: Create isolated test configuration
@@ -369,3 +369,42 @@ jobs:
       - run: npm ci --include=dev --legacy-peer-deps
       - run: npm run migrate
       - run: node --import tsx --test --test-force-exit tests/bible-import-payload.test.ts tests/bible-import.test.ts
+
+  member-book-audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: book_ci
+          POSTGRES_USER: heritage
+          POSTGRES_PASSWORD: ci-book-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage -d book_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: community-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - name: Verify member-only audio and atomic attachment
+        run: node --import tsx --test tests/book-readalong-payload.test.ts
+        env:
+          DATABASE_URL: postgresql://heritage:ci-book-password@127.0.0.1:5432/book_ci
+          BOOK_TEST_DATABASE_URL: postgresql://heritage:ci-book-password@127.0.0.1:5432/book_ci
+          HERITAGE_DISPOSABLE_CI: heritage-book-readalong-ci
+          PAYLOAD_SECRET: ci-book-secret-at-least-thirty-two-characters
+          COMMUNITY_ID: book-ci
+          COMMUNITY_NAME: Book CI
+          COMMUNITY_PUBLIC_URL: http://127.0.0.1:4300
+          COMMUNITY_AUTH_ENABLED: 'true'
+          HERITAGE_SERMON_MEDIA_PATH: /tmp/heritage-book-ci-media
+          NODE_ENV: production

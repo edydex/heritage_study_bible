@@ -1,3 +1,4 @@
+import { insertReusableSlide, extractReusableSlide } from '../components/plannerReusableSlides'
 import { BibleImportError } from '../../packages/bible-import/index.js'
 import { BUILTIN_BIBLES, installedBibleCatalog, installedBiblePassage } from '../lib/bible/InstalledBibles'
 import { firstSongSections } from '../../packages/song-text/index.js'
@@ -328,6 +329,11 @@ const create: Endpoint = {
     try {
       const { communityId } = await managerContext(req, 'write')
       const mutation = blankServiceDocument(await boundedJson(req))
+      const templates = await serviceTemplates(req, communityId)
+      let project = serviceCore.parseHeritageServiceDocumentSource(mutation.write.documentSource).project
+      for (const template of templates.filter((value:any)=>value.autoStart)) project = insertReusableSlide(project,template.documentSource,project.rootItemIds.at(-1) || null).project
+      mutation.write.documentSource = serviceCore.serializeHeritageServiceDocument(serviceCore.createHeritageServiceDocument(project))
+      mutation.write.revision = createHash('sha256').update(mutation.write.documentSource).digest('hex')
       const result = await mutateServiceDocument(
         req,
         communityId,
@@ -616,9 +622,47 @@ const readAsset: Endpoint = {
   },
 }
 
+async function serviceTemplates(req: PayloadRequest, communityId: number): Promise<any[]> {
+  const church:any = await req.payload.findByID({collection:'communities',id:communityId,depth:0,overrideAccess:true,showHiddenFields:true,req})
+  return Array.isArray(church.presentationSlides) ? church.presentationSlides : []
+}
+const reusableSlides: Endpoint = {path:'/community/service-documents/library/slides',method:'get',handler:async req=>{
+  try { const {communityId}=await managerContext(req); return json(req,{items:await serviceTemplates(req,communityId)}) } catch(error) {return editorError(req,error)}
+}}
+const saveReusableSlide: Endpoint = {path:'/community/service-documents/library/slides/:id',method:'put',handler:async req=>{
+  try {
+    const {communityId}=await managerContext(req,'write'), id=identifier(req.routeParams?.id,'Slide identity'), data=await boundedJson(req)
+    const current=await serviceTemplates(req,communityId)
+    let next=current.filter(value=>value.id!==id)
+    if (data.remove !== true) {
+      const title=String(data.title || '').trim()
+      if (!title || title.length>200 || next.length>=50) throw new ServiceDocumentEditorError('INVALID_TEMPLATE','Name the reusable slide (up to 50 slides).',422)
+      const project=serviceCore.parseHeritageServiceDocumentSource(String(data.documentSource || '')).project
+      if(project.rootItemIds.length!==1) throw new ServiceDocumentEditorError('INVALID_TEMPLATE','Choose one slide.',422)
+      const documentSource=extractReusableSlide(project,project.rootItemIds[0])
+      for(const asset of Object.values(project.assets)) await readServiceDocumentAsset(communityId,asset)
+      next.push({id,title,autoStart:data.autoStart===true,documentSource})
+    }
+    await req.payload.update({collection:'communities',id:communityId,data:{presentationSlides:next} as never,overrideAccess:true,req})
+    return json(req,{items:next})
+  } catch(error) {return editorError(req,error)}
+}}
+const reusableSlideAsset: Endpoint = {path:'/community/service-documents/library/slides/:id/assets/:assetId',method:'get',handler:async req=>{
+  try {
+    const {communityId}=await managerContext(req)
+    const template=(await serviceTemplates(req,communityId)).find(value=>value.id===req.routeParams?.id)
+    if(!template) throw new ServiceDocumentEditorError('NOT_FOUND','Slide not found.',404)
+    const asset=serviceCore.parseHeritageServiceDocumentSource(template.documentSource).project.assets[String(req.routeParams?.assetId)]
+    if(!asset) throw new ServiceDocumentEditorError('NOT_FOUND','Media not found.',404)
+    const bytes=await readServiceDocumentAsset(communityId,asset)
+    return new Response(new Uint8Array(bytes),{headers:responseHeaders(req,{'Content-Type':asset.mediaType})})
+  } catch(error) {return editorError(req,error)}
+}}
+
 export const managerServiceDocumentEndpoints: Endpoint[] = [
   list,
   create,
+  reusableSlides, saveReusableSlide, reusableSlideAsset,
   songLibraryList,
   songLibraryRead,
   bibleLibraryCatalog,

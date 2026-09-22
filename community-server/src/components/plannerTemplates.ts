@@ -1,3 +1,4 @@
+import { readingOwner } from './plannerReadingGroups'
 import core from '../../packages/service-core/index.js'
 
 export const SERMON_TEMPLATES = [
@@ -10,12 +11,16 @@ export const SERMON_TEMPLATES = [
 export type SermonTemplateId = typeof SERMON_TEMPLATES[number]['id']
 export type TemplateText = { heading: string; body: string }
 
-export function insertionPoint(project: any, selectedId: string | null) {
+export function insertionPoint(project: any, selectedId: string | null, withinReading = false) {
+  const owner = withinReading ? null : readingOwner(project, selectedId)
+  if (owner) selectedId = owner
   const selected = selectedId ? project.items[selectedId] : null
-  if (selected?.kind === 'group') return { parentId: selected.id, index: selected.childIds.length }
+  if (selected?.kind === 'group' && !owner) return { parentId: selected.id, index: selected.childIds.length }
   const parent = Object.values(project.items).find((item: any) => item.kind === 'group' && item.childIds.includes(selectedId)) as any
   const siblings = parent ? parent.childIds : project.rootItemIds
-  return { parentId: parent?.id || null, index: selected ? siblings.indexOf(selected.id) + 1 : siblings.length }
+  let index = selected ? siblings.indexOf(selected.id) + 1 : siblings.length
+  if (!withinReading && selected && siblings[index] === `${selected.id}-blank`) index++
+  return { parentId: parent?.id || null, index }
 }
 
 export function createTemplateSlide(project: any, options: {

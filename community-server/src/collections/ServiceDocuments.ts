@@ -1,3 +1,4 @@
+import { sameServiceApartFromTranslationCues } from '../lib/serviceTranslationPlan'
 import { createHash } from 'node:crypto'
 import type {
   CollectionBeforeValidateHook,
@@ -143,6 +144,12 @@ export const prepareHeritageServiceDocument: CollectionBeforeValidateHook = ({
   const changedAt = changed
     ? now
     : canonicalTimestamp(original?.changedAt, now)
+  const previousPlan = original?.translationPlan as { serviceRevision?: string } | undefined
+  if (contentChanged && previousPlan?.serviceRevision === priorRevision
+    && typeof original?.documentSource === 'string'
+    && sameServiceApartFromTranslationCues(original.documentSource, canonicalSource)) {
+    next.translationPlan = { ...previousPlan, serviceRevision: revision }
+  }
   const readyRevision = status === 'ready' ? revision : null
   const readyAt = status === 'ready'
     ? canonicalTimestamp(original?.readyAt, now)

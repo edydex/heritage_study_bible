@@ -304,7 +304,7 @@ try {
   const serviceTableCount = Number(serviceSchema.rows[0].count)
   if (serviceTableCount !== 0 && serviceTableCount !== 2) throw new Error('The service-document media schema is incomplete.')
   if (serviceTableCount === 2) {
-    if (requireBackupReady) await client.query('LOCK TABLE service_documents, syncshow_service_document_changes IN SHARE MODE')
+    if (requireBackupReady) await client.query('LOCK TABLE service_documents, syncshow_service_document_changes, communities, books IN SHARE MODE')
     const serviceAssets = await client.query(await readFile(new URL('./service-document-asset-inventory.sql', import.meta.url), 'utf8'))
     retained.rows.push(...serviceAssets.rows)
   }

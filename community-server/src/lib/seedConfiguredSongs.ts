@@ -31,6 +31,7 @@ export async function seedConfiguredSongs(payload: Payload) {
       draft: false,
       overrideAccess: true,
       data: {
+        defaultSongLanguage: 'ru',
         songbookVisibility: 'private',
         ...song,
         community: communityId,

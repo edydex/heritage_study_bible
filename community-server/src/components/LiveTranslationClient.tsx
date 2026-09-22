@@ -3,6 +3,9 @@ import type { ServiceTranslationPlan, TranslationSettings } from '../lib/service
 import { useEffect, useRef, useState } from 'react'
 import { TranslationAccessError, translationAccessProblem, workspaceSignInHref } from '../lib/workspaceNavigation'
 
+interface SlideBridge { version: number; onCommand: unknown; report: unknown; getInput: unknown; saveInput: unknown }
+declare global { interface Window { syncShowTranslation?: SlideBridge } }
+
 interface ControlLease { token: string; expiresAtUnixMs: number; apiBase: string }
 async function requestAccess(purpose?: 'archive-review'): Promise<ControlLease> {
   const response = await fetch('/api/community/translation/access', { method: 'POST', credentials: 'same-origin', cache: 'no-store', ...(purpose ? { headers: { 'content-type': 'application/json' }, body: JSON.stringify({ purpose }) } : {}) })
@@ -56,13 +59,16 @@ export default function LiveTranslationClient() {
           servicePlanVersion: number
           archiveReviewVersion?: number
           museSettingsVersion?: number
-          mount(element: HTMLElement, options: { initialLease: ControlLease; requestAccess: typeof requestAccess; requestArchiveAccess?: typeof requestArchiveAccess; loadServicePlans: typeof loadServicePlans; saveServicePlan: typeof saveServicePlan; preferredServiceId?: string; museSettings?: typeof museSettings }): () => void
+          slideAutomationVersion?: number
+          mount(element: HTMLElement, options: { initialLease: ControlLease; requestAccess: typeof requestAccess; requestArchiveAccess?: typeof requestArchiveAccess; loadServicePlans: typeof loadServicePlans; saveServicePlan: typeof saveServicePlan; preferredServiceId?: string; museSettings?: typeof museSettings; slideAutomation?: SlideBridge }): () => void
         }
         if (stopped) return
         if (client.clientVersion !== 1 || client.servicePlanVersion !== 1 || typeof client.mount !== 'function') throw new Error('Update the translation processor to use these controls.')
+        const bridge = window.syncShowTranslation
+        if (bridge && client.slideAutomationVersion !== 1) throw new Error('Update the translation processor to use slide cues.')
         const preferred = new URL(window.location.href).searchParams.get('service')
         const preferredServiceId = preferred && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(preferred) ? preferred : undefined
-        dispose = client.mount(element, { initialLease, requestAccess, ...(client.archiveReviewVersion === 1 ? { requestArchiveAccess } : {}), ...(client.museSettingsVersion === 1 ? { museSettings } : {}), loadServicePlans, saveServicePlan, preferredServiceId })
+        dispose = client.mount(element, { initialLease, requestAccess, ...(client.archiveReviewVersion === 1 ? { requestArchiveAccess } : {}), ...(client.museSettingsVersion === 1 ? { museSettings } : {}), loadServicePlans, saveServicePlan, preferredServiceId, ...(bridge?.version === 1 ? { slideAutomation: bridge } : {}) })
         setLoading(false)
       } catch (cause) {
         if (!stopped) {

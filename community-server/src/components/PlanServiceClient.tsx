@@ -1,6 +1,8 @@
 'use client'
+import { appendBlankSlide } from './plannerReadingGroups'
 
 import { PresentationAccessibility, PresentationAccessibilityControl } from './PresentationAccessibility'
+import { insertReusableSlide, extractReusableSlide } from './plannerReusableSlides'
 import { importSermonPresentation } from './importSermonPresentation'
 import { churchWorkspaceLinks } from '@/lib/churchWorkspaceLinks'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -20,7 +22,7 @@ import ServicePreview from './ServicePreview'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 import { SERMON_TEMPLATES, createTemplateDraft, editTemplateField, editCanvasObjects, insertionPoint, type SermonTemplateId } from './plannerTemplates'
 import { addReadingTitle, preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
-import { editablePreviewBlock, editPlannerSlide, isSongTitleSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
+import { editablePreviewBlock, editPlannerSlide, isSongTitleSlide, plannerSlides, setSlideTranslationCue, translationActionForSlide, type PlannerSlide } from './plannerSlides'
 import { changePlannerSelection, plannerRangeSelection, selectedPlannerSlides, type SelectionResult } from './plannerSelection'
 import {
   parsePlannerLibrarySongDocument,
@@ -319,6 +321,9 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   const [dirty, setDirty] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [reusableSlides,setReusableSlides] = useState<any[]>([])
+  const [templateName,setTemplateName] = useState('')
+  const [templateAutoStart,setTemplateAutoStart] = useState(false)
   const [uploadingPicture, setUploadingPicture] = useState(false)
   const [uploadingVideo, setUploadingVideo] = useState(false)
   const [songLibrary, setSongLibrary] = useState<SongLibraryOption[]>([])
@@ -438,10 +443,11 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
 
   async function loadLibraries() {
     try {
-      const [songs, bible, sermons] = await Promise.all([
+      const [songs, bible, sermons, slides] = await Promise.all([
         jsonRequest(`${ENDPOINT}/library/songs`),
         jsonRequest(`${ENDPOINT}/library/bible-passage`),
         jsonRequest('/api/community/sermon-presentations'),
+        jsonRequest(`${ENDPOINT}/library/slides`),
       ])
       const nextSongs = songs.items || []
       setSongLibrary(nextSongs)
@@ -449,6 +455,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
       setBibleBooks(bible.books || [])
       if (bible.translations?.length) setBibleTranslations(bible.translations)
       setSermonLibrary(sermons.items || [])
+      setReusableSlides(slides.items || [])
       setSermonChoice(current => current || sermons.items?.[0]?.syncId || '')
     } catch (caught) {
       setError(errorText(caught))
@@ -532,6 +539,26 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   }, [])
 
   useEffect(() => { onDirtyChange?.(dirty || desiredStatus !== envelope?.status) }, [dirty, desiredStatus, envelope?.status, onDirtyChange])
+
+  function addReusable(template:any) {
+    if(!draft)return
+    try {
+      const result=insertReusableSlide(draft,template.documentSource,selectedId)
+      const deck=serviceCore.parseHeritageServiceDocumentSource(template.documentSource).project
+      setMediaPreviews(value=>({...value,...Object.fromEntries(Object.keys(deck.assets).map(id=>[id,`${ENDPOINT}/library/slides/${template.id}/assets/${encodeURIComponent(id)}`]))}))
+      acceptCoreProject(result.project,result.selectedId,'Slide copied into this service. Save when ready.')
+    } catch(error) {setError(errorText(error))}
+  }
+  async function saveReusable() {
+    if(!draft || !selected)return
+    try {
+      const result=await jsonRequest(`${ENDPOINT}/library/slides/slide-${crypto.randomUUID()}`,{method:'PUT',body:JSON.stringify({title:templateName || selected.title,autoStart:templateAutoStart,documentSource:extractReusableSlide(draft,selected.id)})})
+      setReusableSlides(result.items);setTemplateName('');setTemplateAutoStart(false);setNotice('Saved in Media for future services.')
+    } catch(error) {setError(errorText(error))}
+  }
+  async function removeReusable(id:string) {
+    try { const result=await jsonRequest(`${ENDPOINT}/library/slides/${id}`,{method:'PUT',body:JSON.stringify({remove:true})});setReusableSlides(result.items) } catch(error) {setError(errorText(error))}
+  }
 
   async function addWholeSermon() {
     if (!draft || !sermonChoice || busy) return
@@ -661,7 +688,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     setSelectedRowIds([])
     const now = new Date().toISOString()
     const id = `${kind}-${uuid()}`
-    const { parentId, index } = insertionPoint(draft, selectedId)
+    const { parentId, index } = insertionPoint(draft, selectedId, kind === 'blank')
     change(project => {
       const common = {
         id,
@@ -793,6 +820,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
         sourceChannelId: singersSourceChannelId,
         now: new Date().toISOString(),
       })
+      project = appendBlankSlide(project, itemId)
       const unaligned = Boolean((english && !alignedEnglish) || (russian && !alignedRussian))
       acceptCoreProject(
         project,
@@ -841,9 +869,10 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
         now: new Date().toISOString(),
       })
       if (!sermonPassage) project = addReadingTitle(project, itemId, { english: bibleTranslations.find(value=>value.id===bibleEnglish)?.name || bibleEnglish, russian: bibleTranslations.find(value=>value.id===bibleRussian)?.name || bibleRussian })
+      project = appendBlankSlide(project, sermonPassage ? itemId : `${itemId}-reading`)
       acceptCoreProject(
         project,
-        itemId,
+        sermonPassage ? itemId : `${itemId}-title`,
         'Reading added as short, synchronized Scripture slides. Save service when ready.',
       )
     } catch (caught) {
@@ -1191,7 +1220,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                   onDragOver={event => { if (!dragged.current) return; event.preventDefault(); event.dataTransfer.dropEffect = 'move'; const rect = event.currentTarget.getBoundingClientRect(); setDropTarget({ id: row.id, after: event.clientY > rect.top + rect.height / 2 }) }}
                   onDrop={event => { event.preventDefault(); if (dragged.current) dropSelection(dragged.current, row, Boolean(dropTarget?.after)) }}>
                   <span className="heritage-service-planner__kind" aria-hidden="true">{row.kind === 'group' ? '▾' : row.number}</span>
-                  <span><strong>{row.title}</strong>{row.kind === 'group' ? <small>section</small> : isSongTitleSlide(row) ? <small>song</small> : null}</span>
+                  <span><strong>{row.title}</strong>{row.cue?.translationAction ? <small className="heritage-service-planner__translation-cue">{row.cue.translationAction === 'start' ? '▶ Start Translate' : '■ Stop Translate'}</small> : null}{row.kind === 'group' ? <small>section</small> : isSongTitleSlide(row) ? <small>song</small> : row.readingTitle ? <small>reading</small> : null}</span>
                 </button>
               </li>
             })}
@@ -1207,6 +1236,14 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
             }}>
             <small>{selectedPlannerSlides(slideList.rows, menu.ids).length > 1 ? `${selectedPlannerSlides(slideList.rows, menu.ids).length} selected slides` : menu.row.kind === 'group' ? 'Section' : `Slide ${menu.row.number}`}</small>
             <button type="button" role="menuitem" onClick={() => { selectSlide(menu.row); setMenu(null); setSettingsOpen(true) }}>Slide settings…</button>
+            {menu.row.cue && draft ? <>
+              <button type="button" role="menuitem" onClick={() => {
+                const action = translationActionForSlide(slideList.rows, menu.row)
+                slideMutation(() => setSlideTranslationCue(draft, menu.row, action), menu.row.index)
+                setMenu(null)
+              }}>{menu.row.cue.translationAction ? 'Set' : 'Add'} “{translationActionForSlide(slideList.rows, menu.row) === 'start' ? 'Start Translate' : 'Stop Translate'}” Cue</button>
+              {menu.row.cue.translationAction ? <button type="button" role="menuitem" onClick={() => { slideMutation(() => setSlideTranslationCue(draft, menu.row, null), menu.row.index); setMenu(null) }}>Remove translation cue</button> : null}
+            </> : null}
             <button type="button" role="menuitem" onClick={() => runSelection(menu.ids, 'duplicate')}>Duplicate</button>
             <button type="button" role="menuitem" onClick={() => { setMoveDialog(menu.ids); setMenu(null) }}>Move To…</button>
             {([-1, 1] as const).map(offset => {
@@ -1277,7 +1314,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                           <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
                           <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} label={`Slide ${activeSlide?.number} ${previewChannel} Scripture — select text to format`} role="body" readOnly canFormat={!preview.singer}
                             onCommit={(text, spans) => activeSlide && slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text, spans))} />
-                          {block.attribution ? <p className="heritage-scripture-credit">{block.attribution}</p> : null}
+                          {formatting.scriptureCredit(block) ? <p className="heritage-scripture-credit">{formatting.scriptureCredit(block)}</p> : null}
                         </div>
                         return activeSlide && block.type === 'text'
                           ? <SlideText key={`${activeSlide.id}:${previewChannel}:${index}`} text={previewBlockText(block)} role={block.role}
@@ -1305,6 +1342,13 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                   : selected.kind === 'picture' ? 'Picture slide. Replace its image from Media below.'
                     : 'Click the slide text to edit · Click outside to apply · Save to keep changes'}</p>
             </section>
+            {selected.objectsByChannel?.[previewChannel]?.some((object: any) => object.id === 'welcome-topic') ?
+              <label className="heritage-service-planner__welcome-topic">Service / sermon topic
+                <input aria-label="Welcome slide topic" value={selected.objectsByChannel[previewChannel].find((object: any) => object.id === 'welcome-topic')?.text || ''}
+                  placeholder={previewChannel === 'english' ? 'Topic for this service' : 'Тема служения'}
+                  onChange={event => slideMutation(() => editCanvasObjects(draft, selected.id, previewChannel, selected.objectsByChannel[previewChannel].map((object: any) => object.id === 'welcome-topic' ? { ...object, text: event.target.value, spans: [] } : object)))} />
+              </label> : null}
+
 
             {settingsOpen && <SlideSettingsDialog onClose={() => { setSettingsOpen(false); requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(`.heritage-service-planner__rows [data-slide-id="${CSS.escape(activeSlide?.id || selected.id)}"]`)?.focus()) }}>
                 <label><span>Item name</span><input value={selected.title} maxLength={200} onChange={event => updateSelected({ title: event.target.value })} /></label>
@@ -1374,7 +1418,10 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               <button className="btn btn--style-primary" type="button" disabled={!draft || busy || !songChoice} onClick={addLibrarySong}>Add song to service</button>
               <small>Adds a service copy. Library lyrics stay unchanged.</small>
             </> : null}
+            {resourceTab === 'media' && <button type="button" disabled={!draft || busy} onClick={() => add('blank')}>Blank slide</button>}
             {resourceTab === 'media' ? <>
+              {reusableSlides.map(template=><div key={template.id}><button type="button" disabled={!draft} onClick={()=>addReusable(template)}>{template.title}</button>{template.autoStart && <small>Starts every new service</small>}<button type="button" aria-label={`Remove ${template.title} from Media`} onClick={()=>removeReusable(template.id)}>Remove from Media</button></div>)}
+              {selected && ['picture','blank','notice','sermon'].includes(selected.kind) && <details><summary>Save selected slide in Media</summary><label>Slide name<input value={templateName} placeholder={selected.title} onChange={event=>setTemplateName(event.target.value)} /></label><label><input type="checkbox" checked={templateAutoStart} onChange={event=>setTemplateAutoStart(event.target.checked)} />Add at the beginning of every new service</label><button type="button" onClick={saveReusable}>Save reusable slide</button></details>}
               <div><strong>Pictures and videos</strong><small>Media stays private inside this service until its exact revision is opened in SyncShow.</small></div>
               <button className="btn btn--style-primary" type="button" disabled={!draft || uploadingPicture} onClick={() => choosePicture('new')}>{uploadingPicture ? 'Uploading…' : 'Add picture'}</button>
               <button className="btn btn--style-primary" type="button" disabled={!draft || uploadingVideo} onClick={() => { if (videoInput.current) { videoInput.current.value = ''; videoInput.current.click() } }}>{uploadingVideo ? 'Uploading…' : 'Add video'}</button>

@@ -1,3 +1,5 @@
+import {canReadBook} from '../../../../packages/book-readalong/index.js'
+import {communityRequestAccess} from '@/lib/communityMemberRequest'
 import { publishedSongContent, songbookVisibility } from '@/lib/songPublication'
 import config from '@payload-config'
 import { getPayload } from 'payload'
@@ -24,7 +26,7 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
   const { type } = await context.params
   const collection = typeToCollection[type as keyof typeof typeToCollection]
   if (!collection) return publicJson({ error: 'Unknown catalog.' }, { status: 404 })
-  const catalogJson = type === 'songs' ? privateAuthorizationJson : publicJson
+  const catalogJson = ['songs','books'].includes(type) ? privateAuthorizationJson : publicJson
 
   const payload = await getPayload({ config })
   const communityId = await getConfiguredCommunityId(payload)
@@ -47,12 +49,13 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
     if (type !== 'songs' || !result.hasNextPage) break
     page++
   }
+  const bookAccess = type==='books' ? await communityRequestAccess(payload,request.headers,communityId) : {authenticated:false,manager:false}
   const docs = type === 'songs' ? records.flatMap<Record<string, any>>(doc => {
     const raw = doc as unknown as Record<string, unknown>
     const content = publishedSongContent(raw)
     if (songbookVisibility(raw) === 'published' && content) return [{ ...content, id: doc.id }]
     return []
-  }) : records
+  }) : type==='books' ? records.filter(doc=>canReadBook(doc,bookAccess)) : records
 
   return catalogJson(
     {
@@ -63,6 +66,7 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
       items: docs.map(doc => ({
         id: String(doc.id),
         title: doc.title,
+        ...(type==='books' ? {visibility:doc.visibility} : {}),
         description: doc.description || '',
         author: 'author' in doc ? doc.author : undefined,
         authors: 'authors' in doc ? doc.authors : undefined,
