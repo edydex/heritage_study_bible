@@ -35,6 +35,7 @@ export default function AdminNav() {
           {link('/admin/collections/memberships', 'People')}
           {link('/admin/collections/community-invites', 'Invitations')}
           {link('/admin/collections/reading-plans', 'Reading plans')}
+          {link('/admin/collections/books', 'Books')}
         </div>
         <div className="heritage-admin-nav__footer">
           <a href="/" target="_blank" rel="noreferrer">Church website ↗</a>
