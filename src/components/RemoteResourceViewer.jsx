@@ -355,8 +355,13 @@ function RemoteResourceViewer({ directSong = false }) {
     setMessage('')
     setContent('')
     setContentDocument(null)
-    (communityBook ? fetchRemote(contentUrl,memberRequestOptions).then(async response=>({value:await parseTextResponse(response,mediaType),source:'network'})) : loadTextNetworkFirst(contentUrl, mediaType, memberRequestOptions))
-      .then(({ value, source }) => {
+    const request = communityBook
+      ? fetchRemote(contentUrl, memberRequestOptions).then(async response => ({
+          value: await parseTextResponse(response, mediaType),
+          source: 'network',
+        }))
+      : loadTextNetworkFirst(contentUrl, mediaType, memberRequestOptions)
+    request.then(({ value, source }) => {
         if (cancelled) return
         const document = value && typeof value === 'object' && !Array.isArray(value) ? value : null
         setContentDocument(document)
