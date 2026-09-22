@@ -692,7 +692,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-primary text-white shadow-lg sticky top-0 z-40 safe-area-top">
+      <header data-book-reader-header className="bg-primary text-white shadow-lg sticky top-0 z-40 safe-area-top">
         <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
           <button
             onClick={() => navigate('/resources/books')}
@@ -1074,7 +1074,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
       {/* Bible-style bottom chapter navigation */}
       {hasChapters && !isSearchMode && (
         <>
-          <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg z-40 safe-area-bottom">
+          <nav data-book-reader-footer className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-lg z-40 safe-area-bottom">
             <div className="flex items-center justify-between h-14 px-2">
               <button
                 onClick={goToPreviousChapter}
