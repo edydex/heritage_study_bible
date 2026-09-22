@@ -6,7 +6,7 @@ import {
   preparePlannerPresentation,
 } from '../src/components/plannerPresentation'
 import { appendBlankSlide } from '../src/components/plannerReadingGroups'
-import { insertionPoint } from '../src/components/plannerTemplates'
+import { insertionPoint, createTemplateDraft, editCanvasObjects } from '../src/components/plannerTemplates'
 import {
   plannerSlides,
   deletePlannerSlide,
@@ -145,6 +145,22 @@ test('reusable slides make independent editable copies; source and assets surviv
     () => extractReusableSlide(reading(), 'reading-reading'),
     /Select a picture/,
   )
+})
+test('Welcome canvas insertion copies frozen template objects before applying defaults', () => {
+  let p = createTemplateDraft(project(), { id: 'welcome', template: 'other', selectedId: null })
+  const topic = {id: 'welcome-topic', type: 'text', frame: {x: .1, y: .8, width: .8, height: .1, rotation: 0}, text: 'Service topic', fontSize: 64, align: 'center', color: '#ffffff'}
+  p = editCanvasObjects(p, 'welcome', 'english', [topic])
+  p = editCanvasObjects(p, 'welcome', 'russian', [{...topic, text: 'Тема служения'}])
+  const source = extractReusableSlide(p, 'welcome')
+  const original = core.parseHeritageServiceDocumentSource(source).project.items.welcome
+  assert.ok(Object.isFrozen(original.objectsByChannel.english[0]))
+  const inserted = insertReusableSlide(project(), source, null, 'new-welcome').project
+  for (const channel of ['english', 'russian', 'media']) {
+    assert.equal(inserted.items['new-welcome'].objectsByChannel[channel][0].align, 'left')
+    assert.equal(original.objectsByChannel[channel][0].align, 'center')
+  }
+  assert.equal(inserted.items['new-welcome'].objectsByChannel.english[0].text, 'Service topic')
+  assert.equal(inserted.items['new-welcome'].objectsByChannel.russian[0].text, 'Тема служения')
 })
 test('redundant built-in source notes are hidden, imported translation credit survives', () => {
   const note =

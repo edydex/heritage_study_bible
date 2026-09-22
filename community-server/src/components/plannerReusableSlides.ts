@@ -50,7 +50,8 @@ export function insertReusableSlide(
         throw new Error('Media identity conflicts with this service.')
       project[table][key] = value
     }
-  project.items[id] = { ...original, id }
+  // Parsed templates are deeply frozen; defaults must only modify the service copy.
+  project.items[id] = { ...JSON.parse(JSON.stringify(original)), id }
   for (const objects of Object.values(project.items[id].objectsByChannel || {}) as any[])
     for (const object of objects) if (object.id === 'welcome-topic') object.align = 'left'
   const siblings = place.parentId
