@@ -1,3 +1,4 @@
+import typography from '../../packages/service-core/node/services/project/SlideTypography.js'
 import { insertReusableSlide, extractReusableSlide } from '../components/plannerReusableSlides'
 import { BibleImportError } from '../../packages/bible-import/index.js'
 import { BUILTIN_BIBLES, installedBibleCatalog, installedBiblePassage } from '../lib/bible/InstalledBibles'
@@ -479,6 +480,7 @@ const songLibraryRead: Endpoint = {
           title: item.title,
           russianTitle: item.russianTitle,
           defaultSongLanguage: item.defaultSongLanguage,
+          projectionStyle: item.projectionStyle,
           rightsStatus: item.rightsStatus,
           visibility: item.visibility,
           syncDocuments: item.syncDocuments,
@@ -659,12 +661,28 @@ const reusableSlideAsset: Endpoint = {path:'/community/service-documents/library
   } catch(error) {return editorError(req,error)}
 }}
 
+const saveSongLayout: Endpoint = {
+  path:'/community/service-documents/library/songs/:syncId/layout',method:'post',handler:async req=>{
+    try {
+      const {communityId}=await managerContext(req, 'write')
+      const syncId=identifier(req.routeParams?.syncId,'Song identity')
+      const data=await boundedJson(req)
+      let projectionStyle
+      try {projectionStyle=typography.normalizeTextStyle(data)} catch {throw new ServiceDocumentEditorError('INVALID_LAYOUT','Choose a valid song font size and alignment.',400)}
+      const song=(await req.payload.find({collection:'songs',req,depth:0,limit:1,overrideAccess:true,where:{and:[{community:{equals:communityId}},{syncId:{equals:syncId}},{status:{not_equals:'archived'}}]}})).docs[0]
+      if(!song)throw new ServiceDocumentEditorError('SONG_NOT_FOUND','Song not found.',404)
+      await req.payload.update({collection:'songs',id:song.id,req,overrideAccess:true,data:{projectionStyle}})
+      return json(req,{saved:true,projectionStyle})
+    } catch(error){return editorError(req,error)}
+  }
+}
+
 export const managerServiceDocumentEndpoints: Endpoint[] = [
   list,
   create,
   reusableSlides, saveReusableSlide, reusableSlideAsset,
   songLibraryList,
-  songLibraryRead,
+  songLibraryRead, saveSongLayout,
   bibleLibraryCatalog,
   bibleLibraryRead,
   read,

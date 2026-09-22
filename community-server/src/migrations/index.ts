@@ -1,3 +1,4 @@
+import * as songProjectionStyle from './20260922_140000_song_projection_style'
 import * as serviceSlidesBooks from './20260921_230000_service_slides_member_books'
 import * as songDefaultLanguage from './20260921_190000_song_default_language'
 import * as migration_bibles from './20260921_040000_private_bible_translations'
@@ -143,4 +144,5 @@ export const migrations = [
   { up: migration_bibles.up, down: migration_bibles.down, name: '20260921_040000_private_bible_translations' },
   { up: songDefaultLanguage.up, down: songDefaultLanguage.down, name: '20260921_190000_song_default_language' },
   {up:serviceSlidesBooks.up,down:serviceSlidesBooks.down,name:'20260921_230000_service_slides_member_books'},
+  {up:songProjectionStyle.up,down:songProjectionStyle.down,name:'20260922_140000_song_projection_style'},
 ];

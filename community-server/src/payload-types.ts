@@ -530,6 +530,18 @@ export interface ReadingPlanNote {
 export interface Song {
   id: number;
   /**
+   * Font size and alignment reused when adding this song to a service.
+   */
+  projectionStyle?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
    * The primary (top) language when adding this song to a service. You can change it per service.
    */
   defaultSongLanguage: 'ru' | 'en';
@@ -1795,6 +1807,7 @@ export interface ReadingPlanNoteSelect<T extends boolean = true> {
  * via the `definition` "songs_select".
  */
 export interface SongsSelect<T extends boolean = true> {
+  projectionStyle?: T;
   defaultSongLanguage?: T;
   community?: T;
   slug?: T;

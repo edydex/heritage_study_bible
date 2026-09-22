@@ -146,13 +146,15 @@ test('reusable slides make independent editable copies; source and assets surviv
     /Select a picture/,
   )
 })
-test('redundant built-in BSB note is hidden, imported translation credit survives', () => {
+test('redundant built-in source notes are hidden, imported translation credit survives', () => {
   const note =
     'Berean Standard Bible (BSB); exact text pinned from Heritage Study Bible reader data.'
   assert.equal(
     formatting.scriptureCredit({ translationId: 'BSB', attribution: note }),
     '',
   )
+  assert.equal(formatting.scriptureCredit({translationId: 'SYNO-W', attribution: 'Russian Synodal Bible (SYNO-W); exact text pinned from Heritage Study Bible reader data.'}), '')
+  assert.equal(formatting.scriptureCredit({translationId: 'SYNO-W', attribution: 'Required recording or edition credit'}), 'Required recording or edition credit')
   assert.equal(
     formatting.scriptureCredit({
       translationId: 'LSB',

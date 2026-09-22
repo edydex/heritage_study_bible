@@ -1,4 +1,5 @@
 import { flattenReadingGroups } from './plannerReadingGroups'
+import typography from '../../packages/service-core/node/services/project/SlideTypography.js'
 import core from '../../packages/service-core/index.js'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 
@@ -8,19 +9,8 @@ type RecordValue = Record<string, any>
 // Both languages use the same verse boundaries, sized for the longer output.
 export const SCRIPTURE_PAGE_MAX_VERSES = 12
 export const SCRIPTURE_PAGE_MAX_LINES = 10
-const SCRIPTURE_LINE_CHARACTERS = 48
-
 export function scriptureLineCount(text: string) {
-  return text.split('\n').reduce((total, paragraph) => {
-    let lines = 1
-    let used = 0
-    for (const word of paragraph.split(/\s+/).filter(Boolean)) {
-      if (used && used + 1 + word.length > SCRIPTURE_LINE_CHARACTERS) { lines++; used = 0 }
-      used += (used ? 1 : 0) + word.length
-      while (used > SCRIPTURE_LINE_CHARACTERS) { lines++; used -= SCRIPTURE_LINE_CHARACTERS }
-    }
-    return total + lines
-  }, 0)
+  return typography.wrappedLines(text, 85, 1920 * .98, '500')
 }
 
 export function scripturePages(item: RecordValue): number[][] {
@@ -34,8 +24,8 @@ export function scripturePages(item: RecordValue): number[][] {
   for (const number of verseNumbers) {
     const candidate = [...current, number]
     const fits = candidate.length <= SCRIPTURE_PAGE_MAX_VERSES && passages.every(passage => (
-      scriptureLineCount(formatting.scriptureFlowText(passage.verses.filter((verse: RecordValue) => candidate.includes(verse.number))))
-      <= SCRIPTURE_PAGE_MAX_LINES
+      typography.wrappedLines(formatting.scriptureFlowText(passage.verses.filter((verse: RecordValue) => candidate.includes(verse.number))), item.presetId === 'wotbc-sermon-scripture' ? 78 : 85, 1920 * (item.presetId === 'wotbc-sermon-scripture' ? .97 : .98), '500')
+      <= (item.presetId === 'wotbc-sermon-scripture' ? 9 : 10)
     ))
     if (current.length && !fits) { pages.push(current); current = [] }
     current.push(number)

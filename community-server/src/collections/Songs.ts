@@ -1,3 +1,4 @@
+import typography from '../../packages/service-core/node/services/project/SlideTypography.js'
 import type { CollectionConfig, Field } from 'payload'
 import { captureSongPublicationIntent, prepareSongPublication, withdrawSongPublicLinks } from '@/lib/songPublication'
 import { createCommunityContent, manageCommunityContent, readSongsByVisibility } from '@/access'
@@ -47,6 +48,8 @@ export const Songs: CollectionConfig = {
     ],
   },
   fields: [
+    {name:'projectionStyle',type:'json',label:'Saved slide layout',admin:{hidden:true,description:'Font size and alignment reused when adding this song to a service.'},
+      validate:(value:any)=>{try {if(value)typography.normalizeTextStyle(value);return true}catch{return 'Choose a valid font size and alignment in Service Planner.'}}},
     { name: 'defaultSongLanguage', label: 'Default song language', type: 'select', required: true, defaultValue: 'ru',
       options: [{ label: 'Russian', value: 'ru' }, { label: 'English', value: 'en' }],
       admin: { components: { Cell: '@/components/SongLanguageCell' }, description: 'The primary (top) language when adding this song to a service. You can change it per service.' } },

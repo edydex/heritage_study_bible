@@ -804,6 +804,7 @@ export function serializeSongForSync(song: Record<string, unknown>, now = new Da
     description: song.description || '',
     russianTitle: song.russianTitle || '',
     defaultSongLanguage: song.defaultSongLanguage === 'en' ? 'en' : 'ru',
+    projectionStyle: song.projectionStyle || null,
     alternateTitles: Array.isArray(song.alternateTitles) ? song.alternateTitles : [],
     authors: Array.isArray(song.authors) ? song.authors : [],
     lyrics: song.lyrics || '',
