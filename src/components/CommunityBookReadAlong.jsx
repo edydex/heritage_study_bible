@@ -233,7 +233,7 @@ export default function CommunityBookReadAlong({
   }
   function choose(id) {
     resume.current = 0
-    autoPlay.current = playing
+    autoPlay.current = Boolean(player.current && !player.current.paused)
     setChapterId(id)
   }
   return (
@@ -241,6 +241,7 @@ export default function CommunityBookReadAlong({
       <label>
         Chapter
         <select
+          aria-label="Chapter"
           value={chapter.id}
           onChange={(event) => choose(event.target.value)}
         >
