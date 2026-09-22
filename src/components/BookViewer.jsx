@@ -692,7 +692,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
+      <header className="bg-primary text-white shadow-lg sticky top-0 z-40 safe-area-top">
         <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
           <button
             onClick={() => navigate('/resources/books')}
@@ -1009,7 +1009,14 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
               {audioTarget && <p role="status" className="mb-3 text-sm text-gray-500 dark:text-gray-400">{audioParagraph ? 'Nearby passage from the recording. The narrator may use a different translation; this is an automatic paragraph match.' : 'The book text has changed, so the recorded location could not be verified.'}</p>}
               <div className="space-y-4">
                 {(selectedChapter?.paragraphs || []).map((paragraph, index) => (
-                  <p key={index} id={`book-paragraph-${index}`} tabIndex={-1} data-audio-paragraph={shownAudioParagraph?.chapterIndex === selectedChapterIndex && shownAudioParagraph?.paragraphIndex === index ? 'true' : undefined} data-audio-following={playingTiming ? 'true' : undefined} className="book-text-paragraph text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
+                  <p key={index} id={`book-paragraph-${index}`} tabIndex={-1} onClick={event => {
+                    if (event.target.closest('button,a')) return
+                    const start = playingTiming?.sentenceSpans?.find(span => {
+                      const paragraph = playingTiming.paragraphs[span.paragraph]
+                      return paragraph?.chapterIndex === selectedChapterIndex && paragraph.paragraphIndex === index
+                    })?.start
+                    if (start != null) audio?.player.seek(start)
+                  }} data-audio-paragraph={shownAudioParagraph?.chapterIndex === selectedChapterIndex && shownAudioParagraph?.paragraphIndex === index ? 'true' : undefined} data-audio-following={playingTiming ? 'true' : undefined} className="book-text-paragraph text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
                     {liveParagraph?.chapterIndex === selectedChapterIndex && liveParagraph?.paragraphIndex === index ? <>
                       {renderParagraphWithFootnotes(paragraph.slice(0, liveParagraph.textStart), searchQuery, footnotesById, openFootnote)}
                       <span data-audio-sentence="true">{renderParagraphWithFootnotes(paragraph.slice(liveParagraph.textStart, liveParagraph.textEnd), searchQuery, footnotesById, openFootnote)}</span>

@@ -167,6 +167,10 @@ public class AudioPlaybackIntegrationTest {
         context.getSharedPreferences("heritage_secure_storage", Context.MODE_PRIVATE).edit().putString(key, value).commit();
     }
     @Test public void communityBookPlaysDownloadedChaptersWithoutWebViewAndStopsAtSignOut() throws Exception {
+        // Start playback from the visible app, as a reader does. Android 15
+        // rejects a new audio-focus request from an otherwise background app.
+        reader = ActivityScenario.launch(new Intent(context, MainActivity.class).setAction("faith.heritage.app.OPEN_AUDIO"));
+        await(() -> "true".equals(js("Boolean(document.querySelector('.audio-player-title'))")));
         byte[] data = java.nio.file.Files.readAllBytes(fixture.toPath());
         StringBuilder digest = new StringBuilder();
         for (byte b : java.security.MessageDigest.getInstance("SHA-256").digest(data)) digest.append(String.format(java.util.Locale.ROOT, "%02x", b));
@@ -192,6 +196,7 @@ public class AudioPlaybackIntegrationTest {
         Bundle play = new Bundle(); play.putString("trackId", first); play.putBoolean("restart", true); command("play", play);
         await(() -> state().optString("status").equals("playing"));
         assertTrue(state().getBoolean("offline"));
+        reader.close(); reader = null; // The service now owns playback without a WebView.
         double initial = state().getDouble("position");
         await(() -> state().getDouble("position") > initial + 1);
         Bundle seek = new Bundle(); seek.putDouble("position", 20); command("seek", seek); command("pause", new Bundle());

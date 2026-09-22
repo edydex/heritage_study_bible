@@ -346,7 +346,7 @@ function ResourcePage() {
 
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900">
-      <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
+      <header className="bg-primary text-white shadow-lg sticky top-0 z-40 safe-area-top">
         <div className="px-4 sm:px-6 min-h-14 py-2 flex flex-wrap sm:flex-nowrap items-center gap-3">
           <button
             onClick={() => navigate(communityId ? '/community' : '/genesis/1')}

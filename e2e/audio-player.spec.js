@@ -67,7 +67,7 @@ test('phone player and Internal Storage remain usable without horizontal overflo
   await expect(page.getByRole('region', { name: 'Audio player' })).toBeVisible()
   await page.getByRole('button', { name: 'Internal Storage', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Internal Storage' })).toBeVisible()
-  await expect(page.getByText('Offline audio downloads are available in the Android app. Browser playback streams the recording.')).toBeVisible()
+  await expect(page.getByText('Built-in Bible and LibriVox audio downloads are available in the Android app. Community book downloads also work in supported browsers.')).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.screenshot({ path: test.info().outputPath('audio-storage-phone.png'), fullPage: true })
 })
