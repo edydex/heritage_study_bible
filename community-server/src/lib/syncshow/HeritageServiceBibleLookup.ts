@@ -6,6 +6,9 @@ import {
 } from './BibleRange'
 
 import formatting from '../../../packages/service-core/node/services/project/SlideFormatting.js'
+import { onlineBibleSource } from '../bible/OnlineBibleSources'
+import { onlineBiblePassage } from '../bible/OnlineBiblePassage'
+import { BibleImportError } from '../../../packages/bible-import/index.js'
 
 const MAX_TRANSLATION_BOOK_BYTES = 4 * 1024 * 1024
 const TRANSLATIONS = Object.freeze({
@@ -192,6 +195,13 @@ export async function loadHeritageServiceBiblePassage(
   const baseUrl = heritageReaderBaseUrl(heritageAppUrl)
   const reference = selected ? `${book.name} ${range.start.chapter}:${formatting.verseSelectionLabel(selected)}` : formatBibleRange(range)
   async function channel(id: string) {
+    if (onlineBibleSource(id)) {
+      if (importedPassage) {
+        try { return await importedPassage(id, range) }
+        catch (error) { if (!(error instanceof BibleImportError) || error.code !== 'BIBLE_NOT_INSTALLED') throw error }
+      }
+      return onlineBiblePassage(id, range, selected, fetchImpl)
+    }
     const builtIn = Object.values(TRANSLATIONS).find(value => value.id === id)
     if (!builtIn) {
       if (!importedPassage) throw new HeritageServiceBibleLookupError('BIBLE_NOT_INSTALLED', 'That Bible edition is not installed for this church.', 404)
@@ -201,7 +211,8 @@ export async function loadHeritageServiceBiblePassage(
     if (result.value.name !== book!.name) throw new HeritageServiceBibleLookupError('INVALID_BIBLE_SOURCE', 'Heritage reader data returned the wrong Bible book.', 502)
     return { passage: { reference, translationId: id, attribution: builtIn.attribution, verses: exactVerses(result.value, range, id) }, sourceUrl: result.sourceUrl }
   }
-  const [english, russian] = await Promise.all([channel(translations.english), channel(translations.russian)])
+  const englishRequest = channel(translations.english)
+  const [english, russian] = await Promise.all([englishRequest, translations.russian === translations.english ? englishRequest : channel(translations.russian)])
   const select = (passage: typeof english.passage) => selected ? {...passage, reference: passage.reference.replace(/\s+\d+:.*$/, ` ${range.start.chapter}:${formatting.verseSelectionLabel(selected)}`), verses: passage.verses.filter(v=>selected!.includes(v.number))} : passage
   const englishPassage = select(english.passage)
   const russianPassage = select(russian.passage)

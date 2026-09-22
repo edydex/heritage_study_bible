@@ -1523,6 +1523,11 @@
   background: var(--theme-elevation-50);
 }
 
+.heritage-bible-source-notice { font-size: .75rem; line-height: 1.45; min-width: 0; overflow-wrap: anywhere; }
+.heritage-bible-source-notice > summary { cursor: pointer; }
+.heritage-bible-source-notice a { color: inherit; text-decoration: underline; }
+.heritage-canvas-inspector .heritage-bible-source-notice { padding: .8rem; }
+
 .heritage-service-planner__resource-tabs {
   display: flex;
   gap: 0.25rem;
