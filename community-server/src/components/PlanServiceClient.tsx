@@ -478,7 +478,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
 
   function useEnvelope(next: ServiceEnvelopeInput, keepSelection = false) {
     const project = projectFromServiceEnvelope(next) as ServiceProject
-    const prepared = preparePlannerPresentation(project)
+    const prepared = preparePlannerPresentation(project, {paginateItemIds: new Set()})
     const normalized = { ...next, project } as ServiceEnvelope
     setEnvelope(normalized)
     setDraft(cloneProject(prepared.project as ServiceProject))
@@ -728,7 +728,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     setPaletteOpen(false)
     setSelectedRowIds([])
     if (draft) setUndoStack(stack => [...stack.slice(-29), draft])
-    const prepared = preparePlannerPresentation(project).project as ServiceProject
+    const prepared = preparePlannerPresentation(project, {paginateItemIds: new Set(Object.keys(project.items).filter(id => !draft?.items[id]))}).project as ServiceProject
     setDraft(cloneProject(prepared))
     setSelectedId(prepared.items[itemId]?.kind === 'group' ? prepared.items[itemId].childIds[0] || itemId : itemId)
     setPreviewSlideIndex(0)
