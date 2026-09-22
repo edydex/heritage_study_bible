@@ -63,3 +63,11 @@ test('text preferences reject arbitrary properties and invalid values',()=>{
  assert.deepEqual(typographyItemIds(p,'one'),['one','two'])
  assert.deepEqual(typographyItemIds(p,'song'),['song'])
  })
+
+test('minimum song font remains valid when a long authored line must wrap',()=>{
+ const p={items:{song:{id:'song',textStyle:{bodySize:32}}}}
+ const cues={one:{itemId:'song',kind:'song',presetId:'wotbc-song-lyrics',channels:{english:{mode:'content',blocks:[{type:'text',role:'lyrics',text:'A '.repeat(150)}]}}}} as any
+ typography.applyTimelineTypography(p,cues,{groupPathByItemId:{}})
+ assert.equal(cues.one.textStyle.bodySize,32)
+ assert.doesNotThrow(()=>typography.normalizeTextStyle(cues.one.textStyle))
+})
