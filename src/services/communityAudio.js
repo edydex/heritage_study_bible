@@ -84,17 +84,23 @@ export function communityAudioTiming(document, track) {
       const matches = words.filter(word => word.sourceStart < range.end && word.sourceEnd > range.start)
       if (!matches.length) continue
       const next = { paragraph: key, start: matches[0].start, end: matches.at(-1).end, textStart: range.start, textEnd: range.end }
-      const previous = sentenceSpans.at(-1)
-      // A spoken reference can map several words to one source span, e.g.
-      // "(Лук. 9:1)". Intl may split at that abbreviation. Keep the shared
-      // source span together instead of highlighting the reference twice.
-      if (previous?.paragraph === key && next.start < previous.end) {
-        previous.end = Math.max(previous.end, next.end)
-        previous.textEnd = next.textEnd
-      } else sentenceSpans.push(next)
+      sentenceSpans.push(next)
     }
   })
-  return { trackId: track.id, textBookId: track.bookId, paragraphs, spans, sentenceSpans }
+  // Narration may read a printed citation before the quotation it follows.
+  // The player's binary search needs spoken order. Shared source mappings can
+  // cross sentence boundaries (e.g. “Лук. 9:1”); merge their overlapping ranges.
+  sentenceSpans.sort((a, b) => a.start - b.start || a.end - b.end)
+  const merged = []
+  for (const next of sentenceSpans) {
+    const previous = merged.at(-1)
+    if (previous?.paragraph === next.paragraph && next.start < previous.end) {
+      previous.end = Math.max(previous.end, next.end)
+      previous.textStart = Math.min(previous.textStart, next.textStart)
+      previous.textEnd = Math.max(previous.textEnd, next.textEnd)
+    } else merged.push({ ...next })
+  }
+  return { trackId: track.id, textBookId: track.bookId, paragraphs, spans, sentenceSpans: merged }
 }
 export async function loadCommunityAudioTiming(track) {
   const options = await optionsFor({ community: track.community })
