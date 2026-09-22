@@ -82,7 +82,16 @@ export function communityAudioTiming(document, track) {
     spans.push({ paragraph: key, start: words[0].start, end: words.at(-1).end })
     for (const range of sentenceRanges(paragraph.text, document.readAlong.language)) {
       const matches = words.filter(word => word.sourceStart < range.end && word.sourceEnd > range.start)
-      if (matches.length) sentenceSpans.push({ paragraph: key, start: matches[0].start, end: matches.at(-1).end, textStart: range.start, textEnd: range.end })
+      if (!matches.length) continue
+      const next = { paragraph: key, start: matches[0].start, end: matches.at(-1).end, textStart: range.start, textEnd: range.end }
+      const previous = sentenceSpans.at(-1)
+      // A spoken reference can map several words to one source span, e.g.
+      // "(Лук. 9:1)". Intl may split at that abbreviation. Keep the shared
+      // source span together instead of highlighting the reference twice.
+      if (previous?.paragraph === key && next.start < previous.end) {
+        previous.end = Math.max(previous.end, next.end)
+        previous.textEnd = next.textEnd
+      } else sentenceSpans.push(next)
     }
   })
   return { trackId: track.id, textBookId: track.bookId, paragraphs, spans, sentenceSpans }
