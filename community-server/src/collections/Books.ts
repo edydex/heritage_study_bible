@@ -19,7 +19,9 @@ export const Books: CollectionConfig = {
   fields: [
     ...communityContentFields,
     { name:'visibility',type:'select',required:true,defaultValue:'members',options:[{label:'Signed-in church members',value:'members'},{label:'Public — everyone',value:'public'}] },
-    { name:'readAlong',type:'json',admin:{hidden:true},access:{create:()=>false,update:()=>false} },
+    // Keep large timing data out of the admin form and ordinary API responses.
+    // The dedicated upload and authorized reader endpoints load it explicitly.
+    { name:'readAlong',type:'json',hidden:true,access:{create:()=>false,update:()=>false} },
     { name:'readAlongUpload',type:'ui',admin:{components:{Field:'@/components/BookReadAlongUpload'}} },
     { name: 'author', type: 'text', required: true },
     { name: 'publishedYear', label: 'Year published', type: 'number' },
