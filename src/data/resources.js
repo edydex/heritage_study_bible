@@ -164,7 +164,7 @@ export const RESOURCE_CATEGORIES = [
   },
   {
     id: 'books',
-    title: 'Public Domain Books',
+    title: 'Books',
     icon: '📚',
     color: 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/50',
     items: [

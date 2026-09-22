@@ -54,7 +54,7 @@ export default function CommunityResources({ community }) {
         <span className="block font-semibold">Live translation</span>
         <span className="mt-1 block text-sm text-gray-500 dark:text-gray-400">Read the translation or listen when translated audio is available.</span>
       </a>}
-      {[['calendar', 'Calendar', 'See upcoming events and regular gatherings.'], ['sermons', 'Sermons and notes', 'Read the messages your church shares.'], ['songs', 'Songs', 'Find the songs your congregation sings.'], ['commentaries', 'Passage commentary', 'Open your church’s published Bible study notes.']].map(([id, title, description]) =>
+      {[['calendar', 'Calendar', 'See upcoming events and regular gatherings.'], ['sermons', 'Sermons and notes', 'Read the messages your church shares.'], ['songs', 'Songs', 'Find the songs your congregation sings.'], ['books', 'Books', 'Read and listen to books your church shares.'], ['commentaries', 'Passage commentary', 'Open your church’s published Bible study notes.']].map(([id, title, description]) =>
         <button key={id} onClick={() => openResource(id)} disabled={busy} className={tileClass}>
           <span className="block font-semibold">{title}</span><span className="mt-1 block text-sm text-gray-500 dark:text-gray-400">{description}</span>
         </button>)}
@@ -65,7 +65,7 @@ export default function CommunityResources({ community }) {
     </div>
     <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
       {server?.enabled === false ? <p>This church’s resources are disabled. Open Content settings to enable them.</p> :
-        <p>{server ? 'Your saved library remains available when the church server cannot be reached.' : 'Opening a resource adds this church’s public library. No membership sign-in is needed.'}</p>}
+        <p>{server ? 'Saved listings remain available when the church server cannot be reached. Sign in to download member-only books for offline reading and listening.' : 'Opening a resource adds this church’s public library. Sign in to see member-only books.'}</p>}
       {server && <button disabled={busy} onClick={() => updateResources()} className="mt-2 text-primary dark:text-blue-300 underline disabled:opacity-50">{busy ? 'Updating…' : 'Refresh church resources'}</button>}
       {(pages.live || pages.translation) && <p className="mt-2">Live pages open separately and need an internet connection.</p>}
     </div>

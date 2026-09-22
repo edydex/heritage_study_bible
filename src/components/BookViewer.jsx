@@ -1,5 +1,6 @@
 import { useHeritageAudio } from './audio/AudioProvider'
 import AudioPlayButton from './audio/AudioPlayButton'
+import { keepReadingSentenceVisible } from '../utils/readingScroll'
 import { activeAudiobookSentence, audiobookDestination, loadAudiobookTiming, matchingAudioParagraph } from '../services/audiobookText'
 import { getAudioTrack, getBookAudioTracks } from '../services/audioCatalog'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -148,8 +149,9 @@ function pickCommentarySelection(authorsData, bookName, chapter, preferredAuthor
   }
 }
 
-function BookReader() {
-  const { itemId } = useParams()
+export function BookReader({ resourceBook, resourceChapters, downloadControls }) {
+  const { itemId: routeItemId } = useParams()
+  const itemId = resourceBook?.id || routeItemId
   const location = useLocation()
   const navigate = useNavigate()
   const [bookText, setBookText] = useState('')
@@ -191,7 +193,7 @@ function BookReader() {
   const searchInputRef = useRef(null)
 
   const category = RESOURCE_CATEGORIES.find(c => c.id === 'books')
-  const book = category?.items.find(i => i.id === itemId)
+  const book = resourceBook || category?.items.find(i => i.id === itemId)
   const audioBook = book?.audioBookId ? category.items.find(item => item.id === book.audioBookId) : book
   const alternativeEdition = category?.items.find(item => item.id === book?.alternativeEditionId)
 
@@ -284,7 +286,7 @@ function BookReader() {
     return () => { cancelled = true }
   }, [playingTrack?.id, itemId])
 
-  const chapters = useMemo(() => parseBookChapters(bookText), [bookText])
+  const chapters = useMemo(() => resourceChapters || parseBookChapters(bookText), [resourceChapters, bookText])
   const audioParagraph = useMemo(() => matchingAudioParagraph(chapters, audioTarget), [chapters, audioTarget])
   const liveTarget = useMemo(() => activeAudiobookSentence(playingTrack, playingTiming, audio?.state.position), [playingTrack?.id, playingTiming, audio?.state.position])
   const liveParagraph = useMemo(() => matchingAudioParagraph(chapters, liveTarget), [chapters, liveTarget])
@@ -299,7 +301,7 @@ function BookReader() {
     const frame = requestAnimationFrame(() => {
       const paragraph = document.querySelector('[data-audio-sentence="true"]')
       const rect = paragraph?.getBoundingClientRect()
-      if (rect && (rect.top < 130 || rect.bottom > window.innerHeight - 80)) paragraph.scrollIntoView({ block: rect.height > window.innerHeight - 220 ? 'start' : 'center', behavior: 'instant' })
+      if (rect) keepReadingSentenceVisible(rect)
     })
     return () => cancelAnimationFrame(frame)
   }, [liveParagraph?.chapterIndex, liveParagraph?.paragraphIndex, liveParagraph?.textStart, selectedChapterIndex, audio?.settings.followBooks, audio?.state.status, textLoading, progressReady])
@@ -608,7 +610,7 @@ function BookReader() {
     )
   }
 
-  const yearDisplay = book.year < 1000 ? `${book.year} AD` : `${book.year}`
+  const yearDisplay = book.year ? (book.year < 1000 ? `${book.year} AD` : `${book.year}`) : ''
   const sourceLabel = book.textUrl?.includes('gutenberg.org') ? 'Gutenberg ↗' : 'Source text ↗'
   const tagColors = book.tag ? TAG_COLORS[book.tag] : null
   const hasChapters = !textLoading && !textError && chapters.length > 0
@@ -903,7 +905,7 @@ function BookReader() {
             {book.title}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {book.author} · {yearDisplay}
+            {[book.author, yearDisplay].filter(Boolean).join(' · ')}
           </p>
           {tagColors && (
             <div className="mt-2">
@@ -925,6 +927,7 @@ function BookReader() {
         <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
         {activeLibrivox && <BookAudioPanel key={`${book.id}:${activeLibrivox.archiveId || ''}`} bookId={audioBook.id} editionId={activeLibrivox.archiveId} />}
+        {downloadControls}
 
         {/* In-app Book Text */}
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">
@@ -1077,7 +1080,7 @@ function BookReader() {
                 </svg>
               </button>
 
-              <AudioPlayButton track={getBookAudioTracks(audioBook?.id).find(track => track.id === audio?.state.trackId) || getBookAudioTracks(audioBook?.id)[0]} label="book" />
+              <AudioPlayButton track={resourceBook ? getBookAudioTracks(audioBook?.id)[selectedChapterIndex] : getBookAudioTracks(audioBook?.id).find(track => track.id === audio?.state.trackId) || getBookAudioTracks(audioBook?.id)[0]} label="book" />
               <button
                 onClick={() => setShowNavigator(true)}
                 className="flex-1 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"

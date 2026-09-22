@@ -15,6 +15,8 @@ import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.session.LibraryResult;
 import androidx.media3.session.MediaLibraryService;
 import androidx.media3.session.MediaSession;
@@ -39,6 +41,7 @@ public class HeritagePlaybackService extends MediaLibraryService {
     private MediaLibrarySession session;
     private HeritageAudioCatalog catalog;
     private SharedPreferences preferences;
+    private SharedPreferences securePreferences;
     private JSONObject positions = new JSONObject();
     private String lastId = "";
     private float speed = 1f;
@@ -47,6 +50,17 @@ public class HeritagePlaybackService extends MediaLibraryService {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable saveTick = new Runnable() { public void run() { persist(); handler.postDelayed(this, 5000); } };
     private final SharedPreferences.OnSharedPreferenceChangeListener preferencesChanged = (prefs, key) -> {
+        if ((CommunityAudioStore.INDEX.equals(key) || "heritage-community-sessions-v1".equals(key)) && session != null) {
+            handler.post(() -> {
+                catalog.reloadCommunityBooks();
+                MediaItem current = player.getCurrentMediaItem();
+                if (current != null && current.mediaId.startsWith("cb-") && catalog.track(current.mediaId) == null) {
+                    persist(); player.stop(); player.clearMediaItems(); lastId = "";
+                }
+                session.notifyChildrenChanged(HeritageAudioCatalog.BOOKS, catalog.children(HeritageAudioCatalog.BOOKS, lastId).size(), null);
+                session.notifyChildrenChanged(HeritageAudioCatalog.DOWNLOADS, catalog.children(HeritageAudioCatalog.DOWNLOADS, lastId).size(), null);
+            });
+        }
         if (HeritageAudioCatalog.DOWNLOAD_INDEX.equals(key) && session != null) {
             session.notifyChildrenChanged(HeritageAudioCatalog.DOWNLOADS, catalog.children(HeritageAudioCatalog.DOWNLOADS, lastId).size(), null);
             // A download or deletion can happen after the queue was built. Keep
@@ -71,7 +85,9 @@ public class HeritagePlaybackService extends MediaLibraryService {
             lastId = saved.optString("lastTrackId", ""); if (catalog.track(lastId) == null) lastId = "";
             speed = validSpeed((float) saved.optDouble("rate", 1));
         } catch (Exception ignored) { /* Invalid saved values never become media URIs. */ }
-        player = new ExoPlayer.Builder(this).setSeekBackIncrementMs(15000).setSeekForwardIncrementMs(15000).build();
+        player = new ExoPlayer.Builder(this)
+            .setMediaSourceFactory(new DefaultMediaSourceFactory(new DefaultDataSource.Factory(this, () -> new CommunityAudioDataSource(this, catalog))))
+            .setSeekBackIncrementMs(15000).setSeekForwardIncrementMs(15000).build();
         player.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_SPEECH).build(), true);
         player.setHandleAudioBecomingNoisy(true);
         player.setWakeMode(C.WAKE_MODE_LOCAL);
@@ -93,6 +109,8 @@ public class HeritagePlaybackService extends MediaLibraryService {
         session = new MediaLibrarySession.Builder(this, player, new LibraryCallback())
             .setSessionActivity(PendingIntent.getActivity(this, 21, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)).build();
         preferences.registerOnSharedPreferenceChangeListener(preferencesChanged);
+        securePreferences = getSharedPreferences("heritage_secure_storage", Context.MODE_PRIVATE);
+        securePreferences.registerOnSharedPreferenceChangeListener(preferencesChanged);
         handler.postDelayed(saveTick, 5000);
     }
     private static float validSpeed(float value) { return value == .75f || value == 1f || value == 1.25f || value == 1.5f || value == 1.75f || value == 2f ? value : 1f; }
@@ -143,7 +161,7 @@ public class HeritagePlaybackService extends MediaLibraryService {
         try {
             state.put("trackId", track != null ? id : JSONObject.NULL).put("position", current != null ? player.getCurrentPosition() / 1000d : savedPosition(id) / 1000d)
                 .put("duration", duration / 1000d).put("rate", player.getPlaybackParameters().speed).put("status", status)
-                .put("offline", current != null && current.localConfiguration != null && "file".equals(current.localConfiguration.uri.getScheme()))
+                .put("offline", current != null && (track != null && track.community != null ? catalog.downloadedFile(id) != null : current.localConfiguration != null && "file".equals(current.localConfiguration.uri.getScheme())))
                 .put("error", player.getPlayerError() == null ? "" : "Audio could not load. Check your connection or try Play again. Your saved position is kept.")
                 .put("sessionId", sessionId).put("revision", ++revision);
         } catch (Exception ignored) {}
@@ -153,6 +171,7 @@ public class HeritagePlaybackService extends MediaLibraryService {
     @Override public void onDestroy() {
         handler.removeCallbacks(saveTick); persist(); playbackActive = false;
         if (preferences != null) preferences.unregisterOnSharedPreferenceChangeListener(preferencesChanged);
+        if (securePreferences != null) securePreferences.unregisterOnSharedPreferenceChangeListener(preferencesChanged);
         if (session != null) session.release();
         if (player != null) player.release();
         super.onDestroy();

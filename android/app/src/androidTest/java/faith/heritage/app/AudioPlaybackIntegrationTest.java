@@ -44,6 +44,7 @@ public class AudioPlaybackIntegrationTest {
     private MediaBrowser browser;
     private android.media.browse.MediaBrowser legacyBrowser;
     private File fixture;
+    private File communityFixture;
     private ActivityScenario<MainActivity> reader;
     private <T> T main(Callable<T> action) throws Exception {
         AtomicReference<T> result = new AtomicReference<>(); AtomicReference<Exception> failure = new AtomicReference<>();
@@ -145,7 +146,61 @@ public class AudioPlaybackIntegrationTest {
         assertFalse("Previous playback service did not finish stopping", running);
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
         context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit().remove(HeritageAudioCatalog.DOWNLOAD_INDEX).remove(HeritagePlaybackService.PROGRESS).commit();
+        context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit().remove(CommunityAudioStore.INDEX).commit();
+        context.getSharedPreferences("heritage_secure_storage", Context.MODE_PRIVATE).edit().remove("heritage-community-sessions-v1").commit();
+        if (communityFixture != null) communityFixture.delete();
         if (fixture != null) fixture.delete();
+    }
+    private void seedCommunitySession(JSONObject sessions) throws Exception {
+        String alias = "heritage-secure-storage-v1", key = "heritage-community-sessions-v1";
+        java.security.KeyStore keys = java.security.KeyStore.getInstance("AndroidKeyStore"); keys.load(null);
+        if (!keys.containsAlias(alias)) {
+            javax.crypto.KeyGenerator generator = javax.crypto.KeyGenerator.getInstance("AES", "AndroidKeyStore");
+            generator.init(new android.security.keystore.KeyGenParameterSpec.Builder(alias, android.security.keystore.KeyProperties.PURPOSE_ENCRYPT | android.security.keystore.KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes("GCM").setEncryptionPaddings("NoPadding").build()); generator.generateKey();
+        }
+        javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, ((java.security.KeyStore.SecretKeyEntry) keys.getEntry(alias, null)).getSecretKey());
+        cipher.updateAAD(key.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        int flags = android.util.Base64.NO_WRAP | android.util.Base64.URL_SAFE;
+        String value = android.util.Base64.encodeToString(cipher.getIV(), flags) + "." + android.util.Base64.encodeToString(cipher.doFinal(sessions.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8)), flags);
+        context.getSharedPreferences("heritage_secure_storage", Context.MODE_PRIVATE).edit().putString(key, value).commit();
+    }
+    @Test public void communityBookPlaysDownloadedChaptersWithoutWebViewAndStopsAtSignOut() throws Exception {
+        byte[] data = java.nio.file.Files.readAllBytes(fixture.toPath());
+        StringBuilder digest = new StringBuilder();
+        for (byte b : java.security.MessageDigest.getInstance("SHA-256").digest(data)) digest.append(String.format(java.util.Locale.ROOT, "%02x", b));
+        String scope = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", first = "cb-aaaaaaaaaaaaaaaaaaaaaaaa-0", second = "cb-aaaaaaaaaaaaaaaaaaaaaaaa-1";
+        JSONObject identity = new JSONObject().put("scope", scope).put("communityId", "test-church").put("memberId", "1")
+            .put("contentUrl", "https://church.example/content/books/1").put("audioSha256", digest.toString());
+        seedCommunitySession(new JSONObject().put("test-church", new JSONObject().put("token", "fixture-only-token").put("issuerOrigin", "https://church.example")
+            .put("expiresAt", "2099-01-01T00:00:00.000Z").put("member", new JSONObject().put("id", "1"))));
+        communityFixture = CommunityAudioStore.path(context, identity, true);
+        communityFixture.getParentFile().mkdirs(); java.nio.file.Files.write(communityFixture.toPath(), data);
+        JSONArray tracks = new JSONArray();
+        for (int i = 0; i < 2; i++) tracks.put(new JSONObject().put("id", i == 0 ? first : second).put("title", "Chapter " + (i + 1)).put("duration", 80).put("bytes", data.length)
+            .put("url", "https://church.example/api/community/books/1/audio/chapter-" + i)
+            .put("community", new JSONObject(identity.toString()).put("chapterId", "chapter-" + i)));
+        JSONObject book = new JSONObject().put("id", "remote--test--books--1").put("title", "Community prayer book").put("author", "Test author")
+            .put("community", identity).put("editions", new JSONArray().put(new JSONObject().put("tracks", tracks)));
+        context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit().putString(CommunityAudioStore.INDEX, new JSONArray().put(book).toString()).commit();
+        await(() -> main(() -> browser.getItem(first)).get(5, TimeUnit.SECONDS).resultCode == SessionResult.RESULT_SUCCESS);
+        Bundle play = new Bundle(); play.putString("trackId", first); play.putBoolean("restart", true); command("play", play);
+        await(() -> state().optString("status").equals("playing"));
+        assertTrue(state().getBoolean("offline"));
+        double initial = state().getDouble("position");
+        await(() -> state().getDouble("position") > initial + 1);
+        Bundle seek = new Bundle(); seek.putDouble("position", 20); command("seek", seek); command("pause", new Bundle());
+        assertEquals(20, state().getDouble("position"), 1);
+        Bundle skip = new Bundle(); skip.putInt("direction", 1); command("skip", skip);
+        await(() -> state().optString("trackId").equals(second) && state().optString("status").equals("playing"));
+        assertNotNull(new HeritageAudioCatalog(context).downloadedFile(second));
+        context.getSharedPreferences("heritage_secure_storage", Context.MODE_PRIVATE).edit().remove("heritage-community-sessions-v1").commit();
+        await(() -> state().optString("status").equals("idle"));
+        assertNull(new HeritageAudioCatalog(context).track(first));
+        // An untrusted file path or changed recording cannot replace a verified chapter.
+        JSONObject wrong = new JSONObject(identity.toString()).put("scope", "../../outside");
+        try { CommunityAudioStore.path(context, wrong, true); fail("Traversal accepted"); } catch (java.io.IOException expected) { }
     }
     @Test public void carLibraryAndSavedQueueLoadWithoutOpeningTheBible() throws Exception {
         LibraryResult<MediaItem> root = main(() -> browser.getLibraryRoot(null)).get(10, TimeUnit.SECONDS);

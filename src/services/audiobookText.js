@@ -1,4 +1,5 @@
 import index from '../data/audiobookTextIndex.json'
+import { loadCommunityAudioTiming } from './communityAudio'
 const requests = new Map()
 export function validateAudiobookTiming(data, track) {
   const recording = data?.tracks?.[track.id]
@@ -18,6 +19,7 @@ export function validateAudiobookTiming(data, track) {
   return { ...recording, trackId: track.id, textBookId: data.textBookId || data.bookId, paragraphs: data.paragraphs }
 }
 export async function loadAudiobookTiming(track) {
+  if (track?.community) return loadCommunityAudioTiming(track)
   const entry = track && index[track.bookId]
   if (!entry || track.bible) return null
   if (!requests.has(track.bookId)) {
@@ -40,7 +42,7 @@ export function audiobookDestination(track, timing, position) {
   const span = timing.spans.reduce((best, span) => distance(span) < distance(best) ? span : best)
   if (distance(span) > 20) return null
   const paragraph = timing.paragraphs[span.paragraph]
-  return { path: `/resources/books/${track.textBookId || track.bookId}?audioTrack=${encodeURIComponent(track.id)}&at=${Math.round(position)}`, state: {
+  return { path: `${track.community ? `/resources/content/${encodeURIComponent(track.community.contentKey)}` : `/resources/books/${track.textBookId || track.bookId}`}?audioTrack=${encodeURIComponent(track.id)}&at=${Math.round(position)}`, state: {
     chapterIndex: paragraph.chapterIndex,
     audioParagraph: { chapterIndex: paragraph.chapterIndex, paragraphIndex: paragraph.paragraphIndex, text: paragraph.text, trackId: track.id },
   } }

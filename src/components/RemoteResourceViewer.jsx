@@ -1,6 +1,8 @@
 import CommunityBookReadAlong from './CommunityBookReadAlong'
 import {resolveCommunityBookAccess} from '../services/communityBookAccess'
 import {COMMUNITY_SESSION_CHANGE_EVENT} from '../services/communitySessions'
+import { communityBookDownloads } from '../services/communityBookDownloads'
+import { forgetCommunityAudio } from '../services/communityAudio'
 import { normalizeSongSections, parseSongLyrics } from '../../community-server/packages/song-text/index.js'
 import SongLyrics from '../../community-server/packages/song-text/SongLyrics.jsx'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -283,6 +285,9 @@ function RemoteResourceViewer({ directSong = false }) {
       ? {
           authorization: memberAccess.authorization,
           authorizationOrigin: memberAccess.authorizationOrigin,
+          memberId: memberAccess.memberId,
+          communityId: memberAccess.communityId,
+          expiresAt: memberAccess.expiresAt,
         }
       : {},
     [memberAccess],
@@ -356,10 +361,7 @@ function RemoteResourceViewer({ directSong = false }) {
     setContent('')
     setContentDocument(null)
     const request = communityBook
-      ? fetchRemote(contentUrl, memberRequestOptions).then(async response => ({
-          value: await parseTextResponse(response, mediaType),
-          source: 'network',
-        }))
+      ? communityBookDownloads.loadDocument(contentUrl, memberRequestOptions)
       : loadTextNetworkFirst(contentUrl, mediaType, memberRequestOptions)
     request.then(({ value, source }) => {
         if (cancelled) return
@@ -371,6 +373,7 @@ function RemoteResourceViewer({ directSong = false }) {
       })
       .catch(error => {
         if (cancelled) return
+        if (communityBook && [401, 403, 404, 410].includes(error?.status)) void forgetCommunityAudio(contentUrl)
         setStatus('error')
         setMessage(directSong && [401, 403, 404, 410].includes(error?.status)
           ? 'This song is no longer available to your church account. Check your church sign-in or ask your church about access.'
@@ -428,7 +431,13 @@ function RemoteResourceViewer({ directSong = false }) {
   )
 
   const makeAvailableOffline = async () => {
-    if(communityBook){setMessage('Community books require a current church sign-in.');return}
+    if (communityBook) {
+      setSavingOffline(true)
+      try { await communityBookDownloads.download(contentUrl, memberRequestOptions); setMessage('Book downloaded for offline reading.') }
+      catch (error) { setMessage(error.message) }
+      finally { setSavingOffline(false) }
+      return
+    }
     if (!contentUrl) {
       setMessage('This resource has an invalid content URL and cannot be saved.')
       return
@@ -542,6 +551,8 @@ function RemoteResourceViewer({ directSong = false }) {
     )
   }
 
+  if (communityBook && contentDocument?.readAlong) return <CommunityBookReadAlong key={`${contentUrl}:${sessionRevision}`} document={contentDocument} item={item} contentUrl={contentUrl} requestOptions={memberRequestOptions} />
+
   const primaryMediaUrl = preferCachedPrimary && cachedPrimaryUrl ? cachedPrimaryUrl : contentUrl
   const hasRussianListing = Boolean(
     contentDocument?.russianTitle
@@ -596,7 +607,6 @@ function RemoteResourceViewer({ directSong = false }) {
         {contentUrl && mediaType.startsWith('audio/') && <audio controls preload="metadata" src={primaryMediaUrl} onError={handlePrimaryMediaError} className="w-full" />}
         {contentUrl && mediaType.startsWith('video/') && <video controls preload="metadata" src={primaryMediaUrl} onError={handlePrimaryMediaError} className="w-full rounded-xl bg-black" />}
         {contentUrl && mediaType.startsWith('image/') && <img src={primaryMediaUrl} onError={handlePrimaryMediaError} alt={item.title} className="max-h-[70vh] w-full rounded-xl object-contain bg-white dark:bg-gray-800" />}
-        {contentDocument?.readAlong && <CommunityBookReadAlong key={`${contentUrl}:${sessionRevision}`} document={contentDocument} contentUrl={contentUrl} requestOptions={memberRequestOptions} />}
         {contentUrl && isText && !contentDocument?.readAlong && (
           <article className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-6 shadow-sm">
             {status === 'loading' ? (

@@ -8,10 +8,12 @@ import {
   CONTENT_SERVERS_CHANGE_EVENT,
   getRemoteContentItemsForCategory,
   refreshSongCatalogs,
+  refreshBookCatalogs,
 } from '../services/contentServers'
 import PullToRefresh from './PullToRefresh'
 import SongCatalogPreview from './SongCatalogPreview'
 import { COMMUNITIES_CHANGE_EVENT, getCommunities } from '../services/communities'
+import { COMMUNITY_SESSION_CHANGE_EVENT } from '../services/communitySessions'
 import { mergeSongCatalog } from '../services/songCatalog'
 
 function ResourceTag({ tag }) {
@@ -84,7 +86,7 @@ function ResourcePage() {
   const { categoryId } = useParams()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const communityId = ['songs', 'sermons', 'commentaries'].includes(categoryId) ? searchParams.get('community') : null
+  const communityId = ['songs', 'books', 'sermons', 'commentaries'].includes(categoryId) ? searchParams.get('community') : null
   const community = communityId ? getCommunities().find(record => record.manifest.id === communityId) : null
   const communitySourceId = community?.contentPreview?.manifest?.id
 
@@ -105,16 +107,19 @@ function ResourcePage() {
   const [refreshing, setRefreshing] = useState(false)
   const [refreshMessage, setRefreshMessage] = useState('')
   const refreshPending = useRef(false)
-  const refreshSongs = useCallback(async () => {
-    if (refreshPending.current || categoryId !== 'songs' || (communityId && !communitySourceId)) return
+  const refreshLibrary = useCallback(async () => {
+    if (refreshPending.current || !['songs', 'books'].includes(categoryId) || (communityId && !communitySourceId)) return
     refreshPending.current = true
     setRefreshing(true)
     setRefreshMessage('')
     try {
-      const count = await refreshSongCatalogs(communitySourceId || null)
-      setRefreshMessage(count ? 'Songs are up to date.' : 'No Community songbooks are connected yet.')
+      const refresh = categoryId === 'books' ? refreshBookCatalogs : refreshSongCatalogs
+      const count = await refresh(communitySourceId || null)
+      setRefreshMessage(categoryId === 'books'
+        ? (count ? 'Books are up to date.' : 'Join a Community to add its books to this library.')
+        : (count ? 'Songs are up to date.' : 'No Community songbooks are connected yet.'))
     } catch (error) {
-      setRefreshMessage(error.message || 'Could not refresh songs. Try again when connected.')
+      setRefreshMessage(error.message || `Could not refresh ${categoryId}. Try again when connected.`)
     } finally {
       refreshPending.current = false
       setRefreshing(false)
@@ -122,8 +127,15 @@ function ResourcePage() {
   }, [categoryId, communityId, communitySourceId])
 
   useEffect(() => {
-    if (categoryId === 'songs' && navigator.onLine !== false) void refreshSongs()
-  }, [categoryId, refreshSongs])
+    const refresh = () => { if (navigator.onLine !== false) void refreshLibrary() }
+    refresh()
+    window.addEventListener('online', refresh)
+    window.addEventListener(COMMUNITY_SESSION_CHANGE_EVENT, refresh)
+    return () => {
+      window.removeEventListener('online', refresh)
+      window.removeEventListener(COMMUNITY_SESSION_CHANGE_EVENT, refresh)
+    }
+  }, [refreshLibrary])
 
   useEffect(() => {
     const refresh = () => setRemoteItems(getRemoteContentItemsForCategory(categoryId))
@@ -383,13 +395,13 @@ function ResourcePage() {
         </div>
       </header>
 
-      <PullToRefresh enabled={isSongs} refreshing={refreshing} onRefresh={refreshSongs}>
+      <PullToRefresh enabled={isSongs || isBooks} refreshing={refreshing} onRefresh={refreshLibrary}>
       <main className="container mx-auto max-w-2xl px-4 py-6">
         {categoryId === 'books' && <button type="button" onClick={() => navigate('/audio')} className="w-full mb-4 rounded-lg border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 px-4 py-3 text-left text-primary dark:text-blue-300 font-semibold">Audio library · resume listening and downloads →</button>}
 
-        {isSongs && <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
-          <p role="status">{refreshMessage || 'Pull down from the top to refresh Community songs.'}</p>
-          <button type="button" onClick={refreshSongs} disabled={refreshing} className="shrink-0 min-h-11 rounded-lg border border-gray-300 dark:border-gray-600 px-3 text-primary dark:text-blue-300 disabled:opacity-50">{refreshing ? 'Refreshing…' : 'Refresh'}</button>
+        {(isSongs || isBooks) && <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
+          <p role="status">{refreshMessage || `Pull down from the top to refresh Community ${categoryId}.`}</p>
+          <button type="button" onClick={refreshLibrary} disabled={refreshing} className="shrink-0 min-h-11 rounded-lg border border-gray-300 dark:border-gray-600 px-3 text-primary dark:text-blue-300 disabled:opacity-50">{refreshing ? 'Refreshing…' : 'Refresh'}</button>
         </div>}
         {communityId && <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
           <p>{community?.manifest.name || 'Community unavailable'}</p>
@@ -610,7 +622,7 @@ function ResourcePage() {
             {(isClickable && visibleItems.length === 0) && (
               <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6 text-center">
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {trimmedQuery ? 'No songs match that search.' : 'No resources in this category yet.'}
+                  {trimmedQuery ? `No ${categoryId} match that search.` : 'No resources in this category yet.'}
                 </p>
                 {!trimmedQuery && <button onClick={() => navigate(communityId ? '/community' : '/settings/content-servers')} className="mt-2 text-sm font-semibold text-primary dark:text-blue-300 underline underline-offset-2">{communityId ? 'Back to Community Home' : 'Add a Content Server'}</button>}
               </div>

@@ -5,6 +5,17 @@ export const audioTracks = audioBooks.flatMap(book => book.editions.flatMap(edit
   ...track, textBookId: book.textBookId || book.id, kind: book.kind || 'audiobook', bookTitle: book.title, author: book.author, editionTitle: edition.title, sourceUrl: edition.sourceUrl,
 }))))
 const tracksById = new Map(audioTracks.map(track => [track.id, track]))
+export const AUDIO_CATALOG_CHANGED = 'heritage-audio-catalog-change'
+export function setCommunityAudioBooks(books) {
+  for (const track of audioTracks.filter(track => track.community)) tracksById.delete(track.id)
+  audioTracks.splice(0, audioTracks.length, ...audioTracks.filter(track => !track.community))
+  audioBooks.splice(0, audioBooks.length, ...audioBooks.filter(book => !book.community), ...books)
+  for (const book of books) for (const edition of book.editions) for (const track of edition.tracks) {
+    const value = { ...track, bookTitle: book.title, author: book.author, textBookId: book.id, kind: 'audiobook', editionTitle: edition.title }
+    audioTracks.push(value); tracksById.set(value.id, value)
+  }
+  window.dispatchEvent(new Event(AUDIO_CATALOG_CHANGED))
+}
 export function getAudioTrack(id) { return tracksById.get(id) || null }
 export function getBookAudioTracks(bookId, editionId) {
   return audioTracks.filter(track => track.bookId === bookId && (!editionId || track.editionId === editionId))

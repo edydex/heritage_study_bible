@@ -1,6 +1,7 @@
 import { getStoredJson, setStoredJson } from './persistentStorage'
 import { getAudioTrack, nextAudioTrack } from './audioCatalog'
 import { getDownloadedAudio } from './audioDownloads'
+import { communityAudioSource } from './communityAudio'
 
 export const AUDIO_PROGRESS_KEY = 'heritage-audio-progress-v1'
 const finite = value => Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : 0
@@ -24,7 +25,7 @@ export function createAudioPlayer({ audio = new Audio(), load = () => getStoredJ
   let state = { trackId: null, position: 0, duration: 0, rate: 1, status: 'idle', error: '', offline: false }
   let progress = { positions: {}, lastTrackId: null, rate: 1 }
   const listeners = new Set()
-  let generation = 0, ready = false, disposed = false, hydrated = false, lastSavedAt = 0, writes = Promise.resolve()
+  let generation = 0, ready = false, disposed = false, hydrated = false, lastSavedAt = 0, writes = Promise.resolve(), releaseSource
   const emit = patch => { state = { ...state, ...patch }; listeners.forEach(listener => listener()) }
   function remember() {
     if (state.trackId) progress.positions[state.trackId] = finite(state.position)
@@ -76,11 +77,12 @@ export function createAudioPlayer({ audio = new Audio(), load = () => getStoredJ
     emit({ trackId: id, position, duration: track.duration || 0, status: 'loading', error: '', offline: false })
     persist()
     try {
-      const downloaded = await offline(id)
-      if (disposed || token !== generation) return
+      const downloaded = track.community ? await communityAudioSource(track) : await offline(id)
+      if (disposed || token !== generation) { downloaded?.release?.(); return }
+      releaseSource?.(); releaseSource = downloaded?.release
       audio.src = downloaded?.webPath || track.url
       audio.playbackRate = state.rate
-      emit({ offline: Boolean(downloaded) })
+      emit({ offline: downloaded?.offline ?? Boolean(downloaded) })
       audio.load()
       // The seek is applied by loadedmetadata before play; autoplay-blocked
       // engines retain the position and show a normal Play button.
@@ -130,12 +132,12 @@ export function createAudioPlayer({ audio = new Audio(), load = () => getStoredJ
   return {
     initialized, getSnapshot: () => state, subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener) },
     play, pause, seek, setRate, skip, persist,
-    unload: () => { pause(); ready = false; audio.removeAttribute('src'); audio.load(); emit({ offline: false }) },
+    unload: () => { pause(); ready = false; audio.removeAttribute('src'); audio.load(); releaseSource?.(); releaseSource = null; emit({ offline: false }) },
     positionFor: id => id === state.trackId ? state.position : progress.positions[id] || 0,
     dispose: () => {
       persist(); disposed = true; generation += 1; ready = false
       Object.entries(handlers).forEach(([name, handler]) => audio.removeEventListener(name, handler))
-      audio.pause(); audio.removeAttribute('src'); audio.load(); listeners.clear()
+      audio.pause(); audio.removeAttribute('src'); audio.load(); releaseSource?.(); listeners.clear()
       if (mediaSession) Object.keys(sessionActions).forEach(name => { try { mediaSession.setActionHandler(name, null) } catch {} })
     },
   }
