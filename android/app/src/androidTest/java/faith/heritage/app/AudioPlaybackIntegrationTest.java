@@ -131,7 +131,9 @@ public class AudioPlaybackIntegrationTest {
         long stoppedBy = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
         boolean running;
         do {
-            running = manager.getRunningServices(Integer.MAX_VALUE).stream()
+            // ActivityManager can remove its service record before onDestroy
+            // has released the player and persisted its final position.
+            running = HeritagePlaybackService.hasLivePlayer() || manager.getRunningServices(Integer.MAX_VALUE).stream()
                 .anyMatch(service -> HeritagePlaybackService.class.getName().equals(service.service.getClassName()));
             if (running) Thread.sleep(20);
         } while (running && System.nanoTime() < stoppedBy);

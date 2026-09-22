@@ -36,6 +36,8 @@ import org.json.JSONObject;
 public class HeritagePlaybackService extends MediaLibraryService {
     public static final String COMMAND = "heritage.audio.command", PROGRESS = "heritage-audio-progress-v1";
     private static volatile boolean playbackActive;
+    private static volatile int livePlayers;
+    static boolean hasLivePlayer() { return livePlayers > 0; }
     public static boolean isPlaybackActive() { return playbackActive; }
     private ExoPlayer player;
     private MediaLibrarySession session;
@@ -75,6 +77,7 @@ public class HeritagePlaybackService extends MediaLibraryService {
     };
     @Override public void onCreate() {
         super.onCreate();
+        livePlayers++;
         try { catalog = new HeritageAudioCatalog(this); }
         catch (Exception error) { throw new IllegalStateException("The bundled audio catalog could not load", error); }
         preferences = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
@@ -169,12 +172,13 @@ public class HeritagePlaybackService extends MediaLibraryService {
     }
     @Override public MediaLibrarySession onGetSession(MediaSession.ControllerInfo controllerInfo) { return session; }
     @Override public void onDestroy() {
-        handler.removeCallbacks(saveTick); persist(); playbackActive = false;
+        handler.removeCallbacksAndMessages(null); persist(); playbackActive = false;
         if (preferences != null) preferences.unregisterOnSharedPreferenceChangeListener(preferencesChanged);
         if (securePreferences != null) securePreferences.unregisterOnSharedPreferenceChangeListener(preferencesChanged);
         if (session != null) session.release();
         if (player != null) player.release();
         super.onDestroy();
+        livePlayers--;
     }
     private final class LibraryCallback implements MediaLibrarySession.Callback {
         @Override public ListenableFuture<MediaSession.ConnectionResult> onConnectAsync(MediaSession mediaSession, MediaSession.ControllerInfo controller) {
@@ -250,7 +254,7 @@ public class HeritagePlaybackService extends MediaLibraryService {
                         if (target >= 0 && target < player.getMediaItemCount()) play(player.getMediaItemAt(target).mediaId, true);
                         break;
                     }
-                    case "unload": player.pause(); persist(); player.stop(); break;
+                    case "unload": player.pause(); persist(); player.stop(); player.clearMediaItems(); break;
                     case "persist": persist(); break;
                     case "state": break;
                     default: throw new IllegalArgumentException();
