@@ -4,7 +4,7 @@ import OutlineSlideEditor from './OutlineSlideEditor'
 
 export default function TemplateSlideEditor({ item, channelId, uploading, onImage, onEdit }: {
   item: Record<string, any>; channelId: string; uploading: boolean; onImage: () => void;
-  onEdit: (field: 'heading' | 'body' | 'next', text: string, spans: any[]) => void
+  onEdit: (field: 'heading' | 'body' | 'next' | 'credit', text: string, spans: any[]) => void
 }) {
   const isTitle = item.sermonTemplate === 'title'
   const showText = !isTitle || item.sermonPresentation?.showText !== false
@@ -20,6 +20,8 @@ export default function TemplateSlideEditor({ item, channelId, uploading, onImag
         {item.sermonTemplate === 'point' ? <OutlineSlideEditor text={body} spans={item.spansByChannel?.[channelId]} channelId={channelId} onCommit={(text,spans)=>onEdit('body',text,spans)} /> : <SlideText text={body} spans={item.spansByChannel?.[channelId]} role={isTitle ? 'subtitle' : 'body'}
           label={`${channelId} ${isTitle ? 'subtitle' : 'slide text'}`} placeholder={isTitle ? 'Subtitle (optional)' : 'Click to add your text'} canFormat onCommit={(text, spans) => onEdit('body', text, spans)} />}
       </div>
+      {item.sermonTemplate === 'quote' && <SlideText text={item.quoteSourcesByChannel?.[channelId] || ''} role="credit"
+        label={`${channelId} author or source`} placeholder="Author / source (optional)" onCommit={text => onEdit('credit', text, [])} />}
     </> : null}
   </>
 }

@@ -122,8 +122,9 @@ export function createTemplateDraft(project: any, options: {
   }, place)
 }
 
-export function editTemplateField(project: any, itemId: string, channelId: string, field: 'heading' | 'body' | 'next', text: string, spans: any[] = []) {
+export function editTemplateField(project: any, itemId: string, channelId: string, field: 'heading' | 'body' | 'next' | 'credit', text: string, spans: any[] = []) {
   const next = copy(project), item = next.items[itemId]
+  if (item?.kind === 'sermon' && !item.sermonTemplate && item.presetId === 'wotbc-sermon-title') item.sermonTemplate = 'title'
   if (!item?.sermonTemplate || !project.channelIds.includes(channelId)) throw new Error('Choose an editable sermon template.')
   if (field === 'next' && !text.trim()) return project
   // Older WOTBC services call this output "Media" with language "und".
@@ -132,6 +133,10 @@ export function editTemplateField(project: any, itemId: string, channelId: strin
     || (project.channelIds.includes('russian') ? 'russian' : 'english')
   const outputs = channelId === source && project.channelIds.includes('media') ? [channelId, 'media'] : [channelId]
   for (const id of outputs) {
+    if (field === 'credit') {
+      if (item.sermonTemplate !== 'quote') throw new Error('Choose a Quote / text slide.')
+      item.quoteSourcesByChannel ||= {}; item.quoteSourcesByChannel[id] = text; continue
+    }
     const target = field === 'heading' ? 'titlesByChannel' : 'textByChannel'
     const styles = field === 'heading' ? 'titleSpansByChannel' : 'spansByChannel'
     item[target] ||= {}; item[styles] ||= {}
@@ -148,7 +153,7 @@ export function editTemplateField(project: any, itemId: string, channelId: strin
       if (field === 'heading' && !text) { delete item[target][id]; delete item[styles][id] }
     }
   }
-  if (text.trim() && (field === 'heading' || field === 'next' || item.sermonTemplate === 'quote' || (field === 'body' && item.sermonTemplate === 'point'))) item.title = text.trim().split('\n')[0].slice(0, 200)
+  if (field !== 'credit' && text.trim() && (field === 'heading' || field === 'next' || item.sermonTemplate === 'quote' || (field === 'body' && item.sermonTemplate === 'point'))) item.title = text.trim().split('\n')[0].slice(0, 200)
   return core.normalizeServiceProject(next)
 }
 
