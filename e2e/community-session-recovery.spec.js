@@ -35,5 +35,5 @@ test('a saved church with no session offers email sign-in while retaining public
   await expect(page.getByText('Waiting for email sign-in')).toBeVisible()
   expect(signIns).toHaveLength(1)
   expect(signIns[0]).toMatchObject({ email: 'reader@example.com', flow: 'community' })
-  await expect(page.getByText('Your saved library remains available when the church server cannot be reached.')).toBeVisible()
+  await expect(page.getByText('Saved listings remain available when the church server cannot be reached. Sign in to download member-only books for offline reading and listening.')).toBeVisible()
 })

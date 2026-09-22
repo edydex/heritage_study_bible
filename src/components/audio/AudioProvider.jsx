@@ -3,9 +3,12 @@ import { bibleAudioDestination, loadBibleAudioTiming } from '../../services/bibl
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { createPlatformAudioPlayer } from '../../services/nativeAudioPlayer'
-import { formatAudioTime, getAudioTrack, nextAudioTrack } from '../../services/audioCatalog'
+import { AUDIO_CATALOG_CHANGED, formatAudioTime, getAudioTrack, nextAudioTrack } from '../../services/audioCatalog'
 import { getStoredValue, setStoredValue, STORAGE_KEYS } from '../../services/persistentStorage'
 import { refreshNativeSafeArea } from '../../services/androidControls'
+import { clearCommunityAudioDocuments, refreshCommunityAudioCatalog } from '../../services/communityAudio'
+import { COMMUNITY_SESSION_CHANGE_EVENT } from '../../services/communitySessions'
+import { COMMUNITIES_CHANGE_EVENT } from '../../services/communities'
 import './audio.css'
 
 const AudioContext = createContext(null)
@@ -50,7 +53,7 @@ function PlayerHost({ player, state, selectedTrack, onNavigate }) {
             <button type="button" disabled={!nextAudioTrack(track.id, -1)} onClick={() => { player.play(nextAudioTrack(track.id, -1).id, { restart: true }); onNavigate?.() }}>Previous track</button>
             <button type="button" disabled={!nextAudioTrack(track.id, 1)} onClick={() => { player.play(nextAudioTrack(track.id, 1).id, { restart: true }); onNavigate?.() }}>Next track</button>
             <label>Speed <select aria-label="Playback speed" value={state.rate} onChange={event => player.setRate(event.target.value)}>{[0.75, 1, 1.25, 1.5, 1.75, 2].map(rate => <option key={rate} value={rate}>{rate}×</option>)}</select></label>
-            <button type="button" onClick={() => { onNavigate?.(); destination ? navigate(destination.path, { state: destination.state }) : navigate(`/resources/books/${track.textBookId || track.bookId}`) }}>{destination ? destination.state.audioParagraph ? 'Go to nearby text' : destination.state.scrollToVerse ? 'Go to playing verse' : 'Open chapter text' : 'Open book text'}</button>
+            <button type="button" onClick={() => { onNavigate?.(); destination ? navigate(destination.path, { state: destination.state }) : navigate(track.community ? `/resources/content/${encodeURIComponent(track.community.contentKey)}` : `/resources/books/${track.textBookId || track.bookId}`) }}>{destination ? destination.state.audioParagraph ? 'Go to nearby text' : destination.state.scrollToVerse ? 'Go to playing verse' : 'Open chapter text' : 'Open book text'}</button>
             <button type="button" onClick={() => { onNavigate?.(); navigate('/audio') }}>Audio library</button>
           </div>
         </div>}
@@ -93,9 +96,25 @@ export default function AudioProvider({ children }) {
   useEffect(() => {
     // Use the router's navigation transaction: assigning location.hash directly
     // can race its pending HomeRedirect on a fresh install.
-    const instance = createPlatformAudioPlayer({ openLibrary: () => navigateRef.current('/audio') })
-    setPlayer(instance)
-    return () => instance.dispose()
+    let instance, cancelled = false
+    refreshCommunityAudioCatalog().catch(() => {}).then(() => {
+      if (cancelled) return
+      instance = createPlatformAudioPlayer({ openLibrary: () => navigateRef.current('/audio') })
+      setPlayer(instance)
+    })
+    const refresh = async () => {
+      if (getAudioTrack(instance?.getSnapshot().trackId)?.community) await instance.unload()
+      clearCommunityAudioDocuments()
+      await refreshCommunityAudioCatalog().catch(() => {})
+    }
+    window.addEventListener(COMMUNITY_SESSION_CHANGE_EVENT, refresh)
+    window.addEventListener(COMMUNITIES_CHANGE_EVENT, refresh)
+    const catalogChanged = () => {
+      const id = instance?.getSnapshot().trackId
+      if (id?.startsWith('cb-') && !getAudioTrack(id)) void instance.unload()
+    }
+    window.addEventListener(AUDIO_CATALOG_CHANGED, catalogChanged)
+    return () => { cancelled = true; instance?.dispose(); window.removeEventListener(COMMUNITY_SESSION_CHANGE_EVENT, refresh); window.removeEventListener(COMMUNITIES_CHANGE_EVENT, refresh); window.removeEventListener(AUDIO_CATALOG_CHANGED, catalogChanged) }
   }, [])
   const state = useSyncExternalStore(player?.subscribe || noSubscribe, player?.getSnapshot || emptySnapshot)
   useEffect(() => {

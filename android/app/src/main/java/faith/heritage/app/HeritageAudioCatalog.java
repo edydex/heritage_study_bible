@@ -18,21 +18,52 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** The bundled public catalog is the only authority for playable URLs and IDs. */
+/** Bundled public audio plus issuer-bound Community chapter identities. */
 public final class HeritageAudioCatalog {
     public static final String ROOT = "heritage-audio", BOOKS = "books", BIBLES = "bibles", DOWNLOADS = "downloads", CONTINUE = "continue";
     public static final String DOWNLOAD_INDEX = "heritage-audio-downloads-v2";
     public static final class Track {
         public final String id, bookId, editionId, title, bookTitle, author, url;
         public final long durationMs;
+        public final JSONObject community;
+        public final long bytes;
         Track(JSONObject row, JSONObject book, String edition) {
+            this(row, book, edition, false);
+        }
+        Track(JSONObject row, JSONObject book, String edition, boolean privateBook) {
             id = row.optString("id"); bookId = book.optString("id"); editionId = edition;
             title = row.optString("title"); bookTitle = book.optString("title"); author = book.optString("author");
             url = row.optString("url"); durationMs = (long) (row.optDouble("duration", 0) * 1000);
+            community = privateBook ? row.optJSONObject("community") : null;
+            bytes = row.optLong("bytes");
             boolean librivox = id.matches("lv-[a-f0-9]{24}") && url.startsWith("https://archive.org/download/");
             boolean bible = id.matches("bsb-hays-[0-9]{2}-[0-9]{3}") && url.matches("https://openbible\\.com/audio/hays/BSB_[0-9]{2}_[A-Za-z0-9]+_[0-9]{3}_H\\.mp3");
-            if (!librivox && !bible) throw new IllegalArgumentException("Invalid bundled audio track");
+            boolean memberBook = privateBook && community != null && id.matches("cb-[a-f0-9]{24}-[0-9]+") && bytes > 0 && bytes <= 512L * 1024 * 1024;
+            if (privateBook ? !memberBook : !librivox && !bible) throw new IllegalArgumentException("Invalid audio track");
         }
+    }
+    public synchronized void reloadCommunityBooks() {
+        List<String> obsolete = new ArrayList<>();
+        for (Track track : tracks.values()) if (track.community != null) obsolete.add(track.id);
+        java.util.Set<String> bookNodes = new java.util.HashSet<>();
+        for (String id : obsolete) { bookNodes.add("book:" + tracks.get(id).bookId); tracks.remove(id); }
+        for (String node : bookNodes) { folders.remove(node); children.remove(node); children.get(BOOKS).remove(node); }
+        try {
+            JSONArray books = new JSONArray(preferences.getString(CommunityAudioStore.INDEX, "[]"));
+            for (int b = 0; b < Math.min(books.length(), 100); b++) {
+                JSONObject book = books.getJSONObject(b), identity = book.getJSONObject("community");
+                if (!book.optString("id").matches("remote--[A-Za-z0-9._-]+--books--[0-9]+")) continue;
+                if (!CommunityAudioStore.authorized(context, identity)) continue;
+                JSONArray rows = book.getJSONArray("editions").getJSONObject(0).getJSONArray("tracks");
+                String node = "book:" + book.getString("id");
+                folder(node, book.getString("title"), BOOKS);
+                for (int t = 0; t < Math.min(rows.length(), 2000); t++) {
+                    Track track = new Track(rows.getJSONObject(t), book, "community", true);
+                    if (!CommunityAudioStore.authorized(context, track.community)) continue;
+                    tracks.put(track.id, track); children.get(node).add(track.id);
+                }
+            }
+        } catch (Exception ignored) { /* Invalid private metadata never becomes a playback URI. */ }
     }
     private final Context context;
     private final SharedPreferences preferences;
@@ -72,6 +103,7 @@ public final class HeritageAudioCatalog {
                 }
             }
         }
+        reloadCommunityBooks();
     }
     private void folder(String id, String title, String parent) {
         folders.put(id, new MediaItem.Builder().setMediaId(id).setMediaMetadata(new MediaMetadata.Builder()
@@ -79,11 +111,16 @@ public final class HeritageAudioCatalog {
         children.put(id, new ArrayList<>());
         if (parent != null) children.get(parent).add(id);
     }
-    public Track track(String id) { return tracks.get(id); }
+    public synchronized Track track(String id) { return tracks.get(id); }
     public boolean isFolder(String id) { return folders.containsKey(id); }
     public File downloadedFile(String id) {
         if (!tracks.containsKey(id)) return null;
         try {
+            Track track = tracks.get(id);
+            if (track.community != null) {
+                File file = CommunityAudioStore.path(context, track.community, true);
+                return CommunityAudioStore.authorized(context, track.community) && file.isFile() && file.length() == track.bytes ? file : null;
+            }
             String text = preferences.getString(DOWNLOAD_INDEX, "{}");
             if (!text.equals(cachedDownloadText)) { cachedDownloads = new JSONObject(text); cachedDownloadText = text; }
             JSONObject record = cachedDownloads.optJSONObject(id);
@@ -104,7 +141,7 @@ public final class HeritageAudioCatalog {
             .setTitle(track.title).setArtist(track.author).setAlbumTitle(track.bookTitle)
             .setSubtitle(track.bookTitle + (local != null ? " · Downloaded" : ""))
             .setIsBrowsable(false).setIsPlayable(true).setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK_CHAPTER).build());
-        if (playableUri) builder.setUri(local != null ? Uri.fromFile(local) : Uri.parse(track.url));
+        if (playableUri) builder.setUri(track.community != null ? Uri.parse("heritage-book:///" + track.id) : local != null ? Uri.fromFile(local) : Uri.parse(track.url));
         return builder.build();
     }
     public List<MediaItem> children(String id, String lastId) {

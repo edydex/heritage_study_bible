@@ -65,7 +65,7 @@ assert '.well-known/assetlinks.json' in web_metadata, 'Website app-link metadata
 required = {
     'CommunityIntegrationTest': {'packagedCommunityScreensAndMemberLinkWorkOffline', 'secureStorageUsesNativeKeystoreAndSurvivesActivityRestart', 'encryptedValuesCannotBeSubstitutedForAnotherStorageKey', 'automaticSyncSettingSurvivesRestartAndBibleOpensOffline'},
     'AudioStorageIntegrationTest': {'deleteOfflineAudioThroughInternalStorage', 'interruptedTransferCanBeRemovedWithoutTouchingNotes'},
-    'AudioPlaybackIntegrationTest': {'carLibraryAndSavedQueueLoadWithoutOpeningTheBible', 'legacyCarBrowserCanDiscoverTheLibraryWithoutOpeningTheReader', 'appAndCarSharePlaybackWhichContinuesAfterTheReaderCloses', 'offlineResolverRejectsTraversalAndUnrelatedAppFiles', 'ezekielVerseHighlightsFollowTheNativeClockAtRealBoundaries'},
+    'AudioPlaybackIntegrationTest': {'carLibraryAndSavedQueueLoadWithoutOpeningTheBible', 'legacyCarBrowserCanDiscoverTheLibraryWithoutOpeningTheReader', 'appAndCarSharePlaybackWhichContinuesAfterTheReaderCloses', 'offlineResolverRejectsTraversalAndUnrelatedAppFiles', 'ezekielVerseHighlightsFollowTheNativeClockAtRealBoundaries', 'communityBookPlaysDownloadedChaptersWithoutWebViewAndStopsAtSignOut'},
 }
 expected = {name+'.'+test for name, tests in required.items() for test in tests}
 found = set()

@@ -35,7 +35,7 @@ public class HeritageSecureStoragePlugin extends Plugin {
         return getContext().getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
     }
 
-    private SecretKey getOrCreateKey() throws Exception {
+    private static SecretKey getOrCreateKey() throws Exception {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         if (keyStore.containsAlias(KEY_ALIAS)) {
@@ -50,6 +50,19 @@ public class HeritageSecureStoragePlugin extends Plugin {
                 .setRandomizedEncryptionRequired(true)
                 .build());
         return generator.generateKey();
+    }
+
+    // The playback service needs the same encrypted Community session while
+    // the WebView is suspended. Never copy bearer tokens into plain preferences.
+    static String readValue(Context context, String key) throws Exception {
+        String encoded = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(key, null);
+        if (encoded == null) return null;
+        String[] parts = encoded.split("\\.", 2);
+        if (parts.length != 2) throw new IllegalArgumentException("Invalid stored value");
+        Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+        cipher.init(Cipher.DECRYPT_MODE, getOrCreateKey(), new GCMParameterSpec(128, Base64.decode(parts[0], Base64.NO_WRAP | Base64.URL_SAFE)));
+        cipher.updateAAD(key.getBytes(StandardCharsets.UTF_8));
+        return new String(cipher.doFinal(Base64.decode(parts[1], Base64.NO_WRAP | Base64.URL_SAFE)), StandardCharsets.UTF_8);
     }
 
     private String requiredKey(PluginCall call) {

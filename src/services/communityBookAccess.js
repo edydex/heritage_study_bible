@@ -27,6 +27,7 @@ export async function resolveCommunityBookAccess(
   const session = await getSession(community.manifest.id, community)
   if (
     community.status !== 'joined' ||
+    (session?.expiresAt && Date.parse(session.expiresAt) <= Date.now()) ||
     typeof session?.token !== 'string' ||
     !session.token.trim() ||
     /[\u0000-\u001f\u007f]/u.test(session.token)
@@ -36,5 +37,6 @@ export async function resolveCommunityBookAccess(
     status: 'ready',
     authorization: `Community ${session.token}`,
     authorizationOrigin: origin,
+    ...(session.member?.id != null ? { memberId: String(session.member.id), communityId: community.manifest.id, expiresAt: session.expiresAt } : {}),
   }
 }

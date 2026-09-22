@@ -209,7 +209,7 @@ export function refreshContentCatalog(serverId, contentType = 'songs') {
     const catalog = url
       ? validateContentCatalog(await fetchJson(url, { ...(contentType === 'songs' ? {} : await memberRequestOptionsForServer(existing)), timeoutMs: remaining() }), contentType, url)
       : { schemaVersion: 2, contentType, items: [] }
-    if (Date.now() > deadline) throw new Error('Song refresh timed out.')
+    if (Date.now() > deadline) throw new Error('Catalog refresh timed out.')
     const checkedAt = new Date().toISOString()
     let saved
     writeSubscriptions(readSubscriptions().map(server => {
@@ -229,14 +229,22 @@ export function refreshContentCatalog(serverId, contentType = 'songs') {
   return pending
 }
 
-export async function refreshSongCatalogs(sourceServerId = null) {
+async function refreshCatalogs(contentType, sourceServerId) {
   const servers = readSubscriptions().filter(server => server.enabled !== false
     && (!sourceServerId || server.manifest.id === sourceServerId)
-    && server.manifest.catalogs?.songs)
-  const results = await Promise.allSettled(servers.map(server => refreshContentCatalog(server.manifest.id, 'songs')))
+    && server.manifest.catalogs?.[contentType])
+  const results = await Promise.allSettled(servers.map(server => refreshContentCatalog(server.manifest.id, contentType)))
   const failed = results.flatMap((result, index) => result.status === 'rejected' ? [servers[index].manifest.name] : [])
-  if (failed.length) throw new Error('Refresh failed—showing saved songs. Pull down to try again.')
+  if (failed.length) throw new Error(`Refresh failed—showing saved ${contentType}. Pull down to try again.`)
   return servers.length
+}
+
+export function refreshSongCatalogs(sourceServerId = null) {
+  return refreshCatalogs('songs', sourceServerId)
+}
+
+export function refreshBookCatalogs(sourceServerId = null) {
+  return refreshCatalogs('books', sourceServerId)
 }
 
 export async function refreshStaleContentServers() {
