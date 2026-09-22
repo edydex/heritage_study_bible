@@ -1,3 +1,4 @@
+import { flattenReadingGroups } from './plannerReadingGroups'
 import core from '../../packages/service-core/index.js'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 
@@ -5,7 +6,7 @@ type RecordValue = Record<string, any>
 
 // Wide 16:9 reading pages, following the church's reference decks.
 // Both languages use the same verse boundaries, sized for the longer output.
-export const SCRIPTURE_PAGE_MAX_VERSES = 4
+export const SCRIPTURE_PAGE_MAX_VERSES = 12
 export const SCRIPTURE_PAGE_MAX_LINES = 10
 const SCRIPTURE_LINE_CHARACTERS = 48
 
@@ -33,8 +34,7 @@ export function scripturePages(item: RecordValue): number[][] {
   for (const number of verseNumbers) {
     const candidate = [...current, number]
     const fits = candidate.length <= SCRIPTURE_PAGE_MAX_VERSES && passages.every(passage => (
-      passage.verses.filter((verse: RecordValue) => candidate.includes(verse.number))
-        .reduce((count: number, verse: RecordValue) => count + scriptureLineCount(`${verse.number} ${verse.text}`), 0)
+      scriptureLineCount(formatting.scriptureFlowText(passage.verses.filter((verse: RecordValue) => candidate.includes(verse.number))))
       <= SCRIPTURE_PAGE_MAX_LINES
     ))
     if (current.length && !fits) { pages.push(current); current = [] }
@@ -121,6 +121,7 @@ export function preparePlannerPresentation(project: RecordValue) {
     changed = true
     readingsSplit++
   }
+  changed = flattenReadingGroups(next) || changed
   if (!changed) return { project, changed: false, readingsSplit: 0 }
   // A linked sermon reading may now have more pages; keep its provenance and
   // update the page counters in actual service order.

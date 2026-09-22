@@ -1,3 +1,4 @@
+import { isReadingGroup } from './plannerReadingGroups'
 import serviceCore from '../../packages/service-core/index.js'
 import { sermonTextSpans } from './plannerSermonStyle'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
@@ -12,6 +13,7 @@ export type PlannerSlide = {
   number: number
   title: string
   kind: string
+  readingTitle?: boolean
   cue?: RecordValue
 }
 
@@ -30,6 +32,13 @@ export function plannerSlides(project: RecordValue): PlannerSlide[] {
   const visit = (itemId: string, parentId: string | null, depth: number) => {
     const item = project.items[itemId]
     if (item.kind === 'group') {
+      if (isReadingGroup(project, item)) {
+        item.childIds.forEach((id: string, index: number) => {
+          visit(id, itemId, depth + (index > 0 ? 1 : 0))
+          if (index === 0) result[result.length - 1].readingTitle = true
+        })
+        return
+      }
       result.push({ id: itemId, itemId, parentId, depth, index: -1, number: 0, title: item.title, kind: 'group' })
       item.childIds.forEach((id: string) => visit(id, itemId, depth + 1))
       return
@@ -61,6 +70,7 @@ function contentChannel(item: RecordValue, channelId: string): string {
 export function editableSong(project: RecordValue, itemId: string) {
   let next = copy(project)
   const item = next.items[itemId]
+  const previousCues = plannerSlides(project).filter(row => row.itemId === itemId)
   const primaryId = item.primaryChannelId || Object.keys(item.variants).find(id => item.variants[id].mode === 'content')
   const primary = project.resources[item.variants[primaryId].resourceId].document
   const occurrences = item.arrangement.flatMap((entry: RecordValue) => {
@@ -88,6 +98,12 @@ export function editableSong(project: RecordValue, itemId: string) {
   target.arrangement = arrangement
   delete target.sourceRangeReplacement
   for (const [channelId, resourceId] of Object.entries(resourceByChannel)) target.variants[channelId].resourceId = resourceId
+  delete target.translationCues
+  const updatedCues = plannerSlides(next).filter(row => row.itemId === itemId)
+  updatedCues.forEach((row, index) => {
+    const action = previousCues[index]?.cue?.translationAction
+    if (action && row.cue?.sourceLeafKey) (target.translationCues ||= {})[row.cue.sourceLeafKey] = action
+  })
   return copy(serviceCore.normalizeServiceProject(next))
 }
 
@@ -156,6 +172,10 @@ export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, chan
 
 export function movePlannerSlide(project: RecordValue, from: PlannerSlide, to: PlannerSlide, after = false) {
   if (from.id === to.id) return project
+  if (from.readingTitle || to.readingTitle) {
+    const asGroup=(row:PlannerSlide):PlannerSlide=>row.readingTitle ? {...row,id:row.parentId!,itemId:row.parentId!,readingTitle:false,kind:'group',parentId:(Object.values(project.items) as any[]).find(item=>item.kind==='group' && item.childIds.includes(row.parentId))?.id || null} : row
+    return movePlannerSlide(project,asGroup(from),asGroup(to),after)
+  }
   if (from.kind === 'song' && from.index > 0) {
     if (to.itemId !== from.itemId) throw new Error('Move lyrics within their song. Drag the song title to move the whole song.')
     const next = editableSong(project, from.itemId)
@@ -182,5 +202,24 @@ export function deletePlannerSlide(project: RecordValue, slide: PlannerSlide) {
     next.items[slide.itemId].arrangement.splice(slide.index - 1, 1)
     return copy(serviceCore.normalizeServiceProject(next))
   }
-  return serviceCore.removeProjectItemAndDescendants(project, slide.itemId)
+  return serviceCore.removeProjectItemAndDescendants(project, slide.readingTitle ? slide.parentId! : slide.itemId)
+}
+
+/** A cue belongs to its concrete compiled slide, including a song occurrence. */
+export function translationActionForSlide(rows: PlannerSlide[], slide: PlannerSlide): 'start' | 'stop' {
+  let active = false
+  for (const row of rows) {
+    if (row.id === slide.id) break
+    if (row.cue?.translationAction) active = row.cue.translationAction === 'start'
+  }
+  return active ? 'stop' : 'start'
+}
+export function setSlideTranslationCue(project: RecordValue, slide: PlannerSlide, action: 'start' | 'stop' | null) {
+  if (!slide.cue?.sourceLeafKey) throw new Error('Choose a numbered slide.')
+  const next = copy(project), item = next.items[slide.itemId]
+  item.translationCues ||= {}
+  if (action) item.translationCues[slide.cue.sourceLeafKey] = action
+  else delete item.translationCues[slide.cue.sourceLeafKey]
+  if (!Object.keys(item.translationCues).length) delete item.translationCues
+  return copy(serviceCore.normalizeServiceProject(next))
 }

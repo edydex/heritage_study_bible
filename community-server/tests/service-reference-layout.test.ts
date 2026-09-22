@@ -87,3 +87,24 @@ test('a full manager form cannot let unchanged hidden documents override edited 
  const canonical=await prepareSongSyncFields({operation:'update',originalDoc:{...old,syncDocuments:docs},data:{lyrics,syncDocuments:replacement},context:{}} as any)
  assert.deepEqual(canonical!.syncDocuments,replacement)
 })
+
+test('refrain is distinct, repeats expand forward, and named recalls retain the right words',()=>{
+ const source='---\nid: repeats\ntitle: Repeats\nlanguage: en\n---\nVerse 1\nFirst verse\nChorus a\nFirst chorus half\nChorus b\nSecond chorus half\nRefrain x2\nRefrain words\nChorus a\nChorus\nVerse 1 x2'
+ const parsed=parsePlannerLibrarySongDocument(source,{fileName:'repeats.md'}).document
+ assert.deepEqual(parsed.sections.map((s:any)=>s.slides.map((v:any)=>v.lines.join(' '))),[
+  ['First verse'],['First chorus half'],['Second chorus half'],['Refrain words'],['Refrain words'],['First chorus half'],['First chorus half','Second chorus half'],['First verse'],['First verse'],
+ ])
+ assert.ok(!JSON.stringify(parsed.sections).includes('x2'))
+ assert.throws(()=>parsePlannerLibrarySongDocument('---\nid: missing\ntitle: Missing\nlanguage: en\n---\nChorus',{fileName:'missing.md'}),/before its words/)
+ assert.throws(()=>songDocumentBody('Refrain x99\nWords'),/between 1 and 16/)
+})
+
+test('unpaired verse 1a and bare split-chorus recalls align between EN and RU',()=>{
+ const en='Verse 1a\nFirst words\n\nVerse 2\nSecond words\n\nChorus (a)\nPart A\n\nChorus (b)\nPart B\n\nVerse 3\nThird words\n\nChorus (a)\nChorus (b)\n\nRefrain x2\nDifferent refrain words\n\nChorus (a)\nChorus (b)'
+ const ru=en.replace('Verse 1a','Verse 1').replaceAll('Chorus (a)','chorus a').replaceAll('Chorus (b)','chorus b')
+ const docs=synthesizeLegacySyncDocuments({syncId:'refrain-parts',title:'Example',lyrics:en,russianLyrics:ru,russianTitle:'Пример'}).map(v=>parsePlannerLibrarySongDocument(v.source,{fileName:v.id+'.md'}))
+ assert.equal(docs[0].document.sections.length,11)
+ assert.ok(core.compareSongTranslations(docs[0].document,docs[1].document).compatible)
+ assert.equal(docs[0].document.sections.filter((section:any)=>section.id.startsWith('refrain-section')).length,2)
+ assert.ok(!docs[0].document.sections.flatMap((section:any)=>section.slides.flatMap((slide:any)=>slide.lines)).some((line:string)=>/^(chorus|refrain)/i.test(line)))
+})

@@ -1,3 +1,4 @@
+import formatting from '../packages/service-core/node/services/project/SlideFormatting.js'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import core from '../packages/service-core/index.js'
@@ -33,20 +34,20 @@ test('long Scripture becomes real synchronized, projector-sized cues and survive
   assert.equal(prepared.readingsSplit, 1)
   const project = reopen(prepared.project)
   const pages = project.items.reading.childIds.map((id: string) => project.items[id])
-  assert.equal(pages.length, 5)
-  assert.equal(pages[0].title, 'Psalms 18:16–19')
-  assert.equal(pages.at(-1).title, 'Psalms 18:32–35')
+  assert.ok(pages.length < 5)
+  assert.equal(pages[0].passagesByChannel.english.verses[0].number, 16)
+  assert.equal(pages.at(-1).passagesByChannel.english.verses.at(-1).number, 35)
   for (const channel of original.channelIds) {
     assert.deepEqual(pages.flatMap((item: any) => item.passagesByChannel[channel].verses), original.items.reading.passagesByChannel[channel].verses)
     pages.forEach((item: any) => {
       assert.equal(item.passagesByChannel[channel].attribution, 'Source credit')
       assert.ok(item.passagesByChannel[channel].contentSha256)
       assert.equal(item.presetId, 'wotbc-reading')
-      assert.equal(item.passagesByChannel[channel].verses.length, 4)
+      assert.ok(scriptureLineCount(formatting.scriptureFlowText(item.passagesByChannel[channel].verses)) <= SCRIPTURE_PAGE_MAX_LINES)
     })
   }
   const timeline = core.compileServiceProject(project)
-  assert.equal(timeline.cueIds.filter((id: string) => timeline.cues[id].kind === 'bible').length, 5)
+  assert.equal(timeline.cueIds.filter((id: string) => timeline.cues[id].kind === 'bible').length, pages.length)
   assert.equal(JSON.stringify(original), before)
   assert.equal(preparePlannerPresentation(project).changed, false)
   assert.deepEqual(preparePlannerPresentation(project).project, project)
@@ -76,10 +77,10 @@ test('the longest output controls verse boundaries; no translation is omitted or
   const item = JSON.parse(JSON.stringify(fixture().items.reading))
   item.passagesByChannel.russian.verses[0].text = 'Длинная строка для чтения на экране. '.repeat(11)
   const pages = scripturePages(item)
-  assert.deepEqual(pages[0], [16])
+  assert.ok(pages[0].length < pages[1].length)
   assert.deepEqual(pages.flat(), Array.from({ length: 20 }, (_, index) => 16 + index))
   for (const page of pages) for (const passage of Object.values(item.passagesByChannel) as any[]) {
-    assert.ok(passage.verses.filter((verse: any) => page.includes(verse.number)).reduce((count: number, verse: any) => count + scriptureLineCount(`${verse.number} ${verse.text}`), 0) <= SCRIPTURE_PAGE_MAX_LINES)
+    assert.ok(scriptureLineCount(formatting.scriptureFlowText(passage.verses.filter((verse: any) => page.includes(verse.number)))) <= SCRIPTURE_PAGE_MAX_LINES)
   }
   item.passagesByChannel.russian.verses.pop()
   assert.throws(() => scripturePages(item), /same verses/)

@@ -32,6 +32,7 @@ export const Communities: CollectionConfig = {
     },
     { name: 'description', label: 'Short public description', type: 'textarea' },
     { name: 'website', label: 'Public server address', type: 'text', admin: { readOnly: true } },
+    { name: 'presentationSlides', type: 'json', admin: { hidden: true }, access: { read: () => false, create: () => false, update: () => false } },
     { name: 'logo', label: 'Church logo', type: 'upload', relationTo: 'media' },
     { name: 'timeZone', label: 'Default event time zone', validate: (value: unknown) => validTimeZone(value) || 'Choose a valid time zone such as America/Los_Angeles.', type: 'text', defaultValue: 'UTC', required: true, admin: { description: 'For example: America/Los_Angeles.' } },
     {

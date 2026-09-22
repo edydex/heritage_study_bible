@@ -1,3 +1,4 @@
+import * as serviceSlidesBooks from './20260921_230000_service_slides_member_books'
 import * as songDefaultLanguage from './20260921_190000_song_default_language'
 import * as migration_bibles from './20260921_040000_private_bible_translations'
 import * as migration_workflows from './20260915_080000_calendar_song_tags_sermon_slides'
@@ -26,6 +27,7 @@ import * as migration_20260902_053500_service_document_lock_relations from './20
 import * as migration_20260903_200000_community_accounts_sync from './20260903_200000_community_accounts_sync';
 
 export const migrations = [
+
   {
     up: migration_20260711_075027_initial_schema.up,
     down: migration_20260711_075027_initial_schema.down,
@@ -140,4 +142,5 @@ export const migrations = [
   { up: migration_workflows.up, down: migration_workflows.down, name: '20260915_080000_calendar_song_tags_sermon_slides' },
   { up: migration_bibles.up, down: migration_bibles.down, name: '20260921_040000_private_bible_translations' },
   { up: songDefaultLanguage.up, down: songDefaultLanguage.down, name: '20260921_190000_song_default_language' },
+  {up:serviceSlidesBooks.up,down:serviceSlidesBooks.down,name:'20260921_230000_service_slides_member_books'},
 ];

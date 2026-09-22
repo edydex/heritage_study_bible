@@ -139,3 +139,10 @@ export const readSharedPlanNotes: Access = async ({ req }) => {
   }
   return where
 }
+
+export const readBooksByVisibility: Access = async ({req}) => {
+ if(req.user?.systemRole==='system-admin')return true
+ const members=await membershipCommunityIds(req), managers=await membershipCommunityIds(req,['owner','admin','leader'])
+ const where:Where={or:[{and:[{status:{equals:'published'}},{or:[{visibility:{equals:'public'}},...(members.length?[{community:{in:members}}]:[])]}]},...(managers.length?[{community:{in:managers}}]:[])]}
+ return where
+}

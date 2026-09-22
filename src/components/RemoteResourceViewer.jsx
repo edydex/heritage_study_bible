@@ -1,3 +1,6 @@
+import CommunityBookReadAlong from './CommunityBookReadAlong'
+import {resolveCommunityBookAccess} from '../services/communityBookAccess'
+import {COMMUNITY_SESSION_CHANGE_EVENT} from '../services/communitySessions'
 import { normalizeSongSections, parseSongLyrics } from '../../community-server/packages/song-text/index.js'
 import SongLyrics from '../../community-server/packages/song-text/SongLyrics.jsx'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -255,22 +258,26 @@ function RemoteResourceViewer({ directSong = false }) {
       : getRemoteContentItem(contentKey),
     [contentKey, directQuery, directSong],
   )
-  const accessKey = directSong && item ? `${item.sourceServerId}:${item.content?.url}` : ''
+  const communityBook = item?.contentType === 'books'
+  const needsAccess = directSong || communityBook
+  const [sessionRevision,setSessionRevision]=useState(0)
+  useEffect(()=>{const refresh=()=>{setAccessState(null);setContentDocument(null);setSessionRevision(n=>n+1)};window.addEventListener(COMMUNITY_SESSION_CHANGE_EVENT,refresh);return()=>window.removeEventListener(COMMUNITY_SESSION_CHANGE_EVENT,refresh)},[])
+  const accessKey = needsAccess && item ? `${item.sourceServerId}:${item.content?.url}` : ''
   const [accessState, setAccessState] = useState(null)
-  const memberAccess = directSong
+  const memberAccess = needsAccess
     ? accessState?.key === accessKey ? accessState : CHECKING_ACCESS
     : PUBLIC_ACCESS
   useEffect(() => {
-    if (!directSong || !item) return
+    if (!needsAccess || !item) return
     let cancelled = false
-    resolveCommunitySongMemberAccess({
+    ;(communityBook ? resolveCommunityBookAccess : resolveCommunitySongMemberAccess)({
       contentServerId: item.sourceServerId,
       contentUrl: item.content?.url,
     }).then(result => {
       if (!cancelled) setAccessState({ ...result, key: accessKey })
     })
     return () => { cancelled = true }
-  }, [accessKey, directSong, item])
+  }, [accessKey, needsAccess, communityBook, item, sessionRevision])
   const memberRequestOptions = useMemo(
     () => memberAccess.status === 'ready'
       ? {
@@ -335,6 +342,7 @@ function RemoteResourceViewer({ directSong = false }) {
 
   useEffect(() => {
     if (!item || !isText) return
+    if (needsAccess && memberAccess.status === 'checking') return
     if (directSong && memberAccess.status !== 'ready') return
     if (!contentUrl) {
       setStatus('error')
@@ -347,8 +355,13 @@ function RemoteResourceViewer({ directSong = false }) {
     setMessage('')
     setContent('')
     setContentDocument(null)
-    loadTextNetworkFirst(contentUrl, mediaType, memberRequestOptions)
-      .then(({ value, source }) => {
+    const request = communityBook
+      ? fetchRemote(contentUrl, memberRequestOptions).then(async response => ({
+          value: await parseTextResponse(response, mediaType),
+          source: 'network',
+        }))
+      : loadTextNetworkFirst(contentUrl, mediaType, memberRequestOptions)
+    request.then(({ value, source }) => {
         if (cancelled) return
         const document = value && typeof value === 'object' && !Array.isArray(value) ? value : null
         setContentDocument(document)
@@ -364,7 +377,7 @@ function RemoteResourceViewer({ directSong = false }) {
           : `Could not load this resource: ${error.message}`)
       })
     return () => { cancelled = true }
-  }, [contentUrl, directSong, isText, item, itemKey, mediaType, memberAccess.status, memberRequestOptions])
+  }, [contentUrl, directSong, communityBook, needsAccess, isText, item, itemKey, mediaType, memberAccess.status, memberRequestOptions, sessionRevision])
 
   useEffect(() => {
     if (!assets.length) return
@@ -380,6 +393,7 @@ function RemoteResourceViewer({ directSong = false }) {
 
   useEffect(() => {
     if (!item || isText || !contentUrl) return
+    if (needsAccess && memberAccess.status === 'checking') return
     if (directSong && memberAccess.status !== 'ready') return
     let cancelled = false
     getCachedObjectUrl(contentUrl)
@@ -414,6 +428,7 @@ function RemoteResourceViewer({ directSong = false }) {
   )
 
   const makeAvailableOffline = async () => {
+    if(communityBook){setMessage('Community books require a current church sign-in.');return}
     if (!contentUrl) {
       setMessage('This resource has an invalid content URL and cannot be saved.')
       return
@@ -581,7 +596,8 @@ function RemoteResourceViewer({ directSong = false }) {
         {contentUrl && mediaType.startsWith('audio/') && <audio controls preload="metadata" src={primaryMediaUrl} onError={handlePrimaryMediaError} className="w-full" />}
         {contentUrl && mediaType.startsWith('video/') && <video controls preload="metadata" src={primaryMediaUrl} onError={handlePrimaryMediaError} className="w-full rounded-xl bg-black" />}
         {contentUrl && mediaType.startsWith('image/') && <img src={primaryMediaUrl} onError={handlePrimaryMediaError} alt={item.title} className="max-h-[70vh] w-full rounded-xl object-contain bg-white dark:bg-gray-800" />}
-        {contentUrl && isText && (
+        {contentDocument?.readAlong && <CommunityBookReadAlong key={`${contentUrl}:${sessionRevision}`} document={contentDocument} contentUrl={contentUrl} requestOptions={memberRequestOptions} />}
+        {contentUrl && isText && !contentDocument?.readAlong && (
           <article className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-6 shadow-sm">
             {status === 'loading' ? (
               <p className="animate-pulse text-gray-500 dark:text-gray-400">Loading resource…</p>

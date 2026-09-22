@@ -219,6 +219,15 @@ export interface Community {
   slug: string;
   description?: string | null;
   website?: string | null;
+  presentationSlides?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   logo?: (number | null) | Media;
   /**
    * For example: America/Los_Angeles.
@@ -520,6 +529,10 @@ export interface ReadingPlanNote {
  */
 export interface Song {
   id: number;
+  /**
+   * The primary (top) language when adding this song to a service. You can change it per service.
+   */
+  defaultSongLanguage: 'ru' | 'en';
   community: number | Community;
   /**
    * Filled automatically from the title when left blank. Change it only if the public link needs a different short name.
@@ -1112,6 +1125,16 @@ export interface Book {
    */
   slug: string;
   description?: string | null;
+  visibility: 'members' | 'public';
+  readAlong?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   author: string;
   publishedYear?: number | null;
   body?: {
@@ -1643,6 +1666,7 @@ export interface CommunitiesSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   website?: T;
+  presentationSlides?: T;
   logo?: T;
   timeZone?: T;
   joinPolicy?: T;
@@ -1771,6 +1795,7 @@ export interface ReadingPlanNoteSelect<T extends boolean = true> {
  * via the `definition` "songs_select".
  */
 export interface SongsSelect<T extends boolean = true> {
+  defaultSongLanguage?: T;
   community?: T;
   slug?: T;
   tags?: T;
@@ -2104,6 +2129,8 @@ export interface BooksSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   description?: T;
+  visibility?: T;
+  readAlong?: T;
   author?: T;
   publishedYear?: T;
   body?: T;

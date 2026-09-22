@@ -1,3 +1,4 @@
+import {canReadBook,bookProjection} from '../../../../../packages/book-readalong/index.js'
 import { publishedSongContent } from '@/lib/songPublication'
 import config from '@payload-config'
 import { getPayload } from 'payload'
@@ -26,7 +27,7 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
   const { type, id } = await context.params
   const collection = typeToCollection[type as keyof typeof typeToCollection]
   if (!collection) return publicJson({ error: 'Unknown content type.' }, { status: 404 })
-  const contentJson = type === 'songs' ? privateAuthorizationJson : publicJson
+  const contentJson = ['songs','books'].includes(type) ? privateAuthorizationJson : publicJson
 
   const payload = await getPayload({ config })
   const communityId = await getConfiguredCommunityId(payload)
@@ -59,6 +60,11 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
     })
     if (relationshipId(doc.community) !== String(communityId)) {
       return contentJson({ error: 'Not found.' }, { status: 404 })
+    }
+    if(type==='books') {
+      const access=await communityRequestAccess(payload,request.headers,communityId)
+      if(!canReadBook(doc,access))return contentJson({error:'Not found.'},{status:404})
+      return contentJson(bookProjection(doc))
     }
     if (type === 'songs') {
       const published = publishedSongContent(doc as unknown as Record<string, unknown>)
