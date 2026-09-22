@@ -25,7 +25,7 @@ import ServicePreview from './ServicePreview'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 import typography from '../../packages/service-core/node/services/project/SlideTypography.js'
 import { SERMON_TEMPLATES, createTemplateDraft, editTemplateField, editCanvasObjects, insertionPoint, type SermonTemplateId } from './plannerTemplates'
-import { addReadingTitle, preparePlannerPresentation, scriptureLineCount, SCRIPTURE_PAGE_MAX_LINES } from './plannerPresentation'
+import { addReadingTitle, preparePlannerPresentation } from './plannerPresentation'
 import { editablePreviewBlock, editPlannerSlide, isSongTitleSlide, plannerSlides, setSlideTranslationCue, translationActionForSlide, type PlannerSlide } from './plannerSlides'
 import { changePlannerSelection, plannerRangeSelection, selectedPlannerSlides, type SelectionResult } from './plannerSelection'
 import {
@@ -1392,9 +1392,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               </div>
               <p className="heritage-service-planner__preview-note">{preview.singer
                 ? 'Full primary-language slide · Same-size next line, fitted to the available width.'
-                : selected.kind === 'bible' ? (activePreviewOutput?.blocks || []).some((block: any) => block.type === 'bible' && block.verses.reduce((count: number, verse: any) => count + scriptureLineCount(`${verse.number} ${verse.text}`), 0) > SCRIPTURE_PAGE_MAX_LINES)
-                  ? 'This unusually long verse needs a shorter slide layout before projection.'
-                  : 'Click Scripture to edit this slide · Add omissions or [context] · Original Bible text is preserved.'
+                : selected.kind === 'bible' ? 'Click Scripture to edit this slide · Add omissions or [context] · Original Bible text is preserved.'
                   : selected.kind === 'song' && selected.songPresentation?.stackedTranslation ? 'Same stack on both audience screens · White primary language, orange translation · Click either to edit.'
                   : selected.kind === 'sermon' ? 'Click directly on the slide to edit · Select text for formatting · Empty guides are not projected.'
                   : selected.kind === 'picture' ? 'Picture slide. Open Add slide → Media to replace its image.'
