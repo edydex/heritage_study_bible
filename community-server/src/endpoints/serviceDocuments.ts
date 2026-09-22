@@ -499,7 +499,7 @@ const bibleLibraryRead: Endpoint = {
       const { communityId } = await managerContext(req)
       const data = await boundedJson(req)
       const lookupKeys = ['schemaVersion', 'bookId', 'chapter', 'startVerse', 'endVerse']
-      if (!(exactKeys(data, lookupKeys) || exactKeys(data, [...lookupKeys, 'translations']))
+      if (!exactKeys(data, [...lookupKeys, ...(data.translations !== undefined ? ['translations'] : []), ...(data.verseNumbers !== undefined ? ['verseNumbers'] : [])])
         || data.schemaVersion !== 1) {
         throw new ServiceDocumentEditorError(
           'INVALID_BIBLE_RANGE',
@@ -521,7 +521,7 @@ const bibleLibraryRead: Endpoint = {
         bookId: data.bookId,
         start: { chapter: data.chapter, verse: data.startVerse },
         end: { chapter: data.chapter, verse: data.endVerse },
-      }, { translations, importedPassage: (id, range) => installedBiblePassage(req, communityId, id, range) })
+      }, { translations, verseNumbers: data.verseNumbers, importedPassage: (id, range) => installedBiblePassage(req, communityId, id, range) })
       return json(req, { schemaVersion: 1, passage })
     } catch (error) {
       return editorError(req, error)

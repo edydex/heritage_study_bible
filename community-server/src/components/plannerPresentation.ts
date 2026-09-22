@@ -46,7 +46,7 @@ export function scripturePages(item: RecordValue): number[][] {
 
 function pageReference(reference: string, item: RecordValue, numbers: number[]) {
   const book = reference.replace(/\s+\d+:.*$/, '')
-  return `${book} ${item.range.start.chapter}:${numbers[0]}${numbers.length > 1 ? `–${numbers.at(-1)}` : ''}`
+  return `${book} ${item.range.start.chapter}:${formatting.verseSelectionLabel(numbers)}`
 }
 
 /** Materialize pages as standard Bible items, not browser-only previews.
@@ -88,6 +88,9 @@ export function preparePlannerPresentation(project: RecordValue) {
       item.presetId = 'wotbc-reading'
       changed = true
     }
+    // An edited slide is an intentional excerpt; automatic repagination would lose its words.
+    if (Object.values(item.passagesByChannel).some((passage: any) => passage.displayText !== undefined)
+      || (item.verseNumbers && item.verseNumbers.length <= SCRIPTURE_PAGE_MAX_VERSES)) continue
     const pages = scripturePages(item)
     if (pages.length <= 1) continue
     const childIds: string[] = []
@@ -111,7 +114,7 @@ export function preparePlannerPresentation(project: RecordValue) {
       const firstPassage = Object.values(passagesByChannel)[0] as RecordValue
       next.items[id] = { ...item, id, title: firstPassage.reference,
         range: { ...item.range, start: { ...item.range.start, verse: numbers[0] }, end: { ...item.range.end, verse: numbers.at(-1) } },
-        passagesByChannel, presetId: item.presetId }
+        passagesByChannel, ...(item.verseNumbers ? {verseNumbers: numbers} : {}), presetId: item.presetId }
     })
     next.items[item.id] = { id: item.id, kind: 'group', groupKind: 'section', title: item.title,
       createdAt: item.createdAt, updatedAt: item.updatedAt, operatorNotes: item.operatorNotes,

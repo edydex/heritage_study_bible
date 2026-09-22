@@ -118,9 +118,14 @@ export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, chan
   const block = slide.cue?.channels[channelId]?.blocks[blockIndex]
   if (block?.type === 'bible' && spans !== undefined) {
     const display = formatting.scriptureDisplay(block, slide.cue?.presetId)
-    if (text !== display.text) throw new Error('Scripture text stays pinned. Only its formatting can change.')
-    const next = copy(project)
-    next.items[slide.itemId].passagesByChannel[channelId].spans = spans.filter(span=>span.end>display.bodyStart).map(span=>({...span,start:Math.max(display.sourceStart,span.start-display.prefixLength),end:span.end-display.prefixLength}))
+    const next = copy(project), item = next.items[slide.itemId]
+    const outputs = channelId === 'russian' && item.passagesByChannel.media ? [channelId, 'media'] : [channelId]
+    for (const output of outputs) {
+      const passage = item.passagesByChannel[output]
+      if (text !== display.text || passage.displayText !== undefined) { passage.displayText = text; passage.displaySpans = spans }
+      else passage.spans = spans.filter(span=>span.end>display.bodyStart).map(span=>({...span,start:Math.max(display.sourceStart,span.start-display.prefixLength),end:span.end-display.prefixLength}))
+    }
+    item.updatedAt = new Date().toISOString()
     return copy(serviceCore.normalizeServiceProject(next))
   }
   if (!text.trim() && block?.role !== 'credit') throw new Error('Slide text cannot be empty. Use Delete in the slide menu instead.')

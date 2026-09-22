@@ -1404,8 +1404,14 @@
 
 .heritage-service-planner__stage[data-preset="wotbc-sermon-title"] .heritage-service-planner__slide-content { width: 90%; height: 80%; top: 10%; justify-content: center; }
 .heritage-service-planner__stage[data-preset="wotbc-sermon-title"] .heritage-service-planner__editable-text { text-align: center; font-weight: 700; }
-.heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] .heritage-service-planner__editable-text { text-align: center; }
-.heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] [data-role="title"] { color: #ffc000; font-size: calc(var(--slide-text-size) * .68); }
+.heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] .heritage-service-planner__slide-content { justify-content: flex-start; padding-top: 0; }
+.heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] .heritage-service-planner__editable-text { text-align: left; font-weight: 400; }
+.heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] .heritage-service-planner__template-body { margin-top: 2%; }
+.heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] [data-role="body"] { margin-top: 2%; }
+.heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] [data-role="credit"] { text-align: right; margin-top: .35em; font-size: var(--slide-text-size); position: static; width: 100%; }
+.heritage-sermon-title-input { flex: 1 1 16rem; display: flex; align-items: center; gap: .5rem; }
+.heritage-sermon-title-input input { width: 100%; min-width: 6rem; }
+.heritage-service-planner__stage[data-preset="wotbc-sermon-quote"] [data-role="title"] { color: #ffc000; text-align: center; font-weight: 700; font-size: calc(var(--slide-text-size) * 1.135); min-height: 1.13em; }
 .heritage-service-planner__editable-text[data-placeholder] { position: relative; }
 .heritage-service-planner__editable-text[data-placeholder][data-empty="true"]::before { content: attr(data-placeholder); position: absolute; inset: 0; color: #aeb6b2; opacity: .6; pointer-events: none; user-select: none; }
 .heritage-service-planner__editable-text[data-placeholder][data-empty="true"]:focus::before { opacity: .22; }

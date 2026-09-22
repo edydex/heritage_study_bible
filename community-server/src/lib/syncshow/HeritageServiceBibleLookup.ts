@@ -5,6 +5,8 @@ import {
   type CanonicalBibleRange,
 } from './BibleRange'
 
+import formatting from '../../../packages/service-core/node/services/project/SlideFormatting.js'
+
 const MAX_TRANSLATION_BOOK_BYTES = 4 * 1024 * 1024
 const TRANSLATIONS = Object.freeze({
   english: {
@@ -149,7 +151,8 @@ export async function loadHeritageServiceBiblePassage(
     heritageAppUrl = process.env.HERITAGE_APP_URL,
     translations = { english: 'BSB', russian: 'SYNO-W' },
     importedPassage,
-  }: { fetchImpl?: FetchLike; heritageAppUrl?: string;
+    verseNumbers,
+  }: { fetchImpl?: FetchLike; heritageAppUrl?: string; verseNumbers?: unknown;
     translations?: { english: string; russian: string };
     importedPassage?: (id: string, range: CanonicalBibleRange) => Promise<{ passage: { reference: string; translationId: string; attribution: string; verses: { number: number; text: string }[] }; sourceUrl: string }>;
   } = {},
@@ -173,13 +176,21 @@ export async function loadHeritageServiceBiblePassage(
       'A service reading currently needs exact verses within one chapter.',
     )
   }
+  let selected: number[] | undefined
+  if (verseNumbers !== undefined) {
+    if (!Array.isArray(verseNumbers) || !verseNumbers.length || verseNumbers.length > 200
+      || verseNumbers.some((n,i) => !Number.isSafeInteger(n) || n < range.start.verse! || n > range.end.verse! || (i && n <= verseNumbers[i-1]))
+      || verseNumbers[0] !== range.start.verse || verseNumbers.at(-1) !== range.end.verse)
+      throw new HeritageServiceBibleLookupError('INVALID_BIBLE_RANGE', 'List distinct verses in ascending order within this chapter.')
+    selected = verseNumbers
+  }
   const book = CANONICAL_BIBLE_BOOKS.find(candidate => candidate.id === range.bookId)
   if (!book) {
     throw new HeritageServiceBibleLookupError('INVALID_BIBLE_RANGE', 'Choose a canonical Bible book.')
   }
   const fileName = bookFileName(book.name)
   const baseUrl = heritageReaderBaseUrl(heritageAppUrl)
-  const reference = formatBibleRange(range)
+  const reference = selected ? `${book.name} ${range.start.chapter}:${formatting.verseSelectionLabel(selected)}` : formatBibleRange(range)
   async function channel(id: string) {
     const builtIn = Object.values(TRANSLATIONS).find(value => value.id === id)
     if (!builtIn) {
@@ -191,12 +202,14 @@ export async function loadHeritageServiceBiblePassage(
     return { passage: { reference, translationId: id, attribution: builtIn.attribution, verses: exactVerses(result.value, range, id) }, sourceUrl: result.sourceUrl }
   }
   const [english, russian] = await Promise.all([channel(translations.english), channel(translations.russian)])
-  const englishPassage = english.passage
-  const russianPassage = russian.passage
+  const select = (passage: typeof english.passage) => selected ? {...passage, reference: passage.reference.replace(/\s+\d+:.*$/, ` ${range.start.chapter}:${formatting.verseSelectionLabel(selected)}`), verses: passage.verses.filter(v=>selected!.includes(v.number))} : passage
+  const englishPassage = select(english.passage)
+  const russianPassage = select(russian.passage)
   return Object.freeze({
     schemaVersion: 1,
     range,
     title: reference,
+    ...(selected ? {verseNumbers: selected} : {}),
     passagesByChannel: Object.freeze({
       english: englishPassage,
       russian: russianPassage,

@@ -341,6 +341,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   const [bibleEndVerse, setBibleEndVerse] = useState(21)
   const [referenceKey, setReferenceKey] = useState(0)
   const [referenceValid, setReferenceValid] = useState(true)
+  const [bibleVerseNumbers, setBibleVerseNumbers] = useState<number[] | undefined>()
   const [resourceTab, setResourceTab] = useState<ResourceTab>(sermonSyncId ? 'templates' : 'songs')
   const [sermonPassage, setSermonPassage] = useState(false)
   const [mediaPreviews, setMediaPreviews] = useState<Record<string, string>>({})
@@ -853,6 +854,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
           chapter: visibleBibleChapter,
           startVerse: visibleBibleStartVerse,
           endVerse: visibleBibleEndVerse,
+          ...(bibleVerseNumbers ? {verseNumbers: bibleVerseNumbers} : {}),
           translations: { english: bibleEnglish, russian: bibleRussian },
         }),
       })
@@ -862,6 +864,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
         id: itemId,
         title: `${passage.title} · ${passage.passagesByChannel.english.translationId} / ${passage.passagesByChannel.russian.translationId}`,
         range: passage.range,
+        ...(passage.verseNumbers ? {verseNumbers: passage.verseNumbers} : {}),
         passagesByChannel: passage.passagesByChannel,
         presetId: sermonPassage ? 'wotbc-sermon-scripture' : 'wotbc-reading',
         operatorNotes: 'Exact Bible text and attribution pinned from the selected editions.',
@@ -1236,6 +1239,11 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
             }}>
             <small>{selectedPlannerSlides(slideList.rows, menu.ids).length > 1 ? `${selectedPlannerSlides(slideList.rows, menu.ids).length} selected slides` : menu.row.kind === 'group' ? 'Section' : `Slide ${menu.row.number}`}</small>
             <button type="button" role="menuitem" onClick={() => { selectSlide(menu.row); setMenu(null); setSettingsOpen(true) }}>Slide settings…</button>
+            {menu.row.kind === 'bible' && draft && draft.items[menu.row.itemId]?.passagesByChannel?.[previewChannel]?.displayText !== undefined ? <button type="button" role="menuitem" onClick={() => {
+              const next = cloneProject(draft), item = next.items[menu.row.itemId]
+              for (const output of previewChannel === 'russian' && item.passagesByChannel.media ? ['russian','media'] : [previewChannel]) { delete item.passagesByChannel[output].displayText; delete item.passagesByChannel[output].displaySpans }
+              slideMutation(() => serviceCore.normalizeServiceProject(next)); setMenu(null)
+            }}>Restore original passage text</button> : null}
             {menu.row.cue && draft ? <>
               <button type="button" role="menuitem" onClick={() => {
                 const action = translationActionForSlide(slideList.rows, menu.row)
@@ -1288,6 +1296,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               </div> : null}
               {selected.kind === 'sermon' && (selected.sermonTemplate === 'title' || selected.presetId === 'wotbc-sermon-title') && !preview.singer ? <div className="heritage-service-planner__song-layout">
                 <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>{uploadingPicture ? 'Uploading…' : (selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? `Replace ${previewChannel === 'russian' ? 'Russian' : 'English'} image` : `Choose ${previewChannel === 'russian' ? 'Russian' : 'English'} image`}</button>
+                <label className="heritage-sermon-title-input">Title<input aria-label={`${previewChannel} title for following passages`} value={selected.titlesByChannel?.[previewChannel] || ''} onChange={event => slideMutation(() => editTemplateField(draft!, selected.id, previewChannel, 'heading', event.target.value, formatting.remapTextSpans(selected.titlesByChannel?.[previewChannel] || '', event.target.value, selected.titleSpansByChannel?.[previewChannel] || [])))} /></label>
                 <label><input type="checkbox" checked={selected.sermonPresentation?.showText ?? true} onChange={event => updateSelected({ sermonPresentation: {darkenBackground: true, ...selected.sermonPresentation, showText: event.target.checked} })} /> Show title text</label>
                 <label><input type="checkbox" checked={selected.sermonPresentation?.darkenBackground ?? true} onChange={event => updateSelected({ sermonPresentation: {showText: true, ...selected.sermonPresentation, darkenBackground: event.target.checked} })} /> Darken image</label>
               </div> : null}
@@ -1312,7 +1321,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                         }
                         if (block.type === 'bible') return <div key={index} className="heritage-service-planner__scripture-page" data-fit-text>
                           <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
-                          <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} label={`Slide ${activeSlide?.number} ${previewChannel} Scripture — select text to format`} role="body" readOnly canFormat={!preview.singer}
+                          <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} label={`Slide ${activeSlide?.number} ${previewChannel} Scripture — click to edit`} role="body" readOnly={preview.singer} canFormat={!preview.singer}
                             onCommit={(text, spans) => activeSlide && slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text, spans))} />
                           {formatting.scriptureCredit(block) ? <p className="heritage-scripture-credit">{formatting.scriptureCredit(block)}</p> : null}
                         </div>
@@ -1336,7 +1345,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 ? 'Full primary-language slide · Same-size next line, fitted to the available width.'
                 : selected.kind === 'bible' ? (activePreviewOutput?.blocks || []).some((block: any) => block.type === 'bible' && block.verses.reduce((count: number, verse: any) => count + scriptureLineCount(`${verse.number} ${verse.text}`), 0) > SCRIPTURE_PAGE_MAX_LINES)
                   ? 'This unusually long verse needs a shorter slide layout before projection.'
-                  : 'Select verse text to format · English and Russian advance together · Scripture words stay unchanged.'
+                  : 'Click Scripture to edit this slide · Add omissions or [context] · Original Bible text is preserved.'
                   : selected.kind === 'song' && selected.songPresentation?.stackedTranslation ? 'Same stack on both audience screens · White primary language, orange translation · Click either to edit.'
                   : selected.kind === 'sermon' ? 'Click directly on the slide to edit · Select text for formatting · Empty guides are not projected.'
                   : selected.kind === 'picture' ? 'Picture slide. Replace its image from Media below.'
@@ -1430,12 +1439,12 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
             {resourceTab === 'scripture' ? <>
               <label><span>English screen translation</span><select aria-label="English screen translation" value={bibleEnglish} onChange={event => setBibleEnglish(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
               <label><span>Russian / stage screen translation</span><select aria-label="Russian / stage screen translation" value={bibleRussian} onChange={event => setBibleRussian(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
-              <PassageReferenceInput key={referenceKey} books={bibleBooks} singleChapter onValidityChange={setReferenceValid} onResolve={passage => { setBibleBookId(passage.bookId); setBibleChapter(passage.startChapter); setBibleStartVerse(passage.startVerse); setBibleEndVerse(passage.endVerse) }} />
+              <PassageReferenceInput key={referenceKey} books={bibleBooks} singleChapter allowVerseList onValidityChange={setReferenceValid} onResolve={passage => { setBibleBookId(passage.bookId); setBibleChapter(passage.startChapter); setBibleStartVerse(passage.startVerse); setBibleEndVerse(passage.endVerse); setBibleVerseNumbers(passage.verseNumbers) }} />
               <details className="heritage-passage-manual"><summary>Choose book and verses</summary><div>
-              <label><span>Book</span><select ref={bibleBookInput} value={bibleBookId} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleBookId(event.target.value); const chapters = bibleBooks.find(book => book.id === event.target.value)?.chapters || 1; setBibleChapter(current => Math.min(current, chapters)) }}>{bibleBooks.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
-              <label><span>Chapter</span><input ref={bibleChapterInput} type="number" min={1} max={bibleBooks.find(book => book.id === bibleBookId)?.chapters || 200} value={bibleChapter} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleChapter(Number(event.target.value)) } } /></label>
-              <label><span>From</span><input ref={bibleStartVerseInput} type="number" min={1} max={999} value={bibleStartVerse} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleStartVerse(Number(event.target.value)) } } /></label>
-              <label><span>To</span><input ref={bibleEndVerseInput} type="number" min={1} max={999} value={bibleEndVerse} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleEndVerse(Number(event.target.value)) } } /></label>
+              <label><span>Book</span><select ref={bibleBookInput} value={bibleBookId} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleBookId(event.target.value); const chapters = bibleBooks.find(book => book.id === event.target.value)?.chapters || 1; setBibleChapter(current => Math.min(current, chapters)) }}>{bibleBooks.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
+              <label><span>Chapter</span><input ref={bibleChapterInput} type="number" min={1} max={bibleBooks.find(book => book.id === bibleBookId)?.chapters || 200} value={bibleChapter} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleChapter(Number(event.target.value)) } } /></label>
+              <label><span>From</span><input ref={bibleStartVerseInput} type="number" min={1} max={999} value={bibleStartVerse} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleStartVerse(Number(event.target.value)) } } /></label>
+              <label><span>To</span><input ref={bibleEndVerseInput} type="number" min={1} max={999} value={bibleEndVerse} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleEndVerse(Number(event.target.value)) } } /></label>
               </div></details>
               <button className="btn btn--style-primary" type="button" disabled={!draft || busy || !bibleBookId || !referenceValid} onClick={addBiblePassage}>{sermonPassage ? 'Add sermon passage' : 'Add reading'}</button>
             </> : null}
