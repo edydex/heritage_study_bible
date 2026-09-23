@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   COMMUNITIES_CHANGE_EVENT,
   beginCommunityJoin,
@@ -18,8 +18,11 @@ const COMMUNITY_FEATURE_LABELS = { events: 'Calendar', rsvps: 'Event RSVPs', per
 function CommunityHomePage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const requestedServer = searchParams.get('server') || ''
+  const requestedSignIn = searchParams.get('signin') || ''
   const [communities, setCommunities] = useState(() => getCommunities())
-  const [joinUrl, setJoinUrl] = useState('')
+  const [joinUrl, setJoinUrl] = useState(requestedServer)
   const [email, setEmail] = useState('')
   const [preview, setPreview] = useState(null)
   const [busy, setBusy] = useState('')
@@ -28,6 +31,39 @@ function CommunityHomePage() {
   const [signInRequired,setSignInRequired] = useState(() => location.state?.signInRequired ? { [location.state.signInRequired]: true } : {})
   const [sessionChecked,setSessionChecked] = useState({})
   const [rejoining, setRejoining] = useState(null)
+  const signInForm = useRef(null)
+
+  const openSignIn = community => {
+    setRejoining(community)
+    setEmail(community.member?.email || community.email || '')
+    setMessage('')
+    setDebugLink('')
+  }
+
+  useEffect(() => {
+    if (!requestedSignIn) return
+    const community = getCommunities().find(record => record.manifest.id === requestedSignIn)
+    if (community) openSignIn(community)
+  }, [requestedSignIn])
+
+  // A church can share this entry point with an invited reader on a new device.
+  // Inspect only: neither an email nor a subscription is created without a click.
+  useEffect(() => {
+    if (!requestedServer) return
+    let cancelled = false
+    setBusy('inspect')
+    setJoinUrl(requestedServer)
+    inspectCommunity(requestedServer).then(result => {
+      if (!cancelled) setPreview(result)
+    }).catch(error => {
+      if (!cancelled) setMessage(error.message || 'Could not read that community.')
+    }).finally(() => { if (!cancelled) setBusy('') })
+    return () => { cancelled = true }
+  }, [requestedServer])
+
+  useEffect(() => {
+    if (rejoining) signInForm.current?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+  }, [rejoining])
 
   useEffect(() => {
     const refresh = () => setCommunities(getCommunities())
@@ -130,7 +166,10 @@ function CommunityHomePage() {
             <h2 className="mt-1 text-2xl font-bold heading-text">{primary.manifest.name}</h2>
             <p className="mt-2 text-sm text-blue-50">{primary.manifest.description}</p>
             {primary.status === 'joined' && sessionChecked[primary.manifest.id] && !signInRequired[primary.manifest.id] && <p className="mt-3 text-xs text-blue-100">Signed in as {primary.member?.displayName || primary.member?.email || 'Member'}</p>}
-            {primary.status === 'joined' && signInRequired[primary.manifest.id] && <p className="mt-3 text-sm text-blue-100">Sign in again below to access member resources. This church sign-in is separate from personal notes and progress.</p>}
+            {(primary.status !== 'joined' || signInRequired[primary.manifest.id]) && <div className="mt-3 text-sm text-blue-100">
+              <p>Sign in here to see member books and private events. Your church administration login is separate.</p>
+              <button type="button" onClick={() => openSignIn(primary)} className="mt-2 min-h-11 rounded-lg bg-white px-3 py-2 font-semibold text-primary">Member sign-in</button>
+            </div>}
           </section>
         )}
 
@@ -148,7 +187,7 @@ function CommunityHomePage() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">{signInRequired[community.manifest.id] && community.status === 'joined' ? 'Member sign-in needed' : { joined: 'Joined', 'sync-only': 'Signed in for personal sync', following: 'Public resources saved', 'email-sent': 'Waiting for email sign-in' }[community.status] || 'Saved community'}</p>
                   </div>
                   <div className="flex gap-2">
-                    {signInRequired[community.manifest.id] && community.status === 'joined' && <button onClick={() => { setRejoining(community); setEmail(community.member?.email || community.email || ''); setMessage(''); setDebugLink('') }} className="text-xs text-primary dark:text-blue-300">Sign in again</button>}
+                    {(community.status !== 'joined' || signInRequired[community.manifest.id]) && <button onClick={() => openSignIn(community)} className="text-xs text-primary dark:text-blue-300">{community.status === 'joined' ? 'Sign in again' : community.status === 'email-sent' ? 'Resend sign-in link' : 'Sign in as a member'}</button>}
                     {!community.primary && <button onClick={() => setCommunities(setPrimaryCommunity(community.manifest.id))} className="text-xs text-primary dark:text-blue-300">Make primary</button>}
                     <button onClick={() => setCommunities(removeCommunity(community.manifest.id))} className="text-xs text-red-600 dark:text-red-300">Remove</button>
                   </div>
@@ -156,8 +195,9 @@ function CommunityHomePage() {
               ))}
             </div>
           )}
-          {rejoining && <form className="mt-4 space-y-3" onSubmit={event => { event.preventDefault(); handleJoin(rejoining) }}>
+          {rejoining && <form ref={signInForm} className="mt-4 space-y-3" onSubmit={event => { event.preventDefault(); handleJoin(rejoining) }}>
             <p className="text-sm text-gray-700 dark:text-gray-200">Sign in to {rejoining.manifest.name}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Use the email your church invited. Open the email link in this browser to add member books automatically.</p>
             <input aria-label="Church sign-in email" type="email" required value={email} onChange={event => setEmail(event.target.value)} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
             <button disabled={Boolean(busy) || !email.trim()} className="rounded-lg bg-primary px-4 py-2.5 text-white font-semibold disabled:opacity-50">{busy === 'join' ? 'Sending link…' : 'Send church sign-in link'}</button>
           </form>}
@@ -180,9 +220,9 @@ function CommunityHomePage() {
               </div>
               <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">{preview.contentPreview.manifest.publications?.sermons ? 'Includes the church’s published sermon library.' : `${Object.values(preview.contentPreview.counts).reduce((sum, count) => sum + count, 0)} public resources available.`}</p>
               <button onClick={handleSavePublic} disabled={Boolean(busy)} className="mt-3 w-full rounded-lg bg-primary px-4 py-2.5 text-white font-semibold disabled:opacity-50">{busy === 'save' ? 'Saving…' : 'Save church and browse public resources'}</button>
-              <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">Have a member invitation? Enter your email to join.</p>
+              <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">Already a member or invited by this church? Sign in with that email to add its private books. Open the email link in this browser.</p>
               <input aria-label="Member email" type="email" inputMode="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" className="mt-3 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2.5 text-gray-900 dark:text-gray-100" />
-              <button onClick={() => handleJoin(preview)} disabled={Boolean(busy) || !email.trim()} className="mt-2 w-full rounded-lg bg-gray-950 dark:bg-gray-100 px-4 py-2.5 text-white dark:text-gray-950 font-bold disabled:opacity-50">{busy === 'join' ? 'Sending link…' : `Join ${preview.manifest.name}`}</button>
+              <button onClick={() => handleJoin(preview)} disabled={Boolean(busy) || !email.trim()} className="mt-2 w-full rounded-lg bg-gray-950 dark:bg-gray-100 px-4 py-2.5 text-white dark:text-gray-950 font-bold disabled:opacity-50">{busy === 'join' ? 'Sending link…' : `Sign in to ${preview.manifest.name}`}</button>
             </div>
           )}
         </section>

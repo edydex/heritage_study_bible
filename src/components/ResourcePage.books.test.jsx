@@ -4,10 +4,11 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import ResourcePage from './ResourcePage'
 import { CONTENT_SERVERS_STORAGE_KEY, getContentServerSubscriptions } from '../services/contentServers'
 import { saveCommunitySession } from '../services/communitySessions'
+import CommunityHomePage from './CommunityHomePage'
 
 const manifestUrl = 'https://church.example/heritage-content.json'
 const manifest = { schemaVersion: 2, kind: 'heritage-content-server', id: 'church-content', name: 'Test Church', catalogs: { books: 'https://church.example/catalogs/books' } }
-const church = { manifest: { id: 'church', name: 'Test Church', apiBaseUrl: 'https://church.example/api', contentServerUrl: manifestUrl }, contentPreview: { manifest } }
+const church = { status: 'joined', manifest: { id: 'church', name: 'Test Church', apiBaseUrl: 'https://church.example/api', contentServerUrl: manifestUrl }, contentPreview: { manifest } }
 const book = { id: 'prayer', title: 'Community Prayer Book', author: 'Test Author', content: { url: 'https://church.example/content/books/prayer' } }
 const catalog = items => ({ schemaVersion: 2, contentType: 'books', items })
 const json = value => new Response(JSON.stringify(value), { headers: { 'content-type': 'application/json' } })
@@ -18,6 +19,7 @@ function show(query = '') {
   return render(<MemoryRouter initialEntries={[`/resources/books${query}`]}><Routes>
     <Route path="/resources/:categoryId" element={<ResourcePage />} />
     <Route path="/resources/content/:contentKey" element={<p>Community book reader</p>} />
+    <Route path="/community" element={<CommunityHomePage />} />
   </Routes></MemoryRouter>)
 }
 beforeEach(async () => {
@@ -61,17 +63,19 @@ it('keeps the saved list on refresh failure, then updates it when Refresh succee
   fetch.mockImplementation(async url => json(url === manifestUrl ? manifest : catalog([])))
   fireEvent.click(screen.getByRole('button', { name: 'Refresh', exact: true }))
   await waitFor(() => expect(screen.queryByText(book.title)).not.toBeInTheDocument())
-  expect(await screen.findByText('Books are up to date.')).toBeInTheDocument()
+  expect(await screen.findByText('Available books refreshed.')).toBeInTheDocument()
 })
 
 it('refreshes membership-visible books when sign-in changes while Books is open', async () => {
   await saveCommunitySession('church', null, church)
   fetch.mockImplementation(async (url, options) => json(url === manifestUrl ? manifest : catalog(options.headers.Authorization ? [book] : [])))
   show()
-  await screen.findByText('Books are up to date.')
+  await screen.findByText('Available books refreshed.')
+  expect(await screen.findByRole('button', { name: 'Sign in to Test Church' })).toBeInTheDocument()
   expect(screen.queryByText(book.title)).not.toBeInTheDocument()
   await act(() => saveCommunitySession('church', { token: 'test-member-session' }, church))
   expect(await screen.findByText(book.title)).toBeInTheDocument()
+  await waitFor(() => expect(screen.queryByRole('region', { name: 'Community book access' })).not.toBeInTheDocument())
   await act(() => saveCommunitySession('church', null, church))
   await waitFor(() => expect(screen.queryByText(book.title)).not.toBeInTheDocument())
 })
@@ -79,7 +83,7 @@ it('refreshes membership-visible books when sign-in changes while Books is open'
 it('does not re-enable disabled book sources or fetch unrelated sources for a missing church', async () => {
   install([book], false)
   const view = show()
-  await screen.findByText('Join a Community to add its books to this library.')
+  await screen.findByText('Connect your church to add its books to this library.')
   expect(fetch).not.toHaveBeenCalled()
   expect(screen.queryByText(book.title)).not.toBeInTheDocument()
   expect(getContentServerSubscriptions()[0].enabled).toBe(false)
@@ -89,4 +93,20 @@ it('does not re-enable disabled book sources or fetch unrelated sources for a mi
   expect(screen.getByText('Community unavailable')).toBeInTheDocument()
   expect(screen.queryByText(book.title)).not.toBeInTheDocument()
   expect(fetch).not.toHaveBeenCalled()
+})
+
+it.each(['following', 'sync-only', 'email-sent'])('opens member sign-in from Books for a %s church', async status => {
+  localStorage.setItem('heritage-communities-v1', JSON.stringify([{ ...church, status }]))
+  await saveCommunitySession('church', null, church)
+  fetch.mockImplementation(async url => json(url === manifestUrl ? manifest : catalog([])))
+  show()
+  fireEvent.click(await screen.findByRole('button', { name: 'Sign in to Test Church' }))
+  expect(await screen.findByLabelText('Church sign-in email')).toBeInTheDocument()
+  expect(fetch.mock.calls.every(([, options]) => options.method !== 'POST')).toBe(true)
+})
+
+it('offers connecting a church on a new device', async () => {
+  localStorage.removeItem('heritage-communities-v1')
+  show()
+  expect(await screen.findByRole('button', { name: 'Connect your church' })).toBeInTheDocument()
 })
