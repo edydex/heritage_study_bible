@@ -108,3 +108,24 @@ test('unpaired verse 1a and bare split-chorus recalls align between EN and RU',(
  assert.equal(docs[0].document.sections.filter((section:any)=>section.id.startsWith('refrain-section')).length,2)
  assert.ok(!docs[0].document.sections.flatMap((section:any)=>section.slides.flatMap((slide:any)=>slide.lines)).some((line:string)=>/^(chorus|refrain)/i.test(line)))
 })
+
+test('blank-line ending after chorus recalls stays separate and never redefines the chorus',()=>{
+ const lyrics='Verse 1\nOpening\n\nChorus a\nFirst half\n\nChorus b\nSecond half\n\nRefrain x2\nRefrain words\n\nChorus a\nChorus b\n \t\nClosing line\nClosing line\n\nChorus b'
+ const parse=(body:string)=>parsePlannerLibrarySongDocument(`---\nid: blank-ending\ntitle: Example\nlanguage: en\n---\n${body}`,{fileName:'blank-ending.md'}).document
+ const doc=parse(lyrics)
+ assert.deepEqual(doc.sections.map((s:any)=>s.slides.map((slide:any)=>slide.lines)),[
+  [['Opening']], [['First half']], [['Second half']], [['Refrain words']], [['Refrain words']],
+  [['First half']], [['Second half']], [['Closing line','Closing line']], [['Second half']],
+ ])
+ assert.deepEqual(parse(songDocumentBody(lyrics)).sections,doc.sections)
+ const matched=synthesizeLegacySyncDocuments({syncId:'ending',title:'Example',lyrics,russianTitle:'Пример',russianLyrics:lyrics.replaceAll('Chorus','припев')})
+ const [en,ru]=matched.map(v=>parsePlannerLibrarySongDocument(v.source,{fileName:v.id+'.md'}).document)
+ assert.ok(core.compareSongTranslations(en,ru).compatible)
+})
+
+test('blank lines split slides within a defined section and its recalls keep every slide',()=>{
+ const lyrics='Chorus\n\nFirst slide\n \t\nSecond slide\n\n---\n\nThird slide\n\nVerse 1\nVerse words\n\nChorus x2'
+ const parsed=parsePlannerLibrarySongDocument(`---\nid: slides\ntitle: Slides\nlanguage: en\n---\n${lyrics}`,{fileName:'slides.md'}).document
+ const chorus=[['First slide'],['Second slide'],['Third slide']]
+ assert.deepEqual(parsed.sections.map((s:any)=>s.slides.map((slide:any)=>slide.lines)),[chorus,[['Verse words']],chorus,chorus])
+})

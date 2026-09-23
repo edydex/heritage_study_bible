@@ -279,7 +279,7 @@ export const Songs: CollectionConfig = {
           label: 'English',
           description: 'English words and the chord sheet, when your church is permitted to publish them.',
           fields: [
-            { name: 'lyrics', label: 'English lyrics', type: 'textarea' },
+            { name: 'lyrics', label: 'English lyrics', type: 'textarea', admin: { description: 'Leave a blank line to start a new slide. Repeat a defined section by writing its name (for example, Chorus a). Leave a blank line after a repeated section name before adding a separate ending.' } },
             {
               name: 'chordSheet',
               label: 'English chord sheet',
@@ -292,7 +292,7 @@ export const Songs: CollectionConfig = {
           label: 'Russian',
           description: 'A translation has its own source. Record what your church knows; Heritage does not block publication.',
           fields: [
-            { name: 'russianLyrics', label: 'Russian lyrics', type: 'textarea' },
+            { name: 'russianLyrics', label: 'Russian lyrics', type: 'textarea', admin: { description: 'Leave a blank line to start a new slide. Repeat a defined section by writing its name (for example, chorus b or Припев). Leave a blank line after a repeated section name before adding a separate ending.' } },
             {
               name: 'russianChordSheet',
               label: 'Russian chord sheet',

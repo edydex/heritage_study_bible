@@ -31,15 +31,35 @@ export function songDocumentBody(lyrics: unknown): string {
   }
   const lines = body.split('\n')
   if (!lines.some(line=>heading(line))) return body.split(/\n\s*\n/).filter(block=>block.trim()).map((block,i)=>`^${i+1}\n${block}`).join('\n\n')
-  type Section = {id:string; repeat:number; explicit:boolean; lines:string[]}
+  type Section = {id:string; repeat:number; explicit:boolean; lines:string[]; recall?:boolean}
   const sections: Section[] = []; let current: Section | null = null
+  const defined = new Set<string>()
+  const reserved = new Set(lines.map(line => heading(line)?.id.toLowerCase()).filter(Boolean))
+  let continuation = 0
+  const keyFor = (id: string) => id.toLowerCase().replace(/-repeat-\d+$/, '')
+  const hasDefinition = (id: string) => defined.has(keyFor(id))
+    || [...defined].some(key => key.startsWith(`${keyFor(id)}-`) && /^[a-zа-я]$/u.test(key.slice(keyFor(id).length + 1)))
   for (const line of lines) {
     const label = heading(line)
-    if (label) { current={...label,lines:[]}; sections.push(current); continue }
+    if (label) { current={...label,lines:[],recall:hasDefinition(label.id)}; sections.push(current); continue }
+    // A bare, already-defined heading recalls that section. A blank line
+    // after it closes the recall, so a following ending cannot replace it.
+    if (!line.trim() && current?.recall && !current.lines.some(value => value.trim())) {
+      current = null
+      continue
+    }
     const repeat = repeatSuffix(line.trim())
     if (current && repeat.label === '' && repeat.repeat > 1) { current.repeat=repeat.repeat; continue }
-    if (!current) { if (!line.trim()) continue; current={id:'intro',repeat:1,explicit:false,lines:[]}; sections.push(current) }
+    if (!current) {
+      if (!line.trim() || line.trim() === '---') continue
+      let id = 'intro'
+      if (sections.length) {
+        do { id = `continuation-${++continuation}` } while (reserved.has(id))
+      }
+      current={id,repeat:1,explicit:false,lines:[]}; sections.push(current)
+    }
     current.lines.push(line.trimEnd())
+    if (line.trim() && line.trim() !== '---') defined.add(keyFor(current.id))
   }
   // Some pasted songs label a whole verse '1a' even though no '1b' exists.
   // Normalize that unambiguous single part so EN/RU retain matching sections.
@@ -52,7 +72,10 @@ export function songDocumentBody(lyrics: unknown): string {
   const output: string[] = []
   for (const section of sections) {
     const key = section.id.toLowerCase().replace(/-repeat-\d+$/, '')
-    let content = section.lines.join('\n').trim()
+    // Blank lines and explicit separators both divide slides. Collapse mixed
+    // or repeated separators rather than creating accidental empty slides.
+    let content = section.lines.join('\n').trim().split(/\n(?:[ \t]*\n|[ \t]*---[ \t]*(?:\n|$))+/)
+      .map(slide => slide.trim()).filter(Boolean).join('\n---\n')
     if (content) definitions.set(key, [content])
     else {
       // Earlier imports put empty numbered wrappers before real headings.

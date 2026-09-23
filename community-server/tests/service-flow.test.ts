@@ -163,6 +163,10 @@ test('Welcome canvas insertion copies frozen template objects before applying de
   assert.equal(inserted.items['new-welcome'].objectsByChannel.russian[0].text, 'Тема служения')
 })
 test('redundant built-in source notes are hidden, imported translation credit survives', () => {
+  for (const [translationId, attribution] of [['LSB','(LSB)'],['NASB95','(NASB 1995)'],['KJV','(KJV)']]) {
+    assert.equal(formatting.scriptureCredit({translationId,attribution}), '')
+    assert.equal(formatting.scriptureCredit({translationId,attribution},{hideEditionLabel:false}), attribution)
+  }
   const note =
     'Berean Standard Bible (BSB); exact text pinned from Heritage Study Bible reader data.'
   assert.equal(
