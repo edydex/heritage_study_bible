@@ -12,6 +12,7 @@ import {
 } from '../services/contentServers'
 import PullToRefresh from './PullToRefresh'
 import SongCatalogPreview from './SongCatalogPreview'
+import CommunityBookAccessNotice from './CommunityBookAccessNotice'
 import { COMMUNITIES_CHANGE_EVENT, getCommunities } from '../services/communities'
 import { COMMUNITY_SESSION_CHANGE_EVENT } from '../services/communitySessions'
 import { mergeSongCatalog } from '../services/songCatalog'
@@ -116,7 +117,7 @@ function ResourcePage() {
       const refresh = categoryId === 'books' ? refreshBookCatalogs : refreshSongCatalogs
       const count = await refresh(communitySourceId || null)
       setRefreshMessage(categoryId === 'books'
-        ? (count ? 'Books are up to date.' : 'Join a Community to add its books to this library.')
+        ? (count ? 'Available books refreshed.' : 'Connect your church to add its books to this library.')
         : (count ? 'Songs are up to date.' : 'No Community songbooks are connected yet.'))
     } catch (error) {
       setRefreshMessage(error.message || `Could not refresh ${categoryId}. Try again when connected.`)
@@ -398,6 +399,7 @@ function ResourcePage() {
       <PullToRefresh enabled={isSongs || isBooks} refreshing={refreshing} onRefresh={refreshLibrary}>
       <main className="container mx-auto max-w-2xl px-4 py-6">
         {categoryId === 'books' && <button type="button" onClick={() => navigate('/audio')} className="w-full mb-4 rounded-lg border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 px-4 py-3 text-left text-primary dark:text-blue-300 font-semibold">Audio library · resume listening and downloads →</button>}
+        {isBooks && <CommunityBookAccessNotice communityId={communityId} />}
 
         {(isSongs || isBooks) && <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-600 dark:text-gray-300">
           <p role="status">{refreshMessage || `Pull down from the top to refresh Community ${categoryId}.`}</p>
