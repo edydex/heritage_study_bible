@@ -1,4 +1,5 @@
-import { flattenReadingGroups } from './plannerReadingGroups'
+import { groupSermonSections } from './plannerSermonSections'
+import { flattenReadingGroups, attachSectionBlanks } from './plannerReadingGroups'
 import typography from '../../packages/service-core/node/services/project/SlideTypography.js'
 import core from '../../packages/service-core/index.js'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
@@ -118,6 +119,8 @@ export function preparePlannerPresentation(project: RecordValue, options: {pagin
     readingsSplit++
   }
   changed = flattenReadingGroups(next) || changed
+  changed = attachSectionBlanks(next) || changed
+  changed = groupSermonSections(next) || changed
   if (!changed) return { project, changed: false, readingsSplit: 0 }
   // A linked sermon reading may now have more pages; keep its provenance and
   // update the page counters in actual service order.

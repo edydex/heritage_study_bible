@@ -8,6 +8,24 @@ export function isReadingGroup(project: Project, item: any): boolean {
   )
 }
 
+/** Song sections use ordinary groups, so older SyncShow versions can load them. */
+export function isSongGroup(project: Project, item: any): boolean {
+  const first = project.items[item?.childIds?.[0]]
+  return item?.kind === 'group' && item.groupKind === 'section'
+    && first?.kind === 'song' && first.showTitle !== false && first.title === item.title
+}
+
+export function sectionOwner(project: Project, selectedId: string | null): string | null {
+  let current = selectedId
+  while (current) {
+    const item = project.items[current]
+    if (isReadingGroup(project, item) || isSongGroup(project, item)) return current
+    current = (Object.values(project.items) as any[]).find(
+      value => value.kind === 'group' && value.childIds.includes(current))?.id || null
+  }
+  return null
+}
+
 export function readingOwner(
   project: Project,
   selectedId: string | null,
@@ -62,25 +80,48 @@ export function flattenReadingGroups(project: Project): boolean {
   return changed
 }
 
-export function appendBlankSlide(project: Project, itemId: string) {
-  const next = JSON.parse(JSON.stringify(project)),
-    item = next.items[itemId]
-  const id = `${itemId}-blank`
-  if (next.items[id]) return next
-  const parent = (Object.values(next.items) as any[]).find(
-    (value) => value.kind === 'group' && value.childIds.includes(itemId),
-  )
-  const siblings = parent ? parent.childIds : next.rootItemIds
-  next.items[id] = {
-    id,
-    kind: 'blank',
-    title: 'Blank',
-    channelIds: [...next.channelIds],
-    presetId: 'blank-black',
-    operatorNotes: '',
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt,
+/** Adopt only the deterministic automatic blank immediately following its owner.
+ * Manual or moved blanks remain independent. This also repairs saved old plans. */
+export function attachSectionBlanks(project: Project): boolean {
+  let changed = false
+  for (const item of Object.values(project.items) as any[]) {
+    if (item.kind !== 'song' && !isReadingGroup(project, item) && !isSongGroup(project, item)) continue
+    const blankId = `${item.id}-blank`
+    if (project.items[blankId]?.kind !== 'blank') continue
+    const parent = (Object.values(project.items) as any[]).find(
+      value => value.kind === 'group' && value.childIds.includes(item.id))
+    const siblings = parent ? parent.childIds : project.rootItemIds
+    const index = siblings.indexOf(item.id)
+    if (siblings[index + 1] !== blankId) continue
+    if (item.kind === 'group') {
+      siblings.splice(index + 1, 1)
+      item.childIds.push(blankId)
+    } else if (parent && isSongGroup(project, parent)) {
+      continue // Already inside its song section.
+    } else {
+      let groupId = `${item.id}-section`, suffix = 2
+      while (project.items[groupId]) groupId = `${item.id}-section-${suffix++}`
+      project.items[groupId] = { id: groupId, kind: 'group', groupKind: 'section',
+        title: item.title, childIds: [item.id, blankId], operatorNotes: '',
+        createdAt: item.createdAt, updatedAt: item.updatedAt }
+      siblings.splice(index, 2, groupId)
+    }
+    changed = true
   }
-  siblings.splice(siblings.indexOf(itemId) + 1, 0, id)
+  return changed
+}
+
+export function appendBlankSlide(project: Project, itemId: string) {
+  const next = JSON.parse(JSON.stringify(project)), item = next.items[itemId]
+  const id = `${itemId}-blank`
+  if (!next.items[id]) {
+    const parent = (Object.values(next.items) as any[]).find(
+      value => value.kind === 'group' && value.childIds.includes(itemId))
+    const siblings = parent ? parent.childIds : next.rootItemIds
+    next.items[id] = { id, kind: 'blank', title: 'Blank', channelIds: [...next.channelIds],
+      presetId: 'blank-black', operatorNotes: '', createdAt: item.createdAt, updatedAt: item.updatedAt }
+    siblings.splice(siblings.indexOf(itemId) + 1, 0, id)
+  }
+  attachSectionBlanks(next)
   return next
 }

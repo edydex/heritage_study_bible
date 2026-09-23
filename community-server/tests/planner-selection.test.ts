@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { appendBlankSlide } from '../src/components/plannerReadingGroups'
+import { insertionPoint } from '../src/components/plannerTemplates'
 import core from '../packages/service-core/index.js'
-import { changePlannerSelection, plannerRangeSelection, selectedPlannerSlides } from '../src/components/plannerSelection.ts'
+import { changePlannerSelection, plannerClickSelection, plannerRangeSelection, selectedPlannerSlides } from '../src/components/plannerSelection.ts'
 import { editPlannerSlide, isSongTitleSlide, plannerSlides } from '../src/components/plannerSlides.ts'
 import { plannerPreview } from '../src/components/plannerPreview.ts'
 import { preparePlannerPresentation } from '../src/components/plannerPresentation.ts'
@@ -143,4 +145,57 @@ test('bad destinations and stale selections leave the source unchanged', () => {
   for (const position of [0,-1,1.5,7,NaN,Infinity]) assert.throws(()=>action(project,[1,2],'move',position),/whole slide number/)
   assert.throws(()=>changePlannerSelection(project,['stale'],'delete'),/current service/)
   assert.equal(JSON.stringify(project),source)
+})
+
+
+test('song title selects the complete section including its automatic blank', () => {
+  const p = appendBlankSlide(fixture(), 'song'), rows = plannerSlides(p)
+  const title = rows.find(isSongTitleSlide)!, whole = plannerClickSelection(rows, title)
+  assert.equal(whole.length, 6)
+  assert.equal(selectedPlannerSlides(rows, whole).at(-1)!.kind, 'blank')
+  assert.equal(selectedPlannerSlides(rows, whole).at(-1)!.depth, title.depth + 1)
+  const deleted = changePlannerSelection(p, whole, 'delete').project
+  assert.deepEqual(slides(deleted).map(r => r.itemId), ['welcome', 'closing'])
+  assert.deepEqual(insertionPoint(p, 'song'), {parentId:'section', index:1})
+  const duplicated = changePlannerSelection(p, whole, 'duplicate')
+  assert.equal(selectedPlannerSlides(plannerSlides(duplicated.project), duplicated.selectedIds).length, 6)
+  assert.equal(slides(reopen(duplicated.project)).length, 14)
+  const moved = changePlannerSelection(p, whole, 'move', 3).project
+  assert.deepEqual(visible(reopen(moved)), [...visible(p).slice(6), ...visible(p).slice(0,6)])
+})
+
+test('Ctrl or Command on song title selects only it, even after whole-section selection', () => {
+  const p = appendBlankSlide(fixture(), 'song'), rows = plannerSlides(p), title = rows.find(isSongTitleSlide)!
+  for (const modifiers of [{ctrlKey:true}, {metaKey:true}]) {
+    const only = plannerClickSelection(rows, title, plannerClickSelection(rows, title), modifiers)
+    assert.deepEqual(only, [title.id])
+    assert.deepEqual(visible(reopen(changePlannerSelection(p, only, 'delete').project)), visible(p).slice(1))
+  }
+  const copy = changePlannerSelection(p, [title.id], 'duplicate').project
+  assert.deepEqual(visible(reopen(copy)), [visible(p)[0], ...visible(p)])
+})
+
+test('old song blanks are repaired with unchanged cues; independent blanks stay separate', () => {
+  const p = JSON.parse(JSON.stringify(fixture()))
+  p.items['song-blank'] = {id:'song-blank',kind:'blank',title:'Blank',channelIds:p.channelIds,presetId:'blank-black'}
+  p.items.manual = {...p.items['song-blank'],id:'manual'}
+  p.items.section.childIds.push('song-blank','manual')
+  const before = visible(p), fixed = preparePlannerPresentation(p).project
+  assert.deepEqual(visible(fixed), before)
+  const rows = plannerSlides(fixed), title = rows.find(isSongTitleSlide)!
+  assert.equal(plannerClickSelection(rows,title).length, 6)
+  assert.equal(selectedPlannerSlides(rows,plannerClickSelection(rows,title)).some(row=>row.itemId==='manual'), false)
+  assert.equal(preparePlannerPresentation(fixed).changed, false)
+})
+
+test('Shift range ending on title selects exact slides and Ctrl can remove a lyric from a section selection', () => {
+  const p = appendBlankSlide(fixture(), 'song'), rows = plannerSlides(p), title = rows.find(isSongTitleSlide)!
+  const lyric = slides(p)[1]
+  assert.deepEqual(plannerClickSelection(rows, title, [], {shiftKey:true}, lyric.id), [title.id,lyric.id])
+  const ids = plannerClickSelection(rows,lyric,plannerClickSelection(rows,title),{ctrlKey:true})
+  assert.equal(ids.length,5)
+  assert.equal(ids.includes(lyric.id),false)
+  const after = changePlannerSelection(p,ids,'delete').project
+  assert.equal(slides(after)[0].cue!.channels.english.blocks[0].text,lyric.cue!.channels.english.blocks[0].text)
+  assert.equal(slides(after).length,3)
 })

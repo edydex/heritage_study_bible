@@ -14,7 +14,7 @@ import {
   setSlideTranslationCue,
   translationActionForSlide,
 } from '../src/components/plannerSlides'
-import { changePlannerSelection } from '../src/components/plannerSelection'
+import { changePlannerSelection, plannerClickSelection } from '../src/components/plannerSelection'
 import {
   extractReusableSlide,
   insertReusableSlide,
@@ -60,39 +60,40 @@ function reading() {
   })
   return addReadingTitle(p, 'reading', { english: 'BSB', russian: 'SYNO' })
 }
-test('reading has one numbered parent, flat pages, sibling blank and safe subsequent insertion', () => {
-  const p = preparePlannerPresentation(
-    appendBlankSlide(reading(), 'reading-reading'),
-  ).project
+test('reading title selects its pages and trailing blank; Ctrl selects only the title', () => {
+  const p = preparePlannerPresentation(appendBlankSlide(reading(), 'reading-reading')).project
   assert.equal(p.items.reading, undefined)
-  assert.deepEqual(p.rootItemIds, ['reading-reading', 'reading-reading-blank'])
+  assert.deepEqual(p.rootItemIds, ['reading-reading'])
   const rows = plannerSlides(p)
-  assert.equal(rows.filter((r) => r.kind === 'group').length, 0)
+  assert.equal(rows.filter(r => r.kind === 'group').length, 0)
   assert.equal(rows[0].readingTitle, true)
   assert.equal(rows[0].depth, 0)
-  assert.ok(rows.slice(1, -1).every((r) => r.kind === 'bible' && r.depth === 1))
-  assert.deepEqual(insertionPoint(p, rows[1].itemId), {
-    parentId: null,
-    index: 2,
-  })
-  assert.deepEqual(insertionPoint(p, rows[1].itemId, true), {
-    parentId: 'reading-reading',
-    index: 2,
-  })
-  const removed = deletePlannerSlide(p, rows.at(-1)!)
-  assert.equal(plannerSlides(removed).length, rows.length - 1)
-  assert.deepEqual(deletePlannerSlide(p, rows[0]).rootItemIds, [
-    'reading-reading-blank',
-  ])
-  assert.deepEqual(
-    changePlannerSelection(p, [rows[0].id], 'delete').project.rootItemIds,
-    ['reading-reading-blank'],
-  )
-  const moved = movePlannerSlide(p, rows[0], rows.at(-1)!, true)
-  assert.deepEqual(moved.rootItemIds, [
-    'reading-reading-blank',
-    'reading-reading',
-  ])
+  assert.ok(rows.slice(1).every(r => r.depth === 1))
+  assert.equal(rows.at(-1)!.kind, 'blank')
+  assert.deepEqual(insertionPoint(p, rows[1].itemId), {parentId: null, index: 1})
+  assert.deepEqual(insertionPoint(p, rows[1].itemId, true), {parentId: 'reading-reading', index: 2})
+  assert.deepEqual(plannerClickSelection(rows, rows[0]), rows.map(r => r.id))
+  assert.deepEqual(changePlannerSelection(p, plannerClickSelection(rows, rows[0]), 'delete').project.rootItemIds, [])
+  const titleOnly = changePlannerSelection(p, plannerClickSelection(rows, rows[0], [], {ctrlKey: true}), 'delete').project
+  assert.deepEqual(plannerSlides(titleOnly).filter(r => r.cue).map(r => r.itemId), rows.slice(1).map(r => r.itemId))
+  const noBlank = deletePlannerSlide(p, rows.at(-1)!)
+  assert.equal(plannerSlides(noBlank).length, rows.length - 1)
+  const copied = changePlannerSelection(p, plannerClickSelection(rows, rows[0]), 'duplicate').project
+  assert.equal(copied.rootItemIds.length, 2)
+  assert.equal(plannerSlides(copied).length, rows.length * 2)
+  assert.equal(preparePlannerPresentation(p).changed, false)
+})
+
+test('old automatic reading blanks are adopted without capturing manually added blanks', () => {
+  const old = JSON.parse(JSON.stringify(preparePlannerPresentation(appendBlankSlide(reading(), 'reading-reading')).project))
+  old.items['reading-reading'].childIds.pop()
+  old.rootItemIds.push('reading-reading-blank')
+  old.items.manual = {...old.items['reading-reading-blank'], id: 'manual'}
+  old.rootItemIds.push('manual')
+  const fixed = preparePlannerPresentation(old).project
+  assert.deepEqual(fixed.rootItemIds, ['reading-reading', 'manual'])
+  assert.equal(fixed.items['reading-reading'].childIds.at(-1), 'reading-reading-blank')
+  assert.equal(preparePlannerPresentation(fixed).changed, false)
 })
 test('legacy nested foreign items are hoisted after reading without losing words', () => {
   let p = JSON.parse(JSON.stringify(reading()))

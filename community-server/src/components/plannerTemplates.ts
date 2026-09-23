@@ -1,4 +1,4 @@
-import { readingOwner } from './plannerReadingGroups'
+import { sectionOwner } from './plannerReadingGroups'
 import core from '../../packages/service-core/index.js'
 
 export const SERMON_TEMPLATES = [
@@ -11,11 +11,18 @@ export const SERMON_TEMPLATES = [
 export type SermonTemplateId = typeof SERMON_TEMPLATES[number]['id']
 export type TemplateText = { heading: string; body: string }
 
-export function insertionPoint(project: any, selectedId: string | null, withinReading = false) {
-  const owner = withinReading ? null : readingOwner(project, selectedId)
+export function insertionPoint(project: any, selectedId: string | null, withinReading = false, outsideSermon = false) {
+  const owner = withinReading ? null : sectionOwner(project, selectedId)
   if (owner) selectedId = owner
+  if (outsideSermon) {
+    let ancestor = selectedId
+    while (ancestor) {
+      if (project.items[ancestor]?.kind === 'group' && project.items[ancestor].groupKind === 'sermon') selectedId = ancestor
+      ancestor = (Object.values(project.items) as any[]).find(item => item.kind === 'group' && item.childIds.includes(ancestor))?.id || null
+    }
+  }
   const selected = selectedId ? project.items[selectedId] : null
-  if (selected?.kind === 'group' && !owner) return { parentId: selected.id, index: selected.childIds.length }
+  if (selected?.kind === 'group' && !owner && !(outsideSermon && selected.groupKind === 'sermon')) return { parentId: selected.id, index: selected.childIds.length }
   const parent = Object.values(project.items).find((item: any) => item.kind === 'group' && item.childIds.includes(selectedId)) as any
   const siblings = parent ? parent.childIds : project.rootItemIds
   let index = selected ? siblings.indexOf(selected.id) + 1 : siblings.length

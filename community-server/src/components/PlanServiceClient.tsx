@@ -1,5 +1,7 @@
 'use client'
 import NumberDraftInput from './NumberDraftInput'
+import { groupSermonSections } from './plannerSermonSections'
+import { scriptureTranslationScope, scriptureTranslationRequest, hasScriptureEdits, replaceScriptureTranslation } from './plannerScriptureTranslations'
 import BibleSourceNotice from './BibleSourceNotice'
 import {typographyItemIds} from './plannerTypography'
 import { setReadingTemplate } from './readingTemplates'
@@ -28,7 +30,7 @@ import typography from '../../packages/service-core/node/services/project/SlideT
 import { SERMON_TEMPLATES, createTemplateDraft, editTemplateField, editCanvasObjects, insertionPoint, type SermonTemplateId } from './plannerTemplates'
 import { addReadingTitle, preparePlannerPresentation } from './plannerPresentation'
 import { editablePreviewBlock, editPlannerSlide, isSongTitleSlide, plannerSlides, setSlideTranslationCue, translationActionForSlide, type PlannerSlide } from './plannerSlides'
-import { changePlannerSelection, plannerRangeSelection, selectedPlannerSlides, type SelectionResult } from './plannerSelection'
+import { changePlannerSelection, plannerClickSelection, selectedPlannerSlides, type SelectionResult } from './plannerSelection'
 import {
   parsePlannerLibrarySongDocument,
   projectFromServiceEnvelope,
@@ -393,6 +395,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
       return { rows: [], error: errorText(caught) }
     }
   }, [draft])
+  const scriptureScope = draft && selectedId ? scriptureTranslationScope(draft, selectedId) : null
   const selectedSlides = slideList.rows.filter(row => row.itemId === selectedId && row.cue)
   const activePreviewIndex = Math.min(previewSlideIndex, Math.max(0, selectedSlides.length - 1))
   const activeSlide = selectedSlides[activePreviewIndex]
@@ -609,6 +612,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     if (!current) return
     const next = cloneProject(current)
     mutator(next)
+    groupSermonSections(next)
     latestDraft.current = next
     setUndoStack(stack => [...stack.slice(-29), current])
     setDraft(next)
@@ -632,20 +636,16 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     setPaletteOpen(false)
     setSelectedId(row.itemId)
     setPreviewSlideIndex(Math.max(0, row.index))
-    if (modifiers.shiftKey) setSelectedRowIds(plannerRangeSelection(slideList.rows, rangeAnchor.current || activeSlide?.id || row.id, row.id))
-    else {
-      setSelectedRowIds(modifiers.metaKey || modifiers.ctrlKey
-        ? selectionIds.includes(row.id) ? selectionIds.filter(id => id !== row.id) : [...selectionIds, row.id]
-        : [row.id])
-      rangeAnchor.current = row.id
-    }
+    setSelectedRowIds(plannerClickSelection(slideList.rows, row, selectionIds, modifiers,
+      rangeAnchor.current || activeSlide?.id || row.id))
+    if (!modifiers.shiftKey) rangeAnchor.current = row.id
   }
 
   function slideMutation(operation: () => any, index = activePreviewIndex) {
     if (!draft) return
     try {
-      const next = operation() as ServiceProject
-      if (next === draft) return
+      const next = cloneProject(operation() as ServiceProject)
+      groupSermonSections(next)
       setUndoStack(stack => [...stack.slice(-29), draft])
       setDraft(cloneProject(next))
       setPreviewSlideIndex(index)
@@ -659,6 +659,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   function applySelection(result: SelectionResult) {
     if (!draft) return
     setUndoStack(stack => [...stack.slice(-29), draft])
+    groupSermonSections(result.project)
     setDraft(result.project as ServiceProject)
     setSelectedRowIds(result.selectedIds)
     rangeAnchor.current = result.activeId
@@ -684,7 +685,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     const chosen = new Set(selectedPlannerSlides(slideList.rows, ids).map(row => row.id))
     if (chosen.has(target.id) || ids.includes(target.id)) return
     const all = slideList.rows.filter(row => row.cue)
-    const children = target.kind === 'group' ? selectedPlannerSlides(slideList.rows, [target.id]) : [target]
+    const children = selectedPlannerSlides(slideList.rows, plannerClickSelection(slideList.rows, target))
     const boundary = children.length ? (after ? children.at(-1)!.number : children[0].number - 1)
       : slideList.rows.slice(0, slideList.rows.indexOf(target)).filter(row => row.cue).length
     runSelection(ids, 'move', all.slice(0, boundary).filter(row => !chosen.has(row.id)).length + 1)
@@ -850,7 +851,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
         titlePresetId: 'wotbc-song-title',
         lyricsPresetId: alignedEnglish && alignedRussian ? 'wotbc-song-stacked' : 'wotbc-song-lyrics',
       }, {
-        ...insertionPoint(draft, selectedId),
+        ...insertionPoint(draft, selectedId, false, true),
         now: new Date().toISOString(),
       })
       const singersSourceChannelId = primaryChannelId
@@ -876,6 +877,42 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
       setBusy(false)
     }
   }
+
+  async function changeScriptureTranslation(channel: 'english' | 'russian', translationId: string) {
+    if (!draft || !scriptureScope || busy || !translationId) return
+    if (hasScriptureEdits(draft, scriptureScope, channel) && !globalThis.confirm(
+      `Changing the ${channel === 'english' ? 'English' : 'Russian / stage'} translation replaces edited Scripture wording and highlights on these pages. Other slides and the other language stay unchanged. Continue?`)) return
+    const original = draft, scope = scriptureScope
+    setBusy(true); setError(null); setNotice('Fetching the selected Bible translation…')
+    try {
+      const response = await jsonRequest(`${ENDPOINT}/library/bible-passage`, {
+        method:'POST', body:JSON.stringify(scriptureTranslationRequest(original, scope, translationId)),
+      })
+      if (latestDraft.current !== original) throw new Error('The service changed while the translation was loading. Please choose the translation again.')
+      const next = replaceScriptureTranslation(original, scope, {channel, translationId,
+        translationName:bibleTranslations.find(value=>value.id===translationId)?.name || translationId,
+        passage:response.passage.passagesByChannel.english, sourceUrl:response.passage.sources.english})
+      slideMutation(() => next)
+      setNotice('Translation updated for this passage. Verse selection and slide breaks are preserved. Save when ready; Undo restores the previous text.')
+    } catch (caught) { setError(errorText(caught)); setNotice('Translation unchanged.') }
+    finally { setBusy(false) }
+  }
+
+  const scriptureTranslationControls = scriptureScope && draft ? <fieldset className="heritage-scripture-editions" disabled={busy}>
+    <legend>Bible translation</legend>
+    {(['english','russian'] as const).map(channel => {
+      const editions = [...new Set(scriptureScope.itemIds.map(id=>draft.items[id].passagesByChannel[channel]?.translationId))]
+      const value = editions.length === 1 ? editions[0] || '' : ''
+      return <label key={channel}>{channel === 'english' ? 'English screen' : 'Russian / stage screen'}
+        <select aria-label={`Change ${channel} Scripture translation`} value={value} onChange={event=>void changeScriptureTranslation(channel,event.target.value)}>
+          {!value && <option value="" disabled>Mixed translations</option>}
+          {value && !bibleTranslations.some(translation=>translation.id===value) && <option value={value}>{value}</option>}
+          {bibleTranslations.map(translation=><option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}
+        </select>
+      </label>
+    })}
+    <small>{scriptureScope.itemIds.length > 1 ? 'Changes every page of this passage.' : 'Changes this passage.'} Other passages stay unchanged.</small>
+  </fieldset> : null
 
   async function addBiblePassage() {
     if (!draft || busy || !referenceValid) return
@@ -908,7 +945,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
         passagesByChannel: passage.passagesByChannel,
         presetId: sermonPassage ? 'wotbc-sermon-scripture' : 'wotbc-reading',
         operatorNotes: `Exact Bible text and attribution pinned from the selected editions.\nEnglish source: ${passage.sources.english}\nRussian source: ${passage.sources.russian}`,
-        ...insertionPoint(draft, selectedId),
+        ...insertionPoint(draft, selectedId, false, !sermonPassage),
         now: new Date().toISOString(),
       })
       if (!sermonPassage) project = addReadingTitle(project, itemId, { english: bibleTranslations.find(value=>value.id===bibleEnglish)?.name || bibleEnglish, russian: bibleTranslations.find(value=>value.id===bibleRussian)?.name || bibleRussian })
@@ -1224,14 +1261,14 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
           <PresentationAccessibilityControl item={selected} />
           <div className="heritage-service-planner__outline-heading">
             <h2>{sermonSyncId ? 'Sermon slides' : 'Service order'}</h2><button type="button" className="heritage-add-slide" ref={addSlideRef} disabled={!draft} aria-expanded={paletteOpen} onClick={()=>setPaletteOpen(true)}>＋ Add slide</button>
-            <small aria-live="polite">{batchSlides.length > 1 ? `${batchSlides.length} selected` : 'Shift-click to select several'}</small>
+            <small aria-live="polite">{batchSlides.length > 1 ? `${batchSlides.length} selected` : 'Title: whole section · Ctrl/⌘: title only'}</small>
           </div>
 
           {draft ? <ol className="heritage-service-planner__rows">
             {slideList.rows.map(row => {
               const rowSelected = selectedKeys.has(row.id)
               const openMenu = (x: number, y: number) => {
-                const ids = rowSelected ? selectionIds : [row.id]
+                const ids = rowSelected ? selectionIds : plannerClickSelection(slideList.rows, row)
                 if (!rowSelected) selectSlide(row)
                 setMenu({ row, ids, x, y })
               }
@@ -1240,7 +1277,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 <button className="heritage-service-planner__row" data-kind={row.kind}
                   data-slide-id={row.id} data-selected={rowSelected || undefined} aria-pressed={rowSelected}
                   data-active={activeSlide?.id === row.id || undefined}
-                  type="button" draggable title={`${row.title} · Shift-click to select a range · Right-click for actions`}
+                  type="button" draggable title={`${row.title} · Click title for whole section · Ctrl/⌘-click for title only · Shift-click for range · Right-click for actions`}
                   onClick={event => selectSlide(row, event)}
                   onContextMenu={event => { event.preventDefault(); openMenu(event.clientX, event.clientY) }}
                   onKeyDown={event => {
@@ -1249,7 +1286,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                     } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a') {
                       event.preventDefault(); setSelectedRowIds(slideList.rows.filter(value => value.cue).map(value => value.id))
                     } else if (event.key === 'Delete' || event.key === 'Backspace') {
-                      event.preventDefault(); removeSelection(rowSelected ? selectionIds : [row.id])
+                      event.preventDefault(); removeSelection(rowSelected ? selectionIds : plannerClickSelection(slideList.rows, row))
                     } else if (event.shiftKey && ['ArrowUp', 'ArrowDown'].includes(event.key)) {
                       const numbered = slideList.rows.filter(value => value.cue)
                       const target = numbered[numbered.indexOf(row) + (event.key === 'ArrowDown' ? 1 : -1)]
@@ -1259,12 +1296,12 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                       }
                     }
                   }}
-                  onDragStart={event => { dragged.current = rowSelected ? selectionIds : [row.id]; if (!rowSelected) selectSlide(row); event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', row.id); setMenu(null) }}
+                  onDragStart={event => { dragged.current = rowSelected ? selectionIds : plannerClickSelection(slideList.rows, row); if (!rowSelected) selectSlide(row); event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', row.id); setMenu(null) }}
                   onDragEnd={() => { dragged.current = null; setDropTarget(null) }}
                   onDragOver={event => { if (!dragged.current) return; event.preventDefault(); event.dataTransfer.dropEffect = 'move'; const rect = event.currentTarget.getBoundingClientRect(); setDropTarget({ id: row.id, after: event.clientY > rect.top + rect.height / 2 }) }}
                   onDrop={event => { event.preventDefault(); if (dragged.current) dropSelection(dragged.current, row, Boolean(dropTarget?.after)) }}>
                   <span className="heritage-service-planner__kind" aria-hidden="true">{row.kind === 'group' ? '▾' : row.number}</span>
-                  <span><strong>{row.title}</strong>{row.cue?.translationAction ? <small className="heritage-service-planner__translation-cue">{row.cue.translationAction === 'start' ? '▶ Start Translate' : '■ Stop Translate'}</small> : null}{row.kind === 'group' ? <small>section</small> : isSongTitleSlide(row) ? <small>song</small> : row.readingTitle ? <small>reading</small> : null}</span>
+                  <span><strong>{row.title}</strong>{row.cue?.translationAction ? <small className="heritage-service-planner__translation-cue">{row.cue.translationAction === 'start' ? '▶ Start Translate' : '■ Stop Translate'}</small> : null}{row.kind === 'group' ? <small>section</small> : isSongTitleSlide(row) ? <small>song</small> : row.readingTitle ? <small>reading</small> : row.sermonTitle ? <small>sermon</small> : null}</span>
                 </button>
               </li>
             })}
@@ -1382,6 +1419,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               </PreviewCanvas>
               {!preview.singer && selected.sermonTemplate !== 'other' && ['song','bible','sermon','notice'].includes(selected.kind) && <aside className="heritage-text-inspector" aria-label="Text layout">
                 <h3>Text layout</h3>
+                {scriptureTranslationControls}
                 {selected.presetId==='wotbc-reading-title' && <label>Reading template<select value="centered" onChange={event=>slideMutation(()=>setReadingTemplate(draft,selected.id,event.target.value))}><option value="centered">Centered title</option><option value="pre-sermon">Pre-sermon</option></select></label>}
                 <label>Apply alignment to<select aria-label="Alignment field" value={alignmentRole} onChange={event=>setAlignmentRole(event.target.value)}><option value="bodyAlign">Text</option><option value="titleAlign">Heading</option><option value="creditAlign">Author / source</option></select></label>
                 <div role="group" aria-label="Text alignment">{['left','center','right'].map(align=><button type="button" key={align} aria-label={`Align ${align}`} aria-pressed={(selected.textStyle?.[alignmentRole] || typography.textPreset(preview.presetId)[alignmentRole] || (alignmentRole==='creditAlign' && !(activeSlide && isSongTitleSlide(activeSlide)) ? 'right' : 'center'))===align} onClick={()=>change(project=>{
@@ -1398,6 +1436,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               </aside>}
               {selected.sermonTemplate === 'other' && !preview.singer && <aside className="heritage-canvas-inspector" aria-label="Slide objects">
                 {selected.presetId==='wotbc-reading-title' && <label>Reading template<select value="pre-sermon" onChange={event=>slideMutation(()=>setReadingTemplate(draft,selected.id,event.target.value))}><option value="centered">Centered title</option><option value="pre-sermon">Pre-sermon</option></select></label>}
+                {scriptureTranslationControls}
                 <div id="heritage-canvas-tools" />
                 <button type="button" className="heritage-canvas-copy" onClick={()=>{if(globalThis.confirm('Replace the objects on the other outputs with this slide layout?'))updateSelected({objectsByChannel:Object.fromEntries(draft!.channelIds.map(id=>[id,JSON.parse(JSON.stringify(selected.objectsByChannel[previewChannel] || []))]))})}}>Copy layout to all outputs</button>
               </aside>}

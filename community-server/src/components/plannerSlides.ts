@@ -1,4 +1,5 @@
-import { isReadingGroup } from './plannerReadingGroups'
+import { isSermonGroup } from './plannerSermonSections'
+import { isReadingGroup, isSongGroup } from './plannerReadingGroups'
 import serviceCore from '../../packages/service-core/index.js'
 import { sermonTextSpans } from './plannerSermonStyle'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
@@ -14,6 +15,8 @@ export type PlannerSlide = {
   title: string
   kind: string
   readingTitle?: boolean
+  sectionItemId?: string
+  sermonTitle?: boolean
   cue?: RecordValue
 }
 
@@ -32,10 +35,15 @@ export function plannerSlides(project: RecordValue): PlannerSlide[] {
   const visit = (itemId: string, parentId: string | null, depth: number) => {
     const item = project.items[itemId]
     if (item.kind === 'group') {
-      if (isReadingGroup(project, item)) {
+      if (isReadingGroup(project, item) || isSongGroup(project, item) || isSermonGroup(project, item)) {
         item.childIds.forEach((id: string, index: number) => {
+          const start = result.length
           visit(id, itemId, depth + (index > 0 ? 1 : 0))
-          if (index === 0) result[result.length - 1].readingTitle = true
+          if (index === 0 && result[start]) {
+            result[start].sectionItemId = itemId
+            if (isReadingGroup(project, item)) result[start].readingTitle = true
+            if (isSermonGroup(project, item)) result[start].sermonTitle = true
+          }
         })
         return
       }

@@ -1861,3 +1861,9 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-service-planner__stage[data-preset^="wotbc-"] [data-role="credit"] { font-size:var(--slide-credit-size) !important; }
 
 .heritage-service-planner__language-warning { color: #e55b5b; margin: .5rem .75rem; font-size: .85rem; }
+
+.heritage-scripture-editions { min-width:0; margin:0 0 1rem; padding:0; border:0; }
+.heritage-scripture-editions legend { padding:0; margin-bottom:.5rem; font-weight:600; }
+.heritage-scripture-editions label { display:grid; gap:.3rem; margin-bottom:.7rem; }
+.heritage-scripture-editions select { width:100%; min-width:0; padding:.4rem; color:#e9edeb; background:#26372e; border:1px solid #4c6556; border-radius:4px; }
+.heritage-canvas-inspector .heritage-scripture-editions { padding:.8rem; font-size:13px; }

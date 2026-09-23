@@ -1,5 +1,6 @@
+import { isSongGroup } from './plannerReadingGroups'
 import core from '../../packages/service-core/index.js'
-import { editableSong, plannerSlides, type PlannerSlide } from './plannerSlides'
+import { editableSong, isSongTitleSlide, plannerSlides, type PlannerSlide } from './plannerSlides'
 
 type Project = Record<string, any>
 const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value))
@@ -9,11 +10,25 @@ function groupContains(rows: PlannerSlide[], group: PlannerSlide, row: PlannerSl
   return end > start && rows.slice(start + 1, end + 1).every(value => value.depth > group.depth)
 }
 
-/** Section headings select their descendants; Shift ranges select numbered slides. */
+/** Explicit group rows select descendants; numbered rows are exact selections. */
 export function selectedPlannerSlides(rows: PlannerSlide[], ids: string[]) {
   const selected = new Set(ids)
-  const groups = rows.filter(row => (row.kind === 'group' || row.readingTitle) && selected.has(row.id))
+  const groups = rows.filter(row => row.kind === 'group' && selected.has(row.id))
   return rows.filter(row => row.cue && (selected.has(row.id) || groups.some(group => groupContains(rows, group, row))))
+}
+
+/** A title click selects its whole section. Ctrl/Command selects only that title. */
+export function plannerClickSelection(rows: PlannerSlide[], row: PlannerSlide,
+  current: string[] = [], modifiers: {ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean} = {}, anchorId = row.id) {
+  if (modifiers.shiftKey) return plannerRangeSelection(rows, anchorId, row.id)
+  const title = Boolean(row.sectionItemId || isSongTitleSlide(row))
+  if (modifiers.ctrlKey || modifiers.metaKey) {
+    if (title) return [row.id]
+    const exact = selectedPlannerSlides(rows, current).map(value => value.id)
+    return exact.includes(row.id) ? exact.filter(id => id !== row.id) : [...exact, row.id]
+  }
+  if (title) return rows.filter(value => value.cue && (value.id === row.id || groupContains(rows, row, value))).map(value => value.id)
+  return [row.id]
 }
 
 export function plannerRangeSelection(rows: PlannerSlide[], anchorId: string, targetId: string) {
@@ -57,9 +72,16 @@ function materialize(project: Project, itemIds: Set<string>, fresh: (prefix: str
       itemForRow.set(row.id, id)
       return id
     })
-    next.items[itemId] = { id:itemId, kind:'group', groupKind:'section', title:original.title,
-      createdAt:original.createdAt, updatedAt:original.updatedAt, operatorNotes:original.operatorNotes,
-      ...(original.plannedDurationSeconds !== undefined ? {plannedDurationSeconds:original.plannedDurationSeconds} : {}), childIds }
+    const ownerId = parentOf(next, itemId)
+    if (ownerId && isSongGroup(next, next.items[ownerId])) {
+      const list = next.items[ownerId].childIds
+      list.splice(list.indexOf(itemId), 1, ...childIds)
+      delete next.items[itemId]
+    } else {
+      next.items[itemId] = { id:itemId, kind:'group', groupKind:'section', title:original.title,
+        createdAt:original.createdAt, updatedAt:original.updatedAt, operatorNotes:original.operatorNotes,
+        ...(original.plannedDurationSeconds !== undefined ? {plannedDurationSeconds:original.plannedDurationSeconds} : {}), childIds }
+    }
     next = copy(core.normalizeServiceProject(next))
   }
   return { project: next, itemForRow }
@@ -73,8 +95,13 @@ export function changePlannerSelection(project: Project, ids: string[], operatio
   const rows = plannerSlides(project), slides = rows.filter(row => row.cue)
   if (!ids.length || ids.some(id => !rows.some(row => row.id === id))) throw new Error('Select slides from the current service first.')
   const chosen = selectedPlannerSlides(rows, ids), chosenIds = new Set(chosen.map(row => row.id))
-  const groups = rows.filter(row => (row.kind === 'group' || row.readingTitle) && ids.includes(row.id))
-    .filter(row => !rows.some(parent => (parent.kind === 'group' || parent.readingTitle) && ids.includes(parent.id) && groupContains(rows, parent, row)))
+  const containsSelection = (row: PlannerSlide) => {
+    const descendants = rows.filter(value => value.cue && (value === row || groupContains(rows, row, value)))
+    return descendants.length > 1 && descendants.every(value => chosenIds.has(value.id))
+  }
+  const candidates = rows.filter(row => row.kind === 'group' && ids.includes(row.id)
+    || (row.sectionItemId || isSongTitleSlide(row)) && containsSelection(row))
+  const groups = candidates.filter(row => !candidates.some(parent => parent !== row && groupContains(rows, parent, row)))
   const singles = chosen.filter(row => !groups.includes(row) && !groups.some(group => groupContains(rows, group, row)))
   const remaining = slides.filter(row => !chosenIds.has(row.id))
   const maxStart = remaining.length + 1
@@ -89,8 +116,8 @@ export function changePlannerSelection(project: Project, ids: string[], operatio
   }
   const expanded = materialize(project, new Set([...singles.map(row => row.itemId), ...(anchor && anchor.index > 0 ? [anchor.itemId] : [])]), fresh)
   let next = expanded.project
-  const units = rows.filter(row => groups.includes(row) || singles.includes(row)).map(row => row.readingTitle ? row.parentId! : row.kind === 'group' ? row.itemId : expanded.itemForRow.get(row.id)!)
-  const anchorItemId = anchor ? anchor.readingTitle ? anchor.parentId! : expanded.itemForRow.get(anchor.id)! : null
+  const units = rows.filter(row => groups.includes(row) || singles.includes(row)).map(row => groups.includes(row) ? row.sectionItemId || row.itemId : expanded.itemForRow.get(row.id)!)
+  const anchorItemId = anchor ? anchor.sectionItemId || expanded.itemForRow.get(anchor.id)! : null
   let selectedItems = units
   if (operation === 'delete') {
     for (const itemId of units) next = copy(core.removeProjectItemAndDescendants(next, itemId))
@@ -115,8 +142,14 @@ export function changePlannerSelection(project: Project, ids: string[], operatio
     targetList.splice(targetIndex, 0, ...selectedItems)
     next = copy(core.normalizeServiceProject(next))
   }
-  const after = plannerSlides(next), selectedIds = after.filter(row => selectedItems.includes(row.itemId)).map(row => row.id)
-  const active = after.find(row => row.cue && selectedItems.includes(row.itemId))
+  const after = plannerSlides(next)
+  const selectedUnit = (row: PlannerSlide) => {
+    let id: string | null = row.itemId
+    while (id) { if (selectedItems.includes(id)) return true; id = parentOf(next, id) }
+    return false
+  }
+  const selectedIds = after.filter(selectedUnit).map(row => row.id)
+  const active = after.find(row => row.cue && selectedUnit(row))
     || after.find(row => selectedItems.includes(row.itemId))
     || after.filter(row => row.cue)[Math.min(Math.max(0, (chosen[0]?.number || 1) - 1), after.filter(row => row.cue).length - 1)]
   return { project: next, selectedIds: selectedIds.length ? selectedIds : active ? [active.id] : [], activeId: active?.id || null }
