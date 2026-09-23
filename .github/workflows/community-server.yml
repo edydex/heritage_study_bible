@@ -408,3 +408,36 @@ jobs:
           COMMUNITY_AUTH_ENABLED: 'true'
           HERITAGE_SERMON_MEDIA_PATH: /tmp/heritage-book-ci-media
           NODE_ENV: production
+
+  workspace-invitations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: heritage_invitation_test
+          POSTGRES_USER: heritage
+          POSTGRES_PASSWORD: invitation-ci-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage -d heritage_invitation_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: community-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - run: npm run test:accounts
+      - name: Verify invitations with captured email and real PostgreSQL
+        run: node --import tsx --test --test-force-exit tests/community-invitation-payload.test.ts
+        env:
+          DATABASE_URL: postgresql://heritage:invitation-ci-password@127.0.0.1:5432/heritage_invitation_test
+          INVITATION_TEST_DATABASE_URL: postgresql://heritage:invitation-ci-password@127.0.0.1:5432/heritage_invitation_test
+          HERITAGE_DISPOSABLE_CI: heritage-invitation-test-v1

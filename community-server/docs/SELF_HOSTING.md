@@ -75,8 +75,8 @@ changing the host. The normal path then:
 
 After the health check passes, open the printed `/admin` address. The dashboard
 starts with four ordinary tasks: add a sermon, build a Bible plan, invite a
-person, or create an event. Invite people through **Member invitations** before
-sending them the sign-in address. The default policy does not create accounts
+person, or create an event. Use **Invitations** to email either a member join
+link or a leader/administrator workspace password-setup link. The default policy does not create accounts
 for uninvited email addresses.
 
 It is safe to rerun the same bootstrap or installer after an interruption.

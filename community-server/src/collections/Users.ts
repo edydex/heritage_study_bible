@@ -2,6 +2,7 @@ import type { CollectionConfig, FieldAccess } from 'payload'
 import { markCommunitySessionUser } from '@/lib/communitySession'
 import { communityAuthEnabled } from '@/lib/publicConfig'
 import { hashOpaqueToken } from '@/lib/tokens'
+import { acceptWorkspaceInvitations } from '@/lib/workspaceInvitation'
 
 const isSystemAdminField: FieldAccess = ({ req }) => req.user?.systemRole === 'system-admin'
 const canSetInitialSystemRole: FieldAccess = async ({ req }) => {
@@ -22,7 +23,7 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
     group: 'People',
-    description: 'People who have signed in. Use Member invitations before their first sign-in; use Memberships to change an existing person’s church role.',
+    description: 'Accounts for readers and church managers. Use Invitations to email workspace access or a reader join link; use Memberships to change church roles.',
     defaultColumns: ['displayName', 'email', 'systemRole', 'updatedAt'],
     listSearchableFields: ['displayName', 'email'],
     hideAPIURL: true,
@@ -79,6 +80,7 @@ export const Users: CollectionConfig = {
       },
     ],
   },
+  hooks: { afterLogin: [acceptWorkspaceInvitations] },
   access: {
     create: async ({ req }) => {
       if (req.user?.systemRole === 'system-admin') return true

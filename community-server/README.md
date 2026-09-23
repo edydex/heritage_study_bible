@@ -84,8 +84,23 @@ uncommitted integration branch is not proof that it has been merged or
 deployed.
 
 New Communities default to
-invite-only sign-in. Create a **Member invitation** before giving someone the
-sign-in address; existing active members may continue to request links.
+invite-only sign-in. Use **Invitations** to send access directly:
+
+- **Member** sends a 15-minute Heritage reader join link.
+- **Church leader** or **Church administrator** sends a 24-hour workspace
+  password-setup link. The recipient chooses their password and is signed into
+  `/admin`; an existing workspace password also accepts the invitation on login.
+  No server-wide administrator role is granted. Existing higher roles remain.
+- To resend, select **Email this invitation now** and save. The new setup link
+  replaces the old one. If it expires, the recipient can use **Forgot Password**
+  on `/admin/login`. To cancel before acceptance, uncheck **Invitation is active**.
+- Creating an account in **Accounts** does not send email. There is no need to
+  create an account separately before inviting someone.
+
+The sent date records acceptance by the configured mail service, not inbox
+receipt. A failed mail submission rolls back a workspace invitation and its
+new account/setup token so the administrator can retry. Existing active members
+may continue to request Heritage reader links.
 
 ## Validation and deployment
 
