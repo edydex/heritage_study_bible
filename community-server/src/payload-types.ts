@@ -289,7 +289,7 @@ export interface Media {
   focalY?: number | null;
 }
 /**
- * People who have signed in. Use Member invitations before their first sign-in; use Memberships to change an existing person’s church role.
+ * Accounts for readers and church managers. Use Invitations to email workspace access or a reader join link; use Memberships to change church roles.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
@@ -404,7 +404,7 @@ export interface Membership {
   createdAt: string;
 }
 /**
- * Email a one-time join link and allow that address to become a member of this church in Heritage.
+ * Invite a member to Heritage, or invite a leader/administrator to the church workspace. Save to send the email; no separate account creation is needed.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "community-invites".
@@ -421,12 +421,12 @@ export interface CommunityInvite {
    */
   displayName?: string | null;
   /**
-   * This sets Community API permissions. It does not create a separate web-admin password; manage admin logins under Users.
+   * Members receive a Heritage join link. Leaders and church administrators receive a workspace password-setup link for service planning, songs and sermons. This does not grant server-wide administration or reduce an existing role.
    */
   role: 'member' | 'leader' | 'admin';
   active: boolean;
   /**
-   * Selected for a new invitation. Select it again later to send a fresh 15-minute join link.
+   * Save to send. Select again and save to resend. Member join links last 15 minutes; workspace password-setup links last 24 hours. For an accepted invitation, reactivate it to send again.
    */
   sendEmailNow?: boolean | null;
   emailSentAt?: string | null;

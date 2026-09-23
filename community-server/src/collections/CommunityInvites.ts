@@ -1,20 +1,21 @@
 import type { CollectionConfig } from 'payload'
 import { isSystemAdmin } from '@/access'
 import { sendInvitationEmail } from '@/lib/communityInvitationEmail'
+import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
 
 const invitationRoles = [
   { label: 'Member', value: 'member' },
-  { label: 'Leader permissions', value: 'leader' },
-  { label: 'Content administrator permissions', value: 'admin' },
+  { label: 'Church leader — workspace access', value: 'leader' },
+  { label: 'Church administrator — workspace access', value: 'admin' },
 ]
 
 export const CommunityInvites: CollectionConfig = {
   slug: 'community-invites',
-  labels: { singular: 'Member invitation', plural: 'Member invitations' },
+  labels: { singular: 'Invitation', plural: 'Invitations' },
   admin: {
     useAsTitle: 'email',
     group: 'People',
-    description: 'Email a one-time join link and allow that address to become a member of this church in Heritage.',
+    description: 'Invite a member to Heritage, or invite a leader/administrator to the church workspace. Save to send the email; no separate account creation is needed.',
     defaultColumns: ['email', 'role', 'active', 'emailSentAt', 'acceptedAt'],
     listSearchableFields: ['email', 'displayName'],
     hideAPIURL: true,
@@ -38,6 +39,7 @@ export const CommunityInvites: CollectionConfig = {
       label: 'Church',
       type: 'relationship',
       relationTo: 'communities',
+      defaultValue: async ({ req }) => req?.payload ? getConfiguredCommunityId(req.payload) : null,
       required: true,
       index: true,
       admin: { description: 'The church this person may join.' },
@@ -62,7 +64,7 @@ export const CommunityInvites: CollectionConfig = {
       required: true,
       defaultValue: 'member',
       options: invitationRoles,
-      admin: { description: 'This sets Community API permissions. It does not create a separate web-admin password; manage admin logins under Users.' },
+      admin: { description: 'Members receive a Heritage join link. Leaders and church administrators receive a workspace password-setup link for service planning, songs and sermons. This does not grant server-wide administration or reduce an existing role.' },
     },
     {
       name: 'active',
@@ -78,7 +80,7 @@ export const CommunityInvites: CollectionConfig = {
       type: 'checkbox',
       defaultValue: true,
       admin: {
-        description: 'Selected for a new invitation. Select it again later to send a fresh 15-minute join link.',
+        description: 'Save to send. Select again and save to resend. Member join links last 15 minutes; workspace password-setup links last 24 hours. For an accepted invitation, reactivate it to send again.',
       },
     },
     {
