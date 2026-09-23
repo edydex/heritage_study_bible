@@ -19,7 +19,7 @@ export function plannerPreview(rows: PlannerSlide[], active: PlannerSlide | unde
   const nextOutput = outputFor(nextSlide).output
   const nextText = nextOutput?.mode === 'hide' ? '' : (nextOutput?.blocks || []).map((block: any) =>
     block.type === 'canvas' ? canvasLayout.canvasText(block.objects) : block.type === 'text' ? block.text
-      : block.type === 'bible' ? block.verses.map((verse: any) => `${verse.number} ${verse.text}`).join(' ') : ''
+      : block.type === 'image' ? block.altText : block.type === 'bible' ? block.verses.map((verse: any) => `${verse.number} ${verse.text}`).join(' ') : ''
   ).filter(Boolean).join('\n')
   return { ...current, singer,
     next: { state: !nextSlide ? 'end' : nextText.trim() ? 'text' : 'blank',

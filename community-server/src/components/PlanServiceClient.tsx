@@ -9,7 +9,7 @@ import { PresentationAccessibility, PresentationAccessibilityControl } from './P
 import { insertReusableSlide, extractReusableSlide } from './plannerReusableSlides'
 import { importSermonPresentation } from './importSermonPresentation'
 import { churchWorkspaceLinks } from '@/lib/churchWorkspaceLinks'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import PassageReferenceInput from './PassageReferenceInput'
 import SongPreview from '../../packages/song-text/SongPreview.jsx'
 import { workspaceSignInHref } from '../lib/workspaceNavigation'
@@ -423,14 +423,22 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     document.addEventListener('pointerdown', close)
     return () => document.removeEventListener('pointerdown', close)
   }, [])
-  useEffect(() => {
-    if (!menu) return
-    menuRef.current?.querySelector<HTMLButtonElement>('button')?.focus()
+  useLayoutEffect(() => {
+    if (!menu || !menuRef.current) return
+    const element = menuRef.current
+    const position = () => {
+      const bounds = element.getBoundingClientRect()
+      element.style.left = `${Math.max(8, Math.min(menu.x, window.innerWidth - bounds.width - 8))}px`
+      element.style.top = `${Math.max(8, Math.min(menu.y, window.innerHeight - bounds.height - 8))}px`
+    }
+    position()
+    element.querySelector<HTMLButtonElement>('button')?.focus({preventScroll: true})
     const close = (event: PointerEvent) => { if (!menuRef.current?.contains(event.target as Node)) setMenu(null) }
     const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenu(null) }
     document.addEventListener('pointerdown', close)
     document.addEventListener('keydown', escape)
-    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', escape) }
+    window.addEventListener('resize', position)
+    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', escape); window.removeEventListener('resize', position) }
   }, [menu])
   const selectedSermonDocumentId = sermonDocumentIdForItem(draft, selected)
   const selectedSongContentChannels = selected?.kind === 'song'
@@ -1225,7 +1233,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               const openMenu = (x: number, y: number) => {
                 const ids = rowSelected ? selectionIds : [row.id]
                 if (!rowSelected) selectSlide(row)
-                setMenu({ row, ids, x: Math.max(8, Math.min(x, window.innerWidth - 240)), y: Math.max(8, Math.min(y, window.innerHeight - 240)) })
+                setMenu({ row, ids, x, y })
               }
               return <li key={row.id} style={{ '--service-depth': row.depth } as React.CSSProperties}
                 data-drop={dropTarget?.id === row.id ? (dropTarget.after ? 'after' : 'before') : undefined}>
@@ -1316,6 +1324,9 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                   <button type="button" className="heritage-service-planner__service-preview-button" disabled={!slideList.rows.some(row=>row.cue) || Boolean(slideList.error)} onClick={()=>setServicePreviewOpen(true)}>▦ {sermonSyncId ? 'Sermon preview' : 'Service Preview'}</button>
                 </div>
               </header>
+              {activePreviewOutput?.fallbackFromChannelId ? <p className="heritage-service-planner__language-warning" role="status">
+                {draft?.channels[previewChannel]?.label || previewChannel} is not configured. Screens will show {draft?.channels[activePreviewOutput.fallbackFromChannelId]?.label || 'the filled language'} content until you add text here.
+              </p> : null}
               {selected.kind === 'song' && selected.songPresentation && !preview.singer ? <div className="heritage-service-planner__song-layout">
                 <label><input type="checkbox" aria-label="Stacked translation" checked={selected.songPresentation.stackedTranslation}
                   disabled={!selected.songPresentation.secondaryChannelId}

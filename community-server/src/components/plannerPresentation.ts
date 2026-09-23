@@ -2,6 +2,7 @@ import { flattenReadingGroups } from './plannerReadingGroups'
 import typography from '../../packages/service-core/node/services/project/SlideTypography.js'
 import core from '../../packages/service-core/index.js'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
+import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
 
 type RecordValue = Record<string, any>
 
@@ -144,8 +145,10 @@ export function addReadingTitle(project: RecordValue, itemId: string, names: Rec
   const textByChannel: Record<string,string> = {}, spansByChannel: Record<string,any[]> = {}
   for (const [channel, raw] of Object.entries(item.passagesByChannel)) {
     const passage = raw as RecordValue
-    textByChannel[channel] = `${passage.reference}\n${names[channel] || passage.translationId}`
-    spansByChannel[channel] = [{start:0,end:passage.reference.length,weight:'700'}]
+    const language = next.channels[channel].language === 'und' && channel === 'media' ? next.channels.russian?.language : next.channels[channel].language
+    const reference = readingLabels.localizedReference(passage.reference, language)
+    textByChannel[channel] = `${reference}\n${readingLabels.localizedEdition(names[channel] || passage.translationId, language)}`
+    spansByChannel[channel] = [{start:0,end:reference.length,weight:'700'}]
   }
   next.items[titleId] = {id:titleId,kind:'notice',title:item.title,textByChannel,spansByChannel,presetId:'wotbc-reading-title',operatorNotes:'',createdAt:item.createdAt,updatedAt:item.updatedAt}
   const parent = Object.values(next.items).find((value:any)=>value.kind==='group' && value.childIds.includes(itemId)) as any

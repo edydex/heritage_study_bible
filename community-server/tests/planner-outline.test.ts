@@ -98,7 +98,8 @@ test('new emphasis and sub-points round-trip to audience and singers without edi
   const cue=plannerSlides(reopened)[0].cue!
   assert.equal(cue.channels.russian.blocks[0].text,value.text)
   assert.deepEqual(cue.channels.russian.blocks,cue.channels.media.blocks)
-  assert.deepEqual(cue.channels.english.blocks,[])
+  assert.deepEqual(cue.channels.english.blocks,cue.channels.russian.blocks)
+  assert.equal(cue.channels.english.fallbackFromChannelId,'russian')
   assert.deepEqual(cue.channels.russian.blocks[0].spans,value.spans)
   assert.ok(!value.text.includes('II.'))
   assert.deepEqual(reopened.items.point.pendingPointChannels,['english'])
