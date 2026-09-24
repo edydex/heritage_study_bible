@@ -21,6 +21,7 @@ import CanvasSlide, { newCanvasObject } from './CanvasSlide'
 import TemplateSlideEditor from './TemplateSlideEditor'
 import MoveSlidesDialog from './MoveSlidesDialog'
 import DeleteSlidesDialog from './DeleteSlidesDialog'
+import ScriptureEditionDialog from './ScriptureEditionDialog'
 import SlideSettingsDialog from './SlideSettingsDialog'
 import SlideText from './SlideText'
 import PreviewCanvas from './PreviewCanvas'
@@ -320,6 +321,7 @@ function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeI
 export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebarHeader }: { sermonSyncId?: string; onDirtyChange?: (dirty: boolean) => void; sidebarHeader?: ReactNode } = {}) {
   const [summaries, setSummaries] = useState<ServiceSummary[]>([])
   const [envelope, setEnvelope] = useState<ServiceEnvelope | null>(null)
+  const [editionChange, setEditionChange] = useState<{channel:'english'|'russian';translationId:string} | null>(null)
   const [draft, setDraft] = useState<ServiceProject | null>(null)
   const latestDraft = useRef(draft)
   latestDraft.current = draft
@@ -878,10 +880,11 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     }
   }
 
-  async function changeScriptureTranslation(channel: 'english' | 'russian', translationId: string) {
+  async function changeScriptureTranslation(channel: 'english' | 'russian', translationId: string, replaceEdits = false) {
     if (!draft || !scriptureScope || busy || !translationId) return
-    if (hasScriptureEdits(draft, scriptureScope, channel) && !globalThis.confirm(
-      `Changing the ${channel === 'english' ? 'English' : 'Russian / stage'} translation replaces edited Scripture wording and highlights on these pages. Other slides and the other language stay unchanged. Continue?`)) return
+    if (!replaceEdits && hasScriptureEdits(draft, scriptureScope, channel)) {
+      setEditionChange({channel,translationId}); return
+    }
     const original = draft, scope = scriptureScope
     setBusy(true); setError(null); setNotice('Fetching the selected Bible translation…')
     try {
@@ -1555,6 +1558,9 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
           {moveDialog && draft ? <MoveSlidesDialog count={dialogSlides.length} maximum={slideList.rows.filter(row => row.cue).length - dialogSlides.length + 1}
             initial={dialogSlides[0]?.number || 1} onCancel={() => setMoveDialog(null)}
             onMove={number => { applySelection(changePlannerSelection(draft, moveDialog, 'move', number)); setMoveDialog(null) }} /> : null}
+          {editionChange && <ScriptureEditionDialog edition={editionChange.translationId}
+            output={editionChange.channel === 'english' ? 'English' : 'Russian / stage'} onCancel={()=>setEditionChange(null)}
+            onChange={()=>{ const choice=editionChange; setEditionChange(null); void changeScriptureTranslation(choice.channel,choice.translationId,true) }} />}
           {deleteDialog && draft ? <DeleteSlidesDialog count={selectedPlannerSlides(slideList.rows, deleteDialog).length}
             sections={deleteDialog.some(id => slideList.rows.find(row => row.id === id)?.kind === 'group')}
             onCancel={() => setDeleteDialog(null)} onDelete={() => { runSelection(deleteDialog, 'delete'); setDeleteDialog(null) }} /> : null}
