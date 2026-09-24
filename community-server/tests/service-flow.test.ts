@@ -243,3 +243,14 @@ test('cue-only changes retain reviewed translation settings; slide changes requi
   )
   assert.equal(sameServiceApartFromTranslationCues(before, '{}'), false)
 })
+
+
+test('duplicating just a reading title preserves its position when reopening', () => {
+  const p=preparePlannerPresentation(appendBlankSlide(reading(),'reading-reading')).project
+  const rows=plannerSlides(p)
+  const copied=changePlannerSelection(p,[rows[0].id],'duplicate').project
+  const after=plannerSlides(preparePlannerPresentation(copied).project).filter(row=>row.cue)
+  assert.equal(after.length,rows.length+1)
+  assert.equal(after[1].cue!.presetId,'wotbc-reading-title')
+  assert.deepEqual(after.slice(2).map(row=>row.itemId),rows.slice(1).map(row=>row.itemId))
+})

@@ -1,4 +1,5 @@
 import core from '../../packages/service-core/index.js'
+import { isSermonGroup } from './plannerSermonSections'
 import { insertionPoint } from './plannerTemplates'
 
 /** Copy an exact saved deck into a service. Media and resources remain pinned
@@ -26,8 +27,11 @@ export function importSermonPresentation(target: any, source: any, sermon: any, 
     project.items[item.id] = item
   }
   // Add the group before normalizing so the copied items are never orphaned.
-  const id = fresh(), place = insertionPoint(project, selectedId)
-  project.items[id] = { id, kind: 'group', groupKind: 'sermon', title: sermon.titles[sermon.defaultLanguage], childIds: deck.rootItemIds.map((id: string) => ids.get(id)), operatorNotes: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+  const id = fresh(), place = insertionPoint(project, selectedId, false, true)
+  const sourceGroup = deck.rootItemIds.length === 1 && isSermonGroup(deck, deck.items[deck.rootItemIds[0]])
+    ? project.items[ids.get(deck.rootItemIds[0])!] : null
+  project.items[id] = { ...(sourceGroup || {}), id, kind: 'group', groupKind: 'sermon', title: sermon.titles[sermon.defaultLanguage], childIds: sourceGroup ? sourceGroup.childIds : deck.rootItemIds.map((id: string) => ids.get(id)), operatorNotes: sourceGroup?.operatorNotes || '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+  if (sourceGroup) delete project.items[sourceGroup.id]
   const siblings = place.parentId ? project.items[place.parentId].childIds : project.rootItemIds
   siblings.splice(place.index, 0, id)
   const pinned = core.addSermonResource(project, sermon)

@@ -53,7 +53,7 @@ export function flattenReadingGroups(project: Project): boolean {
     const collect = (id: string) => {
       const item = project.items[id]
       if (!item) throw new Error('A reading contains a missing slide.')
-      if (item.kind === 'bible' || item.kind === 'blank') pages.push(id)
+      if (item.kind === 'bible' || item.kind === 'blank' || item.presetId === 'wotbc-reading-title') pages.push(id)
       else if (
         item.kind === 'group' &&
         item.id === group.id.replace(/-reading$/, '')

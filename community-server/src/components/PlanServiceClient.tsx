@@ -507,7 +507,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     setDirty(prepared.changed)
     setError(null)
     setNotice(prepared.changed
-      ? 'Projector layout updated: short Scripture pages and minimal song titles. Save service to keep these changes.'
+      ? 'Section grouping and presentation layout updated. Save service to keep these changes.'
       : `${project.title} is open at Community version ${next.syncVersion}.`)
     loadList()
   }

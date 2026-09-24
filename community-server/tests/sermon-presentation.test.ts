@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import core from '../packages/service-core/index.js'
 import { importSermonPresentation } from '../src/components/importSermonPresentation.ts'
+import { preparePlannerPresentation } from '../src/components/plannerPresentation'
+import { createTemplateDraft } from '../src/components/plannerTemplates'
 import { createTemplateSlide } from '../src/components/plannerTemplates.ts'
 import { plannerSlides } from '../src/components/plannerSlides.ts'
 import { createSermonRevision } from '../src/lib/syncshow/SermonDocument.ts'
@@ -24,4 +26,19 @@ test('a whole sermon can be added twice with independent slides and pinned conte
   assert.ok(reopened.assets[image.id])
   assert.equal(Object.values(reopened.resources).filter((item: any) => item.kind === 'sermon').length, 1)
   assert.throws(() => importSermonPresentation(project('target'), project('empty'), sermon, null), /no saved slides/)
+})
+
+
+test('prepared sermon sections import as a single title parent, and the next sermon is a sibling', () => {
+  let deck=createTemplateDraft(project('prepared'),{id:'title',template:'title',selectedId:null})
+  deck=createTemplateDraft(deck,{id:'point',template:'point',selectedId:'title'})
+  deck=preparePlannerPresentation(deck).project
+  const first=importSermonPresentation(project('service'),deck,sermon,null)
+  const second=importSermonPresentation(first.project,deck,sermon,plannerSlides(first.project)[1].itemId)
+  assert.equal(second.project.rootItemIds.length,2)
+  const rows=plannerSlides(second.project)
+  assert.equal(rows.filter(row=>row.kind==='group').length,0)
+  assert.equal(rows.filter(row=>row.sermonTitle).length,2)
+  assert.equal(rows.length,4)
+  assert.ok(second.project.items[second.project.rootItemIds[0]].sermonResourceId)
 })

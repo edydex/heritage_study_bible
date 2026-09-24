@@ -6,11 +6,12 @@ export const isSermonTitle = (item: any): boolean => item?.kind === 'sermon'
 export const isSermonGroup = (project: Project, item: any): boolean => item?.kind === 'group'
   && item.groupKind === 'sermon' && isSermonTitle(project.items[item.childIds[0]])
 
-function endsSermon(project: Project, item: any) {
+function endsSermon(project: Project, item: any): boolean {
   return item.kind === 'song' || isSongGroup(project, item) || isReadingGroup(project, item)
     || item.presetId === 'wotbc-reading-title'
     || item.kind === 'bible' && !['wotbc-sermon-scripture','wotbc-sermon-verse'].includes(item.presetId)
-    || item.kind === 'group' && item.groupKind === 'sermon'
+    || item.kind === 'group' && (item.groupKind === 'sermon'
+      || project.items[item.childIds[0]]?.kind === 'bible' && endsSermon(project, project.items[item.childIds[0]]))
 }
 
 /** The slide order defines sermon boundaries, represented by standard groups
