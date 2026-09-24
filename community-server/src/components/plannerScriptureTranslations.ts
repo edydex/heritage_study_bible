@@ -1,3 +1,4 @@
+import { isScripturePageGroup } from './plannerScriptureGroups'
 import core from '../../packages/service-core/index.js'
 import { readingOwner } from './plannerReadingGroups'
 import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
@@ -16,12 +17,7 @@ export function scriptureTranslationScope(project: Project, selectedId: string):
   const item = project.items[selectedId]
   if (item?.kind !== 'bible') return null
   const parent = (Object.values(project.items) as any[]).find(value => value.kind === 'group' && value.childIds.includes(selectedId))
-  // Pagination creates this exact family of page IDs. A sermon group may contain
-  // many unrelated passages, so sharing a parent alone is not enough.
-  const pages = parent?.childIds.filter((id: string) => project.items[id]?.kind === 'bible') as string[] | undefined
-  if (parent && pages?.length && pages.every(id => id.startsWith(`${parent.id.slice(0, 100)}-v`)
-    && project.items[id].range.bookId === item.range.bookId
-    && project.items[id].range.start.chapter === item.range.start.chapter)) return {itemIds: pages}
+  if (isScripturePageGroup(project,parent)) return {itemIds:[...parent.childIds]}
   return {itemIds: [selectedId]}
 }
 

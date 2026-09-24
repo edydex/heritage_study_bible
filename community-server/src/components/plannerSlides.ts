@@ -1,3 +1,4 @@
+import { isScripturePageGroup } from './plannerScriptureGroups'
 import { isSermonGroup } from './plannerSermonSections'
 import { isReadingGroup, isSongGroup } from './plannerReadingGroups'
 import serviceCore from '../../packages/service-core/index.js'
@@ -16,6 +17,7 @@ export type PlannerSlide = {
   kind: string
   readingTitle?: boolean
   sectionItemId?: string
+  scripturePageCount?: number
   sermonTitle?: boolean
   cue?: RecordValue
 }
@@ -35,12 +37,13 @@ export function plannerSlides(project: RecordValue): PlannerSlide[] {
   const visit = (itemId: string, parentId: string | null, depth: number) => {
     const item = project.items[itemId]
     if (item.kind === 'group') {
-      if (isReadingGroup(project, item) || isSongGroup(project, item) || isSermonGroup(project, item)) {
+      if (isReadingGroup(project, item) || isSongGroup(project, item) || isSermonGroup(project, item) || isScripturePageGroup(project, item)) {
         item.childIds.forEach((id: string, index: number) => {
           const start = result.length
           visit(id, itemId, depth + (index > 0 ? 1 : 0))
           if (index === 0 && result[start]) {
             result[start].sectionItemId = itemId
+            if (isScripturePageGroup(project, item) && item.childIds.length > 1) result[start].scripturePageCount = item.childIds.length
             if (isReadingGroup(project, item)) result[start].readingTitle = true
             if (isSermonGroup(project, item)) result[start].sermonTitle = true
           }

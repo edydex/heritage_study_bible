@@ -1,3 +1,4 @@
+import { isScripturePageGroup } from './plannerScriptureGroups'
 import core from '../../packages/service-core/index.js'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 import { scripturePages } from './plannerPresentation'
@@ -91,7 +92,7 @@ export function reflowScripture(project:Project,selectedId:string,bodySize:numbe
     // A formerly single page needs a standard pagination group so its pages
     // stay one passage for subsequent size/edition changes and SyncShow.
     const existingPageGroup=parent && (isReadingGroup(next,parent)
-      || selectedId.startsWith(`${parent.id.slice(0,100)}-v`))
+      || isScripturePageGroup(next,parent))
     const wrap=scope.itemIds.length===1 && pages.length>1 && !existingPageGroup
     let prefix=wrap ? original.id : (parent && parent.childIds.every((id:string)=>next.items[id]?.kind==='bible') ? parent.id : ids[0].replace(/-v\d+-\d+$/,''))
     if(wrap) {

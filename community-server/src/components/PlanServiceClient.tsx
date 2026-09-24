@@ -366,7 +366,6 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   const [readingTemplate, setReadingTemplateChoice] = useState('centered')
   const [alignmentRole, setAlignmentRole] = useState('bodyAlign')
   const [resourceTab, setResourceTab] = useState<ResourceTab>(sermonSyncId ? 'templates' : 'songs')
-  const [paletteTemplate,setPaletteTemplate]=useState<SermonTemplateId>('point')
   const [paletteChannel,setPaletteChannel]=useState<ChannelId>('english')
   const [songLanguage,setSongLanguage]=useState('all')
   const [sermonPassage, setSermonPassage] = useState(false)
@@ -386,6 +385,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   const dragged = useRef<string[] | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const workspaceMenuRef = useRef<HTMLDetailsElement>(null)
+  const fontEdit = useRef<{project:ServiceProject;itemId:string;changed:boolean} | null>(null)
   const [undoStack, setUndoStack] = useState<ServiceProject[]>([])
   const bibleBookInput = useRef<HTMLSelectElement>(null)
   const bibleChapterInput = useRef<HTMLInputElement>(null)
@@ -644,15 +644,23 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   }
 
   function changeFontSize(bodySize:number) {
-    if(!draft || !selectedId)return
-    if(draft.items[selectedId]?.kind!=='bible') {
+    const current=latestDraft.current
+    if(!current || !selectedId)return
+    if(current.items[selectedId]?.kind!=='bible') {
       change(project=>{project.items[selectedId!].textStyle={...project.items[selectedId!].textStyle,bodySize}})
       return
     }
     try {
-      const result=reflowScripture(draft,selectedId,bodySize)
-      slideMutation(()=>result.project,0)
-      setSelectedId(result.selectedId);setSelectedRowIds([])
+      // Always reflow from the beginning of this edit, so intermediate sizes
+      // cannot gradually change source breaks, cues or the selected verse.
+      const edit=fontEdit.current
+      const result=reflowScripture(edit?.project || current,edit?.itemId || selectedId,bodySize)
+      const next=cloneProject(result.project as ServiceProject)
+      if(!edit || !edit.changed)setUndoStack(stack=>[...stack.slice(-29),edit?.project || current])
+      if(edit)edit.changed=true
+      latestDraft.current=next;setDraft(next)
+      setSelectedId(result.selectedId);setSelectedRowIds([]);setPreviewSlideIndex(0)
+      setDirty(true);setDesiredStatus('planning');setError(null)
       setNotice(result.protectedPages ? 'Size updated. Pages with edited wording keep their breaks so your excerpts stay intact.'
         : 'Passage pages reflowed at this size. Both languages keep matching verse breaks. Undo restores the old layout.')
     } catch(caught){setError(errorText(caught))}
@@ -1288,7 +1296,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
           <PresentationAccessibilityControl item={selected} />
           <div className="heritage-service-planner__outline-heading">
             <h2>{sermonSyncId ? 'Sermon slides' : 'Service order'}</h2><button type="button" className="heritage-add-slide" ref={addSlideRef} disabled={!draft} aria-expanded={paletteOpen} onClick={openPalette}>＋ Add slide</button>
-            <small aria-live="polite">{batchSlides.length > 1 ? `${batchSlides.length} selected` : 'Title: whole section · Ctrl/⌘: title only'}</small>
+            <small aria-live="polite">{batchSlides.length > 1 ? `${batchSlides.length} selected` : 'Section start: selects all · Ctrl/⌘: one slide'}</small>
           </div>
 
           {draft ? <ol className="heritage-service-planner__rows">
@@ -1304,7 +1312,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 <button className="heritage-service-planner__row" data-kind={row.kind}
                   data-slide-id={row.id} data-selected={rowSelected || undefined} aria-pressed={rowSelected}
                   data-active={activeSlide?.id === row.id || undefined}
-                  type="button" draggable title={`${row.title} · Click title for whole section · Ctrl/⌘-click for title only · Shift-click for range · Right-click for actions`}
+                  type="button" draggable title={`${row.title} · Click section start to select all · Ctrl/⌘-click for one slide · Shift-click for range · Right-click for actions`}
                   onClick={event => selectSlide(row, event)}
                   onContextMenu={event => { event.preventDefault(); openMenu(event.clientX, event.clientY) }}
                   onKeyDown={event => {
@@ -1328,7 +1336,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                   onDragOver={event => { if (!dragged.current) return; event.preventDefault(); event.dataTransfer.dropEffect = 'move'; const rect = event.currentTarget.getBoundingClientRect(); setDropTarget({ id: row.id, after: event.clientY > rect.top + rect.height / 2 }) }}
                   onDrop={event => { event.preventDefault(); if (dragged.current) dropSelection(dragged.current, row, Boolean(dropTarget?.after)) }}>
                   <span className="heritage-service-planner__kind" aria-hidden="true">{row.kind === 'group' ? '▾' : row.number}</span>
-                  <span><strong>{row.title}</strong>{row.cue?.translationAction ? <small className="heritage-service-planner__translation-cue">{row.cue.translationAction === 'start' ? '▶ Start Translate' : '■ Stop Translate'}</small> : null}{row.kind === 'group' ? <small>section</small> : isSongTitleSlide(row) ? <small>song</small> : row.readingTitle ? <small>reading</small> : row.sermonTitle ? <small>sermon</small> : null}</span>
+                  <span><strong>{row.title}</strong>{row.cue?.translationAction ? <small className="heritage-service-planner__translation-cue">{row.cue.translationAction === 'start' ? '▶ Start Translate' : '■ Stop Translate'}</small> : null}{row.kind === 'group' ? <small>section</small> : isSongTitleSlide(row) ? <small>song</small> : row.readingTitle ? <small>reading</small> : row.sermonTitle ? <small>sermon</small> : row.scripturePageCount ? <small>{row.scripturePageCount} slides</small> : null}</span>
                 </button>
               </li>
             })}
@@ -1453,7 +1461,9 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                   const ids=typographyItemIds(project,selected.id)
                   ids.forEach((id:string)=>{project.items[id].textStyle={...project.items[id].textStyle,[alignmentRole]:align}})
                 })}>{align[0].toUpperCase()+align.slice(1)}</button>)}</div>
-                {!(activeSlide && isSongTitleSlide(activeSlide)) && <label>{selected.kind==='song' ? 'Song font size' : selected.kind==='bible' ? 'Reading font size' : 'Text size'}<NumberDraftInput value={selected.textStyle?.bodySize || activeSlide?.cue?.textStyle?.bodySize || typography.textPreset(preview.presetId).bodySize} min={32} max={160} onCommit={changeFontSize} /></label>}
+                {!(activeSlide && isSongTitleSlide(activeSlide)) && <label>{selected.kind==='song' ? 'Song font size' : selected.kind==='bible' ? 'Reading font size' : 'Text size'}<NumberDraftInput value={selected.textStyle?.bodySize || activeSlide?.cue?.textStyle?.bodySize || typography.textPreset(preview.presetId).bodySize} min={32} max={160} live={selected.kind==='bible'}
+                  onEditStart={()=>{if(selected.kind==='bible' && latestDraft.current)fontEdit.current={project:latestDraft.current,itemId:selected.id,changed:false}}}
+                  onEditEnd={()=>{fontEdit.current=null}} onCommit={changeFontSize} /></label>}
                 {selected.textStyle?.bodySize && activeSlide?.cue?.textStyle?.bodySize && selected.textStyle.bodySize !== activeSlide.cue.textStyle.bodySize && <small>Fitted size: {activeSlide.cue.textStyle.bodySize} across all pages.</small>}
                 {selected.kind==='song' && <><small>One size for the whole song. Long lines can reduce it by up to 25%.</small><button type="button" disabled={busy} onClick={rememberSongLayout}>Remember for this song</button></>}
                 {selected.kind==='bible' && <><small>Whole verses move between pages to fit this size. Both languages stay together.</small><button type="button" onClick={()=>changeFontSize(selected.textStyle?.bodySize || activeSlide?.cue?.textStyle?.bodySize || typography.textPreset(preview.presetId).bodySize)}>Reflow pages</button><BibleSourceNotice translationIds={Object.values(selected.passagesByChannel || {}).map((p:any)=>p.translationId)} /></>}
@@ -1530,7 +1540,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
 
         <section className="heritage-service-planner__resources heritage-add-workspace" ref={paletteRef} hidden={!paletteOpen} aria-label="Add slide palette" onKeyDown={event=>{if(event.key==='Escape')closePalette()}}>
           <header className="heritage-add-header"><div><small>Service planner</small><h2>Add a slide</h2><p>{activeSlide ? `Selected: slide ${activeSlide.number} · ${activeSlide.title}` : 'Build your service'}{draft && withinSermon(draft,selectedId) && <span>Inside sermon</span>}</p></div><button type="button" aria-label="Close add slide palette" onClick={closePalette}>×</button></header>
-          <div className="heritage-add-workbench">
+          <div className="heritage-add-workbench" data-category={resourceTab}>
           <nav className="heritage-add-categories" role="tablist" aria-label="Add slides">
             {(['templates','songs','scripture','media'] as ResourceTab[]).map(tab=><button key={tab} type="button" role="tab" aria-selected={resourceTab===tab} onClick={()=>{setResourceTab(tab);if(tab==='scripture')setSermonPassage(false)}}><span aria-hidden="true">{{templates:'¶',songs:'♫',scripture:'§',media:'▧'}[tab]}</span>{{templates:'Sermon',songs:'Songs',scripture:'Scripture',media:'Media'}[tab]}</button>)}
             <div className="heritage-add-utilities"><button type="button" disabled={!draft} onClick={()=>add('blank')}>□ Blank slide</button><button type="button" disabled={!draft} onClick={()=>add('group')}>≡ Section divider</button></div>
@@ -1539,7 +1549,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
             <h3>{{templates:'Build your sermon',songs:'Song library',scripture:sermonPassage?'Sermon passage':'Scripture reading',media:'Media & reusable slides'}[resourceTab]}</h3>
             <p className="heritage-add-description">{{templates:'Choose a starting point, then edit the slide on the canvas.',songs:'Search in either language. Select a song to see its first section.',scripture:sermonPassage?'The current sermon heading stays above your passage.':'Add a title, verse pages and a blank as one reading section.',media:'Use a saved slide, or add a picture or video.'}[resourceTab]}</p>
             {resourceTab==='templates'&&<>
-              <div className="heritage-add-template-grid">{SERMON_TEMPLATES.map(value=><button key={value.id} type="button" disabled={!draft} aria-pressed={paletteTemplate===value.id} onClick={()=>setPaletteTemplate(value.id)}><PalettePresetPreview type={value.id}/><strong>{value.label}</strong><small>{value.hint}</small></button>)}</div>
+              <div className="heritage-add-template-grid">{SERMON_TEMPLATES.map(value=><button key={value.id} type="button" disabled={!draft} onClick={()=>{if(value.id==='passage'){setResourceTab('scripture');setSermonPassage(true)}else addTemplate(value.id)}}><PalettePresetPreview type={value.id}/><strong>{value.label}</strong><small>{value.hint}</small></button>)}</div>
               {!sermonSyncId&&<details className="heritage-add-prepared"><summary>Or add a prepared sermon</summary><label>Saved sermon · newest first<select aria-label="Prepared sermon" value={sermonChoice} onChange={event=>setSermonChoice(event.target.value)}><option value="">Choose a sermon…</option>{sermonLibrary.map(sermon=><option key={sermon.syncId} value={sermon.syncId}>{sermon.serviceDate} · {sermon.title}</option>)}</select></label><button className="heritage-add-primary" type="button" disabled={!draft||!sermonChoice||busy} onClick={addWholeSermon}>Add whole sermon</button><small>Copies all saved slides, media and notes into a new sermon section.</small><div><a href="/admin/prepare-sermon" target="_blank" rel="noopener noreferrer">Prepare a sermon ↗</a><button type="button" onClick={loadLibraries} disabled={busy}>Refresh sermons</button></div></details>}
             </>}
             {resourceTab==='songs'&&<div className="heritage-add-songs">
@@ -1572,22 +1582,18 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               <label><span>From</span><input ref={bibleStartVerseInput} type="number" min={1} max={999} value={bibleStartVerse} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleStartVerse(Number(event.target.value)) } } /></label>
               <label><span>To</span><input ref={bibleEndVerseInput} type="number" min={1} max={999} value={bibleEndVerse} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleEndVerse(Number(event.target.value)) } } /></label>
               </div></details>
-
+              <button className="heritage-add-primary" type="button" disabled={!draft||busy||!bibleBookId||!referenceValid} onClick={addBiblePassage}>{busy?'Fetching passage…':sermonPassage?'Add sermon passage →':'Add reading →'}</button>
             </div>}
           </div>
-          <aside className="heritage-add-preview" aria-label="Before you add">
-            <h3>{resourceTab==='songs'?'First section':'Layout preview'}</h3>
-            <div role="group" className="heritage-add-output" aria-label="Palette preview output">{CHANNEL_IDS.map(id=><button key={id} type="button" aria-pressed={paletteChannel===id} onClick={()=>setPaletteChannel(id)}>{id==='media'?'Stage':draft?.channels[id]?.label||id}</button>)}</div>
-            {resourceTab!=='media'?<PalettePresetPreview type={resourceTab==='templates'?paletteTemplate:resourceTab==='songs'?'song':sermonPassage?'passage':'reading'} channel={paletteChannel} songSections={songLibrary.find(song=>song.syncId===songChoice)?.previewSections} preSermon={readingTemplate==='pre-sermon'} reference={resourceTab==='scripture'?`${bibleBooks.find(book=>book.id===bibleBookId)?.name || bibleBookId} ${bibleChapter}:${bibleVerseNumbers?formatting.verseSelectionLabel(bibleVerseNumbers):bibleStartVerse===bibleEndVerse?bibleStartVerse:`${bibleStartVerse}–${bibleEndVerse}`}`:undefined}/>:<PalettePresetPreview type="title"/>}
-            <h4>{resourceTab==='templates'?SERMON_TEMPLATES.find(t=>t.id===paletteTemplate)?.label:resourceTab==='songs'?songLibrary.find(song=>song.syncId===songChoice)?.title:resourceTab==='scripture'?(sermonPassage?'Sermon passage':'Scripture reading'):'Pictures, videos & saved slides'}</h4>
-            <p>{resourceTab==='templates'?'Real slide preset with sample content. Your new slide starts ready to edit.':resourceTab==='songs'?'Uses the song’s saved language and arrangement, including repeats.':resourceTab==='scripture'?'Layout example. Exact verses are fetched from your chosen editions when you add the passage.':'Choose a saved slide, or upload a picture or video. Sample artwork is not added to your service.'}</p>
-            <footer>
-              {resourceTab==='templates'&&<button className="heritage-add-primary" type="button" disabled={!draft||busy} onClick={()=>{if(paletteTemplate==='passage'){setResourceTab('scripture');setSermonPassage(true)}else addTemplate(paletteTemplate)}}>{paletteTemplate==='passage'?'Choose passage':`Add ${SERMON_TEMPLATES.find(t=>t.id===paletteTemplate)?.label.toLowerCase()}`} →</button>}
-              {resourceTab==='songs'&&<button className="heritage-add-primary" type="button" disabled={!draft||busy||!songChoice} onClick={addLibrarySong}>{busy?'Adding…':'Add song to service →'}</button>}
-              {resourceTab==='scripture'&&<button className="heritage-add-primary" type="button" disabled={!draft||busy||!bibleBookId||!referenceValid} onClick={addBiblePassage}>{busy?'Fetching passage…':sermonPassage?'Add sermon passage →':'Add reading →'}</button>}
-              <small>{draft && withinSermon(draft,selectedId) && (resourceTab==='songs'||resourceTab==='scripture'&&!sermonPassage)?'Starts a new section after this sermon.':resourceTab==='songs'||resourceTab==='scripture'&&!sermonPassage?'Adds a complete section, including its ending blank.':'Inserted after the selected slide or section.'}</small>
-            </footer>
-          </aside>
+          {resourceTab==='songs'&&<aside className="heritage-add-preview" aria-label="Selected song">
+            <h3>First section</h3>
+            <div role="group" className="heritage-add-output" aria-label="Song preview output">{CHANNEL_IDS.map(id=><button key={id} type="button" aria-pressed={paletteChannel===id} onClick={()=>setPaletteChannel(id)}>{id==='media'?'Stage':draft?.channels[id]?.label||id}</button>)}</div>
+            <PalettePresetPreview type="song" channel={paletteChannel} songSections={songLibrary.find(song=>song.syncId===songChoice)?.previewSections}/>
+            <h4>{songLibrary.find(song=>song.syncId===songChoice)?.title || 'Choose a song'}</h4>
+            <p>Uses the song’s saved language and arrangement, including repeats.</p>
+            <footer><button className="heritage-add-primary" type="button" disabled={!draft||busy||!songChoice} onClick={addLibrarySong}>{busy?'Adding…':'Add song to service →'}</button><small>Adds the whole song and its ending blank.</small></footer>
+          </aside>}
+
           </div>
         </section>
           <input ref={pictureInput} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={event => pictureChosen(event.target.files?.[0])} />
