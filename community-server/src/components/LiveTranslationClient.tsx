@@ -53,7 +53,11 @@ export default function LiveTranslationClient() {
     void (async () => {
       try {
         const initialLease = await requestAccess()
-        const url = new URL('client/operator.js', initialLease.apiBase).href
+        // This stable entry filename changes with processor deployments. Do not let a
+        // browser/CDN reuse an older cue engine when opening a new control session.
+        const entry = new URL('client/operator.js', initialLease.apiBase)
+        entry.searchParams.set('load', String(Date.now()))
+        const url = entry.href
         const client = await import(/* webpackIgnore: true */ url) as {
           clientVersion: number
           servicePlanVersion: number
