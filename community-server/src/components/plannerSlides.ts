@@ -1,3 +1,4 @@
+import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
 import sermonContext from '../../packages/service-core/node/services/project/SermonContext.js'
 import { isScripturePageGroup } from './plannerScriptureGroups'
 import { isSermonGroup } from './plannerSermonSections'
@@ -67,7 +68,7 @@ export function plannerSlides(project: RecordValue, channelId?: string): Planner
         title: songTitle ? songTitle
           : item.kind === 'song' && (item.showTitle === false || index > 0)
           ? firstLine?.text?.split('\n').find(Boolean) || cue.title
-          : sermonContext.isPoint(item) ? blocks.filter(block=>block.type==='text' && block.role==='body').map(block=>sermonContext.outlineRows(block.text).at(-1)?.text.trim()).find(Boolean) || item.title : channelId ? localizedSlideTitle(item, blocks, channelId) : item.title,
+          : sermonContext.isPoint(item) ? blocks.filter(block=>block.type==='text' && block.role==='body').map(block=>sermonContext.outlineRows(block.text).at(-1)?.text.trim()).find(Boolean) || item.title : channelId ? localizedSlideTitle(item, blocks, channelId, project.channels[channelId]?.language) : item.title,
       })
     })
   }
@@ -90,7 +91,8 @@ function localizedSongTitle(project: RecordValue, item: RecordValue, index: numb
   return pages[index - (item.showTitle === false ? 0 : 1)]?.lines.find((line: string) => line.trim())
 }
 
-function localizedSlideTitle(item: RecordValue, blocks: RecordValue[], channelId: string) {
+function localizedSlideTitle(item: RecordValue, blocks: RecordValue[], channelId: string, language: string) {
+  if (item.kind === 'bible') return readingLabels.localizedReference(blocks.find(block=>block.type==='bible')?.reference || item.title, language)
   if(item.sermonTemplate==='title') return item.titlesByChannel?.[channelId]?.trim() || Object.values(item.titlesByChannel || {}).find((text:any)=>text?.trim()) || item.title
   if (item.kind === 'blank') return item.title
   // Compiled channels already resolve display-only fallback without changing authored text.

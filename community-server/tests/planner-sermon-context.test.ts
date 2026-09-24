@@ -107,3 +107,9 @@ test('rundown follows the selected output, with display-only language fallback',
  assert.equal(title('title','russian'),'От лжи к истине')
  assert.equal(title('title','english'),'Title in first language')
 })
+
+test('Scripture labels use the passage reference rather than its inherited sermon heading',()=>{
+ const p=fixture()
+ assert.equal(plannerSlides(p,'english').find(slide=>slide.itemId==='verse')!.title,'Ephesians 4:25')
+ assert.equal(plannerSlides(p,'russian').find(slide=>slide.itemId==='verse')!.title,'Ефесянам 4:25')
+})
