@@ -6,6 +6,15 @@ export const isSermonTitle = (item: any): boolean => item?.kind === 'sermon'
 export const isSermonGroup = (project: Project, item: any): boolean => item?.kind === 'group'
   && item.groupKind === 'sermon' && isSermonTitle(project.items[item.childIds[0]])
 
+export function withinSermon(project:Project,selectedId:string|null):boolean {
+  let id=selectedId
+  while(id){
+    if(isSermonTitle(project.items[id])||isSermonGroup(project,project.items[id]))return true
+    id=(Object.values(project.items) as any[]).find(item=>item.kind==='group'&&item.childIds.includes(id))?.id || null
+  }
+  return false
+}
+
 function endsSermon(project: Project, item: any): boolean {
   return item.kind === 'song' || isSongGroup(project, item) || isReadingGroup(project, item)
     || item.presetId === 'wotbc-reading-title'

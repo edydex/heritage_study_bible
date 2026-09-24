@@ -16,6 +16,8 @@ export function scriptureLineCount(text: string) {
 }
 
 export function scripturePages(item: RecordValue): number[][] {
+  const presetId=['scripture-large','scripture-text'].includes(item.presetId) ? 'wotbc-reading'
+    : item.presetId==='wotbc-sermon-verse' ? 'wotbc-sermon-scripture' : item.presetId
   const passages = Object.values(item.passagesByChannel) as RecordValue[]
   const verseNumbers = passages[0].verses.map((verse: RecordValue) => verse.number)
   if (passages.some(passage => JSON.stringify(passage.verses.map((verse: RecordValue) => verse.number)) !== JSON.stringify(verseNumbers))) {
@@ -25,10 +27,14 @@ export function scripturePages(item: RecordValue): number[][] {
   let current: number[] = []
   for (const number of verseNumbers) {
     const candidate = [...current, number]
-    const fits = candidate.length <= SCRIPTURE_PAGE_MAX_VERSES && passages.every(passage => (
-      typography.wrappedLines(formatting.scriptureFlowText(passage.verses.filter((verse: RecordValue) => candidate.includes(verse.number))), item.presetId === 'wotbc-sermon-scripture' ? 78 : 85, 1920 * (item.presetId === 'wotbc-sermon-scripture' ? .97 : .98), '500')
-      <= (item.presetId === 'wotbc-sermon-scripture' ? 9 : 10)
-    ))
+    const size = item.textStyle?.bodySize || typography.textPreset(presetId).bodySize
+    // Use the same font metrics, reference, credit and available rectangle as
+    // the output renderer. A size change changes page capacity, not the text.
+    const cue = {kind:'bible',presetId,channels:Object.fromEntries(passages.map((passage,index)=>[index,{
+      mode:'content',blocks:[{...passage,type:'bible',reference:pageReference(passage.reference,item,candidate),
+        verses:passage.verses.filter((verse:RecordValue)=>candidate.includes(verse.number))}]
+    }]))}
+    const fits = typography.groupFontSize([cue],size,size-1) === size
     if (current.length && !fits) { pages.push(current); current = [] }
     current.push(number)
   }
