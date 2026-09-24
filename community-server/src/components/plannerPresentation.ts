@@ -1,3 +1,4 @@
+import { repairScripturePageGroups } from './plannerScriptureGroups'
 import { groupSermonSections } from './plannerSermonSections'
 import { flattenReadingGroups, attachSectionBlanks } from './plannerReadingGroups'
 import typography from '../../packages/service-core/node/services/project/SlideTypography.js'
@@ -124,6 +125,7 @@ export function preparePlannerPresentation(project: RecordValue, options: {pagin
     changed = true
     readingsSplit++
   }
+  changed = repairScripturePageGroups(next) || changed
   changed = flattenReadingGroups(next) || changed
   changed = attachSectionBlanks(next) || changed
   changed = groupSermonSections(next) || changed

@@ -985,7 +985,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
       })
       if (!sermonPassage) project = addReadingTitle(project, itemId, { english: bibleTranslations.find(value=>value.id===bibleEnglish)?.name || bibleEnglish, russian: bibleTranslations.find(value=>value.id===bibleRussian)?.name || bibleRussian })
       if (!sermonPassage && readingTemplate === 'pre-sermon') project = setReadingTemplate(project, `${itemId}-title`, 'pre-sermon')
-      project = appendBlankSlide(project, sermonPassage ? itemId : `${itemId}-reading`)
+      if (!sermonPassage) project = appendBlankSlide(project, `${itemId}-reading`)
       acceptCoreProject(
         project,
         sermonPassage ? itemId : `${itemId}-title`,

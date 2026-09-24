@@ -1,3 +1,4 @@
+import { isScripturePageGroup } from './plannerScriptureGroups'
 import { sectionOwner } from './plannerReadingGroups'
 import core from '../../packages/service-core/index.js'
 
@@ -12,7 +13,10 @@ export type SermonTemplateId = typeof SERMON_TEMPLATES[number]['id']
 export type TemplateText = { heading: string; body: string }
 
 export function insertionPoint(project: any, selectedId: string | null, withinReading = false, outsideSermon = false) {
-  const owner = withinReading ? null : sectionOwner(project, selectedId)
+  const section = sectionOwner(project, selectedId)
+  // A passage page is never an insertion container. Even a manual blank belongs
+  // after the complete passage; reading titles retain their explicit in-section flow.
+  const owner = withinReading && !isScripturePageGroup(project, project.items[section!]) ? null : section
   if (owner) selectedId = owner
   if (outsideSermon) {
     let ancestor = selectedId
