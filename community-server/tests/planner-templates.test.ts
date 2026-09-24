@@ -18,7 +18,8 @@ test('templates create actual bilingual slides and insert after selection',()=>{
   assert.deepEqual(insertionPoint(value,'point'),{parentId:'group',index:1})
   const row = plannerSlides(value).find(row=>row.itemId==='point')!
   assert.equal(row.cue!.channels.russian.blocks[1].text,'Будьте терпеливы друг ко другу.')
-  assert.equal(value.items.quote.textByChannel.russian,text.body)
+  assert.equal(value.items.quote.textByChannel.russian,'')
+  assert.equal(plannerSlides(value).find(row=>row.itemId==='quote')!.cue!.channels.russian.fallbackFromChannelId,'english')
   assert.throws(()=>createTemplateSlide(value,{id:'empty',template:'point',english:{heading:'',body:''},russian:{heading:'',body:''},selectedId:null}),/Enter/)
 })
 

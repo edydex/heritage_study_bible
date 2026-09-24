@@ -11,3 +11,11 @@ A passage's pagination wrapper has no separate row in the outline. Its first num
 Authored display-text excerpts retain their page boundaries. Reflow preserves source formatting spans and stops at page-specific translation cues, durations, notes or incompatible styling/editions. No saved service is rewritten merely by opening it.
 
 Validation includes TypeScript, focused planner/presentation tests, and browser rehearsal of typing without Enter, single-step Undo, preset insertion, section selection, and compact template layout. Deployment/live verification is recorded in the task response.
+
+## Sermon language context
+
+`SermonContext.js` resolves each output's preceding sermon title and outline independently. This authored-language view is shared by the editor and compiler. Missing or incomplete sermon outputs borrow a complete language only in compiled display blocks, with `fallbackFromChannelId` producing the editor warning. An inherited heading alone does not make an otherwise empty point or quotation complete.
+
+Progressive outlines use numbered point/sub-point keys. `sermonInheritance` records which preceding rows and heading remain linked; it contains no translated words. Links are captured before editing an earlier slide, including legacy copied outlines. Editing or removing an inherited row on a later slide makes that row local. Formatting spans follow the resolved words, and save/reopen retains the links. Both English-first and Russian-first authoring are covered. A new sermon title or ordinary song/reading ends the preceding context.
+
+Outline list labels show the last populated outline row. Canvas body placement is measured below the rendered heading at every size, including explicit reading font sizes; multiline headings no longer overlap Scripture. The song collection has a prominent, labelled search connected to Payload's existing server-side pagination/filter query.

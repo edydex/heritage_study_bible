@@ -21,17 +21,21 @@ export default function PreviewCanvas({ textStyle, kind, presetId, template, tit
 
       let size = element.clientWidth / 1920 * logicalSize
       element.style.setProperty('--slide-text-size', `${size}px`)
-      const overflows = () => {
+      const positionBody = () => {
         const content = element.querySelector<HTMLElement>('.heritage-service-planner__slide-content')!
-        if (presetId === 'wotbc-sermon-scripture' && !singer) {
+        if ((presetId === 'wotbc-sermon-scripture' || presetId === 'wotbc-sermon') && !singer) {
           const heading = content.querySelector<HTMLElement>('[data-role="title"]')
-          const passage = content.querySelector<HTMLElement>('.heritage-service-planner__scripture-page')
+          const passage = content.querySelector<HTMLElement>('.heritage-service-planner__scripture-page, .heritage-service-planner__template-body, [data-role="body"]')
           if (passage) {
-            const top = Math.max(element.clientHeight * .16, heading ? heading.offsetTop + heading.offsetHeight + element.clientHeight * .02 : 0)
+            const top = Math.max(element.clientHeight * .16, heading ? heading.offsetTop + Math.max(heading.offsetHeight, heading.scrollHeight) + element.clientHeight * .02 : 0)
             passage.style.top = `${top}px`
             passage.style.maxHeight = `${Math.max(1, element.clientHeight - top - element.clientHeight * .02)}px`
           }
         }
+      }
+      positionBody()
+      const overflows = () => {
+        const content = element.querySelector<HTMLElement>('.heritage-service-planner__slide-content')!
         // contentEditable scrollHeight includes font descenders and the caret,
         // even when the text fits. Measure visible glyphs against the actual
         // slide region instead; otherwise a short empty quote can shrink.
@@ -47,6 +51,7 @@ export default function PreviewCanvas({ textStyle, kind, presetId, template, tit
       while (!textStyle?.bodySize && size > 6 && overflows()) {
         size *= 0.92
         element.style.setProperty('--slide-text-size', `${size}px`)
+        positionBody()
       }
       // Match the text after fitting, including title/body preset overrides.
       // The footer clips its prefix to one line; it must never shrink to fit.

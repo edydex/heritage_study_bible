@@ -1,13 +1,24 @@
 // Opt-in, localhost-only manual rehearsal; never imported by the application.
 import core from '../../packages/service-core/index.js'
 import {preparePlannerPresentation} from '../../src/components/plannerPresentation'
-import {createTemplateDraft} from '../../src/components/plannerTemplates'
-const key=location.search.includes('font-reflow')?'heritage-font-reflow-rehearsal-v1':'heritage-passage-editing-rehearsal-v1'
+import {createTemplateDraft,editTemplateField} from '../../src/components/plannerTemplates'
+const key=location.search.includes('language-flow')?'heritage-language-flow-rehearsal-v1':location.search.includes('font-reflow')?'heritage-font-reflow-rehearsal-v1':'heritage-passage-editing-rehearsal-v1'
 let project=core.createServiceProject({id:'canvas-rehearsal',title:'Editing rehearsal',serviceDate:'2026-09-22',preferredProfileId:'main-sanctuary',presetPack:{id:'main-sanctuary',version:1,sha256:null},channels:[{id:'english',label:'English',language:'en'},{id:'russian',label:'Russian',language:'ru'},{id:'media',label:'Stage',language:'ru'}]})
 project=createTemplateDraft(project,{id:'title',template:'title',selectedId:null})
 if(location.search.includes('font-reflow')) {
  project=core.addBibleItem(project,{id:'reflow-reading',title:'Ephesians 4:20–26',presetId:'wotbc-sermon-scripture',range:{bookId:'Ephesians',start:{chapter:4,verse:20},end:{chapter:4,verse:26}},passagesByChannel:Object.fromEntries(['english','russian','media'].map(channel=>[channel,{translationId:channel==='english'?'BSB':'SYNO-W',reference:'Ephesians 4:20–26',attribution:'',verses:Array.from({length:7},(_,i)=>({number:20+i,text:(channel==='english'?'Sample words remain together in this verse. ':'Текст стиха остаётся вместе на странице. ').repeat(5)}))}]))})
  project=preparePlannerPresentation(project).project
+}
+
+if(location.search.includes('language-flow')) {
+ project=editTemplateField(project,'title','english','heading','From lies to truth')
+ project=createTemplateDraft(project,{id:'point-one',template:'point',selectedId:'title'})
+ project=editTemplateField(project,'point-one','english','body','I. Therefore')
+ project=createTemplateDraft(project,{id:'point-two',template:'point',selectedId:'point-one'})
+ project=editTemplateField(project,'point-two','english','next','Laying aside falsehood')
+ project=createTemplateDraft(project,{id:'point-three',template:'point',selectedId:'point-two'})
+ project=editTemplateField(project,'point-three','english','next','Speak truth each one of you with his neighbor')
+ project=core.addBibleItem(project,{id:'long-heading-reading',title:'Ephesians 4:25',presetId:'wotbc-sermon-scripture',textStyle:{bodySize:78},range:{bookId:'Ephesians',start:{chapter:4,verse:25},end:{chapter:4,verse:25}},passagesByChannel:Object.fromEntries(['english','russian','media'].map(channel=>[channel,{translationId:channel==='english'?'BSB':'SYNO-W',reference:'Ephesians 4:25',attribution:'',verses:[{number:25,text:channel==='english'?'Therefore, laying aside falsehood, speak truth each one of you with his neighbor, for we are members of one another.':'Говорите истину каждый ближнему своему.'}]}]))})
 }
 
 let saved=JSON.parse(localStorage.getItem(key)||'null')||{syncId:'canvas-rehearsal',syncVersion:1,revision:1,status:'planning',project}

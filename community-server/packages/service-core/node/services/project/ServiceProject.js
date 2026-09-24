@@ -1,4 +1,5 @@
 'use strict';
+const { resolveSermonContext } = require('./SermonContext');
 const {normalizeTextStyle, applyTimelineTypography} = require('./SlideTypography');
 const { normalizeSermonOptions, sermonSlideBlocks } = require('./SermonPresentation');
 const { normalizeCanvasObjects, canvasAssetIds } = require('./CanvasLayout');
@@ -4200,26 +4201,12 @@ function compileServiceProject(rawProject, options = {}) {
     cues[cueId] = cue;
   };
 
-  const sermonHeadings = new Map();
-  const compileLeaf = item => {
+  const sermonContext = resolveSermonContext(project);
+  const compileLeaf = rawItem => {
+    const context = sermonContext[rawItem.id];
+    const item = context?.item || rawItem;
     const groupRecords = index.groupPathByItemId[item.id] || [];
     const groupPath = groupRecords.map(group => group.title);
-    const scope = [...groupRecords].reverse().find(group => group.kind === 'sermon')?.id || groupRecords[0]?.id || 'root';
-    if (item.kind === 'song' || item.presetId === 'wotbc-reading-title') sermonHeadings.delete(scope);
-    if (item.kind === 'sermon') {
-      const isTitle = item.sermonTemplate === 'title' || item.presetId === 'wotbc-sermon-title';
-      const isPoint = item.sermonTemplate === 'point' || item.presetId === 'wotbc-sermon';
-      if (isTitle || isPoint) {
-        const headings = {};
-        for (const channelId of project.channelIds) {
-          const lines = String(item.textByChannel?.[channelId] || '').split('\n').map(line => line.trim()).filter(Boolean);
-          const point = isPoint ? lines.filter(line => /^(?:[IVXLCDM]+|\d+|[a-zа-я])[.)]\s+/iu.test(line)).at(-1) : null;
-          const heading = point || item.titlesByChannel?.[channelId] || '';
-          if (heading) headings[channelId] = heading;
-        }
-        sermonHeadings.set(scope, headings);
-      }
-    }
     if (item.kind === 'song') {
       const resolvedByChannel = Object.fromEntries(project.channelIds.map(channelId => [
         channelId,
@@ -4375,7 +4362,7 @@ function compileServiceProject(rawProject, options = {}) {
       for (const channelId of project.channelIds) {
         const passage = item.passagesByChannel[channelId];
         channels[channelId] = passage
-          ? { mode: 'content', blocks: [...(item.presetId === 'wotbc-sermon-scripture' && sermonHeadings.get(scope)?.[channelId] ? [{ type: 'text', role: 'title', text: sermonHeadings.get(scope)[channelId] }] : []), passage] }
+          ? { mode: 'content', blocks: [...(item.presetId === 'wotbc-sermon-scripture' && context?.headings[channelId] ? [{ type: 'text', role: 'title', text: context.headings[channelId] }] : []), passage] }
           : { mode: 'hide', blocks: [] };
       }
       addCue(item, 'self', {
@@ -4428,13 +4415,13 @@ function compileServiceProject(rawProject, options = {}) {
               mode: projectionSource?.mode === 'condensed'
                 ? 'condensed'
                 : 'content',
-              blocks: sermonSlideBlocks(item.sermonTemplate === 'quote' && !item.titlesByChannel?.[channelId] && sermonHeadings.get(scope)?.[channelId] ? {...item, titlesByChannel: {...item.titlesByChannel, [channelId]: sermonHeadings.get(scope)[channelId]}} : item, channelId)
+              blocks: sermonSlideBlocks(item, channelId)
             }
           : { mode: 'hide', blocks: [] };
       }
       // An unconfigured sermon output borrows a complete authored output. Do
       // not treat deliberately hidden outputs or image-only titles as missing.
-      const filled = project.channelIds.filter(channelId => channels[channelId].blocks.some(block =>
+      const filled = project.channelIds.filter(channelId => context?.complete[channelId] !== false && channels[channelId].blocks.some(block =>
         block.type === 'text' ? Boolean(block.text.trim()) : block.type === 'canvas' ? block.objects.some(object => object.type !== 'text' || object.text.trim()) : true));
       for (const channelId of project.channelIds) {
         const channel = channels[channelId];

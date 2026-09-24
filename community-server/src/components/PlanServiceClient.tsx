@@ -1,4 +1,5 @@
 'use client'
+import sermonContext from '../../packages/service-core/node/services/project/SermonContext.js'
 import NumberDraftInput from './NumberDraftInput'
 import { groupSermonSections, withinSermon } from './plannerSermonSections'
 import { reflowScripture } from './plannerScriptureReflow'
@@ -412,6 +413,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   const activePreviewCue = activeSlide?.cue
   const preview = plannerPreview(slideList.rows, activeSlide, previewChannel)
   const activePreviewOutput = preview.output
+  const authoredSermon = useMemo(() => draft && selected?.sermonTemplate ? sermonContext.resolveSermonContext(draft)[selected.id]?.item : null, [draft, selected])
   const selectionIds = selectedRowIds.filter(id => slideList.rows.some(row => row.id === id))
   if (!selectionIds.length && (activeSlide || selected?.kind === 'group')) selectionIds.push(activeSlide?.id || selected!.id)
   const batchSlides = selectedPlannerSlides(slideList.rows, selectionIds)
@@ -1421,7 +1423,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
                   : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
                   : selected.sermonTemplate === 'other' && !preview.singer ? <CanvasSlide key={`${selected.id}:${previewChannel}`} objects={selected.objectsByChannel[previewChannel] || []} mediaUrl={id=>mediaPreviews[id] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(id)}`} uploading={uploadingPicture} onImage={()=>choosePicture('canvas')} onChange={objects=>slideMutation(()=>editCanvasObjects(draft!,selected.id,previewChannel,objects))} />
-                  : selected.sermonTemplate && !preview.singer ? <TemplateSlideEditor key={`${selected.id}:${previewChannel}`} item={selected} inheritedHeading={activePreviewOutput?.blocks?.find((block:any)=>block.type==='text' && block.role==='title')?.text} channelId={previewChannel} uploading={uploadingPicture} onImage={() => choosePicture('background')}
+                  : selected.sermonTemplate && !preview.singer ? <TemplateSlideEditor key={`${selected.id}:${previewChannel}`} item={authoredSermon || selected} channelId={previewChannel} uploading={uploadingPicture} onImage={() => choosePicture('background')}
                       onEdit={(field, text, spans) => slideMutation(() => editTemplateField(draft!, selected.id, previewChannel, field, text, spans))} />
                   : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
                     : selected.kind === 'blank' ? <p className="heritage-service-planner__stage-status">Intentional blank screen</p>

@@ -1,3 +1,4 @@
+import sermonContext from '../../packages/service-core/node/services/project/SermonContext.js'
 import { isScripturePageGroup } from './plannerScriptureGroups'
 import { isSermonGroup } from './plannerSermonSections'
 import { isReadingGroup, isSongGroup } from './plannerReadingGroups'
@@ -62,7 +63,7 @@ export function plannerSlides(project: RecordValue): PlannerSlide[] {
         index, number: ++number, kind: item.kind, cue,
         title: item.kind === 'song' && (item.showTitle === false || index > 0)
           ? firstLine?.text?.split('\n').find(Boolean) || cue.title
-          : item.title,
+          : sermonContext.isPoint(item) ? (Object.values(cue.channels) as any[]).flatMap(output=>output.blocks || []).filter(block=>block.type==='text' && block.role==='body').map(block=>sermonContext.outlineRows(block.text).at(-1)?.text.trim()).find(Boolean) || item.title : item.title,
       })
     })
   }

@@ -1,3 +1,4 @@
+import sermonContext from '../../packages/service-core/node/services/project/SermonContext.js'
 import { isScripturePageGroup } from './plannerScriptureGroups'
 import { sectionOwner } from './plannerReadingGroups'
 import core from '../../packages/service-core/index.js'
@@ -46,24 +47,24 @@ export function createTemplateSlide(project: any, options: {
   if (template === 'title' && !options.asset) throw new Error('Choose a title image.')
   const next = JSON.parse(JSON.stringify(project))
   if (options.asset) next.assets[options.asset.id] = options.asset
-  const values: Record<string, TemplateText> = { english: english.heading || english.body ? english : primary, russian: russian.heading || russian.body ? russian : primary }
+  const values: Record<string, TemplateText> = { english, russian }
   values.media = values.russian
   const textByChannel: Record<string, string> = {}, titlesByChannel: Record<string, string> = {}, spansByChannel: Record<string, any[]> = {}
   for (const id of project.channelIds) {
-    const value = values[id] || primary
+    const value = values[id] || {heading:'',body:''}
     if (template === 'title') {
-      const heading = value.heading || primary.heading
-      textByChannel[id] = heading + (value.body ? '\n\n' + value.body : '')
-      if (value.body) spansByChannel[id] = [{ start: heading.length + 2, end: textByChannel[id].length, fontScale: 0.65, weight: '400' }]
+      const heading = value.heading
+      textByChannel[id] = value.body
+      if (heading) titlesByChannel[id] = heading
     } else {
-      textByChannel[id] = value.body || primary.body
+      textByChannel[id] = value.body
       if (value.heading) titlesByChannel[id] = value.heading
     }
   }
   const place = insertionPoint(project, options.selectedId)
   return core.addProjectItem(next, {
     id: options.id, kind: 'sermon', title: (primary.heading || primary.body.split('\n')[0]).slice(0, 200),
-    textByChannel, ...(Object.keys(titlesByChannel).length ? { titlesByChannel } : {}),
+    sermonTemplate: template, textByChannel, ...(Object.keys(titlesByChannel).length ? { titlesByChannel } : {}),
     ...(Object.keys(spansByChannel).length ? { spansByChannel } : {}),
     ...(options.asset ? { backgroundAssetId: options.asset.id } : {}),
     presetId: template === 'title' ? 'wotbc-sermon-title' : template === 'quote' ? 'wotbc-sermon-quote' : 'wotbc-sermon',
@@ -119,7 +120,9 @@ export function nextPointPrefix(body: string) {
 export function createTemplateDraft(project: any, options: {
   id: string; template: Exclude<SermonTemplateId, 'passage'>; selectedId: string | null
 }) {
-  const previous = options.template === 'point' ? precedingSermonOutline(project, options.selectedId) : null
+  project = sermonContext.captureSermonInheritance(project)
+  const preceding = options.template === 'point' ? precedingSermonOutline(project, options.selectedId) : null
+  const previous = preceding ? sermonContext.resolveSermonContext(project)[preceding.id]?.item : null
   const textByChannel = Object.fromEntries(project.channelIds.map((id: string) => [id, previous?.textByChannel[id] || '']))
   const place = insertionPoint(project, options.selectedId)
   return core.addProjectItem(project, {
@@ -134,7 +137,8 @@ export function createTemplateDraft(project: any, options: {
 }
 
 export function editTemplateField(project: any, itemId: string, channelId: string, field: 'heading' | 'body' | 'next' | 'credit', text: string, spans: any[] = []) {
-  const next = copy(project), item = next.items[itemId]
+  const next = sermonContext.captureSermonInheritance(project), item = next.items[itemId]
+  const resolved = sermonContext.resolveSermonContext(project)[itemId]?.item
   if (item?.kind === 'sermon' && !item.sermonTemplate && item.presetId === 'wotbc-sermon-title') item.sermonTemplate = 'title'
   if (!item?.sermonTemplate || !project.channelIds.includes(channelId)) throw new Error('Choose an editable sermon template.')
   if (field === 'next' && !text.trim()) return project
@@ -152,13 +156,28 @@ export function editTemplateField(project: any, itemId: string, channelId: strin
     const styles = field === 'heading' ? 'titleSpansByChannel' : 'spansByChannel'
     item[target] ||= {}; item[styles] ||= {}
     if (field === 'next') {
-      const body = item.textByChannel[id] || ''
+      const body = resolved?.textByChannel[id] || ''
       const prefix = numberedPoint.test(text) ? '' : nextPointPrefix(body)
       const offset = body.length + (body ? 1 : 0) + prefix.length
       item.textByChannel[id] = body + (body ? '\n' : '') + prefix + text
-      item.spansByChannel[id] = [...(item.spansByChannel[id] || []), ...spans.map(span => ({...span,start:span.start+offset,end:span.end+offset}))]
+      item.spansByChannel[id] = [...(resolved?.spansByChannel[id] || []), ...spans.map(span => ({...span,start:span.start+offset,end:span.end+offset}))]
+      if (item.sermonInheritance?.[id]) {
+        const addedKeys = sermonContext.outlineRows(prefix + text).map((row: any)=>row.key)
+        item.sermonInheritance[id].pointKeys = item.sermonInheritance[id].pointKeys.filter((key: string)=>!addedKeys.includes(key))
+      }
       item.pendingPointChannels = (item.pendingPointChannels || []).filter((value: string) => value !== id)
     } else {
+      if (item.sermonInheritance?.[id]) {
+        if (field === 'heading') item.sermonInheritance[id].heading = !text.trim();
+        if (field === 'body') {
+          const before = sermonContext.outlineRows(resolved?.textByChannel[id], resolved?.spansByChannel[id]);
+          const after = sermonContext.outlineRows(text, spans);
+          item.sermonInheritance[id].pointKeys = item.sermonInheritance[id].pointKeys.filter((key: string) => {
+            const oldRow = before.find((row: any)=>row.key===key), newRow = after.find((row: any)=>row.key===key);
+            return oldRow && newRow && oldRow.text===newRow.text && JSON.stringify(oldRow.spans)===JSON.stringify(newRow.spans);
+          });
+        }
+      }
       item[target][id] = text; item[styles][id] = spans
       if (field === 'body' && item.sermonTemplate === 'point') item.pendingPointChannels = (item.pendingPointChannels || []).filter((value: string)=>value!==id)
       if (field === 'heading' && !text) { delete item[target][id]; delete item[styles][id] }
