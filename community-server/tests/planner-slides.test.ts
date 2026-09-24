@@ -93,3 +93,19 @@ test('translation configuration follows a section through save, lyric edits, and
  assert.ok(plannerSlides(reopen(project)).every(row=>!row.cue!.translationSettings))
  assert.throws(()=>setSlideTranslationCue(original,plannerSlides(original)[1],'start',{...settings,voice:'../unknown'}))
 })
+
+test('bilingual song labels follow the chosen language even when both outputs draw Russian first',()=>{
+ let project=fixture().project
+ const russian=core.parseSongDocument('---\nid: test-song-ru\ntitle: Русская песня\nlanguage: ru\n---\n\n^1\nПервая строка\nВторая строка\n\n---\nВторой слайд\n\n^chorus\nПрипев\n',{fileName:'ru.md'})
+ const added=core.addSongResource(project,russian)
+ project=JSON.parse(JSON.stringify(added.project))
+ project.items.song.variants.russian.resourceId=added.resourceId
+ project.items.song.songPresentation={stackedTranslation:true,primaryChannelId:'russian',secondaryChannelId:'english',credits:''}
+ project=reopen(project)
+ assert.equal(plannerSlides(project,'english')[0].title,'Test Song')
+ assert.equal(plannerSlides(project,'english')[1].title,'First line')
+ assert.equal(plannerSlides(project,'russian')[0].title,'Русская песня')
+ assert.equal(plannerSlides(project,'russian')[1].title,'Первая строка')
+ assert.equal(plannerSlides(project,'russian')[2].title,'Второй слайд')
+ assert.equal(plannerSlides(project,'russian')[4].title,'Припев')
+})

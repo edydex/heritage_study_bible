@@ -60,10 +60,12 @@ export function plannerSlides(project: RecordValue, channelId?: string): Planner
       const blocks = orderedOutputs.flatMap((output: any) => output.blocks || [])
       const firstLine = blocks
         .find((block: any) => block.type === 'text') as RecordValue | undefined
+      const songTitle = item.kind === 'song' && channelId ? localizedSongTitle(project, item, index, channelId) : undefined
       result.push({
         id: cue.id, itemId, parentId, depth: depth + (item.kind === 'song' && index > 0 ? 1 : 0),
         index, number: ++number, kind: item.kind, cue,
-        title: item.kind === 'song' && (item.showTitle === false || index > 0)
+        title: songTitle ? songTitle
+          : item.kind === 'song' && (item.showTitle === false || index > 0)
           ? firstLine?.text?.split('\n').find(Boolean) || cue.title
           : sermonContext.isPoint(item) ? blocks.filter(block=>block.type==='text' && block.role==='body').map(block=>sermonContext.outlineRows(block.text).at(-1)?.text.trim()).find(Boolean) || item.title : channelId ? localizedSlideTitle(item, blocks, channelId) : item.title,
       })
@@ -71,6 +73,21 @@ export function plannerSlides(project: RecordValue, channelId?: string): Planner
   }
   project.rootItemIds.forEach((id: string) => visit(id, null, 0))
   return result
+}
+
+/** A bilingual slide can put Russian first on both screens. Labels still follow the selected language. */
+function localizedSongTitle(project: RecordValue, item: RecordValue, index: number, channelId: string): string | undefined {
+  const seen = new Set<string>()
+  let variant = item.variants?.[channelId]
+  while (variant && variant.mode !== 'content' && variant.from && !seen.has(variant.from)) {
+    seen.add(variant.from)
+    variant = item.variants[variant.from]
+  }
+  const document = variant?.mode === 'content' ? project.resources[variant.resourceId]?.document : null
+  if (!document) return undefined
+  if (index === 0 && item.showTitle !== false) return document.title?.trim() || undefined
+  const pages = item.arrangement.flatMap((entry: RecordValue) => document.sections.find((section: RecordValue) => section.id === entry.sectionId)?.slides || [])
+  return pages[index - (item.showTitle === false ? 0 : 1)]?.lines.find((line: string) => line.trim())
 }
 
 function localizedSlideTitle(item: RecordValue, blocks: RecordValue[], channelId: string) {
