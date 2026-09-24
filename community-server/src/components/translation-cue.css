@@ -7,5 +7,6 @@
 .translation-space-example {position:relative;aspect-ratio:16/9;background:#070b12;color:white;display:grid;place-items:center;padding-bottom:29%;}
 .translation-space-example aside {position:absolute;bottom:0;left:0;right:0;background:#225670;display:grid;place-items:center;border-top:1px dashed #8bd3ff;}
 .heritage-service-planner__caption-layout {position:relative;width:min(100cqw, calc(100cqh * 16 / 9));aspect-ratio:16/9;background:#000;}
-.heritage-service-planner__caption-layout > .heritage-service-planner__stage {position:absolute;top:0;left:50%;transform:translateX(-50%);width:calc((1 - var(--caption-reservation))*100%);height:auto;}
+.heritage-service-planner__caption-layout > .heritage-service-planner__stage {position:absolute;top:0;left:0;width:100%;height:calc((1 - var(--caption-reservation))*100%);aspect-ratio:auto;}
 .heritage-service-planner__caption-reservation {position:absolute;bottom:0;left:0;right:0;height:calc(var(--caption-reservation)*100%);border-top:1px dashed #69bddd;background:#163b46;display:grid;place-items:center;color:#bdeafb;font:500 clamp(8px,1vw,16px)/1.2 system-ui;text-align:center;}
+.heritage-service-planner__template-body {flex:0 0 auto;}

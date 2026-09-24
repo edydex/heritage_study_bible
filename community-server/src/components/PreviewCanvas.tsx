@@ -19,6 +19,14 @@ export default function PreviewCanvas({ captionReservation = 0, textStyle, kind,
       element.style.setProperty('--slide-heading-size', `${headingSize * scale}px`)
       element.style.setProperty('--slide-subtitle-size', `${(titleCard ? (presetId === 'wotbc-song-title' ? 128 : 92) : logicalSize * .65) * scale}px`)
       element.style.setProperty('--slide-credit-size', `${(titleCard ? 56 : presetId === 'wotbc-sermon-quote' ? logicalSize : 26) * scale}px`)
+      if (captionReservation > 0 && !titleCard && template !== 'title') {
+        const heading = element.querySelector<HTMLElement>('[data-role="title"]')
+        let fittedHeading = headingSize * scale
+        while (heading?.textContent?.trim() && fittedHeading > 3 && heading.offsetHeight > element.clientHeight * .16) {
+          fittedHeading = Math.max(3, fittedHeading - scale)
+          element.style.setProperty('--slide-heading-size', `${fittedHeading}px`)
+        }
+      }
 
       let size = element.clientWidth / 1920 * logicalSize
       element.style.setProperty('--slide-text-size', `${size}px`)
@@ -42,16 +50,23 @@ export default function PreviewCanvas({ captionReservation = 0, textStyle, kind,
         // slide region instead; otherwise a short empty quote can shrink.
         const bounds = (titleCard ? element : content).getBoundingClientRect()
         return [...element.querySelectorAll<HTMLElement>('[data-role]')].some(node => {
-          if (!node.textContent?.trim()) return false
+          if (!node.textContent?.trim()) return captionReservation > 0 && Boolean(node.dataset.placeholder)
+            && node.getBoundingClientRect().bottom > bounds.bottom + 2
           const range = document.createRange()
           range.selectNodeContents(node)
           return [...range.getClientRects()].some(rect => rect.bottom > bounds.bottom + 2
             || rect.right > bounds.right + 2 || rect.left < bounds.left - 2)
         })
       }
-      while (!textStyle?.bodySize && size > 6 && overflows()) {
-        size *= 0.92
+      while ((!textStyle?.bodySize || captionReservation > 0) && size > 3 && overflows()) {
+        size = Math.max(3, size - scale)
         element.style.setProperty('--slide-text-size', `${size}px`)
+        if (captionReservation > 0) {
+          const ratio = size / (logicalSize * scale)
+          if (titleCard || template === 'title') element.style.setProperty('--slide-heading-size', `${headingSize * scale * ratio}px`)
+          element.style.setProperty('--slide-subtitle-size', `${(titleCard ? (presetId === 'wotbc-song-title' ? 128 : 92) : logicalSize * .65) * scale * ratio}px`)
+          element.style.setProperty('--slide-credit-size', `${(titleCard ? 56 : presetId === 'wotbc-sermon-quote' ? logicalSize : 26) * scale * ratio}px`)
+        }
         positionBody()
       }
       // Match the text after fitting, including title/body preset overrides.
@@ -73,7 +88,7 @@ export default function PreviewCanvas({ captionReservation = 0, textStyle, kind,
     let active = true
     document.fonts?.ready.then(() => { if (active) fit() })
     return () => { active = false; observer.disconnect(); element.removeEventListener('input', fit); element.removeEventListener('input-fit', fit) }
-  }, [children, kind, presetId, template, titleCard, singer, textStyle])
+  }, [children, kind, presetId, template, titleCard, singer, textStyle, captionReservation])
   return <div className="heritage-service-planner__canvas-space"><div className="heritage-service-planner__caption-layout" style={{'--caption-reservation':captionReservation} as React.CSSProperties}><div ref={stage} className="heritage-service-planner__stage" data-monochrome={monochrome || undefined} data-monochrome-background={monochrome && Boolean(backgroundUrl) || undefined} data-kind={kind} data-preset={presetId} data-template={!singer ? template : undefined} data-title-card={titleCard || undefined} data-singer={singer || undefined} style={{'--slide-body-align':textStyle?.bodyAlign || typography.textPreset(presetId).bodyAlign || 'center', '--slide-title-align':textStyle?.titleAlign || typography.textPreset(presetId).titleAlign || 'center', '--slide-credit-align':textStyle?.creditAlign || (titleCard ? 'center' : 'right'), ...(backgroundUrl ? { backgroundImage: `linear-gradient(rgba(0,0,0,${backgroundDimOpacity}), rgba(0,0,0,${backgroundDimOpacity})), url("${backgroundUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : {})} as React.CSSProperties}><>{monochrome && backgroundUrl && <div className="presentation-monochrome-background" style={{backgroundImage:`url("${backgroundUrl}")`}} aria-hidden="true" />}<div className="heritage-service-planner__slide-content">{children}</div>
     {singer && next ? <aside className="heritage-service-planner__next-lines" aria-label="Next slide cue" data-state={next.state}>
       <p>{next.state === 'end' ? 'End of presentation' : next.text}</p>

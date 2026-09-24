@@ -1,8 +1,9 @@
+import {plannerSlides,setSlideTranslationCue} from '../../src/components/plannerSlides'
 // Opt-in, localhost-only manual rehearsal; never imported by the application.
 import core from '../../packages/service-core/index.js'
 import {preparePlannerPresentation} from '../../src/components/plannerPresentation'
 import {createTemplateDraft,editTemplateField} from '../../src/components/plannerTemplates'
-const key=location.search.includes('language-flow')?'heritage-language-flow-rehearsal-v1':location.search.includes('font-reflow')?'heritage-font-reflow-rehearsal-v1':'heritage-passage-editing-rehearsal-v1'
+const key=location.search.includes('caption-layout')?'heritage-caption-layout-rehearsal-v1':location.search.includes('language-flow')?'heritage-language-flow-rehearsal-v1':location.search.includes('font-reflow')?'heritage-font-reflow-rehearsal-v1':'heritage-passage-editing-rehearsal-v1'
 let project=core.createServiceProject({id:'canvas-rehearsal',title:'Editing rehearsal',serviceDate:'2026-09-22',preferredProfileId:'main-sanctuary',presetPack:{id:'main-sanctuary',version:1,sha256:null},channels:[{id:'english',label:'English',language:'en'},{id:'russian',label:'Russian',language:'ru'},{id:'media',label:'Stage',language:'ru'}]})
 project=createTemplateDraft(project,{id:'title',template:'title',selectedId:null})
 if(location.search.includes('font-reflow')) {
@@ -19,6 +20,14 @@ if(location.search.includes('language-flow')) {
  project=createTemplateDraft(project,{id:'point-three',template:'point',selectedId:'point-two'})
  project=editTemplateField(project,'point-three','english','next','Speak truth each one of you with his neighbor')
  project=core.addBibleItem(project,{id:'long-heading-reading',title:'Ephesians 4:25',presetId:'wotbc-sermon-scripture',textStyle:{bodySize:78},range:{bookId:'Ephesians',start:{chapter:4,verse:25},end:{chapter:4,verse:25}},passagesByChannel:Object.fromEntries(['english','russian','media'].map(channel=>[channel,{translationId:channel==='english'?'BSB':'SYNO-W',reference:'Ephesians 4:25',attribution:'',verses:[{number:25,text:channel==='english'?'Therefore, laying aside falsehood, speak truth each one of you with his neighbor, for we are members of one another.':'Говорите истину каждый ближнему своему.'}]}]))})
+}
+
+if(location.search.includes('caption-layout')) {
+ project=editTemplateField(project,'title','english','heading','Full-width translation rehearsal')
+ project=createTemplateDraft(project,{id:'caption-reading',template:'quote',selectedId:'title'})
+ project=editTemplateField(project,'caption-reading','english','body',Array.from({length:9},(_,i)=>`Line ${i+1}: These words use the whole width of the slide.`).join('\n'))
+ const first=plannerSlides(project).find(row=>row.cue)
+ project=setSlideTranslationCue(project,first,'start',{sourceLanguage:'en',targetLanguage:'ru',voice:'cedar',speechEnabled:false,captionStyle:'lower-third',captionChannel:'both'})
 }
 
 let saved=JSON.parse(localStorage.getItem(key)||'null')||{syncId:'canvas-rehearsal',syncVersion:1,revision:1,status:'planning',project}
