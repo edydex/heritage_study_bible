@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import core from '../packages/service-core/index.js'
-import { deletePlannerSlide, editPlannerSlide, movePlannerSlide, plannerSlides } from '../src/components/plannerSlides.ts'
+import { deletePlannerSlide, editPlannerSlide, movePlannerSlide, plannerSlides, setSlideTranslationCue } from '../src/components/plannerSlides.ts'
 
 function fixture() {
   let project = core.createServiceProject({ id: 'planner-test', title: 'Planner rehearsal', serviceDate: '2026-08-23', preferredProfileId: 'main-sanctuary', presetPack: { id: 'main-sanctuary', version: 1, sha256: null },
@@ -71,4 +71,25 @@ test('editable text is canonical; derived singers and blank lyrics are rejected'
   assert.throws(() => editPlannerSlide(project, rows[1], 'media', 0, 'Changed'), /generated/)
   assert.throws(() => editPlannerSlide(project, rows[1], 'english', 0, ''), /cannot be empty/)
   assert.throws(() => movePlannerSlide(project, rows[1], rows[5]), /within their song/)
+})
+
+
+test('translation configuration follows a section through save, lyric edits, and Stop',()=>{
+ const original=fixture().project
+ const settings={sourceLanguage:'en',targetLanguage:'ru',voice:'marin',speechEnabled:true,captionStyle:'ticker',captionChannel:'russian'}
+ let project=setSlideTranslationCue(original,plannerSlides(original)[1],'start',settings)
+ project=setSlideTranslationCue(project,plannerSlides(project)[4],'stop')
+ project=reopen(project)
+ let rows=plannerSlides(project)
+ assert.equal(rows[0].cue!.translationSettings,undefined)
+ assert.deepEqual(rows[1].cue!.translationSettings,settings)
+ assert.deepEqual(rows[3].cue!.translationSettings,settings)
+ assert.equal(rows[4].cue!.translationSettings,undefined)
+ project=editPlannerSlide(project,rows[1],'english',0,'Revised lyrics')
+ rows=plannerSlides(reopen(project))
+ assert.equal(rows[1].cue!.translationAction,'start')
+ assert.deepEqual(rows[1].cue!.translationSettings,settings)
+ project=setSlideTranslationCue(project,rows[1],null)
+ assert.ok(plannerSlides(reopen(project)).every(row=>!row.cue!.translationSettings))
+ assert.throws(()=>setSlideTranslationCue(original,plannerSlides(original)[1],'start',{...settings,voice:'../unknown'}))
 })

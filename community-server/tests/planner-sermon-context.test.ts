@@ -93,3 +93,17 @@ test('deleting an earlier slide does not erase an existing copied outline',()=>{
  delete p.items.one; p.rootItemIds=p.rootItemIds.filter((id:string)=>id!=='one')
  assert.equal(context.resolveSermonContext(p).two.item.textByChannel.english,'I. Therefore\nII. Laying aside falsehood')
 })
+
+test('rundown follows the selected output, with display-only language fallback',()=>{
+ let p=fixture()
+ const title=(id:string,channel:string)=>plannerSlides(p,channel).find(row=>row.itemId===id)!.title
+ assert.equal(title('two','russian'),'II. Laying aside falsehood')
+ p=editTemplateField(p,'title','russian','heading','От лжи к истине')
+ p=editTemplateField(p,'one','russian','body','I. Поэтому')
+ p=editTemplateField(p,'two','russian','next','Отложив ложь')
+ assert.equal(title('one','english'),'I. Therefore')
+ assert.equal(title('one','russian'),'I. Поэтому')
+ assert.equal(title('two','russian'),'II. Отложив ложь')
+ assert.equal(title('title','russian'),'От лжи к истине')
+ assert.equal(title('title','english'),'Title in first language')
+})

@@ -1,0 +1,11 @@
+.heritage-translation-cue { width:min(36rem,calc(100vw - 2rem)); max-height:90vh; padding:24px; border:1px solid var(--theme-elevation-300); border-radius:12px; background:var(--theme-elevation-50); color:var(--theme-text); }
+.heritage-translation-cue::backdrop { background:#0009; }
+.heritage-translation-cue label {display:block;margin:16px 0;}
+.heritage-translation-cue select {display:block;width:100%;margin-top:6px;padding:10px;}
+.heritage-translation-cue footer {display:flex;justify-content:flex-end;gap:12px;margin-top:20px;}
+.heritage-translation-cue footer button {padding:10px 16px;}
+.translation-space-example {position:relative;aspect-ratio:16/9;background:#070b12;color:white;display:grid;place-items:center;padding-bottom:29%;}
+.translation-space-example aside {position:absolute;bottom:0;left:0;right:0;background:#225670;display:grid;place-items:center;border-top:1px dashed #8bd3ff;}
+.heritage-service-planner__caption-layout {position:relative;width:min(100cqw, calc(100cqh * 16 / 9));aspect-ratio:16/9;background:#000;}
+.heritage-service-planner__caption-layout > .heritage-service-planner__stage {position:absolute;top:0;left:50%;transform:translateX(-50%);width:calc((1 - var(--caption-reservation))*100%);height:auto;}
+.heritage-service-planner__caption-reservation {position:absolute;bottom:0;left:0;right:0;height:calc(var(--caption-reservation)*100%);border-top:1px dashed #69bddd;background:#163b46;display:grid;place-items:center;color:#bdeafb;font:500 clamp(8px,1vw,16px)/1.2 system-ui;text-align:center;}

@@ -1,9 +1,10 @@
 'use client'
 import { useEffect, useRef } from 'react'
+import './translation-cue.css'
 import typography from '../../packages/service-core/node/services/project/SlideTypography.js'
 import {usePresentationAccessibility} from './PresentationAccessibility'
 
-export default function PreviewCanvas({ textStyle, kind, presetId, template, titleCard, singer, next, backgroundUrl, backgroundDimOpacity = 0.55, children }: { textStyle?: Record<string, any>; kind: string; presetId?: string; template?: string; titleCard?: boolean; singer?: boolean; next?: {state: string; text: string}; backgroundUrl?: string; backgroundDimOpacity?: number; children: React.ReactNode }) {
+export default function PreviewCanvas({ captionReservation = 0, textStyle, kind, presetId, template, titleCard, singer, next, backgroundUrl, backgroundDimOpacity = 0.55, children }: { captionReservation?: number; textStyle?: Record<string, any>; kind: string; presetId?: string; template?: string; titleCard?: boolean; singer?: boolean; next?: {state: string; text: string}; backgroundUrl?: string; backgroundDimOpacity?: number; children: React.ReactNode }) {
   const {monochrome}=usePresentationAccessibility()
   const stage = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -73,9 +74,9 @@ export default function PreviewCanvas({ textStyle, kind, presetId, template, tit
     document.fonts?.ready.then(() => { if (active) fit() })
     return () => { active = false; observer.disconnect(); element.removeEventListener('input', fit); element.removeEventListener('input-fit', fit) }
   }, [children, kind, presetId, template, titleCard, singer, textStyle])
-  return <div className="heritage-service-planner__canvas-space"><div ref={stage} className="heritage-service-planner__stage" data-monochrome={monochrome || undefined} data-monochrome-background={monochrome && Boolean(backgroundUrl) || undefined} data-kind={kind} data-preset={presetId} data-template={!singer ? template : undefined} data-title-card={titleCard || undefined} data-singer={singer || undefined} style={{'--slide-body-align':textStyle?.bodyAlign || typography.textPreset(presetId).bodyAlign || 'center', '--slide-title-align':textStyle?.titleAlign || typography.textPreset(presetId).titleAlign || 'center', '--slide-credit-align':textStyle?.creditAlign || (titleCard ? 'center' : 'right'), ...(backgroundUrl ? { backgroundImage: `linear-gradient(rgba(0,0,0,${backgroundDimOpacity}), rgba(0,0,0,${backgroundDimOpacity})), url("${backgroundUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : {})} as React.CSSProperties}><>{monochrome && backgroundUrl && <div className="presentation-monochrome-background" style={{backgroundImage:`url("${backgroundUrl}")`}} aria-hidden="true" />}<div className="heritage-service-planner__slide-content">{children}</div>
+  return <div className="heritage-service-planner__canvas-space"><div className="heritage-service-planner__caption-layout" style={{'--caption-reservation':captionReservation} as React.CSSProperties}><div ref={stage} className="heritage-service-planner__stage" data-monochrome={monochrome || undefined} data-monochrome-background={monochrome && Boolean(backgroundUrl) || undefined} data-kind={kind} data-preset={presetId} data-template={!singer ? template : undefined} data-title-card={titleCard || undefined} data-singer={singer || undefined} style={{'--slide-body-align':textStyle?.bodyAlign || typography.textPreset(presetId).bodyAlign || 'center', '--slide-title-align':textStyle?.titleAlign || typography.textPreset(presetId).titleAlign || 'center', '--slide-credit-align':textStyle?.creditAlign || (titleCard ? 'center' : 'right'), ...(backgroundUrl ? { backgroundImage: `linear-gradient(rgba(0,0,0,${backgroundDimOpacity}), rgba(0,0,0,${backgroundDimOpacity})), url("${backgroundUrl}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : {})} as React.CSSProperties}><>{monochrome && backgroundUrl && <div className="presentation-monochrome-background" style={{backgroundImage:`url("${backgroundUrl}")`}} aria-hidden="true" />}<div className="heritage-service-planner__slide-content">{children}</div>
     {singer && next ? <aside className="heritage-service-planner__next-lines" aria-label="Next slide cue" data-state={next.state}>
       <p>{next.state === 'end' ? 'End of presentation' : next.text}</p>
     </aside> : null}
-  </></div></div>
+  </></div>{captionReservation>0 && <aside className="heritage-service-planner__caption-reservation">Live translation · {Math.round(captionReservation*100)}% reserved</aside>}</div></div>
 }

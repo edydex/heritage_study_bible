@@ -63,7 +63,7 @@ function pageFrom(merged:any,verses:number[],id:string,first:boolean) {
     delete passage.contentSha256
   }
   page.title=(Object.values(page.passagesByChannel)[0] as any).reference
-  if(!first){delete page.translationCues;delete page.plannedDurationSeconds}
+  if(!first){delete page.translationCues;delete page.translationCueSettings;delete page.plannedDurationSeconds}
   return page
 }
 

@@ -9,6 +9,8 @@ import {typographyItemIds} from './plannerTypography'
 import { setReadingTemplate } from './readingTemplates'
 import { appendBlankSlide, readingOwner } from './plannerReadingGroups'
 
+import TranslationCueDialog from './TranslationCueDialog'
+import translationSettings from '../../packages/service-core/node/services/project/TranslationCueSettings.js'
 import { PresentationAccessibility, PresentationAccessibilityControl } from './PresentationAccessibility'
 import { insertReusableSlide, extractReusableSlide } from './plannerReusableSlides'
 import { importSermonPresentation } from './importSermonPresentation'
@@ -373,6 +375,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   const [mediaPreviews, setMediaPreviews] = useState<Record<string, string>>({})
   const localUrls = useRef<string[]>([])
   useEffect(() => () => localUrls.current.forEach(url => URL.revokeObjectURL(url)), [])
+  const [translationCueSlide,setTranslationCueSlide]=useState<PlannerSlide | null>(null)
   const [previewChannel, setPreviewChannel] = useState<ChannelId>('english')
   const [servicePreviewOpen, setServicePreviewOpen] = useState(false)
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0)
@@ -401,11 +404,11 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   const slideList = useMemo<{ rows: PlannerSlide[]; error: string }>(() => {
     if (!draft) return { rows: [], error: '' }
     try {
-      return { rows: plannerSlides(draft), error: '' }
+      return { rows: plannerSlides(draft, previewChannel), error: '' }
     } catch (caught) {
       return { rows: [], error: errorText(caught) }
     }
-  }, [draft])
+  }, [draft, previewChannel])
   const scriptureScope = draft && selectedId ? scriptureTranslationScope(draft, selectedId) : null
   const selectedSlides = slideList.rows.filter(row => row.itemId === selectedId && row.cue)
   const activePreviewIndex = Math.min(previewSlideIndex, Math.max(0, selectedSlides.length - 1))
@@ -1245,6 +1248,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
 
   return (
     <PresentationAccessibility><section className="heritage-service-planner">
+      {translationCueSlide && draft ? <TranslationCueDialog slide={translationCueSlide} onClose={()=>setTranslationCueSlide(null)} onSave={settings=>{slideMutation(()=>setSlideTranslationCue(draft,translationCueSlide,'start',settings),translationCueSlide.index);setTranslationCueSlide(null)}}/> : null}
       {servicePreviewOpen && draft ? <ServicePreview project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
         mediaUrl={assetId=>mediaPreviews[assetId] || (envelope?.project.assets?.[assetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(assetId)}` : undefined)}
         onClose={row=>{setServicePreviewOpen(false);if(row) selectSlide(row)}} /> : null}
@@ -1361,10 +1365,11 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
             }}>Restore original passage text</button> : null}
             {menu.row.cue && draft ? <>
               <button type="button" role="menuitem" onClick={() => {
-                const action = translationActionForSlide(slideList.rows, menu.row)
-                slideMutation(() => setSlideTranslationCue(draft, menu.row, action), menu.row.index)
+                const action = menu.row.cue?.translationAction || translationActionForSlide(slideList.rows, menu.row)
+                if(action==='start')setTranslationCueSlide(menu.row)
+                else slideMutation(() => setSlideTranslationCue(draft, menu.row, 'stop'), menu.row.index)
                 setMenu(null)
-              }}>{menu.row.cue.translationAction ? 'Set' : 'Add'} “{translationActionForSlide(slideList.rows, menu.row) === 'start' ? 'Start Translate' : 'Stop Translate'}” Cue</button>
+              }}>{menu.row.cue.translationAction==='start' ? 'Edit Translation Settings…' : `Add “${translationActionForSlide(slideList.rows, menu.row)==='start'?'Start Translate':'Stop Translate'}” Cue`}</button>
               {menu.row.cue.translationAction ? <button type="button" role="menuitem" onClick={() => { slideMutation(() => setSlideTranslationCue(draft, menu.row, null), menu.row.index); setMenu(null) }}>Remove translation cue</button> : null}
             </> : null}
             <button type="button" role="menuitem" onClick={() => runSelection(menu.ids, 'duplicate')}>Duplicate</button>
@@ -1419,7 +1424,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 <label><input type="checkbox" checked={selected.sermonPresentation?.darkenBackground ?? true} onChange={event => updateSelected({ sermonPresentation: {showText: true, ...selected.sermonPresentation, darkenBackground: event.target.checked} })} /> Darken image</label>
               </div> : null}
               <div className="heritage-service-planner__slide-workspace" data-canvas={!preview.singer && selected.kind !== 'group' || undefined}>
-              <PreviewCanvas textStyle={activeSlide?.cue?.textStyle} kind={selected.kind} presetId={preview.presetId} template={selected.sermonTemplate} titleCard={Boolean(activeSlide && isSongTitleSlide(activeSlide))} singer={preview.singer} next={preview.next} backgroundDimOpacity={selected.sermonPresentation?.darkenBackground === false ? 0 : 0.55} backgroundUrl={(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? mediaPreviews[selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId)}` : undefined}>
+              <PreviewCanvas captionReservation={translationSettings.reservation(activeSlide?.cue?.translationSettings,previewChannel)} textStyle={activeSlide?.cue?.textStyle} kind={selected.kind} presetId={preview.presetId} template={selected.sermonTemplate} titleCard={Boolean(activeSlide && isSongTitleSlide(activeSlide))} singer={preview.singer} next={preview.next} backgroundDimOpacity={selected.sermonPresentation?.darkenBackground === false ? 0 : 0.55} backgroundUrl={(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? mediaPreviews[selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId)}` : undefined}>
                 {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
                   : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
                   : selected.sermonTemplate === 'other' && !preview.singer ? <CanvasSlide key={`${selected.id}:${previewChannel}`} objects={selected.objectsByChannel[previewChannel] || []} mediaUrl={id=>mediaPreviews[id] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(id)}`} uploading={uploadingPicture} onImage={()=>choosePicture('canvas')} onChange={objects=>slideMutation(()=>editCanvasObjects(draft!,selected.id,previewChannel,objects))} />

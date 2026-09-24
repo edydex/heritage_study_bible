@@ -95,6 +95,7 @@ export const Users: CollectionConfig = {
     delete: ({ req }) => req.user?.systemRole === 'system-admin',
   },
   fields: [
+    { name: 'presentationPreference', type: 'ui', admin: { components: { Field: '@/components/PresentationAccessibility#PersonalPresentationPreference' } } },
     { name: 'displayName', label: 'Name', type: 'text', required: true, defaultValue: 'Reader' },
     {
       name: 'systemRole',

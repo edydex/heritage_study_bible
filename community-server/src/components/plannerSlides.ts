@@ -30,7 +30,7 @@ export function isSongTitleSlide(slide: PlannerSlide) {
 const copy = <T,>(value: T): T => JSON.parse(JSON.stringify(value))
 
 /** The same compiler used by SyncShow is the only source of slide order. */
-export function plannerSlides(project: RecordValue): PlannerSlide[] {
+export function plannerSlides(project: RecordValue, channelId?: string): PlannerSlide[] {
   const timeline = serviceCore.compileServiceProject(project, { allowEmpty: true })
   const cues = timeline.cueIds.map((id: string) => timeline.cues[id])
   const result: PlannerSlide[] = []
@@ -56,19 +56,32 @@ export function plannerSlides(project: RecordValue): PlannerSlide[] {
       return
     }
     cues.filter((cue: RecordValue) => cue.itemId === itemId).forEach((cue: RecordValue, index: number) => {
-      const firstLine = Object.values(cue.channels).flatMap((output: any) => output.blocks || [])
+      const orderedOutputs = channelId ? [cue.channels[channelId], ...Object.entries(cue.channels).filter(([id])=>id!==channelId).map(([,output])=>output)].filter(Boolean) : Object.values(cue.channels)
+      const blocks = orderedOutputs.flatMap((output: any) => output.blocks || [])
+      const firstLine = blocks
         .find((block: any) => block.type === 'text') as RecordValue | undefined
       result.push({
         id: cue.id, itemId, parentId, depth: depth + (item.kind === 'song' && index > 0 ? 1 : 0),
         index, number: ++number, kind: item.kind, cue,
         title: item.kind === 'song' && (item.showTitle === false || index > 0)
           ? firstLine?.text?.split('\n').find(Boolean) || cue.title
-          : sermonContext.isPoint(item) ? (Object.values(cue.channels) as any[]).flatMap(output=>output.blocks || []).filter(block=>block.type==='text' && block.role==='body').map(block=>sermonContext.outlineRows(block.text).at(-1)?.text.trim()).find(Boolean) || item.title : item.title,
+          : sermonContext.isPoint(item) ? blocks.filter(block=>block.type==='text' && block.role==='body').map(block=>sermonContext.outlineRows(block.text).at(-1)?.text.trim()).find(Boolean) || item.title : channelId ? localizedSlideTitle(item, blocks, channelId) : item.title,
       })
     })
   }
   project.rootItemIds.forEach((id: string) => visit(id, null, 0))
   return result
+}
+
+function localizedSlideTitle(item: RecordValue, blocks: RecordValue[], channelId: string) {
+  if(item.sermonTemplate==='title') return item.titlesByChannel?.[channelId]?.trim() || Object.values(item.titlesByChannel || {}).find((text:any)=>text?.trim()) || item.title
+  if (item.kind === 'blank') return item.title
+  // Compiled channels already resolve display-only fallback without changing authored text.
+  const text = item.sermonTemplate === 'quote' || item.sermonTemplate === 'other'
+    ? blocks.find(block=>block.type==='text' && block.role==='body')?.text
+      || blocks.find(block=>block.type==='canvas')?.objects?.find((object:any)=>object.type==='text' && object.text?.trim())?.text
+    : blocks.find(block=>block.type==='text' && block.role==='title')?.text
+  return text?.split('\n').find((line:string)=>line.trim()) || blocks.find(block=>block.type==='bible')?.reference || item.title
 }
 
 function contentChannel(item: RecordValue, channelId: string): string {
@@ -111,10 +124,14 @@ export function editableSong(project: RecordValue, itemId: string) {
   delete target.sourceRangeReplacement
   for (const [channelId, resourceId] of Object.entries(resourceByChannel)) target.variants[channelId].resourceId = resourceId
   delete target.translationCues
+  delete target.translationCueSettings
   const updatedCues = plannerSlides(next).filter(row => row.itemId === itemId)
   updatedCues.forEach((row, index) => {
     const action = previousCues[index]?.cue?.translationAction
-    if (action && row.cue?.sourceLeafKey) (target.translationCues ||= {})[row.cue.sourceLeafKey] = action
+    if (action && row.cue?.sourceLeafKey) {
+      (target.translationCues ||= {})[row.cue.sourceLeafKey] = action
+      if(action==='start' && previousCues[index]?.cue?.translationSettings) (target.translationCueSettings ||= {})[row.cue.sourceLeafKey] = previousCues[index].cue!.translationSettings
+    }
   })
   return copy(serviceCore.normalizeServiceProject(next))
 }
@@ -231,12 +248,14 @@ export function translationActionForSlide(rows: PlannerSlide[], slide: PlannerSl
   }
   return active ? 'stop' : 'start'
 }
-export function setSlideTranslationCue(project: RecordValue, slide: PlannerSlide, action: 'start' | 'stop' | null) {
+export function setSlideTranslationCue(project: RecordValue, slide: PlannerSlide, action: 'start' | 'stop' | null, settings?: RecordValue) {
   if (!slide.cue?.sourceLeafKey) throw new Error('Choose a numbered slide.')
   const next = copy(project), item = next.items[slide.itemId]
   item.translationCues ||= {}
   if (action) item.translationCues[slide.cue.sourceLeafKey] = action
   else delete item.translationCues[slide.cue.sourceLeafKey]
+  if (action==='start' && settings) { item.translationCueSettings ||= {}; item.translationCueSettings[slide.cue.sourceLeafKey] = settings }
+  else if (item.translationCueSettings) { delete item.translationCueSettings[slide.cue.sourceLeafKey]; if(!Object.keys(item.translationCueSettings).length)delete item.translationCueSettings }
   if (!Object.keys(item.translationCues).length) delete item.translationCues
   return copy(serviceCore.normalizeServiceProject(next))
 }

@@ -1,4 +1,5 @@
 'use strict';
+const translationCueSettings = require('./TranslationCueSettings');
 const { resolveSermonContext } = require('./SermonContext');
 const {normalizeTextStyle, applyTimelineTypography} = require('./SlideTypography');
 const { normalizeSermonOptions, sermonSlideBlocks } = require('./SermonPresentation');
@@ -511,6 +512,16 @@ function normalizeTranslationCues(value) {
   return result;
 }
 
+function normalizeTranslationSettingsMap(value, actions) {
+  if (!isRecord(value) || Object.keys(value).length>1000) fail('INVALID_TRANSLATION_CUES', 'Invalid cue settings.');
+  const result = {};
+  for (const [key, settings] of Object.entries(value)) {
+    if (actions?.[key]!=='start') fail('INVALID_TRANSLATION_CUES', 'Settings require a Start Translate cue.');
+    Object.defineProperty(result, key, { value: translationCueSettings.normalizeSettings(settings), enumerable:true, configurable:true,writable:true });
+  }
+  return result;
+}
+
 function normalizeCue(raw, expectedId = null) {
   if (!isRecord(raw)) fail('INVALID_CUE', 'Every cue must be an object.');
   const cueId = id(raw.id || expectedId, 'Cue id');
@@ -540,6 +551,7 @@ function normalizeCue(raw, expectedId = null) {
     operatorNotes: text(raw.operatorNotes, `Cue ${cueId} operatorNotes`, 4000, { trim: false }),
     presetId: id(raw.presetId || defaultPresetForKind(raw.kind), `Cue ${cueId} presetId`)
   };
+  if (raw.translationSettings !== undefined) normalized.translationSettings = translationCueSettings.normalizeSettings(raw.translationSettings);
   if (raw.textStyle !== undefined) normalized.textStyle = normalizeTextStyle(raw.textStyle);
   if (raw.sourceLeafKey !== undefined) normalized.sourceLeafKey = text(raw.sourceLeafKey, 'Source slide key', 300, { required: true });
   if (raw.translationAction !== undefined) {
@@ -2403,6 +2415,7 @@ function normalizeProjectItem(raw, channelIds, now) {
   };
   if (raw.textStyle !== undefined) common.textStyle = normalizeTextStyle(raw.textStyle);
   if (raw.translationCues !== undefined) common.translationCues = normalizeTranslationCues(raw.translationCues);
+  if (raw.translationCueSettings !== undefined) common.translationCueSettings = normalizeTranslationSettingsMap(raw.translationCueSettings, common.translationCues);
   if (Object.prototype.hasOwnProperty.call(raw, 'plannedDurationSeconds')) {
     common.plannedDurationSeconds = finiteInteger(
       raw.plannedDurationSeconds,
@@ -4185,10 +4198,15 @@ function compileServiceProject(rawProject, options = {}) {
   const cueIds = [];
   const cues = {};
   const index = project._index || validateProjectTree(project);
+  let activeTranslationSettings;
   const addCue = (item, leafKey, rawCue) => {
+    const action = item.translationCues?.[leafKey];
+    if (action==='start') activeTranslationSettings = item.translationCueSettings?.[leafKey];
+    if (action==='stop') activeTranslationSettings = undefined;
     const cueId = deterministicCueId(project.id, item.id, leafKey);
     if (cues[cueId]) fail('CUE_ID_COLLISION', `Compiled cue id collision at ${item.id}.`);
     const cue = normalizeCue({ ...rawCue, id: cueId, itemId: item.id, sourceLeafKey: leafKey,
+      ...(activeTranslationSettings ? {translationSettings:activeTranslationSettings} : {}),
       ...(item.translationCues?.[leafKey] ? { translationAction: item.translationCues[leafKey] } : {}) });
     if (cue.presetId === 'wotbc-reading-title') {
       for (const channelId of project.channelIds) {
