@@ -209,6 +209,8 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
   await selectCanvas()
   await page.getByRole('tab',{name:'English',exact:true}).click()
   await page.setViewportSize({width:1024,height:768})
+  await expect(page.locator('.heritage-service-planner .heritage-sermon-workspace__header h1')).toHaveCSS('color','rgb(237, 240, 244)')
+  await expect(page.getByLabel('Sermon to prepare',{exact:true})).toHaveCSS('color','rgb(237, 240, 244)')
   await page.screenshot({path:`${evidence}/compact-${name}.png`,fullPage:true})
   const inspector=page.getByRole('complementary',{name:'Slide objects'})
   await expect(inspector).toBeVisible()
