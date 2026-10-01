@@ -326,7 +326,7 @@ function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeI
   )
 }
 
-export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebarHeader }: { sermonSyncId?: string; onDirtyChange?: (dirty: boolean) => void; sidebarHeader?: ReactNode } = {}) {
+export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlushReady, sidebarHeader }: { sermonSyncId?: string; onDirtyChange?: (dirty: boolean) => void; onFlushReady?: (flush: (() => Promise<boolean>) | null) => void; sidebarHeader?: ReactNode } = {}) {
   const [summaries, setSummaries] = useState<ServiceSummary[]>([])
   const [envelope, setEnvelope] = useState<ServiceEnvelope | null>(null)
   const [editionChange, setEditionChange] = useState<{channel:'english'|'russian';translationId:string} | null>(null)
@@ -718,6 +718,8 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     try {
       const next = cloneProject(operation() as ServiceProject)
       groupSermonSections(next)
+      if (JSON.stringify(next) === JSON.stringify(draft)) return
+      latestDraft.current = next; dirtyRef.current = true; statusRef.current = 'planning'
       setUndoStack(stack => [...stack.slice(-29), draft])
       setDraft(cloneProject(next))
       setPreviewSlideIndex(index)
@@ -1311,6 +1313,10 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     return !dirtyRef.current && statusRef.current === envelopeRef.current?.status
   }
   useEffect(() => {
+    onFlushReady?.(() => flushEditor('automatic'))
+    return () => onFlushReady?.(null)
+  }, [onFlushReady, historyOpen])
+  useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
       if (!(event.ctrlKey || event.metaKey) || event.altKey || event.key.toLowerCase() !== 's' || event.isComposing) return
       event.preventDefault(); if (!historyOpen) void flushEditor('manual')
@@ -1374,7 +1380,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2zm2 0v7h10V3M7 21v-7h10v7" /></svg>
             </button>
           </div>
-          <p className="heritage-service-planner__save-state" aria-live="polite" title={notice}>{draft ? `${slideList.rows.filter(row => row.cue).length} slides · ${saving ? 'Saving…' : busy ? 'Working…' : autosaveBlocked ? localRecoveryAvailable ? 'Draft kept locally · retry Save' : 'Unsaved · retry Save' : dirty || desiredStatus !== envelope?.status ? 'Waiting to save…' : `All changes saved · v${envelope?.syncVersion}`} ` : notice}</p>
+          <p className="heritage-service-planner__save-state" aria-live="polite" title={notice}>{draft ? `${slideList.rows.filter(row => row.cue).length} slides · ${saving ? 'Saving…' : busy ? 'Working…' : autosaveBlocked ? localRecoveryAvailable ? 'Draft kept locally · retry Save' : 'Unsaved · retry Save' : dirty || desiredStatus !== envelope?.status ? 'Waiting to save…' : (envelope as any)?.conflict ? 'Saved on this computer · sync conflict' : (envelope as any)?.savedLocally && (envelope as any)?.pending ? 'Saved on this computer · waiting to sync' : `All changes saved · v${envelope?.syncVersion}`} ` : notice}</p>
           {!sermonSyncId && <>
           <div className="heritage-service-planner__service-picker">
             <label>

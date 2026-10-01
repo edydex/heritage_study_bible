@@ -334,7 +334,7 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.match(planner, /aria-label=\{sermonSyncId \? 'Save sermon slides' : 'Save service'\}/)
   assert.match(planner, /dateTime=\{draft\?\.serviceDate\}/)
   assert.doesNotMatch(planner, /__heading|__save-actions|__notice/)
-  assert.match(planner, /slideList\.rows\.map/)
+  assert.match(planner, /navigatorRows\.map/)
   assert.match(planner, /onDragStart/)
   assert.match(planner, /onDrop/)
   assert.match(planner, /onContextMenu/)

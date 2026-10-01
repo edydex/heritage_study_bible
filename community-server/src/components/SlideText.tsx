@@ -23,6 +23,10 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
   const element = useRef<HTMLDivElement>(null)
   const toolbar = useRef<HTMLDivElement>(null)
   const draft = useRef({ text, spans })
+  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const committed = useRef(JSON.stringify({ text, spans }))
+  const commitLatest = useRef<() => void>(() => {})
+  useEffect(() => () => { if (commitTimer.current) clearTimeout(commitTimer.current) }, [])
   const editStart = useRef({text,spans})
   const painted = useRef(false)
   const [range, setRange] = useState<SelectionRange | null>(null)
@@ -83,7 +87,7 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
   useLayoutEffect(() => {
     // Echoing a live edit through React must not replace the focused DOM/caret.
     if (painted.current && paintedMode.current===monochrome && paintedBase.current===baseColor && text === draft.current.text && JSON.stringify(spans) === JSON.stringify(draft.current.spans)) return
-    draft.current = { text, spans }; paint()
+    draft.current = { text, spans }; committed.current = JSON.stringify({ text, spans }); paint()
     if (rangeRef.current && document.activeElement === element.current) restore(rangeRef.current.start, rangeRef.current.end)
   }, [text, spans, monochrome, baseColor])
   useEffect(() => {
@@ -111,6 +115,8 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
     draft.current = { text: value, spans: formatting.remapTextSpans(draft.current.text, value, draft.current.spans) }
     if (element.current) element.current.dataset.empty = String(!value.length)
     onDraftChange?.(value, draft.current.spans)
+    if (commitTimer.current) clearTimeout(commitTimer.current)
+    commitTimer.current = setTimeout(() => commitLatest.current(), 700)
     element.current?.dispatchEvent(new Event('input-fit', { bubbles: true }))
   }
   function insertPlain(value: string) {
@@ -139,10 +145,15 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
     try {
       const next = formatting.applyTextStyle(draft.current.text, draft.current.spans, selected.start, selected.end, patch)
       draft.current = { ...draft.current, spans: next }; paint(); if (focusEditor) element.current?.focus(); restore(selected.start, selected.end)
-      onDraftChange?.(draft.current.text, next); onCommit(draft.current.text, next); setError('')
+      onDraftChange?.(draft.current.text, next); commit(); setError('')
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Could not format text.') }
   }
-  function commit() { if (onDraftChange || draft.current.text !== text || JSON.stringify(draft.current.spans) !== JSON.stringify(spans)) onCommit(draft.current.text, draft.current.spans) }
+  function commit() {
+    if (commitTimer.current) { clearTimeout(commitTimer.current); commitTimer.current = null }
+    const signature = JSON.stringify(draft.current)
+    if (signature !== committed.current) { onCommit(draft.current.text, draft.current.spans); committed.current = signature }
+  }
+  commitLatest.current = commit
   function focusEmpty() {
     if (readOnly || draft.current.text.length || !element.current) return
     const caret = document.createRange(); caret.selectNodeContents(element.current); caret.collapse(true)
