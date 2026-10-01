@@ -404,6 +404,22 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   const [previewChannel, setPreviewChannel] = useState<ChannelId>('english')
   const [servicePreviewOpen, setServicePreviewOpen] = useState(false)
   const [workspaceView, setWorkspaceView] = useState<'slides' | 'edit'>('slides')
+  const [showDocumentId, setShowDocumentId] = useState<string | null>(null)
+  useEffect(() => {
+    // SyncShow enables this only for its active Adjust surface. Ordinary web
+    // Prepare clicks remain previews; the native host authorizes every take.
+    const receiveShowMode = (event: MessageEvent) => {
+      if (event.source !== window || event.origin !== window.location.origin || event.data?.type !== 'heritage-editor:show-mode') return
+      if (event.data.enabled === false) setShowDocumentId(null)
+      else if (event.data.enabled === true && typeof event.data.syncId === 'string' && event.data.syncId.length <= 200) setShowDocumentId(event.data.syncId)
+    }
+    window.addEventListener('message', receiveShowMode)
+    return () => window.removeEventListener('message', receiveShowMode)
+  }, [])
+  function selectThumbnail(row: PlannerSlide) {
+    selectSlide(row, {ctrlKey: true})
+    if (showDocumentId === envelope?.syncId && row.cue) window.postMessage({type:'heritage-editor:take',syncId:envelope.syncId,cueId:row.id},window.location.origin)
+  }
   function chooseWorkspaceView(view: 'slides' | 'edit') {
     if (view === workspaceView) return
     // Commit a focused contenteditable before hiding its editing surface.
@@ -1554,9 +1570,9 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
           </div> : null}
         </aside>
 
-        {draft && workspaceView === 'slides' && !paletteOpen ? <ServicePreview inline project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
+        {draft && workspaceView === 'slides' && !paletteOpen ? <ServicePreview inline showMode={showDocumentId === envelope?.syncId} project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
           mediaUrl={assetId => mediaPreviews[assetId] || (envelope?.project.assets?.[assetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(assetId)}` : undefined)}
-          onSelect={row => selectSlide(row, {ctrlKey: true})} onChannel={id => setPreviewChannel(id as ChannelId)}
+          onSelect={selectThumbnail} onChannel={id => setPreviewChannel(id as ChannelId)}
           onSlideMenu={(row,x,y) => {selectSlide(row,{ctrlKey:true});setMenu({row,ids:[row.id],x,y})}}
           onClose={row => {if(row) selectSlide(row,{ctrlKey:true});chooseWorkspaceView('edit')}} /> : null}
         <main className="heritage-service-planner__editor" hidden={paletteOpen || workspaceView !== 'edit'}>

@@ -80,6 +80,9 @@
 .heritage-service-planner__output-tabs button[aria-selected="true"] { background: #3b526d; border-color: #75acf0; }
 .heritage-service-planner .heritage-slide-overview { position: relative; inset: auto; display: flex; flex-direction: column; width: auto; height: auto; min-width: 0; min-height: 0; background: #1e2024; color: #edf0f4; }
 .heritage-slide-overview .heritage-service-preview__layout { grid-template-columns: minmax(0,1fr) clamp(14rem,22vw,21rem); }
+.heritage-slide-overview[data-show-mode] .heritage-service-preview__layout { grid-template-columns: minmax(0,1fr); }
+.heritage-slide-overview[data-show-mode] .heritage-service-preview__controls { display: none; }
+.heritage-slide-overview__show-hint { margin: 0; padding: .35rem .75rem; color: #ecd29d; background: #3a3225; font-size: .72rem; }
 .heritage-slide-overview .heritage-service-preview__grid-toolbar { padding: .55rem .75rem; border-color: #393d45; }
 .heritage-slide-overview .heritage-service-preview__grid-toolbar button { color: #cbd1dc; background: #282b31; border-color: #424853; }
 .heritage-slide-overview .heritage-service-preview__grid-toolbar button[aria-pressed="true"] { color: #fff; background: #344c69; border-color: #74a9ea; }

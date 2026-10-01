@@ -25,7 +25,7 @@
     "migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create",
     "test:live-service": "node --import tsx --test tests/live-service-config.test.ts tests/live-service-payload.test.ts",
     "test:service-history-live": "node --import tsx --test tests/service-history-payload.test.ts",
-    "test:editor": "node --import tsx --test tests/service-save-history.test.ts tests/service-history-reliability.test.ts tests/service-save-conflict.test.ts tests/people-localization.test.ts tests/workspace-text.test.ts tests/planner-authoring.test.ts tests/service-document-contract.test.ts"
+    "test:editor": "node --import tsx --test tests/service-save-history.test.ts tests/service-history-reliability.test.ts tests/service-save-conflict.test.ts tests/people-localization.test.ts tests/device-workspace-language.test.ts tests/workspace-text.test.ts tests/planner-authoring.test.ts tests/service-document-contract.test.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.0",

@@ -3,6 +3,7 @@ import type { WorkspaceLanguage } from './workspaceLanguage'
 
 export const russianWorkspaceText: Readonly<Record<string, string>> = {
   "Workspace view": "Вид рабочей области",
+  "Click a slide to show it · Double-click to edit": "Нажмите слайд, чтобы показать · Двойной щелчок для редактирования",
   "Slides": "Слайды",
   "Edit": "Редактировать",
   "Edit slide": "Редактировать слайд",

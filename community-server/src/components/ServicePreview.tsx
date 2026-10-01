@@ -5,10 +5,10 @@ import ServiceSlidePreview from './ServiceSlidePreview'
 import { isSongTitleSlide, type PlannerSlide } from './plannerSlides'
 
 const CHANNELS=['english','russian','media']
-export default function ServicePreview({project,rows,initialSlideId,initialChannel,dirty,mediaUrl,onClose,inline=false,onSelect,onChannel,onSlideMenu}: {
+export default function ServicePreview({project,rows,initialSlideId,initialChannel,dirty,mediaUrl,onClose,inline=false,showMode=false,onSelect,onChannel,onSlideMenu}: {
   project: Record<string,any>; rows: PlannerSlide[]; initialSlideId?: string; initialChannel: string; dirty: boolean;
   mediaUrl: (assetId:string)=>string | undefined; onClose: (row?:PlannerSlide)=>void;
-  inline?: boolean; onSelect?: (row:PlannerSlide)=>void; onChannel?: (id:string)=>void; onSlideMenu?: (row:PlannerSlide,x:number,y:number)=>void
+  inline?: boolean; showMode?: boolean; onSelect?: (row:PlannerSlide)=>void; onChannel?: (id:string)=>void; onSlideMenu?: (row:PlannerSlide,x:number,y:number)=>void
 }) {
   const t = useWorkspaceText()
   const slides=useMemo(()=>rows.filter(row=>row.cue),[rows])
@@ -40,6 +40,7 @@ export default function ServicePreview({project,rows,initialSlideId,initialChann
     </header> : null}
     <div className="heritage-service-preview__layout">
       <section className="heritage-service-preview__slides" aria-label={t("All slides")}>
+        {showMode ? <p className="heritage-slide-overview__show-hint">{t('Click a slide to show it · Double-click to edit')}</p> : null}
         <div className="heritage-service-preview__grid-toolbar">
           <strong>{t("{count} slides", { count: slides.length })}</strong>
           <div role="group" aria-label={t("Thumbnail output")}>{CHANNELS.map(id=><button key={id} type="button" aria-pressed={outputChannel===id} onClick={()=>{setChannel(id);onChannel?.(id)}}>{label(id)}</button>)}</div>
@@ -67,6 +68,6 @@ export default function ServicePreview({project,rows,initialSlideId,initialChann
       </aside>
     </div>
   </>
-  return inline ? <section className="heritage-service-preview heritage-slide-overview" aria-label={t("Slides")} onKeyDown={keyboard}>{surface}</section>
+  return inline ? <section className="heritage-service-preview heritage-slide-overview" data-show-mode={showMode || undefined} aria-label={t("Slides")} onKeyDown={keyboard}>{surface}</section>
     : <dialog ref={dialog} className="heritage-service-preview" aria-labelledby="service-preview-title" onCancel={event=>{event.preventDefault();onClose(active)}} onKeyDown={keyboard}>{surface}</dialog>
 }
