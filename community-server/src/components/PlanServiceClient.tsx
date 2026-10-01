@@ -402,6 +402,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     if (view === workspaceView) return
     // Commit a focused contenteditable before hiding its editing surface.
     if (document.activeElement instanceof HTMLElement && document.activeElement.closest('[contenteditable],textarea,input')) document.activeElement.blur()
+    document.querySelectorAll<HTMLMediaElement>('.heritage-service-planner video,.heritage-service-planner audio').forEach(media => media.pause())
     setWorkspaceView(view); setPaletteOpen(false)
   }
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0)

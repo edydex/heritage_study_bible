@@ -58,10 +58,14 @@ test('text preferences reject arbitrary properties and invalid values',()=>{
   assert.throws(()=>typography.normalizeTextStyle({bodySize:NaN}));assert.throws(()=>typography.normalizeTextStyle({bodyAlign:'justify'}));assert.throws(()=>typography.normalizeTextStyle({backgroundUrl:'https://example.test'}))
 })
 
- test('reading typography targets matching pages in its group only',()=>{
- const p={items:{group:{kind:'group',childIds:['one','two','sermon','song']},one:{kind:'bible',presetId:'wotbc-reading'},two:{kind:'bible',presetId:'wotbc-reading'},sermon:{kind:'bible',presetId:'wotbc-sermon-scripture'},song:{kind:'song'}}}
+test('reading typography targets the same paginated passage only',()=>{
+ const range=(start:number,end:number)=>({bookId:'Eph',start:{chapter:4,verse:start},end:{chapter:4,verse:end}})
+ const p={items:{group:{kind:'group',groupKind:'section',childIds:['one','two']},one:{kind:'bible',presetId:'wotbc-reading',range:range(1,3)},two:{kind:'bible',presetId:'wotbc-reading',range:range(4,6)},sermon:{kind:'bible',presetId:'wotbc-sermon-scripture',range:range(7,8)},song:{kind:'song'}}}
  assert.deepEqual(typographyItemIds(p,'one'),['one','two'])
  assert.deepEqual(typographyItemIds(p,'song'),['song'])
+ // An ordinary section with unrelated slides is not a pagination scope.
+ p.items.group.childIds=['one','two','sermon','song']
+ assert.deepEqual(typographyItemIds(p,'one'),['one'])
  })
 
 test('minimum song font remains valid when a long authored line must wrap',()=>{
