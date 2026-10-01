@@ -60,7 +60,7 @@ await expect(page.getByRole('button',{name:/Основная мысль/})).toBe
 await page.getByRole('tab',{name:'Песни',exact:true}).click()
 await expect(page.getByPlaceholder('Название на английском или русском…')).toBeVisible()
 await page.getByRole('tab',{name:'Писание',exact:true}).click()
-await expect(page.getByRole('button',{name:'Выбрать книгу и стихи',exact:true})).toBeVisible()
+await expect(page.getByText('Выбрать книгу и стихи',{exact:true})).toBeVisible()
 await page.screenshot({path:`${evidence}/russian-passage-palette.png`})
 await page.getByRole('button',{name:'Закрыть панель добавления слайдов',exact:true}).click()
 await page.evaluate(()=>document.documentElement.lang='en')
