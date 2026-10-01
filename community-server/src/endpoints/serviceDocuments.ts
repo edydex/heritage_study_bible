@@ -12,6 +12,7 @@ import {
 } from 'payload'
 import serviceCore from '../../packages/service-core/node.js'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
+import { workspaceLanguage } from '@/lib/workspaceLanguage'
 import {
   serializeSongForSync,
   legacyFieldsFromSyncDocuments,
@@ -140,7 +141,11 @@ export async function managerContext(
         ? SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE
         : SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
     )
-    return { communityId: authorized.communityId }
+    return {
+      communityId: authorized.communityId,
+      userId: authorized.userId,
+      workspaceLanguageSource: 'device' as const,
+    }
   }
   const current = req.user || (await req.payload.auth({ headers: req.headers })).user
   const userId = relationId(current)
@@ -173,7 +178,12 @@ export async function managerContext(
       403,
     )
   }
-  return { communityId }
+  return {
+    communityId,
+    userId,
+    workspaceLanguageSource: 'account' as const,
+    workspaceLanguage: workspaceLanguage(current?.preferredLanguage),
+  }
 }
 
 function exactKeys(value: RequestDoc, keys: string[]) {
@@ -306,7 +316,20 @@ const list: Endpoint = {
   method: 'get',
   handler: async req => {
     try {
-      const { communityId } = await managerContext(req)
+      const context = await managerContext(req)
+      const { communityId } = context
+      // Device approval belongs to one manager. Only their menu language crosses
+      // this boundary, after the device scope and current membership are checked.
+      const language = context.workspaceLanguageSource === 'device'
+        ? workspaceLanguage((await req.payload.findByID({
+          collection: 'users',
+          id: context.userId,
+          depth: 0,
+          overrideAccess: true,
+          req,
+          select: { preferredLanguage: true },
+        })).preferredLanguage)
+        : context.workspaceLanguage
       const found = await req.payload.find({
         collection: 'service-documents' as never,
         depth: 0,
@@ -319,6 +342,8 @@ const list: Endpoint = {
       })
       return json(req, {
         schemaVersion: 1,
+        workspaceLanguage: language,
+        workspaceLanguageSource: context.workspaceLanguageSource,
         items: found.docs.map(value => serviceDocumentSummary(value as RequestDoc)),
       })
     } catch (error) {

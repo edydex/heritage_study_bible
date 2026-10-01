@@ -403,6 +403,9 @@ test('SyncShow can download exact image and video assets from a service revision
 test('approved SyncShow planner requests enforce read and write scopes', async () => {
   const token = 'planner-device-token-that-is-long-enough'
   let scopes = ['syncshow:service-documents:read']
+  let membershipActive = true
+  let preferredLanguage: unknown = 'ru'
+  let profileReads = 0
   const payload = {
     config: { cors: '*' },
     logger: { error: () => undefined },
@@ -422,15 +425,25 @@ test('approved SyncShow planner requests enforce read and write scopes', async (
         }
       }
       if (collection === 'memberships') {
-        return { docs: [{ id: 51, community: 7, user: 9, role: 'leader' }] }
+        return { docs: membershipActive ? [{ id: 51, community: 7, user: 9, role: 'leader' }] : [] }
       }
       if (collection === 'service-documents') return { docs: [] }
       throw new Error(`Unexpected collection: ${collection}`)
+    },
+    findByID: async (options: AnyRecord) => {
+      profileReads++
+      assert.equal(options.collection, 'users')
+      assert.equal(options.id, 9, 'Language follows the device approval owner, not a browser cookie')
+      assert.equal(options.depth, 0)
+      assert.deepEqual(options.select, { preferredLanguage: true })
+      // Even an adapter returning extra fields must never expose those fields.
+      return { id: 9, preferredLanguage, email: 'private@example.test', systemRole: 'superadmin', tokenHash: 'private' }
     },
   }
   const request = () => ({
     headers: new Headers({ Authorization: `SyncShow ${token}` }),
     payload,
+    user: { id: 22, preferredLanguage: 'en' },
     url: 'https://community.example.test/api/community/service-documents',
   })
   const list = managerServiceDocumentEndpoints.find(endpoint => (
@@ -444,7 +457,24 @@ test('approved SyncShow planner requests enforce read and write scopes', async (
 
   const readable = await list(request() as never)
   assert.equal(readable.status, 200)
-  assert.deepEqual(await readable.json(), { schemaVersion: 1, items: [] })
+  assert.deepEqual(await readable.json(), {
+    schemaVersion: 1, items: [], workspaceLanguage: 'ru', workspaceLanguageSource: 'device',
+  })
+  assert.equal(profileReads, 1)
+
+  scopes = []
+  const deniedRead = await list(request() as never)
+  assert.equal(deniedRead.status, 401)
+  assert.equal(profileReads, 1, 'An unauthorized connection cannot look up a profile')
+  scopes = ['syncshow:service-documents:read']
+  membershipActive = false
+  const removedManager = await list(request() as never)
+  assert.equal(removedManager.status, 403)
+  assert.equal(profileReads, 1, 'Removed membership cannot look up a profile')
+  membershipActive = true
+  preferredLanguage = 'unsupported'
+  const fallback = await list(request() as never)
+  assert.equal((await fallback.json() as AnyRecord).workspaceLanguage, 'en')
 
   const deniedWrite = await create(request() as never)
   assert.equal(deniedWrite.status, 401)
@@ -460,6 +490,35 @@ test('approved SyncShow planner requests enforce read and write scopes', async (
     (await writeReachedBodyValidation.json() as AnyRecord).code,
     'INVALID_REQUEST',
   )
+})
+
+test('cookie-authenticated service lists mark the account language without reading another profile', async () => {
+  const payload = {
+    config: { cors: '*' },
+    logger: { error: () => undefined },
+    find: async ({ collection, where }: AnyRecord) => {
+      if (collection === 'communities') return { docs: [{ id: 7 }] }
+      if (collection === 'memberships') {
+        assert.equal(where.and[0].user.equals, 22)
+        assert.equal(where.and[1].community.equals, 7)
+        return { docs: [{ id: 52, community: 7, user: 22, role: 'leader' }] }
+      }
+      if (collection === 'service-documents') return { docs: [] }
+      throw new Error(`Unexpected collection: ${collection}`)
+    },
+    findByID: async () => { throw new Error('Account language comes from the authenticated account') },
+  }
+  const list = managerServiceDocumentEndpoints.find(endpoint => (
+    endpoint.path === '/community/service-documents' && endpoint.method === 'get'
+  ))!.handler
+  const response = await list({
+    headers: new Headers(), payload, user: { id: 22, preferredLanguage: 'ru' },
+    url: 'https://community.example.test/api/community/service-documents',
+  } as never)
+  assert.equal(response.status, 200)
+  assert.deepEqual(await response.json(), {
+    schemaVersion: 1, items: [], workspaceLanguage: 'ru', workspaceLanguageSource: 'account',
+  })
 })
 
 test('service-document change locks have their required Payload relation column', () => {

@@ -1,4 +1,5 @@
 export type WorkspaceLanguage = 'en' | 'ru'
+export const WORKSPACE_LANGUAGE_EVENT = 'heritage-workspace-language'
 
 export function workspaceLanguage(value: unknown): WorkspaceLanguage {
   return value === 'ru' ? 'ru' : 'en'

@@ -1,9 +1,9 @@
 'use client'
 import { useMemo, useSyncExternalStore } from 'react'
-import { workspaceLanguage, type WorkspaceLanguage } from '../lib/workspaceLanguage'
+import { WORKSPACE_LANGUAGE_EVENT, workspaceLanguage, type WorkspaceLanguage } from '../lib/workspaceLanguage'
 import { translateWorkspaceText, type WorkspaceTextVariables } from '../lib/workspaceText'
 
-export const WORKSPACE_LANGUAGE_EVENT = 'heritage-workspace-language'
+export { WORKSPACE_LANGUAGE_EVENT } from '../lib/workspaceLanguage'
 export function documentWorkspaceLanguage(): WorkspaceLanguage {
   if (typeof document === 'undefined') return 'en'
   return workspaceLanguage(document.documentElement.lang.split('-')[0])

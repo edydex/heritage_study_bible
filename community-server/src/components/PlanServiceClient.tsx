@@ -1,5 +1,6 @@
 'use client'
 import { useWorkspaceText } from './useWorkspaceText'
+import { applyDeviceWorkspaceLanguage } from '../lib/deviceWorkspaceLanguage'
 import './workspace-editor.css'
 import VersionHistoryDialog from './VersionHistoryDialog'
 import SaveConflictDialog from './SaveConflictDialog'
@@ -503,6 +504,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     setError(null)
     try {
       const result = await jsonRequest(ENDPOINT)
+      applyDeviceWorkspaceLanguage(result)
       setSummaries(result.items || [])
     } catch (caught) {
       setError(errorText(caught))
