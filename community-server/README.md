@@ -25,6 +25,11 @@ email delivery timestamps, acceptance timestamps, and the current church role.
 Existing accounts keep their access. **Account Settings → Workspace language**
 changes the signed-in person's menus without translating slide content.
 
+Prepare opens with the service order on the left, slide thumbnails in the center,
+and the selected output preview on the right. Click a thumbnail to preview it,
+double-click to edit, or right-click for slide actions. The **Slides / Edit**
+control switches views without losing focused text.
+
 Slide text saves after a short idle pause, including text that still has focus.
 The Save button and **Ctrl/Cmd+S** create a manual checkpoint. Open **Version
 history** from its visible button or by right-clicking Save. Automatic saves
@@ -43,8 +48,9 @@ address on their first slide, followed by continuation text. Sermon hints descri
 the next slide; the sermon title's Slide Settings can disable those hints.
 
 SyncShow uses this same editor, with private local caching, offline drafts and
-reconnection conflict review. In Show, **Adjust** saves edits backstage; **Apply
-to Show** compiles and verifies the draft before updating the projected slides.
+reconnection conflict review. In Show, **Adjust** saves edits backstage. Clicking
+the slide again or advancing compiles and verifies the latest draft before
+updating the projected slides; the current screen stays stable while typing.
 
 The additive `20261001_220000_people_language` and
 `20261001_230000_service_save_history` migrations add language preferences and
