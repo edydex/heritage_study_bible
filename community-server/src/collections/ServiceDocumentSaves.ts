@@ -18,6 +18,7 @@ export const ServiceDocumentSaves: CollectionConfig = {
     { name: 'community', type: 'relationship', relationTo: 'communities', required: true, index: true },
     { name: 'serviceDocument', type: 'relationship', relationTo: 'service-documents', required: true, index: true },
     { name: 'requestId', type: 'text', required: true, maxLength: 200 },
+    { name: 'requestHash', type: 'text', required: true, minLength: 64, maxLength: 64 },
     { name: 'syncVersion', type: 'number', required: true, min: 1 },
     { name: 'revision', type: 'text', required: true },
     { name: 'saveKind', type: 'select', required: true, options: ['automatic', 'manual', 'restore'] },

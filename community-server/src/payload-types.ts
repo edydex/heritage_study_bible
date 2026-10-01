@@ -1044,6 +1044,7 @@ export interface ServiceDocumentSave {
   community: number | Community;
   serviceDocument: number | ServiceDocument;
   requestId: string;
+  requestHash: string;
   syncVersion: number;
   revision: string;
   saveKind: 'automatic' | 'manual' | 'restore';
@@ -2100,6 +2101,7 @@ export interface ServiceDocumentSavesSelect<T extends boolean = true> {
   community?: T;
   serviceDocument?: T;
   requestId?: T;
+  requestHash?: T;
   syncVersion?: T;
   revision?: T;
   saveKind?: T;

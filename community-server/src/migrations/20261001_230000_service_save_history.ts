@@ -7,7 +7,7 @@ export async function up({ db }: MigrateUpArgs) {
       "id" serial PRIMARY KEY,
       "community_id" integer NOT NULL REFERENCES "communities"("id") ON DELETE RESTRICT,
       "service_document_id" integer NOT NULL REFERENCES "service_documents"("id") ON DELETE RESTRICT,
-      "request_id" varchar NOT NULL, "sync_version" numeric NOT NULL, "revision" varchar NOT NULL,
+      "request_id" varchar NOT NULL, "request_hash" varchar NOT NULL, "sync_version" numeric NOT NULL, "revision" varchar NOT NULL,
       "save_kind" "enum_service_document_saves_save_kind" NOT NULL,
       "saved_by" varchar NOT NULL, "saved_at" timestamp(3) with time zone NOT NULL,
       "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,

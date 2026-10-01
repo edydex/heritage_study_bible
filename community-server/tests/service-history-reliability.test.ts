@@ -7,7 +7,7 @@ import test from 'node:test'
 import sharp from 'sharp'
 import core from '../packages/service-core/node.js'
 import { serviceHistoryEndpoints } from '../src/endpoints/serviceHistory'
-import { mutateServiceDocument } from '../src/endpoints/syncShow'
+import { mutateServiceDocument, serviceSaveRequestHash } from '../src/endpoints/syncShow'
 import { storeServiceDocumentAsset } from '../src/lib/syncshow/ServiceDocumentAssetStore'
 
 type RecordValue=Record<string,any>
@@ -20,7 +20,7 @@ function fixture(assets={}) {
   const journal={id:61,community:17,serviceDocument:49,syncId:project.id,syncVersion:1,revision:createHash('sha256').update(source).digest('hex'),documentSource:source,status:'planning',title:project.title,serviceDate:project.serviceDate,changedAt:'2026-10-01T12:00:00.000Z'}
   const newerSource=core.serializeHeritageServiceDocument(core.createHeritageServiceDocument({...project,title:'Someone else saved later',revision:3}))
   const current={...journal,id:49,syncVersion:3,revision:createHash('sha256').update(newerSource).digest('hex'),documentSource:newerSource,title:'Someone else saved later'}
-  const saved={id:71,community:17,serviceDocument:49,requestId:'acknowledged-request',syncVersion:1,revision:journal.revision,saveKind:'manual',savedBy:'Pastor',savedAt:journal.changedAt}
+  const saved={id:71,community:17,serviceDocument:49,requestId:'acknowledged-request',requestHash:serviceSaveRequestHash({syncId:current.syncId,baseSyncVersion:1,baseRevision:journal.revision,revision:journal.revision,documentSource:journal.documentSource,status:journal.status} as never,'manual'),syncVersion:1,revision:journal.revision,saveKind:'manual',savedBy:'Pastor',savedAt:journal.changedAt}
   return {current,journal,saved}
 }
 function request(data:ReturnType<typeof fixture>,options:{member?:boolean;checkpoint?:RecordValue}={}) {
@@ -45,9 +45,22 @@ test('a lost unchanged manual save response replays its exact version after anot
   assert.equal(JSON.stringify(data.current),before)
   assert.deepEqual(counts,{commits:1,rollbacks:0,writes:0})
 })
+test('unchanged manual checkpoints persist the canonical original save request hash',async()=>{
+  const data=fixture(),{req,counts}=request(data)
+  let recorded:RecordValue|undefined
+  req.payload.create=async(input:any)=>{counts.writes++;recorded=input;return {id:72,...input.data}}
+  const input={...write(data),baseSyncVersion:data.current.syncVersion,baseRevision:data.current.revision,revision:data.current.revision,documentSource:data.current.documentSource}
+  const result=await mutateServiceDocument(req as never,17,input as never,'new-checkpoint',{editorSave:{saveKind:'manual',savedBy:'Pastor'}})
+  assert.equal(result.document.syncVersion,data.current.syncVersion)
+  assert.equal(recorded?.collection,'service-document-saves')
+  assert.equal(recorded?.context.serviceDocumentSave,true)
+  assert.equal(recorded?.data.requestId,'new-checkpoint')
+  assert.equal(recorded?.data.requestHash,serviceSaveRequestHash(input as never,'manual'))
+  assert.deepEqual(counts,{commits:1,rollbacks:0,writes:1})
+})
 test('checkpoint retries reject changed payloads and cannot replay another church save',async()=>{
   const data=fixture()
-  for(const changed of [{...write(data),documentSource:data.current.documentSource},{...write(data),status:'ready'}]) {
+  for(const changed of [{...write(data),documentSource:data.current.documentSource},{...write(data),status:'ready'}, {...write(data),baseSyncVersion:2}, {...write(data),baseRevision:data.current.revision}]) {
     const {req,counts}=request(data)
     await assert.rejects(()=>mutateServiceDocument(req as never,17,changed as never,'acknowledged-request',{editorSave:{saveKind:'manual',savedBy:'Pastor'}}),(error:any)=>error.code==='IDEMPOTENCY_CONFLICT'&&error.status===409)
     assert.deepEqual(counts,{commits:0,rollbacks:1,writes:0})

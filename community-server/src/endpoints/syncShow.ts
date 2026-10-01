@@ -1377,14 +1377,21 @@ async function recordServiceDocumentChange(
 
 type EditorSaveEvent = { saveKind: 'automatic' | 'manual' | 'restore'; savedBy: string }
 
-async function recordEditorSave(req: PayloadRequest, communityId: number, document: RequestDoc, requestId: string, event?: EditorSaveEvent) {
+export function serviceSaveRequestHash(write: ServiceDocumentWrite, saveKind: EditorSaveEvent['saveKind']) {
+  return createHash('sha256').update(JSON.stringify({
+    syncId: write.syncId, baseSyncVersion: write.baseSyncVersion, baseRevision: write.baseRevision,
+    revision: write.revision, documentSource: write.documentSource, status: write.status, saveKind,
+  }), 'utf8').digest('hex')
+}
+
+async function recordEditorSave(req: PayloadRequest, communityId: number, document: RequestDoc, requestId: string, write: ServiceDocumentWrite, event?: EditorSaveEvent) {
   if (!event) return
   const existing = await req.payload.find({ collection: 'service-document-saves' as never, req, overrideAccess: true, depth: 0, limit: 1,
     where: { and: [{ serviceDocument: { equals: Number(document.id) } }, { requestId: { equals: requestId } }] } })
   if (existing.docs.length) return
   await req.payload.create({ collection: 'service-document-saves' as never, req, overrideAccess: true,
     context: { serviceDocumentSave: true }, data: {
-      community: communityId, serviceDocument: Number(document.id), requestId,
+      community: communityId, serviceDocument: Number(document.id), requestId, requestHash: serviceSaveRequestHash(write, event.saveKind),
       syncVersion: Number(document.syncVersion), revision: String(document.revision),
       saveKind: event.saveKind, savedBy: event.savedBy, savedAt: new Date().toISOString(),
     } as never })
@@ -1395,6 +1402,9 @@ async function replayEditorSave(req: PayloadRequest, communityId: number, curren
   const saved = (await req.payload.find({ collection: 'service-document-saves', req, overrideAccess: true, depth: 0, limit: 1,
     where: { and: [{ community: { equals: communityId } }, { serviceDocument: { equals: Number(current.id) } }, { requestId: { equals: requestId } }] } })).docs[0]
   if (!saved) return null
+  if (saved.requestHash !== serviceSaveRequestHash(write, event.saveKind)) {
+    throw new SyncShowProtocolError('IDEMPOTENCY_CONFLICT', 'This save request was already used for a different edit. Start a new save request.', 409)
+  }
   const snapshot = (await req.payload.find({ collection: 'syncshow-service-document-changes', req, overrideAccess: true, showHiddenFields: true, depth: 0, limit: 1,
     where: { and: [{ community: { equals: communityId } }, { serviceDocument: { equals: Number(current.id) } }, { syncVersion: { equals: Number(saved.syncVersion) } }] } })).docs[0]
   if (!snapshot || saved.saveKind !== event.saveKind || saved.revision !== write.revision
@@ -1484,7 +1494,7 @@ export async function mutateServiceDocument(
         } as never,
       }))
       await recordServiceDocumentChange(req, communityId, created)
-      await recordEditorSave(req, communityId, created, idempotencyKey, options.editorSave)
+      await recordEditorSave(req, communityId, created, idempotencyKey, write, options.editorSave)
       await adapter.commitTransaction(transactionId)
       committed = true
       return { document: created, created: true }
@@ -1519,7 +1529,7 @@ export async function mutateServiceDocument(
     // Manual checkpoints of unchanged content must preserve Ready approval,
     // and must not insert a duplicate syncVersion in the content journal.
     if (String(current.revision) === write.revision && String(current.documentSource) === write.documentSource && String(current.status) === write.status) {
-      await recordEditorSave(req, communityId, current, idempotencyKey, options.editorSave)
+      await recordEditorSave(req, communityId, current, idempotencyKey, write, options.editorSave)
       await adapter.commitTransaction(transactionId)
       committed = true
       return { document: current, created: false }
@@ -1538,7 +1548,7 @@ export async function mutateServiceDocument(
       } as never,
     }))
     await recordServiceDocumentChange(req, communityId, updated)
-    await recordEditorSave(req, communityId, updated, idempotencyKey, options.editorSave)
+    await recordEditorSave(req, communityId, updated, idempotencyKey, write, options.editorSave)
     await adapter.commitTransaction(transactionId)
     committed = true
     return { document: updated, created: false }
