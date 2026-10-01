@@ -175,7 +175,12 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
   return <><div ref={element} className="heritage-service-planner__editable-text" style={monochrome ? {color:'#111111'} : undefined} data-role={role} data-fit-text data-empty={!text.length} data-placeholder={readOnly ? undefined : placeholder} aria-placeholder={readOnly ? undefined : placeholder}
     contentEditable={readOnly ? false : 'plaintext-only'} suppressContentEditableWarning
     role={!readOnly || canFormat ? 'textbox' : undefined} aria-readonly={readOnly && canFormat || undefined} aria-multiline={!readOnly || canFormat || undefined} aria-label={label} tabIndex={readOnly && canFormat ? 0 : undefined}
-    onInput={input} onFocus={()=>{editStart.current=draft.current;focusEmpty()}} onPointerUp={focusEmpty} onBlur={event => { if (!toolbar.current?.contains(event.relatedTarget as Node)) { commit(); rangeRef.current = null; setRange(null) } }}
+    onInput={input} onFocus={()=>{editStart.current=draft.current;focusEmpty()}} onPointerUp={focusEmpty} onBlur={event => { if (!toolbar.current?.contains(event.relatedTarget as Node)) {
+      commit(); rangeRef.current = null; setRange(null)
+      // An inactive browser selection would mask the color the user just chose.
+      const selected=window.getSelection()
+      if(element.current?.contains(selected?.anchorNode || null))selected?.removeAllRanges()
+    } }}
     onPaste={event => { if (readOnly) return; event.preventDefault(); insertPlain(event.clipboardData.getData('text/plain')) }}
     onKeyDown={event => {
       if (canFormat && (event.metaKey || event.ctrlKey) && ['b','i','u'].includes(event.key.toLowerCase())) { event.preventDefault(); const key = event.key.toLowerCase() === 'b' ? 'weight' : event.key.toLowerCase() === 'i' ? 'italic' : 'underline'; const value = key === 'weight' ? '700' : true; apply({ [key]: active(key, value) ? (key === 'weight' ? '400' : false) : value }); return }

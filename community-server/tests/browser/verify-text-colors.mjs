@@ -54,6 +54,8 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  await expect(text.locator('span').first()).toHaveCSS('color','rgb(147, 51, 234)')
  await expect(text.locator('span').first()).toHaveCSS('font-weight','700')
  await expect(text.locator('span').first()).toHaveCSS('background-color','rgb(37, 99, 235)')
+ await page.getByRole('tab',{name:'English',exact:true}).click()
+ assert.equal(await selected(),'','Leaving text editing must reveal the actual authored colors, without an inactive selection overlay')
  await select(0,4)
  await (await palette('Text color')).getByRole('button',{name:'Red',exact:true}).click()
  await page.getByRole('button',{name:'Save sermon slides',exact:true}).click()
