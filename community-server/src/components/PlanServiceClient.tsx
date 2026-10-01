@@ -406,20 +406,42 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   const [servicePreviewOpen, setServicePreviewOpen] = useState(false)
   const [workspaceView, setWorkspaceView] = useState<'slides' | 'edit'>('slides')
   const [showDocumentId, setShowDocumentId] = useState<string | null>(null)
+  const showDocumentRef = useRef<string | null>(null)
+  const [liveCueId, setLiveCueId] = useState<string | null>(null)
+  const [showTakeError, setShowTakeError] = useState<string | null>(null)
   useEffect(() => {
     // SyncShow enables this only for its active Adjust surface. Ordinary web
     // Prepare clicks remain previews; the native host authorizes every take.
     const receiveShowMode = (event: MessageEvent) => {
-      if (event.source !== window || event.origin !== window.location.origin || event.data?.type !== 'heritage-editor:show-mode') return
-      if (event.data.enabled === false) setShowDocumentId(null)
-      else if (event.data.enabled === true && typeof event.data.syncId === 'string' && event.data.syncId.length <= 200) setShowDocumentId(event.data.syncId)
+      if (event.source !== window || event.origin !== window.location.origin) return
+      if (event.data?.type === 'heritage-editor:taken') {
+        if (!showDocumentRef.current || event.data.syncId !== showDocumentRef.current) return
+        if (event.data.ok === true) setShowTakeError(null)
+        else if (event.data.ok === false) setShowTakeError(typeof event.data.error === 'string' ? event.data.error.slice(0,2000) : 'The slide could not be shown. The current screen is unchanged.')
+        return
+      }
+      if (event.data?.type !== 'heritage-editor:show-mode') return
+      if (event.data.enabled === false) {showDocumentRef.current=null;setShowDocumentId(null);setLiveCueId(null);setShowTakeError(null)}
+      else if (event.data.enabled === true && typeof event.data.syncId === 'string' && event.data.syncId.length <= 200) {
+        const firstActivation=showDocumentRef.current!==event.data.syncId
+        showDocumentRef.current=event.data.syncId;setShowDocumentId(event.data.syncId)
+        setLiveCueId(typeof event.data.currentCueId === 'string' ? event.data.currentCueId : null)
+        if (typeof event.data.currentCueId === 'string') {
+          const currentDraft=latestDraft.current
+          if(firstActivation && currentDraft && currentDraft.id===event.data.syncId) {
+            const row=plannerSlides(currentDraft).find(row=>row.id===event.data.currentCueId)
+            if(row){setSelectedId(row.itemId);setPreviewSlideIndex(row.index);setSelectedRowIds([row.id])}
+          }
+        }
+        if(firstActivation)setShowTakeError(null)
+      }
     }
     window.addEventListener('message', receiveShowMode)
     return () => window.removeEventListener('message', receiveShowMode)
   }, [])
   function selectThumbnail(row: PlannerSlide) {
     selectSlide(row, {ctrlKey: true})
-    if (showDocumentId === envelope?.syncId && row.cue) window.postMessage({type:'heritage-editor:take',syncId:envelope.syncId,cueId:row.id},window.location.origin)
+    if (showDocumentId === envelope?.syncId && row.cue) {setShowTakeError(null);window.postMessage({type:'heritage-editor:take',syncId:envelope.syncId,cueId:row.id},window.location.origin)}
   }
   function chooseWorkspaceView(view: 'slides' | 'edit') {
     if (view === workspaceView) return
@@ -1431,6 +1453,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
         mediaUrl={assetId=>mediaPreviews[assetId] || (envelope?.project.assets?.[assetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(assetId)}` : undefined)}
         onClose={row=>{setServicePreviewOpen(false);if(row) selectSlide(row)}} /> : null}
       {error && !saveConflict ? <p className="heritage-service-planner__error" role="alert">{t(error)}</p> : null}
+      {showTakeError && !error && !saveConflict ? <p className="heritage-service-planner__error" role="alert">{t('Slide was not shown: {error}',{error:t(showTakeError)})}</p> : null}
       {saveConflict ? <p className="heritage-service-planner__error" role="alert">{t('Saving paused because this document changed elsewhere. Your latest draft is safe here.')} <button type="button" onClick={() => void reviewSaveConflict()}>{t('Review saved version')}</button></p> : null}
       {recoveryConflict ? <p className="heritage-service-planner__error" role="alert">{t("A recovered local draft differs from the server version.")} <button type="button" onClick={() => { latestDraft.current = recoveryConflict; setDraft(recoveryConflict); dirtyRef.current = true; setDirty(true); setRecoveryConflict(null); setAutosaveBlocked(true); setNotice('Recovered draft is open for review. Use Save to keep it as a new version.'); }}>{t("Review recovered draft")}</button> <button type="button" onClick={() => setHistoryOpen(true)}>{t("Review saved versions")}</button> <button type="button" onClick={() => { if (!globalThis.confirm(t('Discard the recovered local draft? The saved server versions will remain in Version history.'))) return; try { localStorage.removeItem(`heritage-planner-draft:${envelope?.syncId}`) } catch {} setRecoveryConflict(null) }}>{t("Discard recovered draft")}</button></p> : null}
       {!localRecoveryAvailable && dirty ? <p className="heritage-service-planner__error" role="alert">{t("Local recovery storage is full or unavailable. Keep this page open until the server confirms your changes are saved.")}</p> : null}
@@ -1474,14 +1497,14 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
           <div className="heritage-service-planner__service-picker">
             <label>
               <span>{t("Current service")}</span>
-              <select value={envelope?.syncId || ''} disabled={busy} onChange={event => openService(event.target.value)}>
+              <select value={envelope?.syncId || ''} disabled={busy || Boolean(showDocumentId)} onChange={event => openService(event.target.value)}>
                 <option value="" disabled>{t("Choose a service…")}</option>
                 {summaries.map(summary => <option key={summary.syncId} value={summary.syncId}>{summary.serviceDate} · {summary.title}</option>)}
               </select>
             </label>
             <button type="button" aria-label={t("Refresh services")} disabled={busy} onClick={() => void loadList()}>↻</button>
           </div>
-          <NewService onCreated={useEnvelope} onCopy={draft && !busy ? copyService : undefined} />
+          {!showDocumentId ? <NewService onCreated={useEnvelope} onCopy={draft && !busy ? copyService : undefined} /> : null}
           {envelope && (dirty || busy || desiredStatus !== envelope.status
             ? <p className="heritage-service-planner__save-state">{t("Save this service to open translation settings.")}</p>
             : <p><a href={`/admin/live-translation?service=${encodeURIComponent(envelope.syncId)}`} target="_blank" rel="noopener noreferrer">{t("Translation settings ↗")}</a></p>)}
@@ -1573,7 +1596,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
           </div> : null}
         </aside>
 
-        {draft && workspaceView === 'slides' && !paletteOpen ? <ServicePreview inline showMode={showDocumentId === envelope?.syncId} project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
+        {draft && workspaceView === 'slides' && !paletteOpen ? <ServicePreview inline showMode={showDocumentId === envelope?.syncId} liveCueId={liveCueId || undefined} project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
           mediaUrl={assetId => mediaPreviews[assetId] || (envelope?.project.assets?.[assetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(assetId)}` : undefined)}
           onSelect={selectThumbnail} onChannel={id => setPreviewChannel(id as ChannelId)}
           onSlideMenu={(row,x,y) => {selectSlide(row,{ctrlKey:true});setMenu({row,ids:[row.id],x,y})}}

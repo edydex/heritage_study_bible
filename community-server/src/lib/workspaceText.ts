@@ -3,6 +3,11 @@ import type { WorkspaceLanguage } from './workspaceLanguage'
 
 export const russianWorkspaceText: Readonly<Record<string, string>> = {
   "Workspace view": "Вид рабочей области",
+  "On screen": "На экране",
+  "Slide was not shown: {error}": "Слайд не показан: {error}",
+  "The slide could not be shown. The current screen is unchanged.": "Не удалось показать слайд. Текущий экран остался прежним.",
+  "The live slide was removed from the draft. Choose another slide, or return to Load. The current screen is unchanged.": "Показанный слайд удалён из черновика. Выберите другой слайд или вернитесь к загрузке. Текущий экран остался прежним.",
+  "That slide was removed from the draft. Choose another slide, or return to Load. The current screen is unchanged.": "Этот слайд удалён из черновика. Выберите другой слайд или вернитесь к загрузке. Текущий экран остался прежним.",
   "{title} is open at Community version {version}.": "Открыто: {title}. Версия Community: {version}.",
   "{title} is open from this computer.": "Открыто с этого компьютера: {title}.",
   "Click a slide to show it · Double-click to edit": "Нажмите слайд, чтобы показать · Двойной щелчок для редактирования",

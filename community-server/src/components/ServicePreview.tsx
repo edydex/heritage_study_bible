@@ -5,10 +5,10 @@ import ServiceSlidePreview from './ServiceSlidePreview'
 import { isSongTitleSlide, type PlannerSlide } from './plannerSlides'
 
 const CHANNELS=['english','russian','media']
-export default function ServicePreview({project,rows,initialSlideId,initialChannel,dirty,mediaUrl,onClose,inline=false,showMode=false,onSelect,onChannel,onSlideMenu}: {
+export default function ServicePreview({project,rows,initialSlideId,initialChannel,dirty,mediaUrl,onClose,inline=false,showMode=false,liveCueId,onSelect,onChannel,onSlideMenu}: {
   project: Record<string,any>; rows: PlannerSlide[]; initialSlideId?: string; initialChannel: string; dirty: boolean;
   mediaUrl: (assetId:string)=>string | undefined; onClose: (row?:PlannerSlide)=>void;
-  inline?: boolean; showMode?: boolean; onSelect?: (row:PlannerSlide)=>void; onChannel?: (id:string)=>void; onSlideMenu?: (row:PlannerSlide,x:number,y:number)=>void
+  inline?: boolean; showMode?: boolean; liveCueId?: string; onSelect?: (row:PlannerSlide)=>void; onChannel?: (id:string)=>void; onSlideMenu?: (row:PlannerSlide,x:number,y:number)=>void
 }) {
   const t = useWorkspaceText()
   const slides=useMemo(()=>rows.filter(row=>row.cue),[rows])
@@ -47,11 +47,11 @@ export default function ServicePreview({project,rows,initialSlideId,initialChann
           <div role="group" aria-label={t("Thumbnail size")}><button type="button" aria-label={t("Smaller thumbnails")} disabled={size<=160} onClick={()=>setSize(value=>Math.max(160,value-40))}>−</button><button type="button" aria-label={t("Larger thumbnails")} disabled={size>=380} onClick={()=>setSize(value=>Math.min(380,value+40))}>+</button></div>
         </div>
         <div ref={grid} tabIndex={0} aria-label={t("Slide tiles")} className="heritage-service-preview__grid" style={{'--preview-tile-size':`${size}px`} as React.CSSProperties}>
-          {rows.map(row=><Fragment key={row.id}>{!row.cue || isSongTitleSlide(row) || row.sermonTitle || row.readingTitle ? <h3 className="heritage-service-preview__section" data-kind={row.kind}>{row.title}</h3> : null}{row.cue ? <button type="button" data-preview-tile={row.id} aria-label={t('Preview slide {number}: {title}', { number: row.number || 0, title: row.title })} aria-pressed={active?.id===row.id}
+          {rows.map(row=><Fragment key={row.id}>{!row.cue || isSongTitleSlide(row) || row.sermonTitle || row.readingTitle ? <h3 className="heritage-service-preview__section" data-kind={row.kind}>{row.title}</h3> : null}{row.cue ? <button type="button" data-preview-tile={row.id} data-live={showMode && liveCueId===row.id || undefined} aria-label={t('Preview slide {number}: {title}', { number: row.number || 0, title: row.title })} aria-pressed={active?.id===row.id}
             onClick={()=>choose(row)} onDoubleClick={()=>onClose(row)} onContextMenu={event=>{if(onSlideMenu){event.preventDefault();onSlideMenu(row,event.clientX,event.clientY)}}}
             onKeyDown={event=>{if(onSlideMenu && (event.key==='ContextMenu' || (event.shiftKey && event.key==='F10'))){event.preventDefault();const bounds=event.currentTarget.getBoundingClientRect();onSlideMenu(row,bounds.left,bounds.bottom)}}}>
             <div className="heritage-service-preview__thumbnail" aria-hidden="true"><ServiceSlidePreview project={project} rows={rows} slide={row} channelId={outputChannel} mediaUrl={mediaUrl} /></div>
-            <span className="heritage-service-preview__tile-caption"><b>{row.number}</b><span>{row.title}</span>{row.kind==='blank'?<small>{t("Blank")}</small>:row.cue?.channels?.[outputChannel]?.mode==='hide'?<small>{t("Hidden")}</small>:null}</span>
+            <span className="heritage-service-preview__tile-caption"><b>{row.number}</b><span>{row.title}</span>{showMode && liveCueId===row.id ? <small className="heritage-slide-overview__live-badge">{t('On screen')}</small> : row.kind==='blank'?<small>{t("Blank")}</small>:row.cue?.channels?.[outputChannel]?.mode==='hide'?<small>{t("Hidden")}</small>:null}</span>
           </button> : null}</Fragment>)}
           {!slides.length ? <p>{t("No slides in this service yet.")}</p> : null}
         </div>

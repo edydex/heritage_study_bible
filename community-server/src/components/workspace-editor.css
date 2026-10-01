@@ -93,6 +93,8 @@
 .heritage-slide-overview .heritage-service-preview__section[data-kind="song"] { background: #2b3948; border-color: #73a2d3; }
 .heritage-slide-overview .heritage-service-preview__grid > button { background: #2a2d33; border-color: #454b55; border-radius: .25rem; }
 .heritage-slide-overview .heritage-service-preview__grid > button[aria-pressed="true"] { border-color: #83baff; box-shadow: 0 0 0 1px #83baff; }
+.heritage-slide-overview .heritage-service-preview__grid > button[data-live] { border-color: #e6b36a; box-shadow: 0 0 0 1px #e6b36a; }
+.heritage-slide-overview .heritage-slide-overview__live-badge { color: #f1c68e; font-size: .65rem; }
 .heritage-slide-overview .heritage-service-preview__tile-caption b { color: #bfcada; }
 .heritage-slide-overview .heritage-service-preview__controls { padding: .75rem; gap: .75rem; background: #272a30; border-color: #3e444d; }
 .heritage-slide-overview .heritage-service-preview__draft { order: -3; text-transform: uppercase; letter-spacing: .08em; font-size: .65rem; color: #b7bfcc; }
