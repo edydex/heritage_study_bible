@@ -43,7 +43,7 @@ function presentationTitleBlocks(item, resolvedByChannel, channelId) {
   const resolved = resolvedByChannel[channelId];
   if (!presentation || resolved.mode === 'derive' || resolved.mode === 'hidden') return null;
   const primaryId = presentationPrimaryChannelId(item, 'title');
-  const unified = presentation.stackedTranslation || Boolean(presentation.slidePrimaryChannelIds?.title);
+  const unified = presentation.stackedTranslation || presentation.showTitleTranslation !== undefined || Boolean(presentation.slidePrimaryChannelIds?.title);
   const primary = unified ? resolvedByChannel[primaryId].resource.document : resolved.resource.document;
   const secondaryId = presentationSecondaryChannelId(item, primaryId);
   const secondary = (presentation.showTitleTranslation ?? presentation.stackedTranslation) && secondaryId

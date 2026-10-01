@@ -71,6 +71,14 @@ test('song title translation can be hidden independently and a solo override edi
   rows=plannerSlides(roundTrip(project))
   assert.equal(rows[2].cue!.channels.english.blocks[0].text,'Solo Russian edit')
   assert.equal(rows[2].cue!.channels.russian.blocks[0].text,'Solo Russian edit')
+  project=JSON.parse(JSON.stringify(project))
+  delete project.items.song.songPresentation.slidePrimaryChannelIds.title
+  project.items.song.songPresentation.showTitleTranslation=true
+  rows=plannerSlides(project)
+  assert.equal(rows[0].cue!.channels.english.blocks[0].text,'Песня')
+  assert.equal(rows[0].cue!.channels.english.blocks[1].text,'A Song')
+  assert.equal(plannerPreview(rows,rows[0],'english').next.text,'English one')
+  assert.equal(plannerPreview(rows,rows[0],'media').next.text,'Русский one')
 })
 
 test('long Scripture projects the full requested address once; reflow and source checksums remain exact',()=>{

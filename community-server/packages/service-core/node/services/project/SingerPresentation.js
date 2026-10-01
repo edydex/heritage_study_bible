@@ -35,7 +35,7 @@ function singerSourceCue(cue, sourceChannelId) {
 // useful when the next content is Scripture, a quotation, or a new point.
 function nextSlideHint(cue, channelId) {
   if (!cue) return '';
-  const source = singerSourceCue(cue, channelId);
+  const source = cue.channels?.[channelId]?.mode === 'condensed' ? singerSourceCue(cue, channelId) : cue;
   const output = source.channels?.[channelId];
   if (!output || output.mode === 'hide') return '';
   const blocks = output.blocks || [];
