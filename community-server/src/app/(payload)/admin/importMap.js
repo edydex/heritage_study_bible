@@ -5,6 +5,7 @@ import { default as default_87ed5457306afb97c77d231d110fb89d } from '@/component
 import { default as default_145c1c3129d7134cb5a8d152b65cb7d4 } from '@/components/SongPublicationCell'
 import { default as default_25b9636a1e769af9196ea72af4ecbc87 } from '@/components/SongPublicationField'
 import { default as default_09a466818a6e4e8ad7509a2278d7389d } from '@/components/SongSlugField'
+import { default as default_638cc3a6244187b6f69e5748f348c5ef } from '@/components/SongPptxImport'
 import { default as default_efacbf2b3cb153771eef2d90d3988c93 } from '@/components/SongTitleCell'
 import { default as default_f108fb54074db7e7faa71a5bda493c40 } from '@/components/SongLyricsField'
 import { default as default_f9b16f304a5590964bea58d15adcf605 } from '@/components/SongChordsRow'
@@ -57,6 +58,7 @@ export const importMap = {
   "@/components/SongPublicationCell#default": default_145c1c3129d7134cb5a8d152b65cb7d4,
   "@/components/SongPublicationField#default": default_25b9636a1e769af9196ea72af4ecbc87,
   "@/components/SongSlugField#default": default_09a466818a6e4e8ad7509a2278d7389d,
+  "@/components/SongPptxImport#default": default_638cc3a6244187b6f69e5748f348c5ef,
   "@/components/SongTitleCell#default": default_efacbf2b3cb153771eef2d90d3988c93,
   "@/components/SongLyricsField#default": default_f108fb54074db7e7faa71a5bda493c40,
   "@/components/SongChordsRow#default": default_f9b16f304a5590964bea58d15adcf605,

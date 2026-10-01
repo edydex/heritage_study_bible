@@ -3,7 +3,7 @@ import type { CollectionConfig, Field } from 'payload'
 import { captureSongPublicationIntent, prepareSongPublication, withdrawSongPublicLinks } from '@/lib/songPublication'
 import { createCommunityContent, manageCommunityContent, readSongsByVisibility } from '@/access'
 import { communityContentFields } from '@/fields/communityContentFields'
-import { fillContentSlug } from '@/lib/contentAdmin'
+import { fillSongSlug } from '@/lib/contentAdmin'
 import { assignSongCommunity } from '@/lib/songEditor'
 import { prepareSongTags, sortSongLibrary } from '@/lib/songTags'
 import { normalizeSyncDocuments } from '@/lib/syncShowProtocol'
@@ -44,7 +44,7 @@ export const Songs: CollectionConfig = {
     afterChange: [withdrawSongPublicLinks],
     beforeValidate: [
       assignSongCommunity,
-      fillContentSlug,
+      fillSongSlug,
       enforceSongMemberSharingMutation,
       prepareSongSyncFields,
     ],
@@ -240,6 +240,7 @@ export const Songs: CollectionConfig = {
       hidden: true,
       access: { update: () => false },
     },
+    { name: 'pptxImport', type: 'ui', admin: { components: { Field: '@/components/SongPptxImport' } } },
     {
       type: 'row', admin: { className: 'heritage-song-title-row' }, fields: [
         { name: 'russianTitle', label: { en: 'Russian title', ru: 'Название на русском' }, type: 'text', admin: { width: '50%', components: { Cell: '@/components/SongTitleCell' } } },

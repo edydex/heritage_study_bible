@@ -3,7 +3,7 @@
 import { TextField, useDocumentInfo, useField, useFormFields } from '@payloadcms/ui'
 import type { TextFieldClientProps } from 'payload'
 import { useEffect, useRef, useState } from 'react'
-import { slugifyContentTitle } from '../lib/contentAdmin'
+import { slugifySongTitle } from '../lib/contentAdmin'
 import { useWorkspaceText } from './useWorkspaceText'
 
 export default function SongSlugField(props: TextFieldClientProps) {
@@ -11,7 +11,7 @@ export default function SongSlugField(props: TextFieldClientProps) {
   const { id } = useDocumentInfo()
   const title = useFormFields(([fields]) => fields.title?.value)
   const { value, setValue } = useField<string>({ path: props.path })
-  const generated = slugifyContentTitle(title)
+  const generated = slugifySongTitle(title)
   const previous = useRef(value || '')
   const [automatic, setAutomatic] = useState(() => !id && !value)
 

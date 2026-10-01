@@ -3,6 +3,14 @@ import test from 'node:test'
 import { assignSongCommunity } from '../src/lib/songEditor'
 import { songPublicationChange, songPublicationChoice } from '../src/lib/songPublicationChoice'
 import { songMemberSharingEndpoints } from '../src/endpoints/songMemberSharing'
+import { fillSongSlug, slugifySongTitle } from '../src/lib/contentAdmin'
+
+test('Russian-only imported songs get a readable address while existing links remain stable', async () => {
+  assert.equal(slugifySongTitle('Не уходи Иисус'),'ne-ukhodi-iisus')
+  assert.equal(slugifySongTitle('Speak, O Lord'),'speak-o-lord')
+  assert.deepEqual(await fillSongSlug({data:{title:'Мы славим Тебя'}} as never),{title:'Мы славим Тебя',slug:'my-slavim-tebya'})
+  assert.deepEqual(await fillSongSlug({data:{title:'Новое имя'},originalDoc:{slug:'original-link'}} as never),{title:'Новое имя',slug:'original-link'})
+})
 
 test('one publication choice includes archiving and restoring without legacy visibility', () => {
   assert.deepEqual(songPublicationChange('archived'), { status: 'archived', songbookVisibility: 'private' })

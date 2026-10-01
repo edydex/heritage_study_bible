@@ -2006,6 +2006,23 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 
 /* Song authoring: words first, optional details below. */
 .heritage-song-title-row, .heritage-song-lyrics-row { align-items: flex-start; }
+.heritage-song-pptx { margin: 0 0 1.5rem; color: var(--theme-text); }
+.heritage-song-pptx-intro { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; }
+.heritage-song-pptx small { color: var(--theme-elevation-600); line-height: 1.5; }
+.heritage-song-pptx-review { display: grid; gap: .7rem; padding: 1rem; margin-top: 1rem; border: 1px solid var(--theme-elevation-250); border-radius: .5rem; background: var(--theme-elevation-50); }
+.heritage-song-pptx-review header { display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; }
+.heritage-song-pptx-review p { margin: 0; line-height: 1.5; }
+.heritage-song-pptx-title-choice { display: flex; align-items: center; gap: .5rem; }
+.heritage-song-pptx-title-choice input { accent-color: var(--theme-success-500); }
+.heritage-song-pptx-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.heritage-song-pptx-columns > div { display: grid; gap: .5rem; align-content: start; }
+.heritage-song-pptx-review input:not([type='checkbox']), .heritage-song-pptx-review textarea { width: 100%; padding: .6rem; border: 1px solid var(--theme-elevation-300); border-radius: .3rem; background: var(--theme-input-bg); color: var(--theme-text); font: inherit; line-height: 1.5; }
+.heritage-song-pptx-review textarea { min-height: 12rem; resize: vertical; }
+.heritage-song-pptx-review input:focus-visible, .heritage-song-pptx-review textarea:focus-visible { outline: 2px solid var(--theme-success-500); outline-offset: 2px; }
+.heritage-song-pptx-review footer, .heritage-song-pptx-unsorted > div > div { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.heritage-song-pptx-unsorted { display: grid; gap: .5rem; }
+.heritage-song-pptx-unsorted > div { display: grid; gap: .5rem; padding: .7rem; border: 1px solid var(--theme-elevation-250); }
+@media (max-width: 800px) { .heritage-song-pptx-columns { grid-template-columns: 1fr; } }
 .heritage-song-lyrics { flex: 1 1 0; min-width: 0; }
 .heritage-song-lyrics .textarea { width: 100% !important; }
 .heritage-song-lyrics textarea { min-height: 16rem; height: auto; resize: none; overflow: hidden; line-height: 1.65; }
