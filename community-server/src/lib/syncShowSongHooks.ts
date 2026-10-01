@@ -47,40 +47,11 @@ export function clearSongMemberSharingReceipt(
   return next
 }
 
-/**
- * Member visibility is a separate exact-family review transaction. Payload
- * admin writes and the legacy song create/PUT lane can save only private
- * content; an ordinary edit that does not explicitly choose visibility safely
- * demotes a previously shared song and clears its active receipt pointer.
- */
-export const enforceSongMemberSharingMutation:
-CollectionBeforeValidateHook = ({
-  context,
-  data,
-  operation,
-  originalDoc,
-}) => {
+/** Legacy member sharing is retired. Songbook publication is the only UI. */
+export const enforceSongMemberSharingMutation: CollectionBeforeValidateHook = ({ data, originalDoc }) => {
   if (!data) return data
-  if (
-    (context as Record<string, unknown> | undefined)
-      ?.songMemberSharingInternalMutation === true
-  ) {
-    return data
-  }
   const incoming = data as Record<string, unknown>
   const existing = (originalDoc || {}) as Record<string, unknown>
-  const explicitVisibility = hasOwn(incoming, 'visibility')
-  const requestedVisibility = explicitVisibility
-    ? String(incoming.visibility || '')
-    : operation === 'update'
-      ? String(existing.visibility || 'private')
-      : 'private'
-  if (explicitVisibility && requestedVisibility !== 'private'
-    && (context as Record<string, unknown> | undefined)?.songbookPublicationRequested !== true) {
-    throw new Error(
-      'Signed-in member visibility requires an exact song-family rights review. Save this song as Private, then use SyncShow’s “Share with Community members” action.',
-    )
-  }
   return clearSongMemberSharingReceipt({
     ...incoming,
     visibility: 'private',

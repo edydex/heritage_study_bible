@@ -4,6 +4,7 @@ import { captureSongPublicationIntent, prepareSongPublication, withdrawSongPubli
 import { createCommunityContent, manageCommunityContent, readSongsByVisibility } from '@/access'
 import { communityContentFields } from '@/fields/communityContentFields'
 import { fillContentSlug } from '@/lib/contentAdmin'
+import { assignSongCommunity } from '@/lib/songEditor'
 import { prepareSongTags, sortSongLibrary } from '@/lib/songTags'
 import { normalizeSyncDocuments } from '@/lib/syncShowProtocol'
 import {
@@ -22,7 +23,7 @@ export const Songs: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     group: 'Content',
-    description: 'Bilingual song listings, lyrics, chords, files, and a plain-language rights record.',
+    description: { en: 'Start with the titles, lyrics and authors. Chords and other details are optional.', ru: 'Начните с названий, текста и авторов. Аккорды и остальные сведения — по желанию.' },
     defaultColumns: ['title', 'russianTitle', 'tags', 'defaultSongLanguage', 'songbookVisibility', 'updatedAt'],
     listSearchableFields: ['title', 'russianTitle', 'alternateTitles', 'authors'],
     components: { beforeList: ['@/components/SongListGuide'] },
@@ -42,6 +43,7 @@ export const Songs: CollectionConfig = {
     beforeChange: [prepareSongTags, prepareSongPublication],
     afterChange: [withdrawSongPublicLinks],
     beforeValidate: [
+      assignSongCommunity,
       fillContentSlug,
       enforceSongMemberSharingMutation,
       prepareSongSyncFields,
@@ -50,17 +52,6 @@ export const Songs: CollectionConfig = {
   fields: [
     {name:'projectionStyle',type:'json',label:'Saved slide layout',admin:{hidden:true,description:'Font size and alignment reused when adding this song to a service.'},
       validate:(value:any)=>{try {if(value)typography.normalizeTextStyle(value);return true}catch{return 'Choose a valid font size and alignment in Service Planner.'}}},
-    { name: 'defaultSongLanguage', label: 'Default song language', type: 'select', required: true, defaultValue: 'ru',
-      options: [{ label: 'Russian', value: 'ru' }, { label: 'English', value: 'en' }],
-      admin: { components: { Cell: '@/components/SongLanguageCell' }, description: 'The primary (top) language when adding this song to a service. You can change it per service.' } },
-    ...communityContentFields.filter(field => (
-      'name' in field && ['community', 'slug'].includes(String(field.name))
-    )),
-    {
-      name: 'tags', label: 'Tags', type: 'select', hasMany: true, index: true,
-      options: [{ label: 'Solo', value: 'solo' }, { label: 'Choir', value: 'choir' }, { label: 'Communal', value: 'communal' }],
-      admin: { description: 'Choose one or more uses. Sort this column to group songs, with titles alphabetized within each group.' },
-    },
     {
       name: 'tagSortKey', type: 'text', hidden: true, index: true,
       access: { create: () => false, update: () => false },
@@ -86,10 +77,14 @@ export const Songs: CollectionConfig = {
       name: 'songbookContent', type: 'json', hidden: true,
       access: { create: () => false, update: () => false },
     },
+    ...communityContentFields.filter(field => 'name' in field && ['community', 'slug'].includes(String(field.name))).map((field): Field => {
+      if (field.type === 'relationship' && field.name === 'community') return { ...field, admin: { ...field.admin, hidden: true } } as Field
+      return { ...field, admin: { ...field.admin, components: { Field: '@/components/SongSlugField' } } } as Field
+    }),
     {
-      name: 'status', label: 'Library status', type: 'select', required: true, defaultValue: 'draft', index: true,
+      name: 'status', label: 'Archive state', type: 'select', required: true, defaultValue: 'draft', index: true,
       options: [{ label: 'Active', value: 'draft' }, { label: 'Active (member sharing)', value: 'published' }, { label: 'Archived', value: 'archived' }],
-      admin: { position: 'sidebar', description: 'Archiving removes this song from public pages and active libraries.' },
+      admin: { hidden: true, disableListColumn: true, disableBulkEdit: true },
     },
     {
       name: 'syncId',
@@ -99,14 +94,12 @@ export const Songs: CollectionConfig = {
       index: true,
       access: { update: () => false },
       admin: {
-        position: 'sidebar',
-        readOnly: true,
-        description: 'Stable identity shared with SyncShow. It does not change when a title changes.',
+        hidden: true, disableListColumn: true, disableBulkEdit: true,
       },
     },
     {
       name: 'visibility',
-      label: 'Legacy member sharing',
+      label: 'Retired member visibility',
       type: 'select',
       required: true,
       defaultValue: 'private',
@@ -117,8 +110,7 @@ export const Songs: CollectionConfig = {
         { label: 'Scheduled — private until the set time', value: 'scheduled-public' },
       ],
       admin: {
-        position: 'sidebar',
-        readOnly: true, disableBulkEdit: true, description: 'Managed by SyncShow’s member-sharing action. Use Songbook publication above for the public website and Heritage Songs.',
+        hidden: true, disableListColumn: true, disableBulkEdit: true,
       },
     },
     {
@@ -126,13 +118,7 @@ export const Songs: CollectionConfig = {
       label: 'Become visible at',
       type: 'date',
       index: true,
-      admin: {
-        position: 'sidebar',
-        condition: (_data, siblingData) => (
-          (siblingData as Record<string, unknown> | undefined)?.visibility === 'scheduled-public'
-        ),
-        description: 'Required for scheduled visibility.',
-      },
+      admin: { hidden: true, disableListColumn: true, disableBulkEdit: true },
       validate: (value, { siblingData }) => (
         (siblingData as Record<string, unknown> | undefined)?.visibility !== 'scheduled-public'
           || (value && Number.isFinite(Date.parse(String(value))))
@@ -148,7 +134,7 @@ export const Songs: CollectionConfig = {
       defaultValue: 1,
       min: 1,
       index: true,
-      admin: { position: 'sidebar', readOnly: true },
+      admin: { hidden: true, disableListColumn: true, disableBulkEdit: true },
     },
     {
       name: 'syncDocuments',
@@ -255,101 +241,57 @@ export const Songs: CollectionConfig = {
       access: { update: () => false },
     },
     {
-      type: 'tabs',
-      tabs: [
-        {
-          label: 'Listing',
-          description: 'The information people use to find this song.',
-          fields: [
-            ...communityContentFields.filter(field => (
-              'name' in field && ['title', 'description'].includes(String(field.name))
-            )).map((field): Field => field.type === 'text' && field.name === 'title' ? { ...field, admin: { ...field.admin, components: { Cell: '@/components/SongTitleCell' } } } : field),
-            { name: 'russianTitle', label: 'Russian title', type: 'text', admin: { components: { Cell: '@/components/SongTitleCell' } } },
-            {
-              name: 'alternateTitles',
-              label: 'Other titles people may search',
-              type: 'text',
-              hasMany: true,
-              admin: { description: 'Optional. Add one alternate title per row.' },
-            },
-            { name: 'authors', label: 'Writers/authors', type: 'text', hasMany: true },
-          ],
-        },
-        {
-          label: 'English',
-          description: 'English words and the chord sheet, when your church is permitted to publish them.',
-          fields: [
-            { name: 'lyrics', label: 'English lyrics', type: 'textarea', admin: { description: 'Leave a blank line to start a new slide. Repeat a defined section by writing its name (for example, Chorus a). Leave a blank line after a repeated section name before adding a separate ending.' } },
-            {
-              name: 'chordSheet',
-              label: 'English chord sheet',
-              type: 'textarea',
-              admin: { description: 'Optional ChordPro-compatible guitar chords.' },
-            },
-          ],
-        },
-        {
-          label: 'Russian',
-          description: 'A translation has its own source. Record what your church knows; Heritage does not block publication.',
-          fields: [
-            { name: 'russianLyrics', label: 'Russian lyrics', type: 'textarea', admin: { description: 'Leave a blank line to start a new slide. Repeat a defined section by writing its name (for example, chorus b or Припев). Leave a blank line after a repeated section name before adding a separate ending.' } },
-            {
-              name: 'russianChordSheet',
-              label: 'Russian chord sheet',
-              type: 'textarea',
-              admin: { description: 'Optional ChordPro-compatible guitar chords.' },
-            },
-          ],
-        },
-        {
-          label: 'Music & files',
-          fields: [
-            { name: 'key', label: 'Usual key', type: 'text' },
-            { name: 'tempo', label: 'Tempo (BPM)', type: 'number', min: 1 },
-            { name: 'choirScores', label: 'Choir scores', type: 'upload', relationTo: 'media', hasMany: true },
-            { name: 'recordings', label: 'Recordings', type: 'upload', relationTo: 'media', hasMany: true },
-          ],
-        },
-        {
-          label: 'Rights & source',
-          description: 'Keep the church’s source and permission notes here. These fields inform people; they do not prevent publishing.',
-          fields: [
-            {
-              name: 'rightsStatus',
-              label: 'What does the church know about this version?',
-              type: 'select',
-              required: true,
-              defaultValue: 'needs-review',
-              index: true,
-              options: [
-                { label: 'Needs review', value: 'needs-review' },
-                { label: 'Listing only — no words or music included', value: 'metadata-only' },
-                { label: 'Public domain', value: 'public-domain' },
-                { label: 'Covered by our church license', value: 'licensed' },
-                { label: 'Direct permission received', value: 'permission-granted' },
-                { label: 'Community/oral translation — explain below', value: 'community-translation' },
-                { label: 'Mixed — explain below', value: 'mixed' },
-              ],
-              admin: { description: 'Informational only. Choosing an option does not block or unlock publishing.' },
-            },
-            {
-              name: 'ccliNumber',
-              label: 'CCLI song number',
-              type: 'text',
-              admin: { description: 'The song’s CCLI ID, not your church’s CCLI license number. The church license number is configured once during server setup.' },
-            },
-            { name: 'license', label: 'License or permission name', type: 'text' },
-            { name: 'copyright', label: 'Copyright notice (if known)', type: 'textarea' },
-            {
-              name: 'rightsNotes',
-              label: 'Source / translator / permission notes',
-              type: 'textarea',
-              admin: { description: 'For example: who translated it, where the church received it, or why it is believed to be public domain.' },
-            },
-            { name: 'sourceUrl', label: 'Song/source information URL', type: 'text' },
-            { name: 'permissionUrl', label: 'License or permission evidence URL', type: 'text' },
-          ],
-        },
+      type: 'row', admin: { className: 'heritage-song-title-row' }, fields: [
+        { name: 'russianTitle', label: { en: 'Russian title', ru: 'Название на русском' }, type: 'text', admin: { width: '50%', components: { Cell: '@/components/SongTitleCell' } } },
+        { name: 'title', label: { en: 'English title', ru: 'Название на английском' }, type: 'text', required: true, admin: { width: '50%', components: { Cell: '@/components/SongTitleCell' } } },
+      ],
+    },
+    {
+      type: 'row', admin: { className: 'heritage-song-lyrics-row' }, fields: [
+        { name: 'russianLyrics', label: { en: 'Russian lyrics', ru: 'Текст на русском' }, type: 'textarea', admin: { width: '50%', description: { en: 'Blank lines separate slides. Write Припев above its words; repeat it later with Припев on its own.', ru: 'Пустая строка разделяет слайды. Напишите «Припев» перед его словами; для повтора укажите «Припев» отдельно.' }, components: { Field: '@/components/SongLyricsField' } } },
+        { name: 'lyrics', label: { en: 'English lyrics', ru: 'Текст на английском' }, type: 'textarea', admin: { width: '50%', description: { en: 'Blank lines separate slides. Write Chorus above its words; repeat it later with Chorus on its own.', ru: 'Пустая строка разделяет слайды. Напишите «Chorus» перед его словами; для повтора укажите «Chorus» отдельно.' }, components: { Field: '@/components/SongLyricsField' } } },
+      ],
+    },
+    { name: 'authors', label: { en: 'Authors', ru: 'Авторы' }, type: 'text', hasMany: true, admin: { placeholder: { en: 'Type a name, then press Enter', ru: 'Введите имя и нажмите Enter' } } },
+    {
+      type: 'row', admin: { components: { Field: '@/components/SongChordsRow' } }, fields: [
+        { name: 'russianChordSheet', label: { en: 'Russian chord sheet', ru: 'Аккорды на русском' }, type: 'textarea', admin: { width: '50%', components: { Field: '@/components/SongLyricsField' } } },
+        { name: 'chordSheet', label: { en: 'English chord sheet', ru: 'Аккорды на английском' }, type: 'textarea', admin: { width: '50%', components: { Field: '@/components/SongLyricsField' } } },
+      ],
+    },
+    {
+      type: 'collapsible', label: { en: 'More', ru: 'Ещё' }, admin: { initCollapsed: true, className: 'heritage-song-more' }, fields: [
+        { name: 'description', label: 'Short description', type: 'textarea' },
+        { name: 'alternateTitles', label: 'Other titles people may search', type: 'text', hasMany: true },
+        { name: 'defaultSongLanguage', label: 'Default song language', type: 'select', required: true, defaultValue: 'ru',
+          options: [{ label: 'Russian', value: 'ru' }, { label: 'English', value: 'en' }],
+          admin: { components: { Cell: '@/components/SongLanguageCell' }, description: 'The primary language when adding this song to a service. You can change it per service.' } },
+        { name: 'tags', label: 'Tags', type: 'select', hasMany: true, index: true,
+          options: [{ label: 'Solo', value: 'solo' }, { label: 'Choir', value: 'choir' }, { label: 'Communal', value: 'communal' }] },
+        { type: 'row', fields: [
+          { name: 'key', label: 'Usual key', type: 'text', admin: { width: '50%' } },
+          { name: 'tempo', label: 'Tempo (BPM)', type: 'number', min: 1, admin: { width: '50%' } },
+        ] },
+        { name: 'choirScores', label: 'Choir scores', type: 'upload', relationTo: 'media', hasMany: true },
+        { name: 'recordings', label: 'Recordings', type: 'upload', relationTo: 'media', hasMany: true },
+        { type: 'collapsible', label: 'Source & permission notes', admin: { initCollapsed: true }, fields: [
+          { name: 'rightsStatus', label: 'What does the church know about this version?', type: 'select', required: true, defaultValue: 'needs-review', index: true,
+            options: [
+              { label: 'Needs review', value: 'needs-review' },
+              { label: 'Listing only — no words or music included', value: 'metadata-only' },
+              { label: 'Public domain', value: 'public-domain' },
+              { label: 'Covered by our church license', value: 'licensed' },
+              { label: 'Direct permission received', value: 'permission-granted' },
+              { label: 'Community/oral translation — explain below', value: 'community-translation' },
+              { label: 'Mixed — explain below', value: 'mixed' },
+            ], admin: { description: 'Optional context for your church. These notes do not block publication.' } },
+          { name: 'ccliNumber', label: 'CCLI song number', type: 'text' },
+          { name: 'license', label: 'License or permission name', type: 'text' },
+          { name: 'copyright', label: 'Copyright notice (if known)', type: 'textarea' },
+          { name: 'rightsNotes', label: 'Source / translator / permission notes', type: 'textarea' },
+          { name: 'sourceUrl', label: 'Song/source information URL', type: 'text' },
+          { name: 'permissionUrl', label: 'License or permission evidence URL', type: 'text' },
+        ] },
       ],
     },
   ],

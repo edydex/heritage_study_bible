@@ -756,8 +756,8 @@ export function normalizeSongMutation(
     const visibility = normalizeVisibility(input.visibility, existing)
     if (visibility !== 'private') {
       fail(
-        'MEMBER_SHARE_REVIEW_REQUIRED',
-        'Save this song as private, then use the exact-family member-sharing review transaction.',
+        'LEGACY_MEMBER_SHARING_RETIRED',
+        'Member sharing has been replaced by Songbook publication. Save this song as private and choose its publication setting in the church workspace.',
         409,
       )
     }

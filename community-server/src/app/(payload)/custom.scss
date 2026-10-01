@@ -1991,3 +1991,32 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-account-language select { min-width: 16rem; }
 .heritage-invitation-guide { padding: 1rem; margin-bottom: 1.5rem; background: var(--theme-elevation-50); border-radius: .4rem; }
 @media (max-width: 700px) { .heritage-people__heading { align-items: flex-start; flex-direction: column; } .heritage-people__filters label { width: 100%; min-width: 0; } }
+
+/* Song authoring: words first, optional details below. */
+.heritage-song-title-row, .heritage-song-lyrics-row { align-items: flex-start; }
+.heritage-song-lyrics { flex: 1 1 0; min-width: 0; }
+.heritage-song-lyrics .textarea { width: 100% !important; }
+.heritage-song-lyrics textarea { min-height: 16rem; height: auto; resize: none; overflow: hidden; line-height: 1.65; }
+.heritage-song-chords { margin: .5rem 0 2rem; }
+.heritage-song-chords [hidden] { display: none; }
+.heritage-song-chords p { color: var(--theme-elevation-600); }
+.heritage-song-disclosure { display: inline-flex; align-items: center; gap: .5rem; padding: .6rem .9rem; background: var(--theme-elevation-100); color: var(--theme-text); border: 1px solid var(--theme-elevation-250); border-radius: .4rem; font: inherit; cursor: pointer; }
+.heritage-song-disclosure:focus-visible { outline: 2px solid var(--theme-success-500); outline-offset: 3px; }
+.heritage-song-more { margin-top: 1rem; }
+.heritage-song-publication > label { display: block; font-weight: 600; margin-bottom: .5rem; padding: 0; border: 0; }
+.heritage-song-publication select { width: 100%; min-height: 2.75rem; padding: .5rem .7rem; border: 1px solid var(--theme-elevation-250); border-radius: .4rem; background: var(--theme-input-bg); color: var(--theme-text); font: inherit; }
+.heritage-song-publication > small, .heritage-song-slug > small { color: var(--theme-elevation-600); font-size: .85rem; line-height: 1.5; }
+.heritage-song-publication a { display: block; margin-top: .75rem; }
+.heritage-song-slug .field-type { margin-bottom: .4rem; }
+.heritage-song-slug button { display: block; margin-top: .5rem; padding: 0; border: 0; background: none; color: var(--theme-text); text-decoration: underline; font: inherit; cursor: pointer; }
+@media (max-width: 800px) {
+  .heritage-song-title-row, .heritage-song-lyrics-row, #song-chords .row { flex-direction: column; }
+  .heritage-song-title-row > *, .heritage-song-lyrics-row > *, #song-chords .row > * { width: 100% !important; flex-basis: auto; }
+}
+.heritage-workspace-activity { margin-top: 2rem; padding: 1rem 1.25rem; border: 1px solid var(--theme-elevation-200); border-radius: .5rem; color: var(--theme-text); }
+.heritage-workspace-activity summary { cursor: pointer; font-weight: 600; }
+.heritage-workspace-activity p { color: var(--theme-elevation-600); }
+.heritage-workspace-activity table { width: 100%; margin-top: 1rem; border-collapse: collapse; }
+.heritage-workspace-activity th, .heritage-workspace-activity td { text-align: left; padding: .65rem; border-bottom: 1px solid var(--theme-elevation-200); }
+.heritage-workspace-activity button { padding: .45rem .75rem; color: var(--theme-text); background: var(--theme-elevation-100); border: 1px solid var(--theme-elevation-250); border-radius: .35rem; font: inherit; cursor: pointer; }
+.heritage-song-lyrics .field-description, .heritage-song-more .field-description { color: var(--theme-elevation-600); }

@@ -20,7 +20,7 @@ export default function SongListGuide() {
         <h2>Choose what your church shares</h2>
         <p>
           Published songs appear on the church website and in Heritage Bible Songs. Unlisted songs
-          work through a direct link. Private songs stay in the church workspace. Click a song’s
+          work through a direct link. Private songs stay in the church workspace. Archived songs are removed from the active library. Click a song’s
           publication setting in the list to change it; your choice saves immediately. Select several
           rows and use Edit to change them together.
         </p>

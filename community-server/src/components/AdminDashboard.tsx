@@ -1,3 +1,4 @@
+import RecentWorkspaceActivity from './RecentWorkspaceActivity'
 import AdminWelcome from './AdminWelcome'
 import { communityPublicConfig } from '@/lib/publicConfig'
 import type { AdminViewServerProps } from 'payload'
@@ -10,6 +11,7 @@ export default function AdminDashboard(props: AdminViewServerProps) {
   return (
     <main className="heritage-admin-workspace">
       <AdminWelcome name={communityPublicConfig.name} />
+      <RecentWorkspaceActivity />
     </main>
   )
 }

@@ -1,3 +1,5 @@
+import { WorkspaceActivity } from './collections/WorkspaceActivity'
+import { workspaceActivityEndpoints } from './endpoints/workspaceActivity'
 import { ServiceDocumentSaves } from './collections/ServiceDocumentSaves'
 import { serviceHistoryEndpoints } from './endpoints/serviceHistory'
 import { bookReadAlongEndpoints } from '@/endpoints/bookReadAlong'
@@ -143,7 +145,7 @@ export default buildConfig({
     components: {
       beforeLogin: ['@/components/WorkspaceSignInGuide'],
       Nav: '@/components/AdminNav',
-      providers: ['@/components/WorkspaceLocalization#WorkspaceLocalizationProvider'],
+      providers: ['@/components/WorkspaceLocalization#WorkspaceLocalizationProvider', '@/components/WorkspaceActivityProvider'],
       views: {
         people: { Component: '@/components/People', exact: true, meta: { title: 'People' }, path: '/people' },
         dashboard: {
@@ -196,6 +198,7 @@ export default buildConfig({
   collections: [
     BibleTranslations,
     Users,
+    WorkspaceActivity,
     CommunitySessions,
     CommunityAuthChallenges,
     CommunityAuthRateLimits,
@@ -260,6 +263,7 @@ export default buildConfig({
     ...authEndpoints,
     ...accountEndpoints,
     ...workspaceAccountEndpoints,
+    ...workspaceActivityEndpoints,
     ...syncEndpoints,
     ...syncShowEndpoints,
     ...translationEndpoints,

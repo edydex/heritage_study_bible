@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     'bible-translations': BibleTranslation;
     users: User;
+    'workspace-activity': WorkspaceActivity;
     'community-sessions': CommunitySession;
     'community-auth-challenges': CommunityAuthChallenge;
     'community-auth-rate-limits': CommunityAuthRateLimit;
@@ -110,6 +111,7 @@ export interface Config {
   collectionsSelect: {
     'bible-translations': BibleTranslationsSelect<false> | BibleTranslationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'workspace-activity': WorkspaceActivitySelect<false> | WorkspaceActivitySelect<true>;
     'community-sessions': CommunitySessionsSelect<false> | CommunitySessionsSelect<true>;
     'community-auth-challenges': CommunityAuthChallengesSelect<false> | CommunityAuthChallengesSelect<true>;
     'community-auth-rate-limits': CommunityAuthRateLimitsSelect<false> | CommunityAuthRateLimitsSelect<true>;
@@ -340,6 +342,32 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workspace-activity".
+ */
+export interface WorkspaceActivity {
+  id: number;
+  community: number | Community;
+  user: number | User;
+  screen:
+    | 'home'
+    | 'planner'
+    | 'sermon'
+    | 'publication'
+    | 'songs'
+    | 'people'
+    | 'translation'
+    | 'media'
+    | 'scripture'
+    | 'library'
+    | 'account';
+  lastNavigationAt: string;
+  lastActiveAt: string;
+  navigationCount: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "community-sessions".
  */
 export interface CommunitySession {
@@ -529,7 +557,7 @@ export interface ReadingPlanNote {
   blockType: 'planNote';
 }
 /**
- * Bilingual song listings, lyrics, chords, files, and a plain-language rights record.
+ * Start with the titles, lyrics and authors. Chords and other details are optional.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "songs".
@@ -548,19 +576,6 @@ export interface Song {
     | number
     | boolean
     | null;
-  /**
-   * The primary (top) language when adding this song to a service. You can change it per service.
-   */
-  defaultSongLanguage: 'ru' | 'en';
-  community: number | Community;
-  /**
-   * Filled automatically from the title when left blank. Change it only if the public link needs a different short name.
-   */
-  slug: string;
-  /**
-   * Choose one or more uses. Sort this column to group songs, with titles alphabetized within each group.
-   */
-  tags?: ('solo' | 'choir' | 'communal')[] | null;
   tagSortKey?: string | null;
   /**
    * Published: church website and Heritage Songs. Unlisted: direct link only. Private: church workspace only.
@@ -575,21 +590,14 @@ export interface Song {
     | number
     | boolean
     | null;
+  community: number | Community;
   /**
-   * Archiving removes this song from public pages and active libraries.
+   * Filled automatically from the title when left blank. Change it only if the public link needs a different short name.
    */
+  slug: string;
   status: 'draft' | 'published' | 'archived';
-  /**
-   * Stable identity shared with SyncShow. It does not change when a title changes.
-   */
   syncId: string;
-  /**
-   * Managed by SyncShow’s member-sharing action. Use Songbook publication above for the public website and Heritage Songs.
-   */
   visibility: 'private' | 'public' | 'scheduled-public';
-  /**
-   * Required for scheduled visibility.
-   */
   publishAt?: string | null;
   syncVersion: number;
   syncDocuments:
@@ -615,36 +623,32 @@ export interface Song {
   memberShareConfirmedAt?: string | null;
   memberShareRequestRevision?: string | null;
   memberShareReceiptRevision?: string | null;
-  title: string;
-  description?: string | null;
   russianTitle?: string | null;
+  title: string;
   /**
-   * Optional. Add one alternate title per row.
-   */
-  alternateTitles?: string[] | null;
-  authors?: string[] | null;
-  /**
-   * Leave a blank line to start a new slide. Repeat a defined section by writing its name (for example, Chorus a). Leave a blank line after a repeated section name before adding a separate ending.
-   */
-  lyrics?: string | null;
-  /**
-   * Optional ChordPro-compatible guitar chords.
-   */
-  chordSheet?: string | null;
-  /**
-   * Leave a blank line to start a new slide. Repeat a defined section by writing its name (for example, chorus b or Припев). Leave a blank line after a repeated section name before adding a separate ending.
+   * Blank lines separate slides. Write Припев above its words; repeat it later with Припев on its own.
    */
   russianLyrics?: string | null;
   /**
-   * Optional ChordPro-compatible guitar chords.
+   * Blank lines separate slides. Write Chorus above its words; repeat it later with Chorus on its own.
    */
+  lyrics?: string | null;
+  authors?: string[] | null;
   russianChordSheet?: string | null;
+  chordSheet?: string | null;
+  description?: string | null;
+  alternateTitles?: string[] | null;
+  /**
+   * The primary language when adding this song to a service. You can change it per service.
+   */
+  defaultSongLanguage: 'ru' | 'en';
+  tags?: ('solo' | 'choir' | 'communal')[] | null;
   key?: string | null;
   tempo?: number | null;
   choirScores?: (number | Media)[] | null;
   recordings?: (number | Media)[] | null;
   /**
-   * Informational only. Choosing an option does not block or unlock publishing.
+   * Optional context for your church. These notes do not block publication.
    */
   rightsStatus:
     | 'needs-review'
@@ -654,15 +658,9 @@ export interface Song {
     | 'permission-granted'
     | 'community-translation'
     | 'mixed';
-  /**
-   * The song’s CCLI ID, not your church’s CCLI license number. The church license number is configured once during server setup.
-   */
   ccliNumber?: string | null;
   license?: string | null;
   copyright?: string | null;
-  /**
-   * For example: who translated it, where the church received it, or why it is believed to be public domain.
-   */
   rightsNotes?: string | null;
   sourceUrl?: string | null;
   permissionUrl?: string | null;
@@ -1454,6 +1452,10 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'workspace-activity';
+        value: number | WorkspaceActivity;
+      } | null)
+    | ({
         relationTo: 'community-sessions';
         value: number | CommunitySession;
       } | null)
@@ -1657,6 +1659,20 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workspace-activity_select".
+ */
+export interface WorkspaceActivitySelect<T extends boolean = true> {
+  community?: T;
+  user?: T;
+  screen?: T;
+  lastNavigationAt?: T;
+  lastActiveAt?: T;
+  navigationCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "community-sessions_select".
  */
 export interface CommunitySessionsSelect<T extends boolean = true> {
@@ -1845,13 +1861,11 @@ export interface ReadingPlanNoteSelect<T extends boolean = true> {
  */
 export interface SongsSelect<T extends boolean = true> {
   projectionStyle?: T;
-  defaultSongLanguage?: T;
-  community?: T;
-  slug?: T;
-  tags?: T;
   tagSortKey?: T;
   songbookVisibility?: T;
   songbookContent?: T;
+  community?: T;
+  slug?: T;
   status?: T;
   syncId?: T;
   visibility?: T;
@@ -1872,15 +1886,17 @@ export interface SongsSelect<T extends boolean = true> {
   memberShareConfirmedAt?: T;
   memberShareRequestRevision?: T;
   memberShareReceiptRevision?: T;
-  title?: T;
-  description?: T;
   russianTitle?: T;
-  alternateTitles?: T;
-  authors?: T;
-  lyrics?: T;
-  chordSheet?: T;
+  title?: T;
   russianLyrics?: T;
+  lyrics?: T;
+  authors?: T;
   russianChordSheet?: T;
+  chordSheet?: T;
+  description?: T;
+  alternateTitles?: T;
+  defaultSongLanguage?: T;
+  tags?: T;
   key?: T;
   tempo?: T;
   choirScores?: T;
