@@ -16,7 +16,7 @@ const token=(await login.json()).token
 await context.setExtraHTTPHeaders({Authorization:`JWT ${token}`})
 const syncId=`rehearsal-${randomUUID()}`
 const create=await context.request.post(`${origin}/api/community/service-documents`,{data:{schemaVersion:1,requestId:randomUUID(),syncId,title:'Built editor rehearsal',serviceDate:'2026-10-04'}})
-assert.equal(create.status(),200,await create.text())
+assert.equal(create.status(),201,await create.text())
 const envelope=(await create.json()).serviceDocument
 const project={...authoringFixture(),id:syncId,revision:2,title:'Built editor rehearsal'}
 const update=await context.request.put(`${origin}/api/community/service-documents/${syncId}`,{data:{schemaVersion:1,requestId:randomUUID(),syncId,baseSyncVersion:envelope.syncVersion,baseRevision:envelope.revision,documentSource:core.serializeHeritageServiceDocument(core.createHeritageServiceDocument(project)),status:'planning',saveKind:'manual'}})
