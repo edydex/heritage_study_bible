@@ -15,6 +15,44 @@ notes without writing JSON. Experimental cohort tables are retained for later
 client work, but the public manifest does not claim unfinished collaboration or
 sync features.
 
+## People and slide editing
+
+Open **People → Invite person** to add a church manager or member. Choose the
+recipient's role and English or Russian invitation language. They receive a
+password setup link and choose their own password. People shows account and
+invitation status together, including pending invitations without an account,
+email delivery timestamps, acceptance timestamps, and the current church role.
+Existing accounts keep their access. **Account Settings → Workspace language**
+changes the signed-in person's menus without translating slide content.
+
+Slide text saves after a short idle pause, including text that still has focus.
+The Save button and **Ctrl/Cmd+S** create a manual checkpoint. Open **Version
+history** from its visible button or by right-clicking Save. Automatic saves
+are grouped into five-minute editing periods; manual checkpoints and restored
+versions remain separate. Select an individual saved version to preview its
+English, Russian or Stage-Facing Screen slides. **Restore as new version**
+keeps earlier history. Concurrent edits require review rather than silently
+replacing someone else's changes. Historical image/video previews use the exact
+saved revision's asset manifest.
+
+Services with more than twenty compiled slides fold into title-led sections.
+Selecting a section opens its slides. Song slides have individual primary-language
+choices, and the song title's orange secondary-language subtitle can be hidden
+independently of the lyrics. Long Scripture selections show the complete requested
+address on their first slide, followed by continuation text. Sermon hints describe
+the next slide; the sermon title's Slide Settings can disable those hints.
+
+SyncShow uses this same editor, with private local caching, offline drafts and
+reconnection conflict review. In Show, **Adjust** saves edits backstage; **Apply
+to Show** compiles and verifies the draft before updating the projected slides.
+
+The additive `20261001_220000_people_language` and
+`20261001_230000_service_save_history` migrations add language preferences and
+an internal immutable save-checkpoint log. The existing content journal retains
+canonical versions. Run `npm run test:service-history-live` only with the explicit
+loopback disposable database and marker documented in its guarded test; this
+integration test resets its dedicated fixture schema.
+
 ## Local development
 
 1. Copy `.env.example` to `.env` and replace `PAYLOAD_SECRET`.
