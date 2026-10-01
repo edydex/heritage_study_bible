@@ -7,4 +7,4 @@ const rehearsalReady=location.search.includes('passage-editing') && ['localhost'
 const style=document.createElement('style')
 style.textContent=`:root {font:16px system-ui;--theme-text:#222;--theme-elevation-50:#fafafa;--theme-elevation-100:#eee;--theme-elevation-150:#ddd;--theme-elevation-250:#bbb;--theme-success-100:#e0eee6;--theme-success-700:#235c40;}body{margin:0}*{box-sizing:border-box}button,input,select{font:inherit} ${styles.replace(/^\s*\/\/.*$/gm, "")}`
 document.head.append(style)
-rehearsalReady.then(()=>createRoot(document.getElementById('root')).render(<div className="heritage-planner-frame">{location.search.includes("workspace") ? <PrepareSermonClient /> : <PlanServiceClient sermonSyncId="canvas-rehearsal" />}</div>))
+rehearsalReady.then(()=>createRoot(document.getElementById('root')).render(<div className="heritage-planner-frame">{location.search.includes("workspace") ? <PrepareSermonClient /> : location.search.includes('device-locale') ? <PlanServiceClient /> : <PlanServiceClient sermonSyncId="canvas-rehearsal" />}</div>))
