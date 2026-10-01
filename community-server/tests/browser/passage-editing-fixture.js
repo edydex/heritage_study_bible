@@ -3,9 +3,17 @@ import {plannerSlides,setSlideTranslationCue} from '../../src/components/planner
 import core from '../../packages/service-core/index.js'
 import {preparePlannerPresentation} from '../../src/components/plannerPresentation'
 import {createTemplateDraft,editTemplateField} from '../../src/components/plannerTemplates'
-const key=location.search.includes('caption-layout')?'heritage-caption-layout-rehearsal-v1':location.search.includes('language-flow')?'heritage-language-flow-rehearsal-v1':location.search.includes('font-reflow')?'heritage-font-reflow-rehearsal-v1':'heritage-passage-editing-rehearsal-v1'
+const key=location.search.includes('text-colors')?'heritage-text-color-rehearsal-v1':location.search.includes('caption-layout')?'heritage-caption-layout-rehearsal-v1':location.search.includes('language-flow')?'heritage-language-flow-rehearsal-v1':location.search.includes('font-reflow')?'heritage-font-reflow-rehearsal-v1':'heritage-passage-editing-rehearsal-v1'
 let project=core.createServiceProject({id:'canvas-rehearsal',title:'Editing rehearsal',serviceDate:'2026-09-22',preferredProfileId:'main-sanctuary',presetPack:{id:'main-sanctuary',version:1,sha256:null},channels:[{id:'english',label:'English',language:'en'},{id:'russian',label:'Russian',language:'ru'},{id:'media',label:'Stage',language:'ru'}]})
 project=createTemplateDraft(project,{id:'title',template:'title',selectedId:null})
+if(location.search.includes('text-colors')) {
+ project=editTemplateField(project,'title','english','heading','Color editing rehearsal')
+ project=editTemplateField(project,'title','english','body','Select words, then choose Color or Highlight.')
+ project=editTemplateField(project,'title','russian','heading','Проверка оформления текста')
+ project=editTemplateField(project,'title','russian','body','Выделите слова и выберите цвет или выделение.')
+ project=core.addBibleItem(project,{id:'color-reading',title:'Ephesians 4:29',presetId:'wotbc-sermon-scripture',range:{bookId:'Eph',start:{chapter:4,verse:29},end:{chapter:4,verse:29}},passagesByChannel:Object.fromEntries(['english','russian','media'].map(channel=>[channel,{translationId:channel==='english'?'BSB':'SYNO-W',reference:'Ephesians 4:29',attribution:'',verses:[{number:29,text:channel==='english'?'Sample passage text for trying colors and highlights. This is a local rehearsal.':'Пример текста для проверки цвета и выделения. Это локальная репетиция.'}]}]))})
+ project=preparePlannerPresentation(project).project
+}
 if(location.search.includes('font-reflow')) {
  project=core.addBibleItem(project,{id:'reflow-reading',title:'Ephesians 4:20–26',presetId:'wotbc-sermon-scripture',range:{bookId:'Ephesians',start:{chapter:4,verse:20},end:{chapter:4,verse:26}},passagesByChannel:Object.fromEntries(['english','russian','media'].map(channel=>[channel,{translationId:channel==='english'?'BSB':'SYNO-W',reference:'Ephesians 4:20–26',attribution:'',verses:Array.from({length:7},(_,i)=>({number:20+i,text:(channel==='english'?'Sample words remain together in this verse. ':'Текст стиха остаётся вместе на странице. ').repeat(5)}))}]))})
  project=preparePlannerPresentation(project).project

@@ -20,8 +20,6 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
   const {monochrome}=usePresentationAccessibility()
   const paintedMode=useRef(monochrome)
   const paintedBase=useRef(baseColor)
-  const [foreground,setForeground]=useState('#ffc000')
-  const [background,setBackground]=useState('#8a5a00')
   const element = useRef<HTMLDivElement>(null)
   const toolbar = useRef<HTMLDivElement>(null)
   const draft = useRef({ text, spans })
@@ -107,7 +105,7 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
       const prefix = selected.cloneRange(); prefix.selectNodeContents(root); prefix.setEnd(selected.startContainer, selected.startOffset)
       const start = prefix.toString().length, end = start + selected.toString().length
       const rect = selected.getBoundingClientRect()
-      const value = { start, end, x: Math.max(8, Math.min(rect.left, innerWidth - 390)), y: Math.max(8, rect.top - 52) }
+      const value = { start, end, x: Math.max(8, Math.min(rect.left, innerWidth - 380)), y: Math.max(8, rect.top - 48) }
       rangeRef.current = value; setRange(value)
     }
     document.addEventListener('selectionchange', update)
@@ -142,13 +140,22 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
     }
     return true
   }
+  function selectedColor(key:'foreground'|'background'):string|null {
+    if(!range || !element.current)return ''
+    const base=baseColor || getComputedStyle(element.current).color
+    const rgb=base.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)
+    const fallback=key==='background' ? '' : rgb ? '#'+rgb.slice(1).map(value=>Number(value).toString(16).padStart(2,'0')).join('') : base
+    const points=[...new Set([range.start,range.end,...draft.current.spans.flatMap(span=>[span.start,span.end]).filter(offset=>offset>range.start && offset<range.end)])].sort((a,b)=>a-b)
+    const colors=new Set(points.slice(0,-1).map((start,index)=>draft.current.spans.find(span=>span.start<=start && span.end>=points[index+1])?.[key] || fallback))
+    return colors.size===1 ? [...colors][0] : null
+  }
   function apply(patch: Record<string, unknown> | null, focusEditor = true) {
     const selected = rangeRef.current
     if (!selected) return
     try {
       const next = formatting.applyTextStyle(draft.current.text, draft.current.spans, selected.start, selected.end, patch)
       draft.current = { ...draft.current, spans: next }; paint(); if (focusEditor) element.current?.focus(); restore(selected.start, selected.end)
-      onDraftChange?.(draft.current.text, next); commit(); setError('')
+      onDraftChange?.(draft.current.text, next); commit(); setRange({...selected}); setError('')
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Could not format text.') }
   }
   function commit() {
@@ -178,9 +185,8 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
     }} />
     {range && canFormat ? createPortal(<div ref={toolbar} className="heritage-slide-format" role="toolbar" aria-label={t("Selected text formatting")} style={{left:range.x,top:range.y}}>
       {([['Bold','B','weight','700'],['Italic','I','italic',true],['Underline','U','underline',true]] as const).map(([label,caption,key,value]) => <button key={key} type="button" aria-label={t(label)} aria-pressed={active(key,value)} onPointerDown={event => event.preventDefault()} onClick={() => apply({ [key]: active(key,value) ? (key === 'weight' ? '400' : false) : value })}>{caption}</button>)}
-      <label title={t("Text color")}><span>{t("Color")}</span><PresentationColorInput label={t("Text color")} value={foreground} onChange={value=>{setForeground(value);apply({foreground:value},false)}} /></label>
-      <label title={t("Text highlight")}><span>{t("Highlight")}</span><PresentationColorInput label={t("Text highlight")} value={background} onChange={value=>{setBackground(value);apply({background:value},false)}} /></label>
-      <button type="button" aria-label={t("Remove highlight")} onPointerDown={event => event.preventDefault()} onClick={() => apply({background:undefined})}>{t("No highlight")}</button>
+      <div className="heritage-slide-format__color"><span>{t("Color")}</span><PresentationColorInput label={t("Text color")} value={selectedColor('foreground')} onChange={value=>apply({foreground:value})} onReset={()=>apply({foreground:undefined})} resetLabel={t('Default text color')} /></div>
+      <div className="heritage-slide-format__color"><span>{t("Highlight")}</span><PresentationColorInput label={t("Text highlight")} value={selectedColor('background')} onChange={value=>apply({background:value})} onReset={()=>apply({background:undefined})} resetLabel={t('No highlight')} /></div>
       <button type="button" aria-label={t("Clear formatting")} onPointerDown={event => event.preventDefault()} onClick={() => apply(null)}>{t("Clear")}</button>
       {error ? <span role="alert">{t(error)}</span> : null}
     </div>, document.body) : null}</>

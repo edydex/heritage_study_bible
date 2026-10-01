@@ -1,6 +1,6 @@
 'use client'
 import { useWorkspaceText } from './useWorkspaceText'
-import {createContext,useContext,useEffect,useState,type ReactNode} from 'react'
+import {createContext,useContext,useEffect,useId,useRef,useState,type ReactNode} from 'react'
 import {usePreferences,useTranslation} from '@payloadcms/ui'
 import {PRESENTATION_COLORS,colorDescription,patternImage,collectPresentationColors,linePattern} from './presentationPalette'
 import './presentation-accessibility.css'
@@ -25,14 +25,41 @@ export function PresentationAccessibilityControl({item}:{item:unknown}) {
       <details open><summary>{t("Colors in this item")}</summary><ul aria-label={t("Used slide colors")}>{colors.map(color=><li key={color}><span className="presentation-color-sample" aria-hidden="true"><i style={{backgroundImage:patternImage(color)}} /><svg viewBox="0 0 30 5"><path d="M0 2.5H30" stroke="black" strokeWidth="1.5" strokeDasharray={linePattern(color)} /></svg></span>{colorDescription(color).split(' · ').map(part => t(part)).join(' · ')}</li>)}</ul>{!colors.length && <p>{t("No added colors yet.")}</p>}</details></>}
   </div>
 }
-export function PresentationColorInput({value,onChange,label}:{value:string;onChange:(value:string)=>void;label:string}) {
+const PICKER_COLORS = [...PRESENTATION_COLORS, {name:'Gold',color:'#ffc000',pattern:'Diagonal lines'}, {name:'Amber',color:'#8a5a00',pattern:'Horizontal lines'}]
+export function PresentationColorInput({value,onChange,label,onReset,resetLabel}:{value:string|null;onChange:(value:string)=>void;label:string;onReset?:()=>void;resetLabel?:string}) {
   const t = useWorkspaceText()
   const {monochrome}=usePresentationAccessibility()
   const [open,setOpen]=useState(false)
-  if(!monochrome)return <input type="color" aria-label={label} value={value} onInput={event=>onChange(event.currentTarget.value)} />
-  return <div className="presentation-color-picker">
-    <button type="button" aria-label={label} aria-expanded={open} onClick={()=>setOpen(!open)}><i aria-hidden="true" style={{backgroundImage:patternImage(value)}} />{colorDescription(value).split(' · ').map(part => t(part)).join(' · ')}</button>
-    {open && <div className="presentation-color-options" role="group" aria-label={t('{label} palette', { label })}>{PRESENTATION_COLORS.map(item=><button type="button" key={item.color} aria-pressed={value===item.color} onClick={()=>{onChange(item.color);setOpen(false)}}><i aria-hidden="true" style={{backgroundImage:patternImage(item.color)}} />{t(item.name)} · {t(item.pattern)}</button>)}</div>}
+  const [hex,setHex]=useState(value || '#ffffff')
+  const [position,setPosition]=useState({left:0,top:0})
+  const root=useRef<HTMLDivElement>(null), trigger=useRef<HTMLButtonElement>(null)
+  const id=useId()
+  useEffect(()=>{setHex(value || '#ffffff')},[value])
+  useEffect(()=>{
+    if(!open)return
+    const close=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node))setOpen(false)}
+    const move=()=>setOpen(false)
+    document.addEventListener('pointerdown',close)
+    window.addEventListener('resize',move)
+    return ()=>{document.removeEventListener('pointerdown',close);window.removeEventListener('resize',move)}
+  },[open])
+  function toggle(){
+    const rect=trigger.current!.getBoundingClientRect()
+    const height=onReset ? 210 : 178
+    setPosition({left:Math.max(8,Math.min(rect.left,innerWidth-240)),top:rect.bottom+height+8<=innerHeight ? rect.bottom+6 : Math.max(8,rect.top-height-6)})
+    setHex(value || '#ffffff');setOpen(!open)
+  }
+  function choose(color:string){onChange(color.toLowerCase());setOpen(false)}
+  const valid=/^#[\da-f]{6}$/i.test(hex)
+  const description=value===null?t('Mixed colors'):value ? (monochrome ? colorDescription(value).split(' · ').map(part=>t(part)).join(' · ') : value.toUpperCase()) : t('No highlight')
+  return <div ref={root} className="presentation-color-picker">
+    <button ref={trigger} type="button" className="presentation-color-picker__trigger" aria-label={label} aria-expanded={open} aria-controls={open?id:undefined} title={`${label}: ${description}`} onPointerDown={event=>event.preventDefault()} onClick={toggle}><i aria-hidden="true" data-empty={!value || undefined} style={value ? {backgroundColor:monochrome?'white':value,backgroundImage:monochrome?patternImage(value):undefined} : undefined} /><span aria-hidden="true">▾</span><span className="presentation-color-picker__value">{description}</span></button>
+    {open && <div id={id} className="presentation-color-options" role="group" aria-label={t('{label} palette', { label })} style={position} onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();setOpen(false);trigger.current?.focus()}}}>
+      <strong>{label}</strong>
+      <div className="presentation-color-options__swatches">{PICKER_COLORS.map(item=><button type="button" key={item.color} aria-label={monochrome?`${t(item.name)} · ${t(item.pattern)}`:t(item.name)} title={monochrome?`${t(item.name)} · ${t(item.pattern)}`:t(item.name)} aria-pressed={value?.toLowerCase()===item.color} onPointerDown={event=>event.preventDefault()} onClick={()=>choose(item.color)}><i aria-hidden="true" style={{backgroundColor:monochrome?'white':item.color,backgroundImage:monochrome?patternImage(item.color):undefined}} /></button>)}</div>
+      <div className="presentation-color-options__custom"><input aria-label={t('{label} hex color',{label})} value={hex} spellCheck={false} maxLength={7} onChange={event=>setHex(event.currentTarget.value)} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();if(valid)choose(hex)}}} /><button type="button" disabled={!valid} onPointerDown={event=>event.preventDefault()} onClick={()=>choose(hex)}>{t('Set color')}</button></div>
+      {onReset && <button type="button" className="presentation-color-options__reset" onPointerDown={event=>event.preventDefault()} onClick={()=>{onReset();setOpen(false)}}>{resetLabel}</button>}
+    </div>}
   </div>
 }
 

@@ -7,6 +7,7 @@ import NumberDraftInput from './NumberDraftInput'
 import {usePresentationAccessibility,PresentationColorInput} from './PresentationAccessibility'
 import {patternImage,linePattern} from './presentationPalette'
 import layout from '../../packages/service-core/node/services/project/CanvasLayout.js'
+import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 import './canvas-slide.css'
 
 type ObjectValue = Record<string, any>
@@ -114,7 +115,7 @@ export default function CanvasSlide({ objects, mediaUrl, onChange, onImage, uplo
     {selected && <div className="heritage-canvas-tools__properties" aria-label={t("Selected object properties")}>
       {(['x','y','width','height'] as const).map(key=><label key={key}>{({x:t("Left"),y:t("Top"),width:t("Width"),height:t("Height")})[key]} %<input type="number" min={key==='width'||key==='height'?1:0} max="100" step="1" value={Math.round(selected.frame[key]*100)} onChange={event=>{if(event.currentTarget.value)frame({[key]:Number(event.currentTarget.value)/100})}} /></label>)}
       <label>{t("Rotation °")}<input type="number" min="-180" max="180" value={Math.round(selected.frame.rotation)} onChange={event=>frame({rotation:clamp(Number(event.currentTarget.value),-180,180)})} /></label>
-      {selected.type!=='image' && <label>{t("Object color")}<PresentationColorInput label={t("Object color")} value={selected.color} onChange={color=>patch({color})} /></label>}
+      {selected.type!=='image' && <label>{t("Object color")}<PresentationColorInput label={t("Object color")} value={selected.color} onChange={color=>patch({color,...(selected.type==='text' && selected.text ? {spans:formatting.applyTextStyle(selected.text,selected.spans || [],0,selected.text.length,{foreground:undefined})} : {})})} /></label>}
       {selected.type==='text' && <><label>{t("Font size (maximum)")}<NumberDraftInput key={selected.id} min={16} max={240} value={selected.fontSize} onCommit={fontSize=>patch({fontSize})} /></label><label>{t("Align")}<select value={selected.align} onChange={event=>patch({align:event.currentTarget.value})}><option value="left">{t('left')}</option><option value="center">{t('center')}</option><option value="right">{t('right')}</option></select></label></>}
       {['brace','circle'].includes(selected.type) && <label>{t("Line width")}<input type="number" min="1" max="30" value={selected.lineWidth} onChange={event=>patch({lineWidth:clamp(Number(event.currentTarget.value),1,30)})} /></label>}
       {selected.type==='circle' && <label><input type="checkbox" checked={selected.filled} onChange={event=>patch({filled:event.currentTarget.checked})} />{t("Filled")}</label>}

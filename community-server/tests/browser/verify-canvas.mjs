@@ -49,6 +49,7 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  const editor=page.locator('.heritage-service-planner__editor')
  const stage=editor.locator('.heritage-service-planner__stage')
  const rows=page.locator('.heritage-service-planner__rows')
+ const setColor=async(label,color)=>{await page.getByRole('button',{name:label,exact:true}).click();await page.getByRole('textbox',{name:`${label} hex color`,exact:true}).fill(color);await page.getByRole('textbox',{name:`${label} hex color`,exact:true}).press('Enter')}
  const openPalette=async tab=>{await page.getByRole('button',{name:'＋ Add slide',exact:true}).click();if(tab)await page.getByRole('tab',{name:tab,exact:true}).click()}
  await openPalette('Sermon')
  await page.getByRole('button',{name:/Other Move text/}).click()
@@ -79,11 +80,11 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  await page.getByLabel('Font size (maximum)',{exact:true}).fill('72')
  await page.getByLabel('Font size (maximum)',{exact:true}).press('Tab')
  await expect(editor.locator('.heritage-canvas__object[data-object-type="text"]')).toHaveAttribute('data-canvas-font','72')
- await page.getByLabel('Object color',{exact:true}).fill('#25b080')
+ await setColor('Object color','#25b080')
  await expect(text).toHaveCSS('color','rgb(37, 176, 128)')
  await text.evaluate(element=>{element.focus();const range=document.createRange();range.setStart(element.firstChild,0);range.setEnd(element.firstChild,4);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);document.dispatchEvent(new Event('selectionchange'))})
  await page.getByRole('button',{name:'Bold',exact:true}).click()
- await page.getByLabel('Text highlight',{exact:true}).fill('#8a5a00')
+ await setColor('Text highlight','#8a5a00')
  await expect(text.locator('span').first()).toHaveCSS('background-color','rgb(138, 90, 0)')
  console.log('Text highlighted')
  await page.getByRole('button',{name:'Add brace }',exact:true}).click()
@@ -154,7 +155,7 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  await expect(stage).not.toHaveAttribute('data-monochrome','true')
  // The normal color picker restores audience colors after leaving account patterns.
  await text.evaluate(element=>{element.focus();const node=element.querySelector('span').firstChild;const range=document.createRange();range.setStart(node,0);range.setEnd(node,4);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);document.dispatchEvent(new Event('selectionchange'))})
- await page.getByLabel('Text color',{exact:true}).fill('#ef4444')
+ await setColor('Text color','#ef4444')
  await expect(text.locator('span').first()).toHaveCSS('color','rgb(239, 68, 68)')
  await page.getByRole('button',{name:'Undo',exact:true}).click()
  await page.getByRole('button',{name:'Save sermon slides',exact:true}).click()

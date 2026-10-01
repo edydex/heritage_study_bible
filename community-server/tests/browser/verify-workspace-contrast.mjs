@@ -78,6 +78,14 @@ for (const [engineName, engine] of Object.entries({ chromium, firefox })) {
   await authored.evaluate(element => { element.focus(); const range = document.createRange(); range.selectNodeContents(element); const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range); document.dispatchEvent(new Event('selectionchange')) })
   await expect(page.getByRole('toolbar', { name: 'Selected text formatting' })).toBeVisible()
   await audit('text-formatting')
+  await page.getByRole('button', { name: 'Text color', exact: true }).click()
+  await audit('text-color-palette')
+  await page.getByRole('group', { name: 'Text color palette', exact: true }).getByRole('textbox').press('Escape')
+  await page.getByRole('button', { name: 'Text highlight', exact: true }).click()
+  await audit('text-highlight-palette')
+  await page.getByRole('group', { name: 'Text highlight palette', exact: true }).getByRole('textbox').press('Escape')
+  const selectionStyle = await authored.evaluate(element => { const style = getComputedStyle(element, '::selection'); return { color: style.color, background: style.backgroundColor } })
+  assert.deepEqual(selectionStyle, {color:'rgb(255, 255, 255)',background:'rgb(49, 91, 133)'}, 'Selected authored words need a readable editing overlay')
   await authored.press('Escape')
   assert.equal(await page.locator('.heritage-canvas__object [contenteditable]').first().evaluate(element => getComputedStyle(element).color), 'rgb(255, 192, 0)', 'Operator theme must preserve authored slide colors')
   await page.getByLabel('Welcome slide topic').fill('')
@@ -95,6 +103,9 @@ for (const [engineName, engine] of Object.entries({ chromium, firefox })) {
   for (const name of ['Sermon', 'Songs', 'Scripture', 'Media']) {
     await page.getByRole('tab', { name, exact: true }).click()
     await audit(`add-${name.toLowerCase()}`)
+    await page.getByRole('tab', { name, exact: true }).hover()
+    await page.getByRole('tab', { name, exact: true }).focus()
+    await audit(`add-${name.toLowerCase()}-selected-focus`)
   }
   await page.getByRole('button', { name: 'Close add slide palette' }).click()
   forceConflict = true
