@@ -2,6 +2,13 @@
 import type { WorkspaceLanguage } from './workspaceLanguage'
 
 export const russianWorkspaceText: Readonly<Record<string, string>> = {
+  "Workspace view": "Вид рабочей области",
+  "Slides": "Слайды",
+  "Edit": "Редактировать",
+  "Edit slide": "Редактировать слайд",
+  "Preview": "Предпросмотр",
+  "Prepare sermon": "Подготовка проповеди",
+  "Plan service": "План служения",
   "English": "Английский",
   "Russian": "Русский",
   "Stage-Facing Screen": "Экран для сцены",

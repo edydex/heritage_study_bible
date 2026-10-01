@@ -397,6 +397,13 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   const [translationCueSlide,setTranslationCueSlide]=useState<PlannerSlide | null>(null)
   const [previewChannel, setPreviewChannel] = useState<ChannelId>('english')
   const [servicePreviewOpen, setServicePreviewOpen] = useState(false)
+  const [workspaceView, setWorkspaceView] = useState<'slides' | 'edit'>('slides')
+  function chooseWorkspaceView(view: 'slides' | 'edit') {
+    if (view === workspaceView) return
+    // Commit a focused contenteditable before hiding its editing surface.
+    if (document.activeElement instanceof HTMLElement && document.activeElement.closest('[contenteditable],textarea,input')) document.activeElement.blur()
+    setWorkspaceView(view); setPaletteOpen(false)
+  }
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0)
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([])
   const rangeAnchor = useRef<string | null>(null)
@@ -1358,9 +1365,12 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
       {recoveryConflict ? <p className="heritage-service-planner__error" role="alert">{t("A recovered local draft differs from the server version.")} <button type="button" onClick={() => { latestDraft.current = recoveryConflict; setDraft(recoveryConflict); dirtyRef.current = true; setDirty(true); setRecoveryConflict(null); setAutosaveBlocked(true); setNotice('Recovered draft is open for review. Use Save to keep it as a new version.'); }}>{t("Review recovered draft")}</button> <button type="button" onClick={() => setHistoryOpen(true)}>{t("Review saved versions")}</button> <button type="button" onClick={() => { if (!globalThis.confirm(t('Discard the recovered local draft? The saved server versions will remain in Version history.'))) return; try { localStorage.removeItem(`heritage-planner-draft:${envelope?.syncId}`) } catch {} setRecoveryConflict(null) }}>{t("Discard recovered draft")}</button></p> : null}
       {!localRecoveryAvailable && dirty ? <p className="heritage-service-planner__error" role="alert">{t("Local recovery storage is full or unavailable. Keep this page open until the server confirms your changes are saved.")}</p> : null}
 
-      <div className="heritage-service-planner__shell">
-        <aside className="heritage-service-planner__navigation">
-          {sidebarHeader}
+      <header className="heritage-workspace-toolbar">
+        <div className="heritage-workspace-toolbar__title"><strong>{draft?.title || (sermonSyncId ? t('Prepare sermon') : t('Plan service'))}</strong><span>{draft?.serviceDate}</span></div>
+        <div className="heritage-workspace-toolbar__views" role="group" aria-label={t('Workspace view')}>
+          <button type="button" aria-pressed={workspaceView === 'slides'} onClick={() => chooseWorkspaceView('slides')}>{t('Slides')}</button>
+          <button type="button" aria-pressed={workspaceView === 'edit'} disabled={!draft} onClick={() => chooseWorkspaceView('edit')}>{t('Edit')}</button>
+        </div>
           <div className="heritage-service-planner__toolbar">
             <details ref={workspaceMenuRef} className="heritage-service-planner__app-menu" onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() } }}>
               <summary aria-label={t("Workspace menu")} title={t("Workspace menu")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg></summary>
@@ -1386,6 +1396,10 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
             <button type="button" className="heritage-service-planner__history-button" disabled={!envelope || busy} aria-haspopup="dialog" onClick={() => setHistoryOpen(true)}>{t('Version history')}</button>
           </div>
           <p className="heritage-service-planner__save-state" aria-live="polite" title={t(notice)}>{draft ? `${t('{count} slides', { count: slideList.rows.filter(row => row.cue).length })} · ${saving ? t("Saving…") : busy ? t("Working…") : autosaveBlocked ? localRecoveryAvailable ? t("Draft kept locally · retry Save") : t("Unsaved · retry Save") : dirty || desiredStatus !== envelope?.status ? t("Waiting to save…") : (envelope as any)?.conflict ? t("Saved on this computer · sync conflict") : (envelope as any)?.savedLocally && (envelope as any)?.pending ? t("Saved on this computer · waiting to sync") : typeof envelope?.syncVersion === 'number' ? t('All changes saved · v{version}', { version: envelope.syncVersion }) : t('Saved on this computer')} ` : t(notice)}</p>
+      </header>
+      <div className="heritage-service-planner__shell">
+        <aside className="heritage-service-planner__navigation">
+          {sidebarHeader}
           {!sermonSyncId && <>
           <div className="heritage-service-planner__service-picker">
             <label>
@@ -1462,7 +1476,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
               buttons[(index + (event.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length]?.focus()
             }}>
             <small>{selectedPlannerSlides(slideList.rows, menu.ids).length > 1 ? t('{count} selected slides', { count: selectedPlannerSlides(slideList.rows, menu.ids).length }) : menu.row.kind === 'group' ? t("Section") : t('Slide {number}', { number: menu.row.number || 0 })}</small>
-            <button type="button" role="menuitem" onClick={() => { selectSlide(menu.row); setMenu(null); setSettingsOpen(true) }}>{t("Slide settings…")}</button>
+            <button type="button" role="menuitem" onClick={() => { selectSlide(menu.row); setMenu(null); chooseWorkspaceView('edit'); setSettingsOpen(true) }}>{t("Slide settings…")}</button>
             {menu.row.kind === 'bible' && draft && draft.items[menu.row.itemId]?.passagesByChannel?.[previewChannel]?.displayText !== undefined ? <button type="button" role="menuitem" onClick={() => {
               const next = cloneProject(draft), item = next.items[menu.row.itemId]
               for (const output of previewChannel === 'russian' && item.passagesByChannel.media ? ['russian','media'] : [previewChannel]) { delete item.passagesByChannel[output].displayText; delete item.passagesByChannel[output].displaySpans }
@@ -1489,7 +1503,12 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
           </div> : null}
         </aside>
 
-        <main className="heritage-service-planner__editor" hidden={paletteOpen}>
+        {draft && workspaceView === 'slides' && !paletteOpen ? <ServicePreview inline project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
+          mediaUrl={assetId => mediaPreviews[assetId] || (envelope?.project.assets?.[assetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(assetId)}` : undefined)}
+          onSelect={row => selectSlide(row, {ctrlKey: true})} onChannel={id => setPreviewChannel(id as ChannelId)}
+          onSlideMenu={(row,x,y) => {selectSlide(row,{ctrlKey:true});setMenu({row,ids:[row.id],x,y})}}
+          onClose={row => {if(row) selectSlide(row,{ctrlKey:true});chooseWorkspaceView('edit')}} /> : null}
+        <main className="heritage-service-planner__editor" hidden={paletteOpen || workspaceView !== 'edit'}>
           {selected ? <>
             <section className="heritage-service-planner__preview">
               <header className="heritage-service-planner__preview-heading">
