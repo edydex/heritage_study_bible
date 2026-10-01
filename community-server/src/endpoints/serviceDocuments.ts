@@ -62,7 +62,7 @@ function relationId(value: unknown) {
   return Number.isSafeInteger(id) && id > 0 ? id : 0
 }
 
-function responseHeaders(req: PayloadRequest, extra: HeadersInit = {}) {
+export function responseHeaders(req: PayloadRequest, extra: HeadersInit = {}) {
   const headers = headersWithCors({ headers: new Headers(extra), req })
   headers.set('Cache-Control', 'private, no-store')
   headers.set('Vary', 'Authorization, Cookie')

@@ -1,7 +1,9 @@
 import type { Endpoint, Where } from 'payload'
-import { managerContext, editorError, json } from './serviceDocuments'
+import { managerContext, editorError, json, responseHeaders } from './serviceDocuments'
 import { findServiceDocument, serviceDocumentResponse } from './syncShow'
 import { SyncShowProtocolError } from '../lib/syncShowProtocol'
+import serviceCore from '../../packages/service-core/node.js'
+import { readServiceDocumentAsset, serviceDocumentAssetId, ServiceDocumentAssetError } from '../lib/syncshow/ServiceDocumentAssetStore'
 import { groupServiceHistory, type ServiceHistoryEntry } from '../lib/serviceVersionHistory'
 
 async function context(req: Parameters<NonNullable<Endpoint['handler']>>[0]) {
@@ -11,6 +13,17 @@ async function context(req: Parameters<NonNullable<Endpoint['handler']>>[0]) {
   if (!document) throw new SyncShowProtocolError('SERVICE_NOT_FOUND', 'Service not found.', 404)
   const scope: Where[] = [{ community: { equals: communityId } }, { serviceDocument: { equals: Number(document.id) } }]
   return { communityId, document, scope }
+}
+
+async function selectedVersion(req: Parameters<NonNullable<Endpoint['handler']>>[0]) {
+  const { communityId, document, scope } = await context(req)
+  const syncVersion = Number(req.routeParams?.syncVersion)
+  if (!Number.isSafeInteger(syncVersion) || syncVersion < 1) throw new SyncShowProtocolError('INVALID_VERSION', 'Version is invalid.', 400)
+  const found = await req.payload.find({ collection: 'syncshow-service-document-changes', req, overrideAccess: true, showHiddenFields: true, depth: 0, limit: 1,
+    where: { and: [...scope, { syncVersion: { equals: syncVersion } }] } })
+  const change = found.docs[0]
+  if (!change) throw new SyncShowProtocolError('VERSION_NOT_FOUND', 'This version was not found.', 404)
+  return { communityId, document: { ...document, ...change, syncId: document.syncId, id: document.id } }
 }
 
 export const serviceHistoryEndpoints: Endpoint[] = [
@@ -35,16 +48,23 @@ export const serviceHistoryEndpoints: Endpoint[] = [
   } },
   { path: '/community/service-documents/:syncId/history/:syncVersion', method: 'get', handler: async req => {
     try {
-      const { document, scope } = await context(req)
-      const syncVersion = Number(req.routeParams?.syncVersion)
-      if (!Number.isSafeInteger(syncVersion) || syncVersion < 1) throw new SyncShowProtocolError('INVALID_VERSION', 'Version is invalid.', 400)
-      const found = await req.payload.find({ collection: 'syncshow-service-document-changes', req, overrideAccess: true, showHiddenFields: true, depth: 0, limit: 1,
-        where: { and: [...scope, { syncVersion: { equals: syncVersion } }] } })
-      const change = found.docs[0]
-      if (!change) throw new SyncShowProtocolError('VERSION_NOT_FOUND', 'This version was not found.', 404)
+      const { document } = await selectedVersion(req)
       // Only the selected content envelope is returned. The internal journal
       // and other churches' history never reach the browser.
-      return json(req, { serviceDocument: serviceDocumentResponse({ ...document, ...change, syncId: document.syncId, id: document.id } as any) })
+      return json(req, { serviceDocument: serviceDocumentResponse(document as any) })
+    } catch (error) { return editorError(req, error) }
+  } },
+  { path: '/community/service-documents/:syncId/history/:syncVersion/assets/:assetId', method: 'get', handler: async req => {
+    try {
+      const { communityId, document } = await selectedVersion(req)
+      const identity = serviceDocumentAssetId(req.routeParams?.assetId)
+      const historical = serviceCore.parseHeritageServiceDocumentSource(String(document.documentSource || ''))
+      const asset = historical.project.assets[identity.id]
+      if (!asset || !['image','video'].includes(asset.kind)) throw new ServiceDocumentAssetError('SERVICE_ASSET_NOT_FOUND', 'That media file is not part of this saved version.', 404)
+      const bytes = await readServiceDocumentAsset(communityId, asset)
+      return new Response(new Uint8Array(bytes), { headers: responseHeaders(req, {
+        'Content-Type': asset.mediaType, 'Content-Length': String(asset.size), ETag: `"${asset.sha256}"`,
+      }) })
     } catch (error) { return editorError(req, error) }
   } },
 ]

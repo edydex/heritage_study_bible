@@ -1390,6 +1390,22 @@ async function recordEditorSave(req: PayloadRequest, communityId: number, docume
     } as never })
 }
 
+async function replayEditorSave(req: PayloadRequest, communityId: number, current: RequestDoc, write: ServiceDocumentWrite, requestId: string, event?: EditorSaveEvent) {
+  if (!event) return null
+  const saved = (await req.payload.find({ collection: 'service-document-saves', req, overrideAccess: true, depth: 0, limit: 1,
+    where: { and: [{ community: { equals: communityId } }, { serviceDocument: { equals: Number(current.id) } }, { requestId: { equals: requestId } }] } })).docs[0]
+  if (!saved) return null
+  const snapshot = (await req.payload.find({ collection: 'syncshow-service-document-changes', req, overrideAccess: true, showHiddenFields: true, depth: 0, limit: 1,
+    where: { and: [{ community: { equals: communityId } }, { serviceDocument: { equals: Number(current.id) } }, { syncVersion: { equals: Number(saved.syncVersion) } }] } })).docs[0]
+  if (!snapshot || saved.saveKind !== event.saveKind || saved.revision !== write.revision
+    || snapshot.revision !== write.revision || snapshot.documentSource !== write.documentSource || snapshot.status !== write.status) {
+    throw new SyncShowProtocolError('IDEMPOTENCY_CONFLICT', 'This save request was already used for different content. Start a new save request.', 409)
+  }
+  // A lost response can be acknowledged after a later writer saves. Return the
+  // exact version accepted for this request and never rewrite current content.
+  return { ...current, ...snapshot, id: current.id, syncId: current.syncId, lastIdempotencyKey: requestId }
+}
+
 export async function mutateServiceDocument(
   req: PayloadRequest,
   communityId: number,
@@ -1425,6 +1441,15 @@ export async function mutateServiceDocument(
         FOR UPDATE;
       `)
       current = await findServiceDocument(req, communityId, write.syncId)
+    }
+
+    if (current) {
+      const replay = await replayEditorSave(req, communityId, current, write, idempotencyKey, options.editorSave)
+      if (replay) {
+        await adapter.commitTransaction(transactionId)
+        committed = true
+        return { document: replay, created: false }
+      }
     }
 
     if (write.baseSyncVersion === null) {
