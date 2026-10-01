@@ -1,5 +1,8 @@
 'use client'
 import VersionHistoryDialog from './VersionHistoryDialog'
+import { plannerNavigator } from './plannerNavigator'
+import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
+import songPresentation from '../../packages/service-core/node/services/project/SongPresentation.js'
 import sermonContext from '../../packages/service-core/node/services/project/SermonContext.js'
 import NumberDraftInput from './NumberDraftInput'
 import { groupSermonSections, withinSermon } from './plannerSermonSections'
@@ -425,6 +428,8 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   const selectedSlides = slideList.rows.filter(row => row.itemId === selectedId && row.cue)
   const activePreviewIndex = Math.min(previewSlideIndex, Math.max(0, selectedSlides.length - 1))
   const activeSlide = selectedSlides[activePreviewIndex]
+  const navigatorRows = draft ? plannerNavigator(draft, slideList.rows, activeSlide?.id || selectedId) : []
+  const activeSongPrimary = selected?.kind === 'song' ? songPresentation.presentationPrimaryChannelId(selected, activeSlide?.cue?.sourceLeafKey) : null
   const activePreviewCue = activeSlide?.cue
   const preview = plannerPreview(slideList.rows, activeSlide, previewChannel)
   const activePreviewOutput = preview.output
@@ -1391,11 +1396,11 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
           <PresentationAccessibilityControl item={selected} />
           <div className="heritage-service-planner__outline-heading">
             <h2>{sermonSyncId ? 'Sermon slides' : 'Service order'}</h2><button type="button" className="heritage-add-slide" ref={addSlideRef} disabled={!draft} aria-expanded={paletteOpen} onClick={openPalette}>＋ Add slide</button>
-            <small aria-live="polite">{batchSlides.length > 1 ? `${batchSlides.length} selected` : 'Section start: selects all · Ctrl/⌘: one slide'}</small>
+            <small aria-live="polite">{batchSlides.length > 1 ? `${batchSlides.length} selected` : slideList.rows.filter(row=>row.cue).length > 20 ? 'Select a section to open its slides · Ctrl/⌘: one slide' : 'Section start: selects all · Ctrl/⌘: one slide'}</small>
           </div>
 
           {draft ? <ol className="heritage-service-planner__rows">
-            {slideList.rows.map(row => {
+            {navigatorRows.map(row => {
               const rowSelected = selectedKeys.has(row.id)
               const openMenu = (x: number, y: number) => {
                 const ids = rowSelected ? selectionIds : plannerClickSelection(slideList.rows, row)
@@ -1406,7 +1411,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 data-drop={dropTarget?.id === row.id ? (dropTarget.after ? 'after' : 'before') : undefined}>
                 <button className="heritage-service-planner__row" data-kind={row.kind}
                   data-slide-id={row.id} data-selected={rowSelected || undefined} aria-pressed={rowSelected}
-                  data-active={activeSlide?.id === row.id || undefined}
+                  data-active={activeSlide?.id === row.id || undefined} aria-expanded={row.sectionSize ? row.sectionExpanded : undefined}
                   type="button" draggable title={`${row.title} · Click section start to select all · Ctrl/⌘-click for one slide · Shift-click for range · Right-click for actions`}
                   onClick={event => selectSlide(row, event)}
                   onContextMenu={event => { event.preventDefault(); openMenu(event.clientX, event.clientY) }}
@@ -1430,8 +1435,8 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                   onDragEnd={() => { dragged.current = null; setDropTarget(null) }}
                   onDragOver={event => { if (!dragged.current) return; event.preventDefault(); event.dataTransfer.dropEffect = 'move'; const rect = event.currentTarget.getBoundingClientRect(); setDropTarget({ id: row.id, after: event.clientY > rect.top + rect.height / 2 }) }}
                   onDrop={event => { event.preventDefault(); if (dragged.current) dropSelection(dragged.current, row, Boolean(dropTarget?.after)) }}>
-                  <span className="heritage-service-planner__kind" aria-hidden="true">{row.kind === 'group' ? '▾' : row.number}</span>
-                  <span><strong>{row.title}</strong>{row.cue?.translationAction ? <small className="heritage-service-planner__translation-cue">{row.cue.translationAction === 'start' ? '▶ Start Translate' : '■ Stop Translate'}</small> : null}{row.kind === 'group' ? <small>section</small> : isSongTitleSlide(row) ? <small>song</small> : row.readingTitle ? <small>reading</small> : row.sermonTitle ? <small>sermon</small> : row.scripturePageCount ? <small>{row.scripturePageCount} slides</small> : null}</span>
+                  <span className="heritage-service-planner__kind" aria-hidden="true">{row.sectionSize && row.sectionSize > 1 ? (row.sectionExpanded ? '▾' : '▸') : row.kind === 'group' ? '▾' : row.number}</span>
+                  <span><strong>{row.number && row.sectionSize && row.sectionSize > 1 ? `${row.number}. ` : ''}{row.title}</strong>{row.sectionSize && row.sectionSize > 1 ? <small>{row.sectionSize} slides · {row.sectionExpanded ? 'open' : 'select to expand'}</small> : null}{row.cue?.translationAction ? <small className="heritage-service-planner__translation-cue">{row.cue.translationAction === 'start' ? '▶ Start Translate' : '■ Stop Translate'}</small> : null}{row.kind === 'group' ? <small>section</small> : isSongTitleSlide(row) ? <small>song</small> : row.readingTitle ? <small>reading</small> : row.sermonTitle ? <small>sermon</small> : row.scripturePageCount ? <small>{row.scripturePageCount} slides</small> : null}</span>
                 </button>
               </li>
             })}
@@ -1496,15 +1501,22 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 {draft?.channels[previewChannel]?.label || previewChannel} is not configured. Screens will show {draft?.channels[activePreviewOutput.fallbackFromChannelId]?.label || 'the filled language'} content until you add text here.
               </p> : null}
               {selected.kind === 'song' && selected.songPresentation && !preview.singer ? <div className="heritage-service-planner__song-layout">
-                <label><input type="checkbox" aria-label="Stacked translation" checked={selected.songPresentation.stackedTranslation}
+                <label>Primary language for this slide <select aria-label="Primary language for this slide" value={selected.songPresentation.slidePrimaryChannelIds?.[activeSlide?.cue?.sourceLeafKey] || ''}
+                  onChange={event => { const choices = {...selected.songPresentation.slidePrimaryChannelIds}; const key=activeSlide?.cue?.sourceLeafKey
+                    if (!key) return
+                    if (event.target.value) choices[key]=event.target.value; else delete choices[key]
+                    updateSelected({songPresentation:{...selected.songPresentation,slidePrimaryChannelIds:choices}})
+                  }}>
+                  <option value="">Song default · {draft?.channels[selected.songPresentation.primaryChannelId]?.label}</option>
+                  {selectedSongContentChannels.map(id=><option key={id} value={id}>{draft?.channels[id]?.label || id}</option>)}
+                </select></label>
+                {activeSlide && isSongTitleSlide(activeSlide) ? <label><input type="checkbox" aria-label="Show translated song title" checked={selected.songPresentation.showTitleTranslation ?? selected.songPresentation.stackedTranslation}
                   disabled={!selected.songPresentation.secondaryChannelId}
-                  onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, stackedTranslation: event.target.checked },
-                    lyricsPresetId: event.target.checked ? 'wotbc-song-stacked' : 'wotbc-song-lyrics' })} /> Stacked translation</label>
-                {selected.songPresentation.stackedTranslation ? <label>Top language <select aria-label="Top language" value={selected.songPresentation.primaryChannelId}
-                  onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation,
-                    primaryChannelId: event.target.value, secondaryChannelId: selected.songPresentation.primaryChannelId } })}>
-                  {[selected.songPresentation.primaryChannelId, selected.songPresentation.secondaryChannelId].map((id: string) => <option key={id} value={id}>{draft?.channels[id]?.label || id}</option>)}
-                </select></label> : <span>{selected.songPresentation.secondaryChannelId ? 'One language per screen' : 'Single-language song'}</span>}
+                  onChange={event => updateSelected({songPresentation:{...selected.songPresentation,showTitleTranslation:event.target.checked}})} /> Show second language beneath title</label>
+                  : <label><input type="checkbox" aria-label="Stacked translation" checked={selected.songPresentation.stackedTranslation}
+                    disabled={!selected.songPresentation.secondaryChannelId}
+                    onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, stackedTranslation: event.target.checked },
+                      lyricsPresetId: event.target.checked ? 'wotbc-song-stacked' : 'wotbc-song-lyrics' })} /> Show translated lyrics · whole song</label>}
               </div> : null}
               {selected.kind === 'sermon' && (selected.sermonTemplate === 'title' || selected.presetId === 'wotbc-sermon-title') && !preview.singer ? <div className="heritage-service-planner__song-layout">
                 <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>{uploadingPicture ? 'Uploading…' : (selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? `Replace ${previewChannel === 'russian' ? 'Russian' : 'English'} image` : `Choose ${previewChannel === 'russian' ? 'Russian' : 'English'} image`}</button>
@@ -1532,7 +1544,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                             : <video key={index} src={source} controls preload="metadata" muted={block.muted} />
                         }
                         if (block.type === 'bible') return <div key={index} className="heritage-service-planner__scripture-page" data-fit-text>
-                          <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
+                          {preview.presetId !== 'wotbc-sermon-scripture' && (block.displayReference ?? block.reference) ? <p className="heritage-service-planner__scripture-reference">{readingLabels.localizedReference(block.displayReference ?? block.reference, draft?.channels[previewChannel]?.language)}</p> : null}
                           <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} label={`Slide ${activeSlide?.number} ${previewChannel} Scripture — click to edit`} role="body" readOnly={preview.singer} canFormat={!preview.singer}
                             onCommit={(text, spans) => activeSlide && slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text, spans))} />
                           {formatting.scriptureCredit(block) ? <p className="heritage-scripture-credit">{formatting.scriptureCredit(block)}</p> : null}
@@ -1543,7 +1555,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                               spans={block.spans}
                               canFormat={!preview.singer && ['sermon', 'notice'].includes(selected.kind)}
                               label={`Slide ${activeSlide.number} ${selected.kind === 'song' && selected.songPresentation?.stackedTranslation && block.role === 'lyrics'
-                                ? (index === 0 ? selected.songPresentation.primaryChannelId : selected.songPresentation.secondaryChannelId) : previewChannel} ${block.role} — click to edit`}
+                                ? (index === 0 ? activeSongPrimary : songPresentation.presentationSecondaryChannelId(selected, activeSongPrimary)) : previewChannel} ${block.role} — click to edit`}
                               onCommit={(text, spans) => slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text, ['sermon','notice'].includes(selected.kind) ? spans : undefined))} />
                           : <p key={index} data-role={block.role || 'scripture'}>{previewBlockText(block)}</p>
                       })}
@@ -1590,6 +1602,8 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
             {settingsOpen && <SlideSettingsDialog onClose={() => { setSettingsOpen(false); requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(`.heritage-service-planner__rows [data-slide-id="${CSS.escape(activeSlide?.id || selected.id)}"]`)?.focus()) }}>
                 <label><span>Item name</span><input value={selected.title} maxLength={200} onChange={event => updateSelected({ title: event.target.value })} /></label>
                 <label><span>Notes for the operator</span><input value={selected.operatorNotes || ''} onChange={event => updateSelected({ operatorNotes: event.target.value })} /></label>
+                {selected.kind === 'sermon' && (selected.sermonTemplate === 'title' || selected.presetId === 'wotbc-sermon-title') ? <label className="heritage-service-planner__check"><input type="checkbox" aria-label="Show next-slide hints for this sermon" checked={selected.sermonPresentation?.showNextSlideHints ?? true}
+                  onChange={event=>updateSelected({sermonPresentation:{showText:true,darkenBackground:true,...selected.sermonPresentation,showNextSlideHints:event.target.checked}})} /><span>Show next-slide hints for this sermon</span><small>Applies to the title, points, quotations, and passages in this sermon.</small></label> : null}
                 {selected.kind === 'song' && selected.songPresentation ? <label><span>Song credit · bottom right of title slide</span><input aria-label="Song credit" value={selected.songPresentation.credits} maxLength={500}
                   onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, credits: event.target.value } })} /></label> : null}
 
@@ -1608,6 +1622,10 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
                 {presetChoices(selected).length ? <label><span>Visual preset</span><select value={itemPreset(selected)} onChange={event => updateSelected(selected.kind === 'song' ? { lyricsPresetId: event.target.value } : { presetId: event.target.value })}>{presetChoices(selected).map(preset => <option key={preset} value={preset}>{preset}</option>)}</select></label> : null}
                 {selected.kind === 'group' ? <label><span>Section type</span><select value={selected.groupKind} onChange={event => updateSelected({ groupKind: event.target.value })}>{['service', 'section', 'sermon', 'point', 'subpoint', 'custom'].map(kind => <option key={kind}>{kind}</option>)}</select></label> : null}
                 {selected.kind === 'blank' ? CHANNEL_IDS.map(channelId => <label className="heritage-service-planner__check" key={channelId}><input type="checkbox" checked={selected.channelIds.includes(channelId)} onChange={event => updateSelected({ channelIds: event.target.checked ? [...new Set([...selected.channelIds, channelId])] : selected.channelIds.filter((id: string) => id !== channelId) })} /><span>Clear {draft?.channels[channelId]?.label || channelId}</span></label>) : null}
+                {selected.kind === 'song' && selected.songPresentation ? <label><span>Song default primary language</span><select aria-label="Song default primary language" value={selected.songPresentation.primaryChannelId}
+                  onChange={event=>updateSelected({songPresentation:{...selected.songPresentation,primaryChannelId:event.target.value,secondaryChannelId:songPresentation.presentationSecondaryChannelId(selected,event.target.value)}})}>
+                  {selectedSongContentChannels.map(id=><option key={id} value={id}>{draft?.channels[id]?.label || id}</option>)}
+                </select><small>Individual slide choices stay in place.</small></label> : null}
                 {selected.kind === 'song' ? <div className="heritage-service-planner__treatments">
                   <p className="heritage-service-planner__boundary">Exact Community revisions stay pinned. Output-specific language choices live here so they do not clutter normal planning.</p>
                   {CHANNEL_IDS.map(channelId => {

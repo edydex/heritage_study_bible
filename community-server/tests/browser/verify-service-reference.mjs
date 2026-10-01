@@ -44,7 +44,7 @@ for(const [name,engine] of Object.entries({chromium,firefox})) {
  await page.getByRole('tab',{name:'Songs',exact:true}).click()
  await page.getByRole('button',{name:'Example song Пример',exact:true}).click()
  await page.getByRole('button',{name:'Add song to service',exact:true}).click()
- await expect(page.getByLabel('Top language')).toHaveValue('english')
+ await expect(page.getByLabel('Primary language for this slide')).toHaveValue('')
  await page.getByRole('button',{name:'Save sermon slides',exact:true}).click()
  await expect(page.getByRole('button',{name:'Save sermon slides',exact:true})).toBeDisabled()
  const pinned=Object.values(saved.project.items).find(item=>item.kind==='song')

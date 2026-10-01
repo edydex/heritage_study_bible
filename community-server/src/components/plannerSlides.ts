@@ -3,6 +3,7 @@ import sermonContext from '../../packages/service-core/node/services/project/Ser
 import { isScripturePageGroup } from './plannerScriptureGroups'
 import { isSermonGroup } from './plannerSermonSections'
 import { isReadingGroup, isSongGroup } from './plannerReadingGroups'
+import songPresentation from '../../packages/service-core/node/services/project/SongPresentation.js'
 import serviceCore from '../../packages/service-core/index.js'
 import { sermonTextSpans } from './plannerSermonStyle'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
@@ -142,10 +143,14 @@ export function editableSong(project: RecordValue, itemId: string) {
   target.arrangement = arrangement
   delete target.sourceRangeReplacement
   for (const [channelId, resourceId] of Object.entries(resourceByChannel)) target.variants[channelId].resourceId = resourceId
+  delete target.songPresentation?.slidePrimaryChannelIds
   delete target.translationCues
   delete target.translationCueSettings
   const updatedCues = plannerSlides(next).filter(row => row.itemId === itemId)
   updatedCues.forEach((row, index) => {
+    const originalKey = previousCues[index]?.cue?.sourceLeafKey
+    const primary = originalKey && item.songPresentation?.slidePrimaryChannelIds?.[originalKey]
+    if (primary && row.cue?.sourceLeafKey) (target.songPresentation.slidePrimaryChannelIds ||= {})[row.cue.sourceLeafKey] = primary
     const action = previousCues[index]?.cue?.translationAction
     if (action && row.cue?.sourceLeafKey) {
       (target.translationCues ||= {})[row.cue.sourceLeafKey] = action
@@ -190,8 +195,12 @@ export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, chan
     if (!titleSlide) next = editableSong(next, item.id)
     item = next.items[slide.itemId]
     let sourceChannel = contentChannel(item, channelId)
-    if (item.songPresentation?.stackedTranslation && !titleSlide) {
-      sourceChannel = blockIndex === 0 ? item.songPresentation.primaryChannelId : item.songPresentation.secondaryChannelId
+    if (item.songPresentation && !titleSlide) {
+      const updatedSlide = plannerSlides(next).find(row=>row.itemId===item.id && row.index===slide.index)!
+      if (item.songPresentation.stackedTranslation || item.songPresentation.slidePrimaryChannelIds?.[updatedSlide.cue!.sourceLeafKey]) {
+        const primary = songPresentation.presentationPrimaryChannelId(item, updatedSlide.cue!.sourceLeafKey)
+        sourceChannel = blockIndex === 0 ? primary : songPresentation.presentationSecondaryChannelId(item, primary)
+      }
     }
     // Full title cards can display the other language's title as well.
     if (titleSlide) {
