@@ -68,7 +68,8 @@
 .heritage-workspace-toolbar .heritage-service-planner__app-menu { position: relative; }
 .heritage-workspace-toolbar .heritage-service-planner__app-menu nav { position: absolute; top: calc(100% + .5rem); left: auto; right: 0; }
 .heritage-service-planner .heritage-service-planner__shell { grid-template-columns: clamp(13rem,18vw,16rem) minmax(0,1fr); border-radius: .4rem; box-shadow: none; }
-.heritage-service-planner .heritage-service-planner__navigation { padding: .65rem; background: #26282d; }
+.heritage-service-planner .heritage-service-planner__navigation { padding: .65rem; color: #edf0f4; background: #26282d; }
+.heritage-service-planner .heritage-service-planner__navigation a { color: #92c3fb; }
 .heritage-service-planner .heritage-service-planner__outline-heading h2 { color: #edf0f4; }
 .heritage-service-planner__row[data-active="true"] { background: #324b69; border-color: #6babf0; }
 .heritage-service-planner__row[data-selected="true"] { border-color: #5e8abd; }
