@@ -1,4 +1,5 @@
 'use client'
+import VersionHistoryDialog from './VersionHistoryDialog'
 import sermonContext from '../../packages/service-core/node/services/project/SermonContext.js'
 import NumberDraftInput from './NumberDraftInput'
 import { groupSermonSections, withinSermon } from './plannerSermonSections'
@@ -333,6 +334,17 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
   const [desiredStatus, setDesiredStatus] = useState<ServiceEnvelope['status']>('planning')
   const [dirty, setDirty] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [autosaveBlocked, setAutosaveBlocked] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [recoveryConflict, setRecoveryConflict] = useState<ServiceProject | null>(null)
+  const [localRecoveryAvailable, setLocalRecoveryAvailable] = useState(true)
+  const envelopeRef = useRef(envelope); envelopeRef.current = envelope
+  const statusRef = useRef(desiredStatus); statusRef.current = desiredStatus
+  const dirtyRef = useRef(dirty); dirtyRef.current = dirty
+  const saveInFlight = useRef<Promise<boolean> | null>(null)
+  const pendingSave = useRef<{ draft: ServiceProject; status: string; body: Record<string, any> } | null>(null)
+  const saveHandler = useRef<(kind?: 'automatic' | 'manual' | 'restore') => Promise<boolean>>(async () => false)
   const [error, setError] = useState<string | null>(null)
   const [reusableSlides,setReusableSlides] = useState<any[]>([])
   const [templateName,setTemplateName] = useState('')
@@ -507,8 +519,24 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     const project = projectFromServiceEnvelope(next) as ServiceProject
     const prepared = preparePlannerPresentation(project, {paginateItemIds: new Set()})
     const normalized = { ...next, project } as ServiceEnvelope
+    envelopeRef.current = normalized; pendingSave.current = null; setAutosaveBlocked(false); setRecoveryConflict(null)
+    let recovered: ServiceProject | null = null
+    let recoveredStatus = next.status
+    try {
+      const raw = localStorage.getItem(`heritage-planner-draft:${next.syncId}`)
+      if (raw) {
+        const saved = JSON.parse(raw)
+        const safe = serviceCore.createHeritageServiceDocument(saved.project).project as ServiceProject
+        if (safe.id === project.id) {
+          if (saved.baseRevision === next.revision) { recovered = safe; if (['planning','ready','archived','cancelled'].includes(saved.desiredStatus)) recoveredStatus = saved.desiredStatus }
+          else setRecoveryConflict(safe)
+        }
+      }
+    } catch { /* Ignore invalid recovery content rather than replacing a service. */ }
+    const opened = cloneProject(recovered || prepared.project as ServiceProject)
+    latestDraft.current = opened; dirtyRef.current = Boolean(recovered) || prepared.changed
     setEnvelope(normalized)
-    setDraft(cloneProject(prepared.project as ServiceProject))
+    setDraft(opened)
     const retained = keepSelection && selectedId && prepared.project.items[selectedId]
     setSelectedId(retained ? selectedId : plannerSlides(prepared.project).find(row => row.cue)?.itemId || null)
     setPreviewSlideIndex(retained ? previewSlideIndex : 0)
@@ -518,17 +546,17 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     rangeAnchor.current = null
     setMoveDialog(null)
     setDeleteDialog(null)
-    setDesiredStatus(next.status)
-    setDirty(prepared.changed)
+    statusRef.current = recoveredStatus; setDesiredStatus(recoveredStatus)
+    setDirty(Boolean(recovered) || prepared.changed)
     setError(null)
-    setNotice(prepared.changed
+    setNotice(recovered ? 'Recovered your unsaved local draft. Saving will resume.' : prepared.changed
       ? 'Section grouping and presentation layout updated. Save service to keep these changes.'
       : `${project.title} is open at Community version ${next.syncVersion}.`)
     loadList()
   }
 
   async function openService(syncId: string) {
-    if (dirty && !globalThis.confirm('Discard the unsaved service changes on this page?')) return
+    if (latestDraft.current && !await flushEditor('automatic')) return
     setBusy(true)
     setError(null)
     try {
@@ -1201,58 +1229,119 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
     }
   }
 
-  async function save() {
-    if (!draft || !envelope) return
-    setBusy(true)
-    setError(null)
-    try {
-      const project = cloneProject(draft)
-      if (dirty) {
-        project.revision = envelope.project.revision + 1
-        project.updatedAt = new Date().toISOString()
-      }
-      const documentSource = serviceCore.serializeHeritageServiceDocument(
-        serviceCore.createHeritageServiceDocument(project),
-      )
-      const response = await jsonRequest(
-        `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}`,
-        {
-          method: 'PUT',
-          body: JSON.stringify({
-            schemaVersion: 1,
-            requestId: uuid(),
-            syncId: envelope.syncId,
-            baseSyncVersion: envelope.syncVersion,
-            baseRevision: envelope.revision,
-            documentSource,
-            status: desiredStatus,
-          }),
-        },
-      )
-      useEnvelope(response.serviceDocument, true)
-      setNotice(
-        response.serviceDocument.status === 'ready'
-          ? 'This exact revision is Ready.'
-          : 'Saved. SyncShow can open this exact Community revision.',
-      )
-    } catch (caught: any) {
-      setError(
-        caught?.status === 412
-          ? 'This service changed somewhere else. Your unsaved copy is still on this screen; open the current Community copy in another tab and review both before choosing what to keep.'
-          : errorText(caught),
-      )
-    } finally {
-      setBusy(false)
+  async function save(kind: 'automatic' | 'manual' | 'restore' = 'manual'): Promise<boolean> {
+    if (saveInFlight.current) {
+      const okay = await saveInFlight.current
+      if (!okay) return false
+      if (kind === 'automatic' && !dirtyRef.current && statusRef.current === envelopeRef.current?.status) return true
     }
+    if (!latestDraft.current || !envelopeRef.current) return false
+    const task = (async () => {
+      setSaving(true); setError(null)
+      async function sendPending() {
+        const pending = pendingSave.current!
+        const response = await jsonRequest(`${ENDPOINT}/${encodeURIComponent(pending.body.syncId)}`, {
+          method: 'PUT', body: JSON.stringify(pending.body),
+        })
+        const next = { ...response.serviceDocument, project: projectFromServiceEnvelope(response.serviceDocument) } as ServiceEnvelope
+        envelopeRef.current = next; setEnvelope(next)
+        if (latestDraft.current === pending.draft) {
+          const project = cloneProject(next.project)
+          latestDraft.current = project; setDraft(project); dirtyRef.current = false; setDirty(false)
+          try { localStorage.removeItem(`heritage-planner-draft:${next.syncId}`) } catch { /* storage may be disabled */ }
+        }
+        if (statusRef.current === pending.status) { statusRef.current = next.status; setDesiredStatus(next.status) }
+        pendingSave.current = null; setAutosaveBlocked(false)
+        setSummaries(rows => rows.map(row => row.syncId === next.syncId ? { ...row, syncVersion: next.syncVersion, revision: next.revision, status: next.status, changedAt: next.changedAt } : row))
+        setNotice((next as any).conflict ? 'Saved on this computer. Review the server conflict before syncing.' : (next as any).savedLocally && (next as any).pending ? 'Saved on this computer. Waiting to sync.' : kind === 'automatic' ? 'All changes saved.' : kind === 'restore' ? 'Previous version restored as a new version.' : 'Manual checkpoint saved.')
+      }
+      try {
+        // A network timeout may have happened after the server committed. Retry
+        // its original identity first before sending any newer edits.
+        if (pendingSave.current) await sendPending()
+        const current = envelopeRef.current!
+        const captured = latestDraft.current!
+        if (kind === 'automatic' && !dirtyRef.current && statusRef.current === current.status) return true
+        const project = cloneProject(captured)
+        if (dirtyRef.current) { project.revision = current.project.revision + 1; project.updatedAt = new Date().toISOString() }
+        const documentSource = dirtyRef.current ? serviceCore.serializeHeritageServiceDocument(serviceCore.createHeritageServiceDocument(project)) : current.documentSource
+        pendingSave.current = { draft: captured, status: statusRef.current, body: {
+          schemaVersion: 1, requestId: uuid(), syncId: current.syncId,
+          baseSyncVersion: current.syncVersion, baseRevision: current.revision,
+          documentSource, status: statusRef.current, saveKind: kind,
+        } }
+        await sendPending(); return true
+      } catch (caught: any) {
+        setAutosaveBlocked(true)
+        setError(caught?.status === 412
+          ? 'This document changed elsewhere. Your draft remains on this screen. Review the current server version before deciding what to keep.'
+          : `Saving paused: ${errorText(caught)} Your draft remains on this screen. Use Save to retry.`)
+        return false
+      } finally { setSaving(false) }
+    })()
+    saveInFlight.current = task
+    try { return await task } finally { if (saveInFlight.current === task) saveInFlight.current = null }
+  }
+  saveHandler.current = save
+
+  useEffect(() => {
+    if (!draft || !envelope || !(dirty || desiredStatus !== envelope.status)) return
+    if (recoveryConflict) return
+    try { localStorage.setItem(`heritage-planner-draft:${envelope.syncId}`, JSON.stringify({ baseRevision: envelope.revision, project: draft, desiredStatus, savedAt: new Date().toISOString() })); setLocalRecoveryAvailable(true) }
+    catch { setLocalRecoveryAvailable(false) }
+    if (busy || saving || autosaveBlocked || historyOpen) return
+    const timer = window.setTimeout(() => void saveHandler.current('automatic'), 1200)
+    return () => window.clearTimeout(timer)
+  }, [draft, dirty, desiredStatus, envelope, busy, saving, autosaveBlocked, historyOpen, recoveryConflict])
+
+  async function flushEditor(kind: 'manual' | 'automatic' = 'manual') {
+    const focused = document.activeElement
+    if (focused instanceof HTMLElement && focused.closest('input,textarea,[contenteditable]')) focused.blur()
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+    if (!latestDraft.current) return true
+    if (!await saveHandler.current(kind)) return false
+    for (let attempt = 0; attempt < 10 && (dirtyRef.current || statusRef.current !== envelopeRef.current?.status); attempt++) {
+      if (!await saveHandler.current('automatic')) return false
+    }
+    return !dirtyRef.current && statusRef.current === envelopeRef.current?.status
+  }
+  useEffect(() => {
+    const shortcut = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || event.key.toLowerCase() !== 's' || event.isComposing) return
+      event.preventDefault(); if (!historyOpen) void flushEditor('manual')
+    }
+    const bridge = async (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || (event.source !== window && event.source !== window.parent)) return
+      if (event.data?.type === 'heritage-editor:open') { if (typeof event.data.syncId === 'string') await openService(event.data.syncId); return }
+      if (event.data?.type !== 'heritage-editor:flush') return
+      const requestId = String(event.data.requestId || '').slice(0, 200)
+      const okay = await flushEditor('automatic')
+      const source = event.source as Window | null
+      source?.postMessage({ type: 'heritage-editor:flushed', requestId, ok: okay, serviceDocument: okay ? envelopeRef.current : undefined, error: okay ? undefined : 'The current changes could not be saved.' }, event.origin)
+    }
+    document.addEventListener('keydown', shortcut); window.addEventListener('message', bridge)
+    return () => { document.removeEventListener('keydown', shortcut); window.removeEventListener('message', bridge) }
+  }, [historyOpen])
+
+  async function restoreVersion(project: ServiceProject) {
+    if (dirtyRef.current && !await flushEditor('manual')) return false
+    const restored = cloneProject(project)
+    latestDraft.current = restored; setDraft(restored); dirtyRef.current = true; setDirty(true)
+    statusRef.current = 'planning'; setDesiredStatus('planning')
+    setUndoStack(stack => [...stack, cloneProject(envelopeRef.current!.project)])
+    return saveHandler.current('restore')
   }
 
   return (
     <PresentationAccessibility><section className="heritage-service-planner">
+      {historyOpen && envelope ? <VersionHistoryDialog syncId={envelope.syncId} currentVersion={envelope.syncVersion} request={jsonRequest} onClose={() => setHistoryOpen(false)} onRestore={restoreVersion} /> : null}
       {translationCueSlide && draft ? <TranslationCueDialog slide={translationCueSlide} onClose={()=>setTranslationCueSlide(null)} onSave={settings=>{slideMutation(()=>setSlideTranslationCue(draft,translationCueSlide,'start',settings),translationCueSlide.index);setTranslationCueSlide(null)}}/> : null}
       {servicePreviewOpen && draft ? <ServicePreview project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
         mediaUrl={assetId=>mediaPreviews[assetId] || (envelope?.project.assets?.[assetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(assetId)}` : undefined)}
         onClose={row=>{setServicePreviewOpen(false);if(row) selectSlide(row)}} /> : null}
       {error ? <p className="heritage-service-planner__error" role="alert">{error}</p> : null}
+      {recoveryConflict ? <p className="heritage-service-planner__error" role="alert">A recovered local draft differs from the server version. <button type="button" onClick={() => { latestDraft.current = recoveryConflict; setDraft(recoveryConflict); dirtyRef.current = true; setDirty(true); setRecoveryConflict(null); setAutosaveBlocked(true); setNotice('Recovered draft is open for review. Use Save to keep it as a new version.'); }}>Review recovered draft</button> <button type="button" onClick={() => setHistoryOpen(true)}>Review saved versions</button> <button type="button" onClick={() => { if (!globalThis.confirm('Discard the recovered local draft? The saved server versions will remain in Version history.')) return; try { localStorage.removeItem(`heritage-planner-draft:${envelope?.syncId}`) } catch {} setRecoveryConflict(null) }}>Discard recovered draft</button></p> : null}
+      {!localRecoveryAvailable && dirty ? <p className="heritage-service-planner__error" role="alert">Local recovery storage is full or unavailable. Keep this page open until the server confirms your changes are saved.</p> : null}
 
       <div className="heritage-service-planner__shell">
         <aside className="heritage-service-planner__navigation">
@@ -1275,12 +1364,12 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, sidebar
               <option value="planning">Planning</option><option value="ready">Ready</option>
               <option value="archived">Archived</option><option value="cancelled">Cancelled</option>
             </select>
-            <button type="button" aria-label={sermonSyncId ? 'Save sermon slides' : 'Save service'} title={!draft ? 'Open a service to save' : busy ? 'Saving…' : dirty || desiredStatus !== envelope?.status ? 'Save service · unsaved changes' : `Saved · v${envelope?.syncVersion || ''}`}
-              disabled={!draft || busy || (!dirty && desiredStatus === envelope?.status)} onClick={save}>
+            <button type="button" aria-label={sermonSyncId ? 'Save sermon slides' : 'Save service'} title={!draft ? 'Open a service to save' : saving ? 'Saving…' : 'Save checkpoint · Ctrl/Cmd+S · Right-click for version history'}
+              disabled={!draft || busy || saving} onClick={() => void flushEditor('manual')} onContextMenu={event => { event.preventDefault(); if (draft) setHistoryOpen(true) }} onKeyDown={event => { if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) { event.preventDefault(); setHistoryOpen(true) } }}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2zm2 0v7h10V3M7 21v-7h10v7" /></svg>
             </button>
           </div>
-          <p className="heritage-service-planner__save-state" aria-live="polite" title={notice}>{draft ? `${slideList.rows.filter(row => row.cue).length} slides · ${busy ? 'Working…' : dirty || desiredStatus !== envelope?.status ? 'Unsaved changes' : `Saved v${envelope?.syncVersion}`}` : notice}</p>
+          <p className="heritage-service-planner__save-state" aria-live="polite" title={notice}>{draft ? `${slideList.rows.filter(row => row.cue).length} slides · ${saving ? 'Saving…' : busy ? 'Working…' : autosaveBlocked ? localRecoveryAvailable ? 'Draft kept locally · retry Save' : 'Unsaved · retry Save' : dirty || desiredStatus !== envelope?.status ? 'Waiting to save…' : `All changes saved · v${envelope?.syncVersion}`} ` : notice}</p>
           {!sermonSyncId && <>
           <div className="heritage-service-planner__service-picker">
             <label>

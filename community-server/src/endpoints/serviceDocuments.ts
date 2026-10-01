@@ -192,7 +192,10 @@ function identifier(value: unknown, label: string) {
 }
 
 export function managerWrite(data: RequestDoc, routeId: string | null = null) {
-  if (!exactKeys(data, [
+  const saveKind = data.saveKind
+  if (saveKind !== undefined && !['automatic', 'manual', 'restore'].includes(String(saveKind))) throw new ServiceDocumentEditorError('INVALID_SAVE_KIND', 'Choose a valid save type.', 400)
+  const coreData = { ...data }; delete coreData.saveKind
+  if (!exactKeys(coreData, [
     'schemaVersion',
     'requestId',
     'syncId',
@@ -380,12 +383,16 @@ const update: Endpoint = {
     try {
       const { communityId } = await managerContext(req, 'write')
       const syncId = identifier(req.routeParams?.syncId, 'Service identity')
-      const mutation = managerWrite(await boundedJson(req), syncId)
+      const input = await boundedJson(req)
+      const mutation = managerWrite(input, syncId)
+      const actor = req.user || (await req.payload.auth({ headers: req.headers })).user
+      const savedBy = (req.headers.get('authorization') || '').startsWith('SyncShow ') ? 'SyncShow' : String(actor?.displayName || 'Church manager').slice(0, 200)
       const result = await mutateServiceDocument(
         req,
         communityId,
         mutation.write,
         mutation.idempotencyKey,
+        { editorSave: { saveKind: (input.saveKind || 'manual') as 'automatic' | 'manual' | 'restore', savedBy } },
       )
       return json(req, {
         schemaVersion: 1,

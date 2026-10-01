@@ -85,6 +85,7 @@ export interface Config {
     sermons: Sermon;
     'service-plans': ServicePlan;
     'service-documents': ServiceDocument;
+    'service-document-saves': ServiceDocumentSave;
     'syncshow-service-document-changes': SyncshowServiceDocumentChange;
     'syncshow-sermon-changes': SyncshowSermonChange;
     'syncshow-sermon-publications': SyncshowSermonPublication;
@@ -125,6 +126,7 @@ export interface Config {
     sermons: SermonsSelect<false> | SermonsSelect<true>;
     'service-plans': ServicePlansSelect<false> | ServicePlansSelect<true>;
     'service-documents': ServiceDocumentsSelect<false> | ServiceDocumentsSelect<true>;
+    'service-document-saves': ServiceDocumentSavesSelect<false> | ServiceDocumentSavesSelect<true>;
     'syncshow-service-document-changes': SyncshowServiceDocumentChangesSelect<false> | SyncshowServiceDocumentChangesSelect<true>;
     'syncshow-sermon-changes': SyncshowSermonChangesSelect<false> | SyncshowSermonChangesSelect<true>;
     'syncshow-sermon-publications': SyncshowSermonPublicationsSelect<false> | SyncshowSermonPublicationsSelect<true>;
@@ -616,11 +618,17 @@ export interface Song {
    */
   alternateTitles?: string[] | null;
   authors?: string[] | null;
+  /**
+   * Leave a blank line to start a new slide. Repeat a defined section by writing its name (for example, Chorus a). Leave a blank line after a repeated section name before adding a separate ending.
+   */
   lyrics?: string | null;
   /**
    * Optional ChordPro-compatible guitar chords.
    */
   chordSheet?: string | null;
+  /**
+   * Leave a blank line to start a new slide. Repeat a defined section by writing its name (for example, chorus b or Припев). Leave a blank line after a repeated section name before adding a separate ending.
+   */
   russianLyrics?: string | null;
   /**
    * Optional ChordPro-compatible guitar chords.
@@ -1019,6 +1027,23 @@ export interface ServiceDocument {
     | boolean
     | null;
   lastIdempotencyKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-document-saves".
+ */
+export interface ServiceDocumentSave {
+  id: number;
+  community: number | Community;
+  serviceDocument: number | ServiceDocument;
+  requestId: string;
+  syncVersion: number;
+  revision: string;
+  saveKind: 'automatic' | 'manual' | 'restore';
+  savedBy: string;
+  savedAt: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -1477,6 +1502,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'service-documents';
         value: number | ServiceDocument;
+      } | null)
+    | ({
+        relationTo: 'service-document-saves';
+        value: number | ServiceDocumentSave;
       } | null)
     | ({
         relationTo: 'syncshow-service-document-changes';
@@ -2053,6 +2082,22 @@ export interface ServiceDocumentsSelect<T extends boolean = true> {
   readyAt?: T;
   translationPlan?: T;
   lastIdempotencyKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-document-saves_select".
+ */
+export interface ServiceDocumentSavesSelect<T extends boolean = true> {
+  community?: T;
+  serviceDocument?: T;
+  requestId?: T;
+  syncVersion?: T;
+  revision?: T;
+  saveKind?: T;
+  savedBy?: T;
+  savedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

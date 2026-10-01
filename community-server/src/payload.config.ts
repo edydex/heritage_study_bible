@@ -1,3 +1,5 @@
+import { ServiceDocumentSaves } from './collections/ServiceDocumentSaves'
+import { serviceHistoryEndpoints } from './endpoints/serviceHistory'
 import { bookReadAlongEndpoints } from '@/endpoints/bookReadAlong'
 import { BibleTranslations } from './collections/BibleTranslations'
 import { bibleImportEndpoints } from './endpoints/bibleImports'
@@ -204,6 +206,7 @@ export default buildConfig({
     Sermons,
     ServicePlans,
     ServiceDocuments,
+    ServiceDocumentSaves,
     SyncShowServiceDocumentChanges,
     SyncShowSermonChanges,
     SyncShowSermonPublications,
@@ -247,6 +250,7 @@ export default buildConfig({
     ...bibleImportEndpoints,
     ...calendarEndpoints,
     ...sermonPresentationEndpoints,
+    ...serviceHistoryEndpoints,
     ...authEndpoints,
     ...accountEndpoints,
     ...syncEndpoints,
