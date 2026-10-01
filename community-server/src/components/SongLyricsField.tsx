@@ -3,6 +3,7 @@
 import { TextareaField, useField, useFormFields } from '@payloadcms/ui'
 import type { TextareaFieldClientProps } from 'payload'
 import { useLayoutEffect, useRef, useState } from 'react'
+import SongLyricsTextarea from './SongLyricsTextarea'
 import { SongSectionSuggestionError, suggestEnglishSongSections } from '../lib/songSectionSuggestion'
 import { useWorkspaceText } from './useWorkspaceText'
 
@@ -46,7 +47,7 @@ export default function SongLyricsField(props: TextareaFieldClientProps) {
       {suggestion && <div className="heritage-song-section-suggestion">
         <label htmlFor="english-section-suggestion">{t('Suggested English sections')}</label>
         <small>{t('Based on line counts. Check that the words match each verse and chorus; edit anything here before confirming.')}</small>
-        <textarea id="english-section-suggestion" rows={12} value={suggestion.text} onChange={event => setSuggestion({ ...suggestion, text: event.target.value })} />
+        <SongLyricsTextarea id="english-section-suggestion" value={suggestion.text} onChange={event => setSuggestion({ ...suggestion, text: event.target.value })} />
         {stale && <p role="status">{t('Lyrics changed. Match sections again for a fresh suggestion.')}</p>}
         <div><button type="button" disabled={Boolean(stale) || !suggestion.text.trim()} onClick={() => { setValue(suggestion.text); setSuggestion(null) }}>{t('Confirm sections')}</button>
           <button type="button" onClick={() => { setSuggestion(null); setError(null) }}>{t('Cancel')}</button></div>

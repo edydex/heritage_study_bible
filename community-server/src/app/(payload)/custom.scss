@@ -2017,7 +2017,8 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-song-pptx-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .heritage-song-pptx-columns > div { display: grid; gap: .5rem; align-content: start; }
 .heritage-song-pptx-review input:not([type='checkbox']), .heritage-song-pptx-review textarea { width: 100%; padding: .6rem; border: 1px solid var(--theme-elevation-300); border-radius: .3rem; background: var(--theme-input-bg); color: var(--theme-text); font: inherit; line-height: 1.5; }
-.heritage-song-pptx-review textarea { min-height: 12rem; resize: vertical; }
+.heritage-song-pptx-review textarea { min-height: 12rem; }
+.heritage-song-lyrics-textarea { height: auto; max-height: none; resize: none; overflow: hidden; }
 .heritage-song-pptx-review input:focus-visible, .heritage-song-pptx-review textarea:focus-visible { outline: 2px solid var(--theme-success-500); outline-offset: 2px; }
 .heritage-song-pptx-review footer, .heritage-song-pptx-unsorted > div > div { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
 .heritage-song-pptx-unsorted { display: grid; gap: .5rem; }

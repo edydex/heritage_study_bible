@@ -3,6 +3,7 @@
 import { useField, useFormFields } from '@payloadcms/ui'
 import type { UIFieldClientProps } from 'payload'
 import { useRef, useState } from 'react'
+import SongLyricsTextarea from './SongLyricsTextarea'
 import { draftSongPptx, inspectSongPptx, SongPptxImportError, type SongPptxDraft, type SongPptxInspection } from '../lib/songPptxImport'
 import { useWorkspaceText } from './useWorkspaceText'
 
@@ -42,9 +43,9 @@ export default function SongPptxImport(props: UIFieldClientProps) {
       <label className="heritage-song-pptx-title-choice"><input type="checkbox" checked={review.firstIsTitle} onChange={event => setReview({...review, firstIsTitle: event.target.checked, draft: draftSongPptx(review.inspection, event.target.checked)})} />{t('First slide is the song title')}</label>
       <div className="heritage-song-pptx-columns">
         <div><label htmlFor="pptx-russian-title">{t('Russian title')}</label><input id="pptx-russian-title" value={review.draft.russianTitle} onChange={event => changeDraft('russianTitle', event.target.value)} />
-          <label htmlFor="pptx-russian-lyrics">{t('Russian lyrics')}</label><textarea id="pptx-russian-lyrics" rows={9} value={review.draft.russianLyrics} onChange={event => changeDraft('russianLyrics', event.target.value)} /></div>
+          <label htmlFor="pptx-russian-lyrics">{t('Russian lyrics')}</label><SongLyricsTextarea id="pptx-russian-lyrics" value={review.draft.russianLyrics} onChange={event => changeDraft('russianLyrics', event.target.value)} /></div>
         <div><label htmlFor="pptx-english-title">{t('English title / library name')}</label><input id="pptx-english-title" value={review.draft.title} onChange={event => changeDraft('title', event.target.value)} />
-          <label htmlFor="pptx-english-lyrics">{t('English lyrics')}</label><textarea id="pptx-english-lyrics" rows={9} value={review.draft.lyrics} onChange={event => changeDraft('lyrics', event.target.value)} /></div>
+          <label htmlFor="pptx-english-lyrics">{t('English lyrics')}</label><SongLyricsTextarea id="pptx-english-lyrics" value={review.draft.lyrics} onChange={event => changeDraft('lyrics', event.target.value)} /></div>
       </div>
       {review.draft.titleFallback && <p>{t('No English title was found. The original title is used as the library name; no translation is invented.')}</p>}
       {(!review.draft.lyrics || !review.draft.russianLyrics) && <p>{t('This file has lyrics in one language. The other lyrics field stays empty.')}</p>}

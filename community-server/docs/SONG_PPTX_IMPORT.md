@@ -4,6 +4,8 @@ In Song library → Add song (or an existing song), choose **Import PowerPoint**
 Select one `.pptx` containing a song, review the two language columns and authors,
 then choose **Use these lyrics**. Save normally. Existing songs instead show
 **Replace song fields**, with an explicit warning. Cancel leaves the form intact.
+Both lyric review fields expand to show all text, resizing after edits and when
+the columns change width. The English section suggestion uses the same behavior.
 
 The file is read in the browser. No presentation, media, lyrics or credentials
 are sent to an AI or third-party extraction service. Only the normal song Save
