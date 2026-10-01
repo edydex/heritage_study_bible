@@ -23,12 +23,13 @@ try {
  const rows=plannerSlides(project,'english'),title=rows.find(row=>row.itemId==='sermon-title')
  const passages=rows.filter(row=>row.kind==='bible'),point=rows.find(row=>row.itemId==='sermon-point-12')
  await page.locator(`[data-slide-id="${title.id}"]`).click()
+ await page.getByRole('button',{name:'Edit',exact:true}).click()
  await expect(page.locator(`[data-slide-id="${passages[0].id}"] strong`)).toContainText('John 1:1–24')
  for(const [tab,address] of [['English','John 1:1–24'],['Russian','Иоанна 1:1–24']]) {
   await page.getByRole('tab',{name:tab,exact:true}).click()
   await expect(page.locator(`[data-slide-id="${passages[0].id}"] strong`)).toContainText(address)
   await page.locator(`[data-slide-id="${passages[0].id}"]`).click({modifiers:['ControlOrMeta']})
-  const scripture=page.locator('.heritage-service-planner__stage .heritage-service-planner__scripture-page [data-role="body"]').first()
+  const scripture=page.locator('.heritage-service-planner__editor .heritage-service-planner__stage .heritage-service-planner__scripture-page [data-role="body"]').first()
   await expect(scripture).toContainText(address)
   assert.equal((await scripture.textContent()).split(address).length,2,'Requested reference appears once on the first page')
   await page.screenshot({path:`${evidence}/${tab.toLowerCase()}-first-page.png`})
@@ -39,7 +40,7 @@ try {
  }
  await page.locator(`[data-slide-id="${point.id}"]`).click({modifiers:['ControlOrMeta']})
  await page.getByRole('tab',{name:'Stage-Facing Screen',exact:true}).click()
- await expect(page.getByLabel('Next slide cue')).toHaveText('Иоанна 1:1–24')
+ await expect(page.locator('.heritage-service-planner__editor').getByLabel('Next slide cue')).toHaveText('Иоанна 1:1–24')
  await page.screenshot({path:`${evidence}/stage-next-passage.png`})
  assert.deepEqual(errors,[])
  console.log('English/Russian full passage section titles, first pages, continuation pages and stage next-passage hint passed')

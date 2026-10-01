@@ -2,6 +2,8 @@
 import { useWorkspaceText } from './useWorkspaceText'
 import './workspace-editor.css'
 import VersionHistoryDialog from './VersionHistoryDialog'
+import SaveConflictDialog from './SaveConflictDialog'
+import { conflictDraftSignature, type ConflictSavedVersion } from './serviceSaveConflict'
 import { plannerNavigator } from './plannerNavigator'
 import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
 import songPresentation from '../../packages/service-core/node/services/project/SongPresentation.js'
@@ -344,6 +346,9 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   const [saving, setSaving] = useState(false)
   const [autosaveBlocked, setAutosaveBlocked] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [saveConflict, setSaveConflict] = useState(false)
+  const [saveConflictOpen, setSaveConflictOpen] = useState(false)
+  const saveConflictRef = useRef(false)
   const [recoveryConflict, setRecoveryConflict] = useState<ServiceProject | null>(null)
   const [localRecoveryAvailable, setLocalRecoveryAvailable] = useState(true)
   const envelopeRef = useRef(envelope); envelopeRef.current = envelope
@@ -532,15 +537,16 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     }
   }
 
-  function useEnvelope(next: ServiceEnvelopeInput, keepSelection = false) {
+  function useEnvelope(next: ServiceEnvelopeInput, keepSelection = false, skipRecovery = false) {
     const project = projectFromServiceEnvelope(next) as ServiceProject
     const prepared = preparePlannerPresentation(project, {paginateItemIds: new Set()})
     const normalized = { ...next, project } as ServiceEnvelope
     envelopeRef.current = normalized; pendingSave.current = null; setAutosaveBlocked(false); setRecoveryConflict(null)
+    saveConflictRef.current = false; setSaveConflict(false); setSaveConflictOpen(false)
     let recovered: ServiceProject | null = null
     let recoveredStatus = next.status
     try {
-      const raw = localStorage.getItem(`heritage-planner-draft:${next.syncId}`)
+      const raw = skipRecovery ? null : localStorage.getItem(`heritage-planner-draft:${next.syncId}`)
       if (raw) {
         const saved = JSON.parse(raw)
         const safe = serviceCore.createHeritageServiceDocument(saved.project).project as ServiceProject
@@ -1249,6 +1255,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   }
 
   async function save(kind: 'automatic' | 'manual' | 'restore' = 'manual'): Promise<boolean> {
+    if (saveConflictRef.current) return false
     if (saveInFlight.current) {
       const okay = await saveInFlight.current
       if (!okay) return false
@@ -1292,6 +1299,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
         await sendPending(); return true
       } catch (caught: any) {
         setAutosaveBlocked(true)
+        if (caught?.status === 412) { saveConflictRef.current = true; setSaveConflict(true) }
         setError(caught?.status === 412
           ? 'This document changed elsewhere. Your draft remains on this screen. Review the current server version before deciding what to keep.'
           : `Saving paused: ${errorText(caught)} Your draft remains on this screen. Use Save to retry.`)
@@ -1308,16 +1316,51 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     if (recoveryConflict) return
     try { localStorage.setItem(`heritage-planner-draft:${envelope.syncId}`, JSON.stringify({ baseRevision: envelope.revision, project: draft, desiredStatus, savedAt: new Date().toISOString() })); setLocalRecoveryAvailable(true) }
     catch { setLocalRecoveryAvailable(false) }
-    if (busy || saving || autosaveBlocked || historyOpen) return
+    if (busy || saving || autosaveBlocked || historyOpen || saveConflictOpen) return
     const timer = window.setTimeout(() => void saveHandler.current('automatic'), 1200)
     return () => window.clearTimeout(timer)
-  }, [draft, dirty, desiredStatus, envelope, busy, saving, autosaveBlocked, historyOpen, recoveryConflict])
+  }, [draft, dirty, desiredStatus, envelope, busy, saving, autosaveBlocked, historyOpen, recoveryConflict, saveConflictOpen])
+
+  async function reviewSaveConflict() {
+    const focused = document.activeElement
+    if (focused instanceof HTMLElement && focused.closest('input,textarea,[contenteditable]')) focused.blur()
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+    if (saveInFlight.current) await saveInFlight.current
+    if (!saveConflictRef.current || !latestDraft.current) return
+    setHistoryOpen(false); setSaveConflictOpen(true)
+  }
+
+  async function resolveSaveConflict(choice: 'draft' | 'saved', saved: ConflictSavedVersion, signature: string) {
+    const current = latestDraft.current
+    if (!saveConflictRef.current || !current || saved.syncId !== envelopeRef.current?.syncId || saved.project.id !== current.id) {
+      throw new Error(t('The document changed while you were reviewing it. Open the review again.'))
+    }
+    if (conflictDraftSignature({ project: current, status: statusRef.current }) !== signature) {
+      throw new Error(t('Your draft changed while this review was open. Review its updated preview before choosing.'))
+    }
+    if (choice === 'saved') {
+      try { localStorage.removeItem(`heritage-planner-draft:${saved.syncId}`) } catch { /* storage may be disabled */ }
+      useEnvelope(saved as ServiceEnvelope, true, true)
+      setNotice(t('Using the saved version. Previous saved versions remain in history.'))
+      return true
+    }
+    // Consent applies to the reviewed server base and current local draft. A
+    // fresh request identity is allowed only after the original CAS conflict.
+    envelopeRef.current = saved as ServiceEnvelope; setEnvelope(saved as ServiceEnvelope)
+    pendingSave.current = null; saveConflictRef.current = false; setSaveConflict(false)
+    dirtyRef.current = true; setDirty(true); setAutosaveBlocked(false)
+    const okay = await saveHandler.current('manual')
+    // An uncertain network result must retain its request for exact retry;
+    // return to editing instead of rebasing that request a second time.
+    return okay || !saveConflictRef.current
+  }
 
   async function flushEditor(kind: 'manual' | 'automatic' = 'manual') {
     const focused = document.activeElement
     if (focused instanceof HTMLElement && focused.closest('input,textarea,[contenteditable]')) focused.blur()
     await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
     if (!latestDraft.current) return true
+    if (saveConflictRef.current) { await reviewSaveConflict(); return false }
     if (!await saveHandler.current(kind)) return false
     for (let attempt = 0; attempt < 10 && (dirtyRef.current || statusRef.current !== envelopeRef.current?.status); attempt++) {
       if (!await saveHandler.current('automatic')) return false
@@ -1347,6 +1390,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   }, [historyOpen])
 
   async function restoreVersion(project: ServiceProject) {
+    if (saveConflictRef.current) { await reviewSaveConflict(); return false }
     if (dirtyRef.current && !await flushEditor('manual')) return false
     const restored = cloneProject(project)
     latestDraft.current = restored; setDraft(restored); dirtyRef.current = true; setDirty(true)
@@ -1357,12 +1401,16 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
 
   return (
     <PresentationAccessibility><section className="heritage-service-planner">
-      {historyOpen && envelope ? <VersionHistoryDialog syncId={envelope.syncId} currentVersion={envelope.syncVersion} request={jsonRequest} onClose={() => setHistoryOpen(false)} onRestore={restoreVersion} /> : null}
+      {saveConflictOpen && draft && envelope ? <SaveConflictDialog syncId={envelope.syncId} localProject={draft} localStatus={desiredStatus} initialSlideIndex={Math.max(0, (activeSlide?.number || 1) - 1)} initialChannel={previewChannel} language={t.language} request={jsonRequest}
+        localMediaUrl={id => mediaPreviews[id] || `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/history/${envelope.syncVersion}/assets/${encodeURIComponent(id)}`}
+        onResolve={resolveSaveConflict} onHistory={() => { setSaveConflictOpen(false); setHistoryOpen(true) }} onClose={() => setSaveConflictOpen(false)} /> : null}
+      {historyOpen && envelope ? <VersionHistoryDialog readOnly={saveConflict}  syncId={envelope.syncId} currentVersion={envelope.syncVersion} request={jsonRequest} onClose={() => setHistoryOpen(false)} onRestore={restoreVersion} /> : null}
       {translationCueSlide && draft ? <TranslationCueDialog slide={translationCueSlide} onClose={()=>setTranslationCueSlide(null)} onSave={settings=>{slideMutation(()=>setSlideTranslationCue(draft,translationCueSlide,'start',settings),translationCueSlide.index);setTranslationCueSlide(null)}}/> : null}
       {servicePreviewOpen && draft ? <ServicePreview project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
         mediaUrl={assetId=>mediaPreviews[assetId] || (envelope?.project.assets?.[assetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(assetId)}` : undefined)}
         onClose={row=>{setServicePreviewOpen(false);if(row) selectSlide(row)}} /> : null}
-      {error ? <p className="heritage-service-planner__error" role="alert">{t(error)}</p> : null}
+      {error && !saveConflict ? <p className="heritage-service-planner__error" role="alert">{t(error)}</p> : null}
+      {saveConflict ? <p className="heritage-service-planner__error" role="alert">{t('Saving paused because this document changed elsewhere. Your latest draft is safe here.')} <button type="button" onClick={() => void reviewSaveConflict()}>{t('Review saved version')}</button></p> : null}
       {recoveryConflict ? <p className="heritage-service-planner__error" role="alert">{t("A recovered local draft differs from the server version.")} <button type="button" onClick={() => { latestDraft.current = recoveryConflict; setDraft(recoveryConflict); dirtyRef.current = true; setDirty(true); setRecoveryConflict(null); setAutosaveBlocked(true); setNotice('Recovered draft is open for review. Use Save to keep it as a new version.'); }}>{t("Review recovered draft")}</button> <button type="button" onClick={() => setHistoryOpen(true)}>{t("Review saved versions")}</button> <button type="button" onClick={() => { if (!globalThis.confirm(t('Discard the recovered local draft? The saved server versions will remain in Version history.'))) return; try { localStorage.removeItem(`heritage-planner-draft:${envelope?.syncId}`) } catch {} setRecoveryConflict(null) }}>{t("Discard recovered draft")}</button></p> : null}
       {!localRecoveryAvailable && dirty ? <p className="heritage-service-planner__error" role="alert">{t("Local recovery storage is full or unavailable. Keep this page open until the server confirms your changes are saved.")}</p> : null}
 
@@ -1396,7 +1444,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
             </button>
             <button type="button" className="heritage-service-planner__history-button" disabled={!envelope || busy} aria-haspopup="dialog" onClick={() => setHistoryOpen(true)}>{t('Version history')}</button>
           </div>
-          <p className="heritage-service-planner__save-state" aria-live="polite" title={t(notice)}>{draft ? `${t('{count} slides', { count: slideList.rows.filter(row => row.cue).length })} · ${saving ? t("Saving…") : busy ? t("Working…") : autosaveBlocked ? localRecoveryAvailable ? t("Draft kept locally · retry Save") : t("Unsaved · retry Save") : dirty || desiredStatus !== envelope?.status ? t("Waiting to save…") : (envelope as any)?.conflict ? t("Saved on this computer · sync conflict") : (envelope as any)?.savedLocally && (envelope as any)?.pending ? t("Saved on this computer · waiting to sync") : typeof envelope?.syncVersion === 'number' ? t('All changes saved · v{version}', { version: envelope.syncVersion }) : t('Saved on this computer')} ` : t(notice)}</p>
+          <p className="heritage-service-planner__save-state" aria-live="polite" title={t(notice)}>{draft ? `${t('{count} slides', { count: slideList.rows.filter(row => row.cue).length })} · ${saving ? t("Saving…") : busy ? t("Working…") : saveConflict ? t("Draft kept locally · review conflict") : autosaveBlocked ? localRecoveryAvailable ? t("Draft kept locally · retry Save") : t("Unsaved · retry Save") : dirty || desiredStatus !== envelope?.status ? t("Waiting to save…") : (envelope as any)?.conflict ? t("Saved on this computer · sync conflict") : (envelope as any)?.savedLocally && (envelope as any)?.pending ? t("Saved on this computer · waiting to sync") : typeof envelope?.syncVersion === 'number' ? t('All changes saved · v{version}', { version: envelope.syncVersion }) : t('Saved on this computer')} ` : t(notice)}</p>
       </header>
       <div className="heritage-service-planner__shell">
         <aside className="heritage-service-planner__navigation">

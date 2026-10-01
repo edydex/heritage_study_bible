@@ -8,9 +8,9 @@ import type { ServiceHistoryEntry } from '../lib/serviceVersionHistory'
 import './version-history.css'
 
 type HistoryGroup = { id: string; saveKind: string; savedBy: string; savedAt: string; entries: ServiceHistoryEntry[] }
-export default function VersionHistoryDialog({ syncId, currentVersion, request, onClose, onRestore }: {
+export default function VersionHistoryDialog({ syncId, currentVersion, request, onClose, onRestore, readOnly = false }: {
   syncId: string; currentVersion: number | string; request: (url: string, options?: RequestInit) => Promise<any>;
-  onClose: () => void; onRestore: (project: any) => Promise<boolean>;
+  onClose: () => void; onRestore: (project: any) => Promise<boolean>; readOnly?: boolean;
 }) {
   const t = useWorkspaceText()
   const dialog = useRef<HTMLDialogElement>(null)
@@ -60,6 +60,7 @@ export default function VersionHistoryDialog({ syncId, currentVersion, request, 
   return <dialog ref={dialog} className="heritage-version-history" aria-labelledby="version-history-title" onCancel={event => { event.preventDefault(); if (!restoring) onClose() }}>
     <header><div><h2 id="version-history-title">{t("Version history")}</h2><p>{t("Preview previous versions. Restoring creates a new version and keeps this history.")}</p></div><button type="button" disabled={restoring} onClick={onClose}>{t("Back to editing")}</button></header>
     {error ? <p role="alert">{t(error)}</p> : null}
+    {readOnly ? <p className="heritage-version-history__review-notice" role="status">{t('History is read-only until you resolve the save conflict. Your draft stays in the editor.')}</p> : null}
     <div className="heritage-version-history__layout">
       <aside aria-label={t("Saved versions")}>
         {groups.map(group => <details key={group.id} open={group.entries.some(entry => entry.id === selected?.id)}>
@@ -74,7 +75,7 @@ export default function VersionHistoryDialog({ syncId, currentVersion, request, 
       <section aria-label={t("Version preview")}>
         <div className="heritage-version-history__preview-toolbar"><strong>{selected ? `${versionLabel(selected.syncVersion)}${selected.syncVersion === currentVersion ? t(' · Current') : ''}` : t("Choose a version")}</strong>
           <select aria-label={t("Preview language")} value={channel} onChange={event => setChannel(event.target.value)}><option value="english">{t("English")}</option><option value="russian">{t("Russian")}</option><option value="media">{t("Stage-Facing Screen")}</option></select>
-          <button type="button" disabled={!project || restoring || loading || selected?.syncVersion === currentVersion} onClick={async () => { setRestoring(true); if (await onRestore(project)) onClose(); setRestoring(false) }}>{restoring ? t("Restoring…") : t("Restore as new version")}</button></div>
+          <button type="button" disabled={readOnly || !project || restoring || loading || selected?.syncVersion === currentVersion} onClick={async () => { setRestoring(true); if (await onRestore(project)) onClose(); setRestoring(false) }}>{restoring ? t("Restoring…") : t("Restore as new version")}</button></div>
         {loading ? <p role="status">{t("Loading version…")}</p> : project ? <><h3>{project.title}</h3>
           <div className="heritage-version-history__preview" lang={channel === 'russian' ? 'ru' : channel === 'english' ? 'en' : project.channels?.media?.language || t.language} aria-label={slide?.title}>{slide ? <ServiceSlidePreview project={project} rows={rows} slide={slide} channelId={channel} mediaUrl={assetId => selected ? `${endpoint}/history/${selected.syncVersion}/assets/${encodeURIComponent(assetId)}` : undefined} /> : <p>{t("This version has no slides.")}</p>}</div>
           <nav aria-label={t("Historical slide navigation")}><button type="button" disabled={slideIndex === 0} onClick={() => setSlideIndex(value => value - 1)}>{t("Previous slide")}</button><span>{slides.length ? `${slideIndex + 1} / ${slides.length} · ${slide?.title}` : t("0 slides")}</span><button type="button" disabled={slideIndex >= slides.length - 1} onClick={() => setSlideIndex(value => value + 1)}>{t("Next slide")}</button></nav>
