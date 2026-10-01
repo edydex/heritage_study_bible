@@ -1,0 +1,25 @@
+/* Keep long section titles readable; metadata has its own line. */
+.heritage-service-planner__row[aria-expanded] {
+  height: auto;
+  min-height: 2.8rem;
+}
+.heritage-service-planner__row[aria-expanded] > span:nth-child(2) {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .15rem;
+}
+.heritage-service-planner__row[aria-expanded] strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.heritage-service-planner__toolbar .heritage-service-planner__history-button {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 2rem;
+  height: auto;
+  font-size: .72rem;
+}
+.heritage-service-planner__toolbar .heritage-service-planner__history-button:focus-visible {
+  outline: 2px solid var(--theme-success-500, #28633b);
+  outline-offset: 2px;
+}

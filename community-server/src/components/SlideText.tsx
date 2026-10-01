@@ -1,4 +1,5 @@
 'use client'
+import { useWorkspaceText } from './useWorkspaceText'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {usePresentationAccessibility,PresentationColorInput} from './PresentationAccessibility'
@@ -15,6 +16,7 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
   onAdvance?: () => void;
   onCommit: (text: string, spans: Span[]) => void
 }) {
+  const t = useWorkspaceText()
   const {monochrome}=usePresentationAccessibility()
   const paintedMode=useRef(monochrome)
   const paintedBase=useRef(baseColor)
@@ -174,12 +176,12 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
       if (event.key === 'Escape') { draft.current = editStart.current; paint(); onDraftChange?.(draft.current.text,draft.current.spans); element.current?.blur() }
       if (event.key === 'Enter') { event.preventDefault(); if (event.metaKey || event.ctrlKey) element.current?.blur(); else if (onAdvance && !event.shiftKey) onAdvance(); else insertPlain('\n') }
     }} />
-    {range && canFormat ? createPortal(<div ref={toolbar} className="heritage-slide-format" role="toolbar" aria-label="Selected text formatting" style={{left:range.x,top:range.y}}>
-      {([['Bold','B','weight','700'],['Italic','I','italic',true],['Underline','U','underline',true]] as const).map(([label,caption,key,value]) => <button key={key} type="button" aria-label={label} aria-pressed={active(key,value)} onPointerDown={event => event.preventDefault()} onClick={() => apply({ [key]: active(key,value) ? (key === 'weight' ? '400' : false) : value })}>{caption}</button>)}
-      <label title="Text color"><span>Color</span><PresentationColorInput label="Text color" value={foreground} onChange={value=>{setForeground(value);apply({foreground:value},false)}} /></label>
-      <label title="Text highlight"><span>Highlight</span><PresentationColorInput label="Text highlight" value={background} onChange={value=>{setBackground(value);apply({background:value},false)}} /></label>
-      <button type="button" aria-label="Remove highlight" onPointerDown={event => event.preventDefault()} onClick={() => apply({background:undefined})}>No highlight</button>
-      <button type="button" aria-label="Clear formatting" onPointerDown={event => event.preventDefault()} onClick={() => apply(null)}>Clear</button>
-      {error ? <span role="alert">{error}</span> : null}
+    {range && canFormat ? createPortal(<div ref={toolbar} className="heritage-slide-format" role="toolbar" aria-label={t("Selected text formatting")} style={{left:range.x,top:range.y}}>
+      {([['Bold','B','weight','700'],['Italic','I','italic',true],['Underline','U','underline',true]] as const).map(([label,caption,key,value]) => <button key={key} type="button" aria-label={t(label)} aria-pressed={active(key,value)} onPointerDown={event => event.preventDefault()} onClick={() => apply({ [key]: active(key,value) ? (key === 'weight' ? '400' : false) : value })}>{caption}</button>)}
+      <label title={t("Text color")}><span>{t("Color")}</span><PresentationColorInput label={t("Text color")} value={foreground} onChange={value=>{setForeground(value);apply({foreground:value},false)}} /></label>
+      <label title={t("Text highlight")}><span>{t("Highlight")}</span><PresentationColorInput label={t("Text highlight")} value={background} onChange={value=>{setBackground(value);apply({background:value},false)}} /></label>
+      <button type="button" aria-label={t("Remove highlight")} onPointerDown={event => event.preventDefault()} onClick={() => apply({background:undefined})}>{t("No highlight")}</button>
+      <button type="button" aria-label={t("Clear formatting")} onPointerDown={event => event.preventDefault()} onClick={() => apply(null)}>{t("Clear")}</button>
+      {error ? <span role="alert">{t(error)}</span> : null}
     </div>, document.body) : null}</>
 }

@@ -1,4 +1,6 @@
 'use client'
+import { useWorkspaceText } from './useWorkspaceText'
+import './workspace-editor.css'
 import VersionHistoryDialog from './VersionHistoryDialog'
 import { plannerNavigator } from './plannerNavigator'
 import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
@@ -271,6 +273,7 @@ function today() {
 }
 
 function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeInput) => void; onCopy?: () => void }) {
+  const t = useWorkspaceText()
   const [title, setTitle] = useState('Sunday Morning Service')
   const [serviceDate, setServiceDate] = useState(today)
   const newServiceDetails = useRef<HTMLDetailsElement>(null)
@@ -306,27 +309,28 @@ function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeI
 
   return (
     <details ref={newServiceDetails} className="heritage-service-planner__new">
-      <summary>+ New service</summary>
+      <summary>{t("+ New service")}</summary>
       <div>
         <label>
-          <span>Service title</span>
+          <span>{t("Service title")}</span>
           <input ref={titleInput} value={title} maxLength={200} onChange={event => setTitle(event.target.value)} />
         </label>
         <label>
-          <span>Service date</span>
+          <span>{t("Service date")}</span>
           <input ref={serviceDateInput} type="date" value={serviceDate} onChange={event => setServiceDate(event.target.value)} />
         </label>
         <button className="btn btn--style-primary" type="button" disabled={busy || !title.trim() || !serviceDate} onClick={create}>
-          {busy ? 'Creating…' : 'Create service'}
+          {busy ? t("Creating…") : t("Create service")}
         </button>
-        {onCopy ? <button type="button" onClick={onCopy}>Make a copy of the current service</button> : null}
-        {error ? <p className="heritage-service-planner__error" role="alert">{error}</p> : null}
+        {onCopy ? <button type="button" onClick={onCopy}>{t("Make a copy of the current service")}</button> : null}
+        {error ? <p className="heritage-service-planner__error" role="alert">{t(error)}</p> : null}
       </div>
     </details>
   )
 }
 
 export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlushReady, sidebarHeader }: { sermonSyncId?: string; onDirtyChange?: (dirty: boolean) => void; onFlushReady?: (flush: (() => Promise<boolean>) | null) => void; sidebarHeader?: ReactNode } = {}) {
+  const t = useWorkspaceText()
   const [summaries, setSummaries] = useState<ServiceSummary[]>([])
   const [envelope, setEnvelope] = useState<ServiceEnvelope | null>(null)
   const [editionChange, setEditionChange] = useState<{channel:'english'|'russian';translationId:string} | null>(null)
@@ -974,19 +978,19 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   }
 
   const scriptureTranslationControls = scriptureScope && draft ? <fieldset className="heritage-scripture-editions" disabled={busy}>
-    <legend>Bible translation</legend>
+    <legend>{t("Bible translation")}</legend>
     {(['english','russian'] as const).map(channel => {
       const editions = [...new Set(scriptureScope.itemIds.map(id=>draft.items[id].passagesByChannel[channel]?.translationId))]
       const value = editions.length === 1 ? editions[0] || '' : ''
-      return <label key={channel}>{channel === 'english' ? 'English screen' : 'Russian / stage screen'}
-        <select aria-label={`Change ${channel} Scripture translation`} value={value} onChange={event=>void changeScriptureTranslation(channel,event.target.value)}>
-          {!value && <option value="" disabled>Mixed translations</option>}
+      return <label key={channel}>{channel === 'english' ? t("English screen") : t("Russian / stage screen")}
+        <select aria-label={t('Change {channel} Scripture translation', { channel: t(channel === 'english' ? 'English' : 'Russian') })} value={value} onChange={event=>void changeScriptureTranslation(channel,event.target.value)}>
+          {!value && <option value="" disabled>{t("Mixed translations")}</option>}
           {value && !bibleTranslations.some(translation=>translation.id===value) && <option value={value}>{value}</option>}
           {bibleTranslations.map(translation=><option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}
         </select>
       </label>
     })}
-    <small>{scriptureScope.itemIds.length > 1 ? 'Changes every page of this passage.' : 'Changes this passage.'} Other passages stay unchanged.</small>
+    <small>{scriptureScope.itemIds.length > 1 ? t("Changes every page of this passage.") : t("Changes this passage.")}  {t("Other passages stay unchanged.")}</small>
   </fieldset> : null
 
   async function addBiblePassage() {
@@ -1350,59 +1354,60 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
       {servicePreviewOpen && draft ? <ServicePreview project={draft} rows={slideList.rows} initialSlideId={activeSlide?.id} initialChannel={previewChannel} dirty={dirty}
         mediaUrl={assetId=>mediaPreviews[assetId] || (envelope?.project.assets?.[assetId] ? `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/assets/${encodeURIComponent(assetId)}` : undefined)}
         onClose={row=>{setServicePreviewOpen(false);if(row) selectSlide(row)}} /> : null}
-      {error ? <p className="heritage-service-planner__error" role="alert">{error}</p> : null}
-      {recoveryConflict ? <p className="heritage-service-planner__error" role="alert">A recovered local draft differs from the server version. <button type="button" onClick={() => { latestDraft.current = recoveryConflict; setDraft(recoveryConflict); dirtyRef.current = true; setDirty(true); setRecoveryConflict(null); setAutosaveBlocked(true); setNotice('Recovered draft is open for review. Use Save to keep it as a new version.'); }}>Review recovered draft</button> <button type="button" onClick={() => setHistoryOpen(true)}>Review saved versions</button> <button type="button" onClick={() => { if (!globalThis.confirm('Discard the recovered local draft? The saved server versions will remain in Version history.')) return; try { localStorage.removeItem(`heritage-planner-draft:${envelope?.syncId}`) } catch {} setRecoveryConflict(null) }}>Discard recovered draft</button></p> : null}
-      {!localRecoveryAvailable && dirty ? <p className="heritage-service-planner__error" role="alert">Local recovery storage is full or unavailable. Keep this page open until the server confirms your changes are saved.</p> : null}
+      {error ? <p className="heritage-service-planner__error" role="alert">{t(error)}</p> : null}
+      {recoveryConflict ? <p className="heritage-service-planner__error" role="alert">{t("A recovered local draft differs from the server version.")} <button type="button" onClick={() => { latestDraft.current = recoveryConflict; setDraft(recoveryConflict); dirtyRef.current = true; setDirty(true); setRecoveryConflict(null); setAutosaveBlocked(true); setNotice('Recovered draft is open for review. Use Save to keep it as a new version.'); }}>{t("Review recovered draft")}</button> <button type="button" onClick={() => setHistoryOpen(true)}>{t("Review saved versions")}</button> <button type="button" onClick={() => { if (!globalThis.confirm(t('Discard the recovered local draft? The saved server versions will remain in Version history.'))) return; try { localStorage.removeItem(`heritage-planner-draft:${envelope?.syncId}`) } catch {} setRecoveryConflict(null) }}>{t("Discard recovered draft")}</button></p> : null}
+      {!localRecoveryAvailable && dirty ? <p className="heritage-service-planner__error" role="alert">{t("Local recovery storage is full or unavailable. Keep this page open until the server confirms your changes are saved.")}</p> : null}
 
       <div className="heritage-service-planner__shell">
         <aside className="heritage-service-planner__navigation">
           {sidebarHeader}
           <div className="heritage-service-planner__toolbar">
             <details ref={workspaceMenuRef} className="heritage-service-planner__app-menu" onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() } }}>
-              <summary aria-label="Workspace menu" title="Workspace menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg></summary>
-              <nav aria-label="Church workspace">
-                <strong>Church workspace</strong>
+              <summary aria-label={t("Workspace menu")} title={t("Workspace menu")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg></summary>
+              <nav aria-label={t("Church workspace")}>
+                <strong>{t("Church workspace")}</strong>
                 {churchWorkspaceLinks.filter(item => item.href !== (sermonSyncId ? '/admin/prepare-sermon' : '/admin/plan-service')).map(item =>
-                <a key={item.href} href={item.href}>{item.label}</a>)}
-              <a href="/" target="_blank" rel="noreferrer">Church website ↗</a>
-                <a href="/admin/account">My account</a>
-                <a href="/admin/logout">Log out</a>
-                <small>{notice}</small>
+                <a key={item.href} href={item.href}>{t(item.label)}</a>)}
+              <a href="/" target="_blank" rel="noreferrer">{t("Church website ↗")}</a>
+                <a href="/admin/account">{t("My account")}</a>
+                <a href="/admin/logout">{t("Log out")}</a>
+                <small>{t(notice)}</small>
               </nav>
             </details>
-            <label htmlFor="service-status">Status</label>
+            <label htmlFor="service-status">{t("Status")}</label>
             <select id="service-status" value={desiredStatus} disabled={!draft || busy} onChange={event => setDesiredStatus(event.target.value as ServiceEnvelope['status'])}>
-              <option value="planning">Planning</option><option value="ready">Ready</option>
-              <option value="archived">Archived</option><option value="cancelled">Cancelled</option>
+              <option value="planning">{t("Planning")}</option><option value="ready">{t("Ready")}</option>
+              <option value="archived">{t("Archived")}</option><option value="cancelled">{t("Cancelled")}</option>
             </select>
-            <button type="button" aria-label={sermonSyncId ? 'Save sermon slides' : 'Save service'} title={!draft ? 'Open a service to save' : saving ? 'Saving…' : 'Save checkpoint · Ctrl/Cmd+S · Right-click for version history'}
+            <button type="button" aria-label={sermonSyncId ? t("Save sermon slides") : t("Save service")} title={!draft ? t("Open a service to save") : saving ? t("Saving…") : t("Save checkpoint · Ctrl/Cmd+S · Right-click for version history")}
               disabled={!draft || busy || saving} onClick={() => void flushEditor('manual')} onContextMenu={event => { event.preventDefault(); if (draft) setHistoryOpen(true) }} onKeyDown={event => { if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) { event.preventDefault(); setHistoryOpen(true) } }}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2zm2 0v7h10V3M7 21v-7h10v7" /></svg>
             </button>
+            <button type="button" className="heritage-service-planner__history-button" disabled={!envelope || busy} aria-haspopup="dialog" onClick={() => setHistoryOpen(true)}>{t('Version history')}</button>
           </div>
-          <p className="heritage-service-planner__save-state" aria-live="polite" title={notice}>{draft ? `${slideList.rows.filter(row => row.cue).length} slides · ${saving ? 'Saving…' : busy ? 'Working…' : autosaveBlocked ? localRecoveryAvailable ? 'Draft kept locally · retry Save' : 'Unsaved · retry Save' : dirty || desiredStatus !== envelope?.status ? 'Waiting to save…' : (envelope as any)?.conflict ? 'Saved on this computer · sync conflict' : (envelope as any)?.savedLocally && (envelope as any)?.pending ? 'Saved on this computer · waiting to sync' : `All changes saved · v${envelope?.syncVersion}`} ` : notice}</p>
+          <p className="heritage-service-planner__save-state" aria-live="polite" title={t(notice)}>{draft ? `${t('{count} slides', { count: slideList.rows.filter(row => row.cue).length })} · ${saving ? t("Saving…") : busy ? t("Working…") : autosaveBlocked ? localRecoveryAvailable ? t("Draft kept locally · retry Save") : t("Unsaved · retry Save") : dirty || desiredStatus !== envelope?.status ? t("Waiting to save…") : (envelope as any)?.conflict ? t("Saved on this computer · sync conflict") : (envelope as any)?.savedLocally && (envelope as any)?.pending ? t("Saved on this computer · waiting to sync") : typeof envelope?.syncVersion === 'number' ? t('All changes saved · v{version}', { version: envelope.syncVersion }) : t('Saved on this computer')} ` : t(notice)}</p>
           {!sermonSyncId && <>
           <div className="heritage-service-planner__service-picker">
             <label>
-              <span>Current service</span>
+              <span>{t("Current service")}</span>
               <select value={envelope?.syncId || ''} disabled={busy} onChange={event => openService(event.target.value)}>
-                <option value="" disabled>Choose a service…</option>
+                <option value="" disabled>{t("Choose a service…")}</option>
                 {summaries.map(summary => <option key={summary.syncId} value={summary.syncId}>{summary.serviceDate} · {summary.title}</option>)}
               </select>
             </label>
-            <button type="button" aria-label="Refresh services" disabled={busy} onClick={() => void loadList()}>↻</button>
+            <button type="button" aria-label={t("Refresh services")} disabled={busy} onClick={() => void loadList()}>↻</button>
           </div>
           <NewService onCreated={useEnvelope} onCopy={draft && !busy ? copyService : undefined} />
           {envelope && (dirty || busy || desiredStatus !== envelope.status
-            ? <p className="heritage-service-planner__save-state">Save this service to open translation settings.</p>
-            : <p><a href={`/admin/live-translation?service=${encodeURIComponent(envelope.syncId)}`} target="_blank" rel="noopener noreferrer">Translation settings ↗</a></p>)}
+            ? <p className="heritage-service-planner__save-state">{t("Save this service to open translation settings.")}</p>
+            : <p><a href={`/admin/live-translation?service=${encodeURIComponent(envelope.syncId)}`} target="_blank" rel="noopener noreferrer">{t("Translation settings ↗")}</a></p>)}
 
           </>}
 
           <PresentationAccessibilityControl item={selected} />
           <div className="heritage-service-planner__outline-heading">
-            <h2>{sermonSyncId ? 'Sermon slides' : 'Service order'}</h2><button type="button" className="heritage-add-slide" ref={addSlideRef} disabled={!draft} aria-expanded={paletteOpen} onClick={openPalette}>＋ Add slide</button>
-            <small aria-live="polite">{batchSlides.length > 1 ? `${batchSlides.length} selected` : slideList.rows.filter(row=>row.cue).length > 20 ? 'Select a section to open its slides · Ctrl/⌘: one slide' : 'Section start: selects all · Ctrl/⌘: one slide'}</small>
+            <h2>{sermonSyncId ? t("Sermon slides") : t("Service order")}</h2><button type="button" className="heritage-add-slide" ref={addSlideRef} disabled={!draft} aria-expanded={paletteOpen} onClick={openPalette}>{t("＋ Add slide")}</button>
+            <small aria-live="polite">{batchSlides.length > 1 ? t('{count} selected', { count: batchSlides.length }) : slideList.rows.filter(row=>row.cue).length > 20 ? t("Select a section to open its slides · Ctrl/⌘: one slide") : t("Section start: selects all · Ctrl/⌘: one slide")}</small>
           </div>
 
           {draft ? <ol className="heritage-service-planner__rows">
@@ -1418,7 +1423,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
                 <button className="heritage-service-planner__row" data-kind={row.kind}
                   data-slide-id={row.id} data-selected={rowSelected || undefined} aria-pressed={rowSelected}
                   data-active={activeSlide?.id === row.id || undefined} aria-expanded={row.sectionSize ? row.sectionExpanded : undefined}
-                  type="button" draggable title={`${row.title} · Click section start to select all · Ctrl/⌘-click for one slide · Shift-click for range · Right-click for actions`}
+                  type="button" draggable title={`${row.title} · ${t('Click section start to select all · Ctrl/⌘-click for one slide · Shift-click for range · Right-click for actions')}`}
                   onClick={event => selectSlide(row, event)}
                   onContextMenu={event => { event.preventDefault(); openMenu(event.clientX, event.clientY) }}
                   onKeyDown={event => {
@@ -1442,13 +1447,13 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
                   onDragOver={event => { if (!dragged.current) return; event.preventDefault(); event.dataTransfer.dropEffect = 'move'; const rect = event.currentTarget.getBoundingClientRect(); setDropTarget({ id: row.id, after: event.clientY > rect.top + rect.height / 2 }) }}
                   onDrop={event => { event.preventDefault(); if (dragged.current) dropSelection(dragged.current, row, Boolean(dropTarget?.after)) }}>
                   <span className="heritage-service-planner__kind" aria-hidden="true">{row.sectionSize && row.sectionSize > 1 ? (row.sectionExpanded ? '▾' : '▸') : row.kind === 'group' ? '▾' : row.number}</span>
-                  <span><strong>{row.number && row.sectionSize && row.sectionSize > 1 ? `${row.number}. ` : ''}{row.title}</strong>{row.sectionSize && row.sectionSize > 1 ? <small>{row.sectionSize} slides · {row.sectionExpanded ? 'open' : 'select to expand'}</small> : null}{row.cue?.translationAction ? <small className="heritage-service-planner__translation-cue">{row.cue.translationAction === 'start' ? '▶ Start Translate' : '■ Stop Translate'}</small> : null}{row.kind === 'group' ? <small>section</small> : isSongTitleSlide(row) ? <small>song</small> : row.readingTitle ? <small>reading</small> : row.sermonTitle ? <small>sermon</small> : row.scripturePageCount ? <small>{row.scripturePageCount} slides</small> : null}</span>
+                  <span><strong>{row.number && row.sectionSize && row.sectionSize > 1 ? `${row.number}. ` : ''}{row.title}</strong>{row.sectionSize && row.sectionSize > 1 ? <small>{t("{count} slides", { count: row.sectionSize })}</small> : null}{row.cue?.translationAction ? <small className="heritage-service-planner__translation-cue">{row.cue.translationAction === 'start' ? t("▶ Start Translate") : t("■ Stop Translate")}</small> : null}{row.kind === 'group' ? <small>{t("section")}</small> : isSongTitleSlide(row) ? <small>{t("song")}</small> : row.readingTitle ? <small>{t("reading")}</small> : row.sermonTitle ? <small>{t("sermon")}</small> : !row.sectionSize && row.scripturePageCount ? <small>{t("{count} slides", { count: row.scripturePageCount })}</small> : null}</span>
                 </button>
               </li>
             })}
-            {!slideList.rows.length ? <li className="heritage-service-planner__empty">{slideList.error || 'Add a section, song, reading, or slide.'}</li> : null}
-          </ol> : <p className="heritage-service-planner__empty">No service open.</p>}
-          {menu ? <div ref={menuRef} className="heritage-service-planner__context-menu" role="menu" aria-label="Slide actions" style={{ left: menu.x, top: menu.y }}
+            {!slideList.rows.length ? <li className="heritage-service-planner__empty">{slideList.error ? t(slideList.error) : t("Add a section, song, reading, or slide.")}</li> : null}
+          </ol> : <p className="heritage-service-planner__empty">{t("No service open.")}</p>}
+          {menu ? <div ref={menuRef} className="heritage-service-planner__context-menu" role="menu" aria-label={t("Slide actions")} style={{ left: menu.x, top: menu.y }}
             onKeyDown={event => {
               if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return
               event.preventDefault()
@@ -1456,31 +1461,31 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
               const index = buttons.indexOf(document.activeElement as HTMLButtonElement)
               buttons[(index + (event.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length]?.focus()
             }}>
-            <small>{selectedPlannerSlides(slideList.rows, menu.ids).length > 1 ? `${selectedPlannerSlides(slideList.rows, menu.ids).length} selected slides` : menu.row.kind === 'group' ? 'Section' : `Slide ${menu.row.number}`}</small>
-            <button type="button" role="menuitem" onClick={() => { selectSlide(menu.row); setMenu(null); setSettingsOpen(true) }}>Slide settings…</button>
+            <small>{selectedPlannerSlides(slideList.rows, menu.ids).length > 1 ? t('{count} selected slides', { count: selectedPlannerSlides(slideList.rows, menu.ids).length }) : menu.row.kind === 'group' ? t("Section") : t('Slide {number}', { number: menu.row.number || 0 })}</small>
+            <button type="button" role="menuitem" onClick={() => { selectSlide(menu.row); setMenu(null); setSettingsOpen(true) }}>{t("Slide settings…")}</button>
             {menu.row.kind === 'bible' && draft && draft.items[menu.row.itemId]?.passagesByChannel?.[previewChannel]?.displayText !== undefined ? <button type="button" role="menuitem" onClick={() => {
               const next = cloneProject(draft), item = next.items[menu.row.itemId]
               for (const output of previewChannel === 'russian' && item.passagesByChannel.media ? ['russian','media'] : [previewChannel]) { delete item.passagesByChannel[output].displayText; delete item.passagesByChannel[output].displaySpans }
               slideMutation(() => serviceCore.normalizeServiceProject(next)); setMenu(null)
-            }}>Restore original passage text</button> : null}
+            }}>{t("Restore original passage text")}</button> : null}
             {menu.row.cue && draft ? <>
               <button type="button" role="menuitem" onClick={() => {
                 const action = menu.row.cue?.translationAction || translationActionForSlide(slideList.rows, menu.row)
                 if(action==='start')setTranslationCueSlide(menu.row)
                 else slideMutation(() => setSlideTranslationCue(draft, menu.row, 'stop'), menu.row.index)
                 setMenu(null)
-              }}>{menu.row.cue.translationAction==='start' ? 'Edit Translation Settings…' : `Add “${translationActionForSlide(slideList.rows, menu.row)==='start'?'Start Translate':'Stop Translate'}” Cue`}</button>
-              {menu.row.cue.translationAction ? <button type="button" role="menuitem" onClick={() => { slideMutation(() => setSlideTranslationCue(draft, menu.row, null), menu.row.index); setMenu(null) }}>Remove translation cue</button> : null}
+              }}>{menu.row.cue.translationAction==='start' ? t("Edit Translation Settings…") : t('Add “{action}” cue', { action: translationActionForSlide(slideList.rows, menu.row)==='start' ? t('Start Translate') : t('Stop Translate') })}</button>
+              {menu.row.cue.translationAction ? <button type="button" role="menuitem" onClick={() => { slideMutation(() => setSlideTranslationCue(draft, menu.row, null), menu.row.index); setMenu(null) }}>{t("Remove translation cue")}</button> : null}
             </> : null}
-            <button type="button" role="menuitem" onClick={() => runSelection(menu.ids, 'duplicate')}>Duplicate</button>
-            <button type="button" role="menuitem" onClick={() => { setMoveDialog(menu.ids); setMenu(null) }}>Move To…</button>
+            <button type="button" role="menuitem" onClick={() => runSelection(menu.ids, 'duplicate')}>{t("Duplicate")}</button>
+            <button type="button" role="menuitem" onClick={() => { setMoveDialog(menu.ids); setMenu(null) }}>{t("Move To…")}</button>
             {([-1, 1] as const).map(offset => {
               const chosen = selectedPlannerSlides(slideList.rows, menu.ids)
               const target = (chosen[0]?.number || 1) + offset
               const maximum = slideList.rows.filter(row => row.cue).length - chosen.length + 1
-              return <button key={offset} type="button" role="menuitem" disabled={!chosen.length || target < 1 || target > maximum} onClick={() => runSelection(menu.ids, 'move', target)}>Move {offset < 0 ? 'up' : 'down'}</button>
+              return <button key={offset} type="button" role="menuitem" disabled={!chosen.length || target < 1 || target > maximum} onClick={() => runSelection(menu.ids, 'move', target)}>{offset < 0 ? t('Move up') : t('Move down')}</button>
             })}
-            <button type="button" role="menuitem" onClick={() => removeSelection(menu.ids)}>Delete</button>
+            <button type="button" role="menuitem" onClick={() => removeSelection(menu.ids)}>{t("Delete")}</button>
           </div> : null}
         </aside>
 
@@ -1489,61 +1494,61 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
             <section className="heritage-service-planner__preview">
               <header className="heritage-service-planner__preview-heading">
                 <div className="heritage-service-planner__preview-context">
-                  <strong>{activeSlide ? `Slide ${activeSlide.number}` : selected.title}</strong>
+                  <strong>{activeSlide ? t("Slide {number}", { number: activeSlide.number }) : selected.title}</strong>
                   <span className="heritage-service-planner__preview-title" title={draft?.title}>{draft?.title}</span>
                   <time dateTime={draft?.serviceDate}>{draft?.serviceDate}</time>
                   <span className="heritage-service-planner__preview-divider" aria-hidden="true">|</span>
-                  <div className="heritage-service-planner__output-tabs" role="tablist" aria-label="Preview output">
-                    <span>Screen:</span>
-                    {CHANNEL_IDS.map(channelId => <button key={channelId} type="button" role="tab" aria-selected={previewChannel === channelId} onClick={() => setPreviewChannel(channelId)}>{channelId === 'media' ? 'Stage-Facing Screen' : draft?.channels[channelId]?.label || channelId}</button>)}
+                  <div className="heritage-service-planner__output-tabs" role="tablist" aria-label={t("Preview output")}>
+                    <span>{t("Screen:")}</span>
+                    {CHANNEL_IDS.map(channelId => <button key={channelId} type="button" role="tab" aria-selected={previewChannel === channelId} onClick={() => setPreviewChannel(channelId)}>{channelId === 'media' ? t('Stage-Facing Screen') : t(draft?.channels[channelId]?.label || channelId)}</button>)}
                   </div>
                 </div>
                 <div className="heritage-service-planner__preview-actions">
-                  <button type="button" title="Undo (Ctrl+Z / Command+Z)" aria-keyshortcuts="Control+Z Meta+Z" disabled={!undoStack.length || busy} onClick={undo}>Undo</button>
-                  <button type="button" className="heritage-service-planner__service-preview-button" disabled={!slideList.rows.some(row=>row.cue) || Boolean(slideList.error)} onClick={()=>setServicePreviewOpen(true)}>▦ {sermonSyncId ? 'Sermon preview' : 'Service Preview'}</button>
+                  <button type="button" title={t("Undo (Ctrl+Z / Command+Z)")} aria-keyshortcuts="Control+Z Meta+Z" disabled={!undoStack.length || busy} onClick={undo}>{t("Undo")}</button>
+                  <button type="button" className="heritage-service-planner__service-preview-button" disabled={!slideList.rows.some(row=>row.cue) || Boolean(slideList.error)} onClick={()=>setServicePreviewOpen(true)}>▦ {sermonSyncId ? t("Sermon preview") : t("Service Preview")}</button>
                 </div>
               </header>
               {activePreviewOutput?.fallbackFromChannelId ? <p className="heritage-service-planner__language-warning" role="status">
-                {draft?.channels[previewChannel]?.label || previewChannel} is not configured. Screens will show {draft?.channels[activePreviewOutput.fallbackFromChannelId]?.label || 'the filled language'} content until you add text here.
+                {t('{language} is not configured. Screens will show {fallback} content until you add text here.', { language: t(draft?.channels[previewChannel]?.label || previewChannel), fallback: t(draft?.channels[activePreviewOutput.fallbackFromChannelId]?.label || 'the filled language') })}
               </p> : null}
               {selected.kind === 'song' && selected.songPresentation && !preview.singer ? <div className="heritage-service-planner__song-layout">
-                <label>Primary language for this slide <select aria-label="Primary language for this slide" value={selected.songPresentation.slidePrimaryChannelIds?.[activeSlide?.cue?.sourceLeafKey] || ''}
+                <label>{t("Primary language for this slide")} <select aria-label={t("Primary language for this slide")} value={selected.songPresentation.slidePrimaryChannelIds?.[activeSlide?.cue?.sourceLeafKey] || ''}
                   onChange={event => { const choices = {...selected.songPresentation.slidePrimaryChannelIds}; const key=activeSlide?.cue?.sourceLeafKey
                     if (!key) return
                     if (event.target.value) choices[key]=event.target.value; else delete choices[key]
                     updateSelected({songPresentation:{...selected.songPresentation,slidePrimaryChannelIds:choices}})
                   }}>
-                  <option value="">Song default · {draft?.channels[selected.songPresentation.primaryChannelId]?.label}</option>
-                  {selectedSongContentChannels.map(id=><option key={id} value={id}>{draft?.channels[id]?.label || id}</option>)}
+                  <option value="">{t("Song default ·")} {t(draft?.channels[selected.songPresentation.primaryChannelId]?.label || selected.songPresentation.primaryChannelId)}</option>
+                  {selectedSongContentChannels.map(id=><option key={id} value={id}>{t(draft?.channels[id]?.label || id)}</option>)}
                 </select></label>
-                {activeSlide && isSongTitleSlide(activeSlide) ? <label><input type="checkbox" aria-label="Show translated song title" checked={selected.songPresentation.showTitleTranslation ?? selected.songPresentation.stackedTranslation}
+                {activeSlide && isSongTitleSlide(activeSlide) ? <label><input type="checkbox" aria-label={t("Show translated song title")} checked={selected.songPresentation.showTitleTranslation ?? selected.songPresentation.stackedTranslation}
                   disabled={!selected.songPresentation.secondaryChannelId}
-                  onChange={event => updateSelected({songPresentation:{...selected.songPresentation,showTitleTranslation:event.target.checked}})} /> Show second language beneath title</label>
-                  : <label><input type="checkbox" aria-label="Stacked translation" checked={selected.songPresentation.stackedTranslation}
+                  onChange={event => updateSelected({songPresentation:{...selected.songPresentation,showTitleTranslation:event.target.checked}})} />  {t("Show second language beneath title")}</label>
+                  : <label><input type="checkbox" aria-label={t("Stacked translation")} checked={selected.songPresentation.stackedTranslation}
                     disabled={!selected.songPresentation.secondaryChannelId}
                     onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, stackedTranslation: event.target.checked },
-                      lyricsPresetId: event.target.checked ? 'wotbc-song-stacked' : 'wotbc-song-lyrics' })} /> Show translated lyrics · whole song</label>}
+                      lyricsPresetId: event.target.checked ? 'wotbc-song-stacked' : 'wotbc-song-lyrics' })} />  {t("Show translated lyrics · whole song")}</label>}
               </div> : null}
               {selected.kind === 'sermon' && (selected.sermonTemplate === 'title' || selected.presetId === 'wotbc-sermon-title') && !preview.singer ? <div className="heritage-service-planner__song-layout">
-                <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>{uploadingPicture ? 'Uploading…' : (selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? `Replace ${previewChannel === 'russian' ? 'Russian' : 'English'} image` : `Choose ${previewChannel === 'russian' ? 'Russian' : 'English'} image`}</button>
-                <label className="heritage-sermon-title-input">Title<input aria-label={`${previewChannel} title for following passages`} value={selected.titlesByChannel?.[previewChannel] || ''} onChange={event => slideMutation(() => editTemplateField(draft!, selected.id, previewChannel, 'heading', event.target.value, formatting.remapTextSpans(selected.titlesByChannel?.[previewChannel] || '', event.target.value, selected.titleSpansByChannel?.[previewChannel] || [])))} /></label>
-                <label><input type="checkbox" checked={selected.sermonPresentation?.showText ?? true} onChange={event => updateSelected({ sermonPresentation: {darkenBackground: true, ...selected.sermonPresentation, showText: event.target.checked} })} /> Show title text</label>
-                <label><input type="checkbox" checked={selected.sermonPresentation?.darkenBackground ?? true} onChange={event => updateSelected({ sermonPresentation: {showText: true, ...selected.sermonPresentation, darkenBackground: event.target.checked} })} /> Darken image</label>
+                <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>{uploadingPicture ? t("Uploading…") : (selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? t('Replace {language} image', { language: t(previewChannel === 'russian' ? 'Russian' : 'English') }) : t('Choose {language} image', { language: t(previewChannel === 'russian' ? 'Russian' : 'English') })}</button>
+                <label className="heritage-sermon-title-input">{t("Title")}<input aria-label={t('{language} title for following passages', { language: t(previewChannel === 'russian' ? 'Russian' : previewChannel === 'media' ? 'Stage-Facing Screen' : 'English') })} value={selected.titlesByChannel?.[previewChannel] || ''} onChange={event => slideMutation(() => editTemplateField(draft!, selected.id, previewChannel, 'heading', event.target.value, formatting.remapTextSpans(selected.titlesByChannel?.[previewChannel] || '', event.target.value, selected.titleSpansByChannel?.[previewChannel] || [])))} /></label>
+                <label><input type="checkbox" checked={selected.sermonPresentation?.showText ?? true} onChange={event => updateSelected({ sermonPresentation: {darkenBackground: true, ...selected.sermonPresentation, showText: event.target.checked} })} />  {t("Show title text")}</label>
+                <label><input type="checkbox" checked={selected.sermonPresentation?.darkenBackground ?? true} onChange={event => updateSelected({ sermonPresentation: {showText: true, ...selected.sermonPresentation, darkenBackground: event.target.checked} })} />  {t("Darken image")}</label>
               </div> : null}
               <div className="heritage-service-planner__slide-workspace" data-canvas={!preview.singer && selected.kind !== 'group' || undefined}>
               <PreviewCanvas captionReservation={translationSettings.reservation(activeSlide?.cue?.translationSettings,previewChannel)} textStyle={activeSlide?.cue?.textStyle} kind={selected.kind} presetId={preview.presetId} template={selected.sermonTemplate} titleCard={Boolean(activeSlide && isSongTitleSlide(activeSlide))} singer={preview.singer} next={preview.next} backgroundDimOpacity={selected.sermonPresentation?.darkenBackground === false ? 0 : 0.55} backgroundUrl={(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? mediaPreviews[selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId)}` : undefined}>
-                {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">Choose a numbered slide on the left.<br />“{selected.title}” is a section, not a slide.</p>
-                  : slideList.error ? <p className="heritage-service-planner__stage-status">Preview unavailable: {slideList.error}</p>
+                {selected.kind === 'group' ? <p className="heritage-service-planner__stage-status">{t("Choose a numbered slide on the left.")}<br />{t('“{title}” is a section, not a slide.', { title: selected.title })}</p>
+                  : slideList.error ? <p className="heritage-service-planner__stage-status">{t("Preview unavailable:")} {slideList.error}</p>
                   : selected.sermonTemplate === 'other' && !preview.singer ? <CanvasSlide key={`${selected.id}:${previewChannel}`} objects={selected.objectsByChannel[previewChannel] || []} mediaUrl={id=>mediaPreviews[id] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(id)}`} uploading={uploadingPicture} onImage={()=>choosePicture('canvas')} onChange={objects=>slideMutation(()=>editCanvasObjects(draft!,selected.id,previewChannel,objects))} />
                   : selected.sermonTemplate && !preview.singer ? <TemplateSlideEditor key={`${selected.id}:${previewChannel}`} item={authoredSermon || selected} channelId={previewChannel} uploading={uploadingPicture} onImage={() => choosePicture('background')}
                       onEdit={(field, text, spans) => slideMutation(() => editTemplateField(draft!, selected.id, previewChannel, field, text, spans))} />
-                  : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">Hidden on this screen</p>
-                    : selected.kind === 'blank' ? <p className="heritage-service-planner__stage-status">Intentional blank screen</p>
+                  : activePreviewOutput?.mode === 'hide' ? <p className="heritage-service-planner__stage-status">{t("Hidden on this screen")}</p>
+                    : selected.kind === 'blank' ? <p className="heritage-service-planner__stage-status">{t("Intentional blank screen")}</p>
                       : (activePreviewOutput?.blocks || []).map((block: any, index: number) => {
                         if (block.type === 'canvas') return <CanvasSlide key={index} objects={block.objects} mediaUrl={id=>mediaPreviews[id] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(id)}`} />
                         if (block.type === 'image' && block.role === 'background') return null
                         if (block.type === 'image' || block.type === 'video') {
-                          if (!envelope?.project.assets?.[block.assetId] && !mediaPreviews[block.assetId]) return <p key={index} className="heritage-service-planner__stage-status">Save the service to preview this new media file.</p>
+                          if (!envelope?.project.assets?.[block.assetId] && !mediaPreviews[block.assetId]) return <p key={index} className="heritage-service-planner__stage-status">{t("Save the service to preview this new media file.")}</p>
                           const source = mediaPreviews[block.assetId] || `${ENDPOINT}/${encodeURIComponent(envelope!.syncId)}/assets/${encodeURIComponent(block.assetId)}`
                           return block.type === 'image'
                             ? <img key={index} src={source} alt={block.altText || selected.title} />
@@ -1551,7 +1556,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
                         }
                         if (block.type === 'bible') return <div key={index} className="heritage-service-planner__scripture-page" data-fit-text>
                           {preview.presetId !== 'wotbc-sermon-scripture' && (block.displayReference ?? block.reference) ? <p className="heritage-service-planner__scripture-reference">{readingLabels.localizedReference(block.displayReference ?? block.reference, draft?.channels[previewChannel]?.language)}</p> : null}
-                          <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} label={`Slide ${activeSlide?.number} ${previewChannel} Scripture — click to edit`} role="body" readOnly={preview.singer} canFormat={!preview.singer}
+                          <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} label={t('Slide {number} {language} Scripture — click to edit', { number: activeSlide?.number || 0, language: t(previewChannel === 'russian' ? 'Russian' : previewChannel === 'media' ? 'Stage-Facing Screen' : 'English') })} role="body" readOnly={preview.singer} canFormat={!preview.singer}
                             onCommit={(text, spans) => activeSlide && slideMutation(() => editPlannerSlide(draft!, activeSlide, previewChannel, index, text, spans))} />
                           {formatting.scriptureCredit(block) ? <p className="heritage-scripture-credit">{formatting.scriptureCredit(block)}</p> : null}
                         </div>
@@ -1566,152 +1571,151 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
                           : <p key={index} data-role={block.role || 'scripture'}>{previewBlockText(block)}</p>
                       })}
               </PreviewCanvas>
-              {!preview.singer && selected.sermonTemplate !== 'other' && ['song','bible','sermon','notice'].includes(selected.kind) && <aside className="heritage-text-inspector" aria-label="Text layout">
-                <h3>Text layout</h3>
+              {!preview.singer && selected.sermonTemplate !== 'other' && ['song','bible','sermon','notice'].includes(selected.kind) && <aside className="heritage-text-inspector" aria-label={t("Text layout")}>
+                <h3>{t("Text layout")}</h3>
                 {scriptureTranslationControls}
-                {selected.presetId==='wotbc-reading-title' && <label>Reading template<select value="centered" onChange={event=>slideMutation(()=>setReadingTemplate(draft,selected.id,event.target.value))}><option value="centered">Centered title</option><option value="pre-sermon">Pre-sermon</option></select></label>}
-                <label>Apply alignment to<select aria-label="Alignment field" value={alignmentRole} onChange={event=>setAlignmentRole(event.target.value)}><option value="bodyAlign">Text</option><option value="titleAlign">Heading</option><option value="creditAlign">Author / source</option></select></label>
-                <div role="group" aria-label="Text alignment">{['left','center','right'].map(align=><button type="button" key={align} aria-label={`Align ${align}`} aria-pressed={(selected.textStyle?.[alignmentRole] || typography.textPreset(preview.presetId)[alignmentRole] || (alignmentRole==='creditAlign' && !(activeSlide && isSongTitleSlide(activeSlide)) ? 'right' : 'center'))===align} onClick={()=>change(project=>{
+                {selected.presetId==='wotbc-reading-title' && <label>{t("Reading template")}<select value="centered" onChange={event=>slideMutation(()=>setReadingTemplate(draft,selected.id,event.target.value))}><option value="centered">{t("Centered title")}</option><option value="pre-sermon">{t("Pre-sermon")}</option></select></label>}
+                <label>{t("Apply alignment to")}<select aria-label={t("Alignment field")} value={alignmentRole} onChange={event=>setAlignmentRole(event.target.value)}><option value="bodyAlign">{t("Text")}</option><option value="titleAlign">{t("Heading")}</option><option value="creditAlign">{t("Author / source")}</option></select></label>
+                <div role="group" aria-label={t("Text alignment")}>{['left','center','right'].map(align=><button type="button" key={align} aria-label={t('Align {alignment}', { alignment: t(align) })} aria-pressed={(selected.textStyle?.[alignmentRole] || typography.textPreset(preview.presetId)[alignmentRole] || (alignmentRole==='creditAlign' && !(activeSlide && isSongTitleSlide(activeSlide)) ? t("right") : t("center")))===align} onClick={()=>change(project=>{
                   const ids=typographyItemIds(project,selected.id)
                   ids.forEach((id:string)=>{project.items[id].textStyle={...project.items[id].textStyle,[alignmentRole]:align}})
-                })}>{align[0].toUpperCase()+align.slice(1)}</button>)}</div>
-                {!(activeSlide && isSongTitleSlide(activeSlide)) && <label>{selected.kind==='song' ? 'Song font size' : selected.kind==='bible' ? 'Reading font size' : 'Text size'}<NumberDraftInput value={selected.textStyle?.bodySize || activeSlide?.cue?.textStyle?.bodySize || typography.textPreset(preview.presetId).bodySize} min={32} max={160} live={selected.kind==='bible'}
+                })}>{t(align)}</button>)}</div>
+                {!(activeSlide && isSongTitleSlide(activeSlide)) && <label>{selected.kind==='song' ? t("Song font size") : selected.kind==='bible' ? t("Reading font size") : t("Text size")}<NumberDraftInput value={selected.textStyle?.bodySize || activeSlide?.cue?.textStyle?.bodySize || typography.textPreset(preview.presetId).bodySize} min={32} max={160} live={selected.kind==='bible'}
                   onEditStart={()=>{if(selected.kind==='bible' && latestDraft.current)fontEdit.current={project:latestDraft.current,itemId:selected.id,changed:false}}}
                   onEditEnd={()=>{fontEdit.current=null}} onCommit={changeFontSize} /></label>}
-                {selected.textStyle?.bodySize && activeSlide?.cue?.textStyle?.bodySize && selected.textStyle.bodySize !== activeSlide.cue.textStyle.bodySize && <small>Fitted size: {activeSlide.cue.textStyle.bodySize} across all pages.</small>}
-                {selected.kind==='song' && <><small>One size for the whole song. Long lines can reduce it by up to 25%.</small><button type="button" disabled={busy} onClick={rememberSongLayout}>Remember for this song</button></>}
-                {selected.kind==='bible' && <><small>Whole verses move between pages to fit this size. Both languages stay together.</small><button type="button" onClick={()=>changeFontSize(selected.textStyle?.bodySize || activeSlide?.cue?.textStyle?.bodySize || typography.textPreset(preview.presetId).bodySize)}>Reflow pages</button><BibleSourceNotice translationIds={Object.values(selected.passagesByChannel || {}).map((p:any)=>p.translationId)} /></>}
+                {selected.textStyle?.bodySize && activeSlide?.cue?.textStyle?.bodySize && selected.textStyle.bodySize !== activeSlide.cue.textStyle.bodySize && <small>{t("Fitted size:")} {activeSlide.cue.textStyle.bodySize}  {t("across all pages.")}</small>}
+                {selected.kind==='song' && <><small>{t("One size for the whole song. Long lines can reduce it by up to 25%.")}</small><button type="button" disabled={busy} onClick={rememberSongLayout}>{t("Remember for this song")}</button></>}
+                {selected.kind==='bible' && <><small>{t("Whole verses move between pages to fit this size. Both languages stay together.")}</small><button type="button" onClick={()=>changeFontSize(selected.textStyle?.bodySize || activeSlide?.cue?.textStyle?.bodySize || typography.textPreset(preview.presetId).bodySize)}>{t("Reflow pages")}</button><BibleSourceNotice translationIds={Object.values(selected.passagesByChannel || {}).map((p:any)=>p.translationId)} /></>}
               </aside>}
-              {selected.sermonTemplate === 'other' && !preview.singer && <aside className="heritage-canvas-inspector" aria-label="Slide objects">
-                {selected.presetId==='wotbc-reading-title' && <label>Reading template<select value="pre-sermon" onChange={event=>slideMutation(()=>setReadingTemplate(draft,selected.id,event.target.value))}><option value="centered">Centered title</option><option value="pre-sermon">Pre-sermon</option></select></label>}
+              {selected.sermonTemplate === 'other' && !preview.singer && <aside className="heritage-canvas-inspector" aria-label={t("Slide objects")}>
+                {selected.presetId==='wotbc-reading-title' && <label>{t("Reading template")}<select value="pre-sermon" onChange={event=>slideMutation(()=>setReadingTemplate(draft,selected.id,event.target.value))}><option value="centered">{t("Centered title")}</option><option value="pre-sermon">{t("Pre-sermon")}</option></select></label>}
                 {scriptureTranslationControls}
                 <div id="heritage-canvas-tools" />
-                <button type="button" className="heritage-canvas-copy" onClick={()=>{if(globalThis.confirm('Replace the objects on the other outputs with this slide layout?'))updateSelected({objectsByChannel:Object.fromEntries(draft!.channelIds.map(id=>[id,JSON.parse(JSON.stringify(selected.objectsByChannel[previewChannel] || []))]))})}}>Copy layout to all outputs</button>
+                <button type="button" className="heritage-canvas-copy" onClick={()=>{if(globalThis.confirm(t('Replace the objects on the other outputs with this slide layout?')))updateSelected({objectsByChannel:Object.fromEntries(draft!.channelIds.map(id=>[id,JSON.parse(JSON.stringify(selected.objectsByChannel[previewChannel] || []))]))})}}>{t("Copy layout to all outputs")}</button>
               </aside>}
               </div>
               <p className="heritage-service-planner__preview-note">{preview.singer
-                ? 'Full primary-language slide · Same-size next line, fitted to the available width.'
-                : selected.kind === 'bible' ? 'Click Scripture to edit this slide · Add omissions or [context] · Original Bible text is preserved.'
-                  : selected.kind === 'song' && selected.songPresentation?.stackedTranslation ? 'Same stack on both audience screens · White primary language, orange translation · Click either to edit.'
-                  : selected.kind === 'sermon' ? 'Click directly on the slide to edit · Select text for formatting · Empty guides are not projected.'
-                  : selected.kind === 'picture' ? 'Picture slide. Open Add slide → Media to replace its image.'
-                    : 'Click the slide text to edit · Click outside to apply · Save to keep changes'}</p>
+                ? t("Full primary-language slide · Same-size next line, fitted to the available width.")
+                : selected.kind === 'bible' ? t("Click Scripture to edit this slide · Add omissions or [context] · Original Bible text is preserved.")
+                  : selected.kind === 'song' && selected.songPresentation?.stackedTranslation ? t("Same stack on both audience screens · White primary language, orange translation · Click either to edit.")
+                  : selected.kind === 'sermon' ? t("Click directly on the slide to edit · Select text for formatting · Empty guides are not projected.")
+                  : selected.kind === 'picture' ? t("Picture slide. Open Add slide → Media to replace its image.")
+                    : t("Click the slide text to edit · Click outside to apply · Save to keep changes")}</p>
             </section>
             {selected.objectsByChannel?.[previewChannel]?.some((object: any) => object.id === 'welcome-topic') ?
-              <label className="heritage-service-planner__welcome-topic">Service / sermon topic
-                <input aria-label="Welcome slide topic" value={selected.objectsByChannel[previewChannel].find((object: any) => object.id === 'welcome-topic')?.text || ''}
+              <label className="heritage-service-planner__welcome-topic">{t("Service / sermon topic")}<input aria-label={t("Welcome slide topic")} value={selected.objectsByChannel[previewChannel].find((object: any) => object.id === 'welcome-topic')?.text || ''}
                   placeholder={previewChannel === 'english' ? 'Topic for this service' : 'Тема служения'}
                   onChange={event => slideMutation(() => editCanvasObjects(draft, selected.id, previewChannel, selected.objectsByChannel[previewChannel].map((object: any) => object.id === 'welcome-topic' ? { ...object, text: event.target.value, spans: [] } : object)))} />
               </label> : null}
 
 
             {settingsOpen && <SlideSettingsDialog onClose={() => { setSettingsOpen(false); requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(`.heritage-service-planner__rows [data-slide-id="${CSS.escape(activeSlide?.id || selected.id)}"]`)?.focus()) }}>
-                <label><span>Item name</span><input value={selected.title} maxLength={200} onChange={event => updateSelected({ title: event.target.value })} /></label>
-                <label><span>Notes for the operator</span><input value={selected.operatorNotes || ''} onChange={event => updateSelected({ operatorNotes: event.target.value })} /></label>
-                {selected.kind === 'sermon' && (selected.sermonTemplate === 'title' || selected.presetId === 'wotbc-sermon-title') ? <label className="heritage-service-planner__check"><input type="checkbox" aria-label="Show next-slide hints for this sermon" checked={selected.sermonPresentation?.showNextSlideHints ?? true}
-                  onChange={event=>updateSelected({sermonPresentation:{showText:true,darkenBackground:true,...selected.sermonPresentation,showNextSlideHints:event.target.checked}})} /><span>Show next-slide hints for this sermon</span><small>Applies to the title, points, quotations, and passages in this sermon.</small></label> : null}
-                {selected.kind === 'song' && selected.songPresentation ? <label><span>Song credit · bottom right of title slide</span><input aria-label="Song credit" value={selected.songPresentation.credits} maxLength={500}
+                <label><span>{t("Item name")}</span><input value={selected.title} maxLength={200} onChange={event => updateSelected({ title: event.target.value })} /></label>
+                <label><span>{t("Notes for the operator")}</span><input value={selected.operatorNotes || ''} onChange={event => updateSelected({ operatorNotes: event.target.value })} /></label>
+                {selected.kind === 'sermon' && (selected.sermonTemplate === 'title' || selected.presetId === 'wotbc-sermon-title') ? <label className="heritage-service-planner__check"><input type="checkbox" aria-label={t("Show next-slide hints for this sermon")} checked={selected.sermonPresentation?.showNextSlideHints ?? true}
+                  onChange={event=>updateSelected({sermonPresentation:{showText:true,darkenBackground:true,...selected.sermonPresentation,showNextSlideHints:event.target.checked}})} /><span>{t("Show next-slide hints for this sermon")}</span><small>{t("Applies to the title, points, quotations, and passages in this sermon.")}</small></label> : null}
+                {selected.kind === 'song' && selected.songPresentation ? <label><span>{t("Song credit · bottom right of title slide")}</span><input aria-label={t("Song credit")} value={selected.songPresentation.credits} maxLength={500}
                   onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, credits: event.target.value } })} /></label> : null}
 
-            {(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>Replace title image</button> : null}
+            {(selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>{t("Replace title image")}</button> : null}
             {selected.kind === 'picture' ? <div className="heritage-service-planner__picture-editor">
-              <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('all')}>{uploadingPicture ? 'Uploading…' : 'Replace on every output'}</button>
-              <label><span>Image description</span><input value={selected.altText || ''} onChange={event => updateSelected({ altText: event.target.value })} /></label>
-              <label><span>Attribution</span><input value={selected.attribution || ''} onChange={event => updateSelected({ attribution: event.target.value })} /></label>
+              <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('all')}>{uploadingPicture ? t("Uploading…") : t("Replace on every output")}</button>
+              <label><span>{t("Image description")}</span><input value={selected.altText || ''} onChange={event => updateSelected({ altText: event.target.value })} /></label>
+              <label><span>{t("Attribution")}</span><input value={selected.attribution || ''} onChange={event => updateSelected({ attribution: event.target.value })} /></label>
             </div> : null}
 
             {selected.kind === 'video' ? <div className="heritage-service-planner__picture-editor">
-              <p className="heritage-service-planner__boundary">The video opens paused. First Right or Space plays it; Space pauses or resumes; Right advances to the next service item.</p>
-              <label><span>Audio output</span><select value={selected.audioChannelId} onChange={event => updateSelected({ audioChannelId: event.target.value })}>{selected.channelIds.map((channelId: string) => <option key={channelId} value={channelId}>{draft?.channels[channelId]?.label || channelId}</option>)}</select></label>
+              <p className="heritage-service-planner__boundary">{t("The video opens paused. First Right or Space plays it; Space pauses or resumes; Right advances to the next service item.")}</p>
+              <label><span>{t("Audio output")}</span><select value={selected.audioChannelId} onChange={event => updateSelected({ audioChannelId: event.target.value })}>{selected.channelIds.map((channelId: string) => <option key={channelId} value={channelId}>{t(draft?.channels[channelId]?.label || channelId)}</option>)}</select></label>
             </div> : null}
 
-                {presetChoices(selected).length ? <label><span>Visual preset</span><select value={itemPreset(selected)} onChange={event => updateSelected(selected.kind === 'song' ? { lyricsPresetId: event.target.value } : { presetId: event.target.value })}>{presetChoices(selected).map(preset => <option key={preset} value={preset}>{preset}</option>)}</select></label> : null}
-                {selected.kind === 'group' ? <label><span>Section type</span><select value={selected.groupKind} onChange={event => updateSelected({ groupKind: event.target.value })}>{['service', 'section', 'sermon', 'point', 'subpoint', 'custom'].map(kind => <option key={kind}>{kind}</option>)}</select></label> : null}
-                {selected.kind === 'blank' ? CHANNEL_IDS.map(channelId => <label className="heritage-service-planner__check" key={channelId}><input type="checkbox" checked={selected.channelIds.includes(channelId)} onChange={event => updateSelected({ channelIds: event.target.checked ? [...new Set([...selected.channelIds, channelId])] : selected.channelIds.filter((id: string) => id !== channelId) })} /><span>Clear {draft?.channels[channelId]?.label || channelId}</span></label>) : null}
-                {selected.kind === 'song' && selected.songPresentation ? <label><span>Song default primary language</span><select aria-label="Song default primary language" value={selected.songPresentation.primaryChannelId}
+                {presetChoices(selected).length ? <label><span>{t("Visual preset")}</span><select value={itemPreset(selected)} onChange={event => updateSelected(selected.kind === 'song' ? { lyricsPresetId: event.target.value } : { presetId: event.target.value })}>{presetChoices(selected).map(preset => <option key={preset} value={preset}>{preset}</option>)}</select></label> : null}
+                {selected.kind === 'group' ? <label><span>{t("Section type")}</span><select value={selected.groupKind} onChange={event => updateSelected({ groupKind: event.target.value })}>{['service', 'section', 'sermon', 'point', 'subpoint', 'custom'].map(kind => <option key={kind} value={kind}>{t(kind)}</option>)}</select></label> : null}
+                {selected.kind === 'blank' ? CHANNEL_IDS.map(channelId => <label className="heritage-service-planner__check" key={channelId}><input type="checkbox" checked={selected.channelIds.includes(channelId)} onChange={event => updateSelected({ channelIds: event.target.checked ? [...new Set([...selected.channelIds, channelId])] : selected.channelIds.filter((id: string) => id !== channelId) })} /><span>{t("Clear")} {t(draft?.channels[channelId]?.label || channelId)}</span></label>) : null}
+                {selected.kind === 'song' && selected.songPresentation ? <label><span>{t("Song default primary language")}</span><select aria-label={t("Song default primary language")} value={selected.songPresentation.primaryChannelId}
                   onChange={event=>updateSelected({songPresentation:{...selected.songPresentation,primaryChannelId:event.target.value,secondaryChannelId:songPresentation.presentationSecondaryChannelId(selected,event.target.value)}})}>
-                  {selectedSongContentChannels.map(id=><option key={id} value={id}>{draft?.channels[id]?.label || id}</option>)}
-                </select><small>Individual slide choices stay in place.</small></label> : null}
+                  {selectedSongContentChannels.map(id=><option key={id} value={id}>{t(draft?.channels[id]?.label || id)}</option>)}
+                </select><small>{t("Individual slide choices stay in place.")}</small></label> : null}
                 {selected.kind === 'song' ? <div className="heritage-service-planner__treatments">
-                  <p className="heritage-service-planner__boundary">Exact Community revisions stay pinned. Output-specific language choices live here so they do not clutter normal planning.</p>
+                  <p className="heritage-service-planner__boundary">{t("Exact Community revisions stay pinned. Output-specific language choices live here so they do not clutter normal planning.")}</p>
                   {CHANNEL_IDS.map(channelId => {
                     const primaryChannelId = selected.primaryChannelId || selectedSongContentChannels[0]
-                    return <label key={channelId}><span>{draft?.channels[channelId]?.label || channelId}</span><select value={songTreatmentValue(selected.variants?.[channelId])} disabled={channelId === primaryChannelId} onChange={event => setSelectedSongTreatment(channelId, event.target.value)}>
-                      {selected.variants?.[channelId]?.mode === 'content' ? <option value="content">Pinned exact lyrics</option> : null}
+                    return <label key={channelId}><span>{t(draft?.channels[channelId]?.label || channelId)}</span><select value={songTreatmentValue(selected.variants?.[channelId])} disabled={channelId === primaryChannelId} onChange={event => setSelectedSongTreatment(channelId, event.target.value)}>
+                      {selected.variants?.[channelId]?.mode === 'content' ? <option value="content">{t("Pinned exact lyrics")}</option> : null}
                       {selectedSongContentChannels.filter(sourceChannelId => sourceChannelId !== channelId).flatMap(sourceChannelId => [
-                        <option key={`inherit:${sourceChannelId}`} value={`inherit:${sourceChannelId}`}>Normal lyrics from {draft?.channels[sourceChannelId]?.label || sourceChannelId}</option>,
-                        <option key={`derive:${sourceChannelId}`} value={`derive-next-text:${sourceChannelId}`}>Current + next from {draft?.channels[sourceChannelId]?.label || sourceChannelId}</option>,
+                        <option key={`inherit:${sourceChannelId}`} value={`inherit:${sourceChannelId}`}>{t("Normal lyrics from")} {t(draft?.channels[sourceChannelId]?.label || sourceChannelId)}</option>,
+                        <option key={`derive:${sourceChannelId}`} value={`derive-next-text:${sourceChannelId}`}>{t("Current + next from")} {t(draft?.channels[sourceChannelId]?.label || sourceChannelId)}</option>,
                       ])}
-                      <option value="hidden">Hidden</option>
+                      <option value="hidden">{t("Hidden")}</option>
                     </select></label>
                   })}
                 </div> : null}
-                {selected.kind === 'picture' ? <label><span>Fit</span><select value={selected.fit} onChange={event => updateSelected({ fit: event.target.value })}><option>fit</option><option>fill</option><option>stretch</option></select></label> : null}
+                {selected.kind === 'picture' ? <label><span>{t("Fit")}</span><select value={selected.fit} onChange={event => updateSelected({ fit: event.target.value })}><option value="fit">{t("fit")}</option><option value="fill">{t("fill")}</option><option value="stretch">{t("stretch")}</option></select></label> : null}
                 {selected.kind === 'video' ? <>
-                  <label><span>Fit</span><select value={selected.fit} onChange={event => updateSelected({ fit: event.target.value })}><option>fit</option><option>fill</option><option>stretch</option></select></label>
-                  {CHANNEL_IDS.map(channelId => <label className="heritage-service-planner__check" key={channelId}><input type="checkbox" checked={selected.channelIds.includes(channelId)} disabled={channelId === selected.audioChannelId} onChange={event => updateSelected({ channelIds: event.target.checked ? [...new Set([...selected.channelIds, channelId])] : selected.channelIds.filter((id: string) => id !== channelId) })} /><span>Show on {draft?.channels[channelId]?.label || channelId}{channelId === selected.audioChannelId ? ' · audio' : ''}</span></label>)}
+                  <label><span>{t("Fit")}</span><select value={selected.fit} onChange={event => updateSelected({ fit: event.target.value })}><option value="fit">{t("fit")}</option><option value="fill">{t("fill")}</option><option value="stretch">{t("stretch")}</option></select></label>
+                  {CHANNEL_IDS.map(channelId => <label className="heritage-service-planner__check" key={channelId}><input type="checkbox" checked={selected.channelIds.includes(channelId)} disabled={channelId === selected.audioChannelId} onChange={event => updateSelected({ channelIds: event.target.checked ? [...new Set([...selected.channelIds, channelId])] : selected.channelIds.filter((id: string) => id !== channelId) })} /><span>{t("Show on")} {t(draft?.channels[channelId]?.label || channelId)}{channelId === selected.audioChannelId ? ` ${t('· audio')}` : ''}</span></label>)}
                 </> : null}
-                {selected.kind === 'bible' ? <p className="heritage-service-planner__boundary">This reading keeps exact translation text and checksums. Use Add slide → Scripture if the passage changes.</p> : null}
-                {selectedSermonDocumentId ? <a className="btn btn--style-secondary" href={`/admin/sermon-publications?sermon=${encodeURIComponent(selectedSermonDocumentId)}`}>Open sermon publication review</a> : null}
+                {selected.kind === 'bible' ? <p className="heritage-service-planner__boundary">{t("This reading keeps exact translation text and checksums. Use Add slide → Scripture if the passage changes.")}</p> : null}
+                {selectedSermonDocumentId ? <a className="btn btn--style-secondary" href={`/admin/sermon-publications?sermon=${encodeURIComponent(selectedSermonDocumentId)}`}>{t("Open sermon publication review")}</a> : null}
 </SlideSettingsDialog>}
 
-          </> : <div className="heritage-service-planner__editor-empty"><h2>{draft ? 'Choose a slide on the left' : 'Choose a service to begin'}</h2>{undoStack.length ? <button type="button" onClick={undo}>Undo</button> : null}</div>}
+          </> : <div className="heritage-service-planner__editor-empty"><h2>{draft ? t("Choose a slide on the left") : t("Choose a service to begin")}</h2>{undoStack.length ? <button type="button" onClick={undo}>{t("Undo")}</button> : null}</div>}
         </main>
 
-        <section className="heritage-service-planner__resources heritage-add-workspace" ref={paletteRef} hidden={!paletteOpen} aria-label="Add slide palette" onKeyDown={event=>{if(event.key==='Escape')closePalette()}}>
-          <header className="heritage-add-header"><div><small>Service planner</small><h2>Add a slide</h2><p>{activeSlide ? `Selected: slide ${activeSlide.number} · ${activeSlide.title}` : 'Build your service'}{draft && withinSermon(draft,selectedId) && <span>Inside sermon</span>}</p></div><button type="button" aria-label="Close add slide palette" onClick={closePalette}>×</button></header>
+        <section className="heritage-service-planner__resources heritage-add-workspace" ref={paletteRef} hidden={!paletteOpen} aria-label={t("Add slide palette")} onKeyDown={event=>{if(event.key==='Escape')closePalette()}}>
+          <header className="heritage-add-header"><div><small>{t("Service planner")}</small><h2>{t("Add a slide")}</h2><p>{activeSlide ? t('Selected: slide {number} · {title}', { number: activeSlide.number, title: activeSlide.title }) : t("Build your service")}{draft && withinSermon(draft,selectedId) && <span>{t("Inside sermon")}</span>}</p></div><button type="button" aria-label={t("Close add slide palette")} onClick={closePalette}>×</button></header>
           <div className="heritage-add-workbench" data-category={resourceTab}>
-          <nav className="heritage-add-categories" role="tablist" aria-label="Add slides">
-            {(['templates','songs','scripture','media'] as ResourceTab[]).map(tab=><button key={tab} type="button" role="tab" aria-selected={resourceTab===tab} onClick={()=>{setResourceTab(tab);if(tab==='scripture')setSermonPassage(false)}}><span aria-hidden="true">{{templates:'¶',songs:'♫',scripture:'§',media:'▧'}[tab]}</span>{{templates:'Sermon',songs:'Songs',scripture:'Scripture',media:'Media'}[tab]}</button>)}
-            <div className="heritage-add-utilities"><button type="button" disabled={!draft} onClick={()=>add('blank')}>□ Blank slide</button><button type="button" disabled={!draft} onClick={()=>add('group')}>≡ Section divider</button></div>
+          <nav className="heritage-add-categories" role="tablist" aria-label={t("Add slides")}>
+            {(['templates','songs','scripture','media'] as ResourceTab[]).map(tab=><button key={tab} type="button" role="tab" aria-selected={resourceTab===tab} onClick={()=>{setResourceTab(tab);if(tab==='scripture')setSermonPassage(false)}}><span aria-hidden="true">{{templates:'¶',songs:'♫',scripture:'§',media:'▧'}[tab]}</span>{{templates:t("Sermon"),songs:t("Songs"),scripture:t("Scripture"),media:t("Media")}[tab]}</button>)}
+            <div className="heritage-add-utilities"><button type="button" disabled={!draft} onClick={()=>add('blank')}>{t("□ Blank slide")}</button><button type="button" disabled={!draft} onClick={()=>add('group')}>{t("≡ Section divider")}</button></div>
           </nav>
-          <div className="heritage-add-content" role="tabpanel" aria-label={{templates:'Sermon slides',songs:'Song library',scripture:sermonPassage?'Sermon passage':'Scripture reading',media:'Media and reusable slides'}[resourceTab]}>
-            <h3>{{templates:'Build your sermon',songs:'Song library',scripture:sermonPassage?'Sermon passage':'Scripture reading',media:'Media & reusable slides'}[resourceTab]}</h3>
-            <p className="heritage-add-description">{{templates:'Choose a starting point, then edit the slide on the canvas.',songs:'Search in either language. Select a song to see its first section.',scripture:sermonPassage?'The current sermon heading stays above your passage.':'Add a title, verse pages and a blank as one reading section.',media:'Use a saved slide, or add a picture or video.'}[resourceTab]}</p>
+          <div className="heritage-add-content" role="tabpanel" aria-label={{templates:t("Sermon slides"),songs:t("Song library"),scripture:sermonPassage?t("Sermon passage"):t("Scripture reading"),media:t("Media and reusable slides")}[resourceTab]}>
+            <h3>{{templates:t("Build your sermon"),songs:t("Song library"),scripture:sermonPassage?t("Sermon passage"):t("Scripture reading"),media:t("Media & reusable slides")}[resourceTab]}</h3>
+            <p className="heritage-add-description">{{templates:t("Choose a starting point, then edit the slide on the canvas."),songs:t("Search in either language. Select a song to see its first section."),scripture:sermonPassage?t("The current sermon heading stays above your passage."):t("Add a title, verse pages and a blank as one reading section."),media:t("Use a saved slide, or add a picture or video.")}[resourceTab]}</p>
             {resourceTab==='templates'&&<>
-              <div className="heritage-add-template-grid">{SERMON_TEMPLATES.map(value=><button key={value.id} type="button" disabled={!draft} onClick={()=>{if(value.id==='passage'){setResourceTab('scripture');setSermonPassage(true)}else addTemplate(value.id)}}><PalettePresetPreview type={value.id}/><strong>{value.label}</strong><small>{value.hint}</small></button>)}</div>
-              {!sermonSyncId&&<details className="heritage-add-prepared"><summary>Or add a prepared sermon</summary><label>Saved sermon · newest first<select aria-label="Prepared sermon" value={sermonChoice} onChange={event=>setSermonChoice(event.target.value)}><option value="">Choose a sermon…</option>{sermonLibrary.map(sermon=><option key={sermon.syncId} value={sermon.syncId}>{sermon.serviceDate} · {sermon.title}</option>)}</select></label><button className="heritage-add-primary" type="button" disabled={!draft||!sermonChoice||busy} onClick={addWholeSermon}>Add whole sermon</button><small>Copies all saved slides, media and notes into a new sermon section.</small><div><a href="/admin/prepare-sermon" target="_blank" rel="noopener noreferrer">Prepare a sermon ↗</a><button type="button" onClick={loadLibraries} disabled={busy}>Refresh sermons</button></div></details>}
+              <div className="heritage-add-template-grid">{SERMON_TEMPLATES.map(value=><button key={value.id} type="button" disabled={!draft} onClick={()=>{if(value.id==='passage'){setResourceTab('scripture');setSermonPassage(true)}else addTemplate(value.id)}}><PalettePresetPreview type={value.id}/><strong>{t(value.label)}</strong><small>{t(value.hint)}</small></button>)}</div>
+              {!sermonSyncId&&<details className="heritage-add-prepared"><summary>{t("Or add a prepared sermon")}</summary><label>{t("Saved sermon · newest first")}<select aria-label={t("Prepared sermon")} value={sermonChoice} onChange={event=>setSermonChoice(event.target.value)}><option value="">{t("Choose a sermon…")}</option>{sermonLibrary.map(sermon=><option key={sermon.syncId} value={sermon.syncId}>{sermon.serviceDate} · {sermon.title}</option>)}</select></label><button className="heritage-add-primary" type="button" disabled={!draft||!sermonChoice||busy} onClick={addWholeSermon}>{t("Add whole sermon")}</button><small>{t("Copies all saved slides, media and notes into a new sermon section.")}</small><div><a href="/admin/prepare-sermon" target="_blank" rel="noopener noreferrer">{t("Prepare a sermon ↗")}</a><button type="button" onClick={loadLibraries} disabled={busy}>{t("Refresh sermons")}</button></div></details>}
             </>}
             {resourceTab==='songs'&&<div className="heritage-add-songs">
-              <label>Find a song<input type="search" value={songQuery} onChange={event=>setSongQuery(event.target.value)} placeholder="English or Russian title…"/></label>
-              <div className="heritage-add-language" role="group" aria-label="Song language filter">{[['all','All'],['ru','Русский'],['en','English']].map(([id,label])=><button type="button" key={id} aria-pressed={songLanguage===id} onClick={()=>setSongLanguage(id)}>{label}</button>)}</div>
-              <div className="heritage-add-song-list" role="group" aria-label="Community songs">
+              <label>{t("Find a song")}<input type="search" value={songQuery} onChange={event=>setSongQuery(event.target.value)} placeholder={t("English or Russian title…")}/></label>
+              <div className="heritage-add-language" role="group" aria-label={t("Song language filter")}>{[['all',t("All")],['ru','Русский'],['en',t("English")]].map(([id,label])=><button type="button" key={id} aria-pressed={songLanguage===id} onClick={()=>setSongLanguage(id)}>{label}</button>)}</div>
+              <div className="heritage-add-song-list" role="group" aria-label={t("Community songs")}>
                 {songLibrary.filter(song=>`${song.title} ${song.russianTitle}`.toLocaleLowerCase().includes(songQuery.trim().toLocaleLowerCase()) && (songLanguage==='all'||song.previewSections?.some(section=>section.language===songLanguage))).map(song=><button key={song.syncId} type="button" aria-pressed={songChoice===song.syncId} onClick={()=>setSongChoice(song.syncId)}><span><strong>{song.title}</strong>{song.russianTitle&&song.russianTitle!==song.title&&<small>{song.russianTitle}</small>}</span><span className="heritage-add-language-badges">{[...new Set(song.previewSections?.map(section=>section.language))].map(language=><small key={language}>{language.toUpperCase()}</small>)}</span></button>)}
-                {!songLibrary.some(song=>`${song.title} ${song.russianTitle}`.toLocaleLowerCase().includes(songQuery.trim().toLocaleLowerCase()) && (songLanguage==='all'||song.previewSections?.some(section=>section.language===songLanguage)))&&<p>No matching songs. Try another title or language.</p>}
-              </div><button className="heritage-add-refresh" type="button" onClick={loadLibraries} disabled={busy}>Refresh library</button>
+                {!songLibrary.some(song=>`${song.title} ${song.russianTitle}`.toLocaleLowerCase().includes(songQuery.trim().toLocaleLowerCase()) && (songLanguage==='all'||song.previewSections?.some(section=>section.language===songLanguage)))&&<p>{t("No matching songs. Try another title or language.")}</p>}
+              </div><button className="heritage-add-refresh" type="button" onClick={loadLibraries} disabled={busy}>{t("Refresh library")}</button>
             </div>}
             {resourceTab==='media'&&<div className="heritage-add-media">
-              <button className="heritage-add-blank" type="button" disabled={!draft||busy} onClick={()=>add('blank')}><span aria-hidden="true">□</span><strong>Blank screen</strong><small>Stage keeps the next-slide cue</small></button>
-              {reusableSlides.map(template=><div className="heritage-add-reusable" key={template.id}><button type="button" disabled={!draft} onClick={()=>addReusable(template)}>{template.title}</button>{template.autoStart && <small>Starts every new service</small>}<button type="button" aria-label={`Remove ${template.title} from Media`} onClick={()=>removeReusable(template.id)}>Remove from Media</button></div>)}
-              {selected && ['picture','blank','notice','sermon'].includes(selected.kind) && <details><summary>Save selected slide in Media</summary><label>Slide name<input value={templateName} placeholder={selected.title} onChange={event=>setTemplateName(event.target.value)} /></label><label><input type="checkbox" checked={templateAutoStart} onChange={event=>setTemplateAutoStart(event.target.checked)} />Add at the beginning of every new service</label><button type="button" onClick={saveReusable}>Save reusable slide</button></details>}
-              <div><strong>Pictures and videos</strong><small>Media stays private inside this service until its exact revision is opened in SyncShow.</small></div>
-              <button className="btn btn--style-primary" type="button" disabled={!draft || uploadingPicture} onClick={() => choosePicture('new')}>{uploadingPicture ? 'Uploading…' : 'Add picture'}</button>
-              <button className="btn btn--style-primary" type="button" disabled={!draft || uploadingVideo} onClick={() => { if (videoInput.current) { videoInput.current.value = ''; videoInput.current.click() } }}>{uploadingVideo ? 'Uploading…' : 'Add video'}</button>
-              {selected?.kind === 'picture' ? CHANNEL_IDS.map(channelId => <button key={channelId} type="button" disabled={uploadingPicture} onClick={() => choosePicture(channelId)}>Replace {draft?.channels[channelId]?.label || channelId}</button>) : null}
+              <button className="heritage-add-blank" type="button" disabled={!draft||busy} onClick={()=>add('blank')}><span aria-hidden="true">□</span><strong>{t("Blank screen")}</strong><small>{t("Stage keeps the next-slide cue")}</small></button>
+              {reusableSlides.map(template=><div className="heritage-add-reusable" key={template.id}><button type="button" disabled={!draft} onClick={()=>addReusable(template)}>{template.title}</button>{template.autoStart && <small>{t("Starts every new service")}</small>}<button type="button" aria-label={t('Remove {title} from Media', { title: template.title })} onClick={()=>removeReusable(template.id)}>{t("Remove from Media")}</button></div>)}
+              {selected && ['picture','blank','notice','sermon'].includes(selected.kind) && <details><summary>{t("Save selected slide in Media")}</summary><label>{t("Slide name")}<input value={templateName} placeholder={selected.title} onChange={event=>setTemplateName(event.target.value)} /></label><label><input type="checkbox" checked={templateAutoStart} onChange={event=>setTemplateAutoStart(event.target.checked)} />{t("Add at the beginning of every new service")}</label><button type="button" onClick={saveReusable}>{t("Save reusable slide")}</button></details>}
+              <div><strong>{t("Pictures and videos")}</strong><small>{t("Media stays private inside this service until its exact revision is opened in SyncShow.")}</small></div>
+              <button className="btn btn--style-primary" type="button" disabled={!draft || uploadingPicture} onClick={() => choosePicture('new')}>{uploadingPicture ? t("Uploading…") : t("Add picture")}</button>
+              <button className="btn btn--style-primary" type="button" disabled={!draft || uploadingVideo} onClick={() => { if (videoInput.current) { videoInput.current.value = ''; videoInput.current.click() } }}>{uploadingVideo ? t("Uploading…") : t("Add video")}</button>
+              {selected?.kind === 'picture' ? CHANNEL_IDS.map(channelId => <button key={channelId} type="button" disabled={uploadingPicture} onClick={() => choosePicture(channelId)}>{t("Replace")} {t(draft?.channels[channelId]?.label || channelId)}</button>) : null}
 
             </div>}
             {resourceTab==='scripture'&&<div className="heritage-add-scripture">
-              {!sermonPassage && <label>Reading title template<select aria-label="Reading title template" value={readingTemplate} onChange={event=>setReadingTemplateChoice(event.target.value)}><option value="centered">Centered reading title</option><option value="pre-sermon">Pre-sermon · passage and service topic</option></select></label>}
-              <label><span>English screen translation</span><select aria-label="English screen translation" value={bibleEnglish} onChange={event => setBibleEnglish(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
-              <label><span>Russian / stage screen translation</span><select aria-label="Russian / stage screen translation" value={bibleRussian} onChange={event => setBibleRussian(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
+              {!sermonPassage && <label>{t("Reading title template")}<select aria-label={t("Reading title template")} value={readingTemplate} onChange={event=>setReadingTemplateChoice(event.target.value)}><option value="centered">{t("Centered reading title")}</option><option value="pre-sermon">{t("Pre-sermon · passage and service topic")}</option></select></label>}
+              <label><span>{t("English screen translation")}</span><select aria-label={t("English screen translation")} value={bibleEnglish} onChange={event => setBibleEnglish(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
+              <label><span>{t("Russian / stage screen translation")}</span><select aria-label={t("Russian / stage screen translation")} value={bibleRussian} onChange={event => setBibleRussian(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
               <BibleSourceNotice translationIds={[bibleEnglish,bibleRussian]} />
               <PassageReferenceInput key={referenceKey} books={bibleBooks} singleChapter allowVerseList onValidityChange={setReferenceValid} onResolve={passage => { setBibleBookId(passage.bookId); setBibleChapter(passage.startChapter); setBibleStartVerse(passage.startVerse); setBibleEndVerse(passage.endVerse); setBibleVerseNumbers(passage.verseNumbers) }} />
-              <details className="heritage-passage-manual"><summary>Choose book and verses</summary><div>
-              <label><span>Book</span><select ref={bibleBookInput} value={bibleBookId} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleBookId(event.target.value); const chapters = bibleBooks.find(book => book.id === event.target.value)?.chapters || 1; setBibleChapter(current => Math.min(current, chapters)) }}>{bibleBooks.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
-              <label><span>Chapter</span><input ref={bibleChapterInput} type="number" min={1} max={bibleBooks.find(book => book.id === bibleBookId)?.chapters || 200} value={bibleChapter} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleChapter(Number(event.target.value)) } } /></label>
-              <label><span>From</span><input ref={bibleStartVerseInput} type="number" min={1} max={999} value={bibleStartVerse} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleStartVerse(Number(event.target.value)) } } /></label>
-              <label><span>To</span><input ref={bibleEndVerseInput} type="number" min={1} max={999} value={bibleEndVerse} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleEndVerse(Number(event.target.value)) } } /></label>
+              <details className="heritage-passage-manual"><summary>{t("Choose book and verses")}</summary><div>
+              <label><span>{t("Book")}</span><select ref={bibleBookInput} value={bibleBookId} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleBookId(event.target.value); const chapters = bibleBooks.find(book => book.id === event.target.value)?.chapters || 1; setBibleChapter(current => Math.min(current, chapters)) }}>{bibleBooks.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>
+              <label><span>{t("Chapter")}</span><input ref={bibleChapterInput} type="number" min={1} max={bibleBooks.find(book => book.id === bibleBookId)?.chapters || 200} value={bibleChapter} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleChapter(Number(event.target.value)) } } /></label>
+              <label><span>{t("From")}</span><input ref={bibleStartVerseInput} type="number" min={1} max={999} value={bibleStartVerse} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleStartVerse(Number(event.target.value)) } } /></label>
+              <label><span>{t("To")}</span><input ref={bibleEndVerseInput} type="number" min={1} max={999} value={bibleEndVerse} onChange={event => { setReferenceKey(key => key + 1); setReferenceValid(true); setBibleVerseNumbers(undefined); setBibleEndVerse(Number(event.target.value)) } } /></label>
               </div></details>
-              <button className="heritage-add-primary" type="button" disabled={!draft||busy||!bibleBookId||!referenceValid} onClick={addBiblePassage}>{busy?'Fetching passage…':sermonPassage?'Add sermon passage →':'Add reading →'}</button>
+              <button className="heritage-add-primary" type="button" disabled={!draft||busy||!bibleBookId||!referenceValid} onClick={addBiblePassage}>{busy?t("Fetching passage…"):sermonPassage?t("Add sermon passage →"):t("Add reading →")}</button>
             </div>}
           </div>
-          {resourceTab==='songs'&&<aside className="heritage-add-preview" aria-label="Selected song">
-            <h3>First section</h3>
-            <div role="group" className="heritage-add-output" aria-label="Song preview output">{CHANNEL_IDS.map(id=><button key={id} type="button" aria-pressed={paletteChannel===id} onClick={()=>setPaletteChannel(id)}>{id==='media'?'Stage':draft?.channels[id]?.label||id}</button>)}</div>
+          {resourceTab==='songs'&&<aside className="heritage-add-preview" aria-label={t("Selected song")}>
+            <h3>{t("First section")}</h3>
+            <div role="group" className="heritage-add-output" aria-label={t("Song preview output")}>{CHANNEL_IDS.map(id=><button key={id} type="button" aria-pressed={paletteChannel===id} onClick={()=>setPaletteChannel(id)}>{id==='media'?t('Stage'):t(draft?.channels[id]?.label||id)}</button>)}</div>
             <PalettePresetPreview type="song" channel={paletteChannel} songSections={songLibrary.find(song=>song.syncId===songChoice)?.previewSections}/>
-            <h4>{songLibrary.find(song=>song.syncId===songChoice)?.title || 'Choose a song'}</h4>
-            <p>Uses the song’s saved language and arrangement, including repeats.</p>
-            <footer><button className="heritage-add-primary" type="button" disabled={!draft||busy||!songChoice} onClick={addLibrarySong}>{busy?'Adding…':'Add song to service →'}</button><small>Adds the whole song and its ending blank.</small></footer>
+            <h4>{songLibrary.find(song=>song.syncId===songChoice)?.title || t("Choose a song")}</h4>
+            <p>{t("Uses the song’s saved language and arrangement, including repeats.")}</p>
+            <footer><button className="heritage-add-primary" type="button" disabled={!draft||busy||!songChoice} onClick={addLibrarySong}>{busy?t("Adding…"):t("Add song to service →")}</button><small>{t("Adds the whole song and its ending blank.")}</small></footer>
           </aside>}
 
           </div>
@@ -1722,7 +1726,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
             initial={dialogSlides[0]?.number || 1} onCancel={() => setMoveDialog(null)}
             onMove={number => { applySelection(changePlannerSelection(draft, moveDialog, 'move', number)); setMoveDialog(null) }} /> : null}
           {editionChange && <ScriptureEditionDialog edition={editionChange.translationId}
-            output={editionChange.channel === 'english' ? 'English' : 'Russian / stage'} onCancel={()=>setEditionChange(null)}
+            output={editionChange.channel === 'english' ? t("English") : t("Russian / stage")} onCancel={()=>setEditionChange(null)}
             onChange={()=>{ const choice=editionChange; setEditionChange(null); void changeScriptureTranslation(choice.channel,choice.translationId,true) }} />}
           {deleteDialog && draft ? <DeleteSlidesDialog count={selectedPlannerSlides(slideList.rows, deleteDialog).length}
             sections={deleteDialog.some(id => slideList.rows.find(row => row.id === id)?.kind === 'group')}

@@ -1,4 +1,5 @@
 'use client'
+import { useWorkspaceText } from './useWorkspaceText'
 import {createContext,useContext,useEffect,useState,type ReactNode} from 'react'
 import {usePreferences,useTranslation} from '@payloadcms/ui'
 import {PRESENTATION_COLORS,colorDescription,patternImage,collectPresentationColors,linePattern} from './presentationPalette'
@@ -15,21 +16,23 @@ export function PresentationAccessibility({children}:{children:ReactNode}) {
   return <Context.Provider value={{monochrome,setMonochrome}}>{children}</Context.Provider>
 }
 export function PresentationAccessibilityControl({item}:{item:unknown}) {
+  const t = useWorkspaceText()
   const {monochrome}=usePresentationAccessibility()
   const colors=collectPresentationColors(item)
   if(!monochrome)return null
   return <div className="presentation-accessibility">
-    {monochrome && <><p>Patterns on this device. Audience screens keep their colors. Text colors use patterned underlines; thin outlines use the dash samples below.</p>
-      <details open><summary>Colors in this item</summary><ul aria-label="Used slide colors">{colors.map(color=><li key={color}><span className="presentation-color-sample" aria-hidden="true"><i style={{backgroundImage:patternImage(color)}} /><svg viewBox="0 0 30 5"><path d="M0 2.5H30" stroke="black" strokeWidth="1.5" strokeDasharray={linePattern(color)} /></svg></span>{colorDescription(color)}</li>)}</ul>{!colors.length && <p>No added colors yet.</p>}</details></>}
+    {monochrome && <><p>{t("Patterns on this device. Audience screens keep their colors. Text colors use patterned underlines; thin outlines use the dash samples below.")}</p>
+      <details open><summary>{t("Colors in this item")}</summary><ul aria-label={t("Used slide colors")}>{colors.map(color=><li key={color}><span className="presentation-color-sample" aria-hidden="true"><i style={{backgroundImage:patternImage(color)}} /><svg viewBox="0 0 30 5"><path d="M0 2.5H30" stroke="black" strokeWidth="1.5" strokeDasharray={linePattern(color)} /></svg></span>{colorDescription(color).split(' · ').map(part => t(part)).join(' · ')}</li>)}</ul>{!colors.length && <p>{t("No added colors yet.")}</p>}</details></>}
   </div>
 }
 export function PresentationColorInput({value,onChange,label}:{value:string;onChange:(value:string)=>void;label:string}) {
+  const t = useWorkspaceText()
   const {monochrome}=usePresentationAccessibility()
   const [open,setOpen]=useState(false)
   if(!monochrome)return <input type="color" aria-label={label} value={value} onInput={event=>onChange(event.currentTarget.value)} />
   return <div className="presentation-color-picker">
-    <button type="button" aria-label={label} aria-expanded={open} onClick={()=>setOpen(!open)}><i aria-hidden="true" style={{backgroundImage:patternImage(value)}} />{colorDescription(value)}</button>
-    {open && <div className="presentation-color-options" role="group" aria-label={`${label} palette`}>{PRESENTATION_COLORS.map(item=><button type="button" key={item.color} aria-pressed={value===item.color} onClick={()=>{onChange(item.color);setOpen(false)}}><i aria-hidden="true" style={{backgroundImage:patternImage(item.color)}} />{item.name} · {item.pattern}</button>)}</div>}
+    <button type="button" aria-label={label} aria-expanded={open} onClick={()=>setOpen(!open)}><i aria-hidden="true" style={{backgroundImage:patternImage(value)}} />{colorDescription(value).split(' · ').map(part => t(part)).join(' · ')}</button>
+    {open && <div className="presentation-color-options" role="group" aria-label={t('{label} palette', { label })}>{PRESENTATION_COLORS.map(item=><button type="button" key={item.color} aria-pressed={value===item.color} onClick={()=>{onChange(item.color);setOpen(false)}}><i aria-hidden="true" style={{backgroundImage:patternImage(item.color)}} />{t(item.name)} · {t(item.pattern)}</button>)}</div>}
   </div>
 }
 

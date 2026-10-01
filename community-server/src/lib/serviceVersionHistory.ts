@@ -1,6 +1,6 @@
 export type SaveKind = 'automatic' | 'manual' | 'restore' | 'legacy'
 export type ServiceHistoryEntry = {
-  id: string; syncVersion: number; revision: string; savedAt: string;
+  id: string; syncVersion: number | string; revision: string; savedAt: string;
   saveKind: SaveKind; savedBy: string;
 }
 export const AUTOMATIC_HISTORY_WINDOW_MS = 5 * 60_000

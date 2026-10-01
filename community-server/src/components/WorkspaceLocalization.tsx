@@ -4,6 +4,7 @@ import { useAuth, useTranslation, useDocumentInfo, useField } from '@payloadcms/
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { workspaceLanguage, type WorkspaceLanguage } from '@/lib/workspaceLanguage'
+import { WORKSPACE_LANGUAGE_EVENT } from './useWorkspaceText'
 import type { User } from '@/payload-types'
 
 export function WorkspaceLocalizationProvider({ children }: { children: ReactNode }) {
@@ -13,6 +14,10 @@ export function WorkspaceLocalizationProvider({ children }: { children: ReactNod
   const pathname = usePathname()
   const applied = useRef('')
   const requested = query.get('language')
+  useEffect(() => {
+    document.documentElement.lang = workspaceLanguage(i18n.language)
+    window.dispatchEvent(new Event(WORKSPACE_LANGUAGE_EVENT))
+  }, [i18n.language])
   useEffect(() => {
     const language = user ? workspaceLanguage(user.preferredLanguage)
       : requested === 'ru' || requested === 'en' ? requested : null
