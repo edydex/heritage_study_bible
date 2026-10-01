@@ -1,5 +1,6 @@
 'use client'
 import { useWorkspaceText } from './useWorkspaceText'
+import type { WorkspaceTextVariables } from '../lib/workspaceText'
 import { applyDeviceWorkspaceLanguage } from '../lib/deviceWorkspaceLanguage'
 import './workspace-editor.css'
 import VersionHistoryDialog from './VersionHistoryDialog'
@@ -448,7 +449,8 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   const videoInput = useRef<HTMLInputElement>(null)
   const pictureTarget = useRef<PictureUploadTarget>('new')
   const canvasPictureTarget = useRef<{itemId:string;channelId:string} | null>(null)
-  const [notice, setNotice] = useState('Choose a service or create the next one.')
+  const [notice, setNotice] = useState<string | {key:string;variables:WorkspaceTextVariables}>('Choose a service or create the next one.')
+  const noticeText = typeof notice === 'string' ? t(notice) : t(notice.key, notice.variables)
   const selected = selectedId && draft ? draft.items[selectedId] || null : null
   const slideList = useMemo<{ rows: PlannerSlide[]; error: string }>(() => {
     if (!draft) return { rows: [], error: '' }
@@ -592,7 +594,8 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     setError(null)
     setNotice(recovered ? 'Recovered your unsaved local draft. Saving will resume.' : prepared.changed
       ? 'Section grouping and presentation layout updated. Save service to keep these changes.'
-      : `${project.title} is open at Community version ${next.syncVersion}.`)
+      : typeof next.syncVersion === 'number' ? {key:'{title} is open at Community version {version}.',variables:{title:project.title,version:next.syncVersion}}
+        : {key:'{title} is open from this computer.',variables:{title:project.title}})
     loadList()
   }
 
@@ -1359,7 +1362,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     if (choice === 'saved') {
       try { localStorage.removeItem(`heritage-planner-draft:${saved.syncId}`) } catch { /* storage may be disabled */ }
       useEnvelope(saved as ServiceEnvelope, true, true)
-      setNotice(t('Using the saved version. Previous saved versions remain in history.'))
+      setNotice('Using the saved version. Previous saved versions remain in history.')
       return true
     }
     // Consent applies to the reviewed server base and current local draft. A
@@ -1448,7 +1451,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
               <a href="/" target="_blank" rel="noreferrer">{t("Church website ↗")}</a>
                 <a href="/admin/account">{t("My account")}</a>
                 <a href="/admin/logout">{t("Log out")}</a>
-                <small>{t(notice)}</small>
+                <small>{noticeText}</small>
               </nav>
             </details>
             <label htmlFor="service-status">{t("Status")}</label>
@@ -1462,7 +1465,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
             </button>
             <button type="button" className="heritage-service-planner__history-button" disabled={!envelope || busy} aria-haspopup="dialog" onClick={() => setHistoryOpen(true)}>{t('Version history')}</button>
           </div>
-          <p className="heritage-service-planner__save-state" aria-live="polite" title={t(notice)}>{draft ? `${t('{count} slides', { count: slideList.rows.filter(row => row.cue).length })} · ${saving ? t("Saving…") : busy ? t("Working…") : saveConflict ? t("Draft kept locally · review conflict") : autosaveBlocked ? localRecoveryAvailable ? t("Draft kept locally · retry Save") : t("Unsaved · retry Save") : dirty || desiredStatus !== envelope?.status ? t("Waiting to save…") : (envelope as any)?.conflict ? t("Saved on this computer · sync conflict") : (envelope as any)?.savedLocally && (envelope as any)?.pending ? t("Saved on this computer · waiting to sync") : typeof envelope?.syncVersion === 'number' ? t('All changes saved · v{version}', { version: envelope.syncVersion }) : t('Saved on this computer')} ` : t(notice)}</p>
+          <p className="heritage-service-planner__save-state" aria-live="polite" title={noticeText}>{draft ? `${t('{count} slides', { count: slideList.rows.filter(row => row.cue).length })} · ${saving ? t("Saving…") : busy ? t("Working…") : saveConflict ? t("Draft kept locally · review conflict") : autosaveBlocked ? localRecoveryAvailable ? t("Draft kept locally · retry Save") : t("Unsaved · retry Save") : dirty || desiredStatus !== envelope?.status ? t("Waiting to save…") : (envelope as any)?.conflict ? t("Saved on this computer · sync conflict") : (envelope as any)?.savedLocally && (envelope as any)?.pending ? t("Saved on this computer · waiting to sync") : typeof envelope?.syncVersion === 'number' ? t('All changes saved · v{version}', { version: envelope.syncVersion }) : t('Saved on this computer')} ` : noticeText}</p>
       </header>
       <div className="heritage-service-planner__shell">
         <aside className="heritage-service-planner__navigation">

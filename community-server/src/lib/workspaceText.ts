@@ -3,6 +3,8 @@ import type { WorkspaceLanguage } from './workspaceLanguage'
 
 export const russianWorkspaceText: Readonly<Record<string, string>> = {
   "Workspace view": "Вид рабочей области",
+  "{title} is open at Community version {version}.": "Открыто: {title}. Версия Community: {version}.",
+  "{title} is open from this computer.": "Открыто с этого компьютера: {title}.",
   "Click a slide to show it · Double-click to edit": "Нажмите слайд, чтобы показать · Двойной щелчок для редактирования",
   "Slides": "Слайды",
   "Edit": "Редактировать",
