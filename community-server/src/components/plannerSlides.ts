@@ -93,7 +93,10 @@ function localizedSongTitle(project: RecordValue, item: RecordValue, index: numb
 }
 
 function localizedSlideTitle(item: RecordValue, blocks: RecordValue[], channelId: string, language: string) {
-  if (item.kind === 'bible') return readingLabels.localizedReference(blocks.find(block=>block.type==='bible')?.reference || item.title, language)
+  if (item.kind === 'bible') {
+    const passage = blocks.find(block=>block.type==='bible')
+    return readingLabels.localizedReference(passage?.displayReference || passage?.reference || item.title, language)
+  }
   if(item.sermonTemplate==='title') return item.titlesByChannel?.[channelId]?.trim() || Object.values(item.titlesByChannel || {}).find((text:any)=>text?.trim()) || item.title
   if (item.kind === 'blank') return item.title
   // Compiled channels already resolve display-only fallback without changing authored text.

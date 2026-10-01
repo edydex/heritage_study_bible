@@ -87,7 +87,8 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
   useLayoutEffect(() => {
     // Echoing a live edit through React must not replace the focused DOM/caret.
     if (painted.current && paintedMode.current===monochrome && paintedBase.current===baseColor && text === draft.current.text && JSON.stringify(spans) === JSON.stringify(draft.current.spans)) return
-    draft.current = { text, spans }; committed.current = JSON.stringify({ text, spans }); paint()
+    if (commitTimer.current) { clearTimeout(commitTimer.current); commitTimer.current = null }
+    draft.current = { text, spans }; editStart.current = draft.current; committed.current = JSON.stringify({ text, spans }); paint()
     if (rangeRef.current && document.activeElement === element.current) restore(rangeRef.current.start, rangeRef.current.end)
   }, [text, spans, monochrome, baseColor])
   useEffect(() => {
@@ -152,6 +153,9 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
     if (commitTimer.current) { clearTimeout(commitTimer.current); commitTimer.current = null }
     const signature = JSON.stringify(draft.current)
     if (signature !== committed.current) { onCommit(draft.current.text, draft.current.spans); committed.current = signature }
+    // Escape may cancel new typing, but must keep edits already committed by
+    // idle-save, blur or formatting while this field stayed focused.
+    editStart.current = draft.current
   }
   commitLatest.current = commit
   function focusEmpty() {

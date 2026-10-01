@@ -91,6 +91,10 @@ test('long Scripture projects the full requested address once; reflow and source
   assert.match(formatting.scriptureDisplay(pages[0].passagesByChannel.english,'wotbc-sermon-scripture').text,/^John 1:1-24 /)
   assert.doesNotMatch(formatting.scriptureDisplay(pages[1].passagesByChannel.english,'wotbc-sermon-scripture').text,/John/)
   assert.notEqual(pages[0].passagesByChannel.english.reference,'John 1:1-24')
+  assert.equal(plannerSlides(project,'english').find(row=>row.kind==='bible')?.title,'John 1:1-24')
+  assert.equal(plannerSlides(project,'russian').find(row=>row.kind==='bible')?.title,'Иоанна 1:1-24')
+  assert.match(formatting.scriptureDisplay(pages[0].passagesByChannel.russian,'wotbc-sermon-scripture').text,/^Иоанна 1:1-24 /)
+  assert.doesNotMatch(formatting.scriptureDisplay(pages[1].passagesByChannel.russian,'wotbc-sermon-scripture').text,/Иоанна/)
   project=roundTrip(reflowScripture(project,pages[1].id,60).project)
   pages=project.items.passage.childIds.map((id:string)=>project.items[id])
   assert.equal(pages[0].passagesByChannel.english.displayReference,'John 1:1-24')
@@ -112,7 +116,10 @@ test('sermon hints describe a passage or new point and a title choice disables h
   project.items.title.sermonPresentation.showNextSlideHints=true
   rows=plannerSlides(project)
   assert.equal(plannerPreview(rows,rows[0],'english').next.text,'II. New point')
+  assert.equal(plannerPreview(rows,rows[0],'russian').next.text,'II. Новый пункт')
   assert.equal(plannerPreview(rows,rows.find(row=>row.itemId==='point'),'english').next.text,'John 1:1-24')
+  assert.equal(plannerPreview(rows,rows.find(row=>row.itemId==='point'),'russian').next.text,'Иоанна 1:1-24')
+  assert.equal(plannerPreview(rows,rows.find(row=>row.itemId==='point'),'media').next.text,'Иоанна 1:1-24')
   const passageSlide=rows.find(row=>row.kind==='bible')!
   assert.match(plannerPreview(rows,passageSlide,'english').next.text,/^John 1:/)
   assert.throws(()=>core.normalizeServiceProject({...project,items:{...project.items,title:{...project.items.title,sermonPresentation:{showText:true,darkenBackground:true,showNextSlideHints:'off'}}}}),/Sermon image options/)
