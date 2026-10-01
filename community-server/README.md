@@ -127,15 +127,16 @@ migrations, tests, and safe rollback. The implementation's presence in an
 uncommitted integration branch is not proof that it has been merged or
 deployed.
 
-New Communities default to
-invite-only sign-in. Use **Invitations** to send access directly:
+New Communities default to invite-only sign-in. Use **People → Invite person**
+to send access directly. People combines existing accounts and memberships with
+invitation status, language, sent date and accepted date:
 
 - **Member** sends a 15-minute Heritage reader join link.
 - **Church leader** or **Church administrator** sends a 24-hour workspace
   password-setup link. The recipient chooses their password and is signed into
   `/admin`; an existing workspace password also accepts the invitation on login.
   No server-wide administrator role is granted. Existing higher roles remain.
-- To resend, select **Email this invitation now** and save. The new setup link
+- To resend, open the invitation, select **Email this invitation now** and save. The new setup link
   replaces the old one. If it expires, the recipient can use **Forgot Password**
   on `/admin/login`. To cancel before acceptance, uncheck **Invitation is active**.
 - Creating an account in **Accounts** does not send email. There is no need to
@@ -146,10 +147,40 @@ receipt. A failed mail submission rolls back a workspace invitation and its
 new account/setup token so the administrator can retry. Existing active members
 may continue to request Heritage reader links.
 
+## Preparing and saving slides
+
+Prepare opens with the service order on the left, slide tiles in the middle and
+one preview on the right. Click a tile to preview it, double-click to edit, and
+right-click for slide actions. Over 20 compiled slides, the outline folds into
+sections; selecting a section opens its slides.
+
+Focused text saves automatically after a short pause. **Ctrl/Cmd+S** records a
+manual save, including when the content is unchanged. **Version history** is
+available beside Save and by right-clicking Save. Automatic saves by the same
+author are grouped into five-minute periods; manual saves and restores remain
+separate. Preview a saved version in English, Russian or the stage output before
+restoring it as a new version. If another person saves first, the local draft is
+kept for an explicit comparison instead of overwriting their changes.
+
+Song slides can choose their primary language individually; the song title's
+second language is a separate option. Long Bible readings retain the full
+requested address on the first projected slide, with text-only continuation
+slides. Sermon next-slide hints describe the upcoming content and can be disabled
+in the sermon title's Slide Settings. Account Settings provides English/Russian
+menus; invitations can choose the recipient's onboarding language.
+
+The matching SyncShow preview caches this same editor for offline work. Its
+**Show → Adjust** edits save backstage: clicking a tile again or advancing takes
+the saved draft to the audience. Typing does not change the projected screen.
+Offline changes sync on reconnection, with a comparison if the Community version
+also changed. This workflow requires the matching updated Community editor and
+SyncShow app; updating only the app does not add the new editor to an older server.
+
 ## Validation and deployment
 
 ```sh
 npm run typecheck
+npm run test:editor
 npm run test:syncshow
 npm run build
 ```
