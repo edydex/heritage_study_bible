@@ -291,16 +291,17 @@ export interface Media {
   focalY?: number | null;
 }
 /**
- * Accounts for readers and church managers. Use Invitations to email workspace access or a reader join link; use Memberships to change church roles.
+ * Add people from People → Invite person. They receive a link and choose their own password. These account details are for existing accounts.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
+  preferredLanguage?: ('en' | 'ru') | null;
   displayName: string;
   /**
-   * Most people should be Members. Church roles are managed separately under Memberships.
+   * Most people should be Members. Change church roles from People.
    */
   systemRole: 'system-admin' | 'member';
   magicLinkTokenHash?: string | null;
@@ -406,7 +407,7 @@ export interface Membership {
   createdAt: string;
 }
 /**
- * Invite a member to Heritage, or invite a leader/administrator to the church workspace. Save to send the email; no separate account creation is needed.
+ * Choose a church role and language, then save to send an invitation. Workspace invitations let leaders and church administrators choose their own password.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "community-invites".
@@ -426,6 +427,10 @@ export interface CommunityInvite {
    * Members receive a Heritage join link. Leaders and church administrators receive a workspace password-setup link for service planning, songs and sermons. This does not grant server-wide administration or reduce an existing role.
    */
   role: 'member' | 'leader' | 'admin';
+  /**
+   * The email, password setup and menus use this language. The recipient can change it in My account. Existing accounts keep their current language.
+   */
+  preferredLanguage?: ('en' | 'ru') | null;
   active: boolean;
   /**
    * Save to send. Select again and save to resend. Member join links last 15 minutes; workspace password-setup links last 24 hours. For an accepted invitation, reactivate it to send again.
@@ -1622,6 +1627,7 @@ export interface BibleTranslationsSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  preferredLanguage?: T;
   displayName?: T;
   systemRole?: T;
   magicLinkTokenHash?: T;
@@ -1746,6 +1752,7 @@ export interface CommunityInvitesSelect<T extends boolean = true> {
   email?: T;
   displayName?: T;
   role?: T;
+  preferredLanguage?: T;
   active?: T;
   sendEmailNow?: T;
   emailSentAt?: T;

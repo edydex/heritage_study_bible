@@ -1,3 +1,4 @@
+import * as peopleLanguage from './20261001_220000_people_language';
 import * as serviceSaveHistory from './20261001_230000_service_save_history'
 import * as songProjectionStyle from './20260922_140000_song_projection_style'
 import * as serviceSlidesBooks from './20260921_230000_service_slides_member_books'
@@ -146,5 +147,6 @@ export const migrations = [
   { up: songDefaultLanguage.up, down: songDefaultLanguage.down, name: '20260921_190000_song_default_language' },
   {up:serviceSlidesBooks.up,down:serviceSlidesBooks.down,name:'20260921_230000_service_slides_member_books'},
   {up:songProjectionStyle.up,down:songProjectionStyle.down,name:'20260922_140000_song_projection_style'},
+  { up: peopleLanguage.up, down: peopleLanguage.down, name: '20261001_220000_people_language' },
   {up:serviceSaveHistory.up,down:serviceSaveHistory.down,name:'20261001_230000_service_save_history'},
 ];

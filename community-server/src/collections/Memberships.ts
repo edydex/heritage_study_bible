@@ -10,6 +10,7 @@ export const Memberships: CollectionConfig = {
     description: 'The role an existing account has in this church. New people should normally be added through Member invitations.',
     defaultColumns: ['user', 'role', 'joinedAt'],
     hideAPIURL: true,
+    components: { views: { list: { Component: '@/components/PeopleListRedirect' } } },
   },
   indexes: [{ fields: ['community', 'user'], unique: true }],
   access: {

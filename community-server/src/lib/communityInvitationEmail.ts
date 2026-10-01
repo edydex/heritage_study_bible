@@ -20,6 +20,7 @@ export const sendInvitationEmail: CollectionAfterChangeHook = async ({
       email,
       displayName: doc.displayName,
       invitation: true,
+      preferredLanguage: doc.preferredLanguage,
     })
   } catch {
     req.payload.logger.warn('An invitation could not be sent; the invitation save was rolled back.')

@@ -1,6 +1,6 @@
 'use client'
 import {createContext,useContext,useEffect,useState,type ReactNode} from 'react'
-import {usePreferences} from '@payloadcms/ui'
+import {usePreferences,useTranslation} from '@payloadcms/ui'
 import {PRESENTATION_COLORS,colorDescription,patternImage,collectPresentationColors,linePattern} from './presentationPalette'
 import './presentation-accessibility.css'
 
@@ -35,8 +35,10 @@ export function PresentationColorInput({value,onChange,label}:{value:string;onCh
 
 export function PersonalPresentationPreference() {
   const {getPreference,setPreference}=usePreferences()
+  const {i18n}=useTranslation()
+  const ru=i18n.language==='ru'
   const [enabled,setEnabled]=useState(false)
   const [notice,setNotice]=useState('')
-  useEffect(()=>{void getPreference<boolean>(STORAGE_KEY).then(value=>setEnabled(value===true)).catch(()=>setNotice('Could not load your display preference.'))},[getPreference])
-  return <section style={{margin:'24px 0'}}><h3>Slide editor display</h3><label><input type="checkbox" checked={enabled} onChange={async event=>{const value=event.target.checked;try{await setPreference(STORAGE_KEY,value);setEnabled(value);setNotice('Saved for your account.')}catch{setNotice('Could not save. Try again.')}}} /> Monochrome / colorblind view</label><p>Use named patterns when editing slides. Audience screens keep their colors.</p><small role="status">{notice}</small></section>
+  useEffect(()=>{void getPreference<boolean>(STORAGE_KEY).then(value=>setEnabled(value===true)).catch(()=>setNotice(ru?'Не удалось загрузить настройки отображения.':'Could not load your display preference.'))},[getPreference,ru])
+  return <section style={{margin:'24px 0'}}><h3>{ru?'Отображение в редакторе слайдов':'Slide editor display'}</h3><label><input type="checkbox" checked={enabled} onChange={async event=>{const value=event.target.checked;try{await setPreference(STORAGE_KEY,value);setEnabled(value);setNotice(ru?'Настройка сохранена.':'Saved for your account.')}catch{setNotice(ru?'Не удалось сохранить. Попробуйте ещё раз.':'Could not save. Try again.')}}} /> {ru?'Монохромный режим / различение цветов по узорам':'Monochrome / colorblind view'}</label><p>{ru?'При редактировании цвета обозначаются узорами. На экранах для аудитории цвета сохраняются.':'Use named patterns when editing slides. Audience screens keep their colors.'}</p><small role="status">{notice}</small></section>
 }

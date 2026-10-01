@@ -13,6 +13,9 @@ import { check } from 'drizzle-orm/pg-core'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildConfig } from 'payload'
+import { en } from '@payloadcms/translations/languages/en'
+import { ru } from '@payloadcms/translations/languages/ru'
+import { workspaceAccountEndpoints } from '@/endpoints/workspaceAccount'
 import sharp from 'sharp'
 import { Books } from '@/collections/Books'
 import { Commentaries } from '@/collections/Commentaries'
@@ -133,13 +136,16 @@ export const preserveSermonHistoryChecksum: NonNullable<
 }
 
 export default buildConfig({
+  i18n: { supportedLanguages: { en, ru }, fallbackLanguage: 'en' },
   admin: {
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
     components: {
       beforeLogin: ['@/components/WorkspaceSignInGuide'],
       Nav: '@/components/AdminNav',
+      providers: ['@/components/WorkspaceLocalization#WorkspaceLocalizationProvider'],
       views: {
+        people: { Component: '@/components/People', exact: true, meta: { title: 'People' }, path: '/people' },
         dashboard: {
           Component: '@/components/AdminDashboard',
           exact: true,
@@ -253,6 +259,7 @@ export default buildConfig({
     ...serviceHistoryEndpoints,
     ...authEndpoints,
     ...accountEndpoints,
+    ...workspaceAccountEndpoints,
     ...syncEndpoints,
     ...syncShowEndpoints,
     ...translationEndpoints,
