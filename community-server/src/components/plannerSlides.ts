@@ -79,6 +79,7 @@ export function plannerSlides(project: RecordValue, channelId?: string): Planner
 
 /** A bilingual slide can put Russian first on both screens. Labels still follow the selected language. */
 function localizedSongTitle(project: RecordValue, item: RecordValue, index: number, channelId: string): string | undefined {
+  if (item.songPresentation?.audienceLanguage && item.songPresentation.audienceLanguage !== 'both') channelId = item.songPresentation.audienceLanguage
   const seen = new Set<string>()
   let variant = item.variants?.[channelId]
   while (variant && variant.mode !== 'content' && variant.from && !seen.has(variant.from)) {
@@ -200,7 +201,7 @@ export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, chan
     let sourceChannel = contentChannel(item, channelId)
     if (item.songPresentation && !titleSlide) {
       const updatedSlide = plannerSlides(next).find(row=>row.itemId===item.id && row.index===slide.index)!
-      if (item.songPresentation.stackedTranslation || item.songPresentation.slidePrimaryChannelIds?.[updatedSlide.cue!.sourceLeafKey]) {
+      if (item.songPresentation.audienceLanguage || item.songPresentation.stackedTranslation || item.songPresentation.slidePrimaryChannelIds?.[updatedSlide.cue!.sourceLeafKey]) {
         const primary = songPresentation.presentationPrimaryChannelId(item, updatedSlide.cue!.sourceLeafKey)
         sourceChannel = blockIndex === 0 ? primary : songPresentation.presentationSecondaryChannelId(item, primary)
       }

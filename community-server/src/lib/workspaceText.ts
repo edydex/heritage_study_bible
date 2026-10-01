@@ -629,7 +629,30 @@ export const russianWorkspaceText: Readonly<Record<string, string>> = {
   "Crosses": "Крестики",
   "Vertical lines": "Вертикальные линии",
   "Small dots": "Мелкие точки",
-  "{label} palette": "Палитра «{label}»"
+  "{label} palette": "Палитра «{label}»",
+  "Show lyrics · whole song": "Языки для всей песни",
+  "Song audience languages": "Языки песни для собрания",
+  "Both languages": "Оба языка",
+  "English only": "Только английский",
+  "Russian only": "Только русский",
+  "Stage-Facing Screen treatment": "Режим экрана для сцены",
+  "Song lyrics": "Текст песни",
+  "Current + next · follows singing language": "Текущий и следующий · на языке пения",
+  "Language choices keep both lyric sources. Individual slide choices return when you select Both languages.": "Текст на обоих языках сохраняется. Выбор языка отдельных слайдов вернётся при выборе «Оба языка».",
+  "Match Russian sections": "Разделить как русский текст",
+  "Suggest English verse, chorus and slide breaks from Russian. You review before applying.": "Предложить куплеты, припевы и границы слайдов по русскому тексту. Применение — после вашей проверки.",
+  "Suggested English sections": "Предлагаемые разделы английского текста",
+  "Based on line counts. Check that the words match each verse and chorus; edit anything here before confirming.": "На основе числа строк. Проверьте соответствие слов куплетам и припевам. Здесь можно исправить текст до подтверждения.",
+  "Lyrics changed. Match sections again for a fresh suggestion.": "Текст изменился. Повторите сопоставление разделов.",
+  "Confirm sections": "Подтвердить разделы",
+  "Add verse or chorus labels to Russian lyrics first.": "Сначала подпишите куплеты и припевы русского текста.",
+  "English already has section labels. Review those sections directly.": "Разделы английского текста уже подписаны. Отредактируйте их напрямую.",
+  "Russian uses the same section label for different words. Give those sections distinct labels first.": "Разные разделы русского текста имеют одинаковое название. Сначала дайте им разные названия.",
+  "Paste the English lyrics first.": "Сначала вставьте английский текст.",
+  "A repeated English section has different words. Label it separately instead of treating it as a repeat.": "Повторяемый английский раздел содержит другие слова. Дайте ему отдельное название.",
+  "Could not match sections.": "Не удалось сопоставить разделы.",
+  "English has {actual} lines; Russian needs {unique} before repeats or {full} including repeats. Adjust the line breaks or label the English sections manually.": "В английском тексте {actual} строк, требуется {unique} без повторов или {full} с повторами. Измените границы строк или подпишите английские разделы вручную.",
+  "English has {actual} lines; Russian needs {unique}. Adjust the line breaks or label the English sections manually.": "В английском тексте {actual} строк, требуется {unique}. Измените границы строк или подпишите английские разделы вручную."
 }
 
 export type WorkspaceTextVariables = Record<string, string | number>

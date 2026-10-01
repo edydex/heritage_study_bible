@@ -9,6 +9,8 @@ import { conflictDraftSignature, type ConflictSavedVersion } from './serviceSave
 import { plannerNavigator } from './plannerNavigator'
 import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
 import songPresentation from '../../packages/service-core/node/services/project/SongPresentation.js'
+import SongAudienceLanguages from './SongAudienceLanguages'
+import { setSongAudienceLanguage } from './plannerSongLanguages'
 import sermonContext from '../../packages/service-core/node/services/project/SermonContext.js'
 import NumberDraftInput from './NumberDraftInput'
 import { groupSermonSections, withinSermon } from './plannerSermonSections'
@@ -258,13 +260,6 @@ function sermonDocumentIdForItem(project: ServiceProject | null, item: ProjectIt
   }
   const resource = resourceId ? project.resources?.[resourceId] : null
   return resource?.kind === 'sermon' ? String(resource.document?.id || '') || null : null
-}
-
-function songTreatmentValue(variant: Record<string, any> | undefined) {
-  if (!variant || variant.mode === 'hidden') return 'hidden'
-  if (variant.mode === 'inherit') return `inherit:${variant.from}`
-  if (variant.mode === 'derive') return `derive-next-text:${variant.from}`
-  return 'content'
 }
 
 function today() {
@@ -1100,19 +1095,12 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   }
 
   function setSelectedSongTreatment(channelId: ChannelId, value: string) {
-    if (!draft || selected?.kind !== 'song' || value === 'content') return
+    // Audience language selection must never replace or prune pinned lyrics.
+    if (!draft || selected?.kind !== 'song' || channelId !== 'media' || selected.variants.media?.mode === 'content') return
     try {
-      const [mode, sourceChannelId] = value.split(':')
+      const mode = value === 'derive' ? 'derive-next-text' : value
+      const sourceChannelId = mode === 'hidden' ? null : selected.songPresentation?.primaryChannelId || selected.primaryChannelId || selectedSongContentChannels[0]
       const source = cloneProject(draft)
-      // Removing a direct translation also removes it from the visible stack.
-      // Keep the credit and fall back to the remaining actual content channel.
-      const presentation = source.items[selected.id].songPresentation
-      if (presentation && [presentation.primaryChannelId, presentation.secondaryChannelId].includes(channelId)) {
-        const remaining = Object.keys(selected.variants).filter(id => id !== channelId && selected.variants[id].mode === 'content')
-        source.items[selected.id].songPresentation = { ...presentation, stackedTranslation: false,
-          primaryChannelId: remaining[0], secondaryChannelId: remaining[1] || null }
-        source.items[selected.id].lyricsPresetId = 'wotbc-song-lyrics'
-      }
       const project = serviceCore.setSongChannelTreatment(source, {
         itemId: selected.id,
         channelId,
@@ -1128,6 +1116,11 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     } catch (caught) {
       setError(errorText(caught))
     }
+  }
+
+  function chooseSongAudienceLanguage(value: string) {
+    if (!draft || selected?.kind !== 'song') return
+    slideMutation(() => setSongAudienceLanguage(draft, selected.id, value))
   }
 
   function choosePicture(target: PictureUploadTarget) {
@@ -1624,7 +1617,9 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
                 {t('{language} is not configured. Screens will show {fallback} content until you add text here.', { language: t(draft?.channels[previewChannel]?.label || previewChannel), fallback: t(draft?.channels[activePreviewOutput.fallbackFromChannelId]?.label || 'the filled language') })}
               </p> : null}
               {selected.kind === 'song' && selected.songPresentation && !preview.singer ? <div className="heritage-service-planner__song-layout">
-                <label>{t("Primary language for this slide")} <select aria-label={t("Primary language for this slide")} value={selected.songPresentation.slidePrimaryChannelIds?.[activeSlide?.cue?.sourceLeafKey] || ''}
+                <SongAudienceLanguages item={selected} onChange={chooseSongAudienceLanguage} />
+                <label>{t("Primary language for this slide")} <select aria-label={t("Primary language for this slide")} value={selected.songPresentation.audienceLanguage && selected.songPresentation.audienceLanguage !== 'both' ? selected.songPresentation.audienceLanguage : selected.songPresentation.slidePrimaryChannelIds?.[activeSlide?.cue?.sourceLeafKey] || ''}
+                  disabled={Boolean(selected.songPresentation.audienceLanguage && selected.songPresentation.audienceLanguage !== 'both')}
                   onChange={event => { const choices = {...selected.songPresentation.slidePrimaryChannelIds}; const key=activeSlide?.cue?.sourceLeafKey
                     if (!key) return
                     if (event.target.value) choices[key]=event.target.value; else delete choices[key]
@@ -1633,13 +1628,10 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
                   <option value="">{t("Song default ·")} {t(draft?.channels[selected.songPresentation.primaryChannelId]?.label || selected.songPresentation.primaryChannelId)}</option>
                   {selectedSongContentChannels.map(id=><option key={id} value={id}>{t(draft?.channels[id]?.label || id)}</option>)}
                 </select></label>
-                {activeSlide && isSongTitleSlide(activeSlide) ? <label><input type="checkbox" aria-label={t("Show translated song title")} checked={selected.songPresentation.showTitleTranslation ?? selected.songPresentation.stackedTranslation}
+                {activeSlide && isSongTitleSlide(activeSlide) && (!selected.songPresentation.audienceLanguage || selected.songPresentation.audienceLanguage === 'both') ? <label><input type="checkbox" aria-label={t("Show translated song title")} checked={selected.songPresentation.showTitleTranslation ?? selected.songPresentation.stackedTranslation}
                   disabled={!selected.songPresentation.secondaryChannelId}
                   onChange={event => updateSelected({songPresentation:{...selected.songPresentation,showTitleTranslation:event.target.checked}})} />  {t("Show second language beneath title")}</label>
-                  : <label><input type="checkbox" aria-label={t("Stacked translation")} checked={selected.songPresentation.stackedTranslation}
-                    disabled={!selected.songPresentation.secondaryChannelId}
-                    onChange={event => updateSelected({ songPresentation: { ...selected.songPresentation, stackedTranslation: event.target.checked },
-                      lyricsPresetId: event.target.checked ? 'wotbc-song-stacked' : 'wotbc-song-lyrics' })} />  {t("Show translated lyrics · whole song")}</label>}
+                  : null}
               </div> : null}
               {selected.kind === 'sermon' && (selected.sermonTemplate === 'title' || selected.presetId === 'wotbc-sermon-title') && !preview.singer ? <div className="heritage-service-planner__song-layout">
                 <button type="button" disabled={uploadingPicture} onClick={() => choosePicture('background')}>{uploadingPicture ? t("Uploading…") : (selected.backgroundAssetIdsByChannel?.[previewChannel] || selected.backgroundAssetId) ? t('Replace {language} image', { language: t(previewChannel === 'russian' ? 'Russian' : 'English') }) : t('Choose {language} image', { language: t(previewChannel === 'russian' ? 'Russian' : 'English') })}</button>
@@ -1749,15 +1741,14 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
                   {selectedSongContentChannels.map(id=><option key={id} value={id}>{t(draft?.channels[id]?.label || id)}</option>)}
                 </select><small>{t("Individual slide choices stay in place.")}</small></label> : null}
                 {selected.kind === 'song' ? <div className="heritage-service-planner__treatments">
-                  <p className="heritage-service-planner__boundary">{t("Exact Community revisions stay pinned. Output-specific language choices live here so they do not clutter normal planning.")}</p>
-                  {CHANNEL_IDS.map(channelId => {
+                  {selected.songPresentation && <SongAudienceLanguages item={selected} onChange={chooseSongAudienceLanguage} />}
+                  <p className="heritage-service-planner__boundary">{t('Language choices keep both lyric sources. Individual slide choices return when you select Both languages.')}</p>
+                  {(['media'] as const).map(channelId => {
                     const primaryChannelId = selected.primaryChannelId || selectedSongContentChannels[0]
-                    return <label key={channelId}><span>{t(draft?.channels[channelId]?.label || channelId)}</span><select value={songTreatmentValue(selected.variants?.[channelId])} disabled={channelId === primaryChannelId} onChange={event => setSelectedSongTreatment(channelId, event.target.value)}>
+                    return <label key={channelId}><span>{t('Stage-Facing Screen')}</span><select aria-label={t('Stage-Facing Screen treatment')} value={selected.variants?.[channelId]?.mode || 'hidden'} disabled={channelId === primaryChannelId || selected.variants?.[channelId]?.mode === 'content'} onChange={event => setSelectedSongTreatment(channelId, event.target.value)}>
                       {selected.variants?.[channelId]?.mode === 'content' ? <option value="content">{t("Pinned exact lyrics")}</option> : null}
-                      {selectedSongContentChannels.filter(sourceChannelId => sourceChannelId !== channelId).flatMap(sourceChannelId => [
-                        <option key={`inherit:${sourceChannelId}`} value={`inherit:${sourceChannelId}`}>{t("Normal lyrics from")} {t(draft?.channels[sourceChannelId]?.label || sourceChannelId)}</option>,
-                        <option key={`derive:${sourceChannelId}`} value={`derive-next-text:${sourceChannelId}`}>{t("Current + next from")} {t(draft?.channels[sourceChannelId]?.label || sourceChannelId)}</option>,
-                      ])}
+                      {selected.variants?.[channelId]?.mode === 'inherit' ? <option value="inherit">{t('Song lyrics')}</option> : null}
+                      <option value="derive">{t('Current + next · follows singing language')}</option>
                       <option value="hidden">{t("Hidden")}</option>
                     </select></label>
                   })}

@@ -7,6 +7,7 @@ import { plannerSlides, editPlannerSlide, movePlannerSlide } from '../src/compon
 import { plannerPreview } from '../src/components/plannerPreview.ts'
 import { plannerNavigator } from '../src/components/plannerNavigator.ts'
 import { reflowScripture } from '../src/components/plannerScriptureReflow.ts'
+import { setSongAudienceLanguage } from '../src/components/plannerSongLanguages.ts'
 
 function fixture() {
   return core.createServiceProject({id:'authoring',title:'Sunday',serviceDate:'2026-10-04',
@@ -79,6 +80,45 @@ test('song title translation can be hidden independently and a solo override edi
   assert.equal(rows[0].cue!.channels.english.blocks[1].text,'A Song')
   assert.equal(plannerPreview(rows,rows[0],'english').next.text,'English one')
   assert.equal(plannerPreview(rows,rows[0],'media').next.text,'Русский one')
+})
+
+test('Both → English → Russian → Both retains pinned words, title choice and individual slide choices after reopen',()=>{
+  let project:any=JSON.parse(JSON.stringify(bilingualSong()))
+  const first=plannerSlides(project).find(row=>row.index===1)!
+  project.items.song.songPresentation.slidePrimaryChannelIds={[first.cue!.sourceLeafKey]:'english'}
+  project.items.song.songPresentation.showTitleTranslation=false
+  const resources=JSON.parse(JSON.stringify(project.resources)),variants=JSON.parse(JSON.stringify(project.items.song.variants))
+  const cueIds=plannerSlides(project).map(row=>row.id)
+  for (const language of ['both','english','russian','both']) {
+    project=roundTrip(setSongAudienceLanguage(project,'song',language))
+    const rows=plannerSlides(project)
+    if(language!=='both')assert.match(plannerSlides(project,'russian')[1].title,language==='english'?/English/:/Русский/)
+    assert.deepEqual(rows.map(row=>row.id),cueIds)
+    assert.deepEqual(project.resources,resources)
+    assert.deepEqual(project.items.song.variants,variants)
+    assert.equal(project.items.song.songPresentation.slidePrimaryChannelIds[first.cue!.sourceLeafKey],'english')
+    assert.equal(rows[0].cue!.channels.english.blocks.length,1) // title preference survives
+    for (const row of rows.slice(1)) {
+      for (const output of ['english','russian']) {
+        const blocks=row.cue!.channels[output].blocks
+        assert.equal(blocks.length,language==='both'?2:1)
+        if(language!=='both')assert.match(blocks[0].text,language==='english'?/English/:/Русский/)
+      }
+      if(language!=='both')assert.match(plannerPreview(rows,row,'media').output.blocks[0].text,language==='english'?/English/:/Русский/)
+    }
+  }
+  assert.match(plannerSlides(project)[1].cue!.channels.russian.blocks[0].text,/English/)
+  assert.match(plannerSlides(project)[2].cue!.channels.russian.blocks[0].text,/Русский/)
+  assert.throws(()=>setSongAudienceLanguage(project,'song','media'),/Add lyrics/)
+})
+
+test('editing a solo English slide viewed on the Russian output edits only English, and Both restores Russian',()=>{
+  let project:any=roundTrip(setSongAudienceLanguage(bilingualSong(),'song','english'))
+  let rows=plannerSlides(project)
+  project=editPlannerSlide(project,rows[2],'russian',0,'English solo correction')
+  project=roundTrip(setSongAudienceLanguage(project,'song','both'));rows=plannerSlides(project)
+  assert.equal(rows[2].cue!.channels.english.blocks[1].text,'English solo correction')
+  assert.equal(rows[2].cue!.channels.english.blocks[0].text,'Русский two')
 })
 
 test('long Scripture projects the full requested address once; reflow and source checksums remain exact',()=>{
