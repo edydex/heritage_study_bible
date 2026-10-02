@@ -17,8 +17,9 @@ The planner accepts a `service` query parameter only when it matches an authoriz
 service summary. Normal API authorization still governs opening the document.
 Sign-in preserves that selection or the explicit new-service form.
 
-The song picker always offers Create a song after results, including empty
-searches and language filters. In the web planner it opens Payload's existing
+The song picker always includes Create a song as the final row inside the results
+list, including empty searches and language filters. It scrolls with the songs
+and never floats over other rows. In the web planner it opens Payload's existing
 song form in its document drawer, retaining the service and picker. Save refreshes
 the song list, removes the old filter and selects the created song. Adding it to
 the service remains a separate explicit action. Cancel leaves the service intact.

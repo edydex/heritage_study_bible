@@ -1824,8 +1824,8 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
               <div className="heritage-add-song-list" role="group" aria-label={t("Community songs")}>
                 {songLibrary.filter(song=>`${song.title} ${song.russianTitle}`.toLocaleLowerCase().includes(songQuery.trim().toLocaleLowerCase()) && (songLanguage==='all'||song.previewSections?.some(section=>section.language===songLanguage))).map(song=><button key={song.syncId} ref={createdSongId===song.syncId ? createdSongRef : undefined} type="button" aria-pressed={songChoice===song.syncId} onClick={()=>setSongChoice(song.syncId)}><span><strong>{song.title}</strong>{song.russianTitle&&song.russianTitle!==song.title&&<small>{song.russianTitle}</small>}</span><span className="heritage-add-language-badges">{[...new Set(song.previewSections?.map(section=>section.language))].map(language=><small key={language}>{language.toUpperCase()}</small>)}</span></button>)}
                 {!songLibrary.some(song=>`${song.title} ${song.russianTitle}`.toLocaleLowerCase().includes(songQuery.trim().toLocaleLowerCase()) && (songLanguage==='all'||song.previewSections?.some(section=>section.language===songLanguage)))&&<p>{t('No matching songs. Create one below, or try another search.')}</p>}
+                {SongCreator ? <SongCreator query={songQuery} onCreated={songCreated}/> : <PlannerSongFrame query={songQuery} onCreated={songCreated}/>}
               </div>
-              {SongCreator ? <SongCreator query={songQuery} onCreated={songCreated}/> : <PlannerSongFrame query={songQuery} onCreated={songCreated}/>}
               {songCreationNotice && <p role="status">{t(songCreationNotice)}</p>}
               <button className="heritage-add-refresh" type="button" onClick={loadLibraries} disabled={busy}>{t("Refresh library")}</button>
             </div>}
