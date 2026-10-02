@@ -5,6 +5,7 @@ import type { UIFieldClientProps } from 'payload'
 import { useRef, useState } from 'react'
 import { draftSongPptx, inspectSongPptx, SongPptxImportError, type SongPptxDraft, type SongPptxInspection } from '../lib/songPptxImport'
 import { useWorkspaceText } from './useWorkspaceText'
+import { usePlannerSongFrame } from './usePlannerSongFrame'
 
 const fieldNames = ['russianTitle', 'title', 'russianLyrics', 'lyrics', 'authors', 'defaultSongLanguage'] as const
 type SongValues = Record<typeof fieldNames[number], any>
@@ -19,6 +20,7 @@ export default function SongPptxImport(props: UIFieldClientProps) {
     russianLyrics: useField<string>({path:'russianLyrics'}), lyrics: useField<string>({path:'lyrics'}),
     authors: useField<string[]>({path:'authors'}), defaultSongLanguage: useField<string>({path:'defaultSongLanguage'}),
   }
+  usePlannerSongFrame(fields.title,fields.russianTitle)
   const snapshot = useFormFields(([form]) => signature(Object.fromEntries(fieldNames.map(name => [name, form[name]?.value])) as SongValues))
   const current = useRef({ values: {} as SongValues, snapshot: '' })
   current.current = { values: Object.fromEntries(fieldNames.map(name => [name, fields[name].value])) as SongValues, snapshot }

@@ -22,8 +22,11 @@ searches and language filters. In the web planner it opens Payload's existing
 song form in its document drawer, retaining the service and picker. Save refreshes
 the song list, removes the old filter and selects the created song. Adding it to
 the service remains a separate explicit action. Cancel leaves the service intact.
-Embedded editors without Payload context use a separate song-library tab and the
-existing Refresh library action; their service draft stays open.
+Paired and embedded editors without an authenticated Payload context open the
+same song form in a same-origin frame, with normal workspace sign-in if needed.
+Saving returns the exact song ID, refreshes the library and focuses the new song.
+Only messages from the mounted same-origin frame are accepted. Closing a modified
+song asks before discarding its draft; the service remains open throughout.
 
 The paid Muse critique informed duplicate-free recents, a persistent picker
 creation action, and reuse of the existing song form. No new analytics provider
