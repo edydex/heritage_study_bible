@@ -1453,12 +1453,6 @@
 .heritage-song-audience button[aria-pressed="true"] { background: #355c80; border-color: #91c3f0; color: #fff; }
 .heritage-song-audience button:disabled { color: #aeb7bf; background: #25292d; cursor: not-allowed; }
 .heritage-song-audience button:focus-visible { outline: 2px solid #91c3f0; outline-offset: 2px; }
-.heritage-song-section-assist { display: grid; gap: 0.5rem; margin: 0.5rem 0 1.5rem; font-size: 0.85rem; }
-.heritage-song-section-assist > button { justify-self: start; }
-.heritage-song-section-assist small { color: var(--theme-text); }
-.heritage-song-section-suggestion { display: grid; gap: 0.5rem; padding: 0.8rem; border: 1px solid var(--theme-elevation-250); border-radius: 0.3rem; background: var(--theme-elevation-50); }
-.heritage-song-section-suggestion textarea { width: 100%; min-height: 12rem; padding: 0.6rem; background: var(--theme-elevation-0); color: var(--theme-elevation-700); border: 1px solid var(--theme-elevation-300); font: inherit; line-height: 1.5; }
-.heritage-song-section-suggestion > div { display: flex; gap: 0.5rem; }
 
 .heritage-service-planner__text-editor {
   display: grid;
@@ -1752,9 +1746,7 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 }
 
 .heritage-admin-workspace {
-  display: grid;
   min-height: calc(100svh - var(--app-header-height));
-  place-items: center;
   padding: clamp(1rem, 4vw, 3rem);
 }
 
@@ -1926,7 +1918,7 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-add-prepared > small { font-size:11px; color:var(--theme-elevation-600); }
 .heritage-add-prepared > div { display:flex; flex-wrap:wrap; gap:12px; font-size:11px; }
 .heritage-add-songs { display:grid; gap:14px; }
-.heritage-add-song-list { display:grid; gap:6px; }
+.heritage-add-song-list { display:grid; gap:6px; max-height:min(42vh,28rem); overflow-y:auto; overscroll-behavior:contain; padding:2px; }
 .heritage-add-song-list > button { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 12px; text-align:left; color:inherit; background:var(--theme-elevation-0); border:1px solid var(--theme-elevation-150); border-radius:7px; cursor:pointer; }
 .heritage-add-song-list > button[aria-pressed="true"] { border-color:var(--theme-success-400); box-shadow:inset 3px 0 var(--theme-success-500); background:var(--theme-success-50); }
 .heritage-add-song-list strong { font-size:13px; }
@@ -2009,21 +2001,18 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-song-pptx { margin: 0 0 1.5rem; color: var(--theme-text); }
 .heritage-song-pptx-intro { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; }
 .heritage-song-pptx small { color: var(--theme-elevation-600); line-height: 1.5; }
-.heritage-song-pptx-review { display: grid; gap: .7rem; padding: 1rem; margin-top: 1rem; border: 1px solid var(--theme-elevation-250); border-radius: .5rem; background: var(--theme-elevation-50); }
-.heritage-song-pptx-review header { display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; }
-.heritage-song-pptx-review p { margin: 0; line-height: 1.5; }
+.heritage-song-pptx-summary { display: grid; gap: .7rem; padding: 1rem; margin-top: 1rem; border: 1px solid var(--theme-elevation-250); border-radius: .5rem; background: var(--theme-elevation-50); }
+.heritage-song-pptx-summary header { display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; }
+.heritage-song-pptx-summary p { margin: 0; line-height: 1.5; }
+.heritage-song-pptx-summary details { font-size:.85rem; }
+.heritage-song-pptx-summary summary { min-height:24px; cursor:pointer; }
+.heritage-song-pptx-summary details[open] { display:grid; gap:.6rem; }
+.heritage-song-pptx-result { display:flex; align-items:center; flex-wrap:wrap; gap:.6rem 1rem; justify-content:space-between; }
 .heritage-song-pptx-title-choice { display: flex; align-items: center; gap: .5rem; }
 .heritage-song-pptx-title-choice input { accent-color: var(--theme-success-500); }
-.heritage-song-pptx-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.heritage-song-pptx-columns > div { display: grid; gap: .5rem; align-content: start; }
-.heritage-song-pptx-review input:not([type='checkbox']), .heritage-song-pptx-review textarea { width: 100%; padding: .6rem; border: 1px solid var(--theme-elevation-300); border-radius: .3rem; background: var(--theme-input-bg); color: var(--theme-text); font: inherit; line-height: 1.5; }
-.heritage-song-pptx-review textarea { min-height: 12rem; }
-.heritage-song-lyrics-textarea { height: auto; max-height: none; resize: none; overflow: hidden; }
-.heritage-song-pptx-review input:focus-visible, .heritage-song-pptx-review textarea:focus-visible { outline: 2px solid var(--theme-success-500); outline-offset: 2px; }
-.heritage-song-pptx-review footer, .heritage-song-pptx-unsorted > div > div { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.heritage-song-pptx-summary footer, .heritage-song-pptx-unsorted > div > div { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
 .heritage-song-pptx-unsorted { display: grid; gap: .5rem; }
 .heritage-song-pptx-unsorted > div { display: grid; gap: .5rem; padding: .7rem; border: 1px solid var(--theme-elevation-250); }
-@media (max-width: 800px) { .heritage-song-pptx-columns { grid-template-columns: 1fr; } }
 .heritage-song-lyrics { flex: 1 1 0; min-width: 0; }
 .heritage-song-lyrics .textarea { width: 100% !important; }
 .heritage-song-lyrics textarea { min-height: 16rem; height: auto; resize: none; overflow: hidden; line-height: 1.65; }
@@ -2049,4 +2038,59 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-workspace-activity table { width: 100%; margin-top: 1rem; border-collapse: collapse; }
 .heritage-workspace-activity th, .heritage-workspace-activity td { text-align: left; padding: .65rem; border-bottom: 1px solid var(--theme-elevation-200); }
 .heritage-workspace-activity button { padding: .45rem .75rem; color: var(--theme-text); background: var(--theme-elevation-100); border: 1px solid var(--theme-elevation-250); border-radius: .35rem; font: inherit; cursor: pointer; }
+.heritage-admin-workspace .heritage-workspace-activity { width:min(72rem,100%); margin:1.5rem auto 0; }
+.heritage-workspace-home { width:min(72rem,100%); margin:0 auto; color:var(--theme-text); }
+.heritage-workspace-home__heading { margin-bottom:2rem; }
+.heritage-workspace-home__heading p { margin:0 0 .4rem; color:var(--theme-elevation-600); font-size:.9rem; }
+.heritage-workspace-home__heading h1 { margin:0; font:700 clamp(1.8rem,3vw,2.5rem)/1.2 var(--font-body); letter-spacing:-.03em; }
+.heritage-workspace-home h2 { margin:0 0 .9rem; font-size:1rem; font-weight:650; }
+.heritage-workspace-home__main { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(16rem,1fr); gap:2.5rem; align-items:start; }
+.heritage-workspace-home a { color:inherit; text-decoration:none; }
+.heritage-workspace-home :focus-visible { outline:2px solid var(--theme-text); outline-offset:4px; }
+.heritage-workspace-home__continue,.heritage-workspace-home__empty { display:block; padding:1.5rem; border:1px solid var(--theme-elevation-250); border-radius:.65rem; background:var(--theme-elevation-50); }
+.heritage-workspace-home__continue:hover { border-color:var(--theme-elevation-600); background:var(--theme-elevation-100); }
+.heritage-workspace-home__continue > div { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:.6rem; font-size:.9rem; }
+.heritage-workspace-home__continue h3,.heritage-workspace-home__empty h3 { margin:1.1rem 0 .7rem; font-size:1.7rem; font-weight:650; line-height:1.25; overflow-wrap:anywhere; }
+.heritage-workspace-home__continue p,.heritage-workspace-home__empty p { margin:0 0 1.4rem; color:var(--theme-elevation-650); font-size:.85rem; line-height:1.5; }
+.heritage-workspace-home__continue > strong { display:inline-flex; align-items:center; gap:1.5rem; min-height:44px; padding:.6rem 1rem; color:white; background:#315c49; border-radius:.35rem; font-size:.9rem; }
+.heritage-workspace-home__status { display:inline-flex; align-items:center; padding:.3rem .6rem; border:1px solid var(--theme-elevation-300); border-radius:1rem; background:var(--theme-elevation-0); color:var(--theme-text); font-size:.75rem; white-space:nowrap; }
+.heritage-workspace-home__recent { margin-top:2rem; }
+.heritage-workspace-home__recent header { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; }
+.heritage-workspace-home__recent header a { min-height:44px; font-size:.85rem; text-decoration:underline; text-underline-offset:3px; }
+.heritage-workspace-home__service { display:flex; align-items:center; gap:1rem; min-height:80px; padding:.9rem .3rem; border-top:1px solid var(--theme-elevation-200); }
+.heritage-workspace-home__service:hover { background:var(--theme-elevation-50); }
+.heritage-workspace-home__service > div { display:grid; gap:.3rem; flex:1; min-width:0; }
+.heritage-workspace-home__service strong { overflow-wrap:anywhere; }
+.heritage-workspace-home__service time,.heritage-workspace-home__service small { color:var(--theme-elevation-650); font-size:.8rem; line-height:1.4; }
+.heritage-workspace-home__start > div { display:grid; gap:.6rem; }
+.heritage-workspace-home__start a { display:flex; gap:.8rem; align-items:center; min-height:64px; padding:.85rem 1rem; border:1px solid var(--theme-elevation-200); border-radius:.5rem; background:var(--theme-elevation-0); }
+.heritage-workspace-home__start a:hover { border-color:var(--theme-elevation-500); }
+.heritage-workspace-home__start a > div { display:grid; gap:.3rem; flex:1; }
+.heritage-workspace-home__start a > span:first-child { font-size:1.35rem; width:1.2rem; text-align:center; }
+.heritage-workspace-home__start small,.heritage-workspace-home__start > p { color:var(--theme-elevation-650); font-size:.8rem; line-height:1.5; }
+.heritage-workspace-home__start > p { margin:.9rem .15rem 0; }
+.heritage-workspace-home a.heritage-workspace-home__primary { display:inline-flex; gap:.8rem; align-items:center; min-height:44px; padding:.85rem 1rem; border:1px solid #315c49; border-radius:.5rem; color:white; background:#315c49; }
+.heritage-workspace-home__start a.heritage-workspace-home__primary { display:flex; }
+.heritage-workspace-home__libraries { display:flex; flex-wrap:wrap; gap:.3rem 1.8rem; margin-top:2rem; padding-top:1.1rem; border-top:1px solid var(--theme-elevation-200); }
+.heritage-workspace-home__libraries a { display:inline-flex; align-items:center; gap:.7rem; min-height:44px; font-size:.85rem; }
+.heritage-workspace-home__libraries a:hover { text-decoration:underline; text-underline-offset:3px; }
+.heritage-workspace-home__error { padding:.8rem; border:1px solid var(--theme-elevation-300); border-radius:.35rem; line-height:1.5; }
+.heritage-workspace-home__error button { padding:.3rem .6rem; font:inherit; color:inherit; border:1px solid var(--theme-elevation-300); border-radius:.25rem; background:var(--theme-elevation-0); cursor:pointer; }
+.heritage-add-create-song { position:sticky; bottom:0; z-index:2; background:var(--theme-elevation-0); padding-top:8px; }
+.heritage-add-create-song > button,.heritage-add-create-song > a { display:flex; gap:12px; align-items:center; width:100%; min-height:64px; padding:12px; border:1px solid var(--theme-elevation-350); border-radius:7px; background:var(--theme-elevation-50); color:var(--theme-text); font:inherit; text-align:left; text-decoration:none; cursor:pointer; }
+.heritage-add-create-song > button:hover,.heritage-add-create-song > a:hover { border-color:var(--theme-elevation-600); background:var(--theme-elevation-100); }
+.heritage-add-create-song strong { display:block; font-size:13px; overflow-wrap:anywhere; }
+.heritage-add-create-song small { display:block; color:var(--theme-elevation-650); font-size:11px; margin-top:4px; line-height:1.5; }
+.heritage-add-create-song > :focus-visible { outline:2px solid var(--theme-text); outline-offset:2px; }
+@media(max-width:900px) {
+  .heritage-workspace-home__main { grid-template-columns:1fr; gap:2rem; }
+  .heritage-workspace-home__start > div { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .heritage-workspace-home__start a { align-items:flex-start; }
+}
+@media(max-width:650px) {
+  .heritage-workspace-home__start > div { grid-template-columns:1fr; }
+  .heritage-workspace-home__service { flex-wrap:wrap; gap:.6rem; }
+  .heritage-workspace-home__service > div { flex-basis:100%; }
+  .heritage-workspace-home__continue h3 { font-size:1.4rem; }
+}
 .heritage-song-lyrics .field-description, .heritage-song-more .field-description { color: var(--theme-elevation-600); }

@@ -8,12 +8,12 @@ import { useWorkspaceText } from './useWorkspaceText'
 
 export default function SongSlugField(props: TextFieldClientProps) {
   const t = useWorkspaceText()
-  const { id } = useDocumentInfo()
-  const title = useFormFields(([fields]) => fields.title?.value)
+  const { id, initialData } = useDocumentInfo()
+  const title = useFormFields(([fields]) => fields.title?.value) ?? initialData?.title
   const { value, setValue } = useField<string>({ path: props.path })
   const generated = slugifySongTitle(title)
   const previous = useRef(value || '')
-  const [automatic, setAutomatic] = useState(() => !id && !value)
+  const [automatic, setAutomatic] = useState(() => !id && (!value || value === generated))
 
   useEffect(() => {
     // Existing links remain stable when a title changes. A manual edit on a new

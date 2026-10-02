@@ -1,11 +1,19 @@
 # Song PowerPoint import
 
 In Song library → Add song (or an existing song), choose **Import PowerPoint**.
-Select one `.pptx` containing a song, review the two language columns and authors,
-then choose **Use these lyrics**. Save normally. Existing songs instead show
-**Replace song fields**, with an explicit warning. Cancel leaves the form intact.
-Both lyric review fields expand to show all text, resizing after edits and when
-the columns change width. The English section suggestion uses the same behavior.
+Select one `.pptx` containing a song. A blank song form is filled immediately:
+Russian/English titles, the existing auto-growing lyric fields, and authors.
+Review those fields and Save normally. There is one editable song form.
+
+A form that already contains text asks **Replace song text** before changing
+anything. Cancel leaves the fields intact. If text changes while the file is
+being read, import also waits for explicit replacement. Uncertain language
+fragments require Russian, English, or Skip choices before filling the form.
+
+The compact import summary has **Undo import** until its filled fields are edited.
+**Import details** contains the first-slide title option and extraction notes.
+Changing that option updates unedited imported text; edited text requires explicit
+replacement. No file selection or language choice saves a song by itself.
 
 The file is read in the browser. No presentation, media, lyrics or credentials
 are sent to an AI or third-party extraction service. Only the normal song Save
@@ -25,14 +33,14 @@ The first slide is suggested as a title slide when its text looks short enough;
 the checkbox lets the user include it in lyrics instead. Recognized title-slide
 credits populate authors. Every lyric slide gets a matching `^slide-N` marker in
 each language. These markers are editing labels, not projected lyric words.
-Recognized verse/chorus headings become structure rather than projected lyrics and are listed in the review. Repeated slides remain exact editable occurrences. Missing translations are
+Recognized verse/chorus headings become structure rather than projected lyrics and are listed under Import details. Repeated slides remain exact editable occurrences. Missing translations are
 reported and keep their original IDs rather than shifting the next slide's
 translation into the wrong place. Blank and picture-only slides are listed as
 skipped. Image-only presentations show an actionable error; there is no OCR.
 
 A Russian-only song has an empty English lyrics field. Since the current library
 requires a main title, the original Russian title also supplies its library name,
-with a notice in the review. Its address is transliterated automatically. Existing
+with a notice under Import details. Its address is transliterated automatically. Existing
 addresses remain stable and manually chosen addresses take precedence.
 
 Input limits: one song, 32 MB compressed, 200 slides, 2,000 ZIP entries,

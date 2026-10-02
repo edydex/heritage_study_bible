@@ -344,6 +344,8 @@ const list: Endpoint = {
         schemaVersion: 1,
         workspaceLanguage: language,
         workspaceLanguageSource: context.workspaceLanguageSource,
+        workspaceUserId: context.userId,
+        workspaceCommunityId: communityId,
         items: found.docs.map(value => serviceDocumentSummary(value as RequestDoc)),
       })
     } catch (error) {

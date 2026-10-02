@@ -315,7 +315,7 @@ test('Community dashboard routes service planning through the visual shared edit
     new URL('../src/app/(payload)/custom.scss', import.meta.url),
     'utf8',
   )
-  assert.match(welcome, /href: '\/admin\/plan-service'/)
+  assert.match(welcome, /href="\/admin\/plan-service"/)
   assert.match(dashboard, /heritage-admin-workspace/)
   assert.doesNotMatch(dashboard, /DefaultTemplate/)
   assert.match(planner, /aria-label=\{t\("Preview output"\)\}/)
@@ -353,7 +353,6 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.doesNotMatch(planner, />\+ (Section|Slide|Sermon|Blank)</)
   assert.doesNotMatch(planner, /__inspector/)
   assert.match(planner, /This document changed elsewhere/)
-  assert.match(adminStyles, /\.heritage-admin-workspace\s*\{[^}]*place-items:\s*center/s)
   assert.match(adminStyles, /\.heritage-service-planner\s*\{[^}]*height:\s*calc\(100svh - var\(--app-header-height\)\)[^}]*overflow:\s*hidden/s)
   assert.match(adminStyles, /grid-template-rows:\s*minmax\(0, 1fr\) auto/)
   assert.match(adminStyles, /border-bottom:\s*1px dotted var\(--theme-elevation-200\)/)
@@ -458,7 +457,7 @@ test('approved SyncShow planner requests enforce read and write scopes', async (
   const readable = await list(request() as never)
   assert.equal(readable.status, 200)
   assert.deepEqual(await readable.json(), {
-    schemaVersion: 1, items: [], workspaceLanguage: 'ru', workspaceLanguageSource: 'device',
+    schemaVersion: 1, items: [], workspaceLanguage: 'ru', workspaceLanguageSource: 'device', workspaceUserId: 9, workspaceCommunityId: 7,
   })
   assert.equal(profileReads, 1)
 
@@ -517,7 +516,7 @@ test('cookie-authenticated service lists mark the account language without readi
   } as never)
   assert.equal(response.status, 200)
   assert.deepEqual(await response.json(), {
-    schemaVersion: 1, items: [], workspaceLanguage: 'ru', workspaceLanguageSource: 'account',
+    schemaVersion: 1, items: [], workspaceLanguage: 'ru', workspaceLanguageSource: 'account', workspaceUserId: 22, workspaceCommunityId: 7,
   })
 })
 

@@ -27,9 +27,11 @@ import { PresentationAccessibility, PresentationAccessibilityControl } from './P
 import { insertReusableSlide, extractReusableSlide } from './plannerReusableSlides'
 import { importSermonPresentation } from './importSermonPresentation'
 import { churchWorkspaceLinks } from '@/lib/churchWorkspaceLinks'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type ComponentType } from 'react'
 import PassageReferenceInput from './PassageReferenceInput'
 import { workspaceSignInHref } from '../lib/workspaceNavigation'
+import { rememberWorkspaceService, type WorkspaceIdentity } from '../lib/workspaceHome'
+import type { PlannerSongCreatorProps } from './PlannerSongCreator'
 import serviceCore from '../../packages/service-core/index.js'
 import { plannerPreview } from './plannerPreview'
 import CanvasSlide, { newCanvasObject } from './CanvasSlide'
@@ -281,6 +283,13 @@ function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeI
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (new URL(window.location.href).searchParams.get('new') === '1') {
+      if (newServiceDetails.current) newServiceDetails.current.open = true
+      titleInput.current?.focus()
+    }
+  }, [])
+
   async function create() {
     const visibleTitle = titleInput.current?.value.trim() || title.trim()
     const visibleServiceDate = serviceDateInput.current?.value || serviceDate
@@ -328,8 +337,9 @@ function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeI
   )
 }
 
-export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlushReady, sidebarHeader }: { sermonSyncId?: string; onDirtyChange?: (dirty: boolean) => void; onFlushReady?: (flush: (() => Promise<boolean>) | null) => void; sidebarHeader?: ReactNode } = {}) {
+export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlushReady, sidebarHeader, SongCreator }: { sermonSyncId?: string; onDirtyChange?: (dirty: boolean) => void; onFlushReady?: (flush: (() => Promise<boolean>) | null) => void; sidebarHeader?: ReactNode; SongCreator?: ComponentType<PlannerSongCreatorProps> } = {}) {
   const t = useWorkspaceText()
+  const workspaceIdentity = useRef<WorkspaceIdentity>({})
   const [summaries, setSummaries] = useState<ServiceSummary[]>([])
   const [envelope, setEnvelope] = useState<ServiceEnvelope | null>(null)
   const [editionChange, setEditionChange] = useState<{channel:'english'|'russian';translationId:string} | null>(null)
@@ -377,11 +387,22 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   const [referenceValid, setReferenceValid] = useState(true)
   const [bibleVerseNumbers, setBibleVerseNumbers] = useState<number[] | undefined>()
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [resourceTab, setResourceTab] = useState<ResourceTab>(sermonSyncId ? 'templates' : 'songs')
   const paletteRef = useRef<HTMLElement>(null)
   const addSlideRef = useRef<HTMLButtonElement>(null)
+  const createdSongRef = useRef<HTMLButtonElement>(null)
+  const [createdSongId, setCreatedSongId] = useState('')
+  const [songCreationNotice, setSongCreationNotice] = useState('')
   useEffect(() => {
-    if (paletteOpen) paletteRef.current?.querySelector<HTMLButtonElement>('[role=tab][aria-selected=true], button')?.focus()
-  }, [paletteOpen])
+    if (paletteOpen) paletteRef.current?.querySelector<HTMLElement>(resourceTab === 'songs' ? 'input[type=search]' : '[role=tab][aria-selected=true]')?.focus()
+  }, [paletteOpen, resourceTab])
+  useEffect(() => {
+    if (createdSongId && createdSongRef.current) {
+      createdSongRef.current.focus()
+      createdSongRef.current.scrollIntoView({block:'nearest'})
+      setCreatedSongId('')
+    }
+  }, [createdSongId])
   const closePalette = () => { setPaletteOpen(false); addSlideRef.current?.focus() }
   function openPalette() {
     setResourceTab(sermonSyncId || (draft && withinSermon(draft,selectedId)) ? 'templates' : 'songs')
@@ -389,7 +410,6 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   }
   const [readingTemplate, setReadingTemplateChoice] = useState('centered')
   const [alignmentRole, setAlignmentRole] = useState('bodyAlign')
-  const [resourceTab, setResourceTab] = useState<ResourceTab>(sermonSyncId ? 'templates' : 'songs')
   const [paletteChannel,setPaletteChannel]=useState<ChannelId>('english')
   const [songLanguage,setSongLanguage]=useState('all')
   const [sermonPassage, setSermonPassage] = useState(false)
@@ -541,6 +561,12 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
       const result = await jsonRequest(ENDPOINT)
       applyDeviceWorkspaceLanguage(result)
       setSummaries(result.items || [])
+      workspaceIdentity.current = result
+      try { if (latestDraft.current) rememberWorkspaceService(localStorage,result,latestDraft.current.id) } catch { /* Browser storage can be disabled. */ }
+      if (initial) {
+        const requested = new URL(window.location.href).searchParams.get('service')
+        if (requested && result.items?.some((item:ServiceSummary) => item.syncId === requested)) await openService(requested)
+      }
     } catch (caught) {
       setError(errorText(caught))
       // Only initial entry may navigate away. An expired session while editing
@@ -574,6 +600,17 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     }
   }
 
+  async function songCreated(syncId: string) {
+    try {
+      const result = await jsonRequest(`${ENDPOINT}/library/songs`)
+      const songs: SongLibraryOption[] = result.items || []
+      setSongLibrary(songs)
+      const created = songs.find(song => song.syncId === syncId)
+      if (created) { setSongQuery(''); setSongLanguage('all'); setSongChoice(created.syncId); setCreatedSongId(created.syncId); setSongCreationNotice('Song saved to the library. Review it, then add it to the service.') }
+      else setSongCreationNotice('Song saved. Add lyrics and keep it active to use it in a service.')
+    } catch (caught) { setError(errorText(caught)) }
+  }
+
   function useEnvelope(next: ServiceEnvelopeInput, keepSelection = false, skipRecovery = false) {
     const project = projectFromServiceEnvelope(next) as ServiceProject
     const prepared = preparePlannerPresentation(project, {paginateItemIds: new Set()})
@@ -597,6 +634,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     latestDraft.current = opened; dirtyRef.current = Boolean(recovered) || prepared.changed
     setEnvelope(normalized)
     setDraft(opened)
+    try { if (!sermonSyncId) rememberWorkspaceService(localStorage,workspaceIdentity.current,normalized.syncId) } catch { /* Browser storage can be disabled. */ }
     const retained = keepSelection && selectedId && prepared.project.items[selectedId]
     setSelectedId(retained ? selectedId : plannerSlides(prepared.project).find(row => row.cue)?.itemId || null)
     setPreviewSlideIndex(retained ? previewSlideIndex : 0)
@@ -1783,9 +1821,12 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
               <label>{t("Find a song")}<input type="search" value={songQuery} onChange={event=>setSongQuery(event.target.value)} placeholder={t("English or Russian title…")}/></label>
               <div className="heritage-add-language" role="group" aria-label={t("Song language filter")}>{[['all',t("All")],['ru','Русский'],['en',t("English")]].map(([id,label])=><button type="button" key={id} aria-pressed={songLanguage===id} onClick={()=>setSongLanguage(id)}>{label}</button>)}</div>
               <div className="heritage-add-song-list" role="group" aria-label={t("Community songs")}>
-                {songLibrary.filter(song=>`${song.title} ${song.russianTitle}`.toLocaleLowerCase().includes(songQuery.trim().toLocaleLowerCase()) && (songLanguage==='all'||song.previewSections?.some(section=>section.language===songLanguage))).map(song=><button key={song.syncId} type="button" aria-pressed={songChoice===song.syncId} onClick={()=>setSongChoice(song.syncId)}><span><strong>{song.title}</strong>{song.russianTitle&&song.russianTitle!==song.title&&<small>{song.russianTitle}</small>}</span><span className="heritage-add-language-badges">{[...new Set(song.previewSections?.map(section=>section.language))].map(language=><small key={language}>{language.toUpperCase()}</small>)}</span></button>)}
-                {!songLibrary.some(song=>`${song.title} ${song.russianTitle}`.toLocaleLowerCase().includes(songQuery.trim().toLocaleLowerCase()) && (songLanguage==='all'||song.previewSections?.some(section=>section.language===songLanguage)))&&<p>{t("No matching songs. Try another title or language.")}</p>}
-              </div><button className="heritage-add-refresh" type="button" onClick={loadLibraries} disabled={busy}>{t("Refresh library")}</button>
+                {songLibrary.filter(song=>`${song.title} ${song.russianTitle}`.toLocaleLowerCase().includes(songQuery.trim().toLocaleLowerCase()) && (songLanguage==='all'||song.previewSections?.some(section=>section.language===songLanguage))).map(song=><button key={song.syncId} ref={createdSongId===song.syncId ? createdSongRef : undefined} type="button" aria-pressed={songChoice===song.syncId} onClick={()=>setSongChoice(song.syncId)}><span><strong>{song.title}</strong>{song.russianTitle&&song.russianTitle!==song.title&&<small>{song.russianTitle}</small>}</span><span className="heritage-add-language-badges">{[...new Set(song.previewSections?.map(section=>section.language))].map(language=><small key={language}>{language.toUpperCase()}</small>)}</span></button>)}
+                {!songLibrary.some(song=>`${song.title} ${song.russianTitle}`.toLocaleLowerCase().includes(songQuery.trim().toLocaleLowerCase()) && (songLanguage==='all'||song.previewSections?.some(section=>section.language===songLanguage)))&&<p>{t('No matching songs. Create one below, or try another search.')}</p>}
+              </div>
+              {SongCreator ? <SongCreator query={songQuery} onCreated={songCreated}/> : <div className="heritage-add-create-song"><a href="/admin/collections/songs/create" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">＋</span><span><strong>{t('Create a song')} ↗</strong><small>{t('Save it to the library, then refresh here to add it.')}</small></span></a></div>}
+              {songCreationNotice && <p role="status">{t(songCreationNotice)}</p>}
+              <button className="heritage-add-refresh" type="button" onClick={loadLibraries} disabled={busy}>{t("Refresh library")}</button>
             </div>}
             {resourceTab==='media'&&<div className="heritage-add-media">
               <button className="heritage-add-blank" type="button" disabled={!draft||busy} onClick={()=>add('blank')}><span aria-hidden="true">□</span><strong>{t("Blank screen")}</strong><small>{t("Stage keeps the next-slide cue")}</small></button>
