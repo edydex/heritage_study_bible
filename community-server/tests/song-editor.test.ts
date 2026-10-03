@@ -64,6 +64,8 @@ test('asterisks mark only section headings and retain exact text ranges', () => 
   assert.deepEqual(parseSongLyrics('*Chorus*\nWe sing\n*literal lyric words*'),[{label:'Chorus',lines:['We sing','*literal lyric words*']}])
   assert.deepEqual(parseSongLyrics('*Chorus* x2\nWe sing'),[{label:'Chorus',lines:['We sing']}])
   assert.deepEqual(parseSongLyrics('*Припев x2*\nМы поём',{language:'ru'}),[{label:'Припев',lines:['Мы поём']}])
+  assert.deepEqual(parseSongLyrics('^*chorus-repeat-2*\nWe sing'),[{label:'Chorus',lines:['We sing']}])
+  assert.deepEqual(parseSongLyrics('^*1-a*\nWe sing'),[{label:'Verse 1',lines:['We sing']}])
 })
 
 test('saving rejects competing primary languages and keeps a single choice in canonical source', async () => {
