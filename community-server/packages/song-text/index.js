@@ -7,8 +7,11 @@ export function parseSongLyrics(value, { language = 'en', label = '' } = {}) {
   if (!text) return []
   const russian = language === 'ru'
   const lines = text.split('\n').map(line => {
-    const trimmed = line.trim(), marked = /^\*\s*(.*?)\s*\*$/.exec(trimmed)
-    return marked && (headingPattern.test(marked[1]) || /^\^[\p{L}\d]+$/u.test(marked[1])) ? marked[1] : trimmed
+    const trimmed = line.trim()
+    const outer = trimmed.replace(/\s*\(?\s*(?:[xх×]\s*\d+|\d+\s*(?:times|раза?|раз))\s*\)?\s*:?$/iu, '')
+    const marked = /^\*\s*(.*?)\s*\*$/.exec(outer)
+    const heading = marked?.[1].replace(/\s*\(?\s*(?:[xх×]\s*\d+|\d+\s*(?:times|раза?|раз))\s*\)?\s*:?$/iu, '')
+    return heading && (headingPattern.test(heading) || /^\^[\p{L}\d]+$/u.test(heading)) ? heading : trimmed
   })
   const marked = Boolean(label) || lines.some(line => /^\^[\p{L}\d]+$/u.test(line) || headingPattern.test(line))
   const sections = []
