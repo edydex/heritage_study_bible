@@ -4,6 +4,8 @@ import { randomUUID } from 'node:crypto'
 import pg from 'pg'
 import { assertDisposableLiveDatabase } from './lib/disposableLiveDatabase'
 import { up, down } from '../src/migrations/20261002_000000_retire_song_member_sharing'
+import { songLibraryBaseFilter } from '../src/lib/songLibraryView'
+import { serializeSongForSync } from '../src/lib/syncShowProtocol'
 
 const databaseUrl = process.env.HERITAGE_SONG_EDITOR_TEST_DATABASE
 
@@ -42,9 +44,18 @@ test('real song creation, tenant ownership, publication/archive and legacy norma
     const archived = await payload.update({ collection: 'songs', id: song.id, user: manager, overrideAccess: false, data: { songbookVisibility: 'private', status: 'archived' } })
     assert.equal(archived.status, 'archived')
     assert.equal((await payload.findByID({ collection: 'songs', id: archived.id, showHiddenFields: true })).songbookContent, null)
+    assert.equal(archived.lyrics,song.lyrics)
+    assert.equal(archived.russianLyrics,song.russianLyrics)
+    assert.equal(serializeSongForSync({...archived}).archived,true)
+    const library = (where: unknown) => payload.find({collection:'songs',user:manager,overrideAccess:false,
+      where:{and:[{id:{equals:song.id}},songLibraryBaseFilter(where)]}})
+    assert.equal((await library(undefined)).totalDocs,0)
+    assert.equal((await library({status:{equals:'archived'}})).totalDocs,1)
     const restored = await payload.update({ collection: 'songs', id: song.id, user: manager, overrideAccess: false, data: { songbookVisibility: 'published', status: 'draft' } })
     assert.equal(restored.status, 'draft')
     assert.equal(restored.songbookVisibility, 'published')
+    assert.equal((await library(undefined)).totalDocs,1)
+    assert.equal((await library({status:{equals:'archived'}})).totalDocs,0)
     const { GET: content } = await import('../src/app/content/[type]/[id]/route')
     const getContent = (id: number, headers = {}) => content(new Request('http://127.0.0.1/content/songs/' + id, { headers }), { params: Promise.resolve({ type: 'songs', id: String(id) }) })
     const publicResponse = await getContent(song.id)

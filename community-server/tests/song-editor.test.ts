@@ -7,6 +7,7 @@ import { assignSongCommunity } from '../src/lib/songEditor'
 import { songPublicationChange, songPublicationChoice } from '../src/lib/songPublicationChoice'
 import { songMemberSharingEndpoints } from '../src/endpoints/songMemberSharing'
 import { fillSongSlug, slugifySongTitle } from '../src/lib/contentAdmin'
+import { archivedSongLibraryView, songLibraryBaseFilter, songLibraryViewWhere } from '../src/lib/songLibraryView'
 
 test('Russian-only imported songs get a readable address while existing links remain stable', async () => {
   assert.equal(slugifySongTitle('Не уходи Иисус'),'ne-ukhodi-iisus')
@@ -22,6 +23,19 @@ test('one publication choice includes archiving and restoring without legacy vis
     assert.equal(songPublicationChoice(choice, 'draft'), choice)
     assert.equal(songPublicationChoice(choice, 'archived'), 'archived')
   }
+})
+
+test('active and archived library view changes preserve title and publication filters', () => {
+  assert.deepEqual(songLibraryBaseFilter(undefined),{status:{not_equals:'archived'}})
+  const original={and:[{title:{contains:'hope'}},{songbookVisibility:{equals:'private'}}]}
+  const archived=songLibraryViewWhere(original,true)
+  assert.equal(archivedSongLibraryView(archived),true)
+  assert.deepEqual(songLibraryBaseFilter(archived),{status:{equals:'archived'}})
+  const active=songLibraryViewWhere(archived,false)
+  assert.equal(archivedSongLibraryView(active),false)
+  assert.deepEqual(active,{and:[original,{status:{not_equals:'archived'}}]})
+  assert.deepEqual(original,{and:[{title:{contains:'hope'}},{songbookVisibility:{equals:'private'}}]})
+  assert.deepEqual(songLibraryViewWhere({status:{equals:'archived'}},false),{status:{not_equals:'archived'}})
 })
 
 test('derive the church for new songs and enforce the derived tenant scope', async () => {

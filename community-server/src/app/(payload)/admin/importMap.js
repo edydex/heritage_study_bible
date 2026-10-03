@@ -11,6 +11,7 @@ import { default as default_f108fb54074db7e7faa71a5bda493c40 } from '@/component
 import { default as default_f9b16f304a5590964bea58d15adcf605 } from '@/components/SongChordsRow'
 import { default as default_7981ca6a0bab43e438b9c17684a0ac46 } from '@/components/SongLanguageCell'
 import { default as default_93ab3325f18916a6030901e32d709416 } from '@/components/SongListGuide'
+import { default as default_7791c3c1d8286083a3cec7e122cfa638 } from '@/components/SongLibraryActions'
 import { default as default_ddddbf144c6abc0920e0455f7d2e7ab6 } from '@/components/BookReadAlongUpload'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -64,6 +65,7 @@ export const importMap = {
   "@/components/SongChordsRow#default": default_f9b16f304a5590964bea58d15adcf605,
   "@/components/SongLanguageCell#default": default_7981ca6a0bab43e438b9c17684a0ac46,
   "@/components/SongListGuide#default": default_93ab3325f18916a6030901e32d709416,
+  "@/components/SongLibraryActions#default": default_7791c3c1d8286083a3cec7e122cfa638,
   "@/components/BookReadAlongUpload#default": default_ddddbf144c6abc0920e0455f7d2e7ab6,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,

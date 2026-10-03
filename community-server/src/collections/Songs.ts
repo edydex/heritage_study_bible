@@ -7,6 +7,7 @@ import { fillSongSlug } from '@/lib/contentAdmin'
 import { assignSongCommunity } from '@/lib/songEditor'
 import { prepareSongTags, sortSongLibrary } from '@/lib/songTags'
 import { normalizeSyncDocuments } from '@/lib/syncShowProtocol'
+import { songLibraryBaseFilter } from '@/lib/songLibraryView'
 import {
   enforceSongMemberSharingMutation,
   prepareSongSyncFields,
@@ -26,7 +27,8 @@ export const Songs: CollectionConfig = {
     description: { en: 'Start with the titles, lyrics and authors. Chords and other details are optional.', ru: 'Начните с названий, текста и авторов. Аккорды и остальные сведения — по желанию.' },
     defaultColumns: ['title', 'russianTitle', 'tags', 'defaultSongLanguage', 'songbookVisibility', 'updatedAt'],
     listSearchableFields: ['title', 'russianTitle', 'alternateTitles', 'authors'],
-    components: { beforeList: ['@/components/SongListGuide'] },
+    baseFilter: ({req}) => songLibraryBaseFilter(req.query?.where),
+    components: { beforeList: ['@/components/SongListGuide'], edit: {editMenuItems:['@/components/SongLibraryActions']} },
     hideAPIURL: true,
   },
   defaultSort: ['title', 'id'],

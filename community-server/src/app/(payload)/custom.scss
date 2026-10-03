@@ -1970,6 +1970,13 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-song-search label { display:grid; gap:6px; flex:1; font-weight:600; }
 .heritage-song-search input { width:100%; min-height:44px; border:1px solid var(--theme-elevation-300); border-radius:6px; background:var(--theme-input-bg); color:var(--theme-text); padding:10px 12px; }
 .heritage-song-search button { min-height:44px; }
+.heritage-song-library-views { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:1rem; }
+.heritage-song-library-views button { min-height:44px; padding:.5rem .85rem; border:1px solid var(--theme-elevation-300); border-radius:.35rem; font:inherit; color:var(--theme-text); background:var(--theme-input-bg); cursor:pointer; }
+.heritage-song-library-views button[aria-pressed='true'] { background:var(--theme-elevation-200); border-color:var(--theme-text); font-weight:600; }
+.heritage-song-delete { width:min(34rem,94vw); }
+.heritage-song-delete p { line-height:1.6; }
+.heritage-song-delete button.heritage-song-delete__confirm { background:#a12626; color:#fff; border-color:#a12626; }
+.heritage-song-delete button.heritage-song-delete__confirm:hover { background:#851d1d; border-color:#851d1d; }
 .heritage-song-guide > div { flex:1; }
 .collection-list--songs .list-controls .search-filter,
 .collection-list--songs .list-controls .search-bar > .icon--search { display:none; }
