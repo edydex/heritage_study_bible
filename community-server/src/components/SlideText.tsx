@@ -1,4 +1,5 @@
 'use client'
+import { useWorkspaceText } from './useWorkspaceText'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {usePresentationAccessibility,PresentationColorInput} from './PresentationAccessibility'
@@ -15,14 +16,17 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
   onAdvance?: () => void;
   onCommit: (text: string, spans: Span[]) => void
 }) {
+  const t = useWorkspaceText()
   const {monochrome}=usePresentationAccessibility()
   const paintedMode=useRef(monochrome)
   const paintedBase=useRef(baseColor)
-  const [foreground,setForeground]=useState('#ffc000')
-  const [background,setBackground]=useState('#8a5a00')
   const element = useRef<HTMLDivElement>(null)
   const toolbar = useRef<HTMLDivElement>(null)
   const draft = useRef({ text, spans })
+  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const committed = useRef(JSON.stringify({ text, spans }))
+  const commitLatest = useRef<() => void>(() => {})
+  useEffect(() => () => { if (commitTimer.current) clearTimeout(commitTimer.current) }, [])
   const editStart = useRef({text,spans})
   const painted = useRef(false)
   const [range, setRange] = useState<SelectionRange | null>(null)
@@ -83,7 +87,8 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
   useLayoutEffect(() => {
     // Echoing a live edit through React must not replace the focused DOM/caret.
     if (painted.current && paintedMode.current===monochrome && paintedBase.current===baseColor && text === draft.current.text && JSON.stringify(spans) === JSON.stringify(draft.current.spans)) return
-    draft.current = { text, spans }; paint()
+    if (commitTimer.current) { clearTimeout(commitTimer.current); commitTimer.current = null }
+    draft.current = { text, spans }; editStart.current = draft.current; committed.current = JSON.stringify({ text, spans }); paint()
     if (rangeRef.current && document.activeElement === element.current) restore(rangeRef.current.start, rangeRef.current.end)
   }, [text, spans, monochrome, baseColor])
   useEffect(() => {
@@ -100,7 +105,7 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
       const prefix = selected.cloneRange(); prefix.selectNodeContents(root); prefix.setEnd(selected.startContainer, selected.startOffset)
       const start = prefix.toString().length, end = start + selected.toString().length
       const rect = selected.getBoundingClientRect()
-      const value = { start, end, x: Math.max(8, Math.min(rect.left, innerWidth - 390)), y: Math.max(8, rect.top - 52) }
+      const value = { start, end, x: Math.max(8, Math.min(rect.left, innerWidth - 380)), y: Math.max(8, rect.top - 48) }
       rangeRef.current = value; setRange(value)
     }
     document.addEventListener('selectionchange', update)
@@ -111,6 +116,8 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
     draft.current = { text: value, spans: formatting.remapTextSpans(draft.current.text, value, draft.current.spans) }
     if (element.current) element.current.dataset.empty = String(!value.length)
     onDraftChange?.(value, draft.current.spans)
+    if (commitTimer.current) clearTimeout(commitTimer.current)
+    commitTimer.current = setTimeout(() => commitLatest.current(), 700)
     element.current?.dispatchEvent(new Event('input-fit', { bubbles: true }))
   }
   function insertPlain(value: string) {
@@ -133,16 +140,33 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
     }
     return true
   }
+  function selectedColor(key:'foreground'|'background'):string|null {
+    if(!range || !element.current)return ''
+    const base=baseColor || getComputedStyle(element.current).color
+    const rgb=base.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)
+    const fallback=key==='background' ? '' : rgb ? '#'+rgb.slice(1).map(value=>Number(value).toString(16).padStart(2,'0')).join('') : base
+    const points=[...new Set([range.start,range.end,...draft.current.spans.flatMap(span=>[span.start,span.end]).filter(offset=>offset>range.start && offset<range.end)])].sort((a,b)=>a-b)
+    const colors=new Set(points.slice(0,-1).map((start,index)=>draft.current.spans.find(span=>span.start<=start && span.end>=points[index+1])?.[key] || fallback))
+    return colors.size===1 ? [...colors][0] : null
+  }
   function apply(patch: Record<string, unknown> | null, focusEditor = true) {
     const selected = rangeRef.current
     if (!selected) return
     try {
       const next = formatting.applyTextStyle(draft.current.text, draft.current.spans, selected.start, selected.end, patch)
       draft.current = { ...draft.current, spans: next }; paint(); if (focusEditor) element.current?.focus(); restore(selected.start, selected.end)
-      onDraftChange?.(draft.current.text, next); onCommit(draft.current.text, next); setError('')
+      onDraftChange?.(draft.current.text, next); commit(); setRange({...selected}); setError('')
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Could not format text.') }
   }
-  function commit() { if (onDraftChange || draft.current.text !== text || JSON.stringify(draft.current.spans) !== JSON.stringify(spans)) onCommit(draft.current.text, draft.current.spans) }
+  function commit() {
+    if (commitTimer.current) { clearTimeout(commitTimer.current); commitTimer.current = null }
+    const signature = JSON.stringify(draft.current)
+    if (signature !== committed.current) { onCommit(draft.current.text, draft.current.spans); committed.current = signature }
+    // Escape may cancel new typing, but must keep edits already committed by
+    // idle-save, blur or formatting while this field stayed focused.
+    editStart.current = draft.current
+  }
+  commitLatest.current = commit
   function focusEmpty() {
     if (readOnly || draft.current.text.length || !element.current) return
     const caret = document.createRange(); caret.selectNodeContents(element.current); caret.collapse(true)
@@ -151,7 +175,12 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
   return <><div ref={element} className="heritage-service-planner__editable-text" style={monochrome ? {color:'#111111'} : undefined} data-role={role} data-fit-text data-empty={!text.length} data-placeholder={readOnly ? undefined : placeholder} aria-placeholder={readOnly ? undefined : placeholder}
     contentEditable={readOnly ? false : 'plaintext-only'} suppressContentEditableWarning
     role={!readOnly || canFormat ? 'textbox' : undefined} aria-readonly={readOnly && canFormat || undefined} aria-multiline={!readOnly || canFormat || undefined} aria-label={label} tabIndex={readOnly && canFormat ? 0 : undefined}
-    onInput={input} onFocus={()=>{editStart.current=draft.current;focusEmpty()}} onPointerUp={focusEmpty} onBlur={event => { if (!toolbar.current?.contains(event.relatedTarget as Node)) { commit(); rangeRef.current = null; setRange(null) } }}
+    onInput={input} onFocus={()=>{editStart.current=draft.current;focusEmpty()}} onPointerUp={focusEmpty} onBlur={event => { if (!toolbar.current?.contains(event.relatedTarget as Node)) {
+      commit(); rangeRef.current = null; setRange(null)
+      // An inactive browser selection would mask the color the user just chose.
+      const selected=window.getSelection()
+      if(element.current?.contains(selected?.anchorNode || null))selected?.removeAllRanges()
+    } }}
     onPaste={event => { if (readOnly) return; event.preventDefault(); insertPlain(event.clipboardData.getData('text/plain')) }}
     onKeyDown={event => {
       if (canFormat && (event.metaKey || event.ctrlKey) && ['b','i','u'].includes(event.key.toLowerCase())) { event.preventDefault(); const key = event.key.toLowerCase() === 'b' ? 'weight' : event.key.toLowerCase() === 'i' ? 'italic' : 'underline'; const value = key === 'weight' ? '700' : true; apply({ [key]: active(key, value) ? (key === 'weight' ? '400' : false) : value }); return }
@@ -159,12 +188,11 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
       if (event.key === 'Escape') { draft.current = editStart.current; paint(); onDraftChange?.(draft.current.text,draft.current.spans); element.current?.blur() }
       if (event.key === 'Enter') { event.preventDefault(); if (event.metaKey || event.ctrlKey) element.current?.blur(); else if (onAdvance && !event.shiftKey) onAdvance(); else insertPlain('\n') }
     }} />
-    {range && canFormat ? createPortal(<div ref={toolbar} className="heritage-slide-format" role="toolbar" aria-label="Selected text formatting" style={{left:range.x,top:range.y}}>
-      {([['Bold','B','weight','700'],['Italic','I','italic',true],['Underline','U','underline',true]] as const).map(([label,caption,key,value]) => <button key={key} type="button" aria-label={label} aria-pressed={active(key,value)} onPointerDown={event => event.preventDefault()} onClick={() => apply({ [key]: active(key,value) ? (key === 'weight' ? '400' : false) : value })}>{caption}</button>)}
-      <label title="Text color"><span>Color</span><PresentationColorInput label="Text color" value={foreground} onChange={value=>{setForeground(value);apply({foreground:value},false)}} /></label>
-      <label title="Text highlight"><span>Highlight</span><PresentationColorInput label="Text highlight" value={background} onChange={value=>{setBackground(value);apply({background:value},false)}} /></label>
-      <button type="button" aria-label="Remove highlight" onPointerDown={event => event.preventDefault()} onClick={() => apply({background:undefined})}>No highlight</button>
-      <button type="button" aria-label="Clear formatting" onPointerDown={event => event.preventDefault()} onClick={() => apply(null)}>Clear</button>
-      {error ? <span role="alert">{error}</span> : null}
+    {range && canFormat ? createPortal(<div ref={toolbar} className="heritage-slide-format" role="toolbar" aria-label={t("Selected text formatting")} style={{left:range.x,top:range.y}}>
+      {([['Bold','B','weight','700'],['Italic','I','italic',true],['Underline','U','underline',true]] as const).map(([label,caption,key,value]) => <button key={key} type="button" aria-label={t(label)} aria-pressed={active(key,value)} onPointerDown={event => event.preventDefault()} onClick={() => apply({ [key]: active(key,value) ? (key === 'weight' ? '400' : false) : value })}>{caption}</button>)}
+      <div className="heritage-slide-format__color"><span>{t("Color")}</span><PresentationColorInput label={t("Text color")} value={selectedColor('foreground')} onChange={value=>apply({foreground:value})} onReset={()=>apply({foreground:undefined})} resetLabel={t('Default text color')} /></div>
+      <div className="heritage-slide-format__color"><span>{t("Highlight")}</span><PresentationColorInput label={t("Text highlight")} value={selectedColor('background')} onChange={value=>apply({background:value})} onReset={()=>apply({background:undefined})} resetLabel={t('No highlight')} /></div>
+      <button type="button" aria-label={t("Clear formatting")} onPointerDown={event => event.preventDefault()} onClick={() => apply(null)}>{t("Clear")}</button>
+      {error ? <span role="alert">{t(error)}</span> : null}
     </div>, document.body) : null}</>
 }

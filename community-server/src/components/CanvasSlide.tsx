@@ -1,4 +1,5 @@
 'use client'
+import { useWorkspaceText } from './useWorkspaceText'
 import { useEffect, useLayoutEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import SlideText from './SlideText'
@@ -6,6 +7,7 @@ import NumberDraftInput from './NumberDraftInput'
 import {usePresentationAccessibility,PresentationColorInput} from './PresentationAccessibility'
 import {patternImage,linePattern} from './presentationPalette'
 import layout from '../../packages/service-core/node/services/project/CanvasLayout.js'
+import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 import './canvas-slide.css'
 
 type ObjectValue = Record<string, any>
@@ -18,6 +20,7 @@ export default function CanvasSlide({ objects, mediaUrl, onChange, onImage, uplo
   objects: ObjectValue[]; mediaUrl: (id:string)=>string | undefined;
   onChange?: (objects:ObjectValue[])=>void; onImage?: ()=>void; uploading?: boolean
 }) {
+  const t = useWorkspaceText()
   const {monochrome}=usePresentationAccessibility()
   const patternPrefix=useId()
   const canvas = useRef<HTMLDivElement>(null)
@@ -100,39 +103,39 @@ export default function CanvasSlide({ objects, mediaUrl, onChange, onImage, uplo
     const [moved]=next.splice(index,1);next.splice(target,0,moved);commit(next)
   }
   const toolbar=editable && tools ? createPortal(<div className="heritage-canvas-tools">
-    <h3>Slide objects</h3>
-    <div className="heritage-canvas-tools__add" role="toolbar" aria-label="Add slide object">
-      <button type="button" disabled={values.length>=64} onClick={()=>add('text')}>Add text</button>
-      <button type="button" disabled={uploading || values.length>=64} onClick={onImage}>{uploading?'Uploading…':'Add image'}</button>
-      <button type="button" disabled={values.length>=64} onClick={()=>add('brace')}>Add brace {'}'}</button>
-      <button type="button" disabled={values.length>=64} onClick={()=>add('circle')}>Outline circle</button>
-      <button type="button" disabled={values.length>=64} onClick={()=>add('circle',{filled:true})}>Filled circle</button>
+    <h3>{t("Slide objects")}</h3>
+    <div className="heritage-canvas-tools__add" role="toolbar" aria-label={t("Add slide object")}>
+      <button type="button" disabled={values.length>=64} onClick={()=>add('text')}>{t("Add text")}</button>
+      <button type="button" disabled={uploading || values.length>=64} onClick={onImage}>{uploading?t("Uploading…"):t("Add image")}</button>
+      <button type="button" disabled={values.length>=64} onClick={()=>add('brace')}>{t("Add brace")} {'}'}</button>
+      <button type="button" disabled={values.length>=64} onClick={()=>add('circle')}>{t("Outline circle")}</button>
+      <button type="button" disabled={values.length>=64} onClick={()=>add('circle',{filled:true})}>{t("Filled circle")}</button>
     </div>
-    <details className="heritage-canvas-tools__help"><summary>Editing tips</summary><p>Select an object to move, resize or rotate it. Click inside text to type; select words to format them. Text shrinks to fit its box.</p></details>
-    {selected && <div className="heritage-canvas-tools__properties" aria-label="Selected object properties">
-      {(['x','y','width','height'] as const).map(key=><label key={key}>{({x:'Left',y:'Top',width:'Width',height:'Height'})[key]} %<input type="number" min={key==='width'||key==='height'?1:0} max="100" step="1" value={Math.round(selected.frame[key]*100)} onChange={event=>{if(event.currentTarget.value)frame({[key]:Number(event.currentTarget.value)/100})}} /></label>)}
-      <label>Rotation °<input type="number" min="-180" max="180" value={Math.round(selected.frame.rotation)} onChange={event=>frame({rotation:clamp(Number(event.currentTarget.value),-180,180)})} /></label>
-      {selected.type!=='image' && <label>Object color<PresentationColorInput label="Object color" value={selected.color} onChange={color=>patch({color})} /></label>}
-      {selected.type==='text' && <><label>Font size (maximum)<NumberDraftInput key={selected.id} min={16} max={240} value={selected.fontSize} onCommit={fontSize=>patch({fontSize})} /></label><label>Align<select value={selected.align} onChange={event=>patch({align:event.currentTarget.value})}><option>left</option><option>center</option><option>right</option></select></label></>}
-      {['brace','circle'].includes(selected.type) && <label>Line width<input type="number" min="1" max="30" value={selected.lineWidth} onChange={event=>patch({lineWidth:clamp(Number(event.currentTarget.value),1,30)})} /></label>}
-      {selected.type==='circle' && <label><input type="checkbox" checked={selected.filled} onChange={event=>patch({filled:event.currentTarget.checked})} />Filled</label>}
-      <button type="button" onClick={()=>layer(1)}>Bring forward</button><button type="button" onClick={()=>layer(-1)}>Send backward</button>
-      <button type="button" onClick={()=>{commit(values.filter(object=>object.id!==selected.id));setSelectedId(null)}}>Delete object</button>
+    <details className="heritage-canvas-tools__help"><summary>{t("Editing tips")}</summary><p>{t("Select an object to move, resize or rotate it. Click inside text to type; select words to format them. Text shrinks to fit its box.")}</p></details>
+    {selected && <div className="heritage-canvas-tools__properties" aria-label={t("Selected object properties")}>
+      {(['x','y','width','height'] as const).map(key=><label key={key}>{({x:t("Left"),y:t("Top"),width:t("Width"),height:t("Height")})[key]} %<input type="number" min={key==='width'||key==='height'?1:0} max="100" step="1" value={Math.round(selected.frame[key]*100)} onChange={event=>{if(event.currentTarget.value)frame({[key]:Number(event.currentTarget.value)/100})}} /></label>)}
+      <label>{t("Rotation °")}<input type="number" min="-180" max="180" value={Math.round(selected.frame.rotation)} onChange={event=>frame({rotation:clamp(Number(event.currentTarget.value),-180,180)})} /></label>
+      {selected.type!=='image' && <label>{t("Object color")}<PresentationColorInput label={t("Object color")} value={selected.color} onChange={color=>patch({color,...(selected.type==='text' && selected.text ? {spans:formatting.applyTextStyle(selected.text,selected.spans || [],0,selected.text.length,{foreground:undefined})} : {})})} /></label>}
+      {selected.type==='text' && <><label>{t("Font size (maximum)")}<NumberDraftInput key={selected.id} min={16} max={240} value={selected.fontSize} onCommit={fontSize=>patch({fontSize})} /></label><label>{t("Align")}<select value={selected.align} onChange={event=>patch({align:event.currentTarget.value})}><option value="left">{t('left')}</option><option value="center">{t('center')}</option><option value="right">{t('right')}</option></select></label></>}
+      {['brace','circle'].includes(selected.type) && <label>{t("Line width")}<input type="number" min="1" max="30" value={selected.lineWidth} onChange={event=>patch({lineWidth:clamp(Number(event.currentTarget.value),1,30)})} /></label>}
+      {selected.type==='circle' && <label><input type="checkbox" checked={selected.filled} onChange={event=>patch({filled:event.currentTarget.checked})} />{t("Filled")}</label>}
+      <button type="button" onClick={()=>layer(1)}>{t("Bring forward")}</button><button type="button" onClick={()=>layer(-1)}>{t("Send backward")}</button>
+      <button type="button" onClick={()=>{commit(values.filter(object=>object.id!==selected.id));setSelectedId(null)}}>{t("Delete object")}</button>
     </div>}
   </div>,tools):null
-  return <>{toolbar}<div className="heritage-canvas" ref={canvas} aria-label="Freeform slide" onPointerDown={event=>{if(event.target===event.currentTarget)setSelectedId(null)}}>
+  return <>{toolbar}<div className="heritage-canvas" ref={canvas} aria-label={t("Freeform slide")} onPointerDown={event=>{if(event.target===event.currentTarget)setSelectedId(null)}}>
     {values.map((object,index)=>{
       const f=object.frame,isSelected=editable && selectedId===object.id
       return <div key={object.id} className="heritage-canvas__object" data-object-type={object.type} data-canvas-font={object.type==='text' ? object.fontSize : undefined} data-selected={isSelected || undefined}
         style={{left:`${f.x*100}%`,top:`${f.y*100}%`,width:`${f.width*100}%`,height:`${f.height*100}%`,transform:`rotate(${f.rotation}deg)`,color:monochrome?'#111111':object.color,fontSize:`${(object.fontSize || 64)/19.2}cqw`,textAlign:object.align}}
-        tabIndex={editable?0:undefined} role={editable?'group':undefined} aria-label={`${object.type} object ${index+1}`}
+        tabIndex={editable?0:undefined} role={editable?'group':undefined} aria-label={t('{kind} object {number}', { kind: t(object.type), number: index + 1 })}
         onPointerDown={event=>{if(!editable)return;setSelectedId(object.id);if(object.type!=='text')begin(event,object,'move')}}
         onPointerMove={move} onPointerUp={event=>end(event)} onPointerCancel={event=>end(event,true)}
         onKeyDown={event=>{if(event.target!==event.currentTarget || !editable)return;const delta=event.shiftKey ? .01 : .001;const changes:any={ArrowLeft:{x:f.x-delta},ArrowRight:{x:f.x+delta},ArrowUp:{y:f.y-delta},ArrowDown:{y:f.y+delta}};if(changes[event.key]){event.preventDefault();frame(changes[event.key])}}}>
-        {object.type==='text'?<SlideText baseColor={object.color} text={object.text} spans={object.spans} role="canvas-text" label={`Text object ${index+1}`} placeholder="Click to type" readOnly={!editable} canFormat={editable} onDraftChange={(text,spans)=>{current.current=current.current.map(value=>value.id===object.id?{...value,text,spans}:value)}} onCommit={(text,spans)=>commit(current.current.map(value=>value.id===object.id?{...value,text,spans}:value))} />
-          :object.type==='image'?<img draggable={false} src={mediaUrl(object.assetId)} alt={object.altText || 'Slide image'} />
+        {object.type==='text'?<SlideText baseColor={object.color} text={object.text} spans={object.spans} role="canvas-text" label={t('Text object {number}', { number: index + 1 })} placeholder={t("Click to type")} readOnly={!editable} canFormat={editable} onDraftChange={(text,spans)=>{current.current=current.current.map(value=>value.id===object.id?{...value,text,spans}:value)}} onCommit={(text,spans)=>commit(current.current.map(value=>value.id===object.id?{...value,text,spans}:value))} />
+          :object.type==='image'?<img draggable={false} src={mediaUrl(object.assetId)} alt={object.altText || t("Slide image")} />
           :<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">{monochrome && <defs><pattern id={`${patternPrefix}-${index}`} patternUnits="userSpaceOnUse" width="8" height="8"><image href={patternImage(object.color).slice(5,-2)} width="8" height="8" /></pattern></defs>}{object.type==='brace'?<path d={layout.BRACE_PATH} fill="none" stroke="currentColor" strokeDasharray={monochrome?linePattern(object.color):undefined} strokeWidth={`${object.lineWidth/19.2}cqw`} vectorEffect="non-scaling-stroke" />:<ellipse cx="50" cy="50" rx="47" ry="47" fill={object.filled?(monochrome?`url(#${patternPrefix}-${index})`:'currentColor'):'none'} stroke="currentColor" strokeDasharray={monochrome?linePattern(object.color):undefined} strokeWidth={`${object.lineWidth/19.2}cqw`} vectorEffect="non-scaling-stroke" />}</svg>}
-        {isSelected && (['move','resize','rotate'] as const).map(kind=><button key={kind} type="button" className={`heritage-canvas__handle heritage-canvas__handle--${kind}`} aria-label={`${kind[0].toUpperCase()+kind.slice(1)} selected object`} onPointerDown={event=>begin(event,object,kind)}>{kind==='move'?'✥':kind==='resize'?'↘':'↻'}</button>)}
+        {isSelected && (['move','resize','rotate'] as const).map(kind=><button key={kind} type="button" className={`heritage-canvas__handle heritage-canvas__handle--${kind}`} aria-label={t(kind === 'move' ? 'Move selected object' : kind === 'resize' ? 'Resize selected object' : 'Rotate selected object')} onPointerDown={event=>begin(event,object,kind)}>{kind==='move'?'✥':kind==='resize'?'↘':'↻'}</button>)}
       </div>
     })}
   </div></>

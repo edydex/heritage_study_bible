@@ -1,4 +1,5 @@
 const headingPattern = /^(verse|stanza|chorus|refrain|bridge|ending|куплет|припев|бридж|окончание)\s*(\d*)(?:\s*\(?([a-zа-я])\)?)?\s*:?\s*$/iu
+const markerPattern = /^\^([\p{L}\d][\p{L}\d_-]{0,63})$/u
 
 // Interpret presentation-only lines for reading without changing stored lyrics
 // or removing punctuation inside an actual lyric line.
@@ -6,8 +7,17 @@ export function parseSongLyrics(value, { language = 'en', label = '' } = {}) {
   const text = String(value || '').normalize('NFKC').replace(/\r\n?/g, '\n').trim()
   if (!text) return []
   const russian = language === 'ru'
-  const lines = text.split('\n').map(line => line.trim())
-  const marked = Boolean(label) || lines.some(line => /^\^[\p{L}\d]+$/u.test(line) || headingPattern.test(line))
+  const lines = text.split('\n').map(line => {
+    const trimmed = line.trim()
+    const outer = trimmed.replace(/\s*\(?\s*(?:[xх×]\s*\d+|\d+\s*(?:times|раза?|раз))\s*\)?\s*:?$/iu, '')
+    const explicit = outer.startsWith('^'), label = explicit ? outer.slice(1) : outer
+    if (!label.startsWith('*') && !label.endsWith('*')) return trimmed
+    const heading = label.replace(/^\*\s*/, '').replace(/\s*\*$/, '')
+      .replace(/\s*\(?\s*(?:[xх×]\s*\d+|\d+\s*(?:times|раза?|раз))\s*\)?\s*:?$/iu, '')
+    const control = explicit ? `^${heading}` : heading
+    return headingPattern.test(control) || markerPattern.test(control) ? control : trimmed
+  })
+  const marked = Boolean(label) || lines.some(line => markerPattern.test(line) || headingPattern.test(line))
   const sections = []
   let current = { label, lines: [] }
   const flush = () => {
@@ -20,13 +30,13 @@ export function parseSongLyrics(value, { language = 'en', label = '' } = {}) {
     // A word such as "Refrain" immediately after a heading can itself be
     // lyric text. Do not discard it as an empty second section.
     const heading = current.label && !current.lines.length ? null : candidate
-    const marker = line.match(/^\^([\p{L}\d]+)$/u)
+    const marker = line.match(markerPattern)
     if (heading || marker) {
       flush()
       if (heading) current.label = `${heading[1]}${heading[2] ? ` ${heading[2]}` : ''}${heading[3] ? ` (${heading[3]})` : ''}`
       else if (/^\d+$/.test(marker[1])) current.label = `${russian ? 'Куплет' : 'Verse'} ${Number(marker[1])}`
       else {
-        const name = marker[1].toLowerCase()
+        const name = marker[1].toLowerCase().replace(/-repeat-\d+$/, '')
         if (['c', 'chorus', 'п', 'припев'].includes(name)) current.label = russian ? 'Припев' : 'Chorus'
         if (['b', 'bridge', 'бридж'].includes(name)) current.label = russian ? 'Бридж' : 'Bridge'
       }

@@ -33,12 +33,18 @@ it('uses church dates and excludes midnight endpoints, including DST changes', (
   expect(eventDateRange({ startsAt: 'invalid' }, zone)).toBeNull()
 })
 it('opens the same event details from the middle day of a multi-day event', async () => {
-  const now = new Date()
-  const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 10)).toISOString().slice(0, 10)
-  const retreat = { ...event, startsAt: `${date}T10:00:00Z`, endsAt: `${date.slice(0, 8)}12T18:00:00Z`, timeZone: 'UTC' }
-  render(<CalendarBrowser load={vi.fn().mockResolvedValue({ events: [retreat], timeZone: 'UTC', authenticated: false })} />)
-  await screen.findByRole('link', { name: 'Prayer Retreat' })
-  fireEvent.click(screen.getByRole('button', { name: `${date.slice(0, 8)}11, view events, 1 events` }))
-  expect(screen.getByRole('heading', { name: 'Prayer Retreat →' })).toBeInTheDocument()
-  expect(screen.queryByText('No events on this date.')).not.toBeInTheDocument()
+  const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-10-01T12:00:00Z'))
+  try {
+    // Saturday through Monday intentionally creates one bar in each week.
+    const retreat = { ...event, startsAt: '2026-10-10T10:00:00Z', endsAt: '2026-10-12T18:00:00Z', timeZone: 'UTC' }
+    render(<CalendarBrowser load={vi.fn().mockResolvedValue({ events: [retreat], timeZone: 'UTC', authenticated: false })} />)
+    const bars = await screen.findAllByRole('link', { name: 'Prayer Retreat' })
+    expect(bars).toHaveLength(2)
+    for (const bar of bars) expect(bar).toHaveAttribute('href', '/events/1?date=2026-10-10')
+    fireEvent.click(screen.getByRole('button', { name: '2026-10-11, view events, 1 events' }))
+    expect(screen.getByRole('heading', { name: 'Prayer Retreat →' })).toBeInTheDocument()
+    expect(screen.queryByText('No events on this date.')).not.toBeInTheDocument()
+  } finally {
+    clock.mockRestore()
+  }
 })

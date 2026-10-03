@@ -19,16 +19,61 @@ function repeatSuffix(text: string) {
   return {label:text.slice(0,match.index).trim(),repeat}
 }
 
+export function songSourceHeading(line: string) {
+  if (/^\s*\^{2}/.test(line)) return null
+  const explicit = /^\s*\^\s*(.+?)\s*$/.exec(line)
+  const outer = repeatSuffix((explicit?.[1] || line.trim()).replace(/^repeat\s+/i,''))
+  const marked = outer.label.startsWith('*') || outer.label.endsWith('*')
+  const inner = marked
+    ? repeatSuffix(outer.label.replace(/^\*\s*/, '').replace(/\s*\*$/, ''))
+    : outer
+  const id = songSectionMarker(inner.label) || (explicit ? inner.label : null)
+  const repeat = marked ? outer.repeat * inner.repeat : inner.repeat
+  if (repeat > 16) throw new Error('Song repeats must be between 1 and 16.')
+  return id ? {id, repeat, explicit:Boolean(explicit), primary:Boolean(marked), label:inner.label} : null
+}
+
+/** Character ranges retain the original field text; only recognized headings carry choices. */
+export function songSourceSections(value: unknown) {
+  const text = String(value || '').replace(/\r\n?/g,'\n')
+  const sections: {id:string|null; label:string; primary:boolean; start:number; end:number}[] = []
+  let start = 0
+  for (const line of text.split('\n')) {
+    let heading: ReturnType<typeof songSourceHeading> = null
+    try { heading = songSourceHeading(line) } catch {} // Incomplete typing must not break the field.
+    if (heading) {
+      if (sections.length) sections[sections.length-1].end = start
+      else if (start) sections.push({id:null,label:'',primary:false,start:0,end:start})
+      sections.push({id:heading.id,label:heading.label,primary:heading.primary,start,end:text.length})
+    }
+    start += line.length + 1
+  }
+  if (!sections.length && text) sections.push({id:null,label:'',primary:false,start:0,end:text.length})
+  const ids = sections.map(section=>section.id)
+  for (const section of sections) {
+    const single = /^(\d+)-[aа]$/iu.exec(section.id || '')
+    if (single && !ids.some(other=>other && other!==section.id && (other===single[1] || other.startsWith(`${single[1]}-`)))) section.id=single[1]
+  }
+  return sections
+}
+
+export function songSectionLanguageChoices(lyrics: unknown, russianLyrics: unknown) {
+  const choices: Record<string,'en'|'ru'> = Object.create(null), conflicts: string[] = []
+  for (const [language,value] of [['en',lyrics],['ru',russianLyrics]] as const) {
+    for (const section of songSourceSections(value)) {
+      if (!section.primary || !section.id) continue
+      const id = section.id.replace(/-repeat-\d+$/, '')
+      if (choices[id] && choices[id]!==language) conflicts.push(id)
+      else choices[id]=language
+    }
+  }
+  return {choices,conflicts:[...new Set(conflicts)]}
+}
+
 export function songDocumentBody(lyrics: unknown): string {
   const body = String(lyrics || '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').replace(/^[ \t]*[-–—]{3,}[ \t]*$/gm, '---').trim()
   if (!body) return ''
-  const heading = (line: string) => {
-    if (/^\s*\^{2}/.test(line)) return null // lyric parser's explicit slide marker
-    const explicit = /^\s*\^\s*(.+?)\s*$/.exec(line)
-    const {label,repeat} = repeatSuffix((explicit?.[1] || line.trim()).replace(/^repeat\s+/i,''))
-    const id = songSectionMarker(label) || (explicit ? label : null)
-    return id ? {id,repeat,explicit:Boolean(explicit)} : null
-  }
+  const heading = songSourceHeading
   const lines = body.split('\n')
   if (!lines.some(line=>heading(line))) return body.split(/\n\s*\n/).filter(block=>block.trim()).map((block,i)=>`^${i+1}\n${block}`).join('\n\n')
   type Section = {id:string; repeat:number; explicit:boolean; lines:string[]; recall?:boolean}

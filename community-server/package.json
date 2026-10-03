@@ -23,7 +23,11 @@
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
     "migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create",
-    "test:live-service": "node --import tsx --test tests/live-service-config.test.ts tests/live-service-payload.test.ts"
+    "test:live-service": "node --import tsx --test tests/live-service-config.test.ts tests/live-service-payload.test.ts",
+    "test:service-history-live": "node --import tsx --test tests/service-history-payload.test.ts",
+    "test:editor": "node --import tsx --test tests/service-save-history.test.ts tests/service-history-reliability.test.ts tests/service-save-conflict.test.ts tests/people-localization.test.ts tests/device-workspace-language.test.ts tests/workspace-text.test.ts tests/planner-authoring.test.ts tests/service-document-contract.test.ts tests/song-editor.test.ts tests/workspace-activity.test.ts tests/workspace-home.test.ts tests/planner-song-frame.test.ts tests/song-pptx-import.test.ts",
+    "test:song-editor-live": "cross-env NODE_ENV=production node --import tsx --test --test-force-exit tests/song-editor-payload.test.ts",
+    "test:song-pptx": "node --import tsx --test tests/song-pptx-import.test.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.0",
@@ -31,10 +35,12 @@
     "@payloadcms/email-nodemailer": "3.86.0",
     "@payloadcms/next": "3.86.0",
     "@payloadcms/richtext-lexical": "3.86.0",
+    "@payloadcms/translations": "3.86.0",
     "@payloadcms/ui": "3.86.0",
     "cross-env": "10.1.0",
     "drizzle-orm": "0.45.2",
     "graphql": "^16.8.1",
+    "jszip": "^3.10.1",
     "next": "16.2.10",
     "parse5": "8.0.1",
     "payload": "3.86.0",
@@ -47,6 +53,7 @@
     "@types/pg": "8.20.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@xmldom/xmldom": "^0.9.12",
     "autoprefixer": "10.4.24",
     "pg": "8.20.0",
     "tsx": "4.22.4",
