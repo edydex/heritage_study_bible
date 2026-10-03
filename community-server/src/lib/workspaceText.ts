@@ -3,7 +3,7 @@ import type { WorkspaceLanguage } from './workspaceLanguage'
 
 export const russianWorkspaceText: Readonly<Record<string, string>> = {
   "Primary": "Основной",
-  "Wrap a heading in asterisks, like *Chorus* or *Припев*, to make this language primary for that section and its repeats.": "Обрамите заголовок звёздочками: *Chorus* или *Припев*. Этот язык станет основным для раздела и его повторов.",
+  "Mark a heading with *, like Chorus* or *Припев, to make this language primary for that section and its repeats.": "Поставьте звёздочку перед заголовком или после него: Chorus* или *Припев. Этот язык станет основным для раздела и его повторов.",
   "Both languages mark “{section}” primary. Keep the asterisks in one language only.": "Раздел «{section}» отмечен основным на обоих языках. Оставьте звёздочки только в одном языке.",
   "Import song from PowerPoint": "Импорт песни из PowerPoint",
   "Choose song PowerPoint": "Выбрать PowerPoint с песней",

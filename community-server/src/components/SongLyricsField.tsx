@@ -61,7 +61,7 @@ export default function SongLyricsField(props: TextareaFieldClientProps) {
   }, [text,host,language,data.defaultLanguage,data.english,data.russian])
   return <div ref={root} className="heritage-song-lyrics" data-language={language || undefined}>
     <TextareaField {...props} />
-    {language && <p className="heritage-song-lyrics__guide">{t('Wrap a heading in asterisks, like *Chorus* or *Припев*, to make this language primary for that section and its repeats.')}</p>}
+    {language && <p className="heritage-song-lyrics__guide">{t('Mark a heading with *, like Chorus* or *Припев, to make this language primary for that section and its repeats.')}</p>}
     {language==='en' && conflicts.length>0 && <p className="heritage-song-lyrics__conflict" role="alert">{t('Both languages mark “{section}” primary. Keep the asterisks in one language only.',{section:conflicts[0]})}</p>}
     {host && language && createPortal(<div className="heritage-song-lyrics__backdrop" aria-hidden="true">
       {bands.map((band,index)=><div key={index} className="heritage-song-lyrics__primary" style={{top:band.top,height:band.height}}><span title={band.label}>{t('Primary')}</span></div>)}

@@ -617,7 +617,7 @@ test('legacy field projection exposes the same SyncShow lyric edit to Community 
 
 
 test('primary section annotations survive canonical save and reopen without changing lyric words', () => {
-  const song={syncId:'primary-defaults',title:'Example',russianTitle:'Пример',lyrics:'*Verse 1*\nEnglish verse\n\nChorus\nEnglish chorus',russianLyrics:'Куплет 1\nРусский куплет\n\n*Припев*\nРусский припев'}
+  const song={syncId:'primary-defaults',title:'Example',russianTitle:'Пример',lyrics:'*Verse 1\nEnglish verse\n\nChorus\nEnglish chorus',russianLyrics:'Куплет 1\nРусский куплет\n\nПрипев*\nРусский припев'}
   const documents=synthesizeLegacySyncDocuments(song)
   const canonical=documents.map(document=>({...document,source:songDocuments.serializeSongDocument(songDocuments.parseSongDocument(document.source,{fileName:document.id+'.md'}))}))
   const reopened=legacyFieldsFromSyncDocuments(canonical)

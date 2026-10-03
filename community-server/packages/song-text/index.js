@@ -10,11 +10,12 @@ export function parseSongLyrics(value, { language = 'en', label = '' } = {}) {
   const lines = text.split('\n').map(line => {
     const trimmed = line.trim()
     const outer = trimmed.replace(/\s*\(?\s*(?:[xх×]\s*\d+|\d+\s*(?:times|раза?|раз))\s*\)?\s*:?$/iu, '')
-    const explicit = /^\^\*\s*([\p{L}\d][\p{L}\d_-]{0,63})\s*\*$/u.exec(outer)
-    if (explicit) return `^${explicit[1]}`
-    const marked = /^\*\s*(.*?)\s*\*$/.exec(outer)
-    const heading = marked?.[1].replace(/\s*\(?\s*(?:[xх×]\s*\d+|\d+\s*(?:times|раза?|раз))\s*\)?\s*:?$/iu, '')
-    return heading && (headingPattern.test(heading) || markerPattern.test(heading)) ? heading : trimmed
+    const explicit = outer.startsWith('^'), label = explicit ? outer.slice(1) : outer
+    if (!label.startsWith('*') && !label.endsWith('*')) return trimmed
+    const heading = label.replace(/^\*\s*/, '').replace(/\s*\*$/, '')
+      .replace(/\s*\(?\s*(?:[xх×]\s*\d+|\d+\s*(?:times|раза?|раз))\s*\)?\s*:?$/iu, '')
+    const control = explicit ? `^${heading}` : heading
+    return headingPattern.test(control) || markerPattern.test(control) ? control : trimmed
   })
   const marked = Boolean(label) || lines.some(line => markerPattern.test(line) || headingPattern.test(line))
   const sections = []

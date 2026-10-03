@@ -74,3 +74,28 @@ test('saving rejects competing primary languages and keeps a single choice in ca
   assert.match(saved.syncDocuments[0].source,/primarySections:/)
   assert.doesNotMatch(saved.syncDocuments[0].source,/\*Chorus\*/)
 })
+
+test('one asterisk at either edge marks English and Russian headings, including repeats', () => {
+  for (const heading of ['*Chorus', 'Chorus*', '*Chorus*', ' * Chorus ', 'Chorus * ', '*Припев', 'Припев*', '*Припев*']) {
+    assert.equal(songSourceHeading(heading)?.id, 'chorus', heading)
+    assert.equal(songSourceHeading(heading)?.primary, true, heading)
+    assert.equal(songDocumentBody(`${heading}\nWords`), '^chorus\nWords', heading)
+    assert.deepEqual(parseSongLyrics(`${heading}\nWords`), [{label:heading.includes('Припев')?'Припев':'Chorus',lines:['Words']}], heading)
+  }
+  for (const heading of ['*Chorus x2', 'Chorus* x2', 'Chorus x2*', '*Припев x2', 'Припев* x2', 'Припев x2*']) {
+    assert.equal(songSourceHeading(heading)?.repeat, 2, heading)
+    assert.equal(songSourceHeading(heading)?.primary, true, heading)
+    assert.equal(songDocumentBody(`${heading}\nWords`), '^chorus\nWords\n\n^chorus\nWords', heading)
+    assert.deepEqual(parseSongLyrics(`${heading}\nWords`), [{label:heading.includes('Припев')?'Припев':'Chorus',lines:['Words']}], heading)
+  }
+  for (const heading of ['^*chorus-repeat-2', '^chorus-repeat-2*', '^*chorus-repeat-2*']) {
+    assert.equal(songSourceHeading(heading)?.primary, true, heading)
+    assert.deepEqual(parseSongLyrics(`${heading}\nWords`), [{label:'Chorus',lines:['Words']}], heading)
+  }
+  for (const line of ['*These words stay', 'These words stay*', 'These * words stay', '**Chorus**']) {
+    assert.equal(songSourceHeading(line), null, line)
+    assert.deepEqual(parseSongLyrics(line), [{label:'Verse 1',lines:[line]}], line)
+  }
+  assert.deepEqual({...songSectionLanguageChoices('*Verse 1\nEnglish', 'Припев*\nРусский').choices}, {'1':'en',chorus:'ru'})
+  assert.deepEqual(songSectionLanguageChoices('*Chorus\nEnglish', 'Припев*\nРусский').conflicts, ['chorus'])
+})

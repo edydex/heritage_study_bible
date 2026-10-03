@@ -23,8 +23,10 @@ export function songSourceHeading(line: string) {
   if (/^\s*\^{2}/.test(line)) return null
   const explicit = /^\s*\^\s*(.+?)\s*$/.exec(line)
   const outer = repeatSuffix((explicit?.[1] || line.trim()).replace(/^repeat\s+/i,''))
-  const marked = /^\*\s*(.*?)\s*\*$/.exec(outer.label)
-  const inner = marked ? repeatSuffix(marked[1]) : outer
+  const marked = outer.label.startsWith('*') || outer.label.endsWith('*')
+  const inner = marked
+    ? repeatSuffix(outer.label.replace(/^\*\s*/, '').replace(/\s*\*$/, ''))
+    : outer
   const id = songSectionMarker(inner.label) || (explicit ? inner.label : null)
   const repeat = marked ? outer.repeat * inner.repeat : inner.repeat
   if (repeat > 16) throw new Error('Song repeats must be between 1 and 16.')
