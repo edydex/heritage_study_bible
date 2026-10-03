@@ -7,7 +7,10 @@ import { plannerSlides, editPlannerSlide, movePlannerSlide } from '../src/compon
 import { plannerPreview } from '../src/components/plannerPreview.ts'
 import { plannerNavigator } from '../src/components/plannerNavigator.ts'
 import { reflowScripture } from '../src/components/plannerScriptureReflow.ts'
-import { setSongAudienceLanguage } from '../src/components/plannerSongLanguages.ts'
+import { parsePlannerLibrarySongDocument } from '../src/components/serviceDocumentPlannerModel.ts'
+import { synthesizeLegacySyncDocuments } from '../src/lib/syncShowProtocol.ts'
+import { songSectionLanguageChoices } from '../src/lib/songSourceSyntax.ts'
+import { applySongSectionLanguages, setSongAudienceLanguage, songDocumentSectionLanguages } from '../src/components/plannerSongLanguages.ts'
 
 function fixture() {
   return core.createServiceProject({id:'authoring',title:'Sunday',serviceDate:'2026-10-04',
@@ -188,4 +191,35 @@ test('twenty slides remain expanded; longer services open only the active sectio
   assert.equal(visible.filter(row=>row.itemId==='song').length,1)
   visible=plannerNavigator(project,rows,rows.find(row=>row.itemId==='song'&&row.index===2)!.id)
   assert.equal(visible.filter(row=>row.itemId==='song').length,4)
+})
+
+
+test('section defaults apply to every part and repeat, survive reopening and allow per-slide overrides',()=>{
+  const song={syncId:'defaults',title:'Example',russianTitle:'Пример',lyrics:'*Verse 1*\nEnglish one\n\nEnglish two\n\nChorus x2\nEnglish chorus',russianLyrics:'Куплет 1\nРусский один\n\nРусский два\n\n*Припев* x2\nРусский припев'}
+  let project:any=fixture(),resourceIds:Record<string,string>={},arrangement:any=[]
+  for(const document of synthesizeLegacySyncDocuments(song)) {
+    const parsed=parsePlannerLibrarySongDocument(document.source,{fileName:document.id+'.md'})
+    const added=core.addSongResource(project,parsed.document)
+    project=added.project; resourceIds[parsed.document.language==='en'?'english':'russian']=added.resourceId
+    if(parsed.document.language==='en') arrangement=parsed.arrangementSectionIds.map((sectionId:string,index:number)=>({id:'section-'+index,sectionId}))
+  }
+  project=core.addProjectItem(project,{id:'song',kind:'song',title:'Song',primaryChannelId:'english',variants:{english:{mode:'content',resourceId:resourceIds.english},russian:{mode:'content',resourceId:resourceIds.russian}},arrangement,titlePresetId:'wotbc-song-title',lyricsPresetId:'wotbc-song-stacked',songPresentation:{stackedTranslation:true,primaryChannelId:'russian',secondaryChannelId:'english',credits:''}})
+  const resources=JSON.stringify(project.resources)
+  const cachedDocuments=synthesizeLegacySyncDocuments(song).map(document=>parsePlannerLibrarySongDocument(document.source,{fileName:document.id+'.md'}))
+  const cachedChoices=songDocumentSectionLanguages(cachedDocuments)
+  assert.deepEqual({...cachedChoices},{...songSectionLanguageChoices(song.lyrics,song.russianLyrics).choices})
+  assert.deepEqual(applySongSectionLanguages(project,'song',cachedChoices),applySongSectionLanguages(project,'song',songSectionLanguageChoices(song.lyrics,song.russianLyrics).choices))
+  project=roundTrip(applySongSectionLanguages(project,'song',songSectionLanguageChoices(song.lyrics,song.russianLyrics).choices))
+  let rows=plannerSlides(project)
+  assert.equal(rows.length,5) // title, two verse slides, chorus twice
+  assert.equal(rows[0].cue!.channels.english.blocks[0].text,'Пример')
+  for(const row of rows.slice(1,3))assert.match(row.cue!.channels.russian.blocks[0].text,/English/)
+  for(const row of rows.slice(3))assert.match(row.cue!.channels.english.blocks[0].text,/Русский припев/)
+  assert.equal(JSON.stringify(project.resources),resources)
+  project=JSON.parse(JSON.stringify(project))
+  project.items.song.songPresentation.slidePrimaryChannelIds[rows[4].cue!.sourceLeafKey]='english'
+  rows=plannerSlides(roundTrip(project))
+  assert.match(rows[3].cue!.channels.english.blocks[0].text,/Русский/)
+  assert.match(rows[4].cue!.channels.english.blocks[0].text,/English/)
+  assert.equal(rows[4].cue!.channels.english.blocks.length,2)
 })

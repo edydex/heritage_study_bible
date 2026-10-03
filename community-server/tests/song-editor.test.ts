@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { songDocumentBody, songSectionLanguageChoices, songSourceHeading, songSourceSections } from '../src/lib/songSourceSyntax'
+import { prepareSongSyncFields } from '../src/lib/syncShowSongHooks'
+import { parseSongLyrics } from '../packages/song-text/index.js'
 import { assignSongCommunity } from '../src/lib/songEditor'
 import { songPublicationChange, songPublicationChoice } from '../src/lib/songPublicationChoice'
 import { songMemberSharingEndpoints } from '../src/endpoints/songMemberSharing'
@@ -41,4 +44,29 @@ test('old member-sharing clients receive a clear retirement response without a d
   assert.equal(result.status, 410)
   assert.equal(result.headers.get('cache-control'), 'private, no-store')
   assert.equal((await result.json()).code, 'LEGACY_MEMBER_SHARING_RETIRED')
+})
+
+
+test('asterisks mark only section headings and retain exact text ranges', () => {
+  const lyrics = '*Verse 1a*\nEnglish one\n\nChorus\n*These lyric words stay literal*\n\nChorus\n'
+  const sections = songSourceSections(lyrics)
+  assert.equal(sections.map(section => lyrics.slice(section.start, section.end)).join(''), lyrics)
+  assert.deepEqual(sections.map(({id,primary})=>({id,primary})), [{id:'1',primary:true},{id:'chorus',primary:false},{id:'chorus',primary:false}])
+  assert.deepEqual({...songSectionLanguageChoices(lyrics,'Куплет 1\nРусские слова\n\n*Припев*\nМы поём').choices},{'1':'en',chorus:'ru'})
+  assert.equal(songSourceHeading('*Chorus* x2')?.repeat,2)
+  assert.equal(songSourceHeading('*Припев x2*')?.repeat,2)
+  assert.equal(songSourceHeading('*These lyric words stay literal*'),null)
+  const body=songDocumentBody(lyrics)
+  assert.doesNotMatch(body,/\*Verse/)
+  assert.match(body,/\*These lyric words stay literal\*/)
+  assert.equal((songDocumentBody('*Chorus* x2\nWe sing').match(/\^chorus/g)||[]).length,2)
+  assert.deepEqual(songSectionLanguageChoices('*Chorus*\nEnglish','*Припев*\nРусский').conflicts,['chorus'])
+  assert.deepEqual(parseSongLyrics('*Chorus*\nWe sing\n*literal lyric words*'),[{label:'Chorus',lines:['We sing','*literal lyric words*']}])
+})
+
+test('saving rejects competing primary languages and keeps a single choice in canonical source', async () => {
+  assert.throws(()=>prepareSongSyncFields({operation:'create',data:{title:'Example',lyrics:'*Chorus*\nEnglish',russianLyrics:'*Припев*\nРусский'},context:{}} as never),/Choose one primary language/)
+  const saved=prepareSongSyncFields({operation:'create',data:{title:'Example',lyrics:'*Chorus*\nEnglish',russianLyrics:'Припев\nРусский'},context:{}} as never) as any
+  assert.match(saved.syncDocuments[0].source,/primarySections:/)
+  assert.doesNotMatch(saved.syncDocuments[0].source,/\*Chorus\*/)
 })

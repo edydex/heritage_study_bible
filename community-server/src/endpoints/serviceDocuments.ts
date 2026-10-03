@@ -515,6 +515,7 @@ const songLibraryRead: Endpoint = {
           title: item.title,
           russianTitle: item.russianTitle,
           defaultSongLanguage: item.defaultSongLanguage,
+          sectionPrimaryLanguages: item.sectionPrimaryLanguages,
           projectionStyle: item.projectionStyle,
           rightsStatus: item.rightsStatus,
           visibility: item.visibility,

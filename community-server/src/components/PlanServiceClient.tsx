@@ -10,7 +10,7 @@ import { plannerNavigator } from './plannerNavigator'
 import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
 import songPresentation from '../../packages/service-core/node/services/project/SongPresentation.js'
 import SongAudienceLanguages from './SongAudienceLanguages'
-import { setSongAudienceLanguage } from './plannerSongLanguages'
+import { applySongSectionLanguages, setSongAudienceLanguage, songDocumentSectionLanguages } from './plannerSongLanguages'
 import sermonContext from '../../packages/service-core/node/services/project/SermonContext.js'
 import NumberDraftInput from './NumberDraftInput'
 import { groupSermonSections, withinSermon } from './plannerSermonSections'
@@ -1031,6 +1031,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
         sourceChannelId: singersSourceChannelId,
         now: new Date().toISOString(),
       })
+      project = applySongSectionLanguages(project, itemId, librarySong.sectionPrimaryLanguages || songDocumentSectionLanguages(documents))
       project = appendBlankSlide(project, itemId)
       const unaligned = Boolean((english && !alignedEnglish) || (russian && !alignedRussian))
       acceptCoreProject(
@@ -1491,12 +1492,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
       {!localRecoveryAvailable && dirty ? <p className="heritage-service-planner__error" role="alert">{t("Local recovery storage is full or unavailable. Keep this page open until the server confirms your changes are saved.")}</p> : null}
 
       <header className="heritage-workspace-toolbar">
-        <div className="heritage-workspace-toolbar__title"><strong>{draft?.title || (sermonSyncId ? t('Prepare sermon') : t('Plan service'))}</strong><span>{draft?.serviceDate}</span></div>
-        <div className="heritage-workspace-toolbar__views" role="group" aria-label={t('Workspace view')}>
-          <button type="button" aria-pressed={workspaceView === 'slides'} onClick={() => chooseWorkspaceView('slides')}>{t('Slides')}</button>
-          <button type="button" aria-pressed={workspaceView === 'edit'} disabled={!draft} onClick={() => chooseWorkspaceView('edit')}>{t('Edit')}</button>
-        </div>
-          <div className="heritage-service-planner__toolbar">
+        <div className="heritage-workspace-toolbar__identity">
             <details ref={workspaceMenuRef} className="heritage-service-planner__app-menu" onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() } }}>
               <summary aria-label={t("Workspace menu")} title={t("Workspace menu")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg></summary>
               <nav aria-label={t("Church workspace")}>
@@ -1509,6 +1505,14 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
                 <small>{noticeText}</small>
               </nav>
             </details>
+          <div className="heritage-workspace-toolbar__title"><strong>{draft?.title || (sermonSyncId ? t('Prepare sermon') : t('Plan service'))}</strong><span>{draft?.serviceDate}</span></div>
+        </div>
+        <div className="heritage-workspace-toolbar__views" role="group" aria-label={t('Workspace view')}>
+          <button type="button" aria-pressed={workspaceView === 'slides'} onClick={() => chooseWorkspaceView('slides')}>{t('Slides')}</button>
+          <button type="button" aria-pressed={workspaceView === 'edit'} disabled={!draft} onClick={() => chooseWorkspaceView('edit')}>{t('Edit')}</button>
+        </div>
+          <div className="heritage-service-planner__toolbar">
+            <button type="button" className="heritage-service-planner__service-preview-button" aria-haspopup="dialog" disabled={!draft || !slideList.rows.some(row=>row.cue) || Boolean(slideList.error)} onClick={()=>setServicePreviewOpen(true)}>▦ {sermonSyncId ? t("Sermon preview") : t("Service Preview")}</button>
             <label htmlFor="service-status">{t("Status")}</label>
             <select id="service-status" value={desiredStatus} disabled={!draft || busy} onChange={event => setDesiredStatus(event.target.value as ServiceEnvelope['status'])}>
               <option value="planning">{t("Planning")}</option><option value="ready">{t("Ready")}</option>
@@ -1649,7 +1653,6 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
                 </div>
                 <div className="heritage-service-planner__preview-actions">
                   <button type="button" title={t("Undo (Ctrl+Z / Command+Z)")} aria-keyshortcuts="Control+Z Meta+Z" disabled={!undoStack.length || busy} onClick={undo}>{t("Undo")}</button>
-                  <button type="button" className="heritage-service-planner__service-preview-button" disabled={!slideList.rows.some(row=>row.cue) || Boolean(slideList.error)} onClick={()=>setServicePreviewOpen(true)}>▦ {sermonSyncId ? t("Sermon preview") : t("Service Preview")}</button>
                 </div>
               </header>
               {activePreviewOutput?.fallbackFromChannelId ? <p className="heritage-service-planner__language-warning" role="status">

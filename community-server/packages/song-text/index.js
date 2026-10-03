@@ -6,7 +6,10 @@ export function parseSongLyrics(value, { language = 'en', label = '' } = {}) {
   const text = String(value || '').normalize('NFKC').replace(/\r\n?/g, '\n').trim()
   if (!text) return []
   const russian = language === 'ru'
-  const lines = text.split('\n').map(line => line.trim())
+  const lines = text.split('\n').map(line => {
+    const trimmed = line.trim(), marked = /^\*\s*(.*?)\s*\*$/.exec(trimmed)
+    return marked && (headingPattern.test(marked[1]) || /^\^[\p{L}\d]+$/u.test(marked[1])) ? marked[1] : trimmed
+  })
   const marked = Boolean(label) || lines.some(line => /^\^[\p{L}\d]+$/u.test(line) || headingPattern.test(line))
   const sections = []
   let current = { label, lines: [] }

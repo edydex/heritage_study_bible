@@ -90,19 +90,23 @@ body:has(.heritage-planner-frame) { background: #202226; color: #edf0f4; color-s
   color: #edf0f4;
   background: #292c31;
 }
-.heritage-workspace-toolbar__title { min-width: 0; grid-row: 1 / 3; display: flex; flex-direction: column; gap: .2rem; }
+.heritage-workspace-toolbar__identity { min-width: 0; grid-row: 1 / 3; display: flex; align-items: center; gap: .65rem; }
+.heritage-workspace-toolbar__title { min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
 .heritage-workspace-toolbar__title strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .95rem; }
 .heritage-workspace-toolbar__title span { color: #aeb6c2; font-size: .7rem; }
 .heritage-workspace-toolbar__views { display: flex; padding: .15rem; background: #1c1e22; border: 1px solid #3c4048; border-radius: .35rem; }
 .heritage-workspace-toolbar__views button { padding: .3rem .9rem; min-height: 1.8rem; border: 0; border-radius: .2rem; color: #c6ccd6; background: transparent; font: inherit; font-size: .78rem; cursor: pointer; }
 .heritage-workspace-toolbar__views button[aria-pressed="true"] { background: #3a414c; color: #fff; }
 .heritage-workspace-toolbar__views button:disabled { opacity: .4; cursor: default; }
-.heritage-workspace-toolbar .heritage-service-planner__toolbar { display: flex; padding: 0; border: 0; gap: .45rem; }
+.heritage-workspace-toolbar .heritage-service-planner__toolbar { display: flex; flex-wrap: wrap; padding: 0; border: 0; gap: .45rem; }
+.heritage-workspace-toolbar .heritage-service-planner__service-preview-button { display: inline-flex; align-items: center; width: auto; min-height: 1.9rem; padding: .3rem .7rem; }
 .heritage-workspace-toolbar .heritage-service-planner__toolbar select { width: auto; min-width: 6rem; height: 1.9rem; border: 1px solid #474c55; color: #edf0f4; background: #202226; border-radius: .25rem; }
 .heritage-workspace-toolbar .heritage-service-planner__history-button { width: auto; height: 1.9rem; padding: .2rem .6rem; font-size: .72rem; }
 .heritage-workspace-toolbar > .heritage-service-planner__save-state { grid-column: 2 / 4; margin: 0; text-align: right; color: #b6becb; font-size: .65rem; }
-.heritage-workspace-toolbar .heritage-service-planner__app-menu { position: relative; }
-.heritage-workspace-toolbar .heritage-service-planner__app-menu nav { position: absolute; top: calc(100% + .5rem); left: auto; right: 0; }
+.heritage-workspace-toolbar .heritage-service-planner__app-menu { position: relative; flex-shrink: 0; }
+.heritage-workspace-toolbar .heritage-service-planner__app-menu > summary { min-width: 44px; min-height: 44px; }
+.heritage-workspace-toolbar .heritage-service-planner__app-menu svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.heritage-workspace-toolbar .heritage-service-planner__app-menu nav { position: absolute; top: calc(100% + .5rem); left: 0; right: auto; width: min(17rem,calc(100vw - 2rem)); }
 .heritage-service-planner .heritage-service-planner__shell { grid-template-columns: clamp(13rem,18vw,16rem) minmax(0,1fr); border-radius: .4rem; box-shadow: none; }
 .heritage-service-planner .heritage-service-planner__navigation { padding: .65rem; color: #edf0f4; background: #26282d; }
 .heritage-service-planner .heritage-service-planner__navigation a { color: #92c3fb; }
@@ -153,7 +157,7 @@ body:has(.heritage-planner-frame) { background: #202226; color: #edf0f4; color-s
 .heritage-service-planner button:focus-visible { outline: 2px solid #85bcff; outline-offset: 2px; }
 @media (max-width: 1050px) {
   .heritage-workspace-toolbar { gap: .2rem .5rem; grid-template-columns: minmax(8rem,1fr) auto; }
-  .heritage-workspace-toolbar__title { grid-row: auto; }
+  .heritage-workspace-toolbar__identity { grid-row: auto; }
   .heritage-workspace-toolbar__views { justify-self: end; }
   .heritage-workspace-toolbar .heritage-service-planner__toolbar { grid-column: 1 / 3; justify-content: flex-end; }
   .heritage-workspace-toolbar > .heritage-service-planner__save-state { grid-column: 1 / 3; }

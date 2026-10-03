@@ -1,5 +1,6 @@
-import type { CollectionBeforeValidateHook } from 'payload'
+import { APIError, type CollectionBeforeValidateHook } from 'payload'
 import { randomUUID } from 'node:crypto'
+import { songSectionLanguageChoices } from './songSourceSyntax'
 import {
   mergeLegacyEditsIntoSyncDocuments,
   normalizeSyncDocuments,
@@ -78,6 +79,11 @@ export const prepareSongSyncFields: CollectionBeforeValidateHook = ({
     const candidate = String(next.syncId || next.slug || existing.slug || '')
     next.syncId = ID_PATTERN.test(candidate) ? candidate : randomUUID()
   }
+
+  const lyrics = hasOwn(next,'lyrics') ? next.lyrics : existing.lyrics
+  const russianLyrics = hasOwn(next,'russianLyrics') ? next.russianLyrics : existing.russianLyrics
+  const {conflicts} = songSectionLanguageChoices(lyrics,russianLyrics)
+  if (conflicts.length) throw new APIError(`Choose one primary language for section “${conflicts[0]}”. Remove the asterisks from one language's heading.`, 400, null, true)
 
   const remainsArchived = next.status === 'archived'
     || (!hasOwn(next, 'status') && existing.status === 'archived' && !hasOwn(next, 'visibility'))
