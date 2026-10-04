@@ -340,7 +340,7 @@ function NewService({ onCreated, onCopy }: { onCreated: (value: ServiceEnvelopeI
   )
 }
 
-export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlushReady, sidebarHeader, SongCreator }: { sermonSyncId?: string; onDirtyChange?: (dirty: boolean) => void; onFlushReady?: (flush: (() => Promise<boolean>) | null) => void; sidebarHeader?: ReactNode; SongCreator?: ComponentType<PlannerSongCreatorProps> } = {}) {
+export default function PlanServiceClient({ sermonSyncId, activeServiceId, onDirtyChange, onFlushReady, sidebarHeader, SongCreator }: { sermonSyncId?: string; activeServiceId?: string; onDirtyChange?: (dirty: boolean) => void; onFlushReady?: (flush: (() => Promise<boolean>) | null) => void; sidebarHeader?: ReactNode; SongCreator?: ComponentType<PlannerSongCreatorProps> } = {}) {
   const t = useWorkspaceText()
   const workspaceIdentity = useRef<WorkspaceIdentity>({})
   const [summaries, setSummaries] = useState<ServiceSummary[]>([])
@@ -408,6 +408,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   }, [createdSongId])
   const closePalette = () => { setPaletteOpen(false); addSlideRef.current?.focus() }
   function openPalette() {
+    if (activeServiceId) void loadLibraries()
     setResourceTab(sermonSyncId || (draft && withinSermon(draft,selectedId)) ? 'templates' : 'songs')
     setPaletteOpen(true)
   }
@@ -560,7 +561,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     : []
 
   async function loadList(initial = false) {
-    if (sermonSyncId) return
+    if (sermonSyncId || activeServiceId) return
     setBusy(true)
     setError(null)
     try {
@@ -705,13 +706,14 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   }
 
   useEffect(() => {
-    if (sermonSyncId) {
+    if (activeServiceId) void openService(activeServiceId)
+    else if (sermonSyncId) {
       setBusy(true)
       jsonRequest(`/api/community/sermon-presentations/${encodeURIComponent(sermonSyncId)}`, { method: 'POST' })
         .then(result => useEnvelope(result.serviceDocument))
         .catch(error => setError(errorText(error))).finally(() => setBusy(false))
     } else loadList(true)
-    loadLibraries()
+    if (!activeServiceId) loadLibraries()
   }, [])
 
   useEffect(() => { onDirtyChange?.(dirty || desiredStatus !== envelope?.status) }, [dirty, desiredStatus, envelope?.status, onDirtyChange])
@@ -1442,7 +1444,11 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   async function flushEditor(kind: 'manual' | 'automatic' = 'manual') {
     const focused = document.activeElement
     if (focused instanceof HTMLElement && focused.closest('input,textarea,[contenteditable]')) focused.blur()
-    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+    await new Promise<void>(resolve => {
+      let timer: ReturnType<typeof setTimeout> | undefined
+      const frame=requestAnimationFrame(() => { clearTimeout(timer); resolve() })
+      if(activeServiceId)timer=setTimeout(() => { cancelAnimationFrame(frame); resolve() },50)
+    })
     if (!latestDraft.current) return true
     if (saveConflictRef.current) { await reviewSaveConflict(); return false }
     if (!await saveHandler.current(kind)) return false
@@ -1484,7 +1490,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   }
 
   return (
-    <PresentationAccessibility><section className="heritage-service-planner">
+    <PresentationAccessibility><section className="heritage-service-planner" data-active-service={activeServiceId && envelope?.syncId}>
       {saveConflictOpen && draft && envelope ? <SaveConflictDialog syncId={envelope.syncId} localProject={draft} localStatus={desiredStatus} initialSlideIndex={Math.max(0, (activeSlide?.number || 1) - 1)} initialChannel={previewChannel} language={t.language} request={jsonRequest}
         localMediaUrl={id => mediaPreviews[id] || `${ENDPOINT}/${encodeURIComponent(envelope.syncId)}/history/${envelope.syncVersion}/assets/${encodeURIComponent(id)}`}
         onResolve={resolveSaveConflict} onHistory={() => { setSaveConflictOpen(false); setHistoryOpen(true) }} onClose={() => setSaveConflictOpen(false)} /> : null}
@@ -1501,7 +1507,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
 
       <header className="heritage-workspace-toolbar">
         <div className="heritage-workspace-toolbar__identity">
-            <details ref={workspaceMenuRef} className="heritage-service-planner__app-menu" onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() } }}>
+            {!activeServiceId && <details ref={workspaceMenuRef} className="heritage-service-planner__app-menu" onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus() } }}>
               <summary aria-label={t("Workspace menu")} title={t("Workspace menu")}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg></summary>
               <nav aria-label={t("Church workspace")}>
                 <strong>{t("Church workspace")}</strong>
@@ -1512,7 +1518,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
                 <a href="/admin/logout">{t("Log out")}</a>
                 <small>{noticeText}</small>
               </nav>
-            </details>
+            </details>}
           <div className="heritage-workspace-toolbar__title"><strong>{draft?.title || (sermonSyncId ? t('Prepare sermon') : t('Plan service'))}</strong><span>{draft?.serviceDate}</span></div>
         </div>
         <div className="heritage-workspace-toolbar__views" role="group" aria-label={t('Workspace view')}>
@@ -1537,7 +1543,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
       <div className="heritage-service-planner__shell">
         <aside className="heritage-service-planner__navigation">
           {sidebarHeader}
-          {!sermonSyncId && <>
+          {!sermonSyncId && !activeServiceId && <>
           <div className="heritage-service-planner__service-picker">
             <label>
               <span>{t("Current service")}</span>
