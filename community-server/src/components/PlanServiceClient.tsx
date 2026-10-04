@@ -1444,6 +1444,9 @@ export default function PlanServiceClient({ sermonSyncId, activeServiceId, onDir
   async function flushEditor(kind: 'manual' | 'automatic' = 'manual') {
     const focused = document.activeElement
     if (focused instanceof HTMLElement && focused.closest('input,textarea,[contenteditable]')) focused.blur()
+    // Native Adjust may lose focus as its view hides. Commit pending text
+    // directly rather than relying on a blur event or its typing debounce.
+    if(activeServiceId)document.querySelectorAll('.heritage-service-planner__stage [contenteditable]').forEach(node => node.dispatchEvent(new Event('heritage-editor:commit')))
     await new Promise<void>(resolve => {
       let timer: ReturnType<typeof setTimeout> | undefined
       const frame=requestAnimationFrame(() => { clearTimeout(timer); resolve() })

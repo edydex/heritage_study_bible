@@ -27,6 +27,12 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
   const committed = useRef(JSON.stringify({ text, spans }))
   const commitLatest = useRef<() => void>(() => {})
   useEffect(() => () => { if (commitTimer.current) clearTimeout(commitTimer.current) }, [])
+  useEffect(() => {
+    const node=element.current
+    const save=() => commitLatest.current()
+    node?.addEventListener('heritage-editor:commit',save)
+    return () => node?.removeEventListener('heritage-editor:commit',save)
+  }, [])
   const editStart = useRef({text,spans})
   const painted = useRef(false)
   const [range, setRange] = useState<SelectionRange | null>(null)
