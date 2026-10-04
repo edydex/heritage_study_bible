@@ -571,6 +571,7 @@ export const russianWorkspaceText: Readonly<Record<string, string>> = {
   "Use Heritage shortcuts, or choose the book and verses below.": "Используйте сокращения Heritage или выберите книгу и стихи ниже.",
   "Which book did you mean?": "Какую книгу вы имели в виду?",
   "Enter a book, chapter and verse, for example Joh 3:16 or 1 chr 3 7-10.": "Введите книгу, главу и стих, например Ин 3:16 или 1 chr 3 7-10.",
+  "* Online lookup: an internet connection is required to fetch new passages. Verses already added to a saved service remain available offline.": "* Онлайн-поиск: для загрузки новых отрывков требуется интернет. Стихи, уже добавленные в сохранённое служение, доступны без интернета.",
   "Scripture sources & copyright": "Источники Писания и авторские права",
   "Sermon preparation response is invalid.": "Ответ подготовки проповеди некорректен.",
   "Your Community sign-in expired. Sign in again, then return to Prepare a sermon.": "Сеанс Community истёк. Войдите снова и вернитесь в «Подготовка проповеди».",

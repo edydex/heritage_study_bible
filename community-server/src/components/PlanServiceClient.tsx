@@ -17,6 +17,8 @@ import { groupSermonSections, withinSermon } from './plannerSermonSections'
 import { reflowScripture } from './plannerScriptureReflow'
 import { scriptureTranslationScope, scriptureTranslationRequest, hasScriptureEdits, replaceScriptureTranslation } from './plannerScriptureTranslations'
 import BibleSourceNotice from './BibleSourceNotice'
+import OnlineBibleNotice from './OnlineBibleNotice'
+import { bibleTranslationOptionLabel } from '../lib/bible/OnlineBibleSources'
 import {typographyItemIds} from './plannerTypography'
 import { setReadingTemplate } from './readingTemplates'
 import { appendBlankSlide, readingOwner } from './plannerReadingGroups'
@@ -377,7 +379,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   const [sermonLibrary, setSermonLibrary] = useState<any[]>([])
   const [sermonChoice, setSermonChoice] = useState('')
   const [bibleBooks, setBibleBooks] = useState<BibleBookOption[]>([])
-  const [bibleTranslations, setBibleTranslations] = useState<{ id: string; name: string; language: string }[]>([{ id: 'BSB', name: 'Berean Standard Bible', language: 'en' }, { id: 'SYNO-W', name: 'Russian Synodal Bible', language: 'ru' }])
+  const [bibleTranslations, setBibleTranslations] = useState<{ id: string; name: string; language: string; online?: boolean }[]>([{ id: 'BSB', name: 'Berean Standard Bible', language: 'en' }, { id: 'SYNO-W', name: 'Russian Synodal Bible', language: 'ru' }])
   const [bibleEnglish, setBibleEnglish] = useState('BSB')
   const [bibleRussian, setBibleRussian] = useState('SYNO-W')
   const [bibleBookId, setBibleBookId] = useState('Eph')
@@ -1078,10 +1080,11 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
         <select aria-label={t('Change {channel} Scripture translation', { channel: t(channel === 'english' ? 'English' : 'Russian') })} value={value} onChange={event=>void changeScriptureTranslation(channel,event.target.value)}>
           {!value && <option value="" disabled>{t("Mixed translations")}</option>}
           {value && !bibleTranslations.some(translation=>translation.id===value) && <option value={value}>{value}</option>}
-          {bibleTranslations.map(translation=><option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}
+          {bibleTranslations.map(translation=><option key={translation.id} value={translation.id}>{bibleTranslationOptionLabel(translation)}</option>)}
         </select>
       </label>
     })}
+    <OnlineBibleNotice translations={bibleTranslations} />
     <small>{scriptureScope.itemIds.length > 1 ? t("Changes every page of this passage.") : t("Changes this passage.")}  {t("Other passages stay unchanged.")}</small>
   </fieldset> : null
 
@@ -1844,8 +1847,9 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
             </div>}
             {resourceTab==='scripture'&&<div className="heritage-add-scripture">
               {!sermonPassage && <label>{t("Reading title template")}<select aria-label={t("Reading title template")} value={readingTemplate} onChange={event=>setReadingTemplateChoice(event.target.value)}><option value="centered">{t("Centered reading title")}</option><option value="pre-sermon">{t("Pre-sermon · passage and service topic")}</option></select></label>}
-              <label><span>{t("English screen translation")}</span><select aria-label={t("English screen translation")} value={bibleEnglish} onChange={event => setBibleEnglish(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
-              <label><span>{t("Russian / stage screen translation")}</span><select aria-label={t("Russian / stage screen translation")} value={bibleRussian} onChange={event => setBibleRussian(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{translation.id} · {translation.name}</option>)}</select></label>
+              <label><span>{t("English screen translation")}</span><select aria-label={t("English screen translation")} value={bibleEnglish} onChange={event => setBibleEnglish(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{bibleTranslationOptionLabel(translation)}</option>)}</select></label>
+              <label><span>{t("Russian / stage screen translation")}</span><select aria-label={t("Russian / stage screen translation")} value={bibleRussian} onChange={event => setBibleRussian(event.target.value)}>{bibleTranslations.map(translation => <option key={translation.id} value={translation.id}>{bibleTranslationOptionLabel(translation)}</option>)}</select></label>
+              <OnlineBibleNotice translations={bibleTranslations} />
               <BibleSourceNotice translationIds={[bibleEnglish,bibleRussian]} />
               <PassageReferenceInput key={referenceKey} books={bibleBooks} singleChapter allowVerseList onValidityChange={setReferenceValid} onResolve={passage => { setBibleBookId(passage.bookId); setBibleChapter(passage.startChapter); setBibleStartVerse(passage.startVerse); setBibleEndVerse(passage.endVerse); setBibleVerseNumbers(passage.verseNumbers) }} />
               <details className="heritage-passage-manual"><summary>{t("Choose book and verses")}</summary><div>
