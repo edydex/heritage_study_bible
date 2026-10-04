@@ -65,6 +65,7 @@ function materialize(project: Project, itemIds: Set<string>, fresh: (prefix: str
       delete item.sourceRangeReplacement
       if (item.kind === 'song') {
         const isTitle = original.showTitle !== false && row.index === 0
+        item.cueItemId = original.cueItemId || itemId
         item.showTitle = isTitle
         item.arrangement = isTitle ? [] : [expanded.arrangement[row.index - (original.showTitle === false ? 0 : 1)]]
       } else item.slides = [expanded.slides[row.index]]

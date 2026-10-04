@@ -65,10 +65,42 @@ test('move and delete operate on one lyric slide and preserve both translations'
   const rows = plannerSlides(project)
   const moved = movePlannerSlide(project, rows[1], rows[3], true)
   const afterMove = plannerSlides(reopen(moved))
+  assert.deepEqual(afterMove.map(row=>row.id),[rows[0],rows[2],rows[3],rows[1],rows[4],rows[5]].map(row=>row.id),'Moving one lyric page must retain every existing cue identity')
   assert.deepEqual(afterMove.slice(1, 5).map(row => row.title), ['Second slide', 'Chorus line', 'First line', 'Chorus line'])
   const deleted = deletePlannerSlide(moved, afterMove[2])
+  assert.deepEqual(plannerSlides(reopen(deleted)).map(row=>row.id),afterMove.filter((_,index)=>index!==2).map(row=>row.id),'Deleting one lyric page must retain every surviving cue identity')
   assert.deepEqual(plannerSlides(reopen(deleted)).slice(1, 4).map(row => row.title), ['Second slide', 'First line', 'Chorus line'])
   assert.equal(plannerSlides(project).length, 6)
+})
+
+test('moving and deleting other lyric pages preserve a corrected bilingual live cue and its settings',()=>{
+ let project=fixture().project
+ const liveKey=plannerSlides(project)[3].cue!.sourceLeafKey
+ project=JSON.parse(JSON.stringify(project))
+ project.items.song.songPresentation={stackedTranslation:true,primaryChannelId:'english',secondaryChannelId:'russian',credits:'Keep the credits',audienceLanguage:'both',slidePrimaryChannelIds:{[liveKey]:'russian'}}
+ project.items.song.textStyle={bodySize:48,bodyAlign:'center'}
+ const settings={sourceLanguage:'ru',targetLanguage:'en',voice:'marin',speechEnabled:true,captionStyle:'ticker',captionChannel:'english'}
+ project=setSlideTranslationCue(project,plannerSlides(project)[3],'start',settings)
+ project=editPlannerSlide(project,plannerSlides(project)[3],'english',0,'Исправленный припев')
+ const before=plannerSlides(project),live=before[3],pins=project.resources
+ const moved=movePlannerSlide(project,before[1],before[4],true)
+ const rows=plannerSlides(reopen(moved))
+ assert.deepEqual(new Set(rows.map(row=>row.id)),new Set(before.map(row=>row.id)))
+ const removed=rows.find(row=>row.id===before[2].id)!
+ const edited=reopen(deletePlannerSlide(moved,removed)),after=plannerSlides(edited)
+ assert.deepEqual(new Set(after.map(row=>row.id)),new Set(before.filter(row=>row.id!==removed.id).map(row=>row.id)))
+ const current=after.find(row=>row.id===live.id)!
+ assert.ok(current,'The displayed lyric cue remains available to Next and retake')
+ assert.equal(current.cue!.sourceLeafKey,liveKey)
+ assert.equal(current.cue!.channels.english.blocks[0].text,'Исправленный припев')
+ assert.equal(current.cue!.channels.english.blocks[1].text,'Chorus line')
+ assert.equal(current.cue!.channels.english.blocks[1].spans[0].foreground,'#ffc000')
+ assert.deepEqual(current.cue!.translationSettings,settings)
+ assert.equal(current.cue!.translationAction,'start')
+ assert.equal(edited.items.song.songPresentation.slidePrimaryChannelIds[liveKey],'russian')
+ assert.equal(edited.items.song.songPresentation.credits,'Keep the credits')
+ assert.deepEqual(edited.items.song.textStyle,project.items.song.textStyle)
+ for(const [id,resource] of Object.entries(pins))assert.deepEqual(edited.resources[id],resource)
 })
 
 test('normal slides and whole songs reorder at the service level', () => {
