@@ -425,6 +425,7 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
   const [workspaceView, setWorkspaceView] = useState<'slides' | 'edit'>('slides')
   const [showDocumentId, setShowDocumentId] = useState<string | null>(null)
   const showDocumentRef = useRef<string | null>(null)
+  const liveCueRef = useRef<string | null>(null)
   const [liveCueId, setLiveCueId] = useState<string | null>(null)
   const [showTakeError, setShowTakeError] = useState<string | null>(null)
   useEffect(() => {
@@ -439,11 +440,13 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
         return
       }
       if (event.data?.type !== 'heritage-editor:show-mode') return
-      if (event.data.enabled === false) {showDocumentRef.current=null;setShowDocumentId(null);setLiveCueId(null);setShowTakeError(null)}
+      if (event.data.enabled === false) {liveCueRef.current=null;showDocumentRef.current=null;setShowDocumentId(null);setLiveCueId(null);setShowTakeError(null)}
       else if (event.data.enabled === true && typeof event.data.syncId === 'string' && event.data.syncId.length <= 200) {
         const firstActivation=showDocumentRef.current!==event.data.syncId
         showDocumentRef.current=event.data.syncId;setShowDocumentId(event.data.syncId)
-        setLiveCueId(typeof event.data.currentCueId === 'string' ? event.data.currentCueId : null)
+        liveCueRef.current=typeof event.data.currentCueId === 'string' ? event.data.currentCueId : null
+        setLiveCueId(liveCueRef.current)
+        if(firstActivation) {setWorkspaceView('edit');setPaletteOpen(false);setPreviewChannel(channel => channel === 'media' ? 'russian' : channel)}
         if (typeof event.data.currentCueId === 'string') {
           const currentDraft=latestDraft.current
           if(firstActivation && currentDraft && currentDraft.id===event.data.syncId) {
@@ -639,8 +642,10 @@ export default function PlanServiceClient({ sermonSyncId, onDirtyChange, onFlush
     setDraft(opened)
     try { if (!sermonSyncId) rememberWorkspaceService(localStorage,workspaceIdentity.current,normalized.syncId) } catch { /* Browser storage can be disabled. */ }
     const retained = keepSelection && selectedId && prepared.project.items[selectedId]
-    setSelectedId(retained ? selectedId : plannerSlides(prepared.project).find(row => row.cue)?.itemId || null)
-    setPreviewSlideIndex(retained ? previewSlideIndex : 0)
+    const liveRow = showDocumentRef.current === next.syncId && liveCueRef.current
+      ? plannerSlides(opened).find(row => row.id === liveCueRef.current) : null
+    setSelectedId(liveRow?.itemId || (retained ? selectedId : plannerSlides(prepared.project).find(row => row.cue)?.itemId || null))
+    setPreviewSlideIndex(liveRow?.index ?? (retained ? previewSlideIndex : 0))
     setUndoStack([])
     setMenu(null)
     setSelectedRowIds([])

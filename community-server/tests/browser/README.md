@@ -28,3 +28,9 @@ The canvas and service-reference rehearsals follow the default Slides overview, 
 For the Bible/song/media reference rehearsal in both Chromium and Firefox, run `CANVAS_TEST_ORIGIN=http://127.0.0.1:4199 node --import tsx tests/browser/verify-service-reference.mjs` from `community-server`. `SERVICE_REFERENCE_EVIDENCE` optionally overrides its screenshots and canonical saved-source output.
 
 For the real built Payload sign-in page, run `WORKSPACE_LOGIN_TEST_ORIGIN=http://127.0.0.1:4280 node tests/browser/verify-workspace-login.mjs` from `community-server` after starting an isolated Community server. This read-only check verifies anonymous provider hydration, English/Russian invitation and password recovery guidance, separate reader sign-in, and the actual login form. It never submits credentials. The HTTP production-stack check separately verifies a successful, nonredirecting page with a client bootstrap.
+
+### Adjust rehearsal
+
+The disposable sample editor simulates the native Show-mode message bridge and takes without connecting to Community or an output display. Build with `npx vite build --config community-server/tests/browser/adjust-rehearsal.vite.mjs`, then preview with the same config and open `/community-server/tests/browser/adjust-rehearsal.html` on localhost port 4297.
+
+Select Stage-Facing Screen, then Open Adjust on live slide. The editor should switch to Russian and Edit, selecting slide 7 even when the service-open and mode messages arrive together. Change its text, then Save: the Live output sample stays unchanged and the take count remains zero. In Slides, double-click another tile: it opens Edit without a take. Click the edited tile once: the sample output changes and the take count increments once. This verifies editor interaction; the SyncShow Electron rehearsal separately checks real native rendering and output acknowledgements.

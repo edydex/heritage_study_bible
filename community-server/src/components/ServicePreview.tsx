@@ -17,6 +17,9 @@ export default function ServicePreview({project,rows,initialSlideId,initialChann
   const [size,setSize]=useState(200)
   const dialog=useRef<HTMLDialogElement>(null)
   const grid=useRef<HTMLDivElement>(null)
+  const pendingTake=useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(()=>()=>{if(pendingTake.current)clearTimeout(pendingTake.current)},[])
+  function edit(row:PlannerSlide) {if(pendingTake.current)clearTimeout(pendingTake.current);pendingTake.current=null;onClose(row)}
   const active=slides.find(row=>row.id===(inline ? initialSlideId : selectedId)) || slides[0]
   const outputChannel=inline ? initialChannel : channel
   const index=slides.indexOf(active)
@@ -48,7 +51,13 @@ export default function ServicePreview({project,rows,initialSlideId,initialChann
         </div>
         <div ref={grid} tabIndex={0} aria-label={t("Slide tiles")} className="heritage-service-preview__grid" style={{'--preview-tile-size':`${size}px`} as React.CSSProperties}>
           {rows.map(row=><Fragment key={row.id}>{!row.cue || isSongTitleSlide(row) || row.sermonTitle || row.readingTitle ? <h3 className="heritage-service-preview__section" data-kind={row.kind}>{row.title}</h3> : null}{row.cue ? <button type="button" data-preview-tile={row.id} data-live={showMode && liveCueId===row.id || undefined} aria-label={t('Preview slide {number}: {title}', { number: row.number || 0, title: row.title })} aria-pressed={active?.id===row.id}
-            onClick={()=>choose(row)} onDoubleClick={()=>onClose(row)} onContextMenu={event=>{if(onSlideMenu){event.preventDefault();onSlideMenu(row,event.clientX,event.clientY)}}}
+            onClick={event=>{
+              if(pendingTake.current)clearTimeout(pendingTake.current)
+              if(showMode && event.detail > 0) {
+                // A double-click means edit, and must not first project the slide.
+                if(event.detail===1)pendingTake.current=setTimeout(()=>{pendingTake.current=null;choose(row)},300)
+              } else choose(row)
+            }} onDoubleClick={()=>edit(row)} onContextMenu={event=>{if(onSlideMenu){event.preventDefault();onSlideMenu(row,event.clientX,event.clientY)}}}
             onKeyDown={event=>{if(onSlideMenu && (event.key==='ContextMenu' || (event.shiftKey && event.key==='F10'))){event.preventDefault();const bounds=event.currentTarget.getBoundingClientRect();onSlideMenu(row,bounds.left,bounds.bottom)}}}>
             <div className="heritage-service-preview__thumbnail" aria-hidden="true"><ServiceSlidePreview project={project} rows={rows} slide={row} channelId={outputChannel} mediaUrl={mediaUrl} /></div>
             <span className="heritage-service-preview__tile-caption"><b>{row.number}</b><span>{row.title}</span>{showMode && liveCueId===row.id ? <small className="heritage-slide-overview__live-badge">{t('On screen')}</small> : row.kind==='blank'?<small>{t("Blank")}</small>:row.cue?.channels?.[outputChannel]?.mode==='hide'?<small>{t("Hidden")}</small>:null}</span>
@@ -61,7 +70,7 @@ export default function ServicePreview({project,rows,initialSlideId,initialChann
         <div className="heritage-service-preview__cue" aria-live="polite"><strong>{t("Slide")} {active?.number || 0} <small>/ {slides.length}</small></strong><h3>{active?.title || t("No slide selected")}</h3><p>{t("Next:")} {next?.title || t("End of service")}</p></div>
         <nav aria-label={t("Preview navigation")}><button type="button" disabled={index<=0} onClick={()=>move(-1)}>{t("← Previous")}</button><button type="button" disabled={!next} onClick={()=>move(1)}>{t("Next →")}</button></nav>
         <p className="heritage-service-preview__hint">{t("← / → or Space to navigate.")}<br />{t("Double-click a tile to edit it.")}</p>
-        {inline ? <button className="heritage-slide-overview__edit" type="button" disabled={!active} onClick={()=>onClose(active)}>{t("Edit slide")}</button> : null}
+        {inline ? <button className="heritage-slide-overview__edit" type="button" disabled={!active} onClick={()=>{if(active)edit(active)}}>{t("Edit slide")}</button> : null}
         {active ? <div className="heritage-service-preview__outputs" aria-label={t("Selected output previews")}>
           {(inline ? [outputChannel] : CHANNELS).map(id=><section key={id} aria-label={t('{label} output', { label: label(id) })}><h3>{label(id)}</h3><div className="heritage-service-preview__output-frame" lang={id === 'russian' ? 'ru' : id === 'english' ? 'en' : project.channels[id]?.language || t.language}><ServiceSlidePreview project={project} rows={rows} slide={active} channelId={id} mediaUrl={mediaUrl} playVideo={id===outputChannel} /></div></section>)}
         </div> : null}
