@@ -114,6 +114,48 @@ function contentChannel(item: RecordValue, channelId: string): string {
   return variant.mode === 'content' ? channelId : contentChannel(item, variant.from)
 }
 
+function songOccurrence(project: RecordValue, itemId: string, lyricIndex: number) {
+  const item = project.items[itemId]
+  const primaryId = item.primaryChannelId || Object.keys(item.variants).find(id => item.variants[id].mode === 'content')
+  const document = project.resources[item.variants[primaryId].resourceId].document
+  let remaining = lyricIndex
+  for (const [entryIndex, entry] of item.arrangement.entries()) {
+    const section = document.sections.find((value: RecordValue) => value.id === entry.sectionId)
+    if (remaining >= 0 && remaining < section.slides.length) return { entryIndex, slideIndex: remaining }
+    remaining -= section.slides.length
+  }
+  throw new Error('This lyric slide is no longer in the song.')
+}
+
+/** A correction retains every live cue. Only a reused section needs a private
+ * occurrence; its arrangement identity stays fixed while the content is cloned. */
+function editableSongOccurrence(project: RecordValue, itemId: string, lyricIndex: number) {
+  const { entryIndex } = songOccurrence(project, itemId, lyricIndex)
+  const item = project.items[itemId], entry = item.arrangement[entryIndex]
+  if (item.arrangement.filter((value: RecordValue) => value.sectionId === entry.sectionId).length < 2) return project
+  const sectionIds = new Set<string>()
+  for (const variant of Object.values(item.variants) as RecordValue[]) {
+    if (variant.mode === 'content') {
+      for (const section of project.resources[variant.resourceId].document.sections) sectionIds.add(section.id)
+    }
+  }
+  let suffix = entryIndex + 1, sectionId = `local-occurrence-${suffix}`
+  while (sectionIds.has(sectionId)) sectionId = `local-occurrence-${++suffix}`
+  let next = copy(project)
+  for (const [channelId, variant] of Object.entries(item.variants) as [string, RecordValue][]) {
+    if (variant.mode !== 'content') continue
+    const original = project.resources[variant.resourceId], document = copy(original.document)
+    const section = document.sections.find((value: RecordValue) => value.id === entry.sectionId)
+    document.sections.push({ ...copy(section), id: sectionId, marker: sectionId })
+    const added = (serviceCore.addSongResource as any)(next, document, { provider: 'local', itemId, revision: original.sha256 })
+    next = copy(added.project)
+    next.items[itemId].variants[channelId].resourceId = added.resourceId
+  }
+  next.items[itemId].arrangement[entryIndex] = { ...entry, sectionId, cueSectionId: entry.cueSectionId || entry.sectionId }
+  delete next.items[itemId].sourceRangeReplacement
+  return copy(serviceCore.normalizeServiceProject(next))
+}
+
 /** Copy-on-write: expand occurrences to single-slide sections in service-local
  * resources. Repeated choruses and other uses of the library song stay intact. */
 export function editableSong(project: RecordValue, itemId: string) {
@@ -196,7 +238,7 @@ export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, chan
     }
     const titleSlide = isSongTitleSlide(slide)
     const lyricIndex = slide.index - (item.showTitle === false ? 0 : 1)
-    if (!titleSlide) next = editableSong(next, item.id)
+    if (!titleSlide) next = editableSongOccurrence(next, item.id, lyricIndex)
     item = next.items[slide.itemId]
     let sourceChannel = contentChannel(item, channelId)
     if (item.songPresentation && !titleSlide) {
@@ -214,7 +256,11 @@ export function editPlannerSlide(project: RecordValue, slide: PlannerSlide, chan
     const original = next.resources[item.variants[sourceChannel].resourceId]
     const document = copy(original.document)
     if (titleSlide) document.title = text
-    else document.sections[lyricIndex].slides[0].lines = text.split('\n')
+    else {
+      const { entryIndex, slideIndex } = songOccurrence(next, item.id, lyricIndex)
+      document.sections.find((section: RecordValue) => section.id === item.arrangement[entryIndex].sectionId).slides[slideIndex].lines = text.split('\n')
+      delete item.sourceRangeReplacement
+    }
     const added = (serviceCore.addSongResource as any)(next, document, { provider: 'local', itemId: item.id, revision: original.sha256 })
     next = copy(added.project)
     next.items[item.id].variants[sourceChannel].resourceId = added.resourceId
