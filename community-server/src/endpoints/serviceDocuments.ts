@@ -12,6 +12,7 @@ import {
 } from 'payload'
 import serviceCore from '../../packages/service-core/node.js'
 import { getConfiguredCommunityId } from '@/lib/configuredCommunity'
+import { workspaceLanguage } from '@/lib/workspaceLanguage'
 import {
   serializeSongForSync,
   legacyFieldsFromSyncDocuments,
@@ -62,7 +63,7 @@ function relationId(value: unknown) {
   return Number.isSafeInteger(id) && id > 0 ? id : 0
 }
 
-function responseHeaders(req: PayloadRequest, extra: HeadersInit = {}) {
+export function responseHeaders(req: PayloadRequest, extra: HeadersInit = {}) {
   const headers = headersWithCors({ headers: new Headers(extra), req })
   headers.set('Cache-Control', 'private, no-store')
   headers.set('Vary', 'Authorization, Cookie')
@@ -140,7 +141,11 @@ export async function managerContext(
         ? SYNCSHOW_SERVICE_DOCUMENT_WRITE_SCOPE
         : SYNCSHOW_SERVICE_DOCUMENT_READ_SCOPE,
     )
-    return { communityId: authorized.communityId }
+    return {
+      communityId: authorized.communityId,
+      userId: authorized.userId,
+      workspaceLanguageSource: 'device' as const,
+    }
   }
   const current = req.user || (await req.payload.auth({ headers: req.headers })).user
   const userId = relationId(current)
@@ -173,7 +178,12 @@ export async function managerContext(
       403,
     )
   }
-  return { communityId }
+  return {
+    communityId,
+    userId,
+    workspaceLanguageSource: 'account' as const,
+    workspaceLanguage: workspaceLanguage(current?.preferredLanguage),
+  }
 }
 
 function exactKeys(value: RequestDoc, keys: string[]) {
@@ -192,7 +202,10 @@ function identifier(value: unknown, label: string) {
 }
 
 export function managerWrite(data: RequestDoc, routeId: string | null = null) {
-  if (!exactKeys(data, [
+  const saveKind = data.saveKind
+  if (saveKind !== undefined && !['automatic', 'manual', 'restore'].includes(String(saveKind))) throw new ServiceDocumentEditorError('INVALID_SAVE_KIND', 'Choose a valid save type.', 400)
+  const coreData = { ...data }; delete coreData.saveKind
+  if (!exactKeys(coreData, [
     'schemaVersion',
     'requestId',
     'syncId',
@@ -303,7 +316,20 @@ const list: Endpoint = {
   method: 'get',
   handler: async req => {
     try {
-      const { communityId } = await managerContext(req)
+      const context = await managerContext(req)
+      const { communityId } = context
+      // Device approval belongs to one manager. Only their menu language crosses
+      // this boundary, after the device scope and current membership are checked.
+      const language = context.workspaceLanguageSource === 'device'
+        ? workspaceLanguage((await req.payload.findByID({
+          collection: 'users',
+          id: context.userId,
+          depth: 0,
+          overrideAccess: true,
+          req,
+          select: { preferredLanguage: true },
+        })).preferredLanguage)
+        : context.workspaceLanguage
       const found = await req.payload.find({
         collection: 'service-documents' as never,
         depth: 0,
@@ -316,6 +342,10 @@ const list: Endpoint = {
       })
       return json(req, {
         schemaVersion: 1,
+        workspaceLanguage: language,
+        workspaceLanguageSource: context.workspaceLanguageSource,
+        workspaceUserId: context.userId,
+        workspaceCommunityId: communityId,
         items: found.docs.map(value => serviceDocumentSummary(value as RequestDoc)),
       })
     } catch (error) {
@@ -380,12 +410,16 @@ const update: Endpoint = {
     try {
       const { communityId } = await managerContext(req, 'write')
       const syncId = identifier(req.routeParams?.syncId, 'Service identity')
-      const mutation = managerWrite(await boundedJson(req), syncId)
+      const input = await boundedJson(req)
+      const mutation = managerWrite(input, syncId)
+      const actor = req.user || (await req.payload.auth({ headers: req.headers })).user
+      const savedBy = (req.headers.get('authorization') || '').startsWith('SyncShow ') ? 'SyncShow' : String(actor?.displayName || 'Church manager').slice(0, 200)
       const result = await mutateServiceDocument(
         req,
         communityId,
         mutation.write,
         mutation.idempotencyKey,
+        { editorSave: { saveKind: (input.saveKind || 'manual') as 'automatic' | 'manual' | 'restore', savedBy } },
       )
       return json(req, {
         schemaVersion: 1,
@@ -481,6 +515,7 @@ const songLibraryRead: Endpoint = {
           title: item.title,
           russianTitle: item.russianTitle,
           defaultSongLanguage: item.defaultSongLanguage,
+          sectionPrimaryLanguages: item.sectionPrimaryLanguages,
           projectionStyle: item.projectionStyle,
           rightsStatus: item.rightsStatus,
           visibility: item.visibility,

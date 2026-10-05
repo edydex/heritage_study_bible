@@ -315,26 +315,26 @@ test('Community dashboard routes service planning through the visual shared edit
     new URL('../src/app/(payload)/custom.scss', import.meta.url),
     'utf8',
   )
-  assert.match(welcome, /href: '\/admin\/plan-service'/)
+  assert.match(welcome, /href="\/admin\/plan-service"/)
   assert.match(dashboard, /heritage-admin-workspace/)
   assert.doesNotMatch(dashboard, /DefaultTemplate/)
-  assert.match(planner, /aria-label="Preview output"/)
+  assert.match(planner, /aria-label=\{t\("Preview output"\)\}/)
   assert.match(planner, /Add song to service/)
   assert.match(planner, /Add reading/)
   assert.match(planner, /Open sermon publication review/)
   assert.match(planner, /role="tab".*Songs.*Media.*Scripture/s)
   assert.match(planner, /mode: 'derive-next-text'/)
   assert.match(planner, /channelId: 'media'/)
-  assert.match(planner, /Slide \$\{activeSlide.number\}/)
+  assert.match(planner, /t\("Slide \{number\}", \{ number: activeSlide.number \}\)/)
   const slideText = readFileSync(new URL('../src/components/SlideText.tsx', import.meta.url), 'utf8')
   assert.match(planner, /import SlideText from '\.\/SlideText'/)
   assert.match(slideText, /contentEditable=\{readOnly \? false : 'plaintext-only'\}/)
-  assert.match(slideText, /aria-label="Selected text formatting"/)
-  assert.match(planner, /aria-label="Workspace menu"/)
-  assert.match(planner, /aria-label=\{sermonSyncId \? 'Save sermon slides' : 'Save service'\}/)
+  assert.match(slideText, /aria-label=\{t\("Selected text formatting"\)\}/)
+  assert.match(planner, /aria-label=\{t\("Workspace menu"\)\}/)
+  assert.match(planner, /aria-label=\{sermonSyncId \? t\("Save sermon slides"\) : t\("Save service"\)\}/)
   assert.match(planner, /dateTime=\{draft\?\.serviceDate\}/)
   assert.doesNotMatch(planner, /__heading|__save-actions|__notice/)
-  assert.match(planner, /slideList\.rows\.map/)
+  assert.match(planner, /navigatorRows\.map/)
   assert.match(planner, /onDragStart/)
   assert.match(planner, /onDrop/)
   assert.match(planner, /onContextMenu/)
@@ -348,12 +348,11 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.match(planner, /bibleBookInput\.current\?\.value/)
   assert.match(planner, /bibleChapterInput\.current\?\.value/)
   assert.match(planner, /insertionPoint\(draft, selectedId\)/)
-  assert.match(planner, /aria-label="Add slides"/)
-  assert.match(planner, /aria-label="More slide types"/)
+  assert.match(planner, /aria-label=\{t\("Add slides"\)\}/)
+  assert.match(planner, /className="heritage-add-slide"/)
   assert.doesNotMatch(planner, />\+ (Section|Slide|Sermon|Blank)</)
   assert.doesNotMatch(planner, /__inspector/)
-  assert.match(planner, /This service changed somewhere else/)
-  assert.match(adminStyles, /\.heritage-admin-workspace\s*\{[^}]*place-items:\s*center/s)
+  assert.match(planner, /This document changed elsewhere/)
   assert.match(adminStyles, /\.heritage-service-planner\s*\{[^}]*height:\s*calc\(100svh - var\(--app-header-height\)\)[^}]*overflow:\s*hidden/s)
   assert.match(adminStyles, /grid-template-rows:\s*minmax\(0, 1fr\) auto/)
   assert.match(adminStyles, /border-bottom:\s*1px dotted var\(--theme-elevation-200\)/)
@@ -403,6 +402,9 @@ test('SyncShow can download exact image and video assets from a service revision
 test('approved SyncShow planner requests enforce read and write scopes', async () => {
   const token = 'planner-device-token-that-is-long-enough'
   let scopes = ['syncshow:service-documents:read']
+  let membershipActive = true
+  let preferredLanguage: unknown = 'ru'
+  let profileReads = 0
   const payload = {
     config: { cors: '*' },
     logger: { error: () => undefined },
@@ -422,15 +424,25 @@ test('approved SyncShow planner requests enforce read and write scopes', async (
         }
       }
       if (collection === 'memberships') {
-        return { docs: [{ id: 51, community: 7, user: 9, role: 'leader' }] }
+        return { docs: membershipActive ? [{ id: 51, community: 7, user: 9, role: 'leader' }] : [] }
       }
       if (collection === 'service-documents') return { docs: [] }
       throw new Error(`Unexpected collection: ${collection}`)
+    },
+    findByID: async (options: AnyRecord) => {
+      profileReads++
+      assert.equal(options.collection, 'users')
+      assert.equal(options.id, 9, 'Language follows the device approval owner, not a browser cookie')
+      assert.equal(options.depth, 0)
+      assert.deepEqual(options.select, { preferredLanguage: true })
+      // Even an adapter returning extra fields must never expose those fields.
+      return { id: 9, preferredLanguage, email: 'private@example.test', systemRole: 'superadmin', tokenHash: 'private' }
     },
   }
   const request = () => ({
     headers: new Headers({ Authorization: `SyncShow ${token}` }),
     payload,
+    user: { id: 22, preferredLanguage: 'en' },
     url: 'https://community.example.test/api/community/service-documents',
   })
   const list = managerServiceDocumentEndpoints.find(endpoint => (
@@ -444,7 +456,24 @@ test('approved SyncShow planner requests enforce read and write scopes', async (
 
   const readable = await list(request() as never)
   assert.equal(readable.status, 200)
-  assert.deepEqual(await readable.json(), { schemaVersion: 1, items: [] })
+  assert.deepEqual(await readable.json(), {
+    schemaVersion: 1, items: [], workspaceLanguage: 'ru', workspaceLanguageSource: 'device', workspaceUserId: 9, workspaceCommunityId: 7,
+  })
+  assert.equal(profileReads, 1)
+
+  scopes = []
+  const deniedRead = await list(request() as never)
+  assert.equal(deniedRead.status, 401)
+  assert.equal(profileReads, 1, 'An unauthorized connection cannot look up a profile')
+  scopes = ['syncshow:service-documents:read']
+  membershipActive = false
+  const removedManager = await list(request() as never)
+  assert.equal(removedManager.status, 403)
+  assert.equal(profileReads, 1, 'Removed membership cannot look up a profile')
+  membershipActive = true
+  preferredLanguage = 'unsupported'
+  const fallback = await list(request() as never)
+  assert.equal((await fallback.json() as AnyRecord).workspaceLanguage, 'en')
 
   const deniedWrite = await create(request() as never)
   assert.equal(deniedWrite.status, 401)
@@ -460,6 +489,35 @@ test('approved SyncShow planner requests enforce read and write scopes', async (
     (await writeReachedBodyValidation.json() as AnyRecord).code,
     'INVALID_REQUEST',
   )
+})
+
+test('cookie-authenticated service lists mark the account language without reading another profile', async () => {
+  const payload = {
+    config: { cors: '*' },
+    logger: { error: () => undefined },
+    find: async ({ collection, where }: AnyRecord) => {
+      if (collection === 'communities') return { docs: [{ id: 7 }] }
+      if (collection === 'memberships') {
+        assert.equal(where.and[0].user.equals, 22)
+        assert.equal(where.and[1].community.equals, 7)
+        return { docs: [{ id: 52, community: 7, user: 22, role: 'leader' }] }
+      }
+      if (collection === 'service-documents') return { docs: [] }
+      throw new Error(`Unexpected collection: ${collection}`)
+    },
+    findByID: async () => { throw new Error('Account language comes from the authenticated account') },
+  }
+  const list = managerServiceDocumentEndpoints.find(endpoint => (
+    endpoint.path === '/community/service-documents' && endpoint.method === 'get'
+  ))!.handler
+  const response = await list({
+    headers: new Headers(), payload, user: { id: 22, preferredLanguage: 'ru' },
+    url: 'https://community.example.test/api/community/service-documents',
+  } as never)
+  assert.equal(response.status, 200)
+  assert.deepEqual(await response.json(), {
+    schemaVersion: 1, items: [], workspaceLanguage: 'ru', workspaceLanguageSource: 'account', workspaceUserId: 22, workspaceCommunityId: 7,
+  })
 })
 
 test('service-document change locks have their required Payload relation column', () => {

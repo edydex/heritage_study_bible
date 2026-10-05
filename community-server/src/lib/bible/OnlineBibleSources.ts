@@ -12,3 +12,8 @@ export const ONLINE_BIBLES = [
 ] as const
 
 export const onlineBibleSource = (id: string) => ONLINE_BIBLES.find(source => source.id === id)
+
+// Display markers belong to controls, never stored IDs or projected attribution.
+export function bibleTranslationOptionLabel(translation: { id: string; name: string; online?: boolean }) {
+  return `${translation.id}${translation.online === true ? '*' : ''} · ${translation.name}`
+}

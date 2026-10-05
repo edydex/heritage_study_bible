@@ -57,6 +57,9 @@ test('duplicate one ordinary slide preserves styling and inserts directly after 
 test('duplicating repeated lyrics creates one independent bilingual slide without an extra title', () => {
   const project=fixture(), snapshot=JSON.stringify(project), before=visible(project)
   const result=action(project,[4],'duplicate'), after=reopen(result.project)
+  const originalIds=slides(project).map(row=>row.id),afterIds=slides(after).map(row=>row.id)
+  assert.deepEqual(afterIds.filter(id=>originalIds.includes(id)),originalIds,'Materializing the song for a copy preserves every original cue')
+  assert.ok(!originalIds.includes(afterIds[4]),'The copied lyric receives an independent live cue')
   assert.deepEqual(visible(after),[...before.slice(0,4),before[3],...before.slice(4)])
   const copied=slides(after)[4]
   assert.equal(isSongTitleSlide(copied),false)
@@ -75,6 +78,7 @@ test('title duplication/deletion affects only the numbered title slide, not the 
   assert.deepEqual(visible(reopen(duplicated)),[before[0],...before])
   assert.ok(isSongTitleSlide(slides(duplicated)[1]))
   const deleted=action(project,[1],'delete').project
+  assert.deepEqual(slides(reopen(deleted)).map(row=>row.id),slides(project).slice(1).map(row=>row.id))
   assert.deepEqual(visible(reopen(deleted)),before.slice(1))
   assert.ok(!isSongTitleSlide(slides(deleted)[0]))
 })
@@ -95,8 +99,35 @@ test('move into a song, then move across its former boundary without changing ou
   const moved=action(project,[7],'move',3).project
   assert.deepEqual(visible(reopen(moved)),[...before.slice(0,2),before[6],...before.slice(2,6)])
   const again=action(moved,[2,3,4],'move',5).project
+  assert.deepEqual(new Set(slides(reopen(again)).map(row=>row.id)),new Set(slides(project).map(row=>row.id)),'Cross-boundary moves retain all surviving cue identities')
   const intermediate=visible(moved), expected=[intermediate[0],...intermediate.slice(4),...intermediate.slice(1,4)]
   assert.deepEqual(visible(reopen(again)),expected)
+})
+
+test('batch move and delete retain the corrected live chorus, multilingual layout, translation controls and pins',()=>{
+ let project=fixture(),rows=slides(project),live=rows[3]
+ project=JSON.parse(JSON.stringify(project))
+ project.items.song.songPresentation.slidePrimaryChannelIds={[live.cue!.sourceLeafKey]:'english'}
+ project.items.song.translationCues={[live.cue!.sourceLeafKey]:'start'}
+ project.items.song.translationCueSettings={[live.cue!.sourceLeafKey]:{sourceLanguage:'en',targetLanguage:'ru',voice:'marin',speechEnabled:true,captionStyle:'ticker',captionChannel:'russian'}}
+ project.items.song.textStyle={bodySize:56,bodyAlign:'left'}
+ project=editPlannerSlide(project,slides(project)[3],'english',0,'Corrected English chorus')
+ const before=slides(project),liveCue=before[3].cue!,pins=project.resources
+ const moved=changePlannerSelection(project,[before[1].id,before[5].id],'move',6).project
+ assert.deepEqual(new Set(slides(reopen(moved)).map(row=>row.id)),new Set(before.map(row=>row.id)))
+ const deleted=reopen(changePlannerSelection(moved,[before[2].id],'delete').project)
+ const after=slides(deleted)
+ assert.deepEqual(new Set(after.map(row=>row.id)),new Set(before.filter(row=>row.id!==before[2].id).map(row=>row.id)))
+ const current=after.find(row=>row.id===liveCue.id)!
+ assert.ok(current,'Deleting another verse page cannot remove the displayed chorus')
+ assert.deepEqual(current.cue!.channels,liveCue.channels)
+ assert.deepEqual(current.cue!.textStyle,liveCue.textStyle)
+ assert.equal(current.cue!.translationAction,'start')
+ assert.deepEqual(current.cue!.translationSettings,liveCue.translationSettings)
+ for(const [id,resource] of Object.entries(pins))assert.deepEqual(deleted.resources[id],resource)
+ const duplicate=changePlannerSelection(deleted,[current.id],'duplicate').project
+ assert.deepEqual(slides(duplicate).filter(row=>row.id!==current.id && !after.some(original=>original.id===row.id)).map(row=>row.cue!.channels),[liveCue.channels])
+ assert.deepEqual(slides(duplicate).filter(row=>after.some(original=>original.id===row.id)).map(row=>row.id),after.map(row=>row.id))
 })
 
 test('singers retain all primary lyrics and follow the next selected slide after a move', () => {

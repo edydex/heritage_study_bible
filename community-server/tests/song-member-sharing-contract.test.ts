@@ -277,7 +277,7 @@ test('ordinary song writes refuse member visibility and clear stale receipts', a
     (error: unknown) => (
       error instanceof Error
       && 'code' in error
-      && error.code === 'MEMBER_SHARE_REVIEW_REQUIRED'
+      && error.code === 'LEGACY_MEMBER_SHARING_RETIRED'
     ),
   )
   const existing = {
@@ -292,15 +292,12 @@ test('ordinary song writes refuse member visibility and clear stale receipts', a
   } as never) as Record<string, unknown>
   assert.equal(demoted.visibility, 'private')
   assert.equal(demoted.memberShareReceiptId, null)
-  assert.throws(
-    () => enforceSongMemberSharingMutation({
-      data: { visibility: 'scheduled-public' },
-      operation: 'update',
-      originalDoc: { visibility: 'private' },
-      context: {},
-    } as never),
-    /exact song-family rights review/i,
-  )
+  const normalized = await enforceSongMemberSharingMutation({
+    data: { visibility: 'scheduled-public' }, operation: 'update',
+    originalDoc: { visibility: 'private' }, context: { songMemberSharingInternalMutation: true },
+  } as never) as Record<string, unknown>
+  assert.equal(normalized.visibility, 'private')
+  assert.equal(normalized.publishAt, null)
   assert.equal(
     clearSongMemberSharingReceipt({ memberShareReceiptId: 'old' })
       .memberShareReceiptId,
@@ -352,15 +349,9 @@ test('signed-in song projection excludes review, audit, source, and rights secre
   )
 })
 
-test('discovery advertises one nested same-origin member-sharing transaction', async () => {
+test('discovery no longer advertises retired member sharing', async () => {
   const response = getCommunityDiscovery()
   const manifest = await response.json() as Record<string, any>
-  assert.deepEqual(
-    manifest.integrations.syncShow.resources.songs.memberSharing,
-    {
-      schemaVersion: 1,
-      endpoint: 'song-member-sharing',
-      reviewScope: 'community-members',
-    },
-  )
+  assert.equal(manifest.integrations.syncShow.resources.songs.memberSharing, undefined)
+
 })

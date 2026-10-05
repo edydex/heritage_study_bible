@@ -4,11 +4,12 @@ type SearchParams = Readonly<Record<string, string | readonly string[] | undefin
 /** Return only to a known workspace page, retaining its selected service/sermon. */
 export function workspaceSignInHref(path: WorkspacePath, searchParams?: SearchParams): string {
   const query = new URLSearchParams()
-  const key = path === '/admin/live-translation' ? 'service' : path === '/admin/sermon-publications' ? 'sermon' : undefined
+  const key = ['/admin/live-translation','/admin/plan-service'].includes(path) ? 'service' : path === '/admin/sermon-publications' ? 'sermon' : undefined
   const value = key ? searchParams?.[key] : undefined
   if (key && value !== undefined) {
     for (const item of typeof value === 'string' ? [value] : value) query.append(key, item)
   }
+  if (path === '/admin/plan-service' && searchParams?.new === '1') query.set('new','1')
   const destination = `${path}${query.size ? `?${query}` : ''}`
   return `/admin/login?redirect=${encodeURIComponent(destination)}`
 }

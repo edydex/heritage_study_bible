@@ -4,16 +4,19 @@ import { useAuth, useConfig } from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
 import type { DefaultCellComponentProps, SelectFieldClient } from 'payload'
 import { useEffect, useRef, useState } from 'react'
+import { songPublicationChange, songPublicationChoice, type SongPublicationChoice } from '../lib/songPublicationChoice'
+import { useWorkspaceText } from './useWorkspaceText'
 
-type Visibility = 'published' | 'unlisted' | 'private'
+type Visibility = SongPublicationChoice
 const labels: Record<Visibility, string> = {
-  published: 'Published', unlisted: 'Unlisted', private: 'Private',
+  published: 'Published', unlisted: 'Unlisted', private: 'Private', archived: 'Archived',
 }
-const normalize = (value: unknown): Visibility => value === 'published' || value === 'unlisted' ? value : 'private'
+const normalize = (value: unknown): Visibility => value === 'archived' || value === 'published' || value === 'unlisted' ? value : 'private'
 
 export default function SongPublicationCell({ cellData, rowData }: DefaultCellComponentProps<SelectFieldClient>) {
+  const t = useWorkspaceText()
   const archived = rowData.status === 'archived'
-  const [value, setValue] = useState<Visibility>(archived ? 'private' : normalize(cellData))
+  const [value, setValue] = useState<Visibility>(songPublicationChoice(cellData, rowData.status))
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -22,10 +25,10 @@ export default function SongPublicationCell({ cellData, rowData }: DefaultCellCo
   const { config } = useConfig()
   const router = useRouter()
   const title = String(rowData.title || `Song ${rowData.id}`)
-  const editable = Boolean(permissions?.collections?.songs?.update) && !archived
+  const editable = Boolean(permissions?.collections?.songs?.update)
 
   useEffect(() => {
-    setValue(archived ? 'private' : normalize(cellData))
+    setValue(songPublicationChoice(cellData, rowData.status))
   }, [cellData, rowData.id, archived])
 
   async function save(next: Visibility) {
@@ -40,7 +43,7 @@ export default function SongPublicationCell({ cellData, rowData }: DefaultCellCo
       const response = await fetch(`${config.routes.api}/songs/${encodeURIComponent(rowData.id)}?depth=0`, {
         method: 'PATCH', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ songbookVisibility: next }),
+        body: JSON.stringify(songPublicationChange(next)),
         signal: AbortSignal.timeout(20000),
       })
       const result = await response.json()
@@ -50,7 +53,7 @@ export default function SongPublicationCell({ cellData, rowData }: DefaultCellCo
       if (!result.doc || !(result.doc.songbookVisibility in labels)) {
         throw new Error('The server did not confirm the change. Reload the list to check it.')
       }
-      const saved = result.doc.status === 'archived' ? 'private' : normalize(result.doc.songbookVisibility)
+      const saved = songPublicationChoice(result.doc.songbookVisibility, result.doc.status)
       setValue(saved)
       setMessage('Saved')
       router.refresh()
@@ -70,11 +73,11 @@ export default function SongPublicationCell({ cellData, rowData }: DefaultCellCo
       aria-label={`Songbook publication for ${title}`}
       aria-busy={saving}
       disabled={!editable || saving}
-      title={archived ? 'Archived songs stay private. Open the song to restore it first.' : 'Choose a publication setting. Changes save immediately.'}
+      title={t('Choose a publication setting. Changes save immediately.')}
       value={value}
       onChange={event => void save(normalize(event.target.value))}
     >
-      {Object.entries(labels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+      {Object.entries(labels).map(([id, label]) => <option key={id} value={id}>{t(label)}</option>)}
     </select>
     {message && <small role="status">{message}</small>}
     {error && <small role="alert">{error}</small>}

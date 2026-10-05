@@ -1,4 +1,3 @@
-import canvasLayout from '../../packages/service-core/node/services/project/CanvasLayout.js'
 import singerPresentation from '../../packages/service-core/node/services/project/SingerPresentation.js'
 import type { PlannerSlide } from './plannerSlides'
 
@@ -16,12 +15,10 @@ export function plannerPreview(rows: PlannerSlide[], active: PlannerSlide | unde
   const slides = rows.filter(row => row.cue)
   const index = active ? slides.findIndex(row => row.id === active.id) : -1
   const nextSlide = index >= 0 ? slides[index + 1] : undefined
-  const nextOutput = outputFor(nextSlide).output
-  const nextText = nextOutput?.mode === 'hide' ? '' : (nextOutput?.blocks || []).map((block: any) =>
-    block.type === 'canvas' ? canvasLayout.canvasText(block.objects) : block.type === 'text' ? block.text
-      : block.type === 'image' ? block.altText : block.type === 'bible' ? block.verses.map((verse: any) => `${verse.number} ${verse.text}`).join(' ') : ''
-  ).filter(Boolean).join('\n')
+  const nextText = singerPresentation.nextSlideHint(nextSlide?.cue, channelId)
   return { ...current, singer,
     next: { state: !nextSlide ? 'end' : nextText.trim() ? 'text' : 'blank',
-      text: singerPresentation.singerNextLine(nextText) } }
+      text: active?.cue?.showNextSlideHints === false ? '' : nextText,
+      ...(active?.cue?.showNextSlideHints === false ? {state:'blank'} : {}) } }
+
 }

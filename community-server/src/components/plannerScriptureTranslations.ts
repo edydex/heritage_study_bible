@@ -60,7 +60,8 @@ export function replaceScriptureTranslation(project: Project, scope: ScriptureTr
         throw new Error('The Bible source did not return every selected verse. Nothing was changed.')
       }
       const {contentSha256: _hash, spans: _spans, displayText: _text, displaySpans: _displaySpans, ...source} = passage
-      item.passagesByChannel[output] = {...source, reference:previous.reference, verses}
+      item.passagesByChannel[output] = {...source, reference:previous.reference, verses,
+        ...(previous.displayReference !== undefined ? {displayReference:previous.displayReference} : {})}
     }
     const editions = `${item.passagesByChannel.english?.translationId} / ${item.passagesByChannel.russian?.translationId}`
     item.title = item.title.replace(/ · [^·]+ \/ [^·]+$/, ` · ${editions}`)

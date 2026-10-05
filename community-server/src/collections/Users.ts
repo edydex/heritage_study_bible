@@ -3,6 +3,8 @@ import { markCommunitySessionUser } from '@/lib/communitySession'
 import { communityAuthEnabled } from '@/lib/publicConfig'
 import { hashOpaqueToken } from '@/lib/tokens'
 import { acceptWorkspaceInvitations } from '@/lib/workspaceInvitation'
+import { communityPublicConfig } from '@/lib/publicConfig'
+import { workspaceLanguageOptions, workspaceLanguageURL, workspacePasswordEmail } from '@/lib/workspaceLanguage'
 
 const isSystemAdminField: FieldAccess = ({ req }) => req.user?.systemRole === 'system-admin'
 const canSetInitialSystemRole: FieldAccess = async ({ req }) => {
@@ -19,16 +21,23 @@ const protectedCredentialFieldAccess = {
 
 export const Users: CollectionConfig = {
   slug: 'users',
-  labels: { singular: 'Account', plural: 'Accounts' },
+  labels: { singular: { en: 'Account', ru: 'Учётная запись' }, plural: { en: 'Accounts', ru: 'Учётные записи' } },
   admin: {
     useAsTitle: 'email',
     group: 'People',
-    description: 'Accounts for readers and church managers. Use Invitations to email workspace access or a reader join link; use Memberships to change church roles.',
+    description: { en: 'Add people from People → Invite person. They receive a link and choose their own password. These account details are for existing accounts.', ru: 'Добавляйте людей через «Люди → Пригласить». Они получат ссылку и сами создадут пароль. Здесь находятся настройки существующих учётных записей.' },
     defaultColumns: ['displayName', 'email', 'systemRole', 'updatedAt'],
     listSearchableFields: ['displayName', 'email'],
     hideAPIURL: true,
+    components: { views: { list: { Component: '@/components/PeopleListRedirect' } } },
   },
   auth: {
+    forgotPassword: {
+      generateEmailSubject: args => workspacePasswordEmail({ name: communityPublicConfig.name, url: '', language: args?.user?.preferredLanguage }).subject,
+      generateEmailHTML: args => workspacePasswordEmail({ name: communityPublicConfig.name,
+        url: workspaceLanguageURL(`${communityPublicConfig.publicUrl}/admin/reset/${encodeURIComponent(args?.token || '')}`, args?.user?.preferredLanguage),
+        language: args?.user?.preferredLanguage }).html,
+    },
     cookies: {
       sameSite: 'Lax',
       secure: (process.env.COMMUNITY_PUBLIC_URL || '').startsWith('https://'),
@@ -95,19 +104,22 @@ export const Users: CollectionConfig = {
     delete: ({ req }) => req.user?.systemRole === 'system-admin',
   },
   fields: [
+    { name: 'localizationPreference', type: 'ui', admin: { components: { Field: '@/components/WorkspaceLocalization#AccountLocalizationPreference' } } },
+    { name: 'preferredLanguage', type: 'select', defaultValue: 'en', options: workspaceLanguageOptions,
+      admin: { hidden: true } },
     { name: 'presentationPreference', type: 'ui', admin: { components: { Field: '@/components/PresentationAccessibility#PersonalPresentationPreference' } } },
-    { name: 'displayName', label: 'Name', type: 'text', required: true, defaultValue: 'Reader' },
+    { name: 'displayName', label: { en: 'Name', ru: 'Имя' }, type: 'text', required: true, defaultValue: 'Reader' },
     {
       name: 'systemRole',
-      label: 'Server access',
+      label: { en: 'Server access', ru: 'Доступ к серверу' },
       type: 'select',
       required: true,
       defaultValue: 'member',
       options: [
-        { label: 'System administrator', value: 'system-admin' },
-        { label: 'Member', value: 'member' },
+        { label: { en: 'System administrator', ru: 'Администратор сервера' }, value: 'system-admin' },
+        { label: { en: 'Member', ru: 'Участник' }, value: 'member' },
       ],
-      admin: { description: 'Most people should be Members. Church roles are managed separately under Memberships.' },
+      admin: { description: { en: 'Most people should be Members. Change church roles from People.', ru: 'Большинству людей достаточно доступа «Участник». Роли в церкви изменяются на странице «Люди».' } },
       access: {
         create: canSetInitialSystemRole,
         update: isSystemAdminField,

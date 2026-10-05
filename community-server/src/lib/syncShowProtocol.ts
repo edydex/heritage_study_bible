@@ -1,4 +1,4 @@
-import { songDocumentBody } from './songSourceSyntax.ts'
+import { songDocumentBody, songSectionLanguageChoices, songSectionMarker, songSourceSections } from './songSourceSyntax.ts'
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
 import {
   isSongMemberShareCurrent,
@@ -246,6 +246,16 @@ function legacyAttribution(song: Record<string, unknown>) {
   ].filter(Boolean).join('\n')
 }
 
+// A string-valued extension survives existing SyncShow document serializers.
+// Keep the annotation out of the projected lyrics and preserve it on reopen.
+function primarySectionsMetadata(lyrics: unknown) {
+  const ids = [...new Set(songSourceSections(lyrics).filter(section => section.primary && section.id).map(section => section.id))]
+  if (!ids.length) return null
+  const value = JSON.stringify(ids)
+  if (value.length > 2048) throw new Error('This song has too many primary section annotations.')
+  return value
+}
+
 function synthesizeDocument(
   song: Record<string, unknown>,
   {
@@ -265,6 +275,8 @@ function synthesizeDocument(
     `language: ${language}`,
   ]
   if (translationOf) lines.push(`translationOf: ${yamlScalar(translationOf)}`)
+  const primarySections = primarySectionsMetadata(lyrics)
+  if (primarySections) lines.push(`primarySections: ${yamlScalar(primarySections)}`)
   // Payload/Postgres represents an unset optional field as null. Treat null
   // as absent while keeping every other unexpected legacy shape fail-closed.
   const license = boundedText(song.license ?? undefined, 'License', 300)
@@ -507,12 +519,18 @@ export function mergeLegacyEditsIntoSyncDocuments(
     if (genericTarget) {
       if (changed('title')) updates.title = String(merged.title || '')
       if (changed('lyrics') && !String(merged.lyrics || '').trim()) removeDocument = true
-      if (changed('lyrics')) body = String(merged.lyrics || '')
+      if (changed('lyrics')) {
+        body = String(merged.lyrics || '')
+        updates.primarySections = primarySectionsMetadata(body)
+      }
     }
     if (russianTarget) {
       if (changed('russianTitle')) updates.title = String(merged.russianTitle || merged.title || '')
       if (changed('russianLyrics') && !String(merged.russianLyrics || '').trim()) removeDocument = true
-      if (changed('russianLyrics')) body = String(merged.russianLyrics || '')
+      if (changed('russianLyrics')) {
+        body = String(merged.russianLyrics || '')
+        updates.primarySections = primarySectionsMetadata(body)
+      }
     }
     if (removeDocument) {
       removedIds.add(document.id)
@@ -610,7 +628,14 @@ export function mergeLegacyEditsIntoSyncDocuments(
 }
 
 function legacyLyricsFromDocument(source: string) {
-  const { body } = parseSimpleFrontMatter(source)
+  const { body, metadata } = parseSimpleFrontMatter(source)
+  const primaryIds = new Set<string>()
+  if (typeof metadata.primarySections === 'string' && metadata.primarySections.length <= 2048) {
+    try {
+      const parsed = JSON.parse(metadata.primarySections)
+      if (Array.isArray(parsed)) for (const id of parsed) if (typeof id === 'string') primaryIds.add(id)
+    } catch { /* Unknown or malformed extension data must not alter the words. */ }
+  }
   return body
     .split('\n')
     .map(line => {
@@ -618,8 +643,10 @@ function legacyLyricsFromDocument(source: string) {
       if (line.startsWith('^^')) return line.slice(1)
       const marker = /^\^([^\s].{0,63})\s*$/.exec(line)
       if (!marker) return line
-      if (/^\d+$/.test(marker[1])) return `Verse ${marker[1]}`
-      return marker[1]
+      const id = marker[1].trim()
+      const label = /^\d+$/.test(id) ? `Verse ${id}` : id
+      if (!primaryIds.has(id) && !primaryIds.has(id.replace(/-repeat-\d+$/, ''))) return label
+      return songSectionMarker(label) ? `*${label}*` : `^*${id}*`
     })
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
@@ -756,8 +783,8 @@ export function normalizeSongMutation(
     const visibility = normalizeVisibility(input.visibility, existing)
     if (visibility !== 'private') {
       fail(
-        'MEMBER_SHARE_REVIEW_REQUIRED',
-        'Save this song as private, then use the exact-family member-sharing review transaction.',
+        'LEGACY_MEMBER_SHARING_RETIRED',
+        'Member sharing has been replaced by Songbook publication. Save this song as private and choose its publication setting in the church workspace.',
         409,
       )
     }
@@ -804,6 +831,7 @@ export function serializeSongForSync(song: Record<string, unknown>, now = new Da
     description: song.description || '',
     russianTitle: song.russianTitle || '',
     defaultSongLanguage: song.defaultSongLanguage === 'en' ? 'en' : 'ru',
+    sectionPrimaryLanguages: songSectionLanguageChoices(song.lyrics,song.russianLyrics).choices,
     projectionStyle: song.projectionStyle || null,
     alternateTitles: Array.isArray(song.alternateTitles) ? song.alternateTitles : [],
     authors: Array.isArray(song.authors) ? song.authors : [],

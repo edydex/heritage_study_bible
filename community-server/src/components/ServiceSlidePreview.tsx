@@ -5,6 +5,7 @@ import PreviewCanvas from './PreviewCanvas'
 import SlideText from './SlideText'
 import { plannerPreview } from './plannerPreview'
 import { isSongTitleSlide, type PlannerSlide } from './plannerSlides'
+import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 
 /** Read-only rendering of compiled cues: no template guides and no editor mutations. */
@@ -30,7 +31,7 @@ export default function ServiceSlidePreview({project,rows,slide,channelId,mediaU
           : <div key={index} className="heritage-service-preview__video-poster" aria-label="Video slide">▷</div>
       }
       if (block.type==='bible') return <div key={index} className="heritage-service-planner__scripture-page" data-fit-text>
-        <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
+        {preview.presetId !== 'wotbc-sermon-scripture' && (block.displayReference ?? block.reference) ? <p className="heritage-service-planner__scripture-reference">{readingLabels.localizedReference(block.displayReference ?? block.reference, project.channels[channelId]?.language)}</p> : null}
         <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} role="body" label={`${channelId} Scripture preview`} readOnly onCommit={()=>{}} />
         {formatting.scriptureCredit(block) ? <p className="heritage-scripture-credit">{formatting.scriptureCredit(block)}</p> : null}
       </div>

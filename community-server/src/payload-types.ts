@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     'bible-translations': BibleTranslation;
     users: User;
+    'workspace-activity': WorkspaceActivity;
     'community-sessions': CommunitySession;
     'community-auth-challenges': CommunityAuthChallenge;
     'community-auth-rate-limits': CommunityAuthRateLimit;
@@ -85,6 +86,7 @@ export interface Config {
     sermons: Sermon;
     'service-plans': ServicePlan;
     'service-documents': ServiceDocument;
+    'service-document-saves': ServiceDocumentSave;
     'syncshow-service-document-changes': SyncshowServiceDocumentChange;
     'syncshow-sermon-changes': SyncshowSermonChange;
     'syncshow-sermon-publications': SyncshowSermonPublication;
@@ -109,6 +111,7 @@ export interface Config {
   collectionsSelect: {
     'bible-translations': BibleTranslationsSelect<false> | BibleTranslationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'workspace-activity': WorkspaceActivitySelect<false> | WorkspaceActivitySelect<true>;
     'community-sessions': CommunitySessionsSelect<false> | CommunitySessionsSelect<true>;
     'community-auth-challenges': CommunityAuthChallengesSelect<false> | CommunityAuthChallengesSelect<true>;
     'community-auth-rate-limits': CommunityAuthRateLimitsSelect<false> | CommunityAuthRateLimitsSelect<true>;
@@ -125,6 +128,7 @@ export interface Config {
     sermons: SermonsSelect<false> | SermonsSelect<true>;
     'service-plans': ServicePlansSelect<false> | ServicePlansSelect<true>;
     'service-documents': ServiceDocumentsSelect<false> | ServiceDocumentsSelect<true>;
+    'service-document-saves': ServiceDocumentSavesSelect<false> | ServiceDocumentSavesSelect<true>;
     'syncshow-service-document-changes': SyncshowServiceDocumentChangesSelect<false> | SyncshowServiceDocumentChangesSelect<true>;
     'syncshow-sermon-changes': SyncshowSermonChangesSelect<false> | SyncshowSermonChangesSelect<true>;
     'syncshow-sermon-publications': SyncshowSermonPublicationsSelect<false> | SyncshowSermonPublicationsSelect<true>;
@@ -289,16 +293,17 @@ export interface Media {
   focalY?: number | null;
 }
 /**
- * Accounts for readers and church managers. Use Invitations to email workspace access or a reader join link; use Memberships to change church roles.
+ * Add people from People → Invite person. They receive a link and choose their own password. These account details are for existing accounts.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
+  preferredLanguage?: ('en' | 'ru') | null;
   displayName: string;
   /**
-   * Most people should be Members. Church roles are managed separately under Memberships.
+   * Most people should be Members. Change church roles from People.
    */
   systemRole: 'system-admin' | 'member';
   magicLinkTokenHash?: string | null;
@@ -334,6 +339,32 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workspace-activity".
+ */
+export interface WorkspaceActivity {
+  id: number;
+  community: number | Community;
+  user: number | User;
+  screen:
+    | 'home'
+    | 'planner'
+    | 'sermon'
+    | 'publication'
+    | 'songs'
+    | 'people'
+    | 'translation'
+    | 'media'
+    | 'scripture'
+    | 'library'
+    | 'account';
+  lastNavigationAt: string;
+  lastActiveAt: string;
+  navigationCount: number;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -404,7 +435,7 @@ export interface Membership {
   createdAt: string;
 }
 /**
- * Invite a member to Heritage, or invite a leader/administrator to the church workspace. Save to send the email; no separate account creation is needed.
+ * Choose a church role and language, then save to send an invitation. Workspace invitations let leaders and church administrators choose their own password.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "community-invites".
@@ -424,6 +455,10 @@ export interface CommunityInvite {
    * Members receive a Heritage join link. Leaders and church administrators receive a workspace password-setup link for service planning, songs and sermons. This does not grant server-wide administration or reduce an existing role.
    */
   role: 'member' | 'leader' | 'admin';
+  /**
+   * The email, password setup and menus use this language. The recipient can change it in My account. Existing accounts keep their current language.
+   */
+  preferredLanguage?: ('en' | 'ru') | null;
   active: boolean;
   /**
    * Save to send. Select again and save to resend. Member join links last 15 minutes; workspace password-setup links last 24 hours. For an accepted invitation, reactivate it to send again.
@@ -522,7 +557,7 @@ export interface ReadingPlanNote {
   blockType: 'planNote';
 }
 /**
- * Bilingual song listings, lyrics, chords, files, and a plain-language rights record.
+ * Start with the titles, lyrics and authors. Chords and other details are optional.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "songs".
@@ -541,19 +576,6 @@ export interface Song {
     | number
     | boolean
     | null;
-  /**
-   * The primary (top) language when adding this song to a service. You can change it per service.
-   */
-  defaultSongLanguage: 'ru' | 'en';
-  community: number | Community;
-  /**
-   * Filled automatically from the title when left blank. Change it only if the public link needs a different short name.
-   */
-  slug: string;
-  /**
-   * Choose one or more uses. Sort this column to group songs, with titles alphabetized within each group.
-   */
-  tags?: ('solo' | 'choir' | 'communal')[] | null;
   tagSortKey?: string | null;
   /**
    * Published: church website and Heritage Songs. Unlisted: direct link only. Private: church workspace only.
@@ -568,21 +590,14 @@ export interface Song {
     | number
     | boolean
     | null;
+  community: number | Community;
   /**
-   * Archiving removes this song from public pages and active libraries.
+   * Filled automatically from the title when left blank. Change it only if the public link needs a different short name.
    */
+  slug: string;
   status: 'draft' | 'published' | 'archived';
-  /**
-   * Stable identity shared with SyncShow. It does not change when a title changes.
-   */
   syncId: string;
-  /**
-   * Managed by SyncShow’s member-sharing action. Use Songbook publication above for the public website and Heritage Songs.
-   */
   visibility: 'private' | 'public' | 'scheduled-public';
-  /**
-   * Required for scheduled visibility.
-   */
   publishAt?: string | null;
   syncVersion: number;
   syncDocuments:
@@ -608,30 +623,32 @@ export interface Song {
   memberShareConfirmedAt?: string | null;
   memberShareRequestRevision?: string | null;
   memberShareReceiptRevision?: string | null;
-  title: string;
-  description?: string | null;
   russianTitle?: string | null;
+  title: string;
   /**
-   * Optional. Add one alternate title per row.
+   * Blank lines separate slides. Write Припев above its words; repeat it later with Припев on its own.
    */
-  alternateTitles?: string[] | null;
-  authors?: string[] | null;
-  lyrics?: string | null;
-  /**
-   * Optional ChordPro-compatible guitar chords.
-   */
-  chordSheet?: string | null;
   russianLyrics?: string | null;
   /**
-   * Optional ChordPro-compatible guitar chords.
+   * Blank lines separate slides. Write Chorus above its words; repeat it later with Chorus on its own.
    */
+  lyrics?: string | null;
+  authors?: string[] | null;
   russianChordSheet?: string | null;
+  chordSheet?: string | null;
+  description?: string | null;
+  alternateTitles?: string[] | null;
+  /**
+   * The primary language when adding this song to a service. You can change it per service.
+   */
+  defaultSongLanguage: 'ru' | 'en';
+  tags?: ('solo' | 'choir' | 'communal')[] | null;
   key?: string | null;
   tempo?: number | null;
   choirScores?: (number | Media)[] | null;
   recordings?: (number | Media)[] | null;
   /**
-   * Informational only. Choosing an option does not block or unlock publishing.
+   * Optional context for your church. These notes do not block publication.
    */
   rightsStatus:
     | 'needs-review'
@@ -641,15 +658,9 @@ export interface Song {
     | 'permission-granted'
     | 'community-translation'
     | 'mixed';
-  /**
-   * The song’s CCLI ID, not your church’s CCLI license number. The church license number is configured once during server setup.
-   */
   ccliNumber?: string | null;
   license?: string | null;
   copyright?: string | null;
-  /**
-   * For example: who translated it, where the church received it, or why it is believed to be public domain.
-   */
   rightsNotes?: string | null;
   sourceUrl?: string | null;
   permissionUrl?: string | null;
@@ -1019,6 +1030,24 @@ export interface ServiceDocument {
     | boolean
     | null;
   lastIdempotencyKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-document-saves".
+ */
+export interface ServiceDocumentSave {
+  id: number;
+  community: number | Community;
+  serviceDocument: number | ServiceDocument;
+  requestId: string;
+  requestHash: string;
+  syncVersion: number;
+  revision: string;
+  saveKind: 'automatic' | 'manual' | 'restore';
+  savedBy: string;
+  savedAt: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -1423,6 +1452,10 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'workspace-activity';
+        value: number | WorkspaceActivity;
+      } | null)
+    | ({
         relationTo: 'community-sessions';
         value: number | CommunitySession;
       } | null)
@@ -1477,6 +1510,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'service-documents';
         value: number | ServiceDocument;
+      } | null)
+    | ({
+        relationTo: 'service-document-saves';
+        value: number | ServiceDocumentSave;
       } | null)
     | ({
         relationTo: 'syncshow-service-document-changes';
@@ -1593,6 +1630,7 @@ export interface BibleTranslationsSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  preferredLanguage?: T;
   displayName?: T;
   systemRole?: T;
   magicLinkTokenHash?: T;
@@ -1618,6 +1656,20 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workspace-activity_select".
+ */
+export interface WorkspaceActivitySelect<T extends boolean = true> {
+  community?: T;
+  user?: T;
+  screen?: T;
+  lastNavigationAt?: T;
+  lastActiveAt?: T;
+  navigationCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1717,6 +1769,7 @@ export interface CommunityInvitesSelect<T extends boolean = true> {
   email?: T;
   displayName?: T;
   role?: T;
+  preferredLanguage?: T;
   active?: T;
   sendEmailNow?: T;
   emailSentAt?: T;
@@ -1808,13 +1861,11 @@ export interface ReadingPlanNoteSelect<T extends boolean = true> {
  */
 export interface SongsSelect<T extends boolean = true> {
   projectionStyle?: T;
-  defaultSongLanguage?: T;
-  community?: T;
-  slug?: T;
-  tags?: T;
   tagSortKey?: T;
   songbookVisibility?: T;
   songbookContent?: T;
+  community?: T;
+  slug?: T;
   status?: T;
   syncId?: T;
   visibility?: T;
@@ -1835,15 +1886,17 @@ export interface SongsSelect<T extends boolean = true> {
   memberShareConfirmedAt?: T;
   memberShareRequestRevision?: T;
   memberShareReceiptRevision?: T;
-  title?: T;
-  description?: T;
   russianTitle?: T;
-  alternateTitles?: T;
-  authors?: T;
-  lyrics?: T;
-  chordSheet?: T;
+  title?: T;
   russianLyrics?: T;
+  lyrics?: T;
+  authors?: T;
   russianChordSheet?: T;
+  chordSheet?: T;
+  description?: T;
+  alternateTitles?: T;
+  defaultSongLanguage?: T;
+  tags?: T;
   key?: T;
   tempo?: T;
   choirScores?: T;
@@ -2053,6 +2106,23 @@ export interface ServiceDocumentsSelect<T extends boolean = true> {
   readyAt?: T;
   translationPlan?: T;
   lastIdempotencyKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-document-saves_select".
+ */
+export interface ServiceDocumentSavesSelect<T extends boolean = true> {
+  community?: T;
+  serviceDocument?: T;
+  requestId?: T;
+  requestHash?: T;
+  syncVersion?: T;
+  revision?: T;
+  saveKind?: T;
+  savedBy?: T;
+  savedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

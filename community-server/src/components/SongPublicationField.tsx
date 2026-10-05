@@ -1,24 +1,34 @@
 'use client'
-import { useField, useFormFields } from '@payloadcms/ui'
+import { useDocumentInfo, useField, useFormFields } from '@payloadcms/ui'
 import type { SelectFieldClientProps } from 'payload'
+import { songPublicationChange, songPublicationChoice, type SongPublicationChoice } from '../lib/songPublicationChoice'
+import { useWorkspaceText } from './useWorkspaceText'
 
-const choices = [
-  ['published', 'Published', 'Show in the church songbook and Heritage Bible Songs.'],
-  ['unlisted', 'Unlisted', 'Anyone with the direct link can read it. Hidden from browsing and search.'],
-  ['private', 'Private', 'Keep the title and lyrics in the church workspace. Withdraw existing public links.'],
-] as const
-
+const descriptions = {
+  published: 'Visible in the church songbook and Heritage Songs.',
+  unlisted: 'Available through its link. Hidden from the songbook and search.',
+  private: 'Available only in the church workspace. Public links are withdrawn.',
+  archived: 'Removed from the active library and public pages. Choose another option to restore it.',
+}
 export default function SongPublicationField({ path, readOnly }: SelectFieldClientProps) {
+  const t = useWorkspaceText()
+  const { id } = useDocumentInfo()
   const slug = useFormFields(([fields]) => fields.slug?.value)
   const { value, setValue, showError, errorMessage } = useField<string>({ path })
-  return <fieldset className="heritage-song-publication" id={`field-${path}`} disabled={Boolean(readOnly)}>
-    <legend>Songbook publication</legend>
-    {choices.map(([id, label, description]) => <label key={id}>
-      <input type="radio" name={path} value={id} checked={value === id} onChange={() => setValue(id)} />
-      <span><strong>{label}</strong><small>{description}</small></span>
-    </label>)}
-    <p>Save to apply. Publishing shares the current English and Russian lyrics and chord text; files and internal notes stay private.</p>
-    {value !== 'private' && typeof slug === 'string' && slug && <a href={`/songs/${encodeURIComponent(slug)}`} target="_blank" rel="noreferrer">Open public copy / sharing link ↗</a>}
+  const archive = useField<string>({ path: 'status' })
+  const choice = songPublicationChoice(value, archive.value)
+  return <div className="heritage-song-publication">
+    <label htmlFor={`field-${path}`}>{t('Songbook publication')}</label>
+    <select id={`field-${path}`} disabled={Boolean(readOnly)} value={choice} onChange={event => {
+      const change = songPublicationChange(event.target.value as SongPublicationChoice)
+      archive.setValue(change.status)
+      setValue(change.songbookVisibility)
+    }}>
+      {(['published', 'unlisted', 'private', 'archived'] as const).map(value => <option key={value} value={value}>{t(value[0].toUpperCase() + value.slice(1))}</option>)}
+    </select>
+    <p>{t(descriptions[choice])}</p>
+    <small>{t('Save to apply. Files and internal notes stay private.')}</small>
+    {id && choice !== 'private' && choice !== 'archived' && typeof slug === 'string' && slug && <a href={`/songs/${encodeURIComponent(slug)}`} target="_blank" rel="noreferrer">{t('Open song link')} ↗</a>}
     {showError && <p role="alert">{errorMessage}</p>}
-  </fieldset>
+  </div>
 }

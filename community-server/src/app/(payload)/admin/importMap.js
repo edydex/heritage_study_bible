@@ -1,9 +1,17 @@
+import { AccountLocalizationPreference as AccountLocalizationPreference_81c48168acfc5d9e94dce9766029d3eb } from '@/components/WorkspaceLocalization'
 import { PersonalPresentationPreference as PersonalPresentationPreference_227344e70bb0cdba6895362425f0e141 } from '@/components/PresentationAccessibility'
-import { default as default_7981ca6a0bab43e438b9c17684a0ac46 } from '@/components/SongLanguageCell'
+import { default as default_0bef48e2ba46070d0450e759ffa990b3 } from '@/components/PeopleListRedirect'
+import { default as default_87ed5457306afb97c77d231d110fb89d } from '@/components/InvitationGuide'
 import { default as default_145c1c3129d7134cb5a8d152b65cb7d4 } from '@/components/SongPublicationCell'
 import { default as default_25b9636a1e769af9196ea72af4ecbc87 } from '@/components/SongPublicationField'
+import { default as default_09a466818a6e4e8ad7509a2278d7389d } from '@/components/SongSlugField'
+import { default as default_638cc3a6244187b6f69e5748f348c5ef } from '@/components/SongPptxImport'
 import { default as default_efacbf2b3cb153771eef2d90d3988c93 } from '@/components/SongTitleCell'
+import { default as default_f108fb54074db7e7faa71a5bda493c40 } from '@/components/SongLyricsField'
+import { default as default_f9b16f304a5590964bea58d15adcf605 } from '@/components/SongChordsRow'
+import { default as default_7981ca6a0bab43e438b9c17684a0ac46 } from '@/components/SongLanguageCell'
 import { default as default_93ab3325f18916a6030901e32d709416 } from '@/components/SongListGuide'
+import { default as default_7791c3c1d8286083a3cec7e122cfa638 } from '@/components/SongLibraryActions'
 import { default as default_ddddbf144c6abc0920e0455f7d2e7ab6 } from '@/components/BookReadAlongUpload'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -31,6 +39,9 @@ import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0
 import { default as default_11da70e19fc4e82f9e441f9ef3707d09 } from '@/components/EventsCalendar'
 import { default as default_a202ad21aea188adfad41087711ba85c } from '@/components/AdminNav'
 import { default as default_fa4a20611f8e562519785c8b58bf013b } from '@/components/WorkspaceSignInGuide'
+import { WorkspaceLocalizationProvider as WorkspaceLocalizationProvider_81c48168acfc5d9e94dce9766029d3eb } from '@/components/WorkspaceLocalization'
+import { default as default_e0b48401a02b5ae04fb61f404a26aaaf } from '@/components/WorkspaceActivityProvider'
+import { default as default_628fe6ba015feadf63f9f21be796721b } from '@/components/People'
 import { default as default_d2e5e8cdcf265e3c61c4d683161d9698 } from '@/components/AdminDashboard'
 import { default as default_e0426a678041ec284c3119b11a0f7516 } from '@/components/BibleTranslations'
 import { default as default_c47a6a2000b141a0bb5c4ccc6ddb6ea0 } from '@/components/LiveTranslation'
@@ -41,12 +52,20 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "@/components/WorkspaceLocalization#AccountLocalizationPreference": AccountLocalizationPreference_81c48168acfc5d9e94dce9766029d3eb,
   "@/components/PresentationAccessibility#PersonalPresentationPreference": PersonalPresentationPreference_227344e70bb0cdba6895362425f0e141,
-  "@/components/SongLanguageCell#default": default_7981ca6a0bab43e438b9c17684a0ac46,
+  "@/components/PeopleListRedirect#default": default_0bef48e2ba46070d0450e759ffa990b3,
+  "@/components/InvitationGuide#default": default_87ed5457306afb97c77d231d110fb89d,
   "@/components/SongPublicationCell#default": default_145c1c3129d7134cb5a8d152b65cb7d4,
   "@/components/SongPublicationField#default": default_25b9636a1e769af9196ea72af4ecbc87,
+  "@/components/SongSlugField#default": default_09a466818a6e4e8ad7509a2278d7389d,
+  "@/components/SongPptxImport#default": default_638cc3a6244187b6f69e5748f348c5ef,
   "@/components/SongTitleCell#default": default_efacbf2b3cb153771eef2d90d3988c93,
+  "@/components/SongLyricsField#default": default_f108fb54074db7e7faa71a5bda493c40,
+  "@/components/SongChordsRow#default": default_f9b16f304a5590964bea58d15adcf605,
+  "@/components/SongLanguageCell#default": default_7981ca6a0bab43e438b9c17684a0ac46,
   "@/components/SongListGuide#default": default_93ab3325f18916a6030901e32d709416,
+  "@/components/SongLibraryActions#default": default_7791c3c1d8286083a3cec7e122cfa638,
   "@/components/BookReadAlongUpload#default": default_ddddbf144c6abc0920e0455f7d2e7ab6,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -74,6 +93,9 @@ export const importMap = {
   "@/components/EventsCalendar#default": default_11da70e19fc4e82f9e441f9ef3707d09,
   "@/components/AdminNav#default": default_a202ad21aea188adfad41087711ba85c,
   "@/components/WorkspaceSignInGuide#default": default_fa4a20611f8e562519785c8b58bf013b,
+  "@/components/WorkspaceLocalization#WorkspaceLocalizationProvider": WorkspaceLocalizationProvider_81c48168acfc5d9e94dce9766029d3eb,
+  "@/components/WorkspaceActivityProvider#default": default_e0b48401a02b5ae04fb61f404a26aaaf,
+  "@/components/People#default": default_628fe6ba015feadf63f9f21be796721b,
   "@/components/AdminDashboard#default": default_d2e5e8cdcf265e3c61c4d683161d9698,
   "@/components/BibleTranslations#default": default_e0426a678041ec284c3119b11a0f7516,
   "@/components/LiveTranslation#default": default_c47a6a2000b141a0bb5c4ccc6ddb6ea0,

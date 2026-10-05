@@ -75,49 +75,9 @@ export const readMemberCommunityContent: Access = async ({ req }) => {
   return { community: { in: communityIds } }
 }
 
-export const readSongsByVisibility: Access = async ({ req }) => {
-  if (req.user?.systemRole === 'system-admin') return true
-  if (!req.user) return false
-  const communityIds = await membershipCommunityIds(req)
-  if (!communityIds.length) return false
-  const managerCommunityIds = await membershipCommunityIds(req, ['owner', 'admin', 'leader'])
-  const now = new Date().toISOString()
-  const clauses: Where[] = [
-    {
-      and: [
-        { community: { in: communityIds } },
-        { status: { equals: 'published' } },
-        {
-          or: [
-            {
-              and: [
-                { visibility: { equals: 'public' } },
-                { memberShareVisibility: { equals: 'public' } },
-              ],
-            },
-            {
-              and: [
-                { visibility: { equals: 'scheduled-public' } },
-                { publishAt: { less_than_equal: now } },
-                { memberShareVisibility: { equals: 'scheduled-public' } },
-                { memberSharePublishAt: { less_than_equal: now } },
-              ],
-            },
-          ],
-        },
-        { memberShareReceiptId: { exists: true } },
-        {
-          or: [
-            { memberShareValidThrough: { exists: false } },
-            { memberShareValidThrough: { greater_than_equal: now } },
-          ],
-        },
-      ],
-    },
-  ]
-  if (managerCommunityIds.length) clauses.push({ community: { in: managerCommunityIds } })
-  return { or: clauses }
-}
+// Raw library records are for church managers. Public readers receive only the
+// explicit Songbook publication snapshot through the public content routes.
+export const readSongsByVisibility: Access = manageCommunityContent
 
 export const readSharedPlanNotes: Access = async ({ req }) => {
   if (req.user?.systemRole === 'system-admin') return true

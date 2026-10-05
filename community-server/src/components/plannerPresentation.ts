@@ -33,6 +33,7 @@ export function scripturePages(item: RecordValue): number[][] {
     // the output renderer. A size change changes page capacity, not the text.
     const cue = {kind:'bible',presetId,channels:Object.fromEntries(passages.map((passage,index)=>[index,{
       mode:'content',blocks:[{...passage,type:'bible',reference:pageReference(passage.reference,item,candidate),
+        displayReference:pages.length===0 ? (passage.displayReference ?? passage.reference) : '',
         verses:passage.verses.filter((verse:RecordValue)=>candidate.includes(verse.number))}]
     }]))}
     const fits = typography.groupFontSize([cue],size,size-1) === size
@@ -95,7 +96,7 @@ export function preparePlannerPresentation(project: RecordValue, options: {pagin
     const pages = scripturePages(item)
     if (pages.length <= 1) continue
     const childIds: string[] = []
-    pages.forEach(numbers => {
+    pages.forEach((numbers, pageIndex) => {
       const id = `${item.id.slice(0, 100)}-v${numbers[0]}-${numbers.at(-1)}`
       if (next.items[id]) throw new Error(`A Scripture slide already uses the identifier ${id}.`)
       childIds.push(id)
@@ -110,6 +111,7 @@ export function preparePlannerPresentation(project: RecordValue, options: {pagin
           .map((span: any) => ({ ...span, start: Math.max(0, span.start - offset), end: Math.min(length, span.end - offset) }))
         delete rest.spans
         return [channelId, { ...rest, reference: pageReference(passage.reference, item, numbers),
+          displayReference: pageIndex === 0 ? (passage.displayReference || passage.reference) : '',
           verses, ...(spans.length ? { spans } : {}) }]
       }))
       const firstPassage = Object.values(passagesByChannel)[0] as RecordValue
