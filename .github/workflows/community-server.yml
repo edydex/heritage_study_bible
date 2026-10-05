@@ -476,3 +476,69 @@ jobs:
           cache-dependency-path: community-server/package-lock.json
       - run: npm ci --legacy-peer-deps
       - run: npm run test:service-history-live
+
+  calendar-mcp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: heritage_calendar_mcp_test
+          POSTGRES_USER: heritage_calendar_test
+          POSTGRES_PASSWORD: calendar-ci-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage_calendar_test -d heritage_calendar_mcp_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: community-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - run: npm run test:calendar-mcp
+        env:
+          DATABASE_URL: postgresql://heritage_calendar_test:calendar-ci-password@127.0.0.1:5432/heritage_calendar_mcp_test
+          CALENDAR_MCP_TEST_DATABASE_URL: postgresql://heritage_calendar_test:calendar-ci-password@127.0.0.1:5432/heritage_calendar_mcp_test
+          HERITAGE_DISPOSABLE_CI: heritage-calendar-mcp-test-v1
+          COMMUNITY_ID: local-church
+
+  calendar-mcp-deployment-migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: heritage_calendar_mcp_deployment_test
+          POSTGRES_USER: heritage_calendar_test
+          POSTGRES_PASSWORD: calendar-ci-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage_calendar_test -d heritage_calendar_mcp_deployment_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: community-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - run: node --import tsx --test --test-force-exit tests/calendar-mcp-migration-history.test.ts
+        env:
+          DATABASE_URL: postgresql://heritage_calendar_test:calendar-ci-password@127.0.0.1:5432/heritage_calendar_mcp_deployment_test
+          CALENDAR_MCP_MIGRATION_TEST_DATABASE_URL: postgresql://heritage_calendar_test:calendar-ci-password@127.0.0.1:5432/heritage_calendar_mcp_deployment_test
+          HERITAGE_DISPOSABLE_CI: heritage-calendar-mcp-migration-test-v1
+          PAYLOAD_SECRET: disposable-calendar-ci-secret-at-least-thirty-two-characters
+          COMMUNITY_ID: local-church
+          NODE_ENV: production

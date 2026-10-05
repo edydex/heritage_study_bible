@@ -1,3 +1,4 @@
+import { calendarMcpEndpoints } from './endpoints/calendarMcp'
 import { WorkspaceActivity } from './collections/WorkspaceActivity'
 import { workspaceActivityEndpoints } from './endpoints/workspaceActivity'
 import { ServiceDocumentSaves } from './collections/ServiceDocumentSaves'
@@ -258,6 +259,7 @@ export default buildConfig({
   endpoints: [
     ...bibleImportEndpoints,
     ...calendarEndpoints,
+    ...calendarMcpEndpoints,
     ...sermonPresentationEndpoints,
     ...serviceHistoryEndpoints,
     ...authEndpoints,
