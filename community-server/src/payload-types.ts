@@ -1283,6 +1283,7 @@ export interface PlanNote {
  */
 export interface Event {
   id: number;
+  calendarVersion?: string | null;
   community: number | Community;
   title: string;
   description?: string | null;
@@ -2277,6 +2278,7 @@ export interface PlanNotesSelect<T extends boolean = true> {
  * via the `definition` "events_select".
  */
 export interface EventsSelect<T extends boolean = true> {
+  calendarVersion?: T;
   community?: T;
   title?: T;
   description?: T;

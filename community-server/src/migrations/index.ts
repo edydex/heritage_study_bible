@@ -1,3 +1,4 @@
+import * as calendarMcp from './20261005_120000_calendar_mcp'
 import * as workspaceActivity from './20261002_010000_workspace_activity'
 import * as retireSongMemberSharing from './20261002_000000_retire_song_member_sharing'
 import * as peopleLanguage from './20261001_220000_people_language';
@@ -153,4 +154,5 @@ export const migrations = [
   {up:serviceSaveHistory.up,down:serviceSaveHistory.down,name:'20261001_230000_service_save_history'},
   {up:retireSongMemberSharing.up,down:retireSongMemberSharing.down,name:'20261002_000000_retire_song_member_sharing'},
   {up:workspaceActivity.up,down:workspaceActivity.down,name:'20261002_010000_workspace_activity'},
+  { name: '20261005_120000_calendar_mcp', up: calendarMcp.up, down: calendarMcp.down },
 ];

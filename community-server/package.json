@@ -27,9 +27,13 @@
     "test:service-history-live": "node --import tsx --test tests/service-history-payload.test.ts",
     "test:editor": "node --import tsx --test tests/service-save-history.test.ts tests/service-history-reliability.test.ts tests/service-save-conflict.test.ts tests/people-localization.test.ts tests/device-workspace-language.test.ts tests/workspace-text.test.ts tests/planner-authoring.test.ts tests/service-document-contract.test.ts tests/song-editor.test.ts tests/workspace-activity.test.ts tests/workspace-home.test.ts tests/planner-song-frame.test.ts tests/song-pptx-import.test.ts tests/online-bible-labels.test.ts",
     "test:song-editor-live": "cross-env NODE_ENV=production node --import tsx --test --test-force-exit tests/song-editor-payload.test.ts",
-    "test:song-pptx": "node --import tsx --test tests/song-pptx-import.test.ts"
+    "test:song-pptx": "node --import tsx --test tests/song-pptx-import.test.ts",
+    "test:calendar-mcp": "node --import tsx --test --test-force-exit tests/calendar-mcp*.test.ts"
   },
   "dependencies": {
+    "@js-temporal/polyfill": "0.5.1",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@node-oauth/oauth2-server": "5.3.0",
     "@node-rs/argon2": "^2.2.0",
     "@payloadcms/db-postgres": "3.86.0",
     "@payloadcms/email-nodemailer": "3.86.0",
@@ -46,7 +50,8 @@
     "payload": "3.86.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "sharp": "0.34.2"
+    "sharp": "0.34.2",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@types/node": "24.12.3",
