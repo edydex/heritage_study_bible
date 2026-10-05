@@ -17,7 +17,7 @@ export default function PreviewCanvas({ captionReservation = 0, textStyle, kind,
       const scale = element.clientWidth / 1920
       const headingSize = titleCard ? (presetId === 'wotbc-song-title' ? 144 : 128) : template === 'title' ? logicalSize : preset.titleSize
       element.style.setProperty('--slide-heading-size', `${headingSize * scale}px`)
-      element.style.setProperty('--slide-subtitle-size', `${(titleCard ? (presetId === 'wotbc-song-title' ? 128 : 92) : logicalSize * .65) * scale}px`)
+      element.style.setProperty('--slide-subtitle-size', `${(titleCard ? (presetId === 'wotbc-song-title' ? 122 : 92) : logicalSize * .65) * scale}px`)
       element.style.setProperty('--slide-credit-size', `${(titleCard ? 56 : presetId === 'wotbc-sermon-quote' ? logicalSize : 26) * scale}px`)
       if (captionReservation > 0 && !titleCard && template !== 'title') {
         const heading = element.querySelector<HTMLElement>('[data-role="title"]')
@@ -64,7 +64,7 @@ export default function PreviewCanvas({ captionReservation = 0, textStyle, kind,
         if (captionReservation > 0) {
           const ratio = size / (logicalSize * scale)
           if (titleCard || template === 'title') element.style.setProperty('--slide-heading-size', `${headingSize * scale * ratio}px`)
-          element.style.setProperty('--slide-subtitle-size', `${(titleCard ? (presetId === 'wotbc-song-title' ? 128 : 92) : logicalSize * .65) * scale * ratio}px`)
+          element.style.setProperty('--slide-subtitle-size', `${(titleCard ? (presetId === 'wotbc-song-title' ? 122 : 92) : logicalSize * .65) * scale * ratio}px`)
           element.style.setProperty('--slide-credit-size', `${(titleCard ? 56 : presetId === 'wotbc-sermon-quote' ? logicalSize : 26) * scale * ratio}px`)
         }
         positionBody()

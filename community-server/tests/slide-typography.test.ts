@@ -10,13 +10,13 @@ import {setReadingTemplate} from '../src/components/readingTemplates.ts'
 const project=()=>core.createServiceProject({id:'typography',title:'Sunday',serviceDate:'2026-09-22',preferredProfileId:'main-sanctuary',presetPack:{id:'main-sanctuary',version:1,sha256:null},channels:[{id:'english',label:'English',language:'en'},{id:'russian',label:'Russian',language:'ru'}]})
 const reopen=(p:any)=>core.parseHeritageServiceDocumentSource(core.serializeHeritageServiceDocument(core.createHeritageServiceDocument({...p,revision:1}))).project
 
-test('one minimal line-fitting size is used across the entire bilingual song',()=>{
+test('default song slides fit their own lines within a modest growth cap',()=>{
   let line='Мы славим Тебя'
   while(typography.textWidth(line,106,'600')<2390)line+=' и'
   const make=(id:string,text:string)=>core.parseSongDocument(`---\nid: ${id}\ntitle: Praise\nlanguage: en\n---\n^1\n${text}\n\n^2\nShort line`,{fileName:`${id}.md`})
   let p=project();const pinned=core.addSongResource(p,make('praise',line));p=core.addProjectItem(pinned.project,{id:'song',kind:'song',title:'Praise',lyricsPresetId:'wotbc-song-lyrics',primaryChannelId:'english',variants:{english:{mode:'content',resourceId:pinned.resourceId},russian:{mode:'inherit',from:'english'}},arrangement:[{id:'one',sectionId:'verse-1'},{id:'two',sectionId:'verse-2'}]})
   const timeline=core.compileServiceProject(reopen(p));const cues=Object.values(timeline.cues).filter((c:any)=>c.presetId==='wotbc-song-lyrics') as any[]
-  assert.equal(cues.length,2);assert.equal(new Set(cues.map(c=>c.textStyle.bodySize)).size,1)
+  assert.equal(cues.length,2);assert.ok(cues[1].textStyle.bodySize>cues[0].textStyle.bodySize);assert.ok(cues[1].textStyle.bodySize<=Math.round(cues[0].textStyle.bodySize*1.2))
   const size=cues[0].textStyle.bodySize,width=1920*typography.textPreset(cues[0].presetId).bodyWidthPercent/100
   assert.ok(size<106 && size>=80);assert.ok(typography.textWidth(line,size,'600')<=width)
   assert.ok(typography.textWidth(line,size+1,'600')>width,'No unnecessary reduction')
