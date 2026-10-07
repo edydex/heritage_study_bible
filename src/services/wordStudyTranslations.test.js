@@ -40,7 +40,7 @@ it('checks every new word mapping against the installed source and BSB, includin
     }
   }
   expect(errors).toEqual([])
-  expect({ linked, unlinked, groups }).toEqual({ linked: 6596, unlinked: 1347, groups: 94788 })
+  expect({ linked, unlinked, groups }).toEqual({ linked: 6597, unlinked: 1346, groups: 94804 })
 })
 
 it('shows contextual translated phrases across books and preserves repeated instances in one verse', () => {

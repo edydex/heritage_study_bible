@@ -168,3 +168,28 @@ it('lets a reader switch between published English and Russian text without chan
   expect(screen.queryByText('Reviewed English words.')).not.toBeInTheDocument()
   expect(loadDetail).toHaveBeenCalledTimes(1)
 })
+
+it('queues a sentence seek until recording metadata loads', async () => {
+  vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue()
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
+  vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => {})
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, headers: new Headers(), text: async () => 'WEBVTT\n\n00:00:01.000 --> 00:00:03.000\nFirst sentence.\n\n00:00:10.000 --> 00:00:12.000\nSecond sentence.' })
+  const loadDetail = vi.fn().mockResolvedValue({ detail: {
+    titles: { en: 'Timed sermon' }, defaultLanguage: 'en', speaker: { name: 'Pastor' }, serviceDate: '2026-09-13', references: [],
+    body: [{ kind: 'transcript', language: 'en', text: 'First sentence. Second sentence.' }],
+    media: [{ kind: 'audio', title: 'Recording', language: 'en', mediaType: 'audio/mpeg', durationSeconds: 20, url: 'https://church.example/recording.mp3' },
+      { kind: 'transcript', title: 'Timestamps', language: 'en', mediaType: 'text/vtt', url: 'https://church.example/recording.vtt' }],
+  } })
+  render(<SermonViewer match={{ publicId: 'timed', sourceKey: 'church', title: 'Timed sermon' }} loadDetail={loadDetail} onClose={() => {}} />)
+  await screen.findByText('First sentence. Second sentence.')
+  expect(globalThis.fetch).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByLabelText('Verse scroll mode'))
+  const target = await screen.findByRole('button', { name: 'Play from: Second sentence.' })
+  const player = screen.getByLabelText('Play Recording (EN)')
+  Object.defineProperty(player, 'readyState', { value: 0, configurable: true })
+  fireEvent.click(target)
+  expect(player.currentTime).toBe(0)
+  Object.defineProperty(player, 'readyState', { value: 1, configurable: true })
+  fireEvent.loadedMetadata(player)
+  expect(player.currentTime).toBe(10)
+})

@@ -2,6 +2,7 @@ import { getStoredJson, setStoredJson } from './persistentStorage'
 
 export const READER_PROGRESS_KEY = 'heritage-reader-progress'
 export const RESOURCE_BOOKMARKS_KEY = 'heritage-resource-bookmarks'
+let resourceBookmarkMutation = Promise.resolve()
 
 export async function getReaderProgress() {
   return getStoredJson(READER_PROGRESS_KEY, { bible: null, resources: {} })
@@ -30,9 +31,18 @@ export async function getResourceBookmarks() {
   return getStoredJson(RESOURCE_BOOKMARKS_KEY, [])
 }
 
-export async function toggleResourceBookmark(bookmark) {
+export function toggleResourceBookmark(bookmark) {
+  const operation = resourceBookmarkMutation.then(() => mutateResourceBookmark(bookmark))
+  resourceBookmarkMutation = operation.catch(() => {})
+  return operation
+}
+
+async function mutateResourceBookmark(bookmark) {
   const bookmarks = await getResourceBookmarks()
-  const existing = bookmarks.find(item => item.resourceId === bookmark.resourceId && item.chapterIndex === bookmark.chapterIndex)
+  const existing = bookmarks.find(item => item.resourceId === bookmark.resourceId
+    && item.chapterIndex === bookmark.chapterIndex
+    && (item.paragraphIndex ?? null) === (bookmark.paragraphIndex ?? null)
+    && (item.startOffset ?? null) === (bookmark.startOffset ?? null))
   if (existing) {
     const next = bookmarks.filter(item => item.id !== existing.id)
     await setStoredJson(RESOURCE_BOOKMARKS_KEY, next)
@@ -40,8 +50,8 @@ export async function toggleResourceBookmark(bookmark) {
   }
 
   const nextBookmark = {
-    id: `${bookmark.resourceId}-${bookmark.chapterIndex}-${Date.now()}`,
     ...bookmark,
+    id: globalThis.crypto?.randomUUID?.() || `${bookmark.resourceId}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     createdAt: new Date().toISOString(),
   }
   const next = [...bookmarks, nextBookmark]

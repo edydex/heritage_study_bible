@@ -188,3 +188,37 @@ with MLX Whisper large-v3-turbo, revision
 The preceding nine books’ timing files are unchanged.
 
 Sentence ranges were regenerated for all ten books / 384 recordings from the retained original transcripts without running recognition again. Existing paragraph anchors, model hashes, source text hashes and recording hashes are unchanged. The native reader registers sentence boundaries with the playback service, so it does not wait for its general one-second progress tick. Navigation-only links may mark a paragraph; live following marks only the current sentence.
+
+## Sentence reading controls
+
+Books offer **Verse scroll mode** beside the persisted 12–36px font controls.
+It renders sentences as separate rows. Clicking a verified timed sentence seeks
+to that sentence's measured start and starts the selected recording. Paused
+recordings can load timing before the first tap. Untimed sentences are readable
+and selectable without an invented seek position. Paragraph source equality,
+footnotes, search highlights, selected-text offsets, edition IDs and the existing
+native audio player remain intact. Long-hold/select text for **Copy** or
+**Bookmark place**; a place saves its section, paragraph, character offset, exact
+selected text and nearby prefix. The book bookmark list restores and marks that
+passage. Section bookmarks and multiple places in one section remain distinct.
+
+Published sermons use the same transport UI (play/pause, ±10 seconds, timeline,
+speed) and sentence renderer. Verse mode loads published `text/vtt` or
+`application/x-subrip` transcript media without credentials. A caption transcript
+must match the entire displayed body entry after whitespace normalization and
+have valid, nonoverlapping times within the recording. Only one recording and
+one matching transcript in that language establish a seek target; ambiguous or
+changed text stays unlinked. A caption covering several sentences keeps one
+measured seek point. Pending seeks apply after audio metadata loads. Follow audio
+scrolls within the sermon dialog. This retains the existing sermon HTML media
+owner; Android background sermon playback is not added. Starting sermon audio
+pauses the shared Bible/book player, and starting shared audio pauses sermon
+players. Closing the sermon stops and unloads its recordings.
+
+Production build and 130 protocol checks passed. 339 reader unit checks pass. The existing calendar readiness wait now accepts
+multiple preview links for a multi-day event; its event-detail assertions are unchanged.
+All 78 browser regressions pass, including the chapter-recording lookup and
+saved dark mode on direct book/sermon links.
+Browser regressions use actual media clocks with local WAV fixtures, not a claim
+that the production recordings were listened through. A new Android APK and
+physical-device acceptance have not been performed in this environment.

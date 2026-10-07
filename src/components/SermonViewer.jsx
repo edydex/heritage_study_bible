@@ -1,5 +1,10 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import ReaderTextSize, { useReaderTextSize } from './ReaderTextSize'
+import RecordedSentenceText from './RecordedSentenceText'
+import AudioTransport from './audio/AudioTransport'
+import { useHeritageAudio } from './audio/AudioProvider'
+import { isTimedTranscript, loadSermonCaptions, matchingSermonSentences } from '../services/sermonAudioText'
 import { formatCanonicalBibleRange } from '../utils/sermonPassageSelection.js'
 
 const BODY_LABELS = Object.freeze({
@@ -38,14 +43,46 @@ function mediaHostname(media) {
   }
 }
 
-function SermonAudioPlayer({ media, label, duration }) {
+function SermonAudioPlayer({ media, label, duration, register, onState, sharedAudio }) {
   const playerRef = useRef(null)
+  const pendingSeek = useRef(null)
+  const [playbackError, setPlaybackError] = useState('')
+  const [playback, setPlayback] = useState({ position: 0, duration: media.durationSeconds || 0, status: 'paused', rate: 1 })
+  const updatePlayback = () => {
+    const player = playerRef.current
+    const next = { position: pendingSeek.current ?? player.currentTime ?? 0, duration: Number.isFinite(player.duration) ? player.duration : media.durationSeconds || 0, status: player.paused ? 'paused' : 'playing', rate: player.playbackRate }
+    setPlayback(next); onState(media, next)
+  }
+  const play = () => {
+    setPlaybackError('')
+    return playerRef.current.play().catch(() => setPlaybackError('Tap Play to start this recording.'))
+  }
+  const seek = (position, startPlayback = false) => {
+    const player = playerRef.current
+    const duration = Number.isFinite(player.duration) ? player.duration : media.durationSeconds || Infinity
+    const next = Math.max(0, Math.min(duration, position))
+    if (player.readyState >= 1) { pendingSeek.current = null; player.currentTime = next }
+    else { pendingSeek.current = next; if (!startPlayback) player.load() }
+    updatePlayback()
+    if (startPlayback) play()
+  }
+  const metadataLoaded = () => {
+    const player = playerRef.current
+    if (pendingSeek.current != null) {
+      player.currentTime = Math.min(pendingSeek.current, Number.isFinite(player.duration) ? player.duration : pendingSeek.current)
+      pendingSeek.current = null
+    }
+    updatePlayback()
+  }
   const language = mediaLanguageTag(media)
   const host = mediaHostname(media)
 
   useEffect(() => {
     const player = playerRef.current
+    if (!player.getAttribute('src')) player.src = media.url
+    register(media.url, { element: player, seekAndPlay: position => seek(position, true) })
     return () => {
+      register(media.url, null)
       if (!player) return
       try {
         player.pause()
@@ -62,6 +99,8 @@ function SermonAudioPlayer({ media, label, duration }) {
   }, [])
 
   function stopSiblingPlayers(event) {
+    sharedAudio?.player.pause()
+    updatePlayback()
     const dialog = event.currentTarget.closest('[role="dialog"]')
     for (const sibling of dialog?.querySelectorAll('audio') || []) {
       if (sibling !== event.currentTarget) sibling.pause()
@@ -78,14 +117,23 @@ function SermonAudioPlayer({ media, label, duration }) {
       </span>
       <audio
         ref={playerRef}
-        controls
+        controls={!sharedAudio}
+        hidden={Boolean(sharedAudio)}
         preload="none"
         src={media.url}
         aria-label={`Play ${label} (${language})`}
         tabIndex={0}
         onPlay={stopSiblingPlayers}
+        onPause={updatePlayback} onTimeUpdate={updatePlayback} onLoadedMetadata={metadataLoaded} onRateChange={updatePlayback}
+        onError={() => setPlaybackError('This recording could not load. Try Play again or open the recording link.')}
         className="mt-3 w-full"
       />
+      {sharedAudio && <section className="audio-player audio-player-inline" aria-label={`${label} (${language}) player`}>
+        <AudioTransport state={playback} play={play} pause={() => playerRef.current.pause()}
+          seek={position => seek(position)}
+          setRate={rate => { playerRef.current.playbackRate = rate; updatePlayback() }} />
+      </section>}
+      {playbackError && <p role="status" className="mt-2 text-sm">{playbackError}</p>}
       <p className="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-400">
         Playback connects directly to {host}. That host receives your IP address
         and browser details when you press Play.
@@ -119,6 +167,15 @@ function SermonViewer({ match, loadDetail, onClose }) {
   const closeButtonRef = useRef(null)
   const [retryToken, setRetryToken] = useState(0)
   const [bodyLanguage, setBodyLanguage] = useState('')
+  const [textSize, setTextSize] = useReaderTextSize()
+  const [verseMode, setVerseMode] = useState(false)
+  const [followAudio, setFollowAudio] = useState(true)
+  const [captions, setCaptions] = useState({})
+  const [captionError, setCaptionError] = useState('')
+  const [playback, setPlayback] = useState({ mediaUrl: null, position: 0, status: 'paused' })
+  const players = useRef(new Map())
+  const scrollRef = useRef(null)
+  const sharedAudio = useHeritageAudio()
   const [state, setState] = useState({
     status: 'loading',
     verified: null,
@@ -186,9 +243,41 @@ function SermonViewer({ match, loadDetail, onClose }) {
     }
   }, [onClose])
 
+  const detail = state.verified?.detail || null
+  useEffect(() => {
+    const controller = new AbortController()
+    setCaptions({}); setCaptionError('')
+    if (verseMode && detail) {
+      const transcripts = detail.media.filter(isTimedTranscript)
+      Promise.allSettled(transcripts.map(async media => [media.url, await loadSermonCaptions(media, controller.signal)]))
+        .then(results => {
+          if (controller.signal.aborted) return
+          setCaptions(Object.fromEntries(results.filter(result => result.status === 'fulfilled').map(result => result.value)))
+          if (results.some(result => result.status === 'rejected')) setCaptionError('Recording timestamps could not load. You can still read the text.')
+        })
+    }
+    return () => controller.abort()
+  }, [detail, verseMode])
+  useEffect(() => {
+    if (sharedAudio?.state.status === 'playing') for (const player of players.current.values()) player.element.pause()
+  }, [sharedAudio?.state.trackId, sharedAudio?.state.status])
+  useEffect(() => {
+    if (!verseMode || !followAudio || playback.status !== 'playing') return
+    const current = scrollRef.current?.querySelector('[data-audio-sentence="true"]')
+    const container = scrollRef.current?.getBoundingClientRect(), rect = current?.getBoundingClientRect()
+    if (rect && container && (rect.top < container.top + 16 || rect.bottom > container.bottom - 48)) current.scrollIntoView({ block: 'center', behavior: 'instant' })
+  }, [verseMode, followAudio, playback.position, playback.status])
+
+  const timedBodies = useMemo(() => new Map((detail?.body || []).map(entry => {
+    const recordings = detail.media.filter(media => isInlineAudio(media) && media.language === entry.language)
+    const recording = recordings.length === 1 ? recordings[0] : null
+    const matches = recording ? detail.media.filter(media => isTimedTranscript(media) && media.language === entry.language)
+      .map(media => matchingSermonSentences(entry.text, captions[media.url] || [], entry.language, recording.durationSeconds)).filter(spans => spans.length) : []
+    return [entry, { recording, spans: matches.length === 1 ? matches[0] : [] }]
+  })), [detail, captions])
+
   if (typeof document === 'undefined') return null
 
-  const detail = state.verified?.detail || null
   const bodyLanguages = [...new Set(detail?.body.map(entry => entry.language) || [])]
   const selectedLanguage = bodyLanguages.includes(bodyLanguage) ? bodyLanguage
     : bodyLanguages.includes(detail?.defaultLanguage) ? detail.defaultLanguage
@@ -216,9 +305,9 @@ function SermonViewer({ match, loadDetail, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-2xl dark:bg-gray-900 sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-2xl"
+        className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-2xl dark:bg-black sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-2xl"
       >
-        <header className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-gray-200 bg-white px-4 py-4 dark:border-gray-700 dark:bg-gray-900 sm:px-6">
+        <header className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-gray-200 bg-white px-4 py-4 dark:border-gray-700 dark:bg-black sm:px-6">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-primary dark:text-blue-400">
               Published sermon
@@ -241,7 +330,7 @@ function SermonViewer({ match, loadDetail, onClose }) {
           </button>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
           {state.status === 'loading' && (
             <div className="py-16 text-center" role="status" aria-live="polite">
               <div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
@@ -330,6 +419,9 @@ function SermonViewer({ match, loadDetail, onClose }) {
                             media={media}
                             label={label}
                             duration={duration}
+                            sharedAudio={sharedAudio}
+                            register={(url, player) => { player ? players.current.set(url, player) : players.current.delete(url) }}
+                            onState={(media, next) => setPlayback(previous => next.status === 'playing' || previous.mediaUrl === media.url ? { ...next, mediaUrl: media.url } : previous)}
                           />
                         )
                       }
@@ -355,25 +447,34 @@ function SermonViewer({ match, loadDetail, onClose }) {
               )}
 
               <div className="space-y-8">
+                <div className="flex flex-wrap items-center gap-4">
+                  <ReaderTextSize size={textSize} onChange={setTextSize} />
+                  <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={verseMode} onChange={event => setVerseMode(event.target.checked)} /> Verse scroll mode</label>
+                  {verseMode && <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={followAudio} onChange={event => setFollowAudio(event.target.checked)} /> Follow audio</label>}
+                </div>
+                {verseMode && <p role="status" className="text-sm text-gray-500 dark:text-gray-400">{captionError || (detail.media.some(isTimedTranscript) ? 'Sentence seeking uses timestamps only when the published transcript matches this text and has one recording in that language.' : 'This sermon has no timestamped transcript. Sentence seeking needs a matching VTT or SRT transcript from the publisher.')}</p>}
                 {bodyLanguages.length > 1 && <label className="flex items-center gap-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
                   Text language
                   <select aria-label="Sermon text language" value={selectedLanguage} onChange={event => setBodyLanguage(event.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800">
                     {bodyLanguages.map(language => <option key={language} value={language}>{({ en: 'English', ru: 'Русский' })[language] || language.toUpperCase()}</option>)}
                   </select>
                 </label>}
-                {detail.body.filter(entry => entry.language === selectedLanguage).map((entry, index) => (
-                  <section key={`${entry.kind}-${entry.language}-${index}`}>
-                    <h3 className="text-base font-bold text-gray-950 dark:text-gray-100">
-                      {BODY_LABELS[entry.kind] || 'Sermon text'}
-                    </h3>
-                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                      {entry.language}
-                    </p>
-                    <div className="mt-4 whitespace-pre-wrap text-[15px] leading-7 text-gray-800 dark:text-gray-200">
-                      {entry.text}
+                {detail.body.filter(entry => entry.language === selectedLanguage).map((entry, index) => {
+                  const { recording, spans } = timedBodies.get(entry)
+                  const active = recording?.url === playback.mediaUrl ? spans.find(span => span.start <= playback.position && playback.position < span.end) : null
+                  return <section key={`${entry.kind}-${entry.language}-${index}`}>
+                    <h3 className="text-base font-bold text-gray-950 dark:text-gray-100">{BODY_LABELS[entry.kind] || 'Sermon text'}</h3>
+                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{entry.language}</p>
+                    <div className="mt-4 whitespace-pre-wrap leading-[1.8] text-gray-800 dark:text-gray-200" style={{ fontSize: `${textSize}px` }}>
+                      <RecordedSentenceText text={entry.text} spans={verseMode ? spans : []} verseMode={verseMode} language={entry.language} activeStart={active?.textStart} onSeek={start => {
+                        const player = players.current.get(recording?.url)
+                        if (!player) return
+                        sharedAudio?.player.pause()
+                        player.seekAndPlay(start)
+                      }} />
                     </div>
                   </section>
-                ))}
+                })}
                 {detail.body.length === 0 && (
                   <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-400">
                     This publication does not include written sermon notes.
