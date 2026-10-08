@@ -22,7 +22,11 @@ test('books remember font size and exact word bookmarks on a black reading backg
   const paragraph = page.locator('[data-book-paragraph="0"]').first()
   await expect(paragraph).toBeVisible()
   await expect(page.locator('html')).toHaveClass(/dark/)
-  await page.getByRole('button', { name: 'Increase reading font size' }).click()
+  await expect(page.getByLabel('Reading font size', { exact: true })).toHaveCount(0)
+  await page.locator('header').getByRole('button', { name: 'Settings', exact: true }).click()
+  await page.getByLabel('Reading font size', { exact: true }).fill('20')
+  await page.getByLabel('Reading font size', { exact: true }).press('Enter')
+  await page.keyboard.press('Escape')
   expect(await paragraph.evaluate(element => getComputedStyle(element).fontSize)).toBe('20px')
   await page.evaluate(() => {
     const root = document.querySelector('[data-book-paragraph="0"]')

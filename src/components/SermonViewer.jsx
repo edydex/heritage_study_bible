@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import ReaderTextSize, { useReaderTextSize } from './ReaderTextSize'
+import { useReaderTextSize } from './ReaderTextSize'
+import ReaderSettings from './ReaderSettings'
 import RecordedSentenceText from './RecordedSentenceText'
 import AudioTransport from './audio/AudioTransport'
 import { useHeritageAudio } from './audio/AudioProvider'
@@ -168,6 +169,7 @@ function SermonViewer({ match, loadDetail, onClose }) {
   const [retryToken, setRetryToken] = useState(0)
   const [bodyLanguage, setBodyLanguage] = useState('')
   const [textSize, setTextSize] = useReaderTextSize()
+  const [showSettings, setShowSettings] = useState(false)
   const [verseMode, setVerseMode] = useState(false)
   const [followAudio, setFollowAudio] = useState(true)
   const [captions, setCaptions] = useState({})
@@ -212,12 +214,16 @@ function SermonViewer({ match, loadDetail, onClose }) {
       if (event.key === 'Escape') {
         event.preventDefault()
         event.stopImmediatePropagation()
-        onClose()
+        if (showSettings) {
+          setShowSettings(false)
+          dialogRef.current?.querySelector('[data-reader-settings] > button')?.focus()
+        }
+        else onClose()
         return
       }
       if (event.key !== 'Tab') return
       const focusable = [...(dialogRef.current?.querySelectorAll(
-        'button:not([disabled]), select:not([disabled]), a[href], audio[controls], [tabindex]:not([tabindex="-1"])',
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), a[href], audio[controls], [tabindex]:not([tabindex="-1"])',
       ) || [])]
       if (focusable.length === 0) return
       const first = focusable[0]
@@ -233,7 +239,11 @@ function SermonViewer({ match, loadDetail, onClose }) {
     const handleNativeBack = event => {
       event.preventDefault?.()
       event.stopImmediatePropagation?.()
-      onClose()
+      if (showSettings) {
+        setShowSettings(false)
+        dialogRef.current?.querySelector('[data-reader-settings] > button')?.focus()
+      }
+      else onClose()
     }
     window.addEventListener('keydown', handleKeyDown, true)
     window.addEventListener('heritage:native-back', handleNativeBack, true)
@@ -241,7 +251,7 @@ function SermonViewer({ match, loadDetail, onClose }) {
       window.removeEventListener('keydown', handleKeyDown, true)
       window.removeEventListener('heritage:native-back', handleNativeBack, true)
     }
-  }, [onClose])
+  }, [onClose, showSettings])
 
   const detail = state.verified?.detail || null
   useEffect(() => {
@@ -319,15 +329,18 @@ function SermonViewer({ match, loadDetail, onClose }) {
               {match.sourceServerName}
             </p>
           </div>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={onClose}
-            className="flex-shrink-0 rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
-            aria-label="Close sermon viewer"
-          >
-            Close
-          </button>
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={onClose}
+              className="flex-shrink-0 rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+              aria-label="Close sermon viewer"
+            >
+              Close
+            </button>
+            <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} lightHeader open={showSettings} onOpenChange={setShowSettings} />
+          </div>
         </header>
 
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
@@ -448,7 +461,6 @@ function SermonViewer({ match, loadDetail, onClose }) {
 
               <div className="space-y-8">
                 <div className="flex flex-wrap items-center gap-4">
-                  <ReaderTextSize size={textSize} onChange={setTextSize} />
                   <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={verseMode} onChange={event => setVerseMode(event.target.checked)} /> Verse scroll mode</label>
                   {verseMode && <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={followAudio} onChange={event => setFollowAudio(event.target.checked)} /> Follow audio</label>}
                 </div>
@@ -465,7 +477,7 @@ function SermonViewer({ match, loadDetail, onClose }) {
                   return <section key={`${entry.kind}-${entry.language}-${index}`}>
                     <h3 className="text-base font-bold text-gray-950 dark:text-gray-100">{BODY_LABELS[entry.kind] || 'Sermon text'}</h3>
                     <p className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{entry.language}</p>
-                    <div className="mt-4 whitespace-pre-wrap leading-[1.8] text-gray-800 dark:text-gray-200" style={{ fontSize: `${textSize}px` }}>
+                    <div className="reader-content mt-4 whitespace-pre-wrap leading-[1.8] text-gray-800 dark:text-gray-200" style={{ fontSize: `${textSize}px` }}>
                       <RecordedSentenceText text={entry.text} spans={verseMode ? spans : []} verseMode={verseMode} language={entry.language} activeStart={active?.textStart} onSeek={start => {
                         const player = players.current.get(recording?.url)
                         if (!player) return

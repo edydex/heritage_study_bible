@@ -1,4 +1,5 @@
-import ReaderTextSize, { useReaderTextSize } from './ReaderTextSize'
+import { useReaderTextSize } from './ReaderTextSize'
+import ReaderSettings from './ReaderSettings'
 import RecordedSentenceText from './RecordedSentenceText'
 import { captureResourceTextSelection, findResourceBookmarkOffset } from '../utils/resourceTextSelection'
 import { writeTextToClipboard } from '../utils/verseSelection'
@@ -775,7 +776,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
             <span className="text-lg">{'\u2190'}</span>
           </button>
 
-          <div className="min-w-0 flex-shrink-0">
+          <div className="min-w-0 flex-1 sm:flex-none">
             <h1 className="text-base sm:text-lg font-bold heading-text truncate max-w-[190px] sm:max-w-[260px]">
               {book.title}
             </h1>
@@ -789,7 +790,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
                 setIsSearchFocused(false)
                 if (searchResults.length) jumpToSearchResult(activeSearchResult ? activeSearchResultIndex : 0)
               }}
-              className="flex-1 min-w-0 max-w-xl"
+              className="flex-1 min-w-[72px] max-w-xl"
             >
               <div className={`flex items-center bg-white/10 rounded-lg transition-all ${isSearchFocused ? 'ring-2 ring-white/50' : ''}`}>
                 <input
@@ -810,6 +811,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
               </div>
             </form>
           )}
+          <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} />
         </div>
       </header>
 
@@ -1033,7 +1035,6 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
           </div>
 
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <ReaderTextSize size={textSize} onChange={setTextSize} />
             <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={verseMode} onChange={event => setVerseMode(event.target.checked)} /> Verse scroll mode</label>
             {resourceBookmarks.some(item => item.resourceId === book.id) && (
               <details className="w-full text-sm text-gray-700 dark:text-gray-200">
@@ -1103,7 +1104,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
               )}
 
               {audioTarget && <p role="status" className="mb-3 text-sm text-gray-500 dark:text-gray-400">{audioParagraph ? 'Nearby passage from the recording. The narrator may use a different translation; this is an automatic paragraph match.' : 'The book text has changed, so the recorded location could not be verified.'}</p>}
-              <div ref={readingRef} className="space-y-4" style={{ fontSize: `${textSize}px` }}>
+              <div ref={readingRef} className="reader-content space-y-4" style={{ fontSize: `${textSize}px` }}>
                 {(selectedChapter?.paragraphs || []).map((paragraph, index) => {
                   const current = liveParagraph?.chapterIndex === selectedChapterIndex && liveParagraph?.paragraphIndex === index
                   const spans = readerTiming?.sentenceSpans?.filter(span => {

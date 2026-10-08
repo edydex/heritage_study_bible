@@ -191,7 +191,12 @@ Sentence ranges were regenerated for all ten books / 384 recordings from the ret
 
 ## Sentence reading controls
 
-Books offer **Verse scroll mode** beside the persisted 12–36px font controls.
+Reading pages place persisted 12–64px font controls behind the top-right **Settings** gear.
+Bible and resource readers share the same minus, editable size and plus controls;
+resource readers remember one reading size across books, sermons, transcripts,
+confessions, Apocrypha, hymns, songs and plan notes.
+
+Books offer **Verse scroll mode** above the reading text.
 It renders sentences as separate rows. Clicking a verified timed sentence seeks
 to that sentence's measured start and starts the selected recording. Paused
 recordings can load timing before the first tap. Untimed sentences are readable
