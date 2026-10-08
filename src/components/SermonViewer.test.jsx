@@ -181,10 +181,8 @@ it('queues a sentence seek until recording metadata loads', async () => {
       { kind: 'transcript', title: 'Timestamps', language: 'en', mediaType: 'text/vtt', url: 'https://church.example/recording.vtt' }],
   } })
   render(<SermonViewer match={{ publicId: 'timed', sourceKey: 'church', title: 'Timed sermon' }} loadDetail={loadDetail} onClose={() => {}} />)
-  await screen.findByText('First sentence. Second sentence.')
-  expect(globalThis.fetch).not.toHaveBeenCalled()
-  fireEvent.click(screen.getByLabelText('Verse scroll mode'))
   const target = await screen.findByRole('button', { name: 'Play from: Second sentence.' })
+  expect(globalThis.fetch).toHaveBeenCalledOnce()
   const player = screen.getByLabelText('Play Recording (EN)')
   Object.defineProperty(player, 'readyState', { value: 0, configurable: true })
   fireEvent.click(target)

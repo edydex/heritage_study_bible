@@ -196,7 +196,12 @@ Bible and resource readers share the same minus, editable size and plus controls
 resource readers remember one reading size across books, sermons, transcripts,
 confessions, Apocrypha, hymns, songs and plan notes.
 
-Books offer **Verse scroll mode** above the reading text.
+Books and published sermons offer **Verse scroll mode** inside the top-right
+**Settings** menu, enabled by default. The choice is remembered across both
+readers. Book Settings also includes the same **More settings** link as the Bible;
+sermon Settings keeps **Follow audio** beside the verse mode toggle. Books keep
+playback controls behind the bottom play button, like the Bible, with a floating
+rewind control while playing.
 It renders sentences as separate rows. Clicking a verified timed sentence seeks
 to that sentence's measured start and starts the selected recording. Paused
 recordings can load timing before the first tap. Untimed sentences are readable

@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useReaderTextSize } from './ReaderTextSize'
 import ReaderSettings from './ReaderSettings'
+import useReaderVerseMode from './useReaderVerseMode'
 import RecordedSentenceText from './RecordedSentenceText'
 import AudioTransport from './audio/AudioTransport'
 import { useHeritageAudio } from './audio/AudioProvider'
@@ -170,7 +171,7 @@ function SermonViewer({ match, loadDetail, onClose }) {
   const [bodyLanguage, setBodyLanguage] = useState('')
   const [textSize, setTextSize] = useReaderTextSize()
   const [showSettings, setShowSettings] = useState(false)
-  const [verseMode, setVerseMode] = useState(false)
+  const [verseMode, setVerseMode] = useReaderVerseMode()
   const [followAudio, setFollowAudio] = useState(true)
   const [captions, setCaptions] = useState({})
   const [captionError, setCaptionError] = useState('')
@@ -339,7 +340,12 @@ function SermonViewer({ match, loadDetail, onClose }) {
             >
               Close
             </button>
-            <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} lightHeader open={showSettings} onOpenChange={setShowSettings} />
+            <ReaderSettings
+              textSize={textSize} onTextSizeChange={setTextSize} lightHeader
+              open={showSettings} onOpenChange={setShowSettings}
+              verseMode={verseMode} onVerseModeChange={setVerseMode}
+              followAudio={followAudio} onFollowAudioChange={setFollowAudio}
+            />
           </div>
         </header>
 
@@ -460,10 +466,6 @@ function SermonViewer({ match, loadDetail, onClose }) {
               )}
 
               <div className="space-y-8">
-                <div className="flex flex-wrap items-center gap-4">
-                  <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={verseMode} onChange={event => setVerseMode(event.target.checked)} /> Verse scroll mode</label>
-                  {verseMode && <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={followAudio} onChange={event => setFollowAudio(event.target.checked)} /> Follow audio</label>}
-                </div>
                 {verseMode && <p role="status" className="text-sm text-gray-500 dark:text-gray-400">{captionError || (detail.media.some(isTimedTranscript) ? 'Sentence seeking uses timestamps only when the published transcript matches this text and has one recording in that language.' : 'This sermon has no timestamped transcript. Sentence seeking needs a matching VTT or SRT transcript from the publisher.')}</p>}
                 {bodyLanguages.length > 1 && <label className="flex items-center gap-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
                   Text language

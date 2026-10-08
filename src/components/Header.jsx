@@ -373,7 +373,7 @@ function Header({
             <span className="text-sm sm:text-base">📚</span>
           </button>
 
-          <ReaderSettings open={showSettings} onOpenChange={setShowSettings}>
+          <ReaderSettings open={showSettings} onOpenChange={setShowSettings} onMoreSettingsClick={() => onAdvancedSettingsClick?.()}>
             <ReaderTextSize size={textSize} onChange={onTextSizeChange} label="Bible" heading="Bible Text" />
             <ReaderTextSize size={commentaryTextSize} onChange={onCommentaryTextSizeChange} label="Commentary" heading="Commentary" defaultSize={14} />
             {/* Dark Mode */}
@@ -387,22 +387,6 @@ function Header({
                 <div className={`w-11 h-6 rounded-full transition-colors relative ${darkMode ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
                   <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${darkMode ? 'translate-x-5' : 'translate-x-0'}`} />
                 </div>
-              </button>
-            </div>
-
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
-              <button
-                aria-label="More settings"
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  setShowSettings(false)
-                  onAdvancedSettingsClick?.()
-                }}
-                className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <span className="text-sm text-gray-700 dark:text-gray-200 font-medium">More settings</span>
-                <span className="text-gray-400 dark:text-gray-500">›</span>
               </button>
             </div>
           </ReaderSettings>

@@ -1,10 +1,11 @@
 import { useReaderTextSize } from './ReaderTextSize'
 import ReaderSettings from './ReaderSettings'
+import useReaderVerseMode from './useReaderVerseMode'
 import RecordedSentenceText from './RecordedSentenceText'
 import { captureResourceTextSelection, findResourceBookmarkOffset } from '../utils/resourceTextSelection'
 import { writeTextToClipboard } from '../utils/verseSelection'
 import { setNativeTextSelectionMenuSuppressed } from '../services/androidControls'
-import { AudioPlayerControls, useHeritageAudio } from './audio/AudioProvider'
+import { useHeritageAudio } from './audio/AudioProvider'
 import AudioPlayButton from './audio/AudioPlayButton'
 import { keepReadingSentenceVisible } from '../utils/readingScroll'
 import { activeAudiobookSentence, audiobookDestination, loadAudiobookTiming, matchingAudioParagraph } from '../services/audiobookText'
@@ -189,7 +190,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   const [resourceBookmarks, setResourceBookmarks] = useState([])
   const [bookmarkStatus, setBookmarkStatus] = useState('')
   const [textSize, setTextSize] = useReaderTextSize()
-  const [verseMode, setVerseMode] = useState(false)
+  const [verseMode, setVerseMode] = useReaderVerseMode()
   const [placeSelection, setPlaceSelection] = useState(null)
   const [activePlaceBookmark, setActivePlaceBookmark] = useState(null)
   const readingRef = useRef(null)
@@ -811,7 +812,11 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
               </div>
             </form>
           )}
-          <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} />
+          <ReaderSettings
+            textSize={textSize} onTextSizeChange={setTextSize}
+            verseMode={verseMode} onVerseModeChange={setVerseMode}
+            onMoreSettingsClick={() => navigate('/settings/advanced')}
+          />
         </div>
       </header>
 
@@ -1034,26 +1039,23 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
             </div>
           </div>
 
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={verseMode} onChange={event => setVerseMode(event.target.checked)} /> Verse scroll mode</label>
-            {resourceBookmarks.some(item => item.resourceId === book.id) && (
-              <details className="w-full text-sm text-gray-700 dark:text-gray-200">
-                <summary className="min-h-11 cursor-pointer py-3">Bookmarks in this book</summary>
-                <div className="space-y-2">
-                  {resourceBookmarks.filter(item => item.resourceId === book.id).map(item => (
-                    <div key={item.id} className="flex gap-2">
-                      <button type="button" className="min-h-11 flex-1 rounded border border-gray-200 p-2 text-left dark:border-gray-700" onClick={() => { setSelectedChapterIndex(item.chapterIndex); setActivePlaceBookmark(item.paragraphIndex == null ? null : item); if (item.paragraphIndex == null) readingRef.current?.scrollIntoView({ block: 'start' }) }}>
-                        {item.chapterLabel}{item.selectedText && <span className="ml-2 text-amber-700 dark:text-amber-300">“{item.selectedText}”</span>}
-                      </button>
-                      <button type="button" aria-label={`Remove bookmark ${item.selectedText || item.chapterLabel}`} className="min-h-11 px-3" onClick={() => handleToggleResourceBookmark(item)}>✕</button>
-                    </div>
-                  ))}
-                </div>
-              </details>
-            )}
-          </div>
+          {resourceBookmarks.some(item => item.resourceId === book.id) && (
+            <details className="mb-4 w-full text-sm text-gray-700 dark:text-gray-200">
+              <summary className="min-h-11 cursor-pointer py-3">Bookmarks in this book</summary>
+              <div className="space-y-2">
+                {resourceBookmarks.filter(item => item.resourceId === book.id).map(item => (
+                  <div key={item.id} className="flex gap-2">
+                    <button type="button" className="min-h-11 flex-1 rounded border border-gray-200 p-2 text-left dark:border-gray-700" onClick={() => { setSelectedChapterIndex(item.chapterIndex); setActivePlaceBookmark(item.paragraphIndex == null ? null : item); if (item.paragraphIndex == null) readingRef.current?.scrollIntoView({ block: 'start' }) }}>
+                      {item.chapterLabel}{item.selectedText && <span className="ml-2 text-amber-700 dark:text-amber-300">“{item.selectedText}”</span>}
+                    </button>
+                    <button type="button" aria-label={`Remove bookmark ${item.selectedText || item.chapterLabel}`} className="min-h-11 px-3" onClick={() => handleToggleResourceBookmark(item)}>✕</button>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
 
-          {verseMode && <><AudioPlayerControls track={readerTrack} /><p className="mb-3 text-sm text-gray-500 dark:text-gray-400">{readerTiming ? 'Tap a sentence to play from there.' : 'Sentence seeking is available for recordings with matching text timings.'}</p></>}
+          {verseMode && <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">{readerTiming ? 'Tap a sentence to play from there.' : 'Sentence seeking is available for recordings with matching text timings.'}</p>}
 
           {bookmarkStatus && (
             <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-3">{bookmarkStatus}</p>
