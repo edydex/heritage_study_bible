@@ -1,3 +1,10 @@
+import { useReaderTextSize } from './ReaderTextSize'
+import ReaderSettings from './ReaderSettings'
+import useReaderVerseMode from './useReaderVerseMode'
+import RecordedSentenceText from './RecordedSentenceText'
+import { captureResourceTextSelection, findResourceBookmarkOffset } from '../utils/resourceTextSelection'
+import { writeTextToClipboard } from '../utils/verseSelection'
+import { setNativeTextSelectionMenuSuppressed } from '../services/androidControls'
 import { useHeritageAudio } from './audio/AudioProvider'
 import AudioPlayButton from './audio/AudioPlayButton'
 import { keepReadingSentenceVisible } from '../utils/readingScroll'
@@ -182,6 +189,11 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   })
   const [resourceBookmarks, setResourceBookmarks] = useState([])
   const [bookmarkStatus, setBookmarkStatus] = useState('')
+  const [textSize, setTextSize] = useReaderTextSize()
+  const [verseMode, setVerseMode] = useReaderVerseMode()
+  const [placeSelection, setPlaceSelection] = useState(null)
+  const [activePlaceBookmark, setActivePlaceBookmark] = useState(null)
+  const readingRef = useRef(null)
   const [progressReady, setProgressReady] = useState(false)
   const pendingChapterRef = useRef(null)
   const audio = useHeritageAudio()
@@ -196,6 +208,8 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   const book = resourceBook || category?.items.find(i => i.id === itemId)
   const audioBook = book?.audioBookId ? category.items.find(item => item.id === book.audioBookId) : book
   const alternativeEdition = category?.items.find(item => item.id === book?.alternativeEditionId)
+
+  useEffect(() => { setActivePlaceBookmark(null) }, [itemId])
 
   useEffect(() => {
     let cancelled = false
@@ -307,6 +321,41 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   }, [liveParagraph?.chapterIndex, liveParagraph?.paragraphIndex, liveParagraph?.textStart, selectedChapterIndex, audio?.settings.followBooks, audio?.state.status, textLoading, progressReady])
   const footnotesById = useMemo(() => extractBookFootnotes(bookText), [bookText])
   const selectedChapter = chapters[selectedChapterIndex] || null
+  const bookTracks = getBookAudioTracks(audioBook?.id)
+  const linkedTrackId = new URLSearchParams(location.search).get('audioTrack')
+  const preferredTrack = resourceBook ? bookTracks[selectedChapterIndex]
+    : bookTracks.find(track => track.id === linkedTrackId) || bookTracks.find(track => track.id === audio?.state.trackId) || bookTracks[0]
+  const [readerRecording, setReaderRecording] = useState(null)
+  const readerTrack = readerRecording?.chapterIndex === selectedChapterIndex && readerRecording.bookId === itemId && readerRecording.preferredTrackId === preferredTrack?.id ? readerRecording.track : preferredTrack
+  const readerTiming = readerRecording?.track.id === readerTrack?.id && readerRecording?.chapterIndex === selectedChapterIndex && readerRecording.bookId === itemId ? readerRecording.timing : null
+  useEffect(() => {
+    let cancelled = false
+    const matchesChapter = timing => timing?.textBookId === itemId && timing?.sentenceSpans?.some(span => {
+      const paragraph = timing.paragraphs[span.paragraph]
+      return paragraph?.chapterIndex === selectedChapterIndex && selectedChapter?.paragraphs[paragraph.paragraphIndex] === paragraph.text
+    })
+    const load = async () => {
+      if (!preferredTrack) { setReaderRecording(null); return }
+      let timing = await loadAudiobookTiming(preferredTrack).catch(() => null)
+      let track = preferredTrack
+      if (!matchesChapter(timing) && !resourceBook) {
+        // LibriVox track numbers need not equal printed chapter numbers.
+        // Use exact paragraph mappings to select a recording in this edition.
+        const candidates = bookTracks.filter(candidate => candidate.editionId === preferredTrack.editionId && candidate.id !== preferredTrack.id)
+        const results = await Promise.allSettled(candidates.map(async candidate => ({ track: candidate, timing: await loadAudiobookTiming(candidate) })))
+        const found = results.find(result => result.status === 'fulfilled' && matchesChapter(result.value.timing))
+        if (found) { track = found.value.track; timing = found.value.timing }
+      }
+      if (!cancelled) setReaderRecording({ bookId: itemId, chapterIndex: selectedChapterIndex, preferredTrackId: preferredTrack.id, track, timing: matchesChapter(timing) ? timing : null })
+    }
+    load()
+    return () => { cancelled = true }
+  }, [preferredTrack?.id, itemId, selectedChapterIndex, selectedChapter])
+  const seekSentence = async start => {
+    if (!audio || !readerTrack) return
+    if (audio.state.trackId !== readerTrack.id || audio.state.status !== 'playing') await audio.player.play(readerTrack.id)
+    audio.player.seek(start)
+  }
   const selectedChapterNumber = extractChapterNumber(selectedChapter?.title || '')
 
   const chapterEntries = useMemo(
@@ -337,7 +386,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
 
   const selectedEntry = chapterEntries.find(entry => entry.index === selectedChapterIndex) || null
   const currentResourceBookmarked = resourceBookmarks.some(
-    item => item.resourceId === book?.id && item.chapterIndex === selectedChapterIndex
+    item => item.resourceId === book?.id && item.chapterIndex === selectedChapterIndex && item.paragraphIndex == null
   )
   const selectedBookGroup = selectedEntry?.groupKey || bookGroups[0] || null
   const shouldShowBookSelector = bookGroups.length > 1
@@ -420,23 +469,50 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
     return () => { cancelled = true }
   }, [book?.id])
 
-  const handleToggleResourceBookmark = async () => {
+  const handleToggleResourceBookmark = async (place = null) => {
     if (!book?.id) return
     setBookmarkStatus('')
     try {
       const result = await toggleResourceBookmark({
+        ...(place || {}),
         resourceId: book.id,
         title: book.title,
         author: book.author,
-        chapterIndex: selectedChapterIndex,
-        chapterLabel: selectedEntry?.chapterLabel || selectedChapter?.title || 'Section',
+        chapterIndex: place?.chapterIndex ?? selectedChapterIndex,
+        chapterLabel: place?.chapterLabel || selectedEntry?.chapterLabel || selectedChapter?.title || 'Section',
       })
       setResourceBookmarks(result.bookmarks)
-      setBookmarkStatus(result.bookmarked ? 'Section bookmarked.' : 'Section bookmark removed.')
+      setBookmarkStatus(result.bookmarked ? (place ? 'Place bookmarked.' : 'Section bookmarked.') : 'Bookmark removed.')
+      setPlaceSelection(null)
+      window.getSelection()?.removeAllRanges()
     } catch (error) {
       setBookmarkStatus(error.message || 'Could not update section bookmark.')
     }
   }
+
+  useEffect(() => {
+    setNativeTextSelectionMenuSuppressed(true)
+    return () => { setNativeTextSelectionMenuSuppressed(false) }
+  }, [])
+
+  useEffect(() => {
+    setPlaceSelection(null)
+    let timer
+    const capture = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => setPlaceSelection(captureResourceTextSelection(window.getSelection(), readingRef.current)), 120)
+    }
+    document.addEventListener('selectionchange', capture)
+    return () => { clearTimeout(timer); document.removeEventListener('selectionchange', capture) }
+  }, [selectedChapterIndex, book?.id])
+
+  useEffect(() => {
+    if (!activePlaceBookmark || activePlaceBookmark.chapterIndex !== selectedChapterIndex) return
+    const frame = requestAnimationFrame(() => {
+      readingRef.current?.querySelector('[data-bookmark-place]')?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [activePlaceBookmark, selectedChapterIndex, selectedChapter])
 
   const activeTrackLabel = useMemo(() => {
     if (!selectedChapterNumber || !Array.isArray(book?.librivoxChapterRanges)) return null
@@ -595,7 +671,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
 
   if (!book) {
     return (
-      <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <p className="text-4xl mb-4">📚</p>
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Book not found</h2>
@@ -690,7 +766,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   }
 
   return (
-    <div className="min-h-screen bg-background dark:bg-gray-900">
+    <div className="min-h-screen bg-background dark:bg-black">
       {/* Header */}
       <header data-book-reader-header className="bg-primary text-white shadow-lg sticky top-0 z-40 safe-area-top">
         <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
@@ -701,7 +777,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
             <span className="text-lg">{'\u2190'}</span>
           </button>
 
-          <div className="min-w-0 flex-shrink-0">
+          <div className="min-w-0 flex-1 sm:flex-none">
             <h1 className="text-base sm:text-lg font-bold heading-text truncate max-w-[190px] sm:max-w-[260px]">
               {book.title}
             </h1>
@@ -715,7 +791,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
                 setIsSearchFocused(false)
                 if (searchResults.length) jumpToSearchResult(activeSearchResult ? activeSearchResultIndex : 0)
               }}
-              className="flex-1 min-w-0 max-w-xl"
+              className="flex-1 min-w-[72px] max-w-xl"
             >
               <div className={`flex items-center bg-white/10 rounded-lg transition-all ${isSearchFocused ? 'ring-2 ring-white/50' : ''}`}>
                 <input
@@ -736,6 +812,11 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
               </div>
             </form>
           )}
+          <ReaderSettings
+            textSize={textSize} onTextSizeChange={setTextSize}
+            verseMode={verseMode} onVerseModeChange={setVerseMode}
+            onMoreSettingsClick={() => navigate('/settings/advanced')}
+          />
         </div>
       </header>
 
@@ -930,7 +1011,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
         {downloadControls}
 
         {/* In-app Book Text */}
-        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black p-3 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-2">
               <span className="text-xl">📖</span>
@@ -939,7 +1020,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
             <div className="flex items-center gap-2">
               {chapters.length > 0 && (
                 <button
-                  onClick={handleToggleResourceBookmark}
+                  onClick={() => handleToggleResourceBookmark()}
                   className={`text-xs px-2 py-1 rounded-lg border transition-colors ${currentResourceBookmarked ? 'border-amber-300 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                 >
                   {currentResourceBookmarked ? '★ Section' : '☆ Section'}
@@ -957,6 +1038,24 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
             )}
             </div>
           </div>
+
+          {resourceBookmarks.some(item => item.resourceId === book.id) && (
+            <details className="mb-4 w-full text-sm text-gray-700 dark:text-gray-200">
+              <summary className="min-h-11 cursor-pointer py-3">Bookmarks in this book</summary>
+              <div className="space-y-2">
+                {resourceBookmarks.filter(item => item.resourceId === book.id).map(item => (
+                  <div key={item.id} className="flex gap-2">
+                    <button type="button" className="min-h-11 flex-1 rounded border border-gray-200 p-2 text-left dark:border-gray-700" onClick={() => { setSelectedChapterIndex(item.chapterIndex); setActivePlaceBookmark(item.paragraphIndex == null ? null : item); if (item.paragraphIndex == null) readingRef.current?.scrollIntoView({ block: 'start' }) }}>
+                      {item.chapterLabel}{item.selectedText && <span className="ml-2 text-amber-700 dark:text-amber-300">“{item.selectedText}”</span>}
+                    </button>
+                    <button type="button" aria-label={`Remove bookmark ${item.selectedText || item.chapterLabel}`} className="min-h-11 px-3" onClick={() => handleToggleResourceBookmark(item)}>✕</button>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+
+          {verseMode && <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">{readerTiming ? 'Tap a sentence to play from there.' : 'Sentence seeking is available for recordings with matching text timings.'}</p>}
 
           {bookmarkStatus && (
             <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-3">{bookmarkStatus}</p>
@@ -1007,23 +1106,30 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
               )}
 
               {audioTarget && <p role="status" className="mb-3 text-sm text-gray-500 dark:text-gray-400">{audioParagraph ? 'Nearby passage from the recording. The narrator may use a different translation; this is an automatic paragraph match.' : 'The book text has changed, so the recorded location could not be verified.'}</p>}
-              <div className="space-y-4">
-                {(selectedChapter?.paragraphs || []).map((paragraph, index) => (
-                  <p key={index} id={`book-paragraph-${index}`} tabIndex={-1} onClick={event => {
-                    if (event.target.closest('button,a')) return
-                    const start = playingTiming?.sentenceSpans?.find(span => {
-                      const paragraph = playingTiming.paragraphs[span.paragraph]
-                      return paragraph?.chapterIndex === selectedChapterIndex && paragraph.paragraphIndex === index
-                    })?.start
-                    if (start != null) audio?.player.seek(start)
-                  }} data-audio-paragraph={shownAudioParagraph?.chapterIndex === selectedChapterIndex && shownAudioParagraph?.paragraphIndex === index ? 'true' : undefined} data-audio-following={playingTiming ? 'true' : undefined} className="book-text-paragraph text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
-                    {liveParagraph?.chapterIndex === selectedChapterIndex && liveParagraph?.paragraphIndex === index ? <>
-                      {renderParagraphWithFootnotes(paragraph.slice(0, liveParagraph.textStart), searchQuery, footnotesById, openFootnote)}
-                      <span data-audio-sentence="true">{renderParagraphWithFootnotes(paragraph.slice(liveParagraph.textStart, liveParagraph.textEnd), searchQuery, footnotesById, openFootnote)}</span>
-                      {renderParagraphWithFootnotes(paragraph.slice(liveParagraph.textEnd), searchQuery, footnotesById, openFootnote)}
-                    </> : renderParagraphWithFootnotes(paragraph, searchQuery, footnotesById, openFootnote)}
+              <div ref={readingRef} className="reader-content space-y-4" style={{ fontSize: `${textSize}px` }}>
+                {(selectedChapter?.paragraphs || []).map((paragraph, index) => {
+                  const current = liveParagraph?.chapterIndex === selectedChapterIndex && liveParagraph?.paragraphIndex === index
+                  const spans = readerTiming?.sentenceSpans?.filter(span => {
+                    const source = readerTiming.paragraphs[span.paragraph]
+                    return source?.chapterIndex === selectedChapterIndex && source.paragraphIndex === index && source.text === paragraph
+                  }) || []
+                  const render = (text, offset = 0) => {
+                    const display = value => renderParagraphWithFootnotes(value, searchQuery, footnotesById, openFootnote)
+                    const bookmark = activePlaceBookmark
+                    if (!bookmark || bookmark.chapterIndex !== selectedChapterIndex || bookmark.paragraphIndex !== index) return display(text)
+                    const start = findResourceBookmarkOffset(bookmark, paragraph)
+                    if (start == null) return display(text)
+                    const localStart = Math.max(0, start - offset)
+                    const localEnd = Math.min(text.length, start + bookmark.selectedText.length - offset)
+                    if (localEnd <= localStart) return display(text)
+                    return <>{display(text.slice(0, localStart))}<mark data-bookmark-place className="bg-amber-200 text-amber-950 dark:bg-amber-800 dark:text-amber-100">{display(text.slice(localStart, localEnd))}</mark>{display(text.slice(localEnd))}</>
+                  }
+                  return <p key={index} id={`book-paragraph-${index}`} data-book-paragraph={index} tabIndex={-1}
+                    data-audio-paragraph={shownAudioParagraph?.chapterIndex === selectedChapterIndex && shownAudioParagraph?.paragraphIndex === index ? 'true' : undefined}
+                    data-audio-following={playingTiming ? 'true' : undefined} className="book-text-paragraph text-gray-800 dark:text-gray-200 leading-[1.8]">
+                    <RecordedSentenceText text={paragraph} spans={spans} activeStart={current ? liveParagraph.textStart : undefined} verseMode={verseMode} renderText={render} onSeek={seekSentence} />
                   </p>
-                ))}
+                })}
               </div>
             </>
           )}
@@ -1071,6 +1177,17 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
       </main>
 
       {playingTrack && !playingTrack.bible && (playingTrack.textBookId || playingTrack.bookId) === itemId && audio?.state.status === 'playing' && <button type="button" className="book-audio-rewind" aria-label="Rewind 10 seconds" onClick={() => audio.player.seek(audio.state.position - 10)}>−10</button>}
+      {placeSelection && (
+        <section role="region" aria-label="Selected book text actions" className="fixed inset-x-0 bottom-0 z-50 border-t border-gray-200 bg-white p-3 shadow-xl safe-area-bottom dark:border-gray-700 dark:bg-black" onPointerDown={event => event.preventDefault()}>
+          <p className="mb-2 truncate text-center text-sm text-gray-700 dark:text-gray-200">“{placeSelection.selectedText}”</p>
+          <div className="mx-auto flex max-w-md gap-2">
+            <button type="button" className="min-h-11 flex-1 rounded border border-gray-300 dark:border-gray-700" onClick={() => { setPlaceSelection(null); window.getSelection()?.removeAllRanges() }}>Cancel</button>
+            <button type="button" className="min-h-11 flex-1 rounded border border-gray-300 dark:border-gray-700" onClick={() => writeTextToClipboard(placeSelection.selectedText).then(() => setBookmarkStatus('Text copied.')).catch(() => setBookmarkStatus('Could not copy text.'))}>Copy</button>
+            <button type="button" className="min-h-11 flex-1 rounded bg-primary text-white" onClick={() => handleToggleResourceBookmark(placeSelection)}>Bookmark place</button>
+          </div>
+        </section>
+      )}
+
       {/* Bible-style bottom chapter navigation */}
       {hasChapters && !isSearchMode && (
         <>
@@ -1087,7 +1204,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
                 </svg>
               </button>
 
-              <AudioPlayButton track={resourceBook ? getBookAudioTracks(audioBook?.id)[selectedChapterIndex] : getBookAudioTracks(audioBook?.id).find(track => track.id === audio?.state.trackId) || getBookAudioTracks(audioBook?.id)[0]} label="book" />
+              <AudioPlayButton track={readerTrack} label="book" />
               <button
                 onClick={() => setShowNavigator(true)}
                 className="flex-1 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"

@@ -94,6 +94,12 @@ async function cleanupLegacyServiceWorker() {
   }
 }
 
+// Apply the saved reading theme before rendering any route, including direct
+// book and sermon links which do not mount the Bible's theme controls.
+try {
+  document.documentElement.classList.toggle('dark', localStorage.getItem('heritage-dark-mode') === 'true')
+} catch { /* Storage may be unavailable; retain the current document theme. */ }
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AppErrorBoundary>

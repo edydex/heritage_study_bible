@@ -1,3 +1,5 @@
+import ReaderSettings from './ReaderSettings'
+import { useReaderTextSize } from './ReaderTextSize'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { RESOURCE_CATEGORIES } from '../data/resources'
@@ -45,6 +47,7 @@ function decodeParam(value) {
 
 function ReadingPlanNoteViewer() {
   const { itemId, day, noteId } = useParams()
+  const [textSize, setTextSize] = useReaderTextSize()
   const navigate = useNavigate()
   const [plan, setPlan] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -177,16 +180,16 @@ function ReadingPlanNoteViewer() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
-      <header className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur border-b border-gray-200 dark:border-gray-800">
+    <div className="min-h-screen bg-gray-50 dark:bg-black pb-24">
+      <header className="sticky top-0 z-30 bg-white/95 dark:bg-black/95 backdrop-blur border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
           <button
             onClick={() => navigate(`/resources/reading-plans/${itemId}?day=${requestedDay || 1}`)}
-            className="text-sm font-semibold text-primary dark:text-blue-300"
+            className="flex-shrink-0 text-sm font-semibold text-primary dark:text-blue-300"
           >
             Back to Plan
           </button>
-          <div className="min-w-0 text-center">
+          <div className="min-w-0 flex-1 text-center">
             <p className="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold">
               Day {requestedDay || ''}
             </p>
@@ -194,13 +197,16 @@ function ReadingPlanNoteViewer() {
               {plan?.title || meta?.title || 'Reading Plan'}
             </h1>
           </div>
-          <button
-            onClick={handleToggle}
-            disabled={!noteItem}
-            className={`text-sm font-semibold ${done ? 'text-primary dark:text-blue-300' : 'text-gray-600 dark:text-gray-300 disabled:text-gray-400'}`}
-          >
-            {done ? 'Done' : 'Mark Done'}
-          </button>
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <button
+              onClick={handleToggle}
+              disabled={!noteItem}
+              className={`text-sm font-semibold ${done ? 'text-primary dark:text-blue-300' : 'text-gray-600 dark:text-gray-300 disabled:text-gray-400'}`}
+            >
+              {done ? 'Done' : 'Mark Done'}
+            </button>
+            <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} lightHeader />
+          </div>
         </div>
       </header>
 
@@ -229,7 +235,7 @@ function ReadingPlanNoteViewer() {
 
         {!loading && !error && noteItem && (
           <>
-            <section className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 sm:p-6">
+            <section className="reader-content reader-note bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-5 sm:p-6" style={{ fontSize: `${textSize}px` }}>
               {!usesSituationalTimeline && (
                 <>
                   <p className="text-xs uppercase font-semibold text-amber-700 dark:text-amber-300">
@@ -238,7 +244,7 @@ function ReadingPlanNoteViewer() {
                   <h2 className="mt-2 text-2xl font-bold text-gray-950 dark:text-gray-100">
                     {noteItem.label}
                   </h2>
-                  <p className="mt-4 text-base leading-relaxed text-gray-700 dark:text-gray-200">
+                  <p className="mt-4 leading-relaxed text-gray-700 dark:text-gray-200">
                     {noteItem.note}
                   </p>
                 </>

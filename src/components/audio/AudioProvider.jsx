@@ -9,6 +9,7 @@ import { refreshNativeSafeArea } from '../../services/androidControls'
 import { clearCommunityAudioDocuments, refreshCommunityAudioCatalog } from '../../services/communityAudio'
 import { COMMUNITY_SESSION_CHANGE_EVENT } from '../../services/communitySessions'
 import { COMMUNITIES_CHANGE_EVENT } from '../../services/communities'
+import AudioTransport from './AudioTransport'
 import './audio.css'
 
 const AudioContext = createContext(null)
@@ -37,26 +38,17 @@ function PlayerHost({ player, state, selectedTrack, onNavigate }) {
   return <>
     {track && <>
       <section className="audio-player audio-player-inline" aria-label="Audio player">
-        <div className="audio-player-row">
+        <AudioTransport state={state} play={play} pause={() => player.pause()} seek={seek} setRate={rate => player.setRate(rate)} expanded={expanded} title={
           <button type="button" className="audio-player-title" onClick={() => setExpanded(value => !value)} aria-expanded={expanded}>
             <strong>{track.bookTitle}</strong><span>{track.title} · {formatAudioTime(state.position)} {state.offline ? '· Offline' : ''}</span>
           </button>
-          <button type="button" onClick={() => seek(state.position - 10)} aria-label="Rewind 10 seconds">−10</button>
-          <button type="button" onClick={() => state.status === 'playing' || state.status === 'loading' ? player.pause() : play()}>
-            {state.status === 'loading' ? 'Cancel' : state.status === 'playing' ? 'Pause' : 'Play'}
-          </button>
-          <button type="button" onClick={() => seek(state.position + 10)} aria-label="Forward 10 seconds">+10</button>
-        </div>
-        {expanded && <div className="audio-player-expanded">
-          <label className="audio-seek"><span>{formatAudioTime(state.position)}</span> <input aria-label="Audio position" type="range" min="0" max={state.duration || 1} step="1" value={Math.min(state.position, state.duration || 1)} onChange={event => seek(Number(event.target.value))} /> {formatAudioTime(state.duration)}</label>
-          <div className="audio-actions">
+        }>
             <button type="button" disabled={!nextAudioTrack(track.id, -1)} onClick={() => { player.play(nextAudioTrack(track.id, -1).id, { restart: true }); onNavigate?.() }}>Previous track</button>
             <button type="button" disabled={!nextAudioTrack(track.id, 1)} onClick={() => { player.play(nextAudioTrack(track.id, 1).id, { restart: true }); onNavigate?.() }}>Next track</button>
-            <label>Speed <select aria-label="Playback speed" value={state.rate} onChange={event => player.setRate(event.target.value)}>{[0.75, 1, 1.25, 1.5, 1.75, 2].map(rate => <option key={rate} value={rate}>{rate}×</option>)}</select></label>
+
             <button type="button" onClick={() => { onNavigate?.(); destination ? navigate(destination.path, { state: destination.state }) : navigate(track.community ? `/resources/content/${encodeURIComponent(track.community.contentKey)}` : `/resources/books/${track.textBookId || track.bookId}`) }}>{destination ? destination.state.audioParagraph ? 'Go to nearby text' : destination.state.scrollToVerse ? 'Go to playing verse' : 'Open chapter text' : 'Open book text'}</button>
             <button type="button" onClick={() => { onNavigate?.(); navigate('/audio') }}>Audio library</button>
-          </div>
-        </div>}
+        </AudioTransport>
         {state.error && <p role="status">{state.error}</p>}
       </section>
     </>}
