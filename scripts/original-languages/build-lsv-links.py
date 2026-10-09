@@ -26,7 +26,7 @@ lsv = verses(read(lsv_path))
 greek = verses(read(DATA/'greek-nt-n1904.json'))
 # Token indexes in the pinned Nestle 1904 witness, reviewed against the source
 # morphology and published interlinear. English order differs from Greek order.
-REVIEW = {
+PHILIPPIANS_REVIEW = {
     'BSB': [(0,'I know',0),(2,'how to live humbly',0),(4,'and',0),(3,'I know',1),(5,'how to abound',0),
             (11,'I am accustomed',0),(6,'to',2),(7,'any',0),(8,'and',1),(10,'every situation',0),
             (13,'to being filled',0),(14,'and',2),(15,'being hungry',0),(17,'to having plenty',0),(18,'and',3),(19,'having need',0)],
@@ -34,11 +34,27 @@ REVIEW = {
             (6,'in',0),(7,'everything',0),(8,'and',1),(9,'in',1),(10,'all things',0),(11,'I have been initiated',0),
             (12,'both',1),(13,'to be full',0),(14,'and',2),(15,'to be hungry',0),(16,'both',2),(17,'to abound',1),(18,'and',3),(19,'to be in want',0)],
 }
-def reviewed(target):
-    source_text, target_text = greek['Philippians']['4:12'], (bsb if target=='BSB' else lsv)['Philippians']['4:12']
+REVIEW = {
+    ('Philippians', '4:12'): {
+        'reference': 'https://biblehub.com/interlinear/philippians/4-12.htm', 'groups': PHILIPPIANS_REVIEW,
+    },
+    ('Romans', '1:3'): {
+        'reference': 'https://biblehub.com/interlinear/romans/1-3.htm',
+        'groups': {'LSV': [(0,'concerning',0),(3,'His',0),(2,'Son',0),(4,'who',0),(5,'has come',0),
+                           (6,'of',0),(7,'the seed',0),(8,'David',0),(9,'according to',0),(10,'the flesh',0)]},
+    },
+    ('Romans', '1:12'): {
+        'reference': 'https://biblehub.com/interlinear/romans/1-12.htm',
+        'groups': {'LSV': [(1,'and',0),(0,'that',0),(2,'is',0),(3,'that I may be comforted together',0),
+                           (4,'among',0),(5,'you',0),(6,'through',0),(10,'faith',0),(8,'in',0),
+                           (9,'one another',0),(12,'both',0),(11,'yours',0),(13,'and',1),(14,'mine',0)]},
+    },
+}
+def reviewed(target, book, ref):
+    source_text, target_text = greek[book][ref], (bsb if target=='BSB' else lsv)[book][ref]
     tokens = list(re.finditer(r'\S+', source_text))
     groups = []
-    for token, phrase, occurrence in REVIEW[target]:
+    for token, phrase, occurrence in REVIEW[(book, ref)]['groups'][target]:
         candidates = list(re.finditer(r'(?<!\w)'+re.escape(phrase)+r'(?!\w)', target_text))
         match = candidates[occurrence]
         word = tokens[token]
@@ -47,10 +63,10 @@ def reviewed(target):
         while not source_text[end-1].isalpha(): end -= 1
         groups.append({'id': token, 'source': [word.start(), end], 'target': [match.start(), match.end()]})
     return {'sourceText':source_text,'targetText':target_text,'groups':groups,
-            'review': {'method':'Explicit phrase and occurrence mapping; no USFM tag transfer.', 'reference':'https://biblehub.com/interlinear/philippians/4-12.htm'}}
+            'review': {'method':'Explicit phrase and occurrence mapping; no USFM tag transfer.', 'reference':REVIEW[(book, ref)]['reference']}}
 # BSB repair only modifies this verse, never weakens whole-verse edition checks.
 path = DATA/'bsb-word-links/philippians.json'; item = read(path)
-item['verses']['4:12'] = reviewed('BSB'); item['unavailable'].pop('4:12', None); write(path,item)
+item['verses']['4:12'] = reviewed('BSB', 'Philippians', '4:12'); item['unavailable'].pop('4:12', None); write(path,item)
 index_path = DATA/'bsb-word-links/index.json'; index = read(index_path)
 index['books']['Philippians'].update(sha256=sha(path),linkedVerses=len(item['verses']),unlinkedVerses=len(item['unavailable']),groups=sum(len(v['groups']) for v in item['verses'].values()))
 index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2)+'\n')
@@ -79,9 +95,11 @@ for name, meta in index['books'].items():
             groups = [g for g in groups if not any(h is not g and h['target'][0]<g['target'][1] and h['target'][1]>g['target'][0] for h in groups)]
         if groups: aligned[ref]={'sourceText':source_text,'targetText':target_text,'groups':groups}
         else: unavailable[ref]=original['unavailable'].get(ref,'no-unambiguous-shared-phrase')
-    if name=='Philippians': aligned['4:12']=reviewed('LSV'); unavailable.pop('4:12',None)
+    for (book, ref), review in REVIEW.items():
+        if book == name and 'LSV' in review['groups']:
+            aligned[ref]=reviewed('LSV', book, ref); unavailable.pop(ref,None)
     value={'schemaVersion':1,'book':name,'sourceId':'N1904','targetId':'LSV','provenance':provenance,
-           'method':'Partial automatic links: identical whole-word BSB phrases occurring once in each displayed verse, transferred from pinned publisher Greek links. Function-only phrases, repeats, overlaps and Greek edition differences omitted. Philippians 4:12 uses an explicit reviewed mapping. No inferred synonyms or USFM Strong tags.',
+           'method':'Partial automatic links: identical whole-word BSB phrases occurring once in each displayed verse, transferred from pinned publisher Greek links. Function-only phrases, repeats, overlaps and Greek edition differences omitted. Philippians 4:12 and Romans 1:3, 1:12 use explicit reviewed mappings. No inferred synonyms or USFM Strong tags.',
            'verses':aligned,'unavailable':unavailable}
     path=folder/meta['file'];write(path,value)
     manifest[name]={'file':path.name,'sha256':sha(path),'linkedVerses':len(aligned),'unlinkedVerses':len(unavailable),'groups':sum(len(v['groups']) for v in aligned.values())}

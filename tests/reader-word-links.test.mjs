@@ -37,3 +37,16 @@ test('reviewed LSV phrases for full, initiated and in want point to the correct 
     assert.equal(entry.sourceText.slice(...group.source), greek)
   }
 })
+for (const targetId of ['BSB','LSV']) test(`${targetId} Romans 1:3 and 1:12 link the displayed spelling variants`, () => {
+  const romans = read(`original-languages/${targetId.toLowerCase()}-word-links/romans.json`)
+  for (const [ref, id, greek, phrase] of [
+    ['1:3',8,'Δαυεὶδ',targetId === 'BSB' ? 'of David' : 'David'],
+    ['1:12',3,'συνπαρακληθῆναι',targetId === 'BSB' ? 'may be mutually encouraged' : 'that I may be comforted together'],
+    ['1:12',10,'πίστεως','faith'],
+  ]) {
+    const entry = romans.verses[ref], group = entry.groups.find(g => g.id === id)
+    assert.equal(entry.sourceText.slice(...group.source), greek)
+    assert.equal(entry.targetText.slice(...group.target), phrase)
+    assert.equal(romans.unavailable[ref], undefined)
+  }
+})

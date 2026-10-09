@@ -39,7 +39,7 @@ describe('named original-language corpus and attested links', () => {
         groups++
       }
     }
-    expect({ linked, unmatched, groups }).toEqual({ linked: 376, unmatched: 56, groups: 5187 })
+    expect({ linked, unmatched, groups }).toEqual({ linked: 380, unmatched: 52, groups: 5232 })
   })
   it('does not transfer mappings onto changed translations or unsupported verses', () => {
     const verse = alignment.verses['1:1']

@@ -75,15 +75,24 @@ Patterns show the publisher’s correspondence, not an assertion of one-to-one
 lexical equivalence.
 
 The importer requires the entire verse’s Greek token sequence to match the
-chosen Nestle edition (ignoring accents, punctuation and case), and the entire
+chosen Nestle edition (ignoring accents, punctuation and case, plus two reviewed
+spelling pairs: Δαυεὶδ/Δαυὶδ and συνπαρακληθῆναι/συμπαρακληθῆναι), and the entire
 English token sequence to match the bundled BSB wording (ignoring case and
 punctuation). It leaves differing verses unlinked. Runtime checks also require
 exact displayed texts and valid character ranges before showing any links.
 
-Current pinned BSB data has **94,804 word/phrase groups across 6,597 NT verses**.
-**1,346 Greek-source verse records have no links** because a Greek or English
-edition's wording differs. The original Romans subset remains byte-identical:
-5,187 groups across 376 verses, with 56 unlinked verses. The repaired Philippians 4:12 entry records an explicit reviewed phrase mapping, checked against the displayed Greek and BSB texts and the published interlinear. It previously had `english-edition-differs`, which explained the missing colors. Other differing verses remain unlinked with a visible explanation. The per-book files and index include counts, source hashes and
+Current pinned BSB data has **95,567 word/phrase groups across 6,647 NT verses**.
+**1,296 Greek-source verse records have no links** because a Greek or English
+edition's wording differs. The Romans subset has 5,232 groups across 380 verses,
+with 52 unlinked verses. Romans 1:3 and 1:12 previously had `greek-edition-differs`
+because of the two spelling pairs above. The pinned source morphology and BSB
+publisher table attest the same words (G1138 and G4837). Allowing only these
+exact pairs restores 50 NT verses; existing mappings and displayed Greek text
+remain unchanged. No fuzzy or lemma matching is used. The repaired Philippians
+4:12 entry records an explicit reviewed phrase mapping, checked against the
+displayed Greek and BSB texts and the published interlinear. It previously had
+`english-edition-differs`, which explained the missing colors. Other differing
+verses remain unlinked with a visible explanation. The per-book files and index include counts, source hashes and
 artifact hashes. Tests check every shipped mapping against both installed texts,
 plus contextual and repeated-word examples. These checks establish source
 correspondence, not a human review of every lexical interpretation. Changing
@@ -140,13 +149,17 @@ Physical-phone and e-ink acceptance, deployment and a new APK remain separate.
 
 LSV can use the same parallel colors, hold-to-identify and Greek lemma lookup.
 There was no LSV mapping in the installed corpus. The new per-book package
-contains 24,483 groups across 6,324 NT verses. These are **partial automatic
+contains 24,752 groups across 6,374 NT verses. These are **partial automatic
 phrase correspondences**, not a complete publisher-attested LSV interlinear.
 The generator transfers a BSB publisher correspondence only when its whole-word
 English phrase occurs once in both the BSB and LSV verse. Function-only phrases,
 repeated phrases, overlapping destinations and differing Greek editions are
 omitted. Philippians 4:12 has an explicit reviewed mapping, including
-“initiated,” “full” and “in want.” Runtime text and offset checks remain strict.
+“initiated,” “full” and “in want.” Romans 1:3 and 1:12 also have explicit reviewed
+phrase mappings against the installed LSV wording and pinned Greek tokens,
+checked against the published [Romans 1:3](https://biblehub.com/interlinear/romans/1-3.htm)
+and [Romans 1:12](https://biblehub.com/interlinear/romans/1-12.htm) interlinear.
+Runtime text and offset checks remain strict.
 Hebrew/Aramaic word links are not supplied by this package. Occurrence results
 continue showing contextual BSB verses, even when opened from an LSV word.
 

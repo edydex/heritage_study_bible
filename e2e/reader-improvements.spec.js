@@ -87,6 +87,39 @@ for (const translation of ['BSB','LSV']) test(`${translation} Philippians 4:12 h
   await page.screenshot({ path: test.info().outputPath(`${translation.toLowerCase()}-parallel-phone.png`) })
 })
 
+for (const translation of ['BSB','LSV']) test(`${translation} Romans spelling variants have paired colors and the correct Greek study`, async ({ page }) => {
+  await page.addInitScript(translation => {
+    localStorage.setItem('heritage-translation', translation)
+    localStorage.setItem('heritage-default-translation-v2', 'done')
+  }, translation)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/#/romans/1')
+  await page.getByTitle('Enable parallel mode', { exact: true }).click()
+  await page.getByRole('button', { name: 'Original languages', exact: true }).click()
+  await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).click()
+  for (const [verse, id, strong] of [[3,8,'G1138'],[12,3,'G4837']]) {
+    const row = page.locator(`#verse-1-${verse}`)
+    const word = row.locator(`[data-translation="${translation}"] [data-word-link="1:${verse}:${id}"]:visible`).first()
+    const greek = row.locator(`[data-translation="ORIGINAL"] [data-word-link="1:${verse}:${id}"]:visible`).first()
+    await expect(word).toBeVisible()
+    await expect(greek).toBeVisible()
+    await expect(word).toHaveAttribute('data-word-pattern', String(id % 6))
+    await expect(greek).toHaveAttribute('data-word-pattern', String(id % 6))
+    const color = await word.evaluate(element => getComputedStyle(element).backgroundColor)
+    expect(color).not.toBe('rgba(0, 0, 0, 0)')
+    expect(color).toBe(await greek.evaluate(element => getComputedStyle(element).backgroundColor))
+    await word.press('Shift+Enter')
+    await expect(word).toHaveClass(/bible-word-link-active/)
+    await expect(greek).toHaveClass(/bible-word-link-active/)
+    await page.getByRole('button', { name: 'Clear word match' }).click()
+    await word.click()
+    await expect(page.getByRole('dialog')).toContainText(strong)
+    await page.getByRole('button', { name: 'Close word study' }).click()
+    await row.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: test.info().outputPath(`${translation.toLowerCase()}-romans-1-${verse}.png`) })
+  }
+})
+
 test('book sentence rows seek to the clicked recording position and follow its highlight', async ({ page }) => {
   const { default: catalog } = await import('../src/data/audioCatalog.json', { with: { type: 'json' } })
   const { default: timing } = await import('../public/data/audio/books/martyrdom-of-polycarp.json', { with: { type: 'json' } })
