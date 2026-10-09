@@ -20,7 +20,7 @@ function BibleChapter({
   onVersePosition,
   isVerseSelected,
   textSize = 18,
-  verseStacking = false,
+  verseStacking = true,
   verseLayout = null,
   selectionMode = false,
 }) {
