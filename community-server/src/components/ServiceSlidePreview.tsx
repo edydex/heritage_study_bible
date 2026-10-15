@@ -3,6 +3,7 @@ import translationSettings from '../../packages/service-core/node/services/proje
 import CanvasSlide from './CanvasSlide'
 import PreviewCanvas from './PreviewCanvas'
 import SlideText from './SlideText'
+import OutlineSlidePreview from './OutlineSlidePreview'
 import { plannerPreview } from './plannerPreview'
 import { isSongTitleSlide, type PlannerSlide } from './plannerSlides'
 import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
@@ -35,6 +36,7 @@ export default function ServiceSlidePreview({project,rows,slide,channelId,mediaU
         <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} role="body" label={`${channelId} Scripture preview`} readOnly onCommit={()=>{}} />
         {formatting.scriptureCredit(block) ? <p className="heritage-scripture-credit">{formatting.scriptureCredit(block)}</p> : null}
       </div>
+      if (block.type==='text' && block.role==='body' && preview.presetId==='wotbc-sermon') return <OutlineSlidePreview key={`${slide.id}:${channelId}:${index}`} text={block.text} spans={block.spans} />
       return block.type==='text' ? <SlideText key={`${slide.id}:${channelId}:${index}`} text={block.text} spans={block.spans} role={block.role} label={`${channelId} slide preview`} readOnly onCommit={()=>{}} /> : null
     })}
   </PreviewCanvas>

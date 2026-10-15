@@ -2131,3 +2131,11 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 
 // Stacked translations get a small physical gap, not an extra lyric line.
 .heritage-service-planner__stage[data-preset="wotbc-song-stacked"]:not([data-singer]) [data-role="lyrics"] + [data-role="lyrics"] { margin-top: calc(var(--slide-text-size) * .22); line-height: calc(var(--slide-text-size) * .8925); }
+
+// Number and first word are one visual unit, even under emergency word wrapping.
+.heritage-service-planner__stage .heritage-verse-start { white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+.heritage-service-planner__stage .heritage-outline-preview { position: relative; width: 100%; }
+.heritage-service-planner__stage[data-preset="wotbc-sermon"] .heritage-outline-preview { position:absolute; top:14%; max-height:86%; }
+.heritage-service-planner__stage .heritage-outline-preview [data-role="outline-marker"] { white-space:pre; }
+.heritage-sermon-heading-choice select { max-width:100%; }
+.heritage-service-planner__stage[data-preset="wotbc-sermon"] .heritage-outline-preview .heritage-service-planner__editable-text { position:static; top:auto; max-height:none; min-width:0; }

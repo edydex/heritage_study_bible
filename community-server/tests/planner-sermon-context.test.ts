@@ -113,3 +113,39 @@ test('Scripture labels use the passage reference rather than its inherited sermo
  assert.equal(plannerSlides(p,'english').find(slide=>slide.itemId==='verse')!.title,'Ephesians 4:25')
  assert.equal(plannerSlides(p,'russian').find(slide=>slide.itemId==='verse')!.title,'Ефесянам 4:25')
 })
+
+test('a slide can select sermon title or an earlier bilingual point without changing following automatic headings',()=>{
+ let p:any=fixture();p=editTemplateField(p,'title','russian','heading','От лжи к истине');p=editTemplateField(p,'one','russian','body','I. Поэтому');p=editTemplateField(p,'two','russian','next','Отложив ложь');
+ const passages=JSON.stringify(p.items.verse.passagesByChannel);
+ assert.equal(output(p,'verse','english').blocks[0].text,'II. Laying aside falsehood');
+ p=JSON.parse(JSON.stringify(p));p.items.verse.sermonHeading={source:'title'};p=reopen(p);
+ assert.equal(output(p,'verse','english').blocks[0].text,'Title in first language');assert.equal(output(p,'verse','russian').blocks[0].text,'От лжи к истине');
+ assert.equal(JSON.stringify(p.items.verse.passagesByChannel),passages);
+ p=JSON.parse(JSON.stringify(p));p.items.verse.sermonHeading={source:'point',key:'I'};p=reopen(p);
+ assert.equal(output(p,'verse','english').blocks[0].text,'I. Therefore');assert.equal(output(p,'verse','russian').blocks[0].text,'I. Поэтому');
+ p=editTemplateField(p,'one','english','body','I. Updated earlier point');assert.equal(output(p,'verse','english').blocks[0].text,'I. Updated earlier point');
+ p=core.addBibleItem(p,{...p.items.verse,id:'following'});
+ assert.equal(output(p,'following','english').blocks[0].text,'II. Laying aside falsehood','a local heading selection never changes the sermon context');
+ p=JSON.parse(JSON.stringify(p));delete p.items.verse.sermonHeading;p=reopen(p);
+ assert.equal(output(p,'verse','english').blocks[0].text,'II. Laying aside falsehood');
+});
+
+test('heading choices are limited to this sermon and safely fall back if a selected point is unavailable',()=>{
+ let p:any=fixture();const options=context.resolveSermonContext(p).verse.headingOptions;
+ assert.deepEqual(options.map((option:any)=>option.value),['title','point:I','point:II']);
+ assert.equal(context.resolveSermonContext(p).title.headingOptions.length,0);
+ p=JSON.parse(JSON.stringify(p));p.items.verse.sermonHeading={source:'point',key:'missing'};p=reopen(p);
+ assert.equal(output(p,'verse','english').blocks[0].text,'II. Laying aside falsehood');
+ for(const choice of [{source:'auto'},{source:'point',key:'<b>'},{source:'title',url:'https://example.com'},{source:'title',key:'I'}]){
+  p=JSON.parse(JSON.stringify(p));p.items.verse.sermonHeading=choice;assert.throws(()=>reopen(p),/sermon title or a point/);
+ }
+});
+
+test('selected point emphasis is clipped to its trimmed heading and the title keeps its own formatting',()=>{
+ let p:any=fixture();p=editTemplateField(p,'one','english','body','I. Emphasized point ',[{start:0,end:20,underline:true}]);
+ p=JSON.parse(JSON.stringify(p));p.items.verse.sermonHeading={source:'point',key:'I'};p=reopen(p);
+ const title=output(p,'verse','english').blocks[0];assert.equal(title.text,'I. Emphasized point');assert.ok(title.spans.every((span:any)=>span.end<=title.text.length));
+ p=JSON.parse(JSON.stringify(p));p.items.verse.sermonHeading={source:'title'};p=reopen(p);
+ p=editTemplateField(p,'title','english','heading','Title in first language',[{start:0,end:5,italic:true}]);
+ assert.deepEqual(output(p,'verse','english').blocks[0].spans,[{start:0,end:5,italic:true}]);
+});

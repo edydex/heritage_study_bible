@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {usePresentationAccessibility,PresentationColorInput} from './PresentationAccessibility'
 import {patternImage,paletteColor} from './presentationPalette'
+import presentationText from '../../packages/service-core/node/services/project/PresentationText.js'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 
 type Span = Record<string, any>
@@ -85,6 +86,13 @@ export default function SlideText({ baseColor, text, label, role, placeholder, s
       node.append(fragment); offset = span.end
     }
     appendPlain(draft.current.text.slice(offset))
+    // DOM extraction retains every character and formatting span. Group only
+    // the display nodes spanning a superscript number and its first word.
+    for (const atom of [...presentationText.verseWordRanges(draft.current.text)].reverse()) {
+      const walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT); let offset=0,part:Node|null,begin:Node|null=null,finish:Node|null=null,from=0,to=0;
+      while((part=walker.nextNode())) { const end=offset+(part.textContent?.length||0); if(!begin && atom.start>=offset && atom.start<end){begin=part;from=atom.start-offset} if(atom.end>offset && atom.end<=end){finish=part;to=atom.end-offset;break} offset=end }
+      if(begin && finish){ const range=document.createRange();range.setStart(begin,from);range.setEnd(finish,to);const wrapper=document.createElement('span');wrapper.className='heritage-verse-start';wrapper.append(range.extractContents());range.insertNode(wrapper) }
+    }
     node.dataset.empty = String(!draft.current.text.length)
     painted.current = true
     paintedMode.current = monochrome

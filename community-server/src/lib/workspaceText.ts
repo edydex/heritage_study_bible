@@ -2,6 +2,11 @@
 import type { WorkspaceLanguage } from './workspaceLanguage'
 
 export const russianWorkspaceText: Readonly<Record<string, string>> = {
+  "Selected point unavailable · using Automatic": "Выбранный пункт недоступен · автоматический заголовок",
+  "Heading on this slide": "Заголовок этого слайда",
+  "Automatic · latest point or title": "Автоматически · последний пункт или тема",
+  "Choose sermon heading…": "Выбрать заголовок проповеди…",
+  "Applies to this slide in every language. Automatic keeps following the sermon.": "Для этого слайда на всех языках. В автоматическом режиме заголовок следует за проповедью.",
   "Song": "Песня",
   "Search songs": "Поиск песен",
   "Clear search": "Очистить поиск",
