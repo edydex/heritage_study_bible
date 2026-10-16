@@ -2,8 +2,11 @@ import singerPresentation from '../../packages/service-core/node/services/projec
 import type { PlannerSlide } from './plannerSlides'
 
 /** Use the complete service timeline, including blanks and item boundaries. */
-export function plannerPreview(rows: PlannerSlide[], active: PlannerSlide | undefined, channelId: string) {
-  const singer = channelId === 'media'
+export function plannerPreview(rows: PlannerSlide[], active: PlannerSlide | undefined, channelId: string, presentation?: {hintScreenIds: string[]}) {
+  const intentionalBlank = active?.cue?.kind === 'blank'
+  const singer = presentation
+    ? presentation.hintScreenIds.includes(channelId) && !(intentionalBlank && channelId !== 'media') && active?.cue?.showNextSlideHints !== false
+    : channelId === 'media'
   const outputFor = (slide: PlannerSlide | undefined) => {
     const cue = slide?.cue
     const output = cue?.channels?.[channelId]
@@ -11,7 +14,7 @@ export function plannerPreview(rows: PlannerSlide[], active: PlannerSlide | unde
     const source = singerPresentation.singerSourceCue(cue, output.sourceChannelId)
     return { output: source.channels[output.sourceChannelId], presetId: source.presetId }
   }
-  const current = singer ? outputFor(active) : { output: active?.cue?.channels?.[channelId], presetId: active?.cue?.presetId }
+  const current = channelId === 'media' ? outputFor(active) : { output: active?.cue?.channels?.[channelId], presetId: active?.cue?.presetId }
   const slides = rows.filter(row => row.cue)
   const index = active ? slides.findIndex(row => row.id === active.id) : -1
   const nextSlide = index >= 0 ? slides[index + 1] : undefined

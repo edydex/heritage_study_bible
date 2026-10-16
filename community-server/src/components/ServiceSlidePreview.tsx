@@ -15,7 +15,7 @@ export default function ServiceSlidePreview({project,rows,slide,channelId,mediaU
   mediaUrl: (assetId: string)=>string | undefined; playVideo?: boolean
 }) {
   const item=project.items[slide.itemId]
-  const preview=plannerPreview(rows,slide,channelId)
+  const preview=plannerPreview(rows,slide,channelId,project.presentation)
   const blocks=preview.output?.mode==='hide' ? [] : preview.output?.blocks || []
   const background=blocks.find((block:any)=>block.type==='image' && block.role==='background')
   const backgroundId=background?.assetId || (preview.output?.mode!=='hide' ? item.backgroundAssetId : undefined)
