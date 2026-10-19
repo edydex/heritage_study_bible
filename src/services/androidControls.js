@@ -2,6 +2,8 @@ import { Capacitor, registerPlugin } from '@capacitor/core'
 
 const HeritageControls = registerPlugin('HeritageControls')
 
+export const NATIVE_READER_TARGET_CHANGE_EVENT = 'heritage:reader-scroll-target-change'
+
 export async function refreshNativeSafeArea() {
   if (!isNativeAndroid()) return
   try {
