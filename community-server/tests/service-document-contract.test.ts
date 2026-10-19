@@ -340,7 +340,7 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.match(planner, /onContextMenu/)
   assert.match(planner, /role="menuitem".*Delete/)
   assert.doesNotMatch(planner, /__row-actions|__filmstrip|__section-overview|__text-editor/)
-  assert.match(planner, /plannerPreview\(slideList.rows, activeSlide, previewChannel\)/)
+  assert.match(planner, /plannerPreview\(slideList.rows, activeSlide, previewChannel, draft\?\.presentation\)/)
   assert.doesNotMatch(planner, /Pinned song lyrics/)
   assert.doesNotMatch(planner, /Service item filmstrip/)
   assert.match(planner, /visibleBibleChapter/)
@@ -565,4 +565,12 @@ test('legacy services keep their canonical format and invalid screen choices are
     { screenIds: ['english'], hintScreenIds: ['media'] },
     { screenIds: ['english'], extra: true },
   ]) assert.throws(() => blankServiceDocument({ ...request, presentation }))
+})
+
+test('new presentations retain selected screens and reject hints for an unselected screen', () => {
+  const request = {schemaVersion:1,requestId:'00000000-0000-4000-8000-000000000101',syncId:'small-service-test',title:'Homegroup',serviceDate:'2026-10-15',presentation:{screenIds:['english'],hintScreenIds:['english']}}
+  const created=blankServiceDocument(request)
+  const parsed=parseHeritageServiceDocumentSource(created.write.documentSource)
+  assert.deepEqual(parsed.project.presentation,request.presentation)
+  assert.throws(()=>blankServiceDocument({...request,presentation:{screenIds:['english'],hintScreenIds:['media']}}))
 })
