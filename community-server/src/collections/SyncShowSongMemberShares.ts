@@ -26,6 +26,7 @@ export const SyncShowSongMemberShares: CollectionConfig = {
     plural: 'Song member-sharing receipts',
   },
   admin: {
+    hidden: true,
     useAsTitle: 'receiptId',
     group: 'Integrations',
     description:

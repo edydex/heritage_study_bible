@@ -7,7 +7,6 @@ import { communityRequestAccess } from '@/lib/communityMemberRequest'
 import { relationshipId } from '@/lib/communityRelationships'
 import { memberSongContentProjection } from '@/lib/memberSongProjection'
 import { communityPublicConfig, privateAuthorizationJson, publicJson } from '@/lib/publicConfig'
-import { isSongVisibleToMember } from '@/lib/syncShowProtocol'
 import {
   PUBLIC_SERMON_DETAIL_MEDIA_TYPE,
   publicSermonSourceResponse,
@@ -72,7 +71,7 @@ export async function GET(request: Request, context: { params: Promise<{ type: s
       const access = await communityRequestAccess(payload, request.headers, communityId)
       if (!access.authenticated
         || doc.status === 'archived'
-        || (!access.manager && !isSongVisibleToMember(doc as unknown as Record<string, unknown>))) {
+        || !access.manager) {
         return contentJson({ error: 'Not found.' }, { status: 404 })
       }
     } else if (doc.status !== 'published') {

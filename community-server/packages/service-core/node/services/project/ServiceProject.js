@@ -1,11 +1,14 @@
 'use strict';
+const {normalizePresentationScreens} = require('./PresentationScreens');
+const translationCueSettings = require('./TranslationCueSettings');
+const { resolveSermonContext } = require('./SermonContext');
 const {normalizeTextStyle, applyTimelineTypography} = require('./SlideTypography');
 const { normalizeSermonOptions, sermonSlideBlocks } = require('./SermonPresentation');
 const { normalizeCanvasObjects, canvasAssetIds } = require('./CanvasLayout');
 const { scriptureFlowText } = require('./SlideFormatting');
 const { localizeReadingBlocks } = require('./ReadingLabels');
 
-const { normalizeSongPresentation, presentationTitleBlocks, presentationLyricBlocks } = require('./SongPresentation');
+const { normalizeSongPresentation, presentationTitleBlocks, presentationLyricBlocks, presentationPrimaryChannelId } = require('./SongPresentation');
 
 const { Buffer, crypto } = require('../../runtime');
 const { isValidIsoDate } = require('../service-set/ServiceDate');
@@ -372,6 +375,7 @@ function normalizeBlock(raw, field) {
         actual: normalized.contentSha256
       });
     }
+    if (raw.displayReference !== undefined) normalized.displayReference = text(raw.displayReference, `${field}.displayReference`, 160);
     if (raw.displayText !== undefined) {
       normalized.displayText = text(raw.displayText, `${field}.displayText`, 20000, { required: true, trim: false });
       if (!normalized.displayText.trim()) fail('MISSING_TEXT', 'Slide text cannot be empty. Use a blank slide instead.');
@@ -510,6 +514,16 @@ function normalizeTranslationCues(value) {
   return result;
 }
 
+function normalizeTranslationSettingsMap(value, actions) {
+  if (!isRecord(value) || Object.keys(value).length>1000) fail('INVALID_TRANSLATION_CUES', 'Invalid cue settings.');
+  const result = {};
+  for (const [key, settings] of Object.entries(value)) {
+    if (actions?.[key]!=='start') fail('INVALID_TRANSLATION_CUES', 'Settings require a Start Translate cue.');
+    Object.defineProperty(result, key, { value: translationCueSettings.normalizeSettings(settings), enumerable:true, configurable:true,writable:true });
+  }
+  return result;
+}
+
 function normalizeCue(raw, expectedId = null) {
   if (!isRecord(raw)) fail('INVALID_CUE', 'Every cue must be an object.');
   const cueId = id(raw.id || expectedId, 'Cue id');
@@ -539,6 +553,11 @@ function normalizeCue(raw, expectedId = null) {
     operatorNotes: text(raw.operatorNotes, `Cue ${cueId} operatorNotes`, 4000, { trim: false }),
     presetId: id(raw.presetId || defaultPresetForKind(raw.kind), `Cue ${cueId} presetId`)
   };
+  if (raw.showNextSlideHints !== undefined) {
+    if (typeof raw.showNextSlideHints !== 'boolean') fail('INVALID_SERMON_PRESENTATION', 'Next-slide hint visibility must be a boolean.');
+    normalized.showNextSlideHints = raw.showNextSlideHints;
+  }
+  if (raw.translationSettings !== undefined) normalized.translationSettings = translationCueSettings.normalizeSettings(raw.translationSettings);
   if (raw.textStyle !== undefined) normalized.textStyle = normalizeTextStyle(raw.textStyle);
   if (raw.sourceLeafKey !== undefined) normalized.sourceLeafKey = text(raw.sourceLeafKey, 'Source slide key', 300, { required: true });
   if (raw.translationAction !== undefined) {
@@ -782,6 +801,7 @@ function normalizeServiceProject(raw, options = {}) {
     libraryReferences: raw.libraryReferences.map(normalizeLibraryReference),
     presetPackVersion: text(raw.presetPackVersion || `${raw.profileId}@1`, 'Project presetPackVersion', 160, { required: true })
   };
+  if (raw.presentation !== undefined) normalizedProject.presentation = normalizePresentationScreens(raw.presentation);
   if (Buffer.byteLength(JSON.stringify(normalizedProject), 'utf8') > MAX_PROJECT_JSON_BYTES) {
     fail('PROJECT_TOO_LARGE', `A project can use at most ${MAX_PROJECT_JSON_BYTES / (1024 * 1024)} MB of structured data.`);
   }
@@ -832,7 +852,8 @@ function serializeServiceProject(project) {
     cues: Object.fromEntries(normalized.cueIds.map(cueId => [cueId, stableObject(normalized.cues[cueId])])),
     assets: stableObject(normalized.assets),
     libraryReferences: normalized.libraryReferences.map(stableObject),
-    presetPackVersion: normalized.presetPackVersion
+    presetPackVersion: normalized.presetPackVersion,
+    ...(normalized.presentation ? {presentation: stableObject(normalized.presentation)} : {})
   };
   return `${JSON.stringify(ordered, null, 2)}\n`;
 }
@@ -2400,8 +2421,20 @@ function normalizeProjectItem(raw, channelIds, now) {
     updatedAt: timestamp(raw.updatedAt, `Item ${itemId} updatedAt`, now.toISOString()),
     operatorNotes: text(raw.operatorNotes, `Item ${itemId} operatorNotes`, 4000, { trim: false })
   };
+  if (raw.sermonHeading !== undefined) {
+    const choice = raw.sermonHeading;
+    if (!['sermon','bible'].includes(raw.kind) || !isRecord(choice)
+      || !['title','point'].includes(choice.source)
+      || Object.keys(choice).some(key => !['source','key'].includes(key))
+      || (choice.source === 'title' && choice.key !== undefined)
+      || (choice.source === 'point' && (typeof choice.key !== 'string' || !/^[A-Za-zА-Яа-я0-9/-]{1,80}$/.test(choice.key)))) {
+      fail('INVALID_SERMON_HEADING', 'Choose the sermon title or a point from this sermon.');
+    }
+    common.sermonHeading = {source: choice.source, ...(choice.source === 'point' ? {key: choice.key} : {})};
+  }
   if (raw.textStyle !== undefined) common.textStyle = normalizeTextStyle(raw.textStyle);
   if (raw.translationCues !== undefined) common.translationCues = normalizeTranslationCues(raw.translationCues);
+  if (raw.translationCueSettings !== undefined) common.translationCueSettings = normalizeTranslationSettingsMap(raw.translationCueSettings, common.translationCues);
   if (Object.prototype.hasOwnProperty.call(raw, 'plannedDurationSeconds')) {
     common.plannedDurationSeconds = finiteInteger(
       raw.plannedDurationSeconds,
@@ -2441,7 +2474,18 @@ function normalizeProjectItem(raw, channelIds, now) {
       const arrangementId = id(entry.id, `Song arrangement entry ${index + 1} id`);
       if (arrangementIds.has(arrangementId)) fail('DUPLICATE_ARRANGEMENT_ID', `Song arrangement repeats id ${arrangementId}.`);
       arrangementIds.add(arrangementId);
-      return { id: arrangementId, sectionId: id(entry.sectionId, `Song arrangement entry ${index + 1} sectionId`) };
+      let cueSourceLeafKey;
+      if (entry.cueSourceLeafKey !== undefined) {
+        cueSourceLeafKey = text(entry.cueSourceLeafKey, `Song arrangement entry ${index + 1} cueSourceLeafKey`, 300, { required: true });
+        if (!/^[A-Za-z0-9][A-Za-z0-9._:-]*\/[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(cueSourceLeafKey)) {
+          fail('INVALID_SONG_CUE_IDENTITY', 'A service-local song page must retain a valid original cue source key.');
+        }
+      }
+      return { id: arrangementId, sectionId: id(entry.sectionId, `Song arrangement entry ${index + 1} sectionId`),
+        ...(entry.cueSectionId !== undefined
+          ? { cueSectionId: id(entry.cueSectionId, `Song arrangement entry ${index + 1} cueSectionId`) }
+          : {}),
+        ...(cueSourceLeafKey ? { cueSourceLeafKey } : {}) };
     });
     let primaryChannelId = null;
     if (raw.primaryChannelId !== undefined && raw.primaryChannelId !== null) {
@@ -2463,6 +2507,7 @@ function normalizeProjectItem(raw, channelIds, now) {
       ...common,
       variants,
       arrangement,
+      ...(raw.cueItemId !== undefined ? { cueItemId: id(raw.cueItemId, `Song item ${itemId} cueItemId`) } : {}),
       ...(raw.showTitle !== undefined ? { showTitle: raw.showTitle } : {}),
       ...(raw.songPresentation !== undefined
         ? { songPresentation: normalizeSongPresentation(raw.songPresentation, channelIds, variants) } : {}),
@@ -3239,6 +3284,7 @@ function normalizeEditableServiceProject(raw, options = {}) {
       sha256: presetPack.sha256 && SHA256_PATTERN.test(presetPack.sha256) ? presetPack.sha256 : null
     }
   };
+  if (raw.presentation !== undefined) normalized.presentation = normalizePresentationScreens(raw.presentation);
   if (workflowMode) normalized.workflowMode = workflowMode;
   if (sourceServiceSet) normalized.sourceServiceSet = sourceServiceSet;
   if (planning) normalized.planning = planning;
@@ -3393,15 +3439,23 @@ function normalizeEditableServiceProject(raw, options = {}) {
     } else if (item.kind === 'song') {
       const resolved = channelIds.map(channelId => resolveSongVariant(item, channelId, resources));
       const source = authoritativeSongSource(normalized, item).resource;
+      let songCueCount = item.showTitle === false ? 0 : 1;
       for (const entry of item.arrangement) {
         const baseSection = source.document.sections.find(section => section.id === entry.sectionId);
         if (!baseSection) fail('UNKNOWN_ARRANGEMENT_SECTION', `Song item ${item.id} uses missing section ${entry.sectionId}.`);
+        songCueCount += baseSection.slides.length;
+        if (entry.cueSourceLeafKey && baseSection.slides.length !== 1) {
+          fail('INVALID_SONG_CUE_IDENTITY', 'An original cue source key can identify only one service-local song page.');
+        }
         for (const variant of resolved.filter(candidate => candidate.resource)) {
           const translatedSection = variant.resource.document.sections.find(section => section.id === entry.sectionId);
           if (!translatedSection || translatedSection.slides.length !== baseSection.slides.length) {
             fail('TRANSLATION_MISMATCH', `Song item ${item.id} has an unaligned translation for ${entry.sectionId}.`);
           }
         }
+      }
+      if (item.cueItemId && songCueCount !== 1) {
+        fail('INVALID_SONG_CUE_IDENTITY', 'An original cue item can identify only one independent service-local song slide.');
       }
     } else if (item.kind === 'sermon'
       || (item.kind === 'group' && (item.sermonResourceId || item.sermonSectionId))) {
@@ -3460,6 +3514,7 @@ function createEditableServiceProject(options = {}) {
     id: projectId,
     title: options.title || 'Sunday Service',
     serviceDate,
+    ...(options.presentation !== undefined ? {presentation: options.presentation} : {}),
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
     revision: 0,
@@ -3498,6 +3553,7 @@ function serializeEditableServiceProject(project) {
     assets: stableObject(normalized.assets),
     presetPack: stableObject(normalized.presetPack)
   };
+  if (normalized.presentation) serializable.presentation = stableObject(normalized.presentation);
   if (normalized.workflowMode) {
     serializable.workflowMode = normalized.workflowMode;
   }
@@ -4184,10 +4240,16 @@ function compileServiceProject(rawProject, options = {}) {
   const cueIds = [];
   const cues = {};
   const index = project._index || validateProjectTree(project);
+  let activeTranslationSettings;
   const addCue = (item, leafKey, rawCue) => {
-    const cueId = deterministicCueId(project.id, item.id, leafKey);
+    const action = item.translationCues?.[leafKey];
+    if (action==='start') activeTranslationSettings = item.translationCueSettings?.[leafKey];
+    if (action==='stop') activeTranslationSettings = undefined;
+    const cueId = deterministicCueId(project.id, item.kind === 'song' && item.cueItemId || item.id, leafKey);
     if (cues[cueId]) fail('CUE_ID_COLLISION', `Compiled cue id collision at ${item.id}.`);
     const cue = normalizeCue({ ...rawCue, id: cueId, itemId: item.id, sourceLeafKey: leafKey,
+      ...(sermonContext[item.id]?.showNextSlideHints === false ? {showNextSlideHints:false} : {}),
+      ...(activeTranslationSettings ? {translationSettings:activeTranslationSettings} : {}),
       ...(item.translationCues?.[leafKey] ? { translationAction: item.translationCues[leafKey] } : {}) });
     if (cue.presetId === 'wotbc-reading-title') {
       for (const channelId of project.channelIds) {
@@ -4200,26 +4262,12 @@ function compileServiceProject(rawProject, options = {}) {
     cues[cueId] = cue;
   };
 
-  const sermonHeadings = new Map();
-  const compileLeaf = item => {
+  const sermonContext = resolveSermonContext(project);
+  const compileLeaf = rawItem => {
+    const context = sermonContext[rawItem.id];
+    const item = context?.item || rawItem;
     const groupRecords = index.groupPathByItemId[item.id] || [];
     const groupPath = groupRecords.map(group => group.title);
-    const scope = [...groupRecords].reverse().find(group => group.kind === 'sermon')?.id || groupRecords[0]?.id || 'root';
-    if (item.kind === 'song' || item.presetId === 'wotbc-reading-title') sermonHeadings.delete(scope);
-    if (item.kind === 'sermon') {
-      const isTitle = item.sermonTemplate === 'title' || item.presetId === 'wotbc-sermon-title';
-      const isPoint = item.sermonTemplate === 'point' || item.presetId === 'wotbc-sermon';
-      if (isTitle || isPoint) {
-        const headings = {};
-        for (const channelId of project.channelIds) {
-          const lines = String(item.textByChannel?.[channelId] || '').split('\n').map(line => line.trim()).filter(Boolean);
-          const point = isPoint ? lines.filter(line => /^(?:[IVXLCDM]+|\d+|[a-zа-я])[.)]\s+/iu.test(line)).at(-1) : null;
-          const heading = point || item.titlesByChannel?.[channelId] || '';
-          if (heading) headings[channelId] = heading;
-        }
-        sermonHeadings.set(scope, headings);
-      }
-    }
     if (item.kind === 'song') {
       const resolvedByChannel = Object.fromEntries(project.channelIds.map(channelId => [
         channelId,
@@ -4306,8 +4354,8 @@ function compileServiceProject(rawProject, options = {}) {
         titleChannels[channelId] = {
           mode: resolved.mode === 'derive' ? 'condensed' : 'content',
           ...(resolved.mode === 'derive'
-            ? { sourceChannelId: item.songPresentation?.primaryChannelId || resolved.sourceChannelId,
-                sourceBlocks: [{ type: 'text', role: 'title', text: resolvedByChannel[item.songPresentation?.primaryChannelId || resolved.sourceChannelId].resource.document.title }] }
+            ? { sourceChannelId: presentationPrimaryChannelId(item, 'title') || resolved.sourceChannelId,
+                sourceBlocks: [{ type: 'text', role: 'title', text: resolvedByChannel[presentationPrimaryChannelId(item, 'title') || resolved.sourceChannelId].resource.document.title }] }
             : {}),
           blocks: presentationTitleBlocks(item, resolvedByChannel, channelId) || titleBlocks
         };
@@ -4329,6 +4377,10 @@ function compileServiceProject(rawProject, options = {}) {
       for (const entry of item.arrangement) {
         const sourceSection = source.document.sections.find(section => section.id === entry.sectionId);
         for (const [slideIndex, sourceSlide] of sourceSection.slides.entries()) {
+          // A private correction to a repeated section changes its content
+          // section, while the original page identity remains safe to retake.
+          const sourceSlideId = entry.cueSectionId ? `${entry.cueSectionId}-slide-${slideIndex + 1}` : sourceSlide.id;
+          const sourceLeafKey = entry.cueSourceLeafKey || `${entry.id}/${sourceSlideId}`;
           const channels = {};
           for (const channelId of project.channelIds) {
             const resolved = resolvedByChannel[channelId];
@@ -4344,14 +4396,14 @@ function compileServiceProject(rawProject, options = {}) {
             channels[channelId] = {
               mode: resolved.mode === 'derive' ? 'condensed' : 'content',
               ...(resolved.mode === 'derive'
-                ? { sourceChannelId: item.songPresentation?.primaryChannelId || resolved.sourceChannelId,
-                    sourceBlocks: [{ type: 'text', role: 'lyrics', text: resolvedByChannel[item.songPresentation?.primaryChannelId || resolved.sourceChannelId].resource.document.sections.find(candidate => candidate.id === entry.sectionId).slides[slideIndex].lines.join('\n') }] }
+                ? { sourceChannelId: presentationPrimaryChannelId(item, sourceLeafKey) || resolved.sourceChannelId,
+                    sourceBlocks: [{ type: 'text', role: 'lyrics', text: resolvedByChannel[presentationPrimaryChannelId(item, sourceLeafKey) || resolved.sourceChannelId].resource.document.sections.find(candidate => candidate.id === entry.sectionId).slides[slideIndex].lines.join('\n') }] }
                 : {}),
-              blocks: presentationLyricBlocks(item, resolvedByChannel, channelId, entry.sectionId, slideIndex)
+              blocks: presentationLyricBlocks(item, resolvedByChannel, channelId, entry.sectionId, slideIndex, sourceLeafKey)
                 || [{ type: 'text', role: 'lyrics', text: lines.join('\n') }]
             };
           }
-          addCue(item, `${entry.id}/${sourceSlide.id}`, {
+          addCue(item, sourceLeafKey, {
             kind: 'song',
             title: `${item.title} — ${sourceSection.label}${sourceSection.slides.length > 1 ? ` ${slideIndex + 1}` : ''}`,
             groupPath: [...groupPath, item.title, sourceSection.label],
@@ -4375,7 +4427,7 @@ function compileServiceProject(rawProject, options = {}) {
       for (const channelId of project.channelIds) {
         const passage = item.passagesByChannel[channelId];
         channels[channelId] = passage
-          ? { mode: 'content', blocks: [...(item.presetId === 'wotbc-sermon-scripture' && sermonHeadings.get(scope)?.[channelId] ? [{ type: 'text', role: 'title', text: sermonHeadings.get(scope)[channelId] }] : []), passage] }
+          ? { mode: 'content', blocks: [...(item.presetId === 'wotbc-sermon-scripture' && context?.displayHeadings[channelId] ? [{ type: 'text', role: 'title', text: context.displayHeadings[channelId], ...(context.displayHeadingSpans[channelId]?.length ? {spans:context.displayHeadingSpans[channelId]} : {}) }] : []), passage] }
           : { mode: 'hide', blocks: [] };
       }
       addCue(item, 'self', {
@@ -4428,13 +4480,13 @@ function compileServiceProject(rawProject, options = {}) {
               mode: projectionSource?.mode === 'condensed'
                 ? 'condensed'
                 : 'content',
-              blocks: sermonSlideBlocks(item.sermonTemplate === 'quote' && !item.titlesByChannel?.[channelId] && sermonHeadings.get(scope)?.[channelId] ? {...item, titlesByChannel: {...item.titlesByChannel, [channelId]: sermonHeadings.get(scope)[channelId]}} : item, channelId)
+              blocks: sermonSlideBlocks(item, channelId)
             }
           : { mode: 'hide', blocks: [] };
       }
       // An unconfigured sermon output borrows a complete authored output. Do
       // not treat deliberately hidden outputs or image-only titles as missing.
-      const filled = project.channelIds.filter(channelId => channels[channelId].blocks.some(block =>
+      const filled = project.channelIds.filter(channelId => context?.complete[channelId] !== false && channels[channelId].blocks.some(block =>
         block.type === 'text' ? Boolean(block.text.trim()) : block.type === 'canvas' ? block.objects.some(object => object.type !== 'text' || object.text.trim()) : true));
       for (const channelId of project.channelIds) {
         const channel = channels[channelId];
@@ -4578,6 +4630,7 @@ function compileServiceProject(rawProject, options = {}) {
     cueIds,
     cues,
     assets: project.assets,
+    ...(project.presentation ? {presentation: project.presentation} : {}),
     libraryReferences: Object.values(project.resources).map(resource => ({
       id: resource.document.id,
       kind: resource.kind,
@@ -5773,9 +5826,14 @@ function duplicateProjectItem(rawProject, options = {}) {
     }
     if (copied.kind === 'song') {
       delete copied.sourceRangeReplacement;
+      // A duplicate is a new cue, even when its source was a materialized page
+      // that retained the original song's live identity.
+      delete copied.cueItemId;
       copied.arrangement = original.arrangement.map(entry => ({
         id: duplicateId('arr', randomUUID, usedIds),
-        sectionId: entry.sectionId
+        sectionId: entry.sectionId,
+        ...(entry.cueSectionId !== undefined ? { cueSectionId: entry.cueSectionId } : {}),
+        ...(entry.cueSourceLeafKey !== undefined ? { cueSourceLeafKey: entry.cueSourceLeafKey } : {})
       }));
     }
     if (copied.kind === 'bible' && copied.sermonReading) {
@@ -6422,6 +6480,7 @@ function moveProjectItem(rawProject, options = {}) {
 }
 
 module.exports = {
+  normalizePresentationScreens,
   configureCommunityServicePlanBaselineNormalizer,
   ASSET_ID_PATTERN,
   CUE_KINDS,

@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm'
 import type { Payload } from 'payload'
 import { communityPublicConfig } from '@/lib/publicConfig'
 import { createOpaqueToken, hashOpaqueToken } from '@/lib/tokens'
+import { workspaceLanguage } from './workspaceLanguage'
 
 export const MAGIC_LINK_MINUTES = 15
 
@@ -42,6 +43,7 @@ export async function sendCommunityMagicLinkEmail({
   email,
   displayName,
   invitation = false,
+  preferredLanguage,
   userID,
   deviceId = 'legacy-community-device',
   deviceName = 'Heritage device',
@@ -53,6 +55,7 @@ export async function sendCommunityMagicLinkEmail({
   email: string
   displayName?: string | null
   invitation?: boolean
+  preferredLanguage?: string | null
   userID?: number | string
   deviceId?: string
   deviceName?: string
@@ -87,6 +90,7 @@ export async function sendCommunityMagicLinkEmail({
           systemRole: 'member',
           accountProtection: 'email',
           syncGeneration: 1,
+          preferredLanguage: workspaceLanguage(preferredLanguage),
         },
       })
     } catch {
@@ -156,19 +160,20 @@ export async function sendCommunityMagicLinkEmail({
   const link = `${appUrl}/#/community/callback?server=${encodeURIComponent(communityPublicConfig.publicUrl)}&token=${encodeURIComponent(token)}&flow=${flow}&purpose=${purpose}`
   const escapedLink = htmlEscape(link)
   const escapedName = htmlEscape(communityPublicConfig.name)
+  const ru = workspaceLanguage(preferredLanguage || user.preferredLanguage) === 'ru'
   const subject = invitation
-    ? `You’re invited to ${communityPublicConfig.name}`
-    : `Sign in to ${communityPublicConfig.name}`
+    ? (ru ? `Приглашение: ${communityPublicConfig.name}` : `You’re invited to ${communityPublicConfig.name}`)
+    : (ru ? `Вход: ${communityPublicConfig.name}` : `Sign in to ${communityPublicConfig.name}`)
   const introduction = invitation
-    ? `${communityPublicConfig.name} invited you to join its Heritage Community.`
-    : `Use this one-time link to sign in to ${communityPublicConfig.name}.`
+    ? (ru ? `${communityPublicConfig.name} приглашает вас присоединиться к Heritage Community.` : `${communityPublicConfig.name} invited you to join its Heritage Community.`)
+    : (ru ? `Воспользуйтесь одноразовой ссылкой для входа в ${communityPublicConfig.name}.` : `Use this one-time link to sign in to ${communityPublicConfig.name}.`)
 
   try {
     await payload.sendEmail({
       to: email,
       subject,
-      text: `${introduction}\n\nUse this one-time link within ${MAGIC_LINK_MINUTES} minutes:\n\n${link}\n\nIf you did not expect this, you can ignore this email.`,
-      html: `<p>${htmlEscape(introduction)}</p><p><a href="${escapedLink}">${invitation ? `Join ${escapedName}` : `Sign in to ${escapedName}`}</a></p><p>This link expires in ${MAGIC_LINK_MINUTES} minutes. If you did not expect this, you can ignore this email.</p>`,
+      text: ru ? `${introduction}\n\nСсылка действует ${MAGIC_LINK_MINUTES} минут:\n\n${link}\n\nЕсли вы не ожидали это письмо, просто проигнорируйте его.` : `${introduction}\n\nUse this one-time link within ${MAGIC_LINK_MINUTES} minutes:\n\n${link}\n\nIf you did not expect this, you can ignore this email.`,
+      html: `<p>${htmlEscape(introduction)}</p><p><a href="${escapedLink}">${ru ? (invitation ? 'Присоединиться' : 'Войти') : (invitation ? `Join ${escapedName}` : `Sign in to ${escapedName}`)}</a></p><p>${ru ? `Ссылка действует ${MAGIC_LINK_MINUTES} минут. Если вы не ожидали это письмо, просто проигнорируйте его.` : `This link expires in ${MAGIC_LINK_MINUTES} minutes. If you did not expect this, you can ignore this email.`}</p>`,
     })
   } catch {
     // Never leave a usable token behind when SMTP rejected the message. The

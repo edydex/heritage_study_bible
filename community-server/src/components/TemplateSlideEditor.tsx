@@ -1,4 +1,5 @@
 'use client'
+import { useWorkspaceText } from './useWorkspaceText'
 import SlideText from './SlideText'
 import OutlineSlideEditor from './OutlineSlideEditor'
 
@@ -6,22 +7,23 @@ export default function TemplateSlideEditor({ item, inheritedHeading, channelId,
   inheritedHeading?: string; item: Record<string, any>; channelId: string; uploading: boolean; onImage: () => void;
   onEdit: (field: 'heading' | 'body' | 'next' | 'credit', text: string, spans: any[]) => void
 }) {
+  const t = useWorkspaceText()
   const isTitle = item.sermonTemplate === 'title'
   const showText = !isTitle || item.sermonPresentation?.showText !== false
   const body = item.textByChannel[channelId] || ''
   return <>
     {isTitle && !(item.backgroundAssetIdsByChannel?.[channelId] || item.backgroundAssetId) ? <button type="button" className="heritage-service-planner__image-placeholder" disabled={uploading} onClick={onImage}>
-      <span aria-hidden="true">▧</span>{uploading ? 'Uploading image…' : 'Choose title image'}
+      <span aria-hidden="true">▧</span>{uploading ? t("Uploading image…") : t("Choose title image")}
     </button> : null}
     {showText ? <>
       <SlideText text={item.titlesByChannel?.[channelId] || inheritedHeading || ''} spans={item.titleSpansByChannel?.[channelId]} role="title"
-        label={`${channelId} ${isTitle ? 'sermon title' : 'heading'}`} placeholder={isTitle ? 'Sermon title' : 'Heading (optional)'} canFormat onCommit={(text, spans) => onEdit('heading', text, spans)} />
+        label={`${channelId} ${isTitle ? 'sermon title' : 'heading'}`} placeholder={isTitle ? t("Sermon title") : t("Heading (optional)")} canFormat onCommit={(text, spans) => onEdit('heading', text, spans)} />
       <div className="heritage-service-planner__template-body" data-fit-text>
         {item.sermonTemplate === 'point' ? <OutlineSlideEditor text={body} spans={item.spansByChannel?.[channelId]} channelId={channelId} onCommit={(text,spans)=>onEdit('body',text,spans)} /> : <SlideText text={body} spans={item.spansByChannel?.[channelId]} role={isTitle ? 'subtitle' : 'body'}
-          label={`${channelId} ${isTitle ? 'subtitle' : 'slide text'}`} placeholder={isTitle ? 'Subtitle (optional)' : 'Click to add your text'} canFormat onCommit={(text, spans) => onEdit('body', text, spans)} />}
+          label={`${channelId} ${isTitle ? 'subtitle' : 'slide text'}`} placeholder={isTitle ? t("Subtitle (optional)") : t("Click to add your text")} canFormat onCommit={(text, spans) => onEdit('body', text, spans)} />}
       </div>
       {item.sermonTemplate === 'quote' && <SlideText text={item.quoteSourcesByChannel?.[channelId] || ''} role="credit"
-        label={`${channelId} author or source`} placeholder="Author / source (optional)" onCommit={text => onEdit('credit', text, [])} />}
+        label={`${channelId} author or source`} placeholder={t("Author / source (optional)")} onCommit={text => onEdit('credit', text, [])} />}
     </> : null}
   </>
 }

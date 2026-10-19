@@ -16,6 +16,8 @@ import {
   synthesizeLegacySyncDocuments,
   SyncShowProtocolError,
 } from '../src/lib/syncShowProtocol.ts'
+import songDocuments from '../packages/service-core/node/services/project/SongDocument.js'
+import { songDocumentBody, songSectionLanguageChoices } from '../src/lib/songSourceSyntax'
 import { privateAuthorizationJson } from '../src/lib/publicConfig.ts'
 
 function sourceDocument({
@@ -611,4 +613,23 @@ test('legacy field projection exposes the same SyncShow lyric edit to Community 
   const projected = legacyFieldsFromSyncDocuments([edited])
   assert.equal(projected.title, 'Reader Song')
   assert.match(String(projected.lyrics), /This edit must reach Heritage/)
+})
+
+
+test('primary section annotations survive canonical save and reopen without changing lyric words', () => {
+  const song={syncId:'primary-defaults',title:'Example',russianTitle:'Пример',lyrics:'*Verse 1\nEnglish verse\n\nChorus\nEnglish chorus',russianLyrics:'Куплет 1\nРусский куплет\n\nПрипев*\nРусский припев'}
+  const documents=synthesizeLegacySyncDocuments(song)
+  const canonical=documents.map(document=>({...document,source:songDocuments.serializeSongDocument(songDocuments.parseSongDocument(document.source,{fileName:document.id+'.md'}))}))
+  const reopened=legacyFieldsFromSyncDocuments(canonical)
+  assert.match(String(reopened.lyrics),/\*Verse 1\*/)
+  assert.match(String(reopened.russianLyrics),/\*chorus\*/)
+  assert.deepEqual({...songSectionLanguageChoices(reopened.lyrics,reopened.russianLyrics).choices},{'1':'en',chorus:'ru'})
+  assert.equal(songDocumentBody(reopened.lyrics),songDocumentBody(song.lyrics))
+  assert.equal(songDocumentBody(reopened.russianLyrics),songDocumentBody(song.russianLyrics))
+  const renamed=mergeLegacyEditsIntoSyncDocuments({...song,syncDocuments:documents},{authors:['Author']})
+  assert.equal(renamed[0].source.split('---\n\n')[1],documents[0].source.split('---\n\n')[1])
+  assert.match(renamed[0].source,/primarySections:/)
+  const removed=mergeLegacyEditsIntoSyncDocuments({...song,syncDocuments:documents},{lyrics:song.lyrics.replaceAll('*','')})
+  assert.doesNotMatch(removed[0].source,/primarySections:/)
+  assert.equal(removed[1].source,documents[1].source)
 })

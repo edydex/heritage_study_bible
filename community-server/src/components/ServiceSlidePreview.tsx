@@ -1,9 +1,12 @@
 'use client'
+import translationSettings from '../../packages/service-core/node/services/project/TranslationCueSettings.js'
 import CanvasSlide from './CanvasSlide'
 import PreviewCanvas from './PreviewCanvas'
 import SlideText from './SlideText'
+import OutlineSlidePreview from './OutlineSlidePreview'
 import { plannerPreview } from './plannerPreview'
 import { isSongTitleSlide, type PlannerSlide } from './plannerSlides'
+import readingLabels from '../../packages/service-core/node/services/project/ReadingLabels.js'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 
 /** Read-only rendering of compiled cues: no template guides and no editor mutations. */
@@ -12,11 +15,11 @@ export default function ServiceSlidePreview({project,rows,slide,channelId,mediaU
   mediaUrl: (assetId: string)=>string | undefined; playVideo?: boolean
 }) {
   const item=project.items[slide.itemId]
-  const preview=plannerPreview(rows,slide,channelId)
+  const preview=plannerPreview(rows,slide,channelId,project.presentation)
   const blocks=preview.output?.mode==='hide' ? [] : preview.output?.blocks || []
   const background=blocks.find((block:any)=>block.type==='image' && block.role==='background')
   const backgroundId=background?.assetId || (preview.output?.mode!=='hide' ? item.backgroundAssetId : undefined)
-  return <PreviewCanvas textStyle={slide.cue?.textStyle} kind={item.kind} presetId={preview.presetId} titleCard={isSongTitleSlide(slide)} singer={preview.singer} next={preview.next}
+  return <PreviewCanvas captionReservation={translationSettings.reservation(slide.cue?.translationSettings,channelId)} textStyle={slide.cue?.textStyle} kind={item.kind} presetId={preview.presetId} titleCard={isSongTitleSlide(slide)} singer={preview.singer} next={preview.next}
     backgroundUrl={backgroundId ? mediaUrl(backgroundId) : undefined} backgroundDimOpacity={item.sermonPresentation?.darkenBackground===false ? 0 : .55}>
     {blocks.map((block:any,index:number)=>{
       if (block.type==='canvas') return <CanvasSlide key={`${slide.id}:${channelId}:${index}`} objects={block.objects} mediaUrl={mediaUrl} />
@@ -29,10 +32,11 @@ export default function ServiceSlidePreview({project,rows,slide,channelId,mediaU
           : <div key={index} className="heritage-service-preview__video-poster" aria-label="Video slide">▷</div>
       }
       if (block.type==='bible') return <div key={index} className="heritage-service-planner__scripture-page" data-fit-text>
-        <p className="heritage-service-planner__scripture-reference">{block.reference} <small>{block.translationId}</small></p>
+        {preview.presetId !== 'wotbc-sermon-scripture' && (block.displayReference ?? block.reference) ? <p className="heritage-service-planner__scripture-reference">{readingLabels.localizedReference(block.displayReference ?? block.reference, project.channels[channelId]?.language)}</p> : null}
         <SlideText text={formatting.scriptureDisplay(block, preview.presetId).text} spans={formatting.scriptureDisplay(block, preview.presetId).spans} role="body" label={`${channelId} Scripture preview`} readOnly onCommit={()=>{}} />
         {formatting.scriptureCredit(block) ? <p className="heritage-scripture-credit">{formatting.scriptureCredit(block)}</p> : null}
       </div>
+      if (block.type==='text' && block.role==='body' && preview.presetId==='wotbc-sermon') return <OutlineSlidePreview key={`${slide.id}:${channelId}:${index}`} text={block.text} spans={block.spans} />
       return block.type==='text' ? <SlideText key={`${slide.id}:${channelId}:${index}`} text={block.text} spans={block.spans} role={block.role} label={`${channelId} slide preview`} readOnly onCommit={()=>{}} /> : null
     })}
   </PreviewCanvas>

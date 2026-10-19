@@ -22,6 +22,7 @@ export const Events: CollectionConfig = {
   hooks: { beforeValidate: [prepareCalendarEvent] },
   defaultSort: ['startsAt', 'title', 'id'],
   fields: [
+    { name: 'calendarVersion', type: 'text', defaultValue: '1', admin: { hidden: true }, access: { create: () => false, update: () => false } },
     {
       name: 'community',
       label: 'Church',

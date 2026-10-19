@@ -1,3 +1,4 @@
+import serviceCore from '../../packages/service-core/index.js'
 import { SyncShowProtocolError } from './syncShowProtocol.ts'
 
 export interface TranslationSettings {
@@ -23,6 +24,7 @@ export interface ServiceTranslationPlan {
   revision: number
   settings: TranslationSettings | null
   stale: boolean
+  translationCues?: Array<{id:string; settings:Record<string,any>}>
 }
 export const serviceIdPattern = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/
 const hashPattern = /^[a-f0-9]{64}$/
@@ -68,19 +70,22 @@ export function serviceTranslationPlan(document: Record<string, unknown>, commun
       || typeof stored.serviceRevision !== 'string' || !hashPattern.test(stored.serviceRevision)) return fail('Stored translation settings need repair.')
     plan = { schemaVersion: 1, revision: Number(stored.revision), serviceRevision: stored.serviceRevision, settings: parseTranslationSettings(stored.settings) }
   }
-  return { id: String(document.syncId), communityId: String(communityId), title: String(document.title), serviceDate: String(document.serviceDate).slice(0, 10),
+  const source = typeof document.documentSource==='string' ? JSON.parse(document.documentSource) : null
+  const timeline = source?.project ? serviceCore.compileServiceProject(source.project,{allowEmpty:true}) : null
+  const translationCues = timeline ? timeline.cueIds.filter((id:string)=>timeline.cues[id].translationAction==='start' && timeline.cues[id].translationSettings).map((id:string)=>({id,settings:timeline.cues[id].translationSettings})) : []
+  return { translationCues, id: String(document.syncId), communityId: String(communityId), title: String(document.title), serviceDate: String(document.serviceDate).slice(0, 10),
     serviceRevision: String(document.revision), revision: plan?.revision ?? 0, settings: plan?.settings ?? null,
     stale: Boolean(plan && plan.serviceRevision !== document.revision) }
 }
 
-/** Cue edits do not change the reviewed language, voice, or sermon context. */
+/** Cue-local language and voice edits do not change the separately reviewed sermon context. */
 export function sameServiceApartFromTranslationCues(before: string, after: string): boolean {
   try {
     const strip = (source: string) => {
       const value = JSON.parse(source)
       delete value.project.revision; delete value.project.updatedAt
       for (const item of Object.values(value.project.items) as Record<string, unknown>[]) {
-        delete item.translationCues; delete item.updatedAt
+        delete item.translationCues; delete item.translationCueSettings; delete item.updatedAt
       }
       return JSON.stringify(value)
     }
