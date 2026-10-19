@@ -48,6 +48,39 @@ test('backup restore drops content servers with unsafe catalog URLs', () => {
   assert.deepEqual(sanitizeContentServerRegistry([record]), [])
 })
 
+test('backup restore preserves only a revalidated public sermon publication marker', () => {
+  const record = contentServerRecord()
+  record.manifest.publications = {
+    sermons: {
+      schemaVersion: 1,
+      kind: 'heritage-public-sermon-publication',
+      catalog: {
+        url: '/publications/sermons/catalog.json',
+        mediaType: 'application/json',
+      },
+      detailMediaType: 'application/vnd.heritage.sermon+json',
+      passageIndex: {
+        url: '/indexes/sermon-passages',
+        mediaType: 'application/json',
+      },
+    },
+  }
+
+  const [restored] = sanitizeContentServerRegistry([record])
+  assert.equal(
+    restored.manifest.publications.sermons.catalog.url,
+    'https://church.example/publications/sermons/catalog.json',
+  )
+  assert.equal(
+    restored.manifest.publications.sermons.passageIndex.url,
+    'https://church.example/indexes/sermon-passages',
+  )
+
+  record.manifest.publications.sermons.passageIndex.url = 'https://other.example/sermons.json'
+  const [withoutMarker] = sanitizeContentServerRegistry([record])
+  assert.deepEqual(withoutMarker.manifest.publications, {})
+})
+
 test('backup restore revalidates community endpoints and linked content', () => {
   const contentPreview = contentServerRecord()
   const community = {

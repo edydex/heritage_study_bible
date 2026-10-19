@@ -3,9 +3,10 @@ import { createPortal } from 'react-dom'
 import CompareModal from './CompareModal'
 import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptions'
 import { formatVersesForCopy, writeTextToClipboard } from '../utils/verseSelection'
-import { addNativeBackListener } from '../services/androidControls'
+import { addNativeBackListener, NATIVE_READER_TARGET_CHANGE_EVENT } from '../services/androidControls'
 import { annotationIncludesVerse, getAnnotationVerses } from '../utils/verseAnnotations'
 import { HighlightColorPicker } from './HighlightColorPicker'
+import PassageSermonsPanel from './PassageSermonsPanel'
 
 // Regex fallback for entries without <vq> markup (older data or books CCEL didn't tag)
 const CALVIN_QUOTE_RE1 = /^(\s*\d+\.?\s+\S+(?:\s+\S+){0,12}?(?:\betc\b\.?\s*(?:[\u2014-]\s*)?|[.]))\s+/
@@ -471,7 +472,7 @@ function renderCalvinParagraph(paragraph, pIndex) {
   const sqMatch = paragraph.match(/^<sq>([\s\S]*)<\/sq>$/)
   if (sqMatch) {
     return (
-      <blockquote key={pIndex} className="text-gray-600 dark:text-gray-400 leading-relaxed mb-2 last:mb-0 border-l-2 border-blue-300 dark:border-blue-600 pl-3 italic">
+      <blockquote key={pIndex} data-reader-text className="text-gray-600 dark:text-gray-400 leading-relaxed mb-2 last:mb-0 border-l-2 border-blue-300 dark:border-blue-600 pl-3 italic">
         {renderCalvinInline(sqMatch[1], `sq-${pIndex}`)}
       </blockquote>
     )
@@ -480,7 +481,7 @@ function renderCalvinParagraph(paragraph, pIndex) {
   // Paragraph with structural markers.
   if (paragraph.includes('<vq>') || paragraph.includes('<fn n=') || paragraph.includes('<corr n=')) {
     return (
-      <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
+      <p key={pIndex} data-reader-text className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
         {renderCalvinInline(paragraph, `p-${pIndex}`)}
       </p>
     )
@@ -491,7 +492,7 @@ function renderCalvinParagraph(paragraph, pIndex) {
     const [quote, rest] = regexSplitQuote(paragraph)
     if (quote) {
       return (
-        <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
+        <p key={pIndex} data-reader-text className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
           <strong className="text-gray-900 dark:text-white">{quote}</strong>{' '}{renderTextWithEditorBadges(rest, `fallback-${pIndex}`)}
         </p>
       )
@@ -499,7 +500,7 @@ function renderCalvinParagraph(paragraph, pIndex) {
   }
 
   return (
-    <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
+    <p key={pIndex} data-reader-text className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
       {renderTextWithEditorBadges(paragraph, `plain-${pIndex}`)}
     </p>
   )
@@ -545,6 +546,7 @@ function CommentarySidebar({
   onRetryCommentaryLoad,
   selectedVerse,
   selectedVerses = [],
+  sermonPublicationSources = [],
   multiSelectMode = false,
   translationId,
   bibleData,
@@ -572,6 +574,7 @@ function CommentarySidebar({
   onGoToVerse
 }) {
   const [expandedVerses, setExpandedVerses] = useState({})
+  const [commentaryExpanded, setCommentaryExpanded] = useState(false)
   const [showAuthorSearch, setShowAuthorSearch] = useState(false)
   const [showWorkDropdown, setShowWorkDropdown] = useState(false)
   const [showWorkLinksDropdown, setShowWorkLinksDropdown] = useState(false)
@@ -596,6 +599,56 @@ function CommentarySidebar({
   const commentaryRefs = useRef({})
   // Track previous selectedVerse so we only auto-scroll on *change*
   const prevSelectedVerse = useRef(null)
+  const expandButtonRef = useRef(null)
+  const restoreButtonRef = useRef(null)
+  const readingPositionRef = useRef(null)
+
+  useLayoutEffect(() => {
+    const position = readingPositionRef.current
+    const container = contentRef.current
+    if (!position || !container) return
+    const viewportTop = container.getBoundingClientRect().top
+    const rect = position.element.getBoundingClientRect()
+    container.scrollTop += rect.top - viewportTop - position.offset + position.fraction * rect.height
+    readingPositionRef.current = null
+  }, [commentaryExpanded])
+
+  useLayoutEffect(() => {
+    const notifyTargetChange = () => window.dispatchEvent(new Event(NATIVE_READER_TARGET_CHANGE_EVENT))
+    notifyTargetChange()
+    return notifyTargetChange
+  }, [commentaryExpanded, showCompareModal, showNotesModal])
+
+  const toggleCommentaryView = (expanded) => {
+    const container = contentRef.current
+    if (container) {
+      const viewport = container.getBoundingClientRect()
+      const candidates = [
+        ...container.querySelectorAll('[data-reader-text]'),
+        ...container.querySelectorAll('[data-commentary-entry]'),
+      ]
+      const element = candidates.find(element => {
+        const rect = element.getBoundingClientRect()
+        return rect.bottom > viewport.top && rect.top < viewport.bottom
+      })
+      if (element) {
+        const rect = element.getBoundingClientRect()
+        readingPositionRef.current = {
+          element,
+          offset: Math.max(0, rect.top - viewport.top),
+          fraction: Math.max(0, Math.min(1, (viewport.top - rect.top) / (rect.height || 1))),
+        }
+      }
+    }
+    setShowAuthorSearch(false)
+    setShowWorkDropdown(false)
+    setShowWorkLinksDropdown(false)
+    setCommentaryExpanded(expanded)
+    requestAnimationFrame(() => {
+      const button = expanded ? restoreButtonRef.current : expandButtonRef.current
+      button?.focus({ preventScroll: true })
+    })
+  }
 
   // Drag-to-resize handler
   const handleDragStart = useCallback((e) => {
@@ -852,12 +905,13 @@ function CommentarySidebar({
         else if (showAuthorSearch) setShowAuthorSearch(false)
         else if (showWorkDropdown) setShowWorkDropdown(false)
         else if (showWorkLinksDropdown) setShowWorkLinksDropdown(false)
+        else if (commentaryExpanded) toggleCommentaryView(false)
         else onClose()
       }
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [showCompareModal, showNotesModal, showAuthorSearch, showWorkDropdown, showWorkLinksDropdown, onClose])
+  }, [showCompareModal, showNotesModal, showAuthorSearch, showWorkDropdown, showWorkLinksDropdown, commentaryExpanded, onClose])
 
   useEffect(() => {
     return addNativeBackListener(event => {
@@ -867,9 +921,10 @@ function CommentarySidebar({
       else if (showAuthorSearch) setShowAuthorSearch(false)
       else if (showWorkDropdown) setShowWorkDropdown(false)
       else if (showWorkLinksDropdown) setShowWorkLinksDropdown(false)
+      else if (commentaryExpanded) toggleCommentaryView(false)
       else onClose()
     })
-  }, [showCompareModal, showNotesModal, showAuthorSearch, showWorkDropdown, showWorkLinksDropdown, onClose])
+  }, [showCompareModal, showNotesModal, showAuthorSearch, showWorkDropdown, showWorkLinksDropdown, commentaryExpanded, onClose])
 
   const activeVerses = selectedVerses.length > 0 ? selectedVerses : (selectedVerse ? [selectedVerse] : [])
   const isMultiSelection = activeVerses.length > 1
@@ -905,32 +960,50 @@ function CommentarySidebar({
 
       {/* Sidebar - full screen on mobile, dynamic width on desktop */}
       <aside 
-        className="fixed top-0 right-0 bottom-0 w-full lg:w-auto flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 lg:z-40 transform transition-[width] duration-100 ease-out animate-slide-in-right"
-        style={{ width: window.innerWidth >= 1024 ? `${sidebarWidth}px` : undefined }}
+        aria-label="Commentary"
+        className={`fixed top-0 right-0 bottom-0 w-full lg:w-auto flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg transform animate-slide-in-right ${commentaryExpanded ? 'z-50' : 'z-50 lg:z-40'}`}
+        style={{ width: commentaryExpanded ? '100%' : window.innerWidth >= 1024 ? `${sidebarWidth}px` : undefined }}
+        data-commentary-expanded={commentaryExpanded}
         ref={sidebarRef}
       >
         {/* Drag handle - desktop only */}
         <div
           onMouseDown={handleDragStart}
-          className="hidden lg:flex absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize items-center z-10 group hover:bg-primary/20 active:bg-primary/30 transition-colors"
+          className={`${commentaryExpanded ? 'hidden' : 'hidden lg:flex'} absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize items-center z-10 group hover:bg-primary/20 active:bg-primary/30 transition-colors`}
           title="Drag to resize"
         >
           <div className="w-0.5 h-8 bg-gray-300 dark:bg-gray-600 group-hover:bg-primary rounded-full mx-auto transition-colors" />
         </div>
         {/* Top Bar with Close - height matches Header */}
-        <div className="flex items-center justify-between px-4 h-14 bg-primary text-white android-mobile-safe-top">
-          <h2 className="font-semibold text-lg leading-tight">Commentary</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-            title="Close"
-          >
-            ✕
-          </button>
+        <div className="flex shrink-0 items-center justify-between gap-2 px-4 h-14 bg-primary text-white android-mobile-safe-top">
+          <div className="min-w-0">
+            <h2 className="font-semibold text-lg leading-tight truncate">{commentaryExpanded ? (currentAuthorData?.name || 'Commentary') : 'Commentary'}</h2>
+            {commentaryExpanded && <p className="text-xs text-blue-100 truncate">{currentWorkData?.title || `${bookName} ${chapter}`}</p>}
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            {commentaryExpanded && (
+              <button
+                ref={restoreButtonRef}
+                onClick={() => toggleCommentaryView(false)}
+                className="min-h-11 px-3 hover:bg-white/20 rounded-lg text-sm transition-colors"
+                aria-label="Restore commentary pane"
+              >
+                Restore
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              title="Close"
+              aria-label="Close commentary"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Toolbar Strip */}
-        <div className={`grid ${toolbarCols} bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600`}>
+        <div className={`${commentaryExpanded ? 'hidden' : 'grid shrink-0'} ${toolbarCols} bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600`}>
           <button
             onClick={handleCompare}
             className="flex flex-col items-center justify-center py-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors group border-r border-gray-300 dark:border-gray-600"
@@ -991,7 +1064,7 @@ function CommentarySidebar({
 
         {/* Selected Verse Indicator */}
         {primaryVerse && (
-          <div className="px-3 py-2 bg-blue-50 dark:bg-blue-900/30 border-b border-blue-100 dark:border-blue-800">
+          <div className={`${commentaryExpanded ? 'hidden' : 'shrink-0'} px-3 py-2 bg-blue-50 dark:bg-blue-900/30 border-b border-blue-100 dark:border-blue-800`}>
             <p className="text-primary dark:text-blue-400 font-medium mb-1" style={{ fontSize: `${Math.max(12, commentaryTextSize)}px` }}>
               {isMultiSelection
                 ? `📖 ${activeVerses.length} verses selected`
@@ -1011,8 +1084,17 @@ function CommentarySidebar({
           </div>
         )}
 
+        <div className={commentaryExpanded ? 'hidden' : 'shrink-0'}>
+          <PassageSermonsPanel
+            publicationSources={sermonPublicationSources}
+            selectedVerse={selectedVerse}
+            selectedVerses={selectedVerses}
+            bookName={bookName}
+          />
+        </div>
+
         {/* Author Selection */}
-        <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+        <div className={`${commentaryExpanded ? 'hidden' : 'shrink-0'} p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50`}>
           {/* Author Button */}
           <div className="relative">
             <button
@@ -1158,6 +1240,17 @@ function CommentarySidebar({
                   )}
                 </div>
                 
+                <button
+                  ref={expandButtonRef}
+                  onClick={() => toggleCommentaryView(true)}
+                  className="min-h-11 px-3 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium text-primary dark:text-blue-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Expand commentary"
+                  aria-expanded={commentaryExpanded}
+                  aria-controls="commentary-reading-content"
+                >
+                  <span aria-hidden="true">⛶ </span>Expand
+                </button>
+
                 {/* Multiple Works Indicator */}
                 {worksWithCommentary.length > 1 && (
                   <div className="relative">
@@ -1205,7 +1298,7 @@ function CommentarySidebar({
         </div>
 
         {/* Commentary Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-3" ref={contentRef} data-commentary-scroll-region="true">
+        <div id="commentary-reading-content" className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-3 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-4xl" ref={contentRef} data-commentary-scroll-region="true" data-native-scroll-disabled={showCompareModal || showNotesModal} role="region" aria-label="Commentary text" tabIndex={0}>
           {/* Introduction Section - Only for Revelation with introduction data */}
           {hasIntroduction && (
             <div className="mb-4">
@@ -1271,7 +1364,7 @@ function CommentarySidebar({
                           <div className="px-2 pb-2">
                             <div className="border-t border-teal-100 dark:border-teal-700 pt-2" style={{ fontSize: `${commentaryTextSize}px` }}>
                               {section.text.split('\n\n').map((paragraph, pIndex) => (
-                                <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
+                                <p key={pIndex} data-reader-text className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
                                   {paragraph}
                                 </p>
                               ))}
@@ -1336,6 +1429,7 @@ function CommentarySidebar({
                 return (
                   <div
                     key={commentary.id}
+                    data-commentary-entry={verseKey}
                     ref={(el) => { commentaryRefs.current[verseKey] = el }}
                     className={`border-l-4 transition-all duration-200 rounded-r-lg ${
                       isExpanded 
@@ -1392,7 +1486,7 @@ function CommentarySidebar({
                               return renderCalvinParagraph(paragraph, pIndex)
                             }
                             return (
-                              <p key={pIndex} className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
+                              <p key={pIndex} data-reader-text className="text-gray-700 dark:text-gray-100 leading-relaxed mb-2 last:mb-0">
                                 {paragraph}
                               </p>
                             )
@@ -1408,7 +1502,7 @@ function CommentarySidebar({
         </div>
 
         {/* Footer */}
-        <div className="p-2 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 text-center">
+        <div className={`${commentaryExpanded ? 'hidden' : 'shrink-0'} p-2 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 text-center`}>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {chapterCommentaries.length} section{chapterCommentaries.length !== 1 ? 's' : ''} • Click to expand
           </p>

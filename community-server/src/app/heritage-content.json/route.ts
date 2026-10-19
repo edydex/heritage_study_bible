@@ -1,4 +1,5 @@
 import { communityPublicConfig, publicJson } from '@/lib/publicConfig'
+import { PUBLIC_SERMON_DISCOVERY_DESCRIPTOR } from '@/lib/syncshow/PublicSermonPublication'
 
 export function GET() {
   return publicJson({
@@ -16,6 +17,9 @@ export function GET() {
       sermons: '/catalogs/sermons',
       books: '/catalogs/books',
       commentaries: '/catalogs/commentaries',
+    },
+    publications: {
+      sermons: PUBLIC_SERMON_DISCOVERY_DESCRIPTOR,
     },
   })
 }

@@ -1,10 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { bibleBooks } from '../src/data/bible-books.js'
+import { chronologicalTimelineAids } from './chronologicalTimelineAids.mjs'
 
 const totalDays = 365
-const generatorVersion = 4
-const planRevision = '2026-07-late-judah-history-first'
+const generatorVersion = 5
+const planRevision = '2026-07-chronology-timeline-aids'
 
 const sourceNotes = [
   {
@@ -90,6 +91,7 @@ function note(id, title, text, sources = []) {
     title,
     text,
     sources,
+    ...(chronologicalTimelineAids[id] ? { timeline: chronologicalTimelineAids[id] } : {}),
   }
 }
 
@@ -934,6 +936,7 @@ function toReadingItems(dayItems) {
         sources: item.sources || [],
         sourceLabels: (item.sources || []).map(source => sourceTitleById.get(source) || source),
         sourceLinks: (item.sources || []).map(source => sourceLinkById.get(source)).filter(Boolean),
+        ...(item.timeline ? { timeline: item.timeline } : {}),
       })
       continue
     }
@@ -953,6 +956,7 @@ function toNoteReadingItem(noteItem) {
     sources: noteItem.sources || [],
     sourceLabels: (noteItem.sources || []).map(source => sourceTitleById.get(source) || source),
     sourceLinks: (noteItem.sources || []).map(source => sourceLinkById.get(source)).filter(Boolean),
+    ...(noteItem.timeline ? { timeline: noteItem.timeline } : {}),
   }
 }
 
@@ -1247,6 +1251,7 @@ const output = {
     'For long prophetic books whose internal order is mixed, prefer readable era bands over a brittle chapter-by-chapter reshuffle, and explain the compromise in a plan note.',
     'When a prophetic book lacks an explicit date, label the placement as inferred, tentative, or traditional instead of treating it like a fixed timestamp.',
     'Use plan notes to mark when a prophecy points forward to a later period or when a book-to-book connection is less obvious.',
+    'Give placement-focused editorial notes a visual historical axis with passage-setting bars; keep fulfillment dates off those bars and visibly distinguish dated, approximate, broad, and traditional placements.',
     'Validate that every Protestant-canon Bible chapter appears exactly once.',
     'Keep event-titled Psalms near their named historical settings, place author- or guild-titled Psalms near the broad setting their headings suggest, and use clearly labeled undated Psalms as reading-rhythm pauses in dense sections without forcing false precision.',
     'Use bundled World English Bible character counts to balance daily readings; the generated metadata records whether the 20 percent target is feasible at whole-chapter granularity.',
