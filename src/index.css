@@ -309,3 +309,9 @@ html.capacitor-android header.sticky.top-0 {
 .parallel-word-study .bible-word-link { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .word-study-dialog { width: min(680px, calc(100vw - 24px)); max-height: calc(100dvh - 48px); margin: auto; }
 .word-study-dialog::backdrop { background: rgb(0 0 0 / .5); }
+
+/* Keep reading text responsive to the shared header font controls. */
+.reader-content { overflow-wrap: anywhere; }
+.reader-content .song-lyrics { font-size: inherit; }
+.reader-note [aria-labelledby="timeline-details-title"] > p,
+.reader-note [data-prophecy-context] > div { font-size: inherit; }

@@ -1,3 +1,5 @@
+import ReaderSettings from './ReaderSettings'
+import { useReaderTextSize } from './ReaderTextSize'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomNav from './BottomNav'
@@ -35,6 +37,7 @@ function renderVerseText(text) {
 
 function ApocryphaViewer({ toolMeta }) {
   const navigate = useNavigate()
+  const [textSize, setTextSize] = useReaderTextSize()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -142,7 +145,7 @@ function ApocryphaViewer({ toolMeta }) {
   }
 
   return (
-    <div className="min-h-screen bg-background dark:bg-gray-900">
+    <div className="min-h-screen bg-background dark:bg-black">
       <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
         <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
           <button
@@ -151,9 +154,10 @@ function ApocryphaViewer({ toolMeta }) {
           >
             <span className="text-lg">{'\u2190'}</span>
           </button>
-          <h1 className="text-base sm:text-lg font-bold heading-text truncate">
+          <h1 className="min-w-0 flex-1 text-base sm:text-lg font-bold heading-text truncate">
             {toolMeta?.title || 'Apocrypha'}
           </h1>
+          <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} />
         </div>
       </header>
 
@@ -190,7 +194,7 @@ function ApocryphaViewer({ toolMeta }) {
                   <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-0.5 select-none text-right">
                     {verse.number}
                   </span>
-                  <p className="verse-text flex-1 text-gray-700 dark:text-gray-300" style={{ fontSize: '18px', lineHeight: 1.6 }}>
+                  <p className="verse-text flex-1 text-gray-700 dark:text-gray-300" style={{ fontSize: `${textSize}px`, lineHeight: 1.6 }}>
                     {renderVerseText(verse.text)}
                   </p>
                 </div>

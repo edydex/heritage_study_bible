@@ -1,3 +1,5 @@
+import ReaderSettings from './ReaderSettings'
+import { useReaderTextSize } from './ReaderTextSize'
 import SongLyrics from '../../community-server/packages/song-text/SongLyrics.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -47,6 +49,7 @@ function linksFor(result) {
 function BuiltInSongViewer() {
   const { itemId } = useParams()
   const navigate = useNavigate()
+  const [textSize, setTextSize] = useReaderTextSize()
   const [searchParams] = useSearchParams()
   const communityId = searchParams.get('community')
   const catalogPath = `/resources/songs${communityId ? `?community=${encodeURIComponent(communityId)}` : ''}`
@@ -128,7 +131,7 @@ function BuiltInSongViewer() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background dark:bg-black flex items-center justify-center">
         <p className="text-sm text-gray-500 dark:text-gray-400">Loading song versions…</p>
       </div>
     )
@@ -136,8 +139,8 @@ function BuiltInSongViewer() {
 
   if (!song || loadError) {
     return (
-      <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center px-4">
-        <div className="max-w-md rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 text-center">
+      <div className="min-h-screen bg-background dark:bg-black flex items-center justify-center px-4">
+        <div className="max-w-md rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black p-5 text-center">
           <h1 className="font-semibold text-gray-900 dark:text-gray-100">Song not found</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{loadError || 'This song is no longer in an installed catalog.'}</p>
           <button onClick={() => navigate(catalogPath)} className="mt-4 text-sm font-semibold text-primary dark:text-blue-300 underline">
@@ -149,14 +152,14 @@ function BuiltInSongViewer() {
   }
 
   return (
-    <div className="min-h-screen bg-background dark:bg-gray-900">
+    <div className="min-h-screen bg-background dark:bg-black">
       <header className="bg-primary text-white sticky top-0 z-40 shadow-lg">
         <div className="h-14 px-4 sm:px-6 flex items-center gap-3">
           <button onClick={() => navigate(catalogPath)} className="p-1.5 rounded-lg hover:bg-white/20" aria-label="Back">←</button>
           <h1 className="min-w-0 flex-1 truncate text-base sm:text-lg font-bold">
             {russian && song.russianTitle ? song.russianTitle : song.title}
           </h1>
-          <div className="flex rounded-lg bg-white/15 p-0.5 text-xs font-semibold" aria-label="Song language">
+          <div className="flex flex-shrink-0 rounded-lg bg-white/15 p-0.5 text-xs font-semibold" aria-label="Song language">
             <button
               onClick={() => setLanguage('en')}
               disabled={!englishAvailable}
@@ -174,11 +177,12 @@ function BuiltInSongViewer() {
               RU{song.languages.ru.length ? ` ${song.languages.ru.length}` : ''}
             </button>
           </div>
+          <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} />
         </div>
       </header>
 
       <main className="container mx-auto max-w-3xl px-4 py-6 pb-20">
-        <article className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-6 shadow-sm">
+        <article className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black p-4 sm:p-6 shadow-sm">
           {(song.author || song.year) && (
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {[song.author, song.year].filter(Boolean).join(' · ')}
@@ -242,7 +246,7 @@ function BuiltInSongViewer() {
                 </div>
               )}
 
-              <div className="mt-6 text-gray-800 dark:text-gray-200"><SongLyrics sections={selectedVariant.sections} language={language} /></div>
+              <div className="mt-6 text-gray-800 dark:text-gray-200 reader-content" style={{ fontSize: `${textSize}px` }}><SongLyrics sections={selectedVariant.sections} language={language} /></div>
 
               <div className="mt-6">
                 <SongRightsDisclosure
@@ -284,7 +288,7 @@ function BuiltInSongViewer() {
               </p>
               <div className="mt-3 space-y-3">
                 {sourceExplanations.map(record => (
-                  <div key={record.source.id} className="rounded-lg bg-white/70 p-3 text-sm text-amber-950 dark:bg-gray-900/30 dark:text-amber-100">
+                  <div key={record.source.id} className="rounded-lg bg-white/70 p-3 text-sm text-amber-950 dark:bg-black/30 dark:text-amber-100">
                     <p><strong>{record.source.name}:</strong> {record.explanation}</p>
                     {record.links.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-4">

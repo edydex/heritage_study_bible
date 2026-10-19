@@ -4,6 +4,7 @@ import WordStudyDialog from './WordStudyDialog'
 import { getTranslationById } from '../data/translations'
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
 import VerseText from './VerseText'
+import VerseNumber from './VerseNumber'
 import { loadGreekWordLinks, verseWordLinks, originalSourceForBook, originalVerseLanguage } from '../data/originalLanguages'
 import { getVerseLayout } from '../utils/verseLayout'
 import { getParallelVerseHighlightClasses } from '../utils/highlightColors'
@@ -53,14 +54,14 @@ function ParallelBibleChapter({
   const source = originalSourceForBook(bookName)
   const hebrew = original && source.id === 'WLC-OSHB'
   const numberingUnsupported = original && getTranslationById(primaryTranslationId)?.versification !== 'western'
-  const canLink = original && !numberingUnsupported && primaryTranslationId === 'BSB' && source.id === 'N1904'
+  const canLink = original && !numberingUnsupported && ['BSB', 'LSV'].includes(primaryTranslationId) && source.id === 'N1904'
   useEffect(() => {
     let cancelled = false
     setAlignment(null); setActiveWord(null); setLinkError('')
-    if (canLink) loadGreekWordLinks(bookName).then(data => { if (!cancelled) setAlignment(data) })
+    if (canLink) loadGreekWordLinks(bookName, primaryTranslationId).then(data => { if (!cancelled) setAlignment(data) })
       .catch(() => { if (!cancelled) setLinkError('Word links could not load. The Bible text is still available.') })
     return () => { cancelled = true }
-  }, [canLink, bookName, linkRetry])
+  }, [canLink, bookName, primaryTranslationId, linkRetry])
   useEffect(() => { setActiveWord(null); setStudy(null); setHeldMessage('') }, [bookName, primaryChapter.number, primaryTranslationId, secondaryTranslationId, selectionMode])
 
 
@@ -142,12 +143,12 @@ function ParallelBibleChapter({
         {hebrew && !numberingUnsupported && secondaryChapter?.superscription && <div className="mt-3 border-t pt-2"><p className="text-xs">Hebrew source heading · {secondaryChapter.superscription.sourceRefs.join(', ')}</p><p dir="rtl" lang="he" className="mt-1 text-lg">{secondaryChapter.superscription.text}</p></div>}
         {canLink ? <>
           <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={showWordLinks} onChange={event => setShowWordLinks(event.target.checked)} /> Word links</label>
-          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Matching tints (or underline patterns in B&W mode) connect Greek words and BSB phrases. Tap a word for its occurrences. Hold it, or press Shift+Enter, to identify its translation match. Links are omitted where source wording differs.</p><p className="mt-1">Links come from Berean’s published translation tables. This is a named scholarly edition of the Greek New Testament.</p></details>}
+          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Matching tints (or underline patterns in B&W mode) connect Greek words and {primaryTranslationId} phrases. Tap a word for its occurrences. Hold it, or press Shift+Enter, to identify its translation match. Links are omitted where source wording differs.</p><p className="mt-1">{primaryTranslationId === 'LSV' ? 'LSV links are partial: unambiguous shared phrases transferred from Berean tables, plus explicitly reviewed phrases. Uncertain or repeated phrases remain uncolored.' : 'Links come from Berean’s published translation tables, with explicit reviews for repaired verses.'} This is a named scholarly edition of the Greek New Testament.</p></details>}
           {selectionMode && showWordLinks && <p className="mt-1 text-xs">Word links pause while selecting verses.</p>}
           {linkError && <p role="status" className="mt-2">{linkError} <button className="underline" onClick={() => setLinkRetry(value => value + 1)}>Retry links</button></p>}
           {showWordLinks && !alignment && !linkError && <p role="status" className="mt-1 text-xs">Loading word links…</p>}
 
-        </> : <p className="mt-1 text-xs">Checked word links are available with BSB in the Greek New Testament.</p>}
+        </> : <p className="mt-1 text-xs">Word links are available with BSB and partially with LSV in the Greek New Testament.</p>}
       </div>}
       {heldMessage && <div role="status" className="sticky top-16 z-20 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2 flex items-center justify-between gap-3"><span>{heldMessage}</span><button aria-label="Clear word match" onClick={() => { setActiveWord(null); setHeldMessage('') }}>✕</button></div>}
       {study && <WordStudyDialog word={study} onClose={() => setStudy(null)} onNavigate={onOccurrenceNavigate} />}
@@ -180,7 +181,7 @@ function ParallelBibleChapter({
                 ? getParallelVerseHighlightClasses(highlightColor)
               : isSuperscription
                 ? 'bg-white dark:bg-black border-gray-200 dark:border-gray-800'
-              : 'bg-gray-50 dark:bg-gray-700/60 border-gray-200 dark:border-gray-700'
+              : 'bg-gray-50 dark:bg-black border-gray-200 dark:border-gray-700'
           } ${
             hasComment
               ? 'ring-1 ring-amber-200/70 dark:ring-amber-700/40'
@@ -213,8 +214,8 @@ function ParallelBibleChapter({
                 </span>
               )}
               <div className="hidden md:grid md:grid-cols-2 md:gap-3 md:p-2">
-                <div className="group flex items-start gap-2 rounded-md p-2 hover:bg-white/70 dark:hover:bg-gray-700 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
-                  <span className="text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[2rem] pt-0.5 select-none text-right">{verseNumber}</span>
+                <div className="group flex items-start gap-2 rounded-md p-2 hover:bg-white/70 dark:hover:bg-gray-950 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
+                  <VerseNumber number={verseNumber} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
                   <p
                     className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}
                     style={verseStyle}
@@ -226,24 +227,10 @@ function ParallelBibleChapter({
                   >
                     {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={holdWord} onWordTap={setStudy} /> : <MissingVerse translationId={primaryTranslationId} />}
                   </p>
-                  {!selectionMode && <button
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || '')
-                    }}
-                    className={`p-1 rounded transition-all ${
-                      bookmarked
-                        ? 'text-secondary'
-                        : 'text-gray-300 dark:text-gray-600 hover:text-secondary opacity-0 group-hover:opacity-100'
-                    }`}
-                    title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
-                  >
-                    {bookmarked ? '★' : '☆'}
-                  </button>}
                 </div>
 
-                <div className="flex items-start gap-2 rounded-md p-2 hover:bg-white/60 dark:hover:bg-gray-700 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
-                  <span className="text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[2rem] pt-0.5 select-none text-right">{verseNumber}</span>
+                <div className="flex items-start gap-2 rounded-md p-2 hover:bg-white/60 dark:hover:bg-gray-950 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
+                  <VerseNumber number={verseNumber} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
                   <p
                     className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}
                     style={verseStyle}
@@ -264,7 +251,7 @@ function ParallelBibleChapter({
                 <div className="rounded-md bg-white dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
                   <div className="text-[11px] uppercase tracking-wide text-primary dark:text-blue-400 font-semibold mb-1">{primaryTranslationId}</div>
                   <div className="flex items-start gap-2 group">
-                    <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
+                    <VerseNumber number={verseNumber} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
                     <p
                       className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}
                       style={verseStyle}
@@ -276,27 +263,13 @@ function ParallelBibleChapter({
                     >
                       {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={holdWord} onWordTap={setStudy} /> : <MissingVerse translationId={primaryTranslationId} />}
                     </p>
-                    {!selectionMode && <button
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || '')
-                      }}
-                      className={`p-1 rounded transition-all ${
-                        bookmarked
-                          ? 'text-secondary'
-                          : 'text-gray-300 dark:text-gray-600 hover:text-secondary opacity-0 group-hover:opacity-100'
-                      }`}
-                      title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
-                    >
-                      {bookmarked ? '★' : '☆'}
-                    </button>}
                   </div>
                 </div>
 
                 <div className="rounded-md bg-white/70 dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
                   <div className="text-[11px] uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-1">{original ? hebrew ? `${originalVerseLanguage(secondaryVerse)} · WLC / OSHB` : source.label : secondaryTranslationId}</div>
                   <div className="flex items-start gap-2">
-                    <span className="text-xs text-gray-400 dark:text-gray-500 font-medium min-w-[1.3rem] pt-0.5 select-none text-right">{verseNumber}</span>
+                    <VerseNumber number={verseNumber} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
                     <p
                       className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}
                       style={verseStyle}
@@ -313,6 +286,11 @@ function ParallelBibleChapter({
                   </div>
                 </div>
               </div>
+              {canLink && showWordLinks && alignment && !links && !selectionMode && primaryVerse && secondaryVerse && <p className="px-3 pb-2 text-xs text-gray-500 dark:text-gray-400">
+                {alignment.unavailable?.[`${primaryChapter.number}:${verseNumber}`] === 'no-unambiguous-shared-phrase'
+                  ? 'No unambiguous LSV phrase link is installed for this verse.'
+                  : 'Word links are unavailable here because the source or translation wording differs from the mapping.'}
+              </p>}
               {hebrew && secondaryVerse && <div className="px-3 pb-2 text-xs text-gray-500 dark:text-gray-400" onClick={event => event.stopPropagation()}>
                 <span>{originalVerseLanguage(secondaryVerse)} · WLC {secondaryVerse.sourceRefs?.join(', ')}</span>
                 {secondaryVerse.variants?.length > 0 && <details className="mt-1"><summary>Readings (qere)</summary>{secondaryVerse.variants.map((variant, i) => <p key={i} className="mt-1">Written: <bdi dir="rtl" className="text-base">{variant.written}</bdi> · Read: <bdi dir="rtl" className="text-base">{variant.reading}</bdi></p>)}</details>}

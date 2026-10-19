@@ -2,24 +2,26 @@ import { splitParagraphText } from '../utils/verseLayout'
 
 export const originalLanguages = {
   id: 'ORIGINAL', abbr: 'Original', name: 'Original languages', language: 'Original languages',
-  description: 'Hebrew/Aramaic · WLC/OSHB; Greek · Nestle 1904. Checked Greek word links with BSB.',
+  description: 'Hebrew/Aramaic · WLC/OSHB; Greek · Nestle 1904. BSB word links and partial LSV phrase links.',
   license: 'Public domain / CC0; OSHB metadata CC BY 4.0', parallelOnly: true,
 }
 
 const translationLinks = new Map()
-export function loadGreekWordLinks(book) {
-  if (!translationLinks.has(book)) {
+export function loadGreekWordLinks(book, targetId = 'BSB') {
+  if (!['BSB', 'LSV'].includes(targetId)) return Promise.reject(new Error('Word mappings are not installed for this translation.'))
+  const key = `${targetId}:${book}`
+  if (!translationLinks.has(key)) {
     const filename = encodeURIComponent(book.toLowerCase().replaceAll(' ', '-'))
-    const request = fetch(`${import.meta.env.BASE_URL}data/original-languages/bsb-word-links/${filename}.json`)
+    const request = fetch(`${import.meta.env.BASE_URL}data/original-languages/${targetId.toLowerCase()}-word-links/${filename}.json`)
       .then(response => { if (!response.ok) throw new Error('Word mappings could not load.'); return response.json() })
       .then(data => {
-        if (data.schemaVersion !== 1 || data.sourceId !== 'N1904' || data.targetId !== 'BSB' || data.book !== book
+        if (data.schemaVersion !== 1 || data.sourceId !== 'N1904' || data.targetId !== targetId || data.book !== book
           || data.provenance?.greekSha256 !== '3beee6abb6302f691110fe0fc949fc195593b999cf2d0e463c9b573c1bb67150') throw new Error('Word mapping source does not match.')
         return data
-      }).catch(error => { translationLinks.delete(book); throw error })
-    translationLinks.set(book, request)
+      }).catch(error => { translationLinks.delete(key); throw error })
+    translationLinks.set(key, request)
   }
-  return translationLinks.get(book)
+  return translationLinks.get(key)
 }
 
 export function visibleVerseText(text) {

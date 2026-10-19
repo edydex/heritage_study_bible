@@ -2,7 +2,8 @@
 """Generate the named Greek NT source and conservative Greek–BSB links.
 
 Inputs are publisher/source downloads, never AI-generated text. Source words
-must agree for the whole verse before transferring the Berean row links.
+must agree for the whole verse, allowing only the reviewed spelling pairs below,
+before transferring the Berean row links.
 """
 import argparse
 import csv
@@ -19,12 +20,17 @@ NESTLE_SHA256 = '3beee6abb6302f691110fe0fc949fc195593b999cf2d0e463c9b573c1bb6715
 OSIS = ['Matt','Mark','Luke','John','Acts','Rom','1Cor','2Cor','Gal','Eph','Phil','Col','1Thess','2Thess','1Tim','2Tim','Titus','Phlm','Heb','Jas','1Pet','2Pet','1John','2John','3John','Jude','Rev']
 NAMES = ['Matthew','Mark','Luke','John','Acts','Romans','1 Corinthians','2 Corinthians','Galatians','Ephesians','Philippians','Colossians','1 Thessalonians','2 Thessalonians','1 Timothy','2 Timothy','Titus','Philemon','Hebrews','James','1 Peter','2 Peter','1 John','2 John','3 John','Jude','Revelation']
 EN_WORD = re.compile(r"[^\W_]+(?:['’][^\W_]+)*", re.UNICODE)
+# The pinned N1904 morphology and publisher rows attest the same words (G1138
+# and G4837) with these spellings. This is an explicit orthography allowlist,
+# not approximate matching, lemma matching or permission to omit extra words.
+GREEK_SPELLINGS = {'δαυειδ': 'δαυιδ', 'συνπαρακληθηναι': 'συμπαρακληθηναι'}
 
 def checksum(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def greek_word(value):
-    return ''.join(c for c in unicodedata.normalize('NFD', value).lower() if unicodedata.category(c).startswith('L')).replace('ς', 'σ')
+    word = ''.join(c for c in unicodedata.normalize('NFD', value).lower() if unicodedata.category(c).startswith('L')).replace('ς', 'σ')
+    return GREEK_SPELLINGS.get(word, word)
 
 def english_words(value):
     return [(m.group().lower().replace('’', "'"), m.start(), m.end()) for m in EN_WORD.finditer(value)]
@@ -117,7 +123,7 @@ def generate(nestle_path, berean_path, bsb_path, output, all_nt_links=False):
     alignment = {
         'schemaVersion': 1, 'book': 'Romans', 'sourceId': 'N1904', 'targetId': 'BSB',
         'provenance': {'url': 'https://bereanbible.com/bsb_tables.tsv', 'license': 'CC0', 'licenseUrl': 'https://berean.bible/terms.htm', 'tableSha256': checksum(berean_path), 'targetSha256': checksum(bsb_path), 'greekSha256': source['sha256']},
-        'method': 'Publisher row links transferred only when the whole Greek and English verse word sequences agree; Greek comparison ignores accents, case and punctuation. English comparison ignores case and punctuation. No inferred synonym or Strong-number matching.',
+        'method': 'Publisher row links transferred only when the whole Greek and English verse word sequences agree; Greek comparison ignores accents, case and punctuation and allows two reviewed spelling pairs: Δαυεὶδ/Δαυὶδ and συνπαρακληθῆναι/συμπαρακληθῆναι. English comparison ignores case and punctuation. No inferred synonym or Strong-number matching.',
         'verses': aligned, 'unavailable': unavailable,
     }
     output.mkdir(parents=True, exist_ok=True)

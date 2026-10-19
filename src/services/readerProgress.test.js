@@ -56,4 +56,15 @@ describe('readerProgress', () => {
     expect(removed.bookmarked).toBe(false)
     expect(removed.bookmarks).toEqual([])
   })
+
+  it('keeps separate places and the section bookmark in one chapter', async () => {
+    const section = { resourceId: 'institutes', chapterIndex: 2 }
+    await toggleResourceBookmark(section)
+    await toggleResourceBookmark({ ...section, paragraphIndex: 0, startOffset: 10, selectedText: 'knowledge' })
+    await toggleResourceBookmark({ ...section, paragraphIndex: 0, startOffset: 80, selectedText: 'wisdom' })
+    const result = await toggleResourceBookmark({ ...section, paragraphIndex: 0, startOffset: 10 })
+    expect(result.bookmarks).toHaveLength(2)
+    expect(result.bookmarks.some(item => item.selectedText === 'wisdom')).toBe(true)
+    expect(result.bookmarks.some(item => item.paragraphIndex == null)).toBe(true)
+  })
 })

@@ -1,3 +1,5 @@
+import ReaderSettings from './ReaderSettings'
+import { useReaderTextSize } from './ReaderTextSize'
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 
@@ -71,6 +73,7 @@ const transcriptMetadata = {
 
 export default function TranscriptViewer() {
   const { transcriptId } = useParams()
+  const [textSize, setTextSize] = useReaderTextSize()
   const [content, setContent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -124,7 +127,7 @@ export default function TranscriptViewer() {
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Loading transcript...</p>
@@ -135,7 +138,7 @@ export default function TranscriptViewer() {
   
   if (error || !metadata) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <p className="text-6xl mb-4">📄</p>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">Transcript Not Found</h1>
@@ -155,31 +158,33 @@ export default function TranscriptViewer() {
   const toc = content.filter(el => el.type === 'header')
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* Header */}
       <header className="bg-primary text-white sticky top-0 z-50 shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1 flex items-center gap-3">
             <Link 
               to="/" 
-              className="text-white/80 hover:text-white transition-colors flex items-center gap-2"
+              className="flex-shrink-0 text-white/80 hover:text-white transition-colors flex items-center gap-2"
             >
               ← Back
             </Link>
-            <div className="h-6 w-px bg-white/30"></div>
-            <div>
-              <h1 className="font-serif text-lg">{metadata.title}</h1>
-              <p className="text-sm text-white/80">by {metadata.author}</p>
+            <div className="hidden sm:block h-6 w-px bg-white/30"></div>
+            <div className="min-w-0">
+              <h1 className="font-serif text-base sm:text-lg truncate">{metadata.title}</h1>
+              <p className="text-[11px] sm:text-sm text-white/80 truncate">by {metadata.author}</p>
             </div>
           </div>
           <a
             href={metadata.videoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors"
+            aria-label="Watch Video"
+            className="flex-shrink-0 bg-white/20 hover:bg-white/30 px-2 sm:px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors"
           >
-            <span>🎬</span> Watch Video
+            <span aria-hidden="true">🎬</span> <span className="hidden sm:inline">Watch Video</span>
           </a>
+          <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} />
         </div>
       </header>
       
@@ -208,7 +213,7 @@ export default function TranscriptViewer() {
         
         {/* Main Content */}
         <main className="flex-1 min-w-0">
-          <article className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 p-8">
+          <article className="reader-content bg-white dark:bg-black rounded-lg shadow-sm border dark:border-gray-700 p-4 sm:p-8" style={{ fontSize: `${textSize}px` }}>
             {content.map((element, idx) => {
               if (element.type === 'header') {
                 const videoLink = `${metadata.videoUrl}&t=${timestampToSeconds(element.timestamp)}s`
@@ -217,7 +222,7 @@ export default function TranscriptViewer() {
                     key={idx}
                     id={element.id}
                     data-section-id={element.id}
-                    className="text-2xl font-serif font-bold text-primary dark:text-blue-400 mt-10 mb-4 first:mt-0 scroll-mt-24 flex items-center gap-3 flex-wrap"
+                    className="text-[1.333em] font-serif font-bold text-primary dark:text-blue-400 mt-10 mb-4 first:mt-0 scroll-mt-24 flex items-center gap-3 flex-wrap"
                   >
                     {element.title}
                     <a

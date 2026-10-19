@@ -1,3 +1,5 @@
+import ReaderSettings from './ReaderSettings'
+import { useReaderTextSize } from './ReaderTextSize'
 import { useNavigate } from 'react-router-dom'
 
 export const HYMNS = [
@@ -93,9 +95,10 @@ Seal it for Thy courts above.`,
 
 function HymnsViewer({ toolMeta }) {
   const navigate = useNavigate()
+  const [textSize, setTextSize] = useReaderTextSize()
 
   return (
-    <div className="min-h-screen bg-background dark:bg-gray-900">
+    <div className="min-h-screen bg-background dark:bg-black">
       <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
         <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
           <button
@@ -104,9 +107,10 @@ function HymnsViewer({ toolMeta }) {
           >
             <span className="text-lg">{'\u2190'}</span>
           </button>
-          <h1 className="text-base sm:text-lg font-bold heading-text truncate">
+          <h1 className="min-w-0 flex-1 text-base sm:text-lg font-bold heading-text truncate">
             {toolMeta?.title || 'Hymns'}
           </h1>
+          <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} />
         </div>
       </header>
 
@@ -118,7 +122,7 @@ function HymnsViewer({ toolMeta }) {
         {HYMNS.map((hymn) => (
           <section
             key={hymn.id}
-            className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-4 sm:p-5"
+            className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black shadow-sm p-4 sm:p-5"
           >
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 heading-text">
               {hymn.title}
@@ -127,7 +131,7 @@ function HymnsViewer({ toolMeta }) {
               {hymn.author} · {hymn.year}
             </p>
 
-            <div className="mt-4 space-y-4">
+            <div className="mt-4 space-y-4 reader-content" style={{ fontSize: `${textSize}px` }}>
               {hymn.stanzas.map((stanza, index) => (
                 <div key={`${hymn.id}-stanza-${index}`}>
                   <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1">Verse {index + 1}</p>

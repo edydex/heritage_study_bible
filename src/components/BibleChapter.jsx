@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useCallback } from 'react'
 import VerseText from './VerseText'
+import VerseNumber from './VerseNumber'
 import { getVerseLayout } from '../utils/verseLayout'
 import InlineVerseNotes, { getInlineNotesAfterVerse } from './InlineVerseNotes'
 import { getVerseHighlightClasses } from '../utils/highlightColors'
@@ -19,7 +20,7 @@ function BibleChapter({
   onVersePosition,
   isVerseSelected,
   textSize = 18,
-  verseStacking = false,
+  verseStacking = true,
   verseLayout = null,
   selectionMode = false,
 }) {
@@ -121,9 +122,7 @@ function BibleChapter({
                 }`}
               >
                 {/* Verse Number */}
-                <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium min-w-[1rem] sm:min-w-[2rem] pt-1 sm:pt-0.5 select-none text-right">
-                  {verse.number}
-                </span>
+                <VerseNumber number={verse.number} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} testId={`verse-bookmark-${verse.number}`} onToggle={() => onBookmarkToggle(chapter.number, verse.number, verse.text)} />
 
                 {selectionMode && (
                   <span
@@ -157,21 +156,6 @@ function BibleChapter({
                 </p>
 
                 {/* Bookmark Button */}
-                {!selectionMode && <button
-                  data-testid={`verse-bookmark-${verse.number}`}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onBookmarkToggle(chapter.number, verse.number, verse.text)
-                  }}
-                  className={`p-1 rounded transition-all ${
-                    bookmarked
-                      ? 'text-secondary'
-                      : 'text-gray-300 dark:text-gray-600 hover:text-secondary opacity-0 group-hover:opacity-100'
-                  }`}
-                  title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
-                >
-                  {bookmarked ? '★' : '☆'}
-                </button>}
                 <InlineVerseNotes notes={inlineNotes} />
               </div>
             )
@@ -213,9 +197,7 @@ function BibleChapter({
                     : getVerseHighlightClasses(highlightColor)
                 }`}
               >
-                <span className="text-[10px] sm:text-sm text-gray-400 dark:text-gray-500 font-medium select-none mr-1">
-                  {verse.number}
-                </span>
+                <VerseNumber number={verse.number} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} testId={`verse-bookmark-${verse.number}`} onToggle={() => onBookmarkToggle(chapter.number, verse.number, verse.text)} />
                 {selectionMode && (
                   <span
                     className={`mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full border text-[10px] font-bold align-middle ${
@@ -243,21 +225,6 @@ function BibleChapter({
                 >
                   <VerseText text={verse.text} layout={layout} highlights={textHighlights} />
                 </span>
-                {!selectionMode && <button
-                  data-testid={`verse-bookmark-${verse.number}`}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onBookmarkToggle(chapter.number, verse.number, verse.text)
-                  }}
-                  className={`ml-1 align-baseline rounded transition-all ${
-                    bookmarked
-                      ? 'text-secondary'
-                      : 'text-gray-300 dark:text-gray-600 hover:text-secondary opacity-0 group-hover/stack:opacity-100'
-                  }`}
-                  title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
-                >
-                  {bookmarked ? '★' : '☆'}
-                </button>}
                   {verseIndex < chapter.verses.length - 1 && ' '}
                 </span>
                 <InlineVerseNotes notes={inlineNotes} compact />

@@ -77,7 +77,7 @@ export function occurrenceTranslation(row, alignment, targetText) {
 export async function loadOccurrenceTranslations(rows, sourceId) {
   const corpus = await loadTranslation('BSB')
   const books = [...new Set(rows.map(row => row.book))]
-  const mappings = sourceId === 'N1904' ? await Promise.allSettled(books.map(loadGreekWordLinks)) : []
+  const mappings = sourceId === 'N1904' ? await Promise.allSettled(books.map(book => loadGreekWordLinks(book))) : []
   const results = {}
   let failed = false
   for (const row of rows) {

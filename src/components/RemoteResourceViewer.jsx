@@ -1,3 +1,5 @@
+import ReaderSettings from './ReaderSettings'
+import { useReaderTextSize } from './ReaderTextSize'
 import CommunityBookReadAlong from './CommunityBookReadAlong'
 import {resolveCommunityBookAccess} from '../services/communityBookAccess'
 import {COMMUNITY_SESSION_CHANGE_EVENT} from '../services/communitySessions'
@@ -250,6 +252,7 @@ async function cacheRemoteUrl(cache, url, options = {}) {
 
 function RemoteResourceViewer({ directSong = false }) {
   const [share, setShare] = useState(null)
+  const [textSize, setTextSize] = useReaderTextSize()
   const { contentKey } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -506,7 +509,7 @@ function RemoteResourceViewer({ directSong = false }) {
 
   if (!item) {
     return (
-      <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background dark:bg-black flex items-center justify-center p-6">
         <div className="max-w-md text-center">
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Resource unavailable</h1>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
@@ -536,7 +539,7 @@ function RemoteResourceViewer({ directSong = false }) {
           ? `This is a member-only song from ${source}. Sign in to that Community on this device, then reopen the link.`
           : 'This is a member-only song. Join and sign in to the Community that sent it, then reopen the link.'
     return (
-      <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background dark:bg-black flex items-center justify-center p-6">
         <div className="max-w-md rounded-xl border border-amber-300 bg-amber-50 p-5 text-center dark:border-amber-700 dark:bg-amber-950/30">
           <h1 className="text-xl font-bold text-amber-950 dark:text-amber-100">Community sign-in required</h1>
           <p className="mt-2 text-sm text-amber-900 dark:text-amber-200">{explanation}</p>
@@ -568,20 +571,21 @@ function RemoteResourceViewer({ directSong = false }) {
   const sourceServerName = contentDocument?.communityRightsContact?.communityName || memberAccess.communityName || item.sourceServerName
 
   return (
-    <div className="min-h-screen bg-background dark:bg-gray-900">
+    <div className="min-h-screen bg-background dark:bg-black">
       <header className="bg-primary text-white sticky top-0 z-40 shadow-lg safe-area-top">
         <div className="h-14 px-4 sm:px-6 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-white/20" aria-label="Back">←</button>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-base sm:text-lg font-bold truncate">{displayTitle}</h1>
             <p className="text-[11px] text-blue-100 truncate">From {sourceServerName}</p>
           </div>
           {isSong && hasRussianListing && (
-            <div className="ml-auto flex rounded-lg bg-white/15 p-0.5 text-xs font-semibold" aria-label="Song language">
+            <div className="flex flex-shrink-0 rounded-lg bg-white/15 p-0.5 text-xs font-semibold" aria-label="Song language">
               <button onClick={() => setSongLanguage('en')} className={`rounded-md px-2 py-1 ${songLanguage === 'en' ? 'bg-white text-primary' : ''}`}>EN</button>
               <button onClick={() => setSongLanguage('ru')} className={`rounded-md px-2 py-1 ${songLanguage === 'ru' ? 'bg-white text-primary' : ''}`}>RU</button>
             </div>
           )}
+          {isText && <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} />}
         </div>
       </header>
 
@@ -608,7 +612,7 @@ function RemoteResourceViewer({ directSong = false }) {
         {contentUrl && mediaType.startsWith('video/') && <video controls preload="metadata" src={primaryMediaUrl} onError={handlePrimaryMediaError} className="w-full rounded-xl bg-black" />}
         {contentUrl && mediaType.startsWith('image/') && <img src={primaryMediaUrl} onError={handlePrimaryMediaError} alt={item.title} className="max-h-[70vh] w-full rounded-xl object-contain bg-white dark:bg-gray-800" />}
         {contentUrl && isText && !contentDocument?.readAlong && (
-          <article className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-6 shadow-sm">
+          <article className="reader-content rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black p-4 sm:p-6 shadow-sm" style={{ fontSize: `${textSize}px` }}>
             {status === 'loading' ? (
               <p className="animate-pulse text-gray-500 dark:text-gray-400">Loading resource…</p>
             ) : hasStructuredContent ? (
@@ -636,7 +640,7 @@ function RemoteResourceViewer({ directSong = false }) {
                         return (
                           <div key={`${lineText || 'line'}-${lineIndex}`}>
                             {chords && <p className="font-mono text-sm font-semibold text-primary dark:text-blue-300 whitespace-pre-wrap">{chords}</p>}
-                            {lineText && <p className="text-base leading-relaxed whitespace-pre-wrap">{lineText}</p>}
+                            {lineText && <p className="leading-relaxed whitespace-pre-wrap">{lineText}</p>}
                           </div>
                         )
                       })}
@@ -647,7 +651,7 @@ function RemoteResourceViewer({ directSong = false }) {
                 {transcriptSections.map((section, sectionIndex) => (
                   <section key={`${section.title || 'section'}-${sectionIndex}`} className="space-y-2">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <h2 className="text-lg font-bold">{readableText(section.title) || `Section ${sectionIndex + 1}`}</h2>
+                      <h2 className="text-[1.111em] font-bold">{readableText(section.title) || `Section ${sectionIndex + 1}`}</h2>
                       {section.timeRange && <span className="text-xs text-gray-500 dark:text-gray-400">{readableText(section.timeRange)}</span>}
                     </div>
                     <p className="leading-relaxed whitespace-pre-wrap">{readableText(section.text || section.summary)}</p>
@@ -656,7 +660,7 @@ function RemoteResourceViewer({ directSong = false }) {
 
                 {chapters.map((chapter, chapterIndex) => (
                   <section key={`${chapter.title || 'chapter'}-${chapterIndex}`} className="space-y-2">
-                    <h2 className="text-lg font-bold">{readableText(chapter.title) || `Chapter ${chapterIndex + 1}`}</h2>
+                    <h2 className="text-[1.111em] font-bold">{readableText(chapter.title) || `Chapter ${chapterIndex + 1}`}</h2>
                     <p className="leading-relaxed whitespace-pre-wrap">{readableText(chapter.text || chapter.body || chapter.summary)}</p>
                   </section>
                 ))}
@@ -664,7 +668,7 @@ function RemoteResourceViewer({ directSong = false }) {
                 {directSections.map(section => (
                   <section key={section.title}>
                     <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">{section.title}</h2>
-                    <p className={`mt-3 leading-relaxed whitespace-pre-wrap ${section.mono ? 'font-mono text-sm' : ''}`}>{section.value}</p>
+                    <p className={`mt-3 leading-relaxed whitespace-pre-wrap ${section.mono ? 'font-mono' : ''}`}>{section.value}</p>
                   </section>
                 ))}
 
@@ -710,7 +714,7 @@ function RemoteResourceViewer({ directSong = false }) {
                 )}
               </div>
             ) : content ? (
-              <pre className="whitespace-pre-wrap break-words font-sans text-sm sm:text-base leading-relaxed text-gray-800 dark:text-gray-200">{content}</pre>
+              <pre className="whitespace-pre-wrap break-words font-sans leading-relaxed text-gray-800 dark:text-gray-200">{content}</pre>
             ) : status === 'error' ? null : (
               <p className="text-sm text-gray-500 dark:text-gray-400">This resource does not include readable text.</p>
             )}
@@ -718,7 +722,7 @@ function RemoteResourceViewer({ directSong = false }) {
         )}
 
         {contentUrl && !isText && !mediaType.startsWith('audio/') && !mediaType.startsWith('video/') && !mediaType.startsWith('image/') && (
-          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 text-center">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black p-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-300">This resource is provided as a {mediaType} file.</p>
             {cachedPrimaryUrl && <a href={cachedPrimaryUrl} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm font-semibold text-primary dark:text-blue-300 underline">Open saved copy</a>}
           </div>

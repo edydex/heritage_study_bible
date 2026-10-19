@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
+import ReaderSettings from './ReaderSettings'
+import ReaderTextSize from './ReaderTextSize'
 import { translations, parallelTranslations } from '../data/translations'
 import { isNativeAndroid, setNativeReaderChromeHidden } from '../services/androidControls'
 
@@ -43,19 +45,10 @@ function Header({
   const [showParallelModal, setShowParallelModal] = useState(false)
   const [autoHidden, setAutoHidden] = useState(false)
   const [selectedParallelLanguage, setSelectedParallelLanguage] = useState('')
-  const settingsRef = useRef(null)
   const translationsRef = useRef(null)
   const suppressShowUntilRef = useRef(0)
   const chromeSettleUntilRef = useRef(0)
   const nativeChromeHiddenRef = useRef(null)
-  // Temporary input values allow typing any number; clamped on blur
-  const [bibleInput, setBibleInput] = useState(String(textSize))
-  const [commentaryInput, setCommentaryInput] = useState(String(commentaryTextSize))
-
-  // Sync inputs when props change externally (e.g. from +/- buttons)
-  useEffect(() => { setBibleInput(String(textSize)) }, [textSize])
-  useEffect(() => { setCommentaryInput(String(commentaryTextSize)) }, [commentaryTextSize])
-
   const [isSmallScreen, setIsSmallScreen] = useState(false)
   const translationGroups = useMemo(() => {
     const groups = new Map()
@@ -204,19 +197,16 @@ function Header({
     onSearch(value)
   }
 
-  // Close settings dropdown on outside click
+  // Close translation dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (settingsRef.current && !settingsRef.current.contains(e.target)) {
-        setShowSettings(false)
-      }
       if (translationsRef.current && !translationsRef.current.contains(e.target)) {
         setShowTranslations(false)
       }
     }
-    if (showSettings || showTranslations) document.addEventListener('mousedown', handleClickOutside)
+    if (showTranslations) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showSettings, showTranslations])
+  }, [showTranslations])
 
   const handleParallelButtonClick = () => {
     if (parallelMode) {
@@ -383,107 +373,23 @@ function Header({
             <span className="text-sm sm:text-base">📚</span>
           </button>
 
-          {/* Settings Button */}
-          <div className="relative flex-shrink-0" ref={settingsRef}>
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center px-2 sm:px-3 py-1.5 sm:py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
-              title="Text size settings"
-            >
-              <span className="text-sm sm:text-base">⚙️</span>
-            </button>
-
-            {/* Settings Dropdown */}
-            {showSettings && (
-              <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-3 px-4 w-64 z-50">
-                {/* Bible Text Size */}
-                <h4 className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Bible Text</h4>
-                <div className="flex items-center gap-1.5 mb-3">
-                  <button
-                    type="button"
-                    onClick={() => onTextSizeChange(Math.max(12, textSize - 1))}
-                    className="flex-1 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold text-xl transition-colors"
-                  >−</button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={bibleInput}
-                    onChange={(e) => setBibleInput(e.target.value.replace(/[^0-9]/g, ''))}
-                    onBlur={() => {
-                      const v = parseInt(bibleInput) || 18
-                      const clamped = Math.max(12, Math.min(64, v))
-                      onTextSizeChange(clamped)
-                      setBibleInput(String(clamped))
-                    }}
-                    className="w-14 flex-shrink-0 text-center text-sm border border-gray-300 dark:border-gray-600 rounded-lg py-1.5 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary no-spinners"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => onTextSizeChange(Math.min(64, textSize + 1))}
-                    className="flex-1 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold text-xl transition-colors"
-                  >+</button>
+          <ReaderSettings open={showSettings} onOpenChange={setShowSettings} onMoreSettingsClick={() => onAdvancedSettingsClick?.()}>
+            <ReaderTextSize size={textSize} onChange={onTextSizeChange} label="Bible" heading="Bible Text" />
+            <ReaderTextSize size={commentaryTextSize} onChange={onCommentaryTextSizeChange} label="Commentary" heading="Commentary" defaultSize={14} />
+            {/* Dark Mode */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); if (onDarkModeChange) onDarkModeChange(!darkMode); }}
+                className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <span className="text-sm text-gray-700 dark:text-gray-200 font-medium flex items-center gap-1.5">{darkMode ? '🌙' : '☀️'} {darkMode ? 'Dark Mode' : 'Light Mode'}</span>
+                <div className={`w-11 h-6 rounded-full transition-colors relative ${darkMode ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${darkMode ? 'translate-x-5' : 'translate-x-0'}`} />
                 </div>
-
-                {/* Commentary Text Size */}
-                <h4 className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Commentary</h4>
-                <div className="flex items-center gap-1.5 mb-3">
-                  <button
-                    type="button"
-                    onClick={() => onCommentaryTextSizeChange(Math.max(12, commentaryTextSize - 1))}
-                    className="flex-1 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold text-xl transition-colors"
-                  >−</button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={commentaryInput}
-                    onChange={(e) => setCommentaryInput(e.target.value.replace(/[^0-9]/g, ''))}
-                    onBlur={() => {
-                      const v = parseInt(commentaryInput) || 14
-                      const clamped = Math.max(12, Math.min(64, v))
-                      onCommentaryTextSizeChange(clamped)
-                      setCommentaryInput(String(clamped))
-                    }}
-                    className="w-14 flex-shrink-0 text-center text-sm border border-gray-300 dark:border-gray-600 rounded-lg py-1.5 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary no-spinners"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => onCommentaryTextSizeChange(Math.min(64, commentaryTextSize + 1))}
-                    className="flex-1 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold text-xl transition-colors"
-                  >+</button>
-                </div>
-
-                {/* Dark Mode */}
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); if (onDarkModeChange) onDarkModeChange(!darkMode); }}
-                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <span className="text-sm text-gray-700 dark:text-gray-200 font-medium flex items-center gap-1.5">{darkMode ? '🌙' : '☀️'} {darkMode ? 'Dark Mode' : 'Light Mode'}</span>
-                    <div className={`w-11 h-6 rounded-full transition-colors relative ${darkMode ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}>
-                      <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${darkMode ? 'translate-x-5' : 'translate-x-0'}`} />
-                    </div>
-                  </button>
-                </div>
-
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-2.5">
-                  <button
-                    aria-label="More settings"
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      setShowSettings(false)
-                      onAdvancedSettingsClick?.()
-                    }}
-                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <span className="text-sm text-gray-700 dark:text-gray-200 font-medium">More settings</span>
-                    <span className="text-gray-400 dark:text-gray-500">›</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+              </button>
+            </div>
+          </ReaderSettings>
         </div>
       </div>
 

@@ -20,7 +20,7 @@ test('first audio-text click selects and reveals the matched paragraph without c
   await expect(marked).toBeFocused()
   await expect(marked).toContainText(paragraph.text.replace(/\[\d+\]/g, '').slice(0, 55))
   await expect(page.getByRole('button', { name: 'Play book audio' })).toBeVisible()
-  await expect(page.getByRole('status')).toContainText('automatic paragraph match')
+  await expect(page.getByRole('status').filter({ hasText: 'automatic paragraph match' })).toBeVisible()
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.screenshot({ path: test.info().outputPath('nearby-text-phone.png'), fullPage: false })
   await page.reload()

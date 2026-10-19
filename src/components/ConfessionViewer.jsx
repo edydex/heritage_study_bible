@@ -1,3 +1,5 @@
+import ReaderSettings from './ReaderSettings'
+import { useReaderTextSize } from './ReaderTextSize'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
@@ -5,6 +7,7 @@ import { RESOURCE_CATEGORIES, TAG_COLORS } from '../data/resources'
 function ConfessionViewer() {
   const { itemId } = useParams()
   const navigate = useNavigate()
+  const [textSize, setTextSize] = useReaderTextSize()
   const [confession, setConfession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -29,7 +32,7 @@ function ConfessionViewer() {
     switch (block.type) {
       case 'text':
         return (
-          <p key={index} className="text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8] whitespace-pre-line mb-5">
+          <p key={index} className="text-gray-800 dark:text-gray-200 leading-[1.8] whitespace-pre-line mb-5">
             {block.text}
           </p>
         )
@@ -37,7 +40,7 @@ function ConfessionViewer() {
         return (
           <ol key={index} className="list-decimal list-outside pl-8 space-y-2.5 mb-6">
             {block.items.map((item, i) => (
-              <li key={i} className="text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8] pl-2">
+              <li key={i} className="text-gray-800 dark:text-gray-200 leading-[1.8] pl-2">
                 {item}
               </li>
             ))}
@@ -45,13 +48,13 @@ function ConfessionViewer() {
         )
       case 'heading':
         return (
-          <h3 key={index} className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-10 mb-3 heading-text border-b border-gray-200 dark:border-gray-700 pb-2">
+          <h3 key={index} className="text-[1.111em] font-bold text-gray-900 dark:text-gray-100 mt-10 mb-3 heading-text border-b border-gray-200 dark:border-gray-700 pb-2">
             {block.text}
           </h3>
         )
       case 'subheading':
         return (
-          <h4 key={index} className="text-base font-semibold text-gray-800 dark:text-gray-200 mt-6 mb-2 italic">
+          <h4 key={index} className="text-[1em] font-semibold text-gray-800 dark:text-gray-200 mt-6 mb-2 italic">
             {block.text}
           </h4>
         )
@@ -71,7 +74,7 @@ function ConfessionViewer() {
       case 'article':
         return (
           <div key={index} className="mb-4">
-            <p className="text-[15px] text-gray-800 dark:text-gray-200 leading-[1.8]">
+            <p className="text-gray-800 dark:text-gray-200 leading-[1.8]">
               <span className="font-bold text-primary dark:text-blue-400">{block.number}. </span>
               {block.text}
             </p>
@@ -88,7 +91,7 @@ function ConfessionViewer() {
     : null
 
   return (
-    <div className="min-h-screen bg-background dark:bg-gray-900">
+    <div className="min-h-screen bg-background dark:bg-black">
       {/* Header */}
       <header className="bg-primary text-white shadow-lg sticky top-0 z-40">
         <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
@@ -108,6 +111,7 @@ function ConfessionViewer() {
               {meta.tag}
             </span>
           )}
+          <ReaderSettings textSize={textSize} onTextSizeChange={setTextSize} />
         </div>
       </header>
 
@@ -156,7 +160,7 @@ function ConfessionViewer() {
             <hr className="border-gray-200 dark:border-gray-700 mb-8" />
 
             {/* Confession body */}
-            <div className="confession-body">
+            <div className="confession-body reader-content" style={{ fontSize: `${textSize}px` }}>
               {confession.content.map(renderContent)}
             </div>
           </>
