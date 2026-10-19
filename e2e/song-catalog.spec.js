@@ -61,6 +61,7 @@ const communities = [
       contentServerUrl: 'https://main.example/heritage-content.json',
     },
     contentPreview: { manifest: { id: 'main-content' } },
+    status: 'joined',
     primary: true,
     addedAt: '2026-02-01T00:00:00Z',
   },
@@ -72,6 +73,7 @@ const communities = [
       contentServerUrl: 'https://later.example/heritage-content.json',
     },
     contentPreview: { manifest: { id: 'later-content' } },
+    status: 'joined',
     primary: false,
     addedAt: '2026-03-01T00:00:00Z',
   },
@@ -83,6 +85,7 @@ const communities = [
       contentServerUrl: 'https://earlier.example/heritage-content.json',
     },
     contentPreview: { manifest: { id: 'earlier-content' } },
+    status: 'joined',
     primary: false,
     addedAt: '2026-01-01T00:00:00Z',
   },
@@ -127,12 +130,11 @@ test.beforeEach(async ({ page }) => {
     })
   })
   await page.route('https://main.example/content/songs/77', route => route.fulfill({
-    status: route.request().headers().authorization ? 400 : 200,
-    json: route.request().headers().authorization
-      ? { error: 'An unlisted share link must not need or receive a member token.' }
-      : {
+    status: route.request().headers().authorization === 'Community main-private-token' ? 200 : 401,
+    json: route.request().headers().authorization === 'Community main-private-token'
+      ? {
           title: 'All I Have Is Christ',
-          description: 'A phone-friendly Community song sheet.',
+          description: 'A member-only Community song sheet.',
           lyrics: 'Sample licensed lyric line',
           rightsStatus: 'licensed',
           ccliNumber: '5174122',
@@ -147,7 +149,8 @@ test.beforeEach(async ({ page }) => {
             ccliLicenseNumber: '7654321',
             email: 'rights@main.example',
           },
-        },
+        }
+      : { error: 'Sign in required.' },
   }))
 })
 
@@ -190,13 +193,15 @@ test('a hymn without a sourced Russian edition does not expose invented Russian 
   await expect(page.getByText('Будь мне виденьем, Господь сердца мой')).toHaveCount(0)
 })
 
-test('an unlisted Community song opens without membership and explains its license at the bottom', async ({ page }) => {
+test('a member-only Community song requires the installed Community session and explains its scope', async ({ page }) => {
   const contentUrl = 'https://main.example/content/songs/77'
-  await page.goto(`/#/community-song?url=${encodeURIComponent(contentUrl)}`)
+  await page.goto(`/#/community-song?access=member&server=main-content&url=${encodeURIComponent(contentUrl)}`)
 
   await expect(page.getByRole('heading', { name: 'All I Have Is Christ' })).toBeVisible()
   await expect(page.getByText('Sample licensed lyric line')).toBeVisible()
   await expect(page.getByText('From Main Church')).toBeVisible()
+  await expect(page.getByText('Member-only Community song', { exact: true })).toBeVisible()
+  await expect(page.getByText(/contains no sign-in token and is not a reviewed public bearer link/)).toBeVisible()
 
   const disclosure = page.getByText('License, source, and sharing explanation')
   await expect(disclosure).toBeVisible()
@@ -216,5 +221,48 @@ test('an unlisted Community song opens without membership and explains its licen
     'href',
     /mailto:rights@main\.example/,
   )
-  await expect(page.getByRole('button', { name: 'Share unlisted song link' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Share member-only link' })).toBeVisible()
+})
+
+test('a member song link does not fetch protected content before Community sign-in', async ({ page }) => {
+  await page.goto('/#/')
+  await page.evaluate(() => {
+    const sessions = JSON.parse(localStorage.getItem('heritage-community-sessions-v1') || '{}')
+    delete sessions.main
+    localStorage.setItem('heritage-community-sessions-v1', JSON.stringify(sessions))
+  })
+
+  const protectedRequests = []
+  page.on('request', request => {
+    if (request.url() === 'https://main.example/content/songs/77') protectedRequests.push(request)
+  })
+  const contentUrl = 'https://main.example/content/songs/77'
+  await page.goto(`/#/community-song?access=member&server=main-content&url=${encodeURIComponent(contentUrl)}`)
+
+  await expect(page.getByRole('heading', { name: 'Community sign-in required' })).toBeVisible()
+  await expect(page.getByText(/member-only song from Main Church/)).toBeVisible()
+  await expect(page.getByText(/contains no Community password or session token/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Open Community Home' })).toBeVisible()
+  expect(protectedRequests).toHaveLength(0)
+})
+
+test('a member Authorization header never follows a redirect to another origin', async ({ page }) => {
+  const capturedRequests = []
+  await page.route('https://main.example/content/songs/redirect-test', route => {
+    expect(route.request().headers().authorization).toBe('Community main-private-token')
+    return route.fulfill({
+      status: 302,
+      headers: { Location: 'https://attacker.example/capture-member-token' },
+    })
+  })
+  await page.route('https://attacker.example/capture-member-token', route => {
+    capturedRequests.push(route.request())
+    return route.fulfill({ status: 500, json: { error: 'Authorization escaped its origin.' } })
+  })
+
+  const contentUrl = 'https://main.example/content/songs/redirect-test'
+  await page.goto(`/#/community-song?access=member&server=main-content&url=${encodeURIComponent(contentUrl)}`)
+
+  await expect(page.getByText(/Could not load this resource/)).toBeVisible()
+  expect(capturedRequests).toHaveLength(0)
 })

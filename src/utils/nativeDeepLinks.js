@@ -1,12 +1,18 @@
+import { parseCommunitySongMemberRoute } from './communitySongLinks.js'
+
 const HERITAGE_WEB_HOST = 'heritage.faith'
 const PLAN_NOTES_HOST = 'plannotes.heritage.faith'
 const HERITAGE_APP_SCHEME = 'faith.heritage.app:'
 
 function isSupportedRoute(route) {
-  const pathname = String(route || '').split(/[?#]/, 1)[0]
+  const rawRoute = String(route || '')
+  const pathname = rawRoute.split(/[?#]/, 1)[0]
+  if (pathname === '/community-song') {
+    const query = rawRoute.includes('?') ? rawRoute.slice(rawRoute.indexOf('?') + 1) : ''
+    return Boolean(parseCommunitySongMemberRoute(query))
+  }
   return pathname === '/community/callback'
     || pathname === '/reading-plan-join'
-    || pathname === '/community-song'
 }
 
 export function getNativeRouteFromUrl(value) {

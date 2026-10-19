@@ -4,11 +4,15 @@ on:
   pull_request:
     paths:
       - 'community-server/**'
+      - 'tests/fixtures/community-service-plan-conformance-v1.json'
+      - 'tests/fixtures/community-sermon-publication-conformance-v1.json'
       - '.github/workflows/community-server.yml'
   push:
     branches: ['main']
     paths:
       - 'community-server/**'
+      - 'tests/fixtures/community-service-plan-conformance-v1.json'
+      - 'tests/fixtures/community-sermon-publication-conformance-v1.json'
       - '.github/workflows/community-server.yml'
   workflow_dispatch:
 
@@ -41,6 +45,8 @@ jobs:
         run: |
           npm run test:deploy
           npm run test:appliance
+          npm run test:syncshow
+          npm run generate:types
           npm run typecheck
           npm run build
 
@@ -148,6 +154,12 @@ jobs:
           HERITAGE_BACKUP_DIR=/tmp/heritage-ci-backups deploy/backup.sh --online --label ci
           HERITAGE_BACKUP_DIR=/tmp/heritage-ci-backups deploy/status.sh --verify-backup
 
+      - name: Verify disposable SyncShow backup and restore
+        env:
+          CI: 'true'
+          HERITAGE_DISPOSABLE_CI: heritage-community-syncshow-backup-restore-v1
+        run: deploy/tests/backup-restore-syncshow.sh
+
       - name: Verify local-only mode without SMTP
         run: |
           sed -i \
@@ -183,3 +195,117 @@ jobs:
       - name: Clean up
         if: always()
         run: docker compose --env-file .env.production -f docker-compose.production.yml down --volumes --remove-orphans
+
+  syncshow-payload-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: heritage_syncshow_payload_live
+          POSTGRES_USER: heritage_ci
+          POSTGRES_PASSWORD: heritage-ci-database-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U heritage_ci -d heritage_syncshow_payload_live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://heritage_ci:heritage-ci-database-password@127.0.0.1:5432/heritage_syncshow_payload_live
+      SERVICE_PLAN_LIVE_DATABASE_URL: postgresql://heritage_ci:heritage-ci-database-password@127.0.0.1:5432/heritage_syncshow_payload_live
+      SONG_PUBLIC_LINK_LIVE_DATABASE_URL: postgresql://heritage_ci:heritage-ci-database-password@127.0.0.1:5432/heritage_syncshow_payload_live
+      HERITAGE_DISPOSABLE_CI: heritage-community-syncshow-payload-live-v1
+      PAYLOAD_SECRET: ci-syncshow-payload-secret-at-least-thirty-two-characters
+      COMMUNITY_PUBLIC_URL: http://127.0.0.1:3300
+      COMMUNITY_ID: local-church
+      COMMUNITY_NAME: SyncShow CI Church
+      COMMUNITY_DESCRIPTION: Disposable SyncShow Payload integration test
+      COMMUNITY_TIME_ZONE: UTC
+      COMMUNITY_AUTH_ENABLED: 'false'
+      HERITAGE_APP_URL: https://heritage.faith
+      HERITAGE_APP_ORIGINS: https://heritage.faith,https://localhost,capacitor://localhost,http://localhost
+      BOOTSTRAP_ADMIN_NAME: SyncShow CI Administrator
+      BOOTSTRAP_ADMIN_EMAIL: syncshow-ci@example.org
+      BOOTSTRAP_ADMIN_PASSWORD: syncshow-ci-administrator-password
+      NEXT_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Migrate disposable Payload database
+        env:
+          NODE_ENV: production
+        run: npm run migrate
+
+      - name: Verify service-plan lifecycle against Payload and PostgreSQL
+        env:
+          NODE_ENV: production
+        run: npm run test:syncshow:service-plan-live
+
+      - name: Verify song-link lifecycle against Payload and PostgreSQL
+        env:
+          NODE_ENV: production
+        run: npm run test:syncshow:song-link-live
+
+  syncshow-sermon-history-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: heritage_syncshow_sermon_history_live
+          POSTGRES_USER: heritage_ci
+          POSTGRES_PASSWORD: heritage-ci-database-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U heritage_ci -d heritage_syncshow_sermon_history_live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://heritage_ci:heritage-ci-database-password@127.0.0.1:5432/heritage_syncshow_sermon_history_live
+      SERMON_HISTORY_LIVE_DATABASE_URL: postgresql://heritage_ci:heritage-ci-database-password@127.0.0.1:5432/heritage_syncshow_sermon_history_live
+      HERITAGE_DISPOSABLE_CI: heritage-community-syncshow-sermon-history-live-v1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Verify retained sermon history on a dedicated disposable database
+        env:
+          NODE_ENV: test
+        run: npm run test:syncshow:sermon-history-live

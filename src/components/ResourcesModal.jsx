@@ -47,7 +47,9 @@ function ResourcesModal({ onClose }) {
               {cat.icon && <span className="text-2xl">{cat.icon}</span>}
               <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm text-center">{cat.title}</span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {cat.items.length + getRemoteContentItemsForCategory(cat.id).length} items
+                {cat.id === 'sermons'
+                  ? 'Published archive'
+                  : `${cat.items.length + getRemoteContentItemsForCategory(cat.id).length} items`}
               </span>
             </button>
           ))}

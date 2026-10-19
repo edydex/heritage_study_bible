@@ -22,10 +22,10 @@ The Community editor therefore keeps rights information advisory. It does not bl
   home, and Bible-study groups. That permission applies to material it owns; a
   recording or page can still identify an outside or co-published copyright
   whose permission must come from its administrator.
-- An exact Community song link may be opened by a congregant without first
-  creating an account, but song catalogs stay member-only and song responses ask
-  search engines not to index them. This is an unlisted-link publishing choice,
-  not DRM.
+- Community song catalogs and exact song links require a signed-in church
+  member. Private and not-yet-public scheduled songs remain visible only to
+  owners, admins, and leaders. Song responses also ask search engines not to
+  index them.
 - Every song page identifies the publishing church's rights record and offers a
   rights-holder correction or takedown contact.
 

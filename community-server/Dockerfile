@@ -24,6 +24,7 @@ ENV NODE_ENV=production \
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY package.json package-lock.json next.config.ts tsconfig.json ./
 COPY src ./src
+COPY scripts ./scripts
 USER node
 CMD ["npm", "run", "migrate"]
 
@@ -36,8 +37,17 @@ ENV NODE_ENV=production \
 
 RUN addgroup -S -g 1001 nodejs \
   && adduser -S -D -H -u 1001 -G nodejs nextjs \
-  && mkdir -p /app/media /app/.next/cache \
-  && chown -R nextjs:nodejs /app/media /app/.next
+  && mkdir -p \
+    /app/media \
+    /app/private/sermon-media/staging \
+    /app/private/sermon-media/objects \
+    /app/.next/cache \
+  && chown -R nextjs:nodejs /app/media /app/private /app/.next \
+  && chmod 0700 \
+    /app/private \
+    /app/private/sermon-media \
+    /app/private/sermon-media/staging \
+    /app/private/sermon-media/objects
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static

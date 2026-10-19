@@ -1,15 +1,15 @@
 import type { Payload } from 'payload'
 
-export async function isCommunityMemberRequest(
+export async function communityRequestAccess(
   payload: Payload,
   headers: Headers,
   communityId: number | string,
-): Promise<boolean> {
+) {
   const { user } = await payload.auth({ headers })
-  if (!user) return false
-  if (user.systemRole === 'system-admin') return true
+  if (!user) return { authenticated: false, manager: false, user: null }
+  if (user.systemRole === 'system-admin') return { authenticated: true, manager: true, user }
 
-  const membership = await payload.find({
+  const membership = (await payload.find({
     collection: 'memberships',
     depth: 0,
     limit: 1,
@@ -20,6 +20,18 @@ export async function isCommunityMemberRequest(
         { community: { equals: communityId } },
       ],
     },
-  })
-  return membership.docs.length > 0
+  })).docs[0]
+  return {
+    authenticated: Boolean(membership),
+    manager: Boolean(membership && ['owner', 'admin', 'leader'].includes(String(membership.role))),
+    user,
+  }
+}
+
+export async function isCommunityMemberRequest(
+  payload: Payload,
+  headers: Headers,
+  communityId: number | string,
+): Promise<boolean> {
+  return (await communityRequestAccess(payload, headers, communityId)).authenticated
 }

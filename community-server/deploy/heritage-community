@@ -52,6 +52,8 @@ Commands:
   restart       Restart the application and configured tunnel
   backup        Create a PostgreSQL and media backup
   restore       Verify and restore a backup with typed confirmation
+  sermon-media-maintenance
+                Quiesce and reconcile managed sermon recording storage
   update        Back up, fast-forward source, build, migrate, and verify
   reconfigure   Rerun the guided setup while preserving core secrets
   uninstall     Remove services; data is preserved unless explicitly purged
@@ -104,6 +106,9 @@ case "$command_name" in
     ;;
   restore)
     exec "${SCRIPT_DIR}/restore.sh" --install-dir "$HERITAGE_INSTALL_DIR" --backup-dir "$HERITAGE_BACKUP_DIR" "$@"
+    ;;
+  sermon-media-maintenance)
+    exec "${SCRIPT_DIR}/sermon-media-maintenance.sh" --install-dir "$HERITAGE_INSTALL_DIR" "$@"
     ;;
   update)
     exec "${SCRIPT_DIR}/update.sh" --install-dir "$HERITAGE_INSTALL_DIR" --backup-dir "$HERITAGE_BACKUP_DIR" "$@"

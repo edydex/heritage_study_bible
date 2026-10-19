@@ -23,6 +23,16 @@ function formatCheckedAt(value) {
   return Number.isNaN(date.getTime()) ? 'Previously checked' : `Checked ${date.toLocaleString()}`
 }
 
+function serverCapabilityLabels(server) {
+  const labels = Object.entries(server?.counts || {})
+    .filter(([, count]) => count > 0)
+    .map(([type, count]) => `${count} ${TYPE_LABELS[type] || type}`)
+  if (server?.manifest?.publications?.sermons) {
+    labels.push('passage-linked sermons')
+  }
+  return labels
+}
+
 function ContentServersPage() {
   const navigate = useNavigate()
   const [serverUrl, setServerUrl] = useState('')
@@ -39,9 +49,7 @@ function ContentServersPage() {
 
   const previewCapabilities = useMemo(() => {
     if (!preview) return []
-    return Object.entries(preview.counts)
-      .filter(([, count]) => count > 0)
-      .map(([type, count]) => `${count} ${TYPE_LABELS[type] || type}`)
+    return serverCapabilityLabels(preview)
   }, [preview])
 
   const handleInspect = async event => {
@@ -65,7 +73,11 @@ function ContentServersPage() {
     try {
       await addContentServer(preview)
       setSubscriptions(getContentServerSubscriptions())
-      setMessage(`${preview.manifest.name} was added. Its catalog items now appear in Resources.`)
+      setMessage(
+        preview.manifest.publications?.sermons
+          ? `${preview.manifest.name} was added. Its published sermons now appear alongside linked Bible passages.`
+          : `${preview.manifest.name} was added. Its catalog items now appear in Resources.`,
+      )
       setPreview(null)
       setServerUrl('')
     } catch (error) {
@@ -177,7 +189,7 @@ function ContentServersPage() {
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">{server.manifest.name}</h3>
                       <p className="text-xs text-gray-500 dark:text-gray-400">{formatCheckedAt(server.lastCheckedAt)}</p>
                       <p className="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                        {Object.entries(server.counts || {}).filter(([, count]) => count > 0).map(([type, count]) => `${count} ${TYPE_LABELS[type] || type}`).join(' · ')}
+                        {serverCapabilityLabels(server).join(' · ')}
                       </p>
                     </div>
                     <div className="flex gap-2">
