@@ -22,7 +22,7 @@ import { translations, parallelTranslations, DEFAULT_TRANSLATION, loadTranslatio
 import { authors as initialAuthors, loadCommentaryForBook, getAuthorsForBook, hasAnyCommentary } from './data/authors'
 import { getBookReferenceChoices, parseBibleReference } from './utils/parseBibleReference'
 import { searchBibleVerses, searchBookLibrary, searchCommentaryLibrary } from './utils/librarySearch'
-import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, setNativeSideButtonScrollEnabled, setNativeSearchKeyboardCaptureInputEnabled, setNativeTextSelectionMenuSuppressed } from './services/androidControls'
+import { addNativeBackListener, addNativeScrollListener, exitNativeApp, isNativeAndroid, NATIVE_READER_TARGET_CHANGE_EVENT, setNativeSideButtonScrollEnabled, setNativeSearchKeyboardCaptureInputEnabled, setNativeTextSelectionMenuSuppressed } from './services/androidControls'
 import { setStoredValue, STORAGE_KEYS } from './services/persistentStorage'
 import { getReaderProgress, saveBibleProgress } from './services/readerProgress'
 import { getActiveReadingPlan } from './services/readingPlanProgress'
@@ -158,6 +158,12 @@ function isEditableTarget(element) {
 function getBestScrollTarget() {
   const active = document.activeElement
   if (isEditableTarget(active)) return null
+  if (document.querySelector('[role="dialog"][aria-modal="true"]')) return null
+
+  // An open commentary pane owns the buttons even when its content is short.
+  // Falling through here would scroll Scripture hidden behind the pane.
+  const commentary = document.querySelector('[data-commentary-scroll-region="true"]')
+  if (commentary) return commentary.dataset.nativeScrollDisabled === 'true' ? null : commentary
 
   const candidates = [
     document.querySelector('[data-reader-scroll-target="true"]'),
@@ -192,8 +198,9 @@ function getVerticalChromeHeight(position) {
   }, 0)
 }
 
-function getReaderLineHeight() {
-  const sample = document.querySelector('.verse-text') || document.querySelector('main') || document.body
+function getReaderLineHeight(target) {
+  const root = isDocumentScrollTarget(target) ? document : target
+  const sample = root.querySelector('.verse-text, [data-reader-text]') || target || document.body
   const computed = window.getComputedStyle(sample)
   const parsed = Number.parseFloat(computed.lineHeight)
   if (Number.isFinite(parsed)) return parsed
@@ -209,7 +216,7 @@ function getNativeReaderScrollDistance(target, distancePercent = DEFAULT_VOLUME_
     : viewport - getVerticalChromeHeight('top') - getVerticalChromeHeight('bottom')
 
   const readableHeight = Math.max(180, targetViewport || viewport)
-  const overlap = Math.max(28, Math.min(72, getReaderLineHeight() * 1.25))
+  const overlap = Math.max(28, Math.min(72, getReaderLineHeight(target) * 1.25))
   const historicalPageStep = Math.max(160, Math.round(readableHeight - overlap))
   return scaleVolumeScrollDistance(historicalPageStep, distancePercent)
 }
@@ -331,7 +338,8 @@ function getReaderViewportBounds(target) {
   }
 }
 
-function getReaderContentRect() {
+function getReaderContentRect(target) {
+  if (!isDocumentScrollTarget(target)) return target.getBoundingClientRect()
   const element = document.querySelector('[data-reader-scroll-target="true"]')
     || document.querySelector('main .container')
     || document.querySelector('main')
@@ -344,7 +352,8 @@ function findLastFullyVisibleReaderLine(target) {
   if (bounds.bottom <= bounds.top) return null
 
   const lineRects = []
-  for (const element of document.querySelectorAll('.verse-text')) {
+  const root = isDocumentScrollTarget(target) ? document : target
+  for (const element of root.querySelectorAll('.verse-text, [data-reader-text]')) {
     const range = document.createRange()
     try {
       range.selectNodeContents(element)
@@ -373,16 +382,17 @@ function placeNativeScrollMarker(target) {
   const lineRect = findLastFullyVisibleReaderLine(target)
   if (!lineRect) return
 
-  const contentRect = getReaderContentRect()
-  const scrollTop = window.scrollY || document.documentElement.scrollTop || 0
-  const scrollLeft = window.scrollX || document.documentElement.scrollLeft || 0
+  const contentRect = getReaderContentRect(target)
+  const isDocumentTarget = isDocumentScrollTarget(target)
+  const scrollTop = isDocumentTarget ? (window.scrollY || document.documentElement.scrollTop || 0) : 0
+  const scrollLeft = isDocumentTarget ? (window.scrollX || document.documentElement.scrollLeft || 0) : 0
   const marker = document.createElement('div')
   marker.id = NATIVE_SCROLL_MARKER_ID
   marker.setAttribute('aria-hidden', 'true')
   const isDarkMode = document.documentElement.classList.contains('dark')
 
   Object.assign(marker.style, {
-    position: 'absolute',
+    position: isDocumentTarget ? 'absolute' : 'fixed',
     top: `${lineRect.bottom + scrollTop + 4}px`,
     left: `${Math.max(12, contentRect.left + scrollLeft + 12)}px`,
     width: `${Math.max(48, contentRect.width - 24)}px`,
@@ -391,7 +401,7 @@ function placeNativeScrollMarker(target) {
     opacity: '1',
     transition: 'opacity 10s linear',
     pointerEvents: 'none',
-    zIndex: '30',
+    zIndex: isDocumentTarget ? '30' : '60',
   })
 
   document.body.appendChild(marker)
@@ -421,11 +431,17 @@ function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0, volumeScr
   const blockNativeScrollUntilRef = useRef(0)
 
   useEffect(() => {
-    cancelNativeReaderScrollAnimation()
-    removeNativeScrollMarker()
-    return () => {
+    const resetScroll = () => {
       cancelNativeReaderScrollAnimation()
       removeNativeScrollMarker()
+      lastBottomDownPressAtRef.current = 0
+      blockNativeScrollUntilRef.current = 0
+    }
+    resetScroll()
+    window.addEventListener(NATIVE_READER_TARGET_CHANGE_EVENT, resetScroll)
+    return () => {
+      resetScroll()
+      window.removeEventListener(NATIVE_READER_TARGET_CHANGE_EVENT, resetScroll)
     }
   }, [location.pathname])
 
@@ -441,10 +457,11 @@ function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0, volumeScr
       const now = performance.now()
       if (now < blockNativeScrollUntilRef.current) return
 
-      if (direction !== 'down') {
+      const isCommentary = target.matches('[data-commentary-scroll-region="true"]')
+      if (direction !== 'down' || isCommentary) {
         lastBottomDownPressAtRef.current = 0
       } else if (isScrollTargetAtBottom(target)) {
-        if (now - lastBottomDownPressAtRef.current <= NATIVE_VOLUME_NEXT_DOUBLE_PRESS_MS) {
+        if (lastBottomDownPressAtRef.current > 0 && now - lastBottomDownPressAtRef.current <= NATIVE_VOLUME_NEXT_DOUBLE_PRESS_MS) {
           lastBottomDownPressAtRef.current = 0
           blockNativeScrollUntilRef.current = now + NATIVE_VOLUME_NEXT_SCROLL_BLOCK_MS
           cancelNativeReaderScrollAnimation()
