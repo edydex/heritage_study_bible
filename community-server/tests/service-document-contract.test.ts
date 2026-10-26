@@ -534,3 +534,35 @@ test('service-document change locks have their required Payload relation column'
   assert.match(migration, /ON DELETE cascade/)
   assert.match(registry, /20260902_053500_service_document_lock_relations/)
 })
+
+test('shared presentations preserve desktop screen choices through create, save and canonical serialization', () => {
+  const request = { schemaVersion: 1, requestId: '00000000-0000-4000-8000-000000000101',
+    syncId: 'screen-compat-test', title: 'Screen compatibility', serviceDate: '2026-10-19' }
+  for (const presentation of [
+    { screenIds: ['english'], hintScreenIds: [] },
+    { screenIds: ['english', 'russian', 'media'], hintScreenIds: ['english', 'media'] },
+  ]) {
+    const created = blankServiceDocument({ ...request, presentation })
+    const parsed = parseHeritageServiceDocumentSource(created.write.documentSource)
+    assert.deepEqual(parsed.project.presentation, presentation)
+    const saved = managerWrite({ schemaVersion: 1, requestId: request.requestId, syncId: request.syncId,
+      baseSyncVersion: 1, baseRevision: 'a'.repeat(64),
+      documentSource: created.write.documentSource, status: 'planning' })
+    assert.equal(saved.write.documentSource, created.write.documentSource)
+    assert.deepEqual(parseHeritageServiceDocumentSource(saved.write.documentSource).project.presentation, presentation)
+  }
+})
+
+test('legacy services keep their canonical format and invalid screen choices are rejected', () => {
+  const request = { schemaVersion: 1, requestId: '00000000-0000-4000-8000-000000000102',
+    syncId: 'legacy-screen-compat', title: 'Legacy service', serviceDate: '2026-10-19' }
+  const legacy = blankServiceDocument(request)
+  assert.equal(Object.hasOwn(parseHeritageServiceDocumentSource(legacy.write.documentSource).project, 'presentation'), false)
+  for (const presentation of [
+    { screenIds: [] },
+    { screenIds: ['english', 'english'] },
+    { screenIds: ['unknown'] },
+    { screenIds: ['english'], hintScreenIds: ['media'] },
+    { screenIds: ['english'], extra: true },
+  ]) assert.throws(() => blankServiceDocument({ ...request, presentation }))
+})
