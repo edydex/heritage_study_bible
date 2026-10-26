@@ -7,11 +7,11 @@ export function plannerPreview(rows: PlannerSlide[], active: PlannerSlide | unde
   const outputFor = (slide: PlannerSlide | undefined) => {
     const cue = slide?.cue
     const output = cue?.channels?.[channelId]
-    if (output?.mode !== 'condensed' || !output.sourceChannelId) return { output, presetId: cue?.presetId }
+    if (output?.mode !== 'condensed' || !output.sourceChannelId) return { output, presetId: cue?.presetId, textStyle: cue?.textStyle }
     const source = singerPresentation.singerSourceCue(cue, output.sourceChannelId)
-    return { output: source.channels[output.sourceChannelId], presetId: source.presetId }
+    return { output: source.channels[output.sourceChannelId], presetId: source.presetId, textStyle: source.textStyle }
   }
-  const current = singer ? outputFor(active) : { output: active?.cue?.channels?.[channelId], presetId: active?.cue?.presetId }
+  const current = singer ? outputFor(active) : { output: active?.cue?.channels?.[channelId], presetId: active?.cue?.presetId, textStyle: active?.cue?.textStyle }
   const slides = rows.filter(row => row.cue)
   const index = active ? slides.findIndex(row => row.id === active.id) : -1
   const nextSlide = index >= 0 ? slides[index + 1] : undefined
