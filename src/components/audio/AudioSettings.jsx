@@ -25,9 +25,12 @@ export default function AudioSettings() {
       <label className="block mt-4"><input type="checkbox" checked={audio?.settings.followBooks ?? true} onChange={event => audio?.updateSettings({ followBooks: event.target.checked })} /> Auto-scroll audiobooks</label>
       <p className="text-sm mt-1">Follow the playing sentence when its matching book edition is open.</p>
     </section>
+    <section><h2>Audiobooks menu</h2>
+      <label className="block mt-3"><input type="checkbox" disabled={!audio} checked={audio?.settings.showBibleBooksInAudiobooks ?? false} onChange={event => audio?.updateSettings({ showBibleBooksInAudiobooks: event.target.checked })} /> Show Bible books in Audiobooks menu</label>
+    </section>
     <AudioPlayerControls />
     <section><h2>Chapters &amp; downloads</h2>
-      <div className="audio-actions"><button onClick={() => navigate('/audio')}>Browse chapters and audiobooks</button><button onClick={() => navigate('/settings/storage')}>Internal Storage</button></div>
+      <div className="audio-actions"><button onClick={() => navigate('/audio')}>Browse audiobooks</button><button onClick={() => navigate('/audio?kind=bible')}>Browse Bible audio</button><button onClick={() => navigate('/settings/storage')}>Internal Storage</button></div>
       <p className="mt-3">Berean Standard Bible · Barry Hays · {tracks.length} chapters</p>
       {canUseNativeAudioDownloads() ? <>
         <p className="text-sm mt-2">{tracks.length - remaining.length} chapters saved. Remaining download: {formatAudioBytes(totalBytes)}. Wi-Fi is recommended.</p>

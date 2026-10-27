@@ -75,7 +75,7 @@ export default function AudioProvider({ children }) {
       document.removeEventListener('visibilitychange', refreshNativeSafeArea)
     }
   }, [location.pathname])
-  const defaults = { followBible: true, followBooks: true, parallelMonochrome: false }
+  const defaults = { followBible: true, followBooks: true, parallelMonochrome: false, showBibleBooksInAudiobooks: false }
   const [settings, setSettings] = useState(defaults)
   const settingsChanged = useRef(false)
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function AudioProvider({ children }) {
       if (settingsChanged.current) return
       let legacyMonochrome = false
       try { legacyMonochrome = JSON.parse(advanced)?.eInkLightBackground === true } catch {}
-      try { const value = JSON.parse(raw); setSettings({ followBible: value?.followBible !== false, followBooks: value?.followBooks !== false, parallelMonochrome: value?.parallelMonochrome === true || legacyMonochrome }) } catch {}
+      try { const value = JSON.parse(raw); setSettings({ followBible: value?.followBible !== false, followBooks: value?.followBooks !== false, parallelMonochrome: value?.parallelMonochrome === true || legacyMonochrome, showBibleBooksInAudiobooks: value?.showBibleBooksInAudiobooks === true }) } catch {}
     })
   }, [])
   useEffect(() => { document.documentElement.classList.toggle('eink-light', settings.parallelMonochrome) }, [settings.parallelMonochrome])

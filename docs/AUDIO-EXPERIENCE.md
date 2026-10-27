@@ -18,6 +18,11 @@ The audiobook library offers several recently listened books, each with its own
 chapter, position, resume button, progress bar and remaining listening time.
 Remaining time reflects playback speed. The library also filters in-progress and
 finished titles. Each book's chapter list retains its saved chapter positions.
+Bible titles and Bible listening history are hidden from the Audiobooks menu
+by default. Audio Settings offers **Show Bible books in Audiobooks menu** to
+include Bible listening history and grouped Bible browsing. Bible recordings
+remain available in the Bible reader and through **Browse Bible audio** in
+Audio Settings. Changing this option preserves saved listening positions.
 Returning to an earlier chapter moves that book's current cursor; the displayed
 percentage describes the cursor in the title, not proof of listening to every
 preceding chapter. Older progress without timestamps keeps the active chapter
@@ -41,8 +46,17 @@ Connecting restores the last recording's queue, position and speed and prepares
 it while paused, so Android Auto can expose its player. It never starts playback. The car's explicit Play starts or resumes it. Android Auto
 may send its own Play command according to its “Start music automatically”
 setting; Heritage never issues Play merely because a browser connects. With no
-saved recording, explicit Play displays a hint to choose Audiobooks or Bible.
+saved recording, explicit Play reports a hint to choose Audiobooks or Bible.
 The car can browse and select a recording immediately afterward.
+
+The empty-history hint is a nonfatal session error. Media3 controllers receive
+it through `onError`; legacy car hosts receive best-effort playback-state
+feedback. Media3 1.11.1 sets and immediately clears that legacy error, so Android
+can coalesce both state notifications before a host observes the message.
+Acceptance checks the modern error callback separately and still requires a
+legacy car to remain paused, browse and successfully play a selected recording.
+See the pinned
+[Media3 legacy adapter](https://github.com/androidx/media/blob/1.11.1/libraries/session/src/main/java/androidx/media3/session/MediaSessionLegacyStub.java#L1511-L1523).
 
 The implementation follows Android's
 [playback and resumption guidance](https://developer.android.com/training/cars/media/enable-playback)

@@ -263,7 +263,7 @@ public class AudioPlaybackIntegrationTest {
         reader = ActivityScenario.launch(new Intent(context, MainActivity.class).setAction("faith.heritage.app.OPEN_AUDIO"));
         await(() -> "true".equals(js("Boolean(document.querySelector('.audio-player-title'))")));
         await(() -> "true".equals(js("location.hash === '#/audio'")));
-        await(() -> "true".equals(js("document.body.innerText.includes('BSB Audio Bible') && !Array.from(document.querySelectorAll('h2')).some(node=>node.textContent==='Genesis')")));
+        await(() -> "true".equals(js("document.body.innerText.includes('The Wars of the Jews') && !Array.from(document.querySelectorAll('h2')).some(node=>['Genesis','BSB Audio Bible'].includes(node.textContent))")));
         await(() -> "true".equals(js("document.documentElement.style.getPropertyValue('--native-safe-top') !== ''")));
         AtomicReference<Double> requiredTop = new AtomicReference<>(0d);
         reader.onActivity(activity -> {
@@ -498,12 +498,30 @@ public class AudioPlaybackIntegrationTest {
         assertFalse("Initial audio service did not stop", HeritagePlaybackService.hasLivePlayer());
         assertTrue(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit().remove(HeritagePlaybackService.PROGRESS).commit());
         Bundle connected = carCommand("connect", null);
+        AtomicReference<androidx.media3.session.SessionError> hint = new AtomicReference<>();
         browser = main(() -> new MediaBrowser.Builder(context,
-            new SessionToken(context, new ComponentName(context, HeritagePlaybackService.class))).buildAsync()).get(15, TimeUnit.SECONDS);
+            new SessionToken(context, new ComponentName(context, HeritagePlaybackService.class)))
+            .setListener(new MediaBrowser.Listener() {
+                @Override public void onError(androidx.media3.session.MediaController controller, androidx.media3.session.SessionError error) {
+                    hint.set(error);
+                }
+            }).buildAsync()).get(15, TimeUnit.SECONDS);
         assertFalse(main(() -> browser.getPlayWhenReady()));
         assertEquals("", connected.getString("playbackError")); // Connecting alone must not report a playback error.
+        // Media3 guarantees the nonfatal hint through the requesting modern
+        // controller's onError callback. Its legacy adapter sets and clears the
+        // platform error back-to-back; Android may coalesce both notifications.
+        main(() -> { browser.play(); return null; });
+        await(() -> hint.get() != null);
+        assertEquals(androidx.media3.session.SessionError.ERROR_INVALID_STATE, hint.get().code);
+        assertTrue(hint.get().message.contains("Choose a recording"));
+        // An explicit Play may leave playWhenReady set on an empty player;
+        // absence of audible playback and an empty queue are the contract.
+        assertFalse(main(() -> browser.isPlaying()));
+        assertEquals(0, (int) main(() -> browser.getMediaItemCount()));
+        // Independently exercise a real legacy car Play while still empty.
+        // Do not require delivery of the platform's transient error state.
         carCommand("play", null);
-        await(() -> carCommand("state", null).getString("playbackError").contains("Choose a recording"));
         assertFalse(main(() -> browser.isPlaying()));
         LibraryResult<ImmutableList<MediaItem>> roots = main(() -> browser.getChildren(HeritageAudioCatalog.ROOT, 0, 10, null)).get(10, TimeUnit.SECONDS);
         assertTrue(roots.value.stream().anyMatch(item -> HeritageAudioCatalog.BOOKS.equals(item.mediaId)));

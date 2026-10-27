@@ -48,6 +48,15 @@ export default function NavigationWheel({ children, onClick, className = '', ...
   const clear = () => { clearTimeout(timer.current); timer.current = null }
   useEffect(() => () => clear(), [])
   useEffect(() => {
+    // Android WebView otherwise starts its native long-press handling and
+    // cancels the captured pointer before the finger can slide into the fan.
+    // React's delegated touch listener is passive, so cancel on this button.
+    const button = trigger.current
+    const preventNativeHold = event => event.preventDefault()
+    button?.addEventListener('touchstart', preventNativeHold, { passive: false })
+    return () => button?.removeEventListener('touchstart', preventNativeHold)
+  }, [])
+  useEffect(() => {
     if (!open) return
     const before = document.activeElement
     menu.current?.querySelector('button')?.focus({ preventScroll: true })
@@ -103,9 +112,14 @@ export default function NavigationWheel({ children, onClick, className = '', ...
       onPointerUp={event => {
         clear(); pointer.current = null
         if (held.current) { event.preventDefault(); if (!cancelled.current && activeRef.current >= 0) choose(activeRef.current) }
+        else if (event.pointerType === 'touch') {
+          // Cancelling touchstart also suppresses the compatibility click.
+          // Dispatch a short tap here and guard against a duplicate click.
+          event.preventDefault(); held.current = true; onClick?.(event)
+        }
       }}
       onPointerCancel={() => { clear(); pointer.current = null; activeRef.current = -1; cancelled.current = true; held.current = true; setOpen(false) }}
-      onClick={event => { if (held.current) { held.current = false; event.preventDefault(); return } onClick?.(event) }}
+      onClick={event => { if (held.current && event.detail !== 0) { held.current = false; event.preventDefault(); return } held.current = false; onClick?.(event) }}
     >{children}</button>
     {open && createPortal(<div className="navigation-wheel-backdrop" onPointerDown={event => { if (event.target === event.currentTarget) setOpen(false) }}>
       <div ref={menu} className={`navigation-wheel ${center.current.radius < 110 ? 'is-compact' : ''} ${center.current.radius < 80 ? 'is-icons-only' : ''}`} role="dialog" aria-modal="true" aria-label="Slide to navigate"
