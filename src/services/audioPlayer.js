@@ -11,7 +11,11 @@ export function normalizeAudioProgress(value) {
   for (const [id, position] of Object.entries(value?.positions || {})) {
     if (getAudioTrack(id)) positions[id] = finite(position)
   }
-  return { positions, lastTrackId: getAudioTrack(value?.lastTrackId)?.id || null, rate: rateValue(value?.rate) }
+  const lastPlayed = {}
+  for (const [id, at] of Object.entries(value?.lastPlayed || {})) {
+    if (getAudioTrack(id) && finite(at)) lastPlayed[id] = finite(at)
+  }
+  return { positions, lastPlayed, lastTrackId: getAudioTrack(value?.lastTrackId)?.id || null, rate: rateValue(value?.rate) }
 }
 
 // One owner for playback across routes. The browser element is deliberately
@@ -23,7 +27,7 @@ export function createAudioPlayer({ audio = new Audio(), load = () => getStoredJ
 } = {}) {
   audio.preload = 'metadata'
   let state = { trackId: null, position: 0, duration: 0, rate: 1, status: 'idle', error: '', offline: false }
-  let progress = { positions: {}, lastTrackId: null, rate: 1 }
+  let progress = { positions: {}, lastPlayed: {}, lastTrackId: null, rate: 1 }
   const listeners = new Set()
   let generation = 0, ready = false, disposed = false, hydrated = false, lastSavedAt = 0, writes = Promise.resolve(), releaseSource
   const emit = patch => { state = { ...state, ...patch }; listeners.forEach(listener => listener()) }
@@ -65,8 +69,9 @@ export function createAudioPlayer({ audio = new Audio(), load = () => getStoredJ
     await initialized
     const track = getAudioTrack(id)
     if (!track || disposed) return
+    progress.lastPlayed[id] = now()
     if (state.trackId === id && ready && !restart) {
-      try { await audio.play() } catch { emit({ status: 'paused', error: 'Tap Play to start this recording.' }) }
+      try { await audio.play(); persist() } catch { emit({ status: 'paused', error: 'Tap Play to start this recording.' }) }
       return
     }
     const token = ++generation
@@ -133,6 +138,7 @@ export function createAudioPlayer({ audio = new Audio(), load = () => getStoredJ
     initialized, getSnapshot: () => state, subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener) },
     play, pause, seek, setRate, skip, persist,
     unload: () => { pause(); ready = false; audio.removeAttribute('src'); audio.load(); releaseSource?.(); releaseSource = null; emit({ offline: false }) },
+    getProgress: () => ({ ...progress, positions: { ...progress.positions, ...(state.trackId ? { [state.trackId]: state.position } : {}) } }),
     positionFor: id => id === state.trackId ? state.position : progress.positions[id] || 0,
     dispose: () => {
       persist(); disposed = true; generation += 1; ready = false

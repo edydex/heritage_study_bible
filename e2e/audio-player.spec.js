@@ -55,6 +55,42 @@ test('failed audio fetch leaves saved track and timestamp available to retry', a
   await expect(player.getByRole('button', { name: 'Play', exact: true })).toBeVisible()
 })
 
+test('multiple books retain separate chapter positions and resume the selected title after reload without autoplay', async ({ page }) => {
+  const [firstBook, secondBook] = catalog.books.filter(book => book.kind !== 'bible')
+  const firstTrack = firstBook.editions.flatMap(edition => edition.tracks)[1]
+  const secondTrack = secondBook.editions.flatMap(edition => edition.tracks)[1]
+  await page.addInitScript(({ firstId, secondId }) => {
+    // Seed once: a reload must use the player's writes, not reset this fixture.
+    if (localStorage.getItem('heritage-test-multi-book-seeded')) return
+    localStorage.setItem('heritage-test-multi-book-seeded', 'true')
+    localStorage.setItem('heritage-audio-progress-v1', JSON.stringify({ lastTrackId: secondId,
+      positions: { [firstId]: 37, [secondId]: 83 }, lastPlayed: { [firstId]: 1000, [secondId]: 2000 }, rate: 1 }))
+  }, { firstId: firstTrack.id, secondId: secondTrack.id })
+  await page.goto('/#/audio?kind=audiobook')
+  const player = page.getByRole('region', { name: 'Audio player', exact: true })
+  const shelf = page.getByRole('region', { name: 'Continue listening', exact: true })
+  await expect(player.getByRole('button', { name: 'Play', exact: true })).toBeVisible()
+  await expect(player.getByLabel('Audio position', { exact: true })).toHaveValue('83')
+  await expect(shelf.locator('article')).toHaveCount(2)
+  await expect(shelf.locator('article').first()).toContainText(secondBook.title)
+  await shelf.getByRole('button', { name: `Resume ${firstBook.title}`, exact: true }).click()
+  await expect(player.getByRole('button', { name: 'Pause', exact: true })).toBeVisible()
+  await expect(player.locator('.audio-player-title')).toContainText(firstTrack.title)
+  await expect(player.getByLabel('Audio position', { exact: true })).toHaveValue(/^3[7-9]/)
+  await player.getByRole('button', { name: 'Pause', exact: true }).click()
+  await page.reload()
+  await expect(player.getByRole('button', { name: 'Play', exact: true })).toBeVisible()
+  await expect(player.getByRole('button', { name: 'Pause', exact: true })).toHaveCount(0)
+  await expect(player.locator('.audio-player-title')).toContainText(firstTrack.title)
+  await expect(player.getByLabel('Audio position', { exact: true })).toHaveValue(/^3[7-9]/)
+  await expect(shelf.locator('article').first()).toContainText(firstBook.title)
+  await shelf.getByRole('button', { name: `Resume ${secondBook.title}`, exact: true }).click()
+  await expect(player.getByRole('button', { name: 'Pause', exact: true })).toBeVisible()
+  await expect(player.locator('.audio-player-title')).toContainText(secondTrack.title)
+  await expect(player.getByLabel('Audio position', { exact: true })).toHaveValue(/^8[3-5]/)
+  await player.getByRole('button', { name: 'Pause', exact: true }).click()
+})
+
 test('phone player and Internal Storage remain usable without horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.addInitScript(({ id }) => localStorage.setItem('heritage-audio-progress-v1', JSON.stringify({ lastTrackId: id, positions: { [id]: 73 }, rate: 1 })), { id: track.id })

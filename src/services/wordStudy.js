@@ -12,6 +12,17 @@ export function interactiveWordRanges(text, pairs = [], context = {}) {
   })
 }
 let concordancePromise
+let hebrewConcordancePromise
+export async function loadHebrewConcordance() {
+  if (!hebrewConcordancePromise) hebrewConcordancePromise = fetch(`${import.meta.env.BASE_URL}data/original-languages/hebrew-concordance.json`)
+    .then(response => { if (!response.ok) throw new Error('Word occurrences could not load.'); return response.json() })
+    .then(data => {
+      if (data.schemaVersion !== 1 || data.sourceId !== 'WLC-OSHB' || data.revision !== '3d15126fb1ef74867fc1434be1942e837932691f'
+        || data.counts?.words !== 305507 || data.books?.length !== 39) throw new Error('Concordance source does not match.')
+      return data
+    }).catch(error => { hebrewConcordancePromise = null; throw error })
+  return hebrewConcordancePromise
+}
 export async function loadGreekConcordance() {
   if (!concordancePromise) concordancePromise = fetch(`${import.meta.env.BASE_URL}data/original-languages/greek-concordance.json`)
     .then(response => { if (!response.ok) throw new Error('Word occurrences could not load.'); return response.json() })
@@ -41,7 +52,37 @@ export function greekOccurrences(data, corpus, lemmaId) {
   }
   return result
 }
+export function hebrewLemmaIds(data, word) {
+  if (word.translationId !== 'ORIGINAL') return []
+  const entry = data.books.find(book => book.name === word.book)?.verses[`${word.chapter}:${word.verse}`]
+  if (word.word && entry?.text.slice(word.startOffset, word.endOffset) !== word.word) return []
+  return [...new Set((entry?.words || []).filter(([start, end]) => start < word.endOffset && end > word.startOffset).flatMap(row => row[2]))]
+}
+export function hebrewOccurrences(data, lemmaId) {
+  const result = []
+  for (const book of data.books) for (const [key, entry] of Object.entries(book.verses)) {
+    const ranges = entry.words.filter(row => row[2].includes(lemmaId)).map(row => row.slice(0, 2))
+    if (!ranges.length) continue
+    const [chapter, verse] = key.split(':').map(Number)
+    result.push({ book: book.name, chapter, verse, heading: verse === 0, text: entry.text, count: ranges.length, ranges })
+  }
+  return result
+}
+
+// A verse-level source view is available even when no checked English phrase
+// link exists. Choosing a source word is explicit; never infer a translation.
+export async function sourceVerseWords(word) {
+  const corpus = await loadTranslation('ORIGINAL', word.book)
+  const verse = corpus.books.find(book => book.name === word.book)?.chapters.find(chapter => chapter.number === word.chapter)?.verses.find(verse => verse.number === word.verse)
+  return interactiveWordRanges(verse?.text || '', [], { book: word.book, chapter: word.chapter, verse: word.verse, translationId: 'ORIGINAL', comparisonTranslationId: word.comparisonTranslationId || word.translationId })
+}
 export async function studyWord(word) {
+  if (word.translationId === 'ORIGINAL' && hebrewOriginalBooks[word.book]) {
+    const data = await loadHebrewConcordance()
+    const ids = hebrewLemmaIds(data, word)
+    if (ids.length) return { kind: 'lemma', sourceId: 'WLC-OSHB', scope: 'Hebrew / Aramaic Old Testament · WLC / OSHB',
+      groups: ids.map(id => ({ ...data.lemmas[id], results: hebrewOccurrences(data, id) })) }
+  }
   if ((word.translationId === 'ORIGINAL' && !hebrewOriginalBooks[word.book]) || word.sourceRange) {
     const [data, corpus] = await Promise.all([loadGreekConcordance(), loadTranslation('ORIGINAL')])
     const ids = greekLemmaIds(data, word)
@@ -74,10 +115,11 @@ export function occurrenceTranslation(row, alignment, targetText) {
 
 // Enrich only the currently displayed page. Successful book mappings are cached;
 // a failed request is retryable and never removes the original occurrence list.
-export async function loadOccurrenceTranslations(rows, sourceId) {
-  const corpus = await loadTranslation('BSB')
+export async function loadOccurrenceTranslations(rows, sourceId, translationId = 'BSB') {
+  const targetId = ['BSB', 'LSV', 'KJV'].includes(translationId) ? translationId : 'BSB'
+  const corpus = await loadTranslation(targetId)
   const books = [...new Set(rows.map(row => row.book))]
-  const mappings = sourceId === 'N1904' ? await Promise.allSettled(books.map(book => loadGreekWordLinks(book))) : []
+  const mappings = sourceId === 'N1904' && ['BSB', 'LSV'].includes(targetId) ? await Promise.allSettled(books.map(book => loadGreekWordLinks(book, targetId))) : []
   const results = {}
   let failed = false
   for (const row of rows) {

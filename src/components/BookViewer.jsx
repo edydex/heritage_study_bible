@@ -1,3 +1,4 @@
+import NavigationWheel from './NavigationWheel'
 import { useReaderTextSize } from './ReaderTextSize'
 import ReaderSettings from './ReaderSettings'
 import useReaderVerseMode from './useReaderVerseMode'
@@ -1205,7 +1206,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
               </button>
 
               <AudioPlayButton track={readerTrack} label="book" />
-              <button
+              <NavigationWheel
                 onClick={() => setShowNavigator(true)}
                 className="flex-1 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
               >
@@ -1215,7 +1216,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
                 <svg className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-              </button>
+              </NavigationWheel>
 
               <button
                 onClick={goToNextChapter}

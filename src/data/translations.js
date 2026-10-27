@@ -16,16 +16,6 @@ export const translations = [
     attribution: 'Literal Standard Version, © 2020 Covenant Press. Licensed under CC BY-SA 4.0.',
   },
   {
-    id: 'WEB',
-    abbr: 'WEB',
-    name: 'World English Bible',
-    description: 'Modern public domain translation',
-    language: 'English',
-    versification: 'western',
-    license: 'Public Domain',
-    attribution: null,
-  },
-  {
     id: 'BSB',
     abbr: 'BSB',
     name: 'Berean Standard Bible',

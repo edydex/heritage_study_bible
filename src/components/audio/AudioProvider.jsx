@@ -9,6 +9,8 @@ import { refreshNativeSafeArea } from '../../services/androidControls'
 import { clearCommunityAudioDocuments, refreshCommunityAudioCatalog } from '../../services/communityAudio'
 import { COMMUNITY_SESSION_CHANGE_EVENT } from '../../services/communitySessions'
 import { COMMUNITIES_CHANGE_EVENT } from '../../services/communities'
+import { bookListeningProgress } from '../../services/audioProgress'
+import ListeningProgress from './ListeningProgress'
 import AudioTransport from './AudioTransport'
 import './audio.css'
 
@@ -49,6 +51,7 @@ function PlayerHost({ player, state, selectedTrack, onNavigate }) {
             <button type="button" onClick={() => { onNavigate?.(); destination ? navigate(destination.path, { state: destination.state }) : navigate(track.community ? `/resources/content/${encodeURIComponent(track.community.contentKey)}` : `/resources/books/${track.textBookId || track.bookId}`) }}>{destination ? destination.state.audioParagraph ? 'Go to nearby text' : destination.state.scrollToVerse ? 'Go to playing verse' : 'Open chapter text' : 'Open book text'}</button>
             <button type="button" onClick={() => { onNavigate?.(); navigate('/audio') }}>Audio library</button>
         </AudioTransport>
+        <ListeningProgress progress={bookListeningProgress(track.bookId, player.getProgress?.())} rate={state.rate} />
         {state.error && <p role="status">{state.error}</p>}
       </section>
     </>}

@@ -3,8 +3,11 @@ package faith.heritage.app;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Bundle;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.session.MediaConstants;
 import java.io.File;
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
@@ -19,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /** Bundled public audio plus issuer-bound Community chapter identities. */
+@UnstableApi
 public final class HeritageAudioCatalog {
     public static final String ROOT = "heritage-audio", BOOKS = "books", BIBLES = "bibles", DOWNLOADS = "downloads", CONTINUE = "continue";
     public static final String DOWNLOAD_INDEX = "heritage-audio-downloads-v2";
@@ -144,11 +148,69 @@ public final class HeritageAudioCatalog {
         if (playableUri) builder.setUri(track.community != null ? Uri.parse("heritage-book:///" + track.id) : local != null ? Uri.fromFile(local) : Uri.parse(track.url));
         return builder.build();
     }
-    public List<MediaItem> children(String id, String lastId) {
+    private MediaItem progressItem(String id, JSONObject positions, String lastId, JSONObject lastPlayed, boolean wholeBook) {
+        MediaItem item = item(id, false);
+        Track track = track(id);
+        if (item == null || (track == null && !id.startsWith("book:") && !id.startsWith("edition:"))) return item;
+        List<Track> selectedTracks = new ArrayList<>();
+        Track cursor = track;
+        for (Track candidate : tracks.values()) {
+            boolean selected = track != null ? wholeBook ? candidate.bookId.equals(track.bookId) : candidate.id.equals(id)
+                : id.equals("book:" + candidate.bookId) || id.equals("edition:" + candidate.bookId + ":" + candidate.editionId);
+            if (!selected) continue;
+            selectedTracks.add(candidate);
+            if (track == null && (candidate.id.equals(lastId) || positions.optDouble(candidate.id, 0) > 0 || lastPlayed.optDouble(candidate.id, 0) > 0)
+                && (cursor == null || newer(candidate, cursor, lastId, lastPlayed))) cursor = candidate;
+        }
+        int cursorIndex = selectedTracks.indexOf(cursor);
+        double completedMs = 0, totalMs = 0;
+        for (int index = 0; index < selectedTracks.size(); index++) {
+            Track candidate = selectedTracks.get(index);
+            if (candidate.durationMs <= 0) continue;
+            double seconds = positions.optDouble(candidate.id, 0);
+            if (index < cursorIndex) completedMs += candidate.durationMs;
+            else if (index == cursorIndex) completedMs += Double.isFinite(seconds) ? Math.max(0, Math.min(candidate.durationMs, seconds * 1000)) : 0;
+            totalMs += candidate.durationMs;
+        }
+        double fraction = totalMs > 0 ? completedMs / totalMs : 0;
+        Bundle extras = new Bundle();
+        extras.putInt(MediaConstants.EXTRAS_KEY_COMPLETION_STATUS, fraction == 0 ? MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_NOT_PLAYED
+            : fraction >= 1 ? MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_FULLY_PLAYED : MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_PARTIALLY_PLAYED);
+        extras.putDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE, fraction);
+        return item.buildUpon().setMediaMetadata(item.mediaMetadata.buildUpon().setExtras(extras).build()).build();
+    }
+    private boolean newer(Track candidate, Track previous, String lastId, JSONObject lastPlayed) {
+        double next = lastPlayed.optDouble(candidate.id, 0), old = lastPlayed.optDouble(previous.id, 0);
+        return next > old || (next == old && (candidate.id.equals(lastId) || !previous.id.equals(lastId)));
+    }
+    /** One resumable chapter per book; old installs retain their saved chapter
+     * even before they have the newer per-track listening timestamps. */
+    public List<MediaItem> continueListening(String lastId, JSONObject positions, JSONObject lastPlayed) {
+        Map<String, Track> recentBooks = new LinkedHashMap<>();
+        for (Track track : tracks.values()) {
+            if (!track.id.equals(lastId) && positions.optDouble(track.id, 0) <= 0 && lastPlayed.optDouble(track.id, 0) <= 0) continue;
+            Track previous = recentBooks.get(track.bookId);
+            if (previous == null || newer(track, previous, lastId, lastPlayed)) recentBooks.put(track.bookId, track);
+        }
+        List<Track> ordered = new ArrayList<>(recentBooks.values());
+        ordered.sort((a, b) -> a.id.equals(b.id) ? 0 : a.id.equals(lastId) ? -1 : b.id.equals(lastId) ? 1
+            : Double.compare(lastPlayed.optDouble(b.id, 0), lastPlayed.optDouble(a.id, 0)));
         List<MediaItem> result = new ArrayList<>();
-        if (CONTINUE.equals(id)) { if (tracks.containsKey(lastId)) result.add(item(lastId, false)); return result; }
-        if (DOWNLOADS.equals(id)) { for (String key : tracks.keySet()) if (downloadedFile(key) != null) result.add(item(key, false)); return result; }
-        for (String key : children.getOrDefault(id, Collections.emptyList())) result.add(item(key, false));
+        for (Track track : ordered) {
+            MediaItem item = progressItem(track.id, positions, lastId, lastPlayed, true);
+            result.add(item.buildUpon().setMediaMetadata(item.mediaMetadata.buildUpon()
+                .setTitle(track.bookTitle).setSubtitle(track.title + (downloadedFile(track.id) != null ? " · Downloaded" : "")).build()).build());
+        }
+        return result;
+    }
+    public List<MediaItem> children(String id, String lastId) {
+        return children(id, lastId, new JSONObject(), new JSONObject());
+    }
+    public List<MediaItem> children(String id, String lastId, JSONObject positions, JSONObject lastPlayed) {
+        List<MediaItem> result = new ArrayList<>();
+        if (CONTINUE.equals(id)) return continueListening(lastId, positions, lastPlayed);
+        if (DOWNLOADS.equals(id)) { for (String key : tracks.keySet()) if (downloadedFile(key) != null) result.add(progressItem(key, positions, lastId, lastPlayed, false)); return result; }
+        for (String key : children.getOrDefault(id, Collections.emptyList())) result.add(progressItem(key, positions, lastId, lastPlayed, false));
         return result;
     }
     public List<MediaItem> queue(String id) {

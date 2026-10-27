@@ -10,6 +10,7 @@
 const fs = require('fs')
 const path = require('path')
 const { execSync } = require('child_process')
+const { applyTranslationWhitespaceRepairs } = require('./lib/translationWhitespaceRepairs.cjs')
 
 const SOURCES_DIR = path.join(__dirname, 'bible-sources')
 const OUTPUT_DIR = path.join(__dirname, '..', 'public', 'data', 'translations')
@@ -662,6 +663,7 @@ const bsb = convertScrollmapper(
   'BSB',
   'Berean Standard Bible'
 )
+applyTranslationWhitespaceRepairs(bsb, require('./bible-sources/BSB-spacing-repairs.json'))
 logTranslationSummary(bsb, 'BSB')
 writeTranslation(bsb, 'BSB')
 
@@ -679,29 +681,8 @@ const lsv = convertVPLByBase('englsv_vpl', 'LSV', 'Literal Standard Version')
 logTranslationSummary(lsv, 'LSV')
 writeTranslation(lsv, 'LSV')
 
-// 4. WEB (from source file if present, otherwise existing generated WEB.json)
-const webSourceCandidates = [
-  path.join(__dirname, '..', 'src', 'data', 'bible-web.json'),
-  path.join(OUTPUT_DIR, 'WEB.json'),
-]
-const webSourceFile = webSourceCandidates.find(candidate => fs.existsSync(candidate))
-if (!webSourceFile) {
-  throw new Error(`Missing WEB source JSON. Checked: ${webSourceCandidates.join(', ')}`)
-}
-const webRaw = JSON.parse(fs.readFileSync(webSourceFile, 'utf-8'))
-const webData = {
-  translation: 'WEB',
-  name: 'World English Bible',
-  books: (webRaw.books || []).map(book => ({
-    name: book.name,
-    chapters: (book.chapters || []).map(chapter => ({
-      number: chapter.number,
-      verses: (chapter.verses || []).map(verse => ({ number: verse.number, text: verse.text })),
-    })),
-  })),
-}
-logTranslationSummary(webData, 'WEB')
-writeTranslation(webData, 'WEB')
+// WEB is retained only as an archival generator input for historical plan
+// counts and Psalm headings. It is not an installed translation or APK asset.
 
 // 5. UKRK (ukr1871 source)
 const ukrk = convertVPLByBase('ukr1871_vpl', 'UKRK', 'Ukrainian Kulish/Pulyui (ukr1871)', {

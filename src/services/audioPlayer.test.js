@@ -96,6 +96,6 @@ describe('persistent audio player', () => {
     expect(nextAudioTrack(tracks.at(-1).id)).toBeNull()
   })
   it('rejects invalid restored IDs/positions/rates', () => {
-    expect(normalizeAudioProgress({ lastTrackId: 'unknown', positions: { unknown: 42, [first.id]: -9 }, rate: 999 })).toEqual({ lastTrackId: null, positions: { [first.id]: 0 }, rate: 1 })
+    expect(normalizeAudioProgress({ lastTrackId: 'unknown', positions: { unknown: 42, [first.id]: -9 }, rate: 999 })).toEqual({ lastTrackId: null, positions: { [first.id]: 0 }, lastPlayed: {}, rate: 1 })
   })
 })

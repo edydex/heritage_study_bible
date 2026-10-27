@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useHeritageAudio } from './AudioProvider'
 import { audioBooks, formatAudioBytes, formatAudioTime, getBookAudioTracks } from '../../services/audioCatalog'
 import { AUDIO_DOWNLOADS_CHANGED, canUseNativeAudioDownloads, downloadAudio, listDownloadedAudio } from '../../services/audioDownloads'
+import { bookListeningProgress } from '../../services/audioProgress'
+import ListeningProgress from './ListeningProgress'
 import CommunityBookDownload from '../CommunityBookDownload'
 import { resolveCommunityBookAccess } from '../../services/communityBookAccess'
 
@@ -37,7 +39,8 @@ export default function BookAudioPanel({ bookId, editionId, full = false }) {
   }, [book?.community])
   const downloaded = new Set(downloads.map(item => item.trackId))
   const activeTrack = tracks.find(track => track.id === audio?.state.trackId)
-  const selectedTrack = activeTrack || tracks[0]
+  const cursor = bookListeningProgress(bookId, audio?.player.getProgress?.(), editionId)
+  const selectedTrack = activeTrack || cursor?.track || tracks[0]
   if (!book || !tracks.length) return null
   const transferTracks = async toDownload => {
     setBusy(true); setMessage('Downloading…')
@@ -54,8 +57,9 @@ export default function BookAudioPanel({ bookId, editionId, full = false }) {
   return <section className="audio-library" aria-label={`Listen to ${book.title}`}>
     <h2>Listen · {book.title}</h2>
     <p>{editionId ? book.editions.find(edition => edition.id === editionId)?.title : `${tracks.length} ${book.community ? 'chapters · Community recording' : book.kind === 'bible' ? 'chapters · Barry Hays' : 'tracks · LibriVox'}`}</p>
+    <ListeningProgress progress={cursor} rate={audio?.state.rate} />
     <div className="audio-actions">
-      <button type="button" disabled={!audio?.player} onClick={() => activeTrack && audio.state.status === 'playing' ? audio.player.pause() : audio.player.play(selectedTrack.id)}>{activeTrack && audio.state.status === 'playing' ? 'Pause' : activeTrack ? `Resume at ${formatAudioTime(audio.state.position)}` : 'Listen from the beginning'}</button>
+      <button type="button" disabled={!audio?.player} onClick={() => activeTrack && audio.state.status === 'playing' ? audio.player.pause() : audio.player.play(selectedTrack.id)}>{activeTrack && audio.state.status === 'playing' ? 'Pause' : cursor?.started ? `Resume at ${formatAudioTime(audio.player.positionFor(selectedTrack.id))}` : 'Listen from the beginning'}</button>
       <button type="button" onClick={() => setOpen(value => !value)} aria-expanded={open}>{open ? 'Hide tracks' : 'Choose a track'}</button>
       <button type="button" onClick={() => navigate('/audio')}>Audio library</button>
       {!book.community && canUseNativeAudioDownloads() && <button type="button" disabled={busy || tracks.every(track => downloaded.has(track.id))} onClick={() => transferTracks(tracks.filter(track => !downloaded.has(track.id)))}>Download {editionId ? 'volume' : 'book'} · {formatAudioBytes(tracks.filter(track => !downloaded.has(track.id)).reduce((sum, track) => sum + track.bytes, 0))}</button>}
@@ -63,7 +67,7 @@ export default function BookAudioPanel({ bookId, editionId, full = false }) {
     {book.community && memberOptions && <CommunityBookDownload contentUrl={book.community.contentUrl} requestOptions={memberOptions} bytes={tracks.reduce((sum, track) => sum + track.bytes, 0)} />}
     {(message || error) && <p role="status">{message || error}{downloadProgress ? ` (${Math.min(100, Math.round(downloadProgress.bytes / downloadProgress.total * 100))}%)` : ''}</p>}
     {open && <ul>{tracks.map(track => <li key={track.id} aria-current={audio?.state.trackId === track.id ? 'true' : undefined}>
-      <div><strong>{track.title}</strong><small>{formatAudioTime(track.duration)} · {formatAudioBytes(track.bytes)} {downloaded.has(track.id) ? '· Downloaded' : ''}</small></div>
+      <div><strong>{track.title}</strong><small>{audio?.player.positionFor(track.id) > 0 ? `${formatAudioTime(audio.player.positionFor(track.id))} / ` : ''}{formatAudioTime(track.duration)} · {formatAudioBytes(track.bytes)} {downloaded.has(track.id) ? '· Downloaded' : ''}</small></div>
       <button type="button" disabled={!audio?.player} onClick={() => audio.player.play(track.id)} aria-label={`Play ${track.title}`}>Play</button>
       {!book.community && canUseNativeAudioDownloads() && !downloaded.has(track.id) && <button type="button" disabled={busy} onClick={() => transferTracks([track])} aria-label={`Download ${track.title}`}>↓</button>}
     </li>)}</ul>}

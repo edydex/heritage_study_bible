@@ -45,6 +45,7 @@ public class HeritagePlaybackService extends MediaLibraryService {
     private SharedPreferences preferences;
     private SharedPreferences securePreferences;
     private JSONObject positions = new JSONObject();
+    private JSONObject lastPlayed = new JSONObject();
     private String lastId = "";
     private float speed = 1f;
     private long revision = 0;
@@ -84,8 +85,14 @@ public class HeritagePlaybackService extends MediaLibraryService {
         try {
             JSONObject saved = new JSONObject(preferences.getString(PROGRESS, "{}"));
             JSONObject raw = saved.optJSONObject("positions");
-            if (raw != null) for (String id : catalog.tracks.keySet()) { double value = raw.optDouble(id, 0); if (Double.isFinite(value) && value >= 0) positions.put(id, value); }
+            if (raw != null) for (String id : catalog.tracks.keySet()) { double value = raw.optDouble(id, -1); if (Double.isFinite(value) && value >= 0) positions.put(id, value); }
+            JSONObject times = saved.optJSONObject("lastPlayed");
+            if (times != null) for (String id : catalog.tracks.keySet()) { double value = times.optDouble(id, 0); if (Double.isFinite(value) && value > 0) lastPlayed.put(id, value); }
             lastId = saved.optString("lastTrackId", ""); if (catalog.track(lastId) == null) lastId = "";
+            if (lastId.isEmpty()) {
+                List<MediaItem> recent = catalog.continueListening(lastId, positions, lastPlayed);
+                if (!recent.isEmpty()) lastId = recent.get(0).mediaId;
+            }
             speed = validSpeed((float) saved.optDouble("rate", 1));
         } catch (Exception ignored) { /* Invalid saved values never become media URIs. */ }
         player = new ExoPlayer.Builder(this)
@@ -99,7 +106,11 @@ public class HeritagePlaybackService extends MediaLibraryService {
         player.addListener(new Player.Listener() {
             @Override public void onEvents(Player player, Player.Events events) {
                 playbackActive = player.getPlayWhenReady() && (player.getPlaybackState() == Player.STATE_READY || player.getPlaybackState() == Player.STATE_BUFFERING) && player.getPlayerError() == null;
-                if (events.contains(Player.EVENT_IS_PLAYING_CHANGED) || events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)
+                if (player.getPlayWhenReady() && (events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED) || events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION))) {
+                    MediaItem current = player.getCurrentMediaItem();
+                    if (current != null) markPlayed(current.mediaId);
+                }
+                if (events.contains(Player.EVENT_IS_PLAYING_CHANGED) || events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION) || events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED)
                     || events.contains(Player.EVENT_PLAYBACK_PARAMETERS_CHANGED) || events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) persist();
             }
             @Override public void onPositionDiscontinuity(Player.PositionInfo oldPosition, Player.PositionInfo newPosition, int reason) {
@@ -127,13 +138,19 @@ public class HeritagePlaybackService extends MediaLibraryService {
         if (catalog.track(id) == null || millis < 0) return;
         try { positions.put(id, millis / 1000d); } catch (Exception ignored) {}
     }
+    private void markPlayed(String id) {
+        if (catalog.track(id) == null) return;
+        try { lastPlayed.put(id, System.currentTimeMillis()); } catch (Exception ignored) {}
+        if (session != null) session.notifyChildrenChanged(HeritageAudioCatalog.CONTINUE,
+            catalog.continueListening(id, positions, lastPlayed).size(), null);
+    }
     private void persist() {
         if (player == null) return;
         MediaItem current = player.getCurrentMediaItem();
         if (current != null && catalog.track(current.mediaId) != null) { lastId = current.mediaId; remember(lastId, player.getCurrentPosition()); }
         speed = validSpeed(player.getPlaybackParameters().speed);
         try {
-            JSONObject saved = new JSONObject().put("lastTrackId", lastId).put("positions", positions).put("rate", speed);
+            JSONObject saved = new JSONObject().put("lastTrackId", lastId).put("positions", positions).put("lastPlayed", lastPlayed).put("rate", speed);
             preferences.edit().putString(PROGRESS, saved.toString()).apply();
         } catch (Exception ignored) {}
     }
@@ -151,7 +168,7 @@ public class HeritagePlaybackService extends MediaLibraryService {
         persist();
         MediaItem current = player.getCurrentMediaItem();
         if (restart || current == null || !id.equals(current.mediaId) || player.getPlaybackState() == Player.STATE_IDLE || player.getPlayerError() != null) restore(id, restart);
-        player.prepare(); player.play(); persist();
+        markPlayed(id); player.prepare(); player.play(); persist();
     }
     private Bundle snapshot() {
         MediaItem current = player.getCurrentMediaItem();
@@ -166,6 +183,7 @@ public class HeritagePlaybackService extends MediaLibraryService {
                 .put("duration", duration / 1000d).put("rate", player.getPlaybackParameters().speed).put("status", status)
                 .put("offline", current != null && (track != null && track.community != null ? catalog.downloadedFile(id) != null : current.localConfiguration != null && "file".equals(current.localConfiguration.uri.getScheme())))
                 .put("error", player.getPlayerError() == null ? "" : "Audio could not load. Check your connection or try Play again. Your saved position is kept.")
+                .put("positions", positions).put("lastPlayed", lastPlayed)
                 .put("sessionId", sessionId).put("revision", ++revision);
         } catch (Exception ignored) {}
         Bundle bundle = new Bundle(); bundle.putString("state", state.toString()); return bundle;
@@ -188,7 +206,9 @@ public class HeritagePlaybackService extends MediaLibraryService {
             return Futures.immediateFuture(builder.build());
         }
         @Override public ListenableFuture<LibraryResult<MediaItem>> onGetLibraryRoot(MediaLibrarySession session, MediaSession.ControllerInfo browser, @Nullable LibraryParams params) {
-            return Futures.immediateFuture(LibraryResult.ofItem(catalog.item(HeritageAudioCatalog.ROOT, false), params));
+            String root = params != null && params.isRecent ? HeritageAudioCatalog.CONTINUE
+                : params != null && params.isOffline ? HeritageAudioCatalog.DOWNLOADS : HeritageAudioCatalog.ROOT;
+            return Futures.immediateFuture(LibraryResult.ofItem(catalog.item(root, false), params));
         }
         @Override public ListenableFuture<LibraryResult<MediaItem>> onGetItem(MediaLibrarySession session, MediaSession.ControllerInfo browser, String id) {
             MediaItem item = catalog.item(id, false);
@@ -201,7 +221,7 @@ public class HeritagePlaybackService extends MediaLibraryService {
             return LibraryResult.ofItemList(items.subList((int) start, (int) Math.min(items.size(), start + size)), params);
         }
         @Override public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(MediaLibrarySession session, MediaSession.ControllerInfo browser, String parent, int page, int size, @Nullable LibraryParams params) {
-            return Futures.immediateFuture(catalog.isFolder(parent) ? page(catalog.children(parent, lastId), page, size, params) : LibraryResult.ofError(SessionError.ERROR_BAD_VALUE));
+            return Futures.immediateFuture(catalog.isFolder(parent) ? page(catalog.children(parent, lastId, positions, lastPlayed), page, size, params) : LibraryResult.ofError(SessionError.ERROR_BAD_VALUE));
         }
         @Override public ListenableFuture<LibraryResult<Void>> onSearch(MediaLibrarySession session, MediaSession.ControllerInfo browser, String query, @Nullable LibraryParams params) {
             session.notifySearchResultChanged(browser, query, catalog.search(query).size(), params);
@@ -235,7 +255,14 @@ public class HeritagePlaybackService extends MediaLibraryService {
         }
         @Override public ListenableFuture<MediaSession.MediaItemsWithStartPosition> onPlaybackResumption(MediaSession session, MediaSession.ControllerInfo controller, boolean forPlayback) {
             player.setPlaybackSpeed(speed);
-            return catalog.track(lastId) == null ? Futures.immediateFailedFuture(new UnsupportedOperationException("No saved recording")) : Futures.immediateFuture(restoredQueue(lastId, false));
+            if (catalog.track(lastId) == null) {
+                // An empty first launch has no recording to resume. Give the
+                // car a useful message while retaining browsing/play commands.
+                if (forPlayback) session.sendError(controller, new SessionError(SessionError.ERROR_INVALID_STATE,
+                    "Choose a recording from Audiobooks or Bible first.", Bundle.EMPTY));
+                return Futures.immediateFailedFuture(new UnsupportedOperationException("No saved recording"));
+            }
+            return Futures.immediateFuture(restoredQueue(lastId, false));
         }
         @Override public ListenableFuture<SessionResult> onCustomCommand(MediaSession session, MediaSession.ControllerInfo controller, SessionCommand command, Bundle args) {
             if (!COMMAND.equals(command.customAction) || controller.getUid() != android.os.Process.myUid()) return Futures.immediateFuture(new SessionResult(SessionError.ERROR_PERMISSION_DENIED));

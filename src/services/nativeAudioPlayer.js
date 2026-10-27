@@ -12,7 +12,7 @@ const setNativeBoundaries = (plugin, trackId, positions) => {
 // Android owns playback and persistence. Never create an HTMLAudioElement or
 // write a cached WebView position back over the service's newer car/headset state.
 export function createNativeAudioPlayer({ plugin = HeritageAudio, openLibrary = () => { window.location.hash = '/audio' } } = {}) {
-  let state = { trackId: null, position: 0, duration: 0, rate: 1, status: 'idle', offline: false, error: '' }
+  let state = { trackId: null, position: 0, duration: 0, rate: 1, status: 'idle', offline: false, error: '', positions: {}, lastPlayed: {} }
   const listeners = new Set(), retiredSessions = new Set()
   let disposed = false, subscription, openSubscription, sessionId = null, revision = -1
   const emit = next => { if (!disposed) { state = next; listeners.forEach(listener => listener()) } }
@@ -22,10 +22,12 @@ export function createNativeAudioPlayer({ plugin = HeritageAudio, openLibrary = 
     if (typeof snapshot.revision !== 'number' || snapshot.revision < revision) return
     revision = snapshot.revision
     const track = getAudioTrack(snapshot.trackId)
+    const validValues = values => Object.fromEntries(Object.entries(values || {}).filter(([id, value]) => getAudioTrack(id) && Number.isFinite(value) && value >= 0))
     emit({ ...snapshot, trackId: track?.id || null,
       position: Number.isFinite(snapshot.position) ? Math.max(0, snapshot.position) : 0,
       duration: Number.isFinite(snapshot.duration) ? Math.max(0, snapshot.duration) : track?.duration || 0,
       rate: snapshot.rate || 1, error: snapshot.error || '',
+      positions: validValues(snapshot.positions), lastPlayed: validValues(snapshot.lastPlayed),
     })
   }
   const failure = () => emit({ ...state, status: 'error', error: 'Android audio could not connect. Reopen the app to reconnect; your saved position is kept.' })
@@ -47,6 +49,8 @@ export function createNativeAudioPlayer({ plugin = HeritageAudio, openLibrary = 
   const control = (action, args) => command(action, args).catch(() => {})
   return {
     initialized, getSnapshot: () => state, subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener) },
+    getProgress: () => ({ positions: { ...state.positions, ...(state.trackId ? { [state.trackId]: state.position } : {}) },
+      lastPlayed: { ...state.lastPlayed }, lastTrackId: state.trackId, rate: state.rate }),
     play: (id = state.trackId, { restart = false } = {}) => control('play', { trackId: id, restart }),
     pause: () => control('pause'), seek: position => control('seek', { position: Math.max(0, Number(position) || 0) }),
     setRate: rate => control('rate', { rate: Number(rate) }), skip: direction => control('skip', { direction }),
@@ -56,7 +60,7 @@ export function createNativeAudioPlayer({ plugin = HeritageAudio, openLibrary = 
       initialized.then(() => { if (!cancelled && !disposed) setNativeBoundaries(plugin, trackId, positions) })
       return () => { cancelled = true; setNativeBoundaries(plugin, null, []) }
     },
-    positionFor: id => id === state.trackId ? state.position : 0,
+    positionFor: id => id === state.trackId ? state.position : state.positions[id] || 0,
     dispose: () => { disposed = true; listeners.clear(); subscription?.remove().catch(() => {}); openSubscription?.remove().catch(() => {}) },
   }
 }

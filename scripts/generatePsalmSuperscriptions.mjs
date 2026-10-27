@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, '..')
 
-const webPsalmsPath = path.join(repoRoot, 'public/data/translations/WEB/psalms.json')
+const webSourcePath = path.join(repoRoot, 'scripts/bible-sources/WEB.json')
 const lsvPsalmsPath = path.join(repoRoot, 'public/data/translations/LSV/psalms.json')
 const outputPath = path.join(repoRoot, 'src/data/psalm-superscriptions.json')
 
@@ -67,7 +67,7 @@ function extractLsvPrefix(firstVerseText) {
   return cutIndex > 0 ? source.slice(0, cutIndex).replace(/\s+/g, ' ').trim() : ''
 }
 
-const webPsalms = readJson(webPsalmsPath)
+const webPsalms = readJson(webSourcePath).books.find(book => book.name === 'Psalms')
 const lsvPsalms = readJson(lsvPsalmsPath)
 const lsvChapterMap = new Map(lsvPsalms.chapters.map(chapter => [chapter.number, chapter]))
 

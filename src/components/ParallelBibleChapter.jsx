@@ -148,7 +148,7 @@ function ParallelBibleChapter({
           {linkError && <p role="status" className="mt-2">{linkError} <button className="underline" onClick={() => setLinkRetry(value => value + 1)}>Retry links</button></p>}
           {showWordLinks && !alignment && !linkError && <p role="status" className="mt-1 text-xs">Loading word links…</p>}
 
-        </> : <p className="mt-1 text-xs">Word links are available with BSB and partially with LSV in the Greek New Testament.</p>}
+        </> : <p className="mt-1 text-xs">{hebrew ? 'Tap a Hebrew or Aramaic word to find its source lemma throughout the Old Testament, including inflected forms. Strong’s identifiers follow OSHB. English phrase links are not installed.' : 'Word links are available with BSB and partially with LSV in the Greek New Testament.'}</p>}
       </div>}
       {heldMessage && <div role="status" className="sticky top-16 z-20 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-2 flex items-center justify-between gap-3"><span>{heldMessage}</span><button aria-label="Clear word match" onClick={() => { setActiveWord(null); setHeldMessage('') }}>✕</button></div>}
       {study && <WordStudyDialog word={study} onClose={() => setStudy(null)} onNavigate={onOccurrenceNavigate} />}
@@ -170,7 +170,7 @@ function ParallelBibleChapter({
 
           const primaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, primaryTranslationId, primaryVerse?.text || '') || []
           const secondaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, secondaryTranslationId, secondaryVerse?.text || '') || []
-          const context = { book: bookName, chapter: primaryChapter.number, verse: verseNumber }
+          const context = { book: bookName, chapter: primaryChapter.number, verse: verseNumber, comparisonTranslationId: primaryTranslationId }
           const displayLinks = pairs => showWordLinks ? pairs : pairs?.map(({ pattern, ...pair }) => pair)
           const primaryWords = selectionMode ? [] : interactiveWordRanges(primaryVerse?.text || '', displayLinks(links?.target), { ...context, translationId: primaryTranslationId })
           const secondaryWords = selectionMode ? [] : interactiveWordRanges(secondaryVerse?.text || '', displayLinks(links?.source), { ...context, translationId: secondaryTranslationId })

@@ -717,7 +717,7 @@ function AdvancedSettingsPage({ settings, onSettingsChange, sideButtonScroll, on
         <details className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <summary className="cursor-pointer font-semibold">Other settings</summary>
           <label className="flex items-center gap-3 my-4"><input type="checkbox" checked={verseStacking} onChange={event => onVerseStackingChange(event.target.checked)} /> <span>Verse Stacking</span></label>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Flow verses together as paragraphs. Turn off to put each verse on a separate line.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Flow verses together as paragraphs. LSV keeps each verse on a separate line.</p>
         <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -1087,7 +1087,7 @@ function BibleStudyApp({ onReaderReady, verseStacking }) {
       const saved = localStorage.getItem('heritage-translation')
       const migrated = localStorage.getItem('heritage-default-translation-v2') === 'done'
       if (!migrated && (!saved || saved === 'LSV')) return DEFAULT_TRANSLATION
-      return saved || DEFAULT_TRANSLATION
+      return translations.some(t => t.id === saved) ? saved : DEFAULT_TRANSLATION
     } catch { return DEFAULT_TRANSLATION }
   })
   useEffect(() => {
@@ -2197,7 +2197,7 @@ function BibleStudyApp({ onReaderReady, verseStacking }) {
                         onBookmarkToggle={handleBookmarkToggle}
                         onVersePosition={updateVersePosition}
                         textSize={textSize}
-                        verseStacking={verseStacking}
+                        verseStacking={verseStacking && translationId !== 'LSV'}
                         verseLayout={bibleVerseLayout}
                         selectionMode={multiSelectMode}
                       />
