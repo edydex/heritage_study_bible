@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
   })
 })
 test('library groups Bible audio by translation and keeps book links reloadable', async ({ page }) => {
-  await page.goto('/#/audio')
+  await page.goto('/#/audio?kind=bible')
   await expect(page.getByRole('heading', { name: 'BSB Audio Bible', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Genesis', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Browse BSB books' }).click()

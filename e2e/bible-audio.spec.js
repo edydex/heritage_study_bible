@@ -60,7 +60,7 @@ test('failed timing keeps playback available and settings preserve the follow pr
   await page.getByLabel('Auto-scroll Bible recordings').uncheck()
   await page.reload()
   await expect(page.getByLabel('Auto-scroll Bible recordings')).not.toBeChecked()
-  await page.getByRole('button', { name: 'Browse chapters and audiobooks' }).click()
+  await page.getByRole('button', { name: 'Browse Bible audio', exact: true }).click()
   await page.getByRole('button', { name: 'Browse BSB books' }).click()
   await page.getByLabel('Search audio library').fill('Romans')
   await page.getByRole('button', { name: 'Tracks and downloads' }).click()

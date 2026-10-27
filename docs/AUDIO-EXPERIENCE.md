@@ -18,6 +18,11 @@ The audiobook library offers several recently listened books, each with its own
 chapter, position, resume button, progress bar and remaining listening time.
 Remaining time reflects playback speed. The library also filters in-progress and
 finished titles. Each book's chapter list retains its saved chapter positions.
+Bible titles and Bible listening history are hidden from the Audiobooks menu
+by default. Audio Settings offers **Show Bible books in Audiobooks menu** to
+include Bible listening history and grouped Bible browsing. Bible recordings
+remain available in the Bible reader and through **Browse Bible audio** in
+Audio Settings. Changing this option preserves saved listening positions.
 Returning to an earlier chapter moves that book's current cursor; the displayed
 percentage describes the cursor in the title, not proof of listening to every
 preceding chapter. Older progress without timestamps keeps the active chapter

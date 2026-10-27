@@ -150,7 +150,8 @@ test('a single hold-slide-release gesture opens the audiobook library', async ({
   await page.screenshot({ path: test.info().outputPath('navigation-wheel-phone.png') })
   await page.mouse.up()
   await expect(page).toHaveURL(/#\/audio\?kind=audiobook$/)
-  await expect(page.getByRole('button', { name: 'Audiobooks', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('heading', { name: 'Audio library', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Bible', exact: true })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Select Book', exact: true })).toHaveCount(0)
 })
 

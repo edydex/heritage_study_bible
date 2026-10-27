@@ -263,7 +263,7 @@ public class AudioPlaybackIntegrationTest {
         reader = ActivityScenario.launch(new Intent(context, MainActivity.class).setAction("faith.heritage.app.OPEN_AUDIO"));
         await(() -> "true".equals(js("Boolean(document.querySelector('.audio-player-title'))")));
         await(() -> "true".equals(js("location.hash === '#/audio'")));
-        await(() -> "true".equals(js("document.body.innerText.includes('BSB Audio Bible') && !Array.from(document.querySelectorAll('h2')).some(node=>node.textContent==='Genesis')")));
+        await(() -> "true".equals(js("document.body.innerText.includes('The Wars of the Jews') && !Array.from(document.querySelectorAll('h2')).some(node=>['Genesis','BSB Audio Bible'].includes(node.textContent))")));
         await(() -> "true".equals(js("document.documentElement.style.getPropertyValue('--native-safe-top') !== ''")));
         AtomicReference<Double> requiredTop = new AtomicReference<>(0d);
         reader.onActivity(activity -> {
