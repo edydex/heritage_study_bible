@@ -1,7 +1,7 @@
 Reader and audiobook improvements:
 
 - Restore 127 missing spaces in 37 BSB verses, including Zechariah 9–13 and Judges 16:14, checked against the publisher's text. Keep existing edition wording and audio timestamps.
-- Hold the Bible or book chapter title for an upper half-wheel anchored at the held title; slide upward to navigate, including quick access to audiobooks.
+- Hold the Bible or book chapter title for an upper half-wheel anchored at the held title; keep holding and slide upward to navigate, including quick access to audiobooks. Preserve ordinary chapter taps on Android.
 - Hide Android's status and navigation bars together while scrolling down in the reader, including three-button navigation. Scroll up to restore them, or swipe from the screen edge for temporary system controls.
 - Resume several audiobooks independently, with title progress, remaining time, and in-progress/finished filters.
 - Improve Android Auto's recent-book browsing, shared progress and empty-history Play feedback. Connecting restores the saved recording without the app starting playback.

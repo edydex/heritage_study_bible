@@ -154,6 +154,34 @@ test('a single hold-slide-release gesture opens the audiobook library', async ({
   await expect(page.getByRole('heading', { name: 'Select Book', exact: true })).toHaveCount(0)
 })
 
+test('touch taps open chapters and a continuous long touch slides to Audiobooks without native default handling', async ({ page }) => {
+  await page.goto('/#/genesis/1')
+  const input = await page.context().newCDPSession(page)
+  await input.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 })
+  const touch = (type, point) => input.send('Input.dispatchTouchEvent', { type, touchPoints: point ? [{ ...point, id: 0 }] : [] })
+  let title = await page.locator('.navigation-wheel-trigger').boundingBox()
+  let origin = { x: title.x + title.width / 2, y: title.y + title.height / 2 }
+  await touch('touchStart', origin)
+  await touch('touchEnd')
+  await expect(page.getByRole('heading', { name: 'Select Book', exact: true })).toBeVisible()
+  await expect(wheel(page)).toHaveCount(0)
+
+  await page.reload()
+  title = await page.locator('.navigation-wheel-trigger').boundingBox()
+  origin = { x: title.x + title.width / 2, y: title.y + title.height / 2 }
+  await page.evaluate(() => document.addEventListener('touchstart', event => { window.__titleTouchPrevented = event.defaultPrevented }, { once: true }))
+  await touch('touchStart', origin)
+  await expect(wheel(page)).toBeVisible()
+  await page.waitForTimeout(250)
+  expect(await page.evaluate(() => window.__titleTouchPrevented)).toBe(true)
+  const target = await wheel(page).getByText('Audiobooks', { exact: true }).boundingBox()
+  await touch('touchMove', { x: target.x + target.width / 2, y: target.y + target.height / 2 })
+  await expect(wheel(page).getByText('Release for Audiobooks', { exact: true })).toBeVisible()
+  await touch('touchEnd')
+  await expect(page).toHaveURL(/#\/audio\?kind=audiobook$/)
+  await expect(page.getByRole('heading', { name: 'Select Book', exact: true })).toHaveCount(0)
+})
+
 test('Escape cancels an already highlighted held gesture without navigating on release', async ({ page }) => {
   await page.goto('/#/genesis/1')
   const trigger = await pressTitle(page)
