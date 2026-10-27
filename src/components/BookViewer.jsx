@@ -1,3 +1,4 @@
+import NavigationWheel from './NavigationWheel'
 import { useReaderTextSize } from './ReaderTextSize'
 import ReaderSettings from './ReaderSettings'
 import useReaderVerseMode from './useReaderVerseMode'
@@ -309,16 +310,6 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
     if (!playingTiming || !playingTrack) return
     return audio?.player.watchPositions?.(playingTrack.id, (playingTiming.sentenceSpans || []).flatMap(span => [span.start, span.end]))
   }, [playingTiming, playingTrack?.id, audio?.player])
-  useEffect(() => {
-    if (!audio?.settings.followBooks || audio.state.status !== 'playing' || !liveParagraph || textLoading || !progressReady) return
-    if (selectedChapterIndex !== liveParagraph.chapterIndex) { setSelectedChapterIndex(liveParagraph.chapterIndex); return }
-    const frame = requestAnimationFrame(() => {
-      const paragraph = document.querySelector('[data-audio-sentence="true"]')
-      const rect = paragraph?.getBoundingClientRect()
-      if (rect) keepReadingSentenceVisible(rect)
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [liveParagraph?.chapterIndex, liveParagraph?.paragraphIndex, liveParagraph?.textStart, selectedChapterIndex, audio?.settings.followBooks, audio?.state.status, textLoading, progressReady])
   const footnotesById = useMemo(() => extractBookFootnotes(bookText), [bookText])
   const selectedChapter = chapters[selectedChapterIndex] || null
   const bookTracks = getBookAudioTracks(audioBook?.id)
@@ -328,6 +319,18 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   const [readerRecording, setReaderRecording] = useState(null)
   const readerTrack = readerRecording?.chapterIndex === selectedChapterIndex && readerRecording.bookId === itemId && readerRecording.preferredTrackId === preferredTrack?.id ? readerRecording.track : preferredTrack
   const readerTiming = readerRecording?.track.id === readerTrack?.id && readerRecording?.chapterIndex === selectedChapterIndex && readerRecording.bookId === itemId ? readerRecording.timing : null
+  useEffect(() => {
+    if (!audio?.settings.followBooks || audio.state.status !== 'playing' || !liveParagraph || textLoading || !progressReady) return
+    if (selectedChapterIndex !== liveParagraph.chapterIndex) { setSelectedChapterIndex(liveParagraph.chapterIndex); return }
+    const frame = requestAnimationFrame(() => {
+      const paragraph = document.querySelector('[data-audio-sentence="true"]')
+      const rect = paragraph?.getBoundingClientRect()
+      if (rect) keepReadingSentenceVisible(rect)
+    })
+    return () => cancelAnimationFrame(frame)
+    // Timings can arrive after the chapter has rendered, introducing the active
+    // sentence without advancing playback to a different sentence yet.
+  }, [liveParagraph?.chapterIndex, liveParagraph?.paragraphIndex, liveParagraph?.textStart, selectedChapterIndex, readerTiming, audio?.settings.followBooks, audio?.state.status, textLoading, progressReady])
   useEffect(() => {
     let cancelled = false
     const matchesChapter = timing => timing?.textBookId === itemId && timing?.sentenceSpans?.some(span => {
@@ -398,7 +401,9 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   }, [chapters.length, selectedChapterIndex])
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    // A CSS smooth reset can finish after audio following has positioned the
+    // new chapter's sentence, hiding it again until the next sentence starts.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }, [itemId, selectedChapterIndex])
 
   useEffect(() => {
@@ -1205,7 +1210,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
               </button>
 
               <AudioPlayButton track={readerTrack} label="book" />
-              <button
+              <NavigationWheel
                 onClick={() => setShowNavigator(true)}
                 className="flex-1 flex items-center justify-center gap-2 h-full mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
               >
@@ -1215,7 +1220,7 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
                 <svg className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-              </button>
+              </NavigationWheel>
 
               <button
                 onClick={goToNextChapter}

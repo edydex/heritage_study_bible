@@ -1,3 +1,4 @@
+import NavigationWheel from './NavigationWheel'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { RESOURCE_CATEGORIES } from '../data/resources'
 import {
@@ -614,7 +615,7 @@ function BottomNav({
           <div className="flex flex-1 min-w-0 items-center justify-center">
           {audioControl}
           {/* Chapter Selector Button */}
-          <button
+          <NavigationWheel
             onClick={() => activePlan?.planId ? setShowPlanPanel(true) : setShowPicker(true)}
             className="min-w-0 flex items-center justify-center gap-2 h-14 mx-2 rounded-lg active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
           >
@@ -624,7 +625,7 @@ function BottomNav({
             <svg className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
-          </button>
+          </NavigationWheel>
 
           </div>
           {/* Next Button */}

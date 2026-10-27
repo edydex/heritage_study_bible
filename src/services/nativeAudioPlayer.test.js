@@ -10,6 +10,20 @@ function setup() {
   return { plugin, player, callbacks, state, removes }
 }
 describe('native audio controller', () => {
+  it('reads progress for other books from the service, preserving native car updates', async () => {
+    const s = setup(), other = audioTracks.find(track => track.id !== trackId).id
+    s.state.positions = { [trackId]: 73, [other]: 45, unknown: 99 }
+    s.state.lastPlayed = { [trackId]: 200, [other]: 100, unknown: 300 }
+    await s.player.initialized
+    expect(s.player.positionFor(other)).toBe(45)
+    expect(s.player.getSnapshot().lastPlayed).toEqual({ [trackId]: 200, [other]: 100 })
+    expect(s.player.getProgress()).toEqual({ positions: { [trackId]: 73, [other]: 45 },
+      lastPlayed: { [trackId]: 200, [other]: 100 }, lastTrackId: trackId, rate: 1.5 })
+    s.callbacks.get('state')({ ...s.state, revision: 2, positions: { [other]: 120 }, lastPlayed: { [other]: 400 } })
+    expect(s.player.positionFor(other)).toBe(120)
+    expect(s.player.positionFor(trackId)).toBe(73)
+    s.player.dispose()
+  })
   it('registers exact boundaries without changing position and serializes chapter cleanup', async () => {
     const s = setup(); await s.player.initialized
     const stop = s.player.watchPositions(trackId, [4.642, 15.342])

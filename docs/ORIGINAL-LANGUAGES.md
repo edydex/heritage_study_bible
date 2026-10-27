@@ -33,22 +33,47 @@ Moving a finger cancels the hold so scrolling is not mistaken for a word action.
 
 Tap or press Enter on a word to open occurrences. Greek words use the source's
 actual lemma metadata, including inflected forms throughout all 27 NT books.
-BSB phrases with an installed correspondence look up those same Greek
-lemmas. Multiple source lemmas remain separate choices. Other translations use
-explicitly labeled matching word forms; Hebrew/Aramaic currently searches the
-open book, not an unimplemented whole-OT lemma index. Tap a result to navigate to
-that verse.
+BSB/LSV phrases with an installed correspondence look up those same Greek
+lemmas. Multiple source lemmas remain separate choices. Hebrew and Aramaic
+source words now use the pinned OSHB lexical identifiers across the entire OT,
+including inflected and attached-prefix forms. Other English words use explicitly
+labeled matching word forms. For an unlinked English word, **Study original words
+in this verse** opens the complete source verse and lets the reader choose a source
+word; it does not guess which source word translates the selected English word.
+Tap a result to navigate to that verse.
 
-Each original-language occurrence now includes its full **BSB** verse. For
+Each original-language occurrence includes the full selected English verse
+(**BSB**, **LSV** or **KJV**, with BSB as fallback). For
 checked Greek correspondences, it also says **BSB · “translated phrase”** and
 highlights the actual translated wording and the matching Greek form. The same
 lemma can appear as “servant,” “slaves,” or “in slavery” in different contexts;
 these are the publisher's row correspondences, not generated glosses or a
 Strong-number guess. Repeated occurrences in one verse retain separate marks.
-Unmapped words, differing editions and Hebrew/Aramaic results show the whole BSB
+Unmapped words, differing editions and Hebrew/Aramaic results show the whole translated
 verse with an explicit notice that an exact word match is unavailable. Other
 translations' word-form searches remain labeled as such; this change does not
 invent Russian/Ukrainian word alignments.
+
+### Old Testament lemma concordance
+
+`hebrew-concordance.json` indexes all **305,507 written source words** in all 39
+books, including the 63 separately displayed Psalm headings. Its **9,521 distinct
+language-specific lemma identities** preserve OSHB's homograph suffixes and
+Hebrew/Aramaic distinctions. Strong's numbers use the **H** prefix; OSHB's more
+specific identifiers remain visible. Attached grammatical prefix codes are omitted
+when a lexical identifier exists; standalone prefix-only words retain their source
+codes. These are source identifiers and occurrence matches, not invented dictionary
+definitions or English word alignments.
+
+The generator uses the same pinned, unmodified OSHB XML and reference mapping as
+the reader. It checks every source word exactly once. The index keeps the exact
+displayed pointing, cantillation, maqqef, written readings and source references.
+Traditional qere alternatives remain separate and are not indexed as though both
+written and read forms were separate written words. Nehemiah 7:68 remains absent
+from this witness. Unit checks compare every indexed verse/heading and word range
+against the installed source, including the reviewed verse splits and merges.
+The index loads only when an OT source lemma is opened and is bundled for offline
+Android use. Regenerate it with `generateHebrewOriginal.py` above.
 
 Mappings load by book for the visible results (40 verses at a time), reuse the
 parallel reader's cache and are bundled in Android. Loading failure keeps source
@@ -160,8 +185,11 @@ phrase mappings against the installed LSV wording and pinned Greek tokens,
 checked against the published [Romans 1:3](https://biblehub.com/interlinear/romans/1-3.htm)
 and [Romans 1:12](https://biblehub.com/interlinear/romans/1-12.htm) interlinear.
 Runtime text and offset checks remain strict.
-Hebrew/Aramaic word links are not supplied by this package. Occurrence results
-continue showing contextual BSB verses, even when opened from an LSV word.
+Hebrew/Aramaic English phrase links are not supplied by this package. LSV has
+source-word study throughout the installed OT/NT witness, and its occurrence
+results now show LSV context. Translated-phrase highlighting remains partial and
+explicit. The absence of a reliable English match never prevents choosing the
+original word from the complete source verse.
 
 Run `build-lsv-links.py` after the publisher-data generator to restore the
 reviewed BSB repair and regenerate all LSV files and manifest hashes. LSV text

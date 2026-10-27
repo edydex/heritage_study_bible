@@ -1,0 +1,16 @@
+.navigation-wheel-trigger { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.navigation-wheel-backdrop { position: fixed; inset: 0; z-index: 95; background: #0009; touch-action: none; }
+.navigation-wheel { position: absolute; width: min(320px, 94vw); height: min(320px, 94vw); transform: translate(-50%, -50%); border-radius: 50%; box-shadow: 0 8px 40px #0008; overflow: visible; }
+.navigation-wheel-choice { position: absolute; width: 50%; height: 50%; background: #f1f5f9; color: #172033; border: 2px solid #94a3b8; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+.navigation-wheel-choice span { font-size: 29px; line-height: 1; }
+.wheel-choice-0 { left: 0; top: 0; border-radius: 100% 0 0 0; padding: 25px 0 0 18px; }
+.wheel-choice-1 { right: 0; top: 0; border-radius: 0 100% 0 0; padding: 25px 18px 0 0; }
+.wheel-choice-2 { left: 0; bottom: 0; border-radius: 0 0 0 100%; padding: 0 0 25px 18px; }
+.wheel-choice-3 { right: 0; bottom: 0; border-radius: 0 0 100% 0; padding: 0 18px 25px 0; }
+.navigation-wheel-choice.is-active, .navigation-wheel-choice:focus-visible { background: #2452b5; border-color: white; color: white; outline: 0; }
+.navigation-wheel-cancel { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 76px; height: 76px; border-radius: 50%; border: 3px solid #94a3b8; background: white; color: #334155; font-size: 32px; }
+.navigation-wheel-cancel:focus-visible { outline: 3px solid #2563eb; }
+.navigation-wheel-hint { position: absolute; bottom: calc(100% + 18px); left: 50%; transform: translateX(-50%); color: white; text-align: center; width: 94vw; font-size: 15px; }
+.dark .navigation-wheel-choice { background: #1e293b; color: #f1f5f9; }
+.dark .navigation-wheel-choice.is-active, .dark .navigation-wheel-choice:focus-visible { background: #2452b5; }
+.dark .navigation-wheel-cancel { background: #111827; color: white; }

@@ -9,24 +9,26 @@ import { refreshNativeSafeArea } from '../../services/androidControls'
 import { clearCommunityAudioDocuments, refreshCommunityAudioCatalog } from '../../services/communityAudio'
 import { COMMUNITY_SESSION_CHANGE_EVENT } from '../../services/communitySessions'
 import { COMMUNITIES_CHANGE_EVENT } from '../../services/communities'
+import { bookListeningProgress } from '../../services/audioProgress'
+import ListeningProgress from './ListeningProgress'
 import AudioTransport from './AudioTransport'
 import './audio.css'
 
 const AudioContext = createContext(null)
 export const useHeritageAudio = () => useContext(AudioContext)
-export function AudioPlayerControls({ track: selectedTrack, onNavigate } = {}) {
+export function AudioPlayerControls({ track: selectedTrack, onNavigate, defaultExpanded = true } = {}) {
   const audio = useHeritageAudio()
-  return audio ? <PlayerHost {...audio} selectedTrack={selectedTrack} onNavigate={onNavigate} /> : null
+  return audio ? <PlayerHost {...audio} selectedTrack={selectedTrack} onNavigate={onNavigate} defaultExpanded={defaultExpanded} /> : null
 }
-function PlayerHost({ player, state, selectedTrack, onNavigate }) {
+function PlayerHost({ player, state, selectedTrack, onNavigate, defaultExpanded }) {
   const currentTrack = getAudioTrack(state.trackId)
   const track = selectedTrack || currentTrack
   const active = track?.id === currentTrack?.id
-  if (!active) state = { ...state, position: 0, duration: track?.duration || 0, status: 'paused', error: null }
+  if (!active) state = { ...state, position: player.positionFor(track?.id), duration: track?.duration || 0, status: 'paused', error: null }
   const play = () => player.play(track.id)
   const seek = async position => { if (!active) await player.play(track.id); player.seek(position) }
   const navigate = useNavigate()
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(defaultExpanded)
   const [timing, setTiming] = useState(null)
   useEffect(() => {
     let cancelled = false
@@ -39,8 +41,9 @@ function PlayerHost({ player, state, selectedTrack, onNavigate }) {
     {track && <>
       <section className="audio-player audio-player-inline" aria-label="Audio player">
         <AudioTransport state={state} play={play} pause={() => player.pause()} seek={seek} setRate={rate => player.setRate(rate)} expanded={expanded} title={
-          <button type="button" className="audio-player-title" onClick={() => setExpanded(value => !value)} aria-expanded={expanded}>
+          <button type="button" className="audio-player-title" onClick={() => setExpanded(value => !value)} aria-expanded={expanded} aria-label={`${expanded ? 'Collapse' : 'Expand'} player · ${track.bookTitle} · ${track.title} · ${formatAudioTime(state.position)}`}>
             <strong>{track.bookTitle}</strong><span>{track.title} · {formatAudioTime(state.position)} {state.offline ? '· Offline' : ''}</span>
+            <span className="audio-player-chevron" aria-hidden="true">{expanded ? '▴' : '▾'}</span>
           </button>
         }>
             <button type="button" disabled={!nextAudioTrack(track.id, -1)} onClick={() => { player.play(nextAudioTrack(track.id, -1).id, { restart: true }); onNavigate?.() }}>Previous track</button>
@@ -49,6 +52,7 @@ function PlayerHost({ player, state, selectedTrack, onNavigate }) {
             <button type="button" onClick={() => { onNavigate?.(); destination ? navigate(destination.path, { state: destination.state }) : navigate(track.community ? `/resources/content/${encodeURIComponent(track.community.contentKey)}` : `/resources/books/${track.textBookId || track.bookId}`) }}>{destination ? destination.state.audioParagraph ? 'Go to nearby text' : destination.state.scrollToVerse ? 'Go to playing verse' : 'Open chapter text' : 'Open book text'}</button>
             <button type="button" onClick={() => { onNavigate?.(); navigate('/audio') }}>Audio library</button>
         </AudioTransport>
+        <ListeningProgress progress={bookListeningProgress(track.bookId, player.getProgress?.())} rate={state.rate} />
         {state.error && <p role="status">{state.error}</p>}
       </section>
     </>}

@@ -2,7 +2,7 @@ import { splitParagraphText } from '../utils/verseLayout'
 
 export const originalLanguages = {
   id: 'ORIGINAL', abbr: 'Original', name: 'Original languages', language: 'Original languages',
-  description: 'Hebrew/Aramaic · WLC/OSHB; Greek · Nestle 1904. BSB word links and partial LSV phrase links.',
+  description: 'Hebrew/Aramaic · WLC/OSHB; Greek · Nestle 1904. Source lemma concordances, BSB word links and partial LSV phrase links.',
   license: 'Public domain / CC0; OSHB metadata CC BY 4.0', parallelOnly: true,
 }
 

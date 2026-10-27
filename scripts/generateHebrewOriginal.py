@@ -14,7 +14,7 @@ def source_units(verse):
     for child in verse:
         tag = child.tag.removeprefix(NS)
         if tag == 'w':
-            units.append({'text': (child.text or '').replace('/', ''), 'id': child.get('id'), 'language': 'arc' if (child.get('morph') or '').startswith('A') else 'he', 'variants': []})
+            units.append({'text': (child.text or '').replace('/', ''), 'id': child.get('id'), 'lemma': child.get('lemma'), 'language': 'arc' if (child.get('morph') or '').startswith('A') else 'he', 'variants': []})
         elif tag == 'seg' and units:
             # Maqqef/punctuation stays with its preceding word. Paragraph letters
             # are structure marks, not words to append to the Scripture text.
@@ -36,6 +36,35 @@ def render(parts):
         text += unit['text']
     return {'text': text, 'direction': 'rtl', 'languages': sorted({u['language'] for u in units}),
             'sourceRefs': [ref for ref, _ in parts], 'variants': [v for u in units for v in u['variants']]}
+
+def concordance_verse(parts, lemmas, lemma_ids):
+    """Preserve OSHB lexical identities; prefixes never masquerade as roots."""
+    rendered = render(parts)
+    text, words = '', []
+    for _, units in parts:
+        for unit in units:
+            if text and not text.endswith('־'): text += ' '
+            start = len(text); text += unit['text']
+            components = [part.strip() for part in (unit['lemma'] or '').split('/') if part.strip()]
+            # Attached conjunctions/articles/prepositions are not the lexical
+            # root. Standalone prefix-only words retain their own source code.
+            lexical = [part for part in components if part[0].isdigit()]
+            components = lexical or components
+            if not components: raise ValueError('Missing source lemma '+str(unit['id']))
+            ids = []
+            for component in components:
+                key = (unit['language'], component)
+                if key not in lemma_ids:
+                    lemma_ids[key] = len(lemmas)
+                    number = component.split(' ')[0].rstrip('+')
+                    strongs = [number] if number.isdecimal() else []
+                    lemmas.append({'lemma': 'H'+component if strongs else 'OSHB prefix '+component,
+                                   'sourceLemma': component, 'language': unit['language'], 'strongs': strongs})
+                ids.append(lemma_ids[key])
+            words.append([start, len(text), ids])
+    if text != rendered['text']: raise ValueError('Concordance text differs')
+    if any(ord(char) > 0xffff for char in text): raise ValueError('Review UTF-16 offsets before indexing non-BMP source text')
+    return {'text': text, 'words': words, 'sourceRefs': rendered['sourceRefs']}
 
 def generate(source):
     if subprocess.check_output(['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip() != REVISION:
@@ -87,8 +116,10 @@ def generate(source):
       'adaptation': 'Direct written readings, separate qere notes, morphology-based language labels, and explicit BSB reference mapping. No Unicode normalization.',
       'files': {p: sha((source/p).read_bytes()) for p in paths}}
     output_index = {'schemaVersion': 1, 'source': source_metadata, 'books': [], 'missing': missing}
+    lemmas, lemma_ids, concordance_books = [], {}, []
     for code, meta in zip(CODES,index):
         bsb = json.loads((ROOT/'public/data/translations/BSB'/meta['file']).read_text()); chapters=[]
+        concordance_verses = {}
         for chapter in bsb['chapters']:
             verses=[]
             for verse in chapter['verses']:
@@ -97,15 +128,19 @@ def generate(source):
                     if ref!='Neh.7.68': raise ValueError('Unexpected missing reference '+ref)
                     missing.append(ref); continue
                 row={'number':verse['number'], **render(mapped[ref])}
+                concordance_verses[f"{chapter['number']}:{verse['number']}"] = concordance_verse(mapped[ref], lemmas, lemma_ids)
                 languages.update(row['languages']); verses.append(row); records+=1
             result={'number':chapter['number'],'verses':verses}
             header=superscriptions.get(f"{code}.{chapter['number']}")
-            if header: result['superscription']=render(header)
+            if header:
+                result['superscription']=render(header)
+                concordance_verses[f"{chapter['number']}:0"] = concordance_verse(header, lemmas, lemma_ids)
             chapters.append(result)
         book={'name':bsb['name'],'sourceId':'WLC-OSHB','chapters':chapters}
         payload={'schemaVersion':1,'translation':'ORIGINAL','sourceId':'WLC-OSHB','books':[book]}
         (out/meta['file']).write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':'))+'\n')
         output_index['books'].append({'name':bsb['name'],'file':meta['file'],'chapters':len(chapters),'sha256':sha((out/meta['file']).read_bytes())})
+        concordance_books.append({'name': bsb['name'], 'verses': concordance_verses})
     if set(mapped)-expected: raise ValueError('Unexpected extra references: '+str(set(mapped)-expected))
     # Every written source word appears once (including separately shown titles).
     used=[unit['id'] for parts in list(mapped.values())+list(superscriptions.values()) for _, units in parts for unit in units]
@@ -113,7 +148,16 @@ def generate(source):
     if collections.Counter(used)!=collections.Counter(original): raise ValueError('Source words lost or duplicated')
     output_index['counts']={'sourceVerses':len(sources),'displayedVerses':records,'superscriptionChapters':len(superscriptions),'languages':dict(languages),'sourceWords':len(original)}
     (out/'index.json').write_text(json.dumps(output_index,ensure_ascii=False,indent=2)+'\n')
+    concordance = {'schemaVersion': 1, 'sourceId': 'WLC-OSHB', 'revision': REVISION,
+                  'license': 'WLC text: public domain; OSHB metadata: CC BY 4.0',
+                  'attribution': source_metadata['attribution'], 'sourceFiles': source_metadata['files'],
+                  'counts': {'words': len(original), 'lemmas': len(lemmas), 'books': len(concordance_books)},
+                  'method': 'Written source words and exact OSHB lemma identifiers, separated by Hebrew/Aramaic language. Attached prefix codes omitted when a lexical identifier exists. Homograph suffixes retained. Qere readings remain separate and are not indexed as written words.',
+                  'lemmas': lemmas, 'books': concordance_books}
+    concordance_path = out.parent/'hebrew-concordance.json'
+    concordance_path.write_text(json.dumps(concordance,ensure_ascii=False,separators=(',', ':'))+'\n')
     print(json.dumps(output_index['counts']), 'missing', missing)
+    print('concordance', json.dumps(concordance['counts']), 'bytes', concordance_path.stat().st_size)
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--oshb',required=True,type=Path);generate(parser.parse_args().oshb)
