@@ -95,6 +95,29 @@ describe('persistent audio player', () => {
     expect(nextAudioTrack(endFirstVolume.id).editionId).not.toBe(endFirstVolume.editionId)
     expect(nextAudioTrack(tracks.at(-1).id)).toBeNull()
   })
+  it('keeps unavailable Community cursors without exposing or selecting a signed-out recording', () => {
+    const id = 'cb-aaaaaaaaaaaaaaaaaaaaaaaa-2'
+    expect(normalizeAudioProgress({ lastTrackId: id, positions: { [id]: 87, arbitrary: 9 }, lastPlayed: { [id]: 1234 } }))
+      .toEqual({ lastTrackId: null, positions: { [id]: 87 }, lastPlayed: { [id]: 1234 }, rate: 1 })
+  })
+  it('keeps the active chapter when bounding an unusually large history', () => {
+    const positions = Object.fromEntries(Array.from({ length: 10001 }, (_, i) => [`cb-${i.toString(16).padStart(24, '0')}-0`, 1]))
+    positions[first.id] = 99
+    const progress = normalizeAudioProgress({ positions, lastTrackId: first.id })
+    expect(progress.positions[first.id]).toBe(99)
+    expect(Object.keys(progress.positions)).toHaveLength(10000)
+  })
+  it('bounds saved history after selecting a new chapter without losing its cursor', async () => {
+    const positions = Object.fromEntries(Array.from({ length: 10000 }, (_, i) => [`cb-${i.toString(16).padStart(24, '0')}-0`, 1]))
+    const s = setup({ positions })
+    await s.player.play(first.id)
+    s.audio.event('loadedmetadata')
+    s.player.seek(42)
+    await s.player.persist()
+    expect(s.save.mock.lastCall[0].positions[first.id]).toBe(42)
+    expect(Object.keys(s.save.mock.lastCall[0].positions)).toHaveLength(10000)
+    s.player.dispose()
+  })
   it('rejects invalid restored IDs/positions/rates', () => {
     expect(normalizeAudioProgress({ lastTrackId: 'unknown', positions: { unknown: 42, [first.id]: -9 }, rate: 999 })).toEqual({ lastTrackId: null, positions: { [first.id]: 0 }, lastPlayed: {}, rate: 1 })
   })

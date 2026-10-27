@@ -29,8 +29,8 @@ native media library. Continue listening has one resumable chapter per book,
 ordered by recent listening, with completion information for the car display.
 The phone and car share the same playback owner and saved progress.
 
-Connecting restores the last recording's queue, position and speed without
-starting playback. The car's explicit Play starts or resumes it. Android Auto
+Connecting restores the last recording's queue, position and speed and prepares
+it while paused, so Android Auto can expose its player. It never starts playback. The car's explicit Play starts or resumes it. Android Auto
 may send its own Play command according to its “Start music automatically”
 setting; Heritage never issues Play merely because a browser connects. With no
 saved recording, explicit Play displays a hint to choose Audiobooks or Bible.

@@ -23,7 +23,7 @@ export default function AudioLibrary() {
   const selected = audioBooks.find(book => book.id === params.get('book'))
   return <main className="audio-library min-h-screen dark:bg-gray-900">
     <header><button type="button" onClick={() => navigate('/resources/books')}>← Books</button><h1>Audio library</h1><button type="button" onClick={() => navigate('/settings/audio')}>Audio Settings</button><button type="button" onClick={() => navigate('/settings/storage')}>Internal Storage</button></header>
-    <AudioPlayerControls />
+    <AudioPlayerControls defaultExpanded={false} />
     {!selected && recentBooks.length > 0 && <section aria-label="Continue listening" className="continue-listening"><h2>Continue listening</h2>
       {recentBooks.map(({ book, progress: cursor }) => <article className="listening-card" key={book.id}>
         <div className="audio-book-cover" aria-hidden="true">{book.kind === 'bible' ? '✝' : book.title.charAt(0)}</div>

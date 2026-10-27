@@ -7,10 +7,11 @@ root = pathlib.Path(__file__).resolve().parent.parent
 p = argparse.ArgumentParser()
 p.add_argument('--previous-apk', required=True)
 p.add_argument('--output', default='android-release')
+p.add_argument('--build-tools-version', default='36.0.0')
 a = p.parse_args()
 apk = root / 'android/app/build/outputs/apk/debug/app-debug.apk'
 output = root / a.output
-sdk = pathlib.Path(os.environ['ANDROID_HOME']) / 'build-tools/36.0.0'
+sdk = pathlib.Path(os.environ['ANDROID_HOME']) / 'build-tools' / a.build_tools_version
 
 def sha(path):
     with path.open('rb') as stream: return hashlib.file_digest(stream, 'sha256').hexdigest()
@@ -65,7 +66,7 @@ assert '.well-known/assetlinks.json' in web_metadata, 'Website app-link metadata
 required = {
     'CommunityIntegrationTest': {'packagedCommunityScreensAndMemberLinkWorkOffline', 'secureStorageUsesNativeKeystoreAndSurvivesActivityRestart', 'encryptedValuesCannotBeSubstitutedForAnotherStorageKey', 'automaticSyncSettingSurvivesRestartAndBibleOpensOffline'},
     'AudioStorageIntegrationTest': {'deleteOfflineAudioThroughInternalStorage', 'interruptedTransferCanBeRemovedWithoutTouchingNotes'},
-    'AudioPlaybackIntegrationTest': {'carLibraryAndSavedQueueLoadWithoutOpeningTheBible', 'legacyCarBrowserCanDiscoverTheLibraryWithoutOpeningTheReader', 'appAndCarSharePlaybackWhichContinuesAfterTheReaderCloses', 'offlineResolverRejectsTraversalAndUnrelatedAppFiles', 'ezekielVerseHighlightsFollowTheNativeClockAtRealBoundaries', 'communityBookPlaysDownloadedChaptersWithoutWebViewAndStopsAtSignOut'},
+    'AudioPlaybackIntegrationTest': {'carLibraryAndSavedQueueLoadWithoutOpeningTheBible', 'legacyCarBrowserCanDiscoverTheLibraryWithoutOpeningTheReader', 'appAndCarSharePlaybackWhichContinuesAfterTheReaderCloses', 'offlineResolverRejectsTraversalAndUnrelatedAppFiles', 'ezekielVerseHighlightsFollowTheNativeClockAtRealBoundaries', 'communityBookPlaysDownloadedChaptersWithoutWebViewAndStopsAtSignOut', 'legacyCarPlayAndPauseResumeColdSavedQueueWithoutReaderOrPrepare', 'carContinueListeningResumesDifferentBooksAtTheirOwnPositions', 'carPlayWithoutHistoryExplainsHowToChooseARecordingAndStillBrowses', 'finishedBookRemainsCompleteAcrossColdCarConnectionUntilExplicitReplay', 'preparingTheRestoredCarQueueExposesPausedControlsWithoutAutoplay', 'privateBookHistoryIsBoundedAndSurvivesSignedOutRestartWithoutExposingTitles'},
 }
 expected = {name+'.'+test for name, tests in required.items() for test in tests}
 found = set()

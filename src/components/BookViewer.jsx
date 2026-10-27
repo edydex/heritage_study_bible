@@ -310,16 +310,6 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
     if (!playingTiming || !playingTrack) return
     return audio?.player.watchPositions?.(playingTrack.id, (playingTiming.sentenceSpans || []).flatMap(span => [span.start, span.end]))
   }, [playingTiming, playingTrack?.id, audio?.player])
-  useEffect(() => {
-    if (!audio?.settings.followBooks || audio.state.status !== 'playing' || !liveParagraph || textLoading || !progressReady) return
-    if (selectedChapterIndex !== liveParagraph.chapterIndex) { setSelectedChapterIndex(liveParagraph.chapterIndex); return }
-    const frame = requestAnimationFrame(() => {
-      const paragraph = document.querySelector('[data-audio-sentence="true"]')
-      const rect = paragraph?.getBoundingClientRect()
-      if (rect) keepReadingSentenceVisible(rect)
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [liveParagraph?.chapterIndex, liveParagraph?.paragraphIndex, liveParagraph?.textStart, selectedChapterIndex, audio?.settings.followBooks, audio?.state.status, textLoading, progressReady])
   const footnotesById = useMemo(() => extractBookFootnotes(bookText), [bookText])
   const selectedChapter = chapters[selectedChapterIndex] || null
   const bookTracks = getBookAudioTracks(audioBook?.id)
@@ -329,6 +319,18 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   const [readerRecording, setReaderRecording] = useState(null)
   const readerTrack = readerRecording?.chapterIndex === selectedChapterIndex && readerRecording.bookId === itemId && readerRecording.preferredTrackId === preferredTrack?.id ? readerRecording.track : preferredTrack
   const readerTiming = readerRecording?.track.id === readerTrack?.id && readerRecording?.chapterIndex === selectedChapterIndex && readerRecording.bookId === itemId ? readerRecording.timing : null
+  useEffect(() => {
+    if (!audio?.settings.followBooks || audio.state.status !== 'playing' || !liveParagraph || textLoading || !progressReady) return
+    if (selectedChapterIndex !== liveParagraph.chapterIndex) { setSelectedChapterIndex(liveParagraph.chapterIndex); return }
+    const frame = requestAnimationFrame(() => {
+      const paragraph = document.querySelector('[data-audio-sentence="true"]')
+      const rect = paragraph?.getBoundingClientRect()
+      if (rect) keepReadingSentenceVisible(rect)
+    })
+    return () => cancelAnimationFrame(frame)
+    // Timings can arrive after the chapter has rendered, introducing the active
+    // sentence without advancing playback to a different sentence yet.
+  }, [liveParagraph?.chapterIndex, liveParagraph?.paragraphIndex, liveParagraph?.textStart, selectedChapterIndex, readerTiming, audio?.settings.followBooks, audio?.state.status, textLoading, progressReady])
   useEffect(() => {
     let cancelled = false
     const matchesChapter = timing => timing?.textBookId === itemId && timing?.sentenceSpans?.some(span => {
@@ -399,7 +401,9 @@ export function BookReader({ resourceBook, resourceChapters, downloadControls })
   }, [chapters.length, selectedChapterIndex])
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    // A CSS smooth reset can finish after audio following has positioned the
+    // new chapter's sentence, hiding it again until the next sentence starts.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }, [itemId, selectedChapterIndex])
 
   useEffect(() => {

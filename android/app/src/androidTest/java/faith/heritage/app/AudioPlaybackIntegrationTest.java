@@ -474,4 +474,103 @@ public class AudioPlaybackIntegrationTest {
             await(() -> main(() -> browser.isPlaying()));
         } finally { main(() -> { car.unregisterCallback(callback); return null; }); }
     }
+    @Test public void finishedBookRemainsCompleteAcrossColdCarConnectionUntilExplicitReplay() throws Exception {
+        HeritageAudioCatalog catalog = new HeritageAudioCatalog(context);
+        java.util.List<MediaItem> queue = catalog.queue(ID);
+        String finalId = queue.get(queue.size() - 1).mediaId;
+        double completed = catalog.track(finalId).durationMs / 1000d;
+        assertTrue(completed > 0);
+        main(() -> { browser.release(); return null; }); browser = null;
+        context.stopService(new Intent(context, HeritagePlaybackService.class));
+        long stoppedBy = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (HeritagePlaybackService.hasLivePlayer() && System.nanoTime() < stoppedBy) Thread.sleep(20);
+        assertFalse("Initial audio service did not stop", HeritagePlaybackService.hasLivePlayer());
+        JSONObject downloads = new JSONObject().put(finalId, new JSONObject().put("path", "heritage-audio/playback-acceptance.mp3"));
+        JSONObject progress = new JSONObject().put("lastTrackId", finalId).put("rate", 1)
+            .put("positions", new JSONObject().put(finalId, completed)).put("lastPlayed", new JSONObject().put(finalId, 1000));
+        assertTrue(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit()
+            .putString(HeritageAudioCatalog.DOWNLOAD_INDEX, downloads.toString()).putString(HeritagePlaybackService.PROGRESS, progress.toString()).commit());
+        android.media.session.MediaController car = connectLegacyCar();
+        browser = main(() -> new MediaBrowser.Builder(context,
+            new SessionToken(context, new ComponentName(context, HeritagePlaybackService.class))).buildAsync()).get(15, TimeUnit.SECONDS);
+        assertFalse(main(() -> browser.getPlayWhenReady()));
+        assertEquals(completed, state().getDouble("position"), .001);
+        // Auto prepares the idle queue to expose its playback screen. This
+        // fixture is intentionally shorter than catalog metadata, exercising
+        // a decoder's end clamp without losing the logical completed cursor.
+        main(() -> { browser.prepare(); return null; });
+        await(() -> main(() -> browser.getPlaybackState() == Player.STATE_READY || browser.getPlaybackState() == Player.STATE_ENDED));
+        assertFalse(main(() -> browser.getPlayWhenReady()));
+        assertEquals(completed, state().getDouble("position"), .001);
+        command("persist", new Bundle());
+        JSONObject saved = new JSONObject(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).getString(HeritagePlaybackService.PROGRESS, "{}"));
+        assertEquals(completed, saved.getJSONObject("positions").getDouble(finalId), .001);
+        LibraryResult<ImmutableList<MediaItem>> recent = main(() -> browser.getChildren(HeritageAudioCatalog.CONTINUE, 0, 10, null)).get(10, TimeUnit.SECONDS);
+        assertEquals(1, recent.value.size());
+        assertEquals(1d, recent.value.get(0).mediaMetadata.extras.getDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE), .00001);
+        main(() -> { car.getTransportControls().play(); return null; });
+        await(() -> main(() -> browser.isPlaying()));
+        assertEquals(finalId, state().getString("trackId"));
+        assertTrue("Replay did not begin at the start", state().getDouble("position") < 5);
+    }
+    @Test public void preparingTheRestoredCarQueueExposesPausedControlsWithoutAutoplay() throws Exception {
+        android.media.session.MediaController car = connectLegacyCar();
+        assertEquals(android.media.session.PlaybackState.STATE_NONE, (int) main(() -> car.getPlaybackState().getState()));
+        main(() -> { browser.prepare(); return null; });
+        await(() -> main(() -> browser.getPlaybackState() == Player.STATE_READY));
+        assertFalse(main(() -> browser.getPlayWhenReady()));
+        await(() -> main(() -> car.getPlaybackState().getState() == android.media.session.PlaybackState.STATE_PAUSED));
+        assertEquals(12d, state().getDouble("position"), .1);
+        main(() -> { car.getTransportControls().play(); return null; });
+        await(() -> main(() -> browser.isPlaying()));
+    }
+    @Test public void privateBookHistoryIsBoundedAndSurvivesSignedOutRestartWithoutExposingTitles() throws Exception {
+        String privateId = "cb-aaaaaaaaaaaaaaaaaaaaaaaa-0";
+        JSONObject identity = new JSONObject().put("scope", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+            .put("communityId", "test-church").put("memberId", "1").put("contentUrl", "https://church.example/content/books/1")
+            .put("audioSha256", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+        JSONObject track = new JSONObject().put("id", privateId).put("title", "Private chapter").put("duration", 80).put("bytes", fixture.length())
+            .put("url", "https://church.example/api/community/books/1/audio/chapter-0")
+            .put("community", new JSONObject(identity.toString()).put("chapterId", "chapter-0"));
+        JSONObject book = new JSONObject().put("id", "remote--test--books--1").put("title", "Private prayer book").put("author", "Test author")
+            .put("community", identity).put("editions", new JSONArray().put(new JSONObject().put("tracks", new JSONArray().put(track))));
+        main(() -> { browser.release(); return null; }); browser = null;
+        context.stopService(new Intent(context, HeritagePlaybackService.class));
+        long stoppedBy = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (HeritagePlaybackService.hasLivePlayer() && System.nanoTime() < stoppedBy) Thread.sleep(20);
+        assertFalse("Initial audio service did not stop", HeritagePlaybackService.hasLivePlayer());
+        JSONObject positions = new JSONObject().put(privateId, 30).put("../../private", 50).put("cb-aaaaaaaaaaaaaaaaaaaaaaaa-9999", 20);
+        for (int index = 0; index < 10010; index++) positions.put(String.format(java.util.Locale.ROOT, "cb-%024x-%d", index / 2000, index % 2000), 1);
+        JSONObject progress = new JSONObject().put("lastTrackId", privateId).put("positions", positions)
+            .put("lastPlayed", new JSONObject().put(privateId, 1000));
+        assertTrue(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit()
+            .putString(CommunityAudioStore.INDEX, new JSONArray().put(book).toString()).putString(HeritagePlaybackService.PROGRESS, progress.toString()).commit());
+        browser = main(() -> new MediaBrowser.Builder(context,
+            new SessionToken(context, new ComponentName(context, HeritagePlaybackService.class))).buildAsync()).get(15, TimeUnit.SECONDS);
+        assertTrue(state().isNull("trackId"));
+        assertFalse(main(() -> browser.getPlayWhenReady()));
+        assertNotEquals(LibraryResult.RESULT_SUCCESS, main(() -> browser.getItem(privateId)).get(10, TimeUnit.SECONDS).resultCode);
+        LibraryResult<ImmutableList<MediaItem>> hidden = main(() -> browser.getChildren(HeritageAudioCatalog.CONTINUE, 0, 20, null)).get(10, TimeUnit.SECONDS);
+        assertTrue(hidden.value.isEmpty());
+        command("persist", new Bundle());
+        JSONObject saved = new JSONObject(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).getString(HeritagePlaybackService.PROGRESS, "{}"));
+        assertEquals(10000, saved.getJSONObject("positions").length());
+        assertEquals(30, saved.getJSONObject("positions").getDouble(privateId), .001);
+        assertFalse(saved.getJSONObject("positions").has("../../private"));
+        assertFalse(saved.getJSONObject("positions").has("cb-aaaaaaaaaaaaaaaaaaaaaaaa-9999"));
+        main(() -> { browser.setMediaItem(new MediaItem.Builder().setMediaId(ID).build()); return null; });
+        await(() -> ID.equals(state().optString("trackId")));
+        command("persist", new Bundle());
+        saved = new JSONObject(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).getString(HeritagePlaybackService.PROGRESS, "{}"));
+        assertEquals(10000, saved.getJSONObject("positions").length());
+        assertTrue("Newly selected chapter was dropped at the history limit", saved.getJSONObject("positions").has(ID));
+        seedCommunitySession(new JSONObject().put("test-church", new JSONObject().put("token", "fixture-only-token").put("issuerOrigin", "https://church.example")
+            .put("expiresAt", "2099-01-01T00:00:00.000Z").put("member", new JSONObject().put("id", "1"))));
+        await(() -> main(() -> browser.getItem(privateId)).get(5, TimeUnit.SECONDS).resultCode == LibraryResult.RESULT_SUCCESS);
+        LibraryResult<ImmutableList<MediaItem>> restored = main(() -> browser.getChildren(HeritageAudioCatalog.CONTINUE, 0, 20, null)).get(10, TimeUnit.SECONDS);
+        MediaItem privateResume = restored.value.stream().filter(item -> privateId.equals(item.mediaId)).findFirst().get();
+        assertEquals(.375, privateResume.mediaMetadata.extras.getDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE), .00001);
+        assertEquals(ID, state().getString("trackId")); // Reauthorization never selects private content.
+        assertFalse(main(() -> browser.getPlayWhenReady()));
+    }
 }

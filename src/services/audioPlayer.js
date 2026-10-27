@@ -5,15 +5,19 @@ import { communityAudioSource } from './communityAudio'
 
 export const AUDIO_PROGRESS_KEY = 'heritage-audio-progress-v1'
 const finite = value => Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : 0
+const retainedProgressId = id => Boolean(getAudioTrack(id)) || (/^cb-[a-f0-9]{24}-[0-9]{1,4}$/.test(id) && Number(id.slice(28)) < 2000)
 const rateValue = value => [0.75, 1, 1.25, 1.5, 1.75, 2].includes(Number(value)) ? Number(value) : 1
 export function normalizeAudioProgress(value) {
+  const recentEntries = input => Object.entries(input || {}).sort(([a], [b]) =>
+    Number(b === value?.lastTrackId) - Number(a === value?.lastTrackId)
+      || finite(value?.lastPlayed?.[b]) - finite(value?.lastPlayed?.[a])).slice(0, 10000)
   const positions = {}
-  for (const [id, position] of Object.entries(value?.positions || {})) {
-    if (getAudioTrack(id)) positions[id] = finite(position)
+  for (const [id, position] of recentEntries(value?.positions)) {
+    if (retainedProgressId(id)) positions[id] = finite(position)
   }
   const lastPlayed = {}
-  for (const [id, at] of Object.entries(value?.lastPlayed || {})) {
-    if (getAudioTrack(id) && finite(at)) lastPlayed[id] = finite(at)
+  for (const [id, at] of recentEntries(value?.lastPlayed)) {
+    if (retainedProgressId(id) && finite(at)) lastPlayed[id] = finite(at)
   }
   return { positions, lastPlayed, lastTrackId: getAudioTrack(value?.lastTrackId)?.id || null, rate: rateValue(value?.rate) }
 }
@@ -39,6 +43,7 @@ export function createAudioPlayer({ audio = new Audio(), load = () => getStoredJ
   function persist() {
     if (!hydrated) return Promise.resolve()
     remember()
+    progress = normalizeAudioProgress(progress)
     const snapshot = structuredClone(progress)
     writes = writes.catch(() => {}).then(() => save(snapshot)).catch(() => {
       emit({ error: 'Your listening position could not be saved on this device.' })

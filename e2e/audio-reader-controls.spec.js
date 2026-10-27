@@ -106,3 +106,19 @@ test('audiobook highlighting selects individual sentences without changing the p
   await expect(marker.locator('..')).toHaveText(timing.paragraphs[second.paragraph].text.replace(/\[\d+\]/g, ''))
   await expect(marker.locator('..')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
 })
+
+test('holding another book player restores that book’s saved time without changing or starting the active recording', async ({ page }) => {
+  const other = catalog.books.find(book => book.id !== 'martyrdom-of-polycarp' && book.kind !== 'bible').editions[0].tracks[0]
+  await page.addInitScript(({ selectedId, activeId }) => localStorage.setItem('heritage-audio-progress-v1', JSON.stringify({
+    lastTrackId: activeId, positions: { [selectedId]: 55, [activeId]: 83 }, lastPlayed: { [selectedId]: 1000, [activeId]: 2000 }, rate: 1,
+  })), { selectedId: track.id, activeId: other.id })
+  await page.goto('/#/resources/books/martyrdom-of-polycarp-lake')
+  await page.getByRole('button', { name: 'Play book audio', exact: true }).click({ delay: 650 })
+  const dialog = page.getByRole('dialog', { name: 'Player controls' })
+  await expect(dialog.getByLabel('Audio position', { exact: true })).toHaveValue('55')
+  await expect(dialog.getByRole('button', { name: 'Play', exact: true })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Pause', exact: true })).toHaveCount(0)
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('heritage-audio-progress-v1')).lastTrackId)).toBe(other.id)
+  await dialog.getByRole('button', { name: 'Close player' }).click()
+  await expect(page.getByRole('button', { name: 'Play book audio', exact: true })).toBeVisible()
+})
