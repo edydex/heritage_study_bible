@@ -28,6 +28,7 @@ import java.nio.ByteOrder;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -47,6 +48,17 @@ public class AudioPlaybackIntegrationTest {
     private File fixture;
     private File communityFixture;
     private ActivityScenario<MainActivity> reader;
+    private boolean carHostStarted;
+    private final AtomicBoolean readerOpened = new AtomicBoolean();
+    private final android.app.Application.ActivityLifecycleCallbacks activityObserver = new android.app.Application.ActivityLifecycleCallbacks() {
+        @Override public void onActivityCreated(android.app.Activity activity, Bundle state) { if (activity instanceof MainActivity) readerOpened.set(true); }
+        @Override public void onActivityStarted(android.app.Activity activity) { if (activity instanceof MainActivity) readerOpened.set(true); }
+        @Override public void onActivityResumed(android.app.Activity activity) { if (activity instanceof MainActivity) readerOpened.set(true); }
+        @Override public void onActivityPaused(android.app.Activity activity) { }
+        @Override public void onActivityStopped(android.app.Activity activity) { }
+        @Override public void onActivitySaveInstanceState(android.app.Activity activity, Bundle state) { }
+        @Override public void onActivityDestroyed(android.app.Activity activity) { }
+    };
     private <T> T main(Callable<T> action) throws Exception {
         AtomicReference<T> result = new AtomicReference<>(); AtomicReference<Exception> failure = new AtomicReference<>();
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> { try { result.set(action.call()); } catch (Exception error) { failure.set(error); } });
@@ -99,6 +111,7 @@ public class AudioPlaybackIntegrationTest {
     }
     @Before public void connect() throws Exception {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        ((android.app.Application) context.getApplicationContext()).registerActivityLifecycleCallbacks(activityObserver);
         fixture = new File(context.getFilesDir(), "heritage-audio/playback-acceptance.mp3");
         assertTrue(fixture.getParentFile().isDirectory() || fixture.getParentFile().mkdirs());
         // Self-generated, silent PCM; the extractor sniffs the bytes rather than
@@ -122,6 +135,7 @@ public class AudioPlaybackIntegrationTest {
     }
     @After public void cleanup() throws Exception {
         if (browser != null) { command("unload", new Bundle()); }
+        if (carHostStarted) { try { carCommand("close", null); } finally { carHostStarted = false; } }
         if (reader != null) { reader.close(); reader = null; }
         if (legacyBrowser != null) { main(() -> { legacyBrowser.disconnect(); return null; }); legacyBrowser = null; }
         if (browser != null) { main(() -> { browser.release(); return null; }); browser = null; }
@@ -153,6 +167,7 @@ public class AudioPlaybackIntegrationTest {
         context.getSharedPreferences("heritage_secure_storage", Context.MODE_PRIVATE).edit().remove("heritage-community-sessions-v1").commit();
         if (communityFixture != null) communityFixture.delete();
         if (fixture != null) fixture.delete();
+        ((android.app.Application) context.getApplicationContext()).unregisterActivityLifecycleCallbacks(activityObserver);
     }
     private void seedCommunitySession(JSONObject sessions) throws Exception {
         String alias = "heritage-secure-storage-v1", key = "heritage-community-sessions-v1";
@@ -381,15 +396,50 @@ public class AudioPlaybackIntegrationTest {
         assertEquals(HeritageAudioCatalog.ROOT, main(() -> legacyBrowser.getRoot()));
         return main(() -> new android.media.session.MediaController(context, legacyBrowser.getSessionToken()));
     }
+    private Bundle carCommand(String action, String trackId) throws Exception {
+        boolean closing = "close".equals(action);
+        if (!closing) {
+            assertNull("Car acceptance must leave the reader unopened", reader);
+            assertFalse("Car acceptance opened MainActivity", readerOpened.get());
+        }
+        CountDownLatch answered = new CountDownLatch(1);
+        AtomicReference<Bundle> reply = new AtomicReference<>();
+        AtomicReference<Integer> code = new AtomicReference<>();
+        android.os.ResultReceiver receiver = new android.os.ResultReceiver(new android.os.Handler(android.os.Looper.getMainLooper())) {
+            @Override protected void onReceiveResult(int resultCode, Bundle result) {
+                code.set(resultCode); reply.set(result); answered.countDown();
+            }
+        };
+        Context host = InstrumentationRegistry.getInstrumentation().getContext();
+        Intent request = new Intent().setComponent(new ComponentName(host.getPackageName(), CarControllerTestActivity.class.getName()))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            .putExtra("targetPackage", context.getPackageName()).putExtra("targetService", HeritagePlaybackService.class.getName())
+            .putExtra("command", action).putExtra("trackId", trackId).putExtra("result", receiver);
+        context.startActivity(request);
+        carHostStarted = true;
+        assertTrue("External car host did not answer: " + action, answered.await(15, TimeUnit.SECONDS));
+        Bundle result = reply.get();
+        assertEquals("External car command failed: " + result.getString("failure"), 0, (int) code.get());
+        if (closing) return result; // Always finish the host, including after an earlier assertion failed.
+        assertNotEquals("Car host must use another UID", android.os.Process.myUid(), result.getInt("uid"));
+        assertEquals(host.getPackageName(), result.getString("package"));
+        assertTrue("Test precondition: the disposable-emulator runner must enable the test host notification listener for media-controller trust",
+            result.getBoolean("trusted"));
+        assertTrue("Car controller must be visible when sending transport requests", result.getBoolean("resumed"));
+        assertTrue("Car controller must have window focus", result.getBoolean("focused"));
+        assertEquals(HeritageAudioCatalog.ROOT, result.getString("root"));
+        assertFalse("External car host launched the Bible reader", readerOpened.get());
+        return result;
+    }
     @Test public void legacyCarPlayAndPauseResumeColdSavedQueueWithoutReaderOrPrepare() throws Exception {
         main(() -> { browser.release(); return null; }); browser = null;
         context.stopService(new Intent(context, HeritagePlaybackService.class));
         long stoppedBy = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
         while (HeritagePlaybackService.hasLivePlayer() && System.nanoTime() < stoppedBy) Thread.sleep(20);
         assertFalse("Initial audio service did not stop", HeritagePlaybackService.hasLivePlayer());
-        // The legacy browser is the first client to create the service, just
-        // like connecting a car while the reader is closed.
-        android.media.session.MediaController car = connectLegacyCar();
+        // A legacy browser in the external host is the first client to create
+        // the service, just like a car connecting while the reader is closed.
+        carCommand("connect", null);
         browser = main(() -> new MediaBrowser.Builder(context,
             new SessionToken(context, new ComponentName(context, HeritagePlaybackService.class))).buildAsync()).get(15, TimeUnit.SECONDS);
         assertEquals(Player.STATE_IDLE, (int) main(() -> browser.getPlaybackState()));
@@ -397,19 +447,15 @@ public class AudioPlaybackIntegrationTest {
         assertEquals(12d, state().getDouble("position"), .1);
         // Real car TransportControls must work without the phone UI supplying
         // a prepare call, including the first Play after the service starts.
-        main(() -> { car.getTransportControls().play(); return null; });
+        carCommand("play", null);
         await(() -> main(() -> browser.isPlaying() && browser.getCurrentPosition() >= 12000));
         assertEquals(1.5, state().getDouble("rate"), .01);
-        main(() -> { car.getTransportControls().pause(); return null; });
+        carCommand("pause", null);
         await(() -> !main(() -> browser.getPlayWhenReady()));
         double paused = state().getDouble("position");
         Thread.sleep(350);
         assertEquals(paused, state().getDouble("position"), .05);
-        main(() -> {
-            car.dispatchMediaButtonEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
-            car.dispatchMediaButtonEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));
-            return null;
-        });
+        carCommand("mediaPlayPause", null);
         await(() -> main(() -> browser.isPlaying()));
         assertTrue(state().getJSONObject("lastPlayed").getDouble(ID) > 0);
     }
@@ -421,9 +467,10 @@ public class AudioPlaybackIntegrationTest {
         downloads.put(other, new JSONObject().put("path", "heritage-audio/playback-acceptance.mp3"));
         assertTrue(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit()
             .putString(HeritageAudioCatalog.DOWNLOAD_INDEX, downloads.toString()).commit());
-        command("play", new Bundle()); await(() -> main(() -> browser.isPlaying()));
+        carCommand("connect", null);
+        carCommand("play", null); await(() -> main(() -> browser.isPlaying()));
         Bundle seek = new Bundle(); seek.putDouble("position", 25); command("seek", seek); command("pause", new Bundle());
-        Bundle next = new Bundle(); next.putString("trackId", other); command("play", next);
+        carCommand("playFromMediaId", other);
         await(() -> main(() -> browser.isPlaying()));
         seek.putDouble("position", 10); command("seek", seek); command("pause", new Bundle());
         LibraryResult<ImmutableList<MediaItem>> recent = main(() -> browser.getChildren(HeritageAudioCatalog.CONTINUE, 0, 20, null)).get(10, TimeUnit.SECONDS);
@@ -438,8 +485,7 @@ public class AudioPlaybackIntegrationTest {
         LibraryResult<MediaItem> recentRoot = main(() -> browser.getLibraryRoot(recentParams)).get(10, TimeUnit.SECONDS);
         assertEquals(HeritageAudioCatalog.CONTINUE, recentRoot.value.mediaId);
         assertFalse(main(() -> browser.getPlayWhenReady()));
-        android.media.session.MediaController car = connectLegacyCar();
-        main(() -> { car.getTransportControls().playFromMediaId(ID, Bundle.EMPTY); return null; });
+        carCommand("playFromMediaId", ID);
         await(() -> main(() -> browser.isPlaying() && ID.equals(browser.getCurrentMediaItem().mediaId)));
         assertTrue(state().getDouble("position") >= 25);
         assertTrue(state().getDouble("position") < 30);
@@ -451,28 +497,19 @@ public class AudioPlaybackIntegrationTest {
         while (HeritagePlaybackService.hasLivePlayer() && System.nanoTime() < stoppedBy) Thread.sleep(20);
         assertFalse("Initial audio service did not stop", HeritagePlaybackService.hasLivePlayer());
         assertTrue(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit().remove(HeritagePlaybackService.PROGRESS).commit());
-        android.media.session.MediaController car = connectLegacyCar();
+        Bundle connected = carCommand("connect", null);
         browser = main(() -> new MediaBrowser.Builder(context,
             new SessionToken(context, new ComponentName(context, HeritagePlaybackService.class))).buildAsync()).get(15, TimeUnit.SECONDS);
-        AtomicReference<String> message = new AtomicReference<>("");
-        android.media.session.MediaController.Callback callback = new android.media.session.MediaController.Callback() {
-            @Override public void onPlaybackStateChanged(android.media.session.PlaybackState state) {
-                if (state != null && state.getErrorMessage() != null) message.set(state.getErrorMessage().toString());
-            }
-        };
-        main(() -> { car.registerCallback(callback, new android.os.Handler(android.os.Looper.getMainLooper())); return null; });
-        try {
-            assertFalse(main(() -> browser.getPlayWhenReady()));
-            assertEquals("", message.get()); // Connecting alone must not report a playback error.
-            main(() -> { car.getTransportControls().play(); return null; });
-            await(() -> message.get().contains("Choose a recording"));
-            assertFalse(main(() -> browser.isPlaying()));
-            LibraryResult<ImmutableList<MediaItem>> roots = main(() -> browser.getChildren(HeritageAudioCatalog.ROOT, 0, 10, null)).get(10, TimeUnit.SECONDS);
-            assertTrue(roots.value.stream().anyMatch(item -> HeritageAudioCatalog.BOOKS.equals(item.mediaId)));
-            // The hint must be nonfatal: a car selection can play immediately.
-            main(() -> { car.getTransportControls().playFromMediaId(ID, Bundle.EMPTY); return null; });
-            await(() -> main(() -> browser.isPlaying()));
-        } finally { main(() -> { car.unregisterCallback(callback); return null; }); }
+        assertFalse(main(() -> browser.getPlayWhenReady()));
+        assertEquals("", connected.getString("playbackError")); // Connecting alone must not report a playback error.
+        carCommand("play", null);
+        await(() -> carCommand("state", null).getString("playbackError").contains("Choose a recording"));
+        assertFalse(main(() -> browser.isPlaying()));
+        LibraryResult<ImmutableList<MediaItem>> roots = main(() -> browser.getChildren(HeritageAudioCatalog.ROOT, 0, 10, null)).get(10, TimeUnit.SECONDS);
+        assertTrue(roots.value.stream().anyMatch(item -> HeritageAudioCatalog.BOOKS.equals(item.mediaId)));
+        // The hint must be nonfatal: a car selection can play immediately.
+        carCommand("playFromMediaId", ID);
+        await(() -> main(() -> browser.isPlaying()));
     }
     @Test public void finishedBookRemainsCompleteAcrossColdCarConnectionUntilExplicitReplay() throws Exception {
         HeritageAudioCatalog catalog = new HeritageAudioCatalog(context);
@@ -490,7 +527,7 @@ public class AudioPlaybackIntegrationTest {
             .put("positions", new JSONObject().put(finalId, completed)).put("lastPlayed", new JSONObject().put(finalId, 1000));
         assertTrue(context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE).edit()
             .putString(HeritageAudioCatalog.DOWNLOAD_INDEX, downloads.toString()).putString(HeritagePlaybackService.PROGRESS, progress.toString()).commit());
-        android.media.session.MediaController car = connectLegacyCar();
+        carCommand("connect", null);
         browser = main(() -> new MediaBrowser.Builder(context,
             new SessionToken(context, new ComponentName(context, HeritagePlaybackService.class))).buildAsync()).get(15, TimeUnit.SECONDS);
         assertFalse(main(() -> browser.getPlayWhenReady()));
@@ -508,20 +545,21 @@ public class AudioPlaybackIntegrationTest {
         LibraryResult<ImmutableList<MediaItem>> recent = main(() -> browser.getChildren(HeritageAudioCatalog.CONTINUE, 0, 10, null)).get(10, TimeUnit.SECONDS);
         assertEquals(1, recent.value.size());
         assertEquals(1d, recent.value.get(0).mediaMetadata.extras.getDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE), .00001);
-        main(() -> { car.getTransportControls().play(); return null; });
+        carCommand("play", null);
         await(() -> main(() -> browser.isPlaying()));
         assertEquals(finalId, state().getString("trackId"));
         assertTrue("Replay did not begin at the start", state().getDouble("position") < 5);
     }
     @Test public void preparingTheRestoredCarQueueExposesPausedControlsWithoutAutoplay() throws Exception {
         android.media.session.MediaController car = connectLegacyCar();
+        carCommand("connect", null);
         assertEquals(android.media.session.PlaybackState.STATE_NONE, (int) main(() -> car.getPlaybackState().getState()));
         main(() -> { browser.prepare(); return null; });
         await(() -> main(() -> browser.getPlaybackState() == Player.STATE_READY));
         assertFalse(main(() -> browser.getPlayWhenReady()));
         await(() -> main(() -> car.getPlaybackState().getState() == android.media.session.PlaybackState.STATE_PAUSED));
         assertEquals(12d, state().getDouble("position"), .1);
-        main(() -> { car.getTransportControls().play(); return null; });
+        carCommand("play", null);
         await(() -> main(() -> browser.isPlaying()));
     }
     @Test public void privateBookHistoryIsBoundedAndSurvivesSignedOutRestartWithoutExposingTitles() throws Exception {

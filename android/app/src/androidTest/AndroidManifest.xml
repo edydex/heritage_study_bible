@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- This controller belongs to the test APK's UID, never the reader APK. -->
+        <activity
+            android:name="faith.heritage.app.CarControllerTestActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+        <!-- The disposable-emulator runner enables this component so the
+             platform recognizes the test host as a trusted media controller. -->
+        <service
+            android:name="faith.heritage.app.CarControllerTestNotificationListener"
+            android:exported="true"
+            android:label="Heritage car test media access"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

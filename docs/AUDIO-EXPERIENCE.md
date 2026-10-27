@@ -42,3 +42,22 @@ and [Media3 session contract](https://developer.android.com/media/media3/session
 Testing uses both real legacy media controllers on a phone and Google's
 [Desktop Head Unit](https://developer.android.com/training/cars/testing/dhu).
 Those checks cover the tested phone/simulator; physical car hardware is separate.
+
+Cold car acceptance uses a visible, trusted controller activity in the test APK,
+under a different UID from Heritage, while the reader stays closed. Android 15 deliberately
+omits media-session user-interaction exemptions for a controller calling its own
+UID. A background self-controller therefore cannot stand in for Android Auto:
+it can load the saved recording but its audio-focus request is rejected. The
+separate test host exercises the platform's external-controller path and retains
+the actual playing, saved-position, pause, replay and no-autoplay assertions.
+The disposable-emulator runner enables the test host's empty notification-listener
+component to obtain the platform's trusted-controller status, as Android Auto
+does. Media3 1.11 gives untrusted external controllers read-only defaults. The host
+asserts its trust, visible state and distinct UID before dispatching commands.
+The fixture contains no notification-payload handling, is absent from the installed
+reader APK, and changes no production permission or audio-focus policy. Physical
+device tests do not automatically grant this test-host access.
+See the pinned Android 15
+[media-session allowlist implementation](https://android.googlesource.com/platform/frameworks/base/+/refs/tags/android-15.0.0_r1/services/core/java/com/android/server/media/MediaSessionService.java)
+and [audio-focus guidance](https://developer.android.com/media/optimize/audio-focus),
+plus [Media3 controller defaults](https://developer.android.com/reference/androidx/media3/session/MediaSession.ConnectionResult.AcceptedResultBuilder).
