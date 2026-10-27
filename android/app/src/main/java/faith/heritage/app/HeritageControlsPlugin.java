@@ -6,7 +6,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.graphics.Color;
 import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
@@ -25,9 +24,9 @@ import androidx.core.view.WindowInsetsControllerCompat;
 
 @CapacitorPlugin(name = "HeritageControls")
 public class HeritageControlsPlugin extends Plugin {
-    private static final int HERITAGE_BLUE = Color.rgb(30, 64, 175);
     private static boolean sideButtonScrollEnabled = false;
     private static boolean searchKeyboardCaptureInputEnabled = false;
+    private int chromeInsetsGeneration = 0;
 
     public static boolean isSideButtonScrollEnabled() {
         return sideButtonScrollEnabled;
@@ -93,33 +92,58 @@ public class HeritageControlsPlugin extends Plugin {
                 View decorView = window.getDecorView();
                 WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
 
+                WindowCompat.setDecorFitsSystemWindows(window, true);
                 if (hidden) {
-                    WindowCompat.setDecorFitsSystemWindows(window, true);
-                    controller.hide(WindowInsetsCompat.Type.statusBars());
                     controller.setSystemBarsBehavior(
                         WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     );
-                    return;
+                    controller.hide(WindowInsetsCompat.Type.systemBars());
+                } else {
+                    controller.show(WindowInsetsCompat.Type.systemBars());
+                    controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_DEFAULT);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                        // Keep the page's icon appearance and unrelated flags;
+                        // only leave legacy fullscreen/immersive navigation.
+                        int immersiveFlags = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+                        decorView.setSystemUiVisibility(decorView.getSystemUiVisibility() & ~immersiveFlags);
+                    }
                 }
-
-                WindowCompat.setDecorFitsSystemWindows(window, true);
-                controller.show(WindowInsetsCompat.Type.statusBars());
-                window.setStatusBarColor(HERITAGE_BLUE);
-                window.setNavigationBarColor(Color.WHITE);
-                controller.setAppearanceLightStatusBars(false);
-                controller.setAppearanceLightNavigationBars(true);
-
-                int systemUiFlags = 0;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    systemUiFlags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-                }
-                decorView.setSystemUiVisibility(systemUiFlags);
+                ViewCompat.requestApplyInsets(decorView);
+                if (getBridge() != null) ViewCompat.requestApplyInsets(getBridge().getWebView());
+                notifyReaderInsetsApplied(decorView, hidden, call, ++chromeInsetsGeneration);
             });
+            return;
         }
 
         JSObject result = new JSObject();
         result.put("hidden", hidden);
         call.resolve(result);
+    }
+
+    private void notifyReaderInsetsApplied(View decorView, boolean hidden, PluginCall call, int generation) {
+        // Edge-to-edge Android can change system-bar insets without resizing the
+        // WebView. Observe frames without replacing Capacitor's inset listeners.
+        decorView.postOnAnimation(new Runnable() {
+            private int frames = 0;
+            @Override public void run() {
+                frames++;
+                WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decorView);
+                boolean applied = insets != null
+                    && insets.isVisible(WindowInsetsCompat.Type.statusBars()) != hidden
+                    && insets.isVisible(WindowInsetsCompat.Type.navigationBars()) != hidden;
+                boolean superseded = generation != chromeInsetsGeneration;
+                if (!superseded && frames < 30 && (frames < 2 || !applied)) {
+                    decorView.postOnAnimation(this);
+                    return;
+                }
+                if (!superseded && getBridge() != null) getBridge().triggerWindowJSEvent("heritage:native-insets-changed");
+                JSObject result = new JSObject();
+                result.put("hidden", hidden);
+                result.put("applied", applied && !superseded);
+                call.resolve(result);
+            }
+        });
     }
 
     @PluginMethod

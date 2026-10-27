@@ -18,10 +18,108 @@ async function pressTitle(page) {
   return trigger
 }
 async function highlightAudiobooks(page) {
-  const bounds = await wheel(page).getByRole('button', { name: 'Audiobooks', exact: true }).boundingBox()
+  const bounds = await wheel(page).getByRole('button', { name: 'Audiobooks', exact: true }).getByText('Audiobooks', { exact: true }).boundingBox()
   await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2, { steps: 5 })
   await expect(wheel(page).getByText('Release for Audiobooks', { exact: true })).toBeVisible()
 }
+
+for (const width of [320, 390]) {
+  test(`the ${width}px upper wheel stays anchored at the held title with every choice above the finger`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 })
+    await page.goto('/#/genesis/1')
+    const trigger = page.locator('.navigation-wheel-trigger')
+    const title = await trigger.boundingBox()
+    const origin = { x: title.x + title.width * .4, y: title.y + title.height / 2 }
+    await page.mouse.move(origin.x, origin.y)
+    await page.mouse.down()
+    await expect(wheel(page)).toBeVisible()
+    const fan = await wheel(page).boundingBox()
+    expect(Math.abs(fan.x + fan.width / 2 - origin.x)).toBeLessThan(1)
+    expect(Math.abs(fan.y + fan.height - origin.y)).toBeLessThan(1)
+    expect(fan.x).toBeGreaterThanOrEqual(0)
+    expect(fan.x + fan.width).toBeLessThanOrEqual(width)
+    const base = await wheel(page).locator('.navigation-wheel-base').boundingBox()
+    expect(Math.abs(base.y - origin.y)).toBeLessThanOrEqual(1.1)
+    expect(Math.abs(base.y + base.height - 844)).toBeLessThan(1)
+    for (const label of ['Chapters', 'Audiobooks', 'Books', 'Reading plans', 'Cancel navigation']) {
+      const bounds = await wheel(page).getByRole('button', { name: label, exact: true }).boundingBox()
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(origin.y + 1)
+    }
+    await page.screenshot({ path: test.info().outputPath(`navigation-wheel-${width}.png`) })
+    await page.mouse.up()
+    await page.keyboard.press('Escape')
+  })
+}
+
+test('a right-edge hold on a narrow phone keeps each visible label inside its own sector', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 })
+  await page.goto('/#/genesis/1')
+  const title = await page.locator('.navigation-wheel-trigger').boundingBox()
+  const origin = { x: title.x + title.width * .95, y: title.y + title.height / 2 }
+  await page.mouse.move(origin.x, origin.y)
+  await page.mouse.down()
+  await expect(wheel(page)).toBeVisible()
+  for (const label of ['Chapters', 'Audiobooks', 'Books', 'Reading plans']) {
+    const choice = wheel(page).getByRole('button', { name: label, exact: true })
+    const renderedLines = await choice.locator('.navigation-wheel-label').evaluate(node => {
+      const lines = []
+      const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT)
+      let text
+      while ((text = walker.nextNode())) {
+        const range = document.createRange()
+        range.selectNodeContents(text)
+        for (const rect of range.getClientRects()) {
+          if (rect.width > 0) lines.push({ x: rect.x, y: rect.y, width: rect.width, height: rect.height })
+        }
+      }
+      return lines
+    })
+    expect(renderedLines.length).toBeGreaterThan(0)
+    for (const line of renderedLines) {
+      expect(line.y + line.height).toBeLessThanOrEqual(origin.y + 1)
+      expect(line.x).toBeGreaterThanOrEqual(0)
+      expect(line.x + line.width).toBeLessThanOrEqual(320)
+      const belongsToChoice = await choice.evaluate((node, rect) => [rect.x + 1, rect.x + rect.width - 1].every(x => node.contains(document.elementFromPoint(x, rect.y + rect.height / 2))), line)
+      expect(belongsToChoice, `${label} must not be clipped by its sector`).toBe(true)
+    }
+  }
+  await page.screenshot({ path: test.info().outputPath('navigation-wheel-320-right-edge.png') })
+  await page.mouse.up()
+  await page.keyboard.press('Escape')
+})
+
+for (const label of ['Chapters', 'Audiobooks', 'Books', 'Reading plans']) {
+  test(`holding and sliding upward selects ${label}`, async ({ page }) => {
+    await page.goto('/#/genesis/1')
+    const title = await pressTitle(page)
+    const origin = await title.boundingBox()
+    await expect(wheel(page)).toBeVisible()
+    const choice = wheel(page).getByRole('button', { name: label, exact: true })
+    const target = await choice.getByText(label, { exact: true }).boundingBox()
+    expect(target.y + target.height / 2).toBeLessThan(origin.y + origin.height / 2)
+    await page.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 5 })
+    await expect(wheel(page).getByText(`Release for ${label}`, { exact: true })).toBeVisible()
+    await page.mouse.up()
+    if (label === 'Chapters') await expect(page.getByRole('heading', { name: 'Select Book', exact: true })).toBeVisible()
+    else if (label === 'Audiobooks') await expect(page).toHaveURL(/#\/audio\?kind=audiobook$/)
+    else if (label === 'Books') await expect(page).toHaveURL(/#\/resources\/books$/)
+    else await expect(page).toHaveURL(/#\/resources\/reading-plans$/)
+  })
+}
+
+test('a downward slide clears the upward selection and cannot navigate', async ({ page }) => {
+  await page.goto('/#/genesis/1')
+  const trigger = await pressTitle(page)
+  const title = await trigger.boundingBox()
+  await expect(wheel(page)).toBeVisible()
+  await highlightAudiobooks(page)
+  await page.mouse.move(title.x + title.width / 2 + 60, title.y + title.height / 2 + 5, { steps: 4 })
+  await expect(wheel(page).locator('.navigation-wheel-choice.is-active')).toHaveCount(0)
+  await page.mouse.up()
+  await expect(page).toHaveURL(/#\/genesis\/1$/)
+  await expect(page.getByRole('heading', { name: 'Select Book', exact: true })).toHaveCount(0)
+  await page.keyboard.press('Escape')
+})
 
 for (const book of [false, true]) {
   test(`${book ? 'book' : 'Bible'} title preserves a tap for chapters and opens only the navigation wheel on hold`, async ({ page }) => {

@@ -67,8 +67,13 @@ export default function AudioProvider({ children }) {
   useEffect(() => {
     refreshNativeSafeArea()
     window.addEventListener('resize', refreshNativeSafeArea)
+    window.addEventListener('heritage:native-insets-changed', refreshNativeSafeArea)
     document.addEventListener('visibilitychange', refreshNativeSafeArea)
-    return () => { window.removeEventListener('resize', refreshNativeSafeArea); document.removeEventListener('visibilitychange', refreshNativeSafeArea) }
+    return () => {
+      window.removeEventListener('resize', refreshNativeSafeArea)
+      window.removeEventListener('heritage:native-insets-changed', refreshNativeSafeArea)
+      document.removeEventListener('visibilitychange', refreshNativeSafeArea)
+    }
   }, [location.pathname])
   const defaults = { followBible: true, followBooks: true, parallelMonochrome: false }
   const [settings, setSettings] = useState(defaults)

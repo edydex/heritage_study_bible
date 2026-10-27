@@ -1,10 +1,18 @@
 # Listening and quick navigation
 
-Tap the reader's chapter title to choose a chapter. Hold it to open the
-navigation wheel, slide to a section, and release. Releasing without selecting
+Tap the reader's chapter title to choose a chapter. Hold it to open an upper
+half-wheel anchored at the held title, slide upward toward a section, and
+release. Every destination stays above the finger; the fan does not move its
+center higher up the screen. Releasing without selecting
 keeps the wheel open for tapping. The wheel is available in the Bible and book
 readers; Escape, Android Back, the center button, or tapping outside dismisses it.
 Keyboard users can open it with Shift+Enter and use arrows or Tab.
+
+On Android, scrolling down hides both the status bar and the system navigation
+bar, including three-button navigation, with the reader's header. Scrolling up,
+opening reader settings or leaving the reader restores them. An edge swipe can
+temporarily reveal the system controls while reading, following Android's
+[immersive-mode behavior](https://developer.android.com/develop/ui/views/layout/immersive).
 
 The audiobook library offers several recently listened books, each with its own
 chapter, position, resume button, progress bar and remaining listening time.

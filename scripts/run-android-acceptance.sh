@@ -39,6 +39,11 @@ timeout --kill-after=5 10 adb shell wm dismiss-keyguard
 timeout --kill-after=5 10 adb shell settings put global window_animation_scale 0
 timeout --kill-after=5 10 adb shell settings put global transition_animation_scale 0
 timeout --kill-after=5 10 adb shell settings put global animator_duration_scale 0
+# Exercise the reader with the square/circle/triangle navigation controls. This
+# changes only this disposable AVD; personal devices retain their chosen mode.
+timeout --kill-after=5 10 adb shell cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.threebutton
+timeout --kill-after=5 10 adb shell cmd overlay list > "$output/navigation-mode.txt"
+grep -F '[x] com.android.internal.systemui.navbar.threebutton' "$output/navigation-mode.txt" >/dev/null
 # The Google APIs image's first-boot setup re-enables Wi-Fi asynchronously.
 # This AVD is disposable and needs no Google-account setup during offline tests.
 timeout --kill-after=5 10 adb shell pm disable-user --user 0 com.google.android.googlesdksetup
