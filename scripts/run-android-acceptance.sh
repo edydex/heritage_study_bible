@@ -47,6 +47,12 @@ timeout --kill-after=5 10 adb shell svc data disable
 timeout --kill-after=5 10 adb shell cmd connectivity airplane-mode enable
 timeout --kill-after=5 10 adb emu gsm data unregistered
 timeout --kill-after=5 10 adb shell dumpsys connectivity > "$output/connectivity-before-tests.txt"
+# Android Auto is an external trusted media controller. Give only the test
+# host's empty notification-listener component that same platform trust on
+# this disposable emulator. Production permissions and focus policy stay intact.
+timeout --kill-after=5 60 adb install -r "$repo_root/android/app/build/outputs/apk/debug/app-debug.apk"
+timeout --kill-after=5 60 adb install -r -t "$repo_root/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
+timeout --kill-after=5 10 adb shell cmd notification allow_listener faith.heritage.app.test/faith.heritage.app.CarControllerTestNotificationListener
 cd "$repo_root/android"
 # Keep the test app until cleanup has pulled its screenshots. The emulator is
 # disposable; Gradle's normal uninstall removes the app's external files first.
