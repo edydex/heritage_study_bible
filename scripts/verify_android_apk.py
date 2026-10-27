@@ -64,6 +64,7 @@ with zipfile.ZipFile(apk) as archive:
 assert len(assets) > 10
 assert '.well-known/assetlinks.json' in web_metadata, 'Website app-link metadata is missing'
 required = {
+    'ReaderChromeIntegrationTest': {'readerScrollHidesBothSystemBarsAndRestoresInsetsOnExit'},
     'CommunityIntegrationTest': {'packagedCommunityScreensAndMemberLinkWorkOffline', 'secureStorageUsesNativeKeystoreAndSurvivesActivityRestart', 'encryptedValuesCannotBeSubstitutedForAnotherStorageKey', 'automaticSyncSettingSurvivesRestartAndBibleOpensOffline'},
     'AudioStorageIntegrationTest': {'deleteOfflineAudioThroughInternalStorage', 'interruptedTransferCanBeRemovedWithoutTouchingNotes'},
     'AudioPlaybackIntegrationTest': {'carLibraryAndSavedQueueLoadWithoutOpeningTheBible', 'legacyCarBrowserCanDiscoverTheLibraryWithoutOpeningTheReader', 'appAndCarSharePlaybackWhichContinuesAfterTheReaderCloses', 'offlineResolverRejectsTraversalAndUnrelatedAppFiles', 'ezekielVerseHighlightsFollowTheNativeClockAtRealBoundaries', 'communityBookPlaysDownloadedChaptersWithoutWebViewAndStopsAtSignOut', 'legacyCarPlayAndPauseResumeColdSavedQueueWithoutReaderOrPrepare', 'carContinueListeningResumesDifferentBooksAtTheirOwnPositions', 'carPlayWithoutHistoryExplainsHowToChooseARecordingAndStillBrowses', 'finishedBookRemainsCompleteAcrossColdCarConnectionUntilExplicitReplay', 'preparingTheRestoredCarQueueExposesPausedControlsWithoutAutoplay', 'privateBookHistoryIsBoundedAndSurvivesSignedOutRestartWithoutExposingTitles'},
@@ -78,7 +79,7 @@ for report in (root/'android/app/build/outputs/androidTest-results/connected').r
         found.add(classname+'.'+case.get('name'))
 assert found == expected, 'Missing native acceptance results: '+repr(expected-found)
 screenshots = root / 'android/app/build/native-acceptance/screenshots'
-for name in ['community-home', 'sermon-archive', 'member-sign-in', 'automatic-sync', 'audio-library']:
+for name in ['community-home', 'sermon-archive', 'member-sign-in', 'automatic-sync', 'audio-library', 'reader-bars-visible', 'reader-bars-hidden']:
     matches = list(screenshots.rglob(name+'.png'))
     assert len(matches) == 1, 'Missing or duplicate native screenshot: '+name
     data = matches[0].read_bytes()

@@ -38,6 +38,9 @@ for (const width of [320, 390]) {
     expect(Math.abs(fan.y + fan.height - origin.y)).toBeLessThan(1)
     expect(fan.x).toBeGreaterThanOrEqual(0)
     expect(fan.x + fan.width).toBeLessThanOrEqual(width)
+    const base = await wheel(page).locator('.navigation-wheel-base').boundingBox()
+    expect(Math.abs(base.y - origin.y)).toBeLessThanOrEqual(1.1)
+    expect(Math.abs(base.y + base.height - 844)).toBeLessThan(1)
     for (const label of ['Chapters', 'Audiobooks', 'Books', 'Reading plans', 'Cancel navigation']) {
       const bounds = await wheel(page).getByRole('button', { name: label, exact: true }).boundingBox()
       expect(bounds.y + bounds.height).toBeLessThanOrEqual(origin.y + 1)
@@ -47,6 +50,43 @@ for (const width of [320, 390]) {
     await page.keyboard.press('Escape')
   })
 }
+
+test('a right-edge hold on a narrow phone keeps each visible label inside its own sector', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 })
+  await page.goto('/#/genesis/1')
+  const title = await page.locator('.navigation-wheel-trigger').boundingBox()
+  const origin = { x: title.x + title.width * .95, y: title.y + title.height / 2 }
+  await page.mouse.move(origin.x, origin.y)
+  await page.mouse.down()
+  await expect(wheel(page)).toBeVisible()
+  for (const label of ['Chapters', 'Audiobooks', 'Books', 'Reading plans']) {
+    const choice = wheel(page).getByRole('button', { name: label, exact: true })
+    const renderedLines = await choice.locator('.navigation-wheel-label').evaluate(node => {
+      const lines = []
+      const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT)
+      let text
+      while ((text = walker.nextNode())) {
+        const range = document.createRange()
+        range.selectNodeContents(text)
+        for (const rect of range.getClientRects()) {
+          if (rect.width > 0) lines.push({ x: rect.x, y: rect.y, width: rect.width, height: rect.height })
+        }
+      }
+      return lines
+    })
+    expect(renderedLines.length).toBeGreaterThan(0)
+    for (const line of renderedLines) {
+      expect(line.y + line.height).toBeLessThanOrEqual(origin.y + 1)
+      expect(line.x).toBeGreaterThanOrEqual(0)
+      expect(line.x + line.width).toBeLessThanOrEqual(320)
+      const belongsToChoice = await choice.evaluate((node, rect) => [rect.x + 1, rect.x + rect.width - 1].every(x => node.contains(document.elementFromPoint(x, rect.y + rect.height / 2))), line)
+      expect(belongsToChoice, `${label} must not be clipped by its sector`).toBe(true)
+    }
+  }
+  await page.screenshot({ path: test.info().outputPath('navigation-wheel-320-right-edge.png') })
+  await page.mouse.up()
+  await page.keyboard.press('Escape')
+})
 
 for (const label of ['Chapters', 'Audiobooks', 'Books', 'Reading plans']) {
   test(`holding and sliding upward selects ${label}`, async ({ page }) => {
