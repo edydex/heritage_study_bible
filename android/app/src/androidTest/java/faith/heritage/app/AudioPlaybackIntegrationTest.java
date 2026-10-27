@@ -515,7 +515,10 @@ public class AudioPlaybackIntegrationTest {
         await(() -> hint.get() != null);
         assertEquals(androidx.media3.session.SessionError.ERROR_INVALID_STATE, hint.get().code);
         assertTrue(hint.get().message.contains("Choose a recording"));
-        assertFalse(main(() -> browser.getPlayWhenReady()));
+        // An explicit Play may leave playWhenReady set on an empty player;
+        // absence of audible playback and an empty queue are the contract.
+        assertFalse(main(() -> browser.isPlaying()));
+        assertEquals(0, (int) main(() -> browser.getMediaItemCount()));
         // Independently exercise a real legacy car Play while still empty.
         // Do not require delivery of the platform's transient error state.
         carCommand("play", null);
