@@ -1,7 +1,9 @@
 # Listening and quick navigation
 
-Tap the reader's chapter title to choose a chapter. Hold it to open the
-navigation wheel, slide to a section, and release. Releasing without selecting
+Tap the reader's chapter title to choose a chapter. Hold it to open an upper
+half-wheel anchored at the held title, slide upward toward a section, and
+release. Every destination stays above the finger; the fan does not move its
+center higher up the screen. Releasing without selecting
 keeps the wheel open for tapping. The wheel is available in the Bible and book
 readers; Escape, Android Back, the center button, or tapping outside dismisses it.
 Keyboard users can open it with Shift+Enter and use arrows or Tab.
