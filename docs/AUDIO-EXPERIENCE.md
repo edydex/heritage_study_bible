@@ -41,8 +41,17 @@ Connecting restores the last recording's queue, position and speed and prepares
 it while paused, so Android Auto can expose its player. It never starts playback. The car's explicit Play starts or resumes it. Android Auto
 may send its own Play command according to its “Start music automatically”
 setting; Heritage never issues Play merely because a browser connects. With no
-saved recording, explicit Play displays a hint to choose Audiobooks or Bible.
+saved recording, explicit Play reports a hint to choose Audiobooks or Bible.
 The car can browse and select a recording immediately afterward.
+
+The empty-history hint is a nonfatal session error. Media3 controllers receive
+it through `onError`; legacy car hosts receive best-effort playback-state
+feedback. Media3 1.11.1 sets and immediately clears that legacy error, so Android
+can coalesce both state notifications before a host observes the message.
+Acceptance checks the modern error callback separately and still requires a
+legacy car to remain paused, browse and successfully play a selected recording.
+See the pinned
+[Media3 legacy adapter](https://github.com/androidx/media/blob/1.11.1/libraries/session/src/main/java/androidx/media3/session/MediaSessionLegacyStub.java#L1419-L1431).
 
 The implementation follows Android's
 [playback and resumption guidance](https://developer.android.com/training/cars/media/enable-playback)
