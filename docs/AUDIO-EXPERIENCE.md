@@ -51,7 +51,7 @@ can coalesce both state notifications before a host observes the message.
 Acceptance checks the modern error callback separately and still requires a
 legacy car to remain paused, browse and successfully play a selected recording.
 See the pinned
-[Media3 legacy adapter](https://github.com/androidx/media/blob/1.11.1/libraries/session/src/main/java/androidx/media3/session/MediaSessionLegacyStub.java#L1419-L1431).
+[Media3 legacy adapter](https://github.com/androidx/media/blob/1.11.1/libraries/session/src/main/java/androidx/media3/session/MediaSessionLegacyStub.java#L1511-L1523).
 
 The implementation follows Android's
 [playback and resumption guidance](https://developer.android.com/training/cars/media/enable-playback)
