@@ -1,4 +1,4 @@
-import{u as h,s as l,j as e,R as d}from"./index-DhZLWUin.js";const m=[{id:"before-the-throne",title:"Before the Throne of God Above",author:"Charitie Lees Bancroft",year:1863,stanzas:[`Before the throne of God above
+import{u as h,s as l,j as e,R as d}from"./index-DAxwyOSL.js";const m=[{id:"before-the-throne",title:"Before the Throne of God Above",author:"Charitie Lees Bancroft",year:1863,stanzas:[`Before the throne of God above
 I have a strong and perfect plea:
 A great High Priest whose name is Love,
 Who ever lives and pleads for me.
