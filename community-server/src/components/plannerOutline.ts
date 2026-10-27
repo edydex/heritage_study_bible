@@ -1,3 +1,4 @@
+import presentationText from '../../packages/service-core/node/services/project/PresentationText.js'
 import { nextPointPrefix } from './plannerTemplates'
 
 export type OutlineRow = {
@@ -14,21 +15,14 @@ function sliceSpans(spans: any[], start: number, end: number) {
 export function parseOutline(text: string, spans: any[] = []): OutlineRow[] {
   if (!text) return []
   const rows: (OutlineRow & {start: number})[] = []
-  let offset = 0, parentId: string | undefined
-  for (const line of text.split('\n')) {
-    const main = line.match(/^((?:[IVXLCDM]+|\d+)[.)])([ \t]+)(.*)$/u)
-    const sub = main ? null : line.match(/^(\s*)([A-Z]+[.)])([ \t]+)(.*)$/u)
-    if (!main && !sub && rows.length) {
-      rows[rows.length-1].text += '\n' + line
-    } else {
-      const marker = main?.[1] || sub?.[2] || ''
-      const prefix = main ? main[1]+main[2] : sub ? sub[1]+sub[2]+sub[3] : ''
-      const id = `line-${offset}`
-      rows.push({id,kind:main ? 'point' : sub ? 'subpoint' : 'text',parentId:sub ? parentId : undefined,
-        marker,prefix,text:line.slice(prefix.length),spans:[],prefixSpans:[],start:offset})
-      if (main) parentId = id
-    }
-    offset += line.length + 1
+  let parentId: string | undefined
+  for (const range of presentationText.outlineParagraphs(text)) {
+    const prefix=text.slice(range.start,range.prefixEnd), marker=prefix.trim();
+    const main=/^(?:[IVXLCDM]+|\d+)[.)]/u.test(prefix), sub=Boolean(prefix)&&!main;
+    const id=`line-${range.start}`;
+    rows.push({id,kind:main?'point':sub?'subpoint':'text',parentId:sub?parentId:undefined,
+      marker,prefix,text:text.slice(range.prefixEnd,range.end),spans:[],prefixSpans:[],start:range.start});
+    if(main)parentId=id;
   }
   return rows.map(({start, ...row}) => ({...row,
     prefixSpans:sliceSpans(spans,start,start+row.prefix.length),

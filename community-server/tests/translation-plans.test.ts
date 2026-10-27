@@ -86,3 +86,16 @@ test('service-specific sharing choice is explicit; reject malformed, duplicate a
   const plan = serviceTranslationPlan({ syncId: 's', translationPlan: { schemaVersion: 1, revision: 1, serviceRevision: input.serviceRevision, settings }, revision: input.serviceRevision }, 2)
   assert.deepEqual(plan.settings, settings)
 })
+
+test('the operator receives compiled cue settings without receiving authored slide content',async()=>{
+ const {default:core}=await import('../packages/service-core/index.js')
+ let project=core.createServiceProject({id:'cue-plan',title:'Cue plan',serviceDate:'2026-09-24',preferredProfileId:'main-sanctuary',presetPack:{id:'main-sanctuary',version:1,sha256:null},channels:[{id:'english',label:'English',language:'en'},{id:'russian',label:'Russian',language:'ru'}]})
+ const cue={sourceLanguage:'en',targetLanguage:'ru',voice:'marin',speechEnabled:true,captionStyle:'ticker',captionChannel:'russian'}
+ project=core.addProjectItem(project,{id:'first',kind:'notice',title:'Private title',textByChannel:{english:'Private authored slide text'},translationCues:{self:'start'},translationCueSettings:{self:cue}})
+ const source=core.serializeHeritageServiceDocument(core.createHeritageServiceDocument({...project,revision:1}))
+ const plan=serviceTranslationPlan({syncId:'service-1',title:'Sunday',serviceDate:'2026-09-24',revision:'a'.repeat(64),documentSource:source},2)
+ assert.equal(plan.translationCues!.length,1)
+ assert.deepEqual(plan.translationCues![0].settings,cue)
+ assert.equal(plan.translationCues![0].id,core.compileServiceProject(project).cueIds[0])
+ assert.ok(!JSON.stringify(plan).includes('Private authored slide text'))
+})

@@ -2,17 +2,9 @@ import { randomBytes } from 'node:crypto'
 import { sql } from 'drizzle-orm'
 import type { CollectionAfterLoginHook, PayloadRequest } from 'payload'
 import { communityPublicConfig } from './publicConfig'
+import { workspaceInvitationContent, workspaceLanguage, workspaceLanguageURL } from './workspaceLanguage'
 
 export const WORKSPACE_INVITATION_HOURS = 24
-
-function escapeHTML(value: unknown) {
-  return String(value || '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;')
-}
 
 /** The recipient chooses their password; invitation creation never elevates systemRole. */
 export async function sendWorkspaceInvitation(
@@ -21,6 +13,7 @@ export async function sendWorkspaceInvitation(
     email: string
     displayName?: string | null
     role: string
+    preferredLanguage?: string | null
   },
 ) {
   const { payload } = req
@@ -47,6 +40,7 @@ export async function sendWorkspaceInvitation(
         systemRole: 'member',
         accountProtection: 'email',
         syncGeneration: 1,
+        preferredLanguage: workspaceLanguage(invitation.preferredLanguage),
       },
     })
   }
@@ -60,16 +54,13 @@ export async function sendWorkspaceInvitation(
     expiration: WORKSPACE_INVITATION_HOURS * 60 * 60_000,
   })
   if (!token) throw new Error('Workspace account could not be prepared.')
-  const setupURL = `${communityPublicConfig.publicUrl}/admin/reset/${encodeURIComponent(token)}`
-  const loginURL = `${communityPublicConfig.publicUrl}/admin/login`
-  const role =
-    invitation.role === 'admin' ? 'church administrator' : 'church leader'
-  const name = communityPublicConfig.name
+  const language = workspaceLanguage(invitation.preferredLanguage)
+  const setupURL = workspaceLanguageURL(`${communityPublicConfig.publicUrl}/admin/reset/${encodeURIComponent(token)}`, language)
+  const loginURL = workspaceLanguageURL(`${communityPublicConfig.publicUrl}/admin/login`, language)
   await payload.sendEmail({
     to: email,
-    subject: `You’re invited to the ${name} workspace`,
-    text: `You have been invited as a ${role} at ${name}.\n\nSet your workspace password: ${setupURL}\n\nThis setup link expires in ${WORKSPACE_INVITATION_HOURS} hours. Already have a workspace password? Sign in at ${loginURL} instead. Your invitation is accepted when you sign in.\n\nThe church workspace is where you prepare services, manage songs and create sermon slides. Heritage reader sign-in is separate. If the setup link expires, use Forgot Password on the workspace sign-in page.`,
-    html: `<p>You have been invited as a <strong>${escapeHTML(role)}</strong> at ${escapeHTML(name)}.</p><p><a href="${escapeHTML(setupURL)}">Set your workspace password</a></p><p>This setup link expires in ${WORKSPACE_INVITATION_HOURS} hours. Already have a workspace password? <a href="${escapeHTML(loginURL)}">Sign in to the church workspace</a> instead. Your invitation is accepted when you sign in.</p><p>The church workspace is where you prepare services, manage songs and create sermon slides. Heritage reader sign-in is separate.</p><p>If the setup link expires, use Forgot Password on the workspace sign-in page.</p>`,
+    ...workspaceInvitationContent({ name: communityPublicConfig.name, role: invitation.role,
+      setupURL, loginURL, hours: WORKSPACE_INVITATION_HOURS, language }),
   })
 }
 

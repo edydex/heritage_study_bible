@@ -1,4 +1,5 @@
 'use client'
+import { useWorkspaceText } from './useWorkspaceText'
 import { useEffect, useRef, useState } from 'react'
 import SlideText from './SlideText'
 import { outlineEditorRows, outlineWithGuides, parseOutline, serializeOutline, updateOutlineRow, type OutlineRow } from './plannerOutline'
@@ -7,6 +8,7 @@ const EMPTY_SPANS: any[] = []
 export default function OutlineSlideEditor({text,spans=EMPTY_SPANS,channelId,onCommit}: {
   text: string; spans?: any[]; channelId: string; onCommit: (text: string, spans: any[]) => void
 }) {
+  const t = useWorkspaceText()
   const [rows,setRows] = useState(()=>parseOutline(text,spans))
   const [expandedId,setExpandedId] = useState<string | null>(null)
   const current = useRef(rows), container = useRef<HTMLDivElement>(null)
@@ -45,9 +47,9 @@ export default function OutlineSlideEditor({text,spans=EMPTY_SPANS,channelId,onC
       <span className="heritage-service-planner__outline-marker" aria-hidden="true" style={{color:row.prefixSpans[0]?.foreground,fontWeight:row.prefixSpans[0]?.weight}}>{row.prefix}</span>
       <SlideText text={row.text} spans={row.spans} role="outline-text" canFormat
         label={`${channelId} ${row.kind==='subpoint' ? `sub-point ${row.marker} under ${rows.find(value=>value.id===row.parentId)?.marker}` : row.kind==='point' ? `point ${row.marker}` : 'outline text'}`}
-        placeholder={row.kind==='subpoint' ? 'Add sub-point…' : 'Add point…'}
+        placeholder={row.kind==='subpoint' ? t("Add sub-point…") : t("Add point…")}
         onDraftChange={(value,styles)=>update(row,value,styles)} onCommit={commit} onAdvance={()=>advance(row)} />
-      {addSubpoint ? <button type="button" className="heritage-service-planner__add-subpoint" aria-label={`Add sub-point ${addSubpoint.marker} under ${rows.find(value=>value.id===addSubpoint.parentId)?.marker}`} title="Add a sub-point" onClick={()=>setExpandedId(addSubpoint.id)}>+ {addSubpoint.marker}</button> : null}
+      {addSubpoint ? <button type="button" className="heritage-service-planner__add-subpoint" aria-label={`Add sub-point ${addSubpoint.marker} under ${rows.find(value=>value.id===addSubpoint.parentId)?.marker}`} title={t("Add a sub-point")} onClick={()=>setExpandedId(addSubpoint.id)}>+ {addSubpoint.marker}</button> : null}
     </div>)}
   </div>
 }

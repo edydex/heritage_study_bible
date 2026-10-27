@@ -52,11 +52,6 @@ export function GET() {
             schemaVersion: 1,
             endpoint: 'songs',
             scopes: ['syncshow:songs:read', 'syncshow:songs:write'],
-            memberSharing: {
-              schemaVersion: 1,
-              endpoint: 'song-member-sharing',
-              reviewScope: 'community-members',
-            },
           },
           songPublicLinks: {
             schemaVersion: 1,

@@ -1,4 +1,6 @@
+import RecentWorkspaceActivity from './RecentWorkspaceActivity'
 import AdminWelcome from './AdminWelcome'
+import { communityPublicConfig } from '@/lib/publicConfig'
 import type { AdminViewServerProps } from 'payload'
 import { redirect } from 'next/navigation'
 import { workspaceSignInRedirect } from '../lib/workspaceNavigation'
@@ -8,7 +10,8 @@ export default function AdminDashboard(props: AdminViewServerProps) {
   if (signIn) redirect(signIn)
   return (
     <main className="heritage-admin-workspace">
-      <AdminWelcome />
+      <AdminWelcome name={communityPublicConfig.name} />
+      <RecentWorkspaceActivity />
     </main>
   )
 }

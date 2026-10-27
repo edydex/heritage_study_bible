@@ -114,6 +114,7 @@ test(
       const invite = (
         address: string,
         role: 'admin' | 'leader' | 'member' = 'admin',
+        preferredLanguage: 'en' | 'ru' = 'en',
       ) =>
         payload.create({
           collection: 'community-invites',
@@ -123,6 +124,7 @@ test(
             community: church.id,
             email: address,
             role,
+            preferredLanguage,
             active: true,
             sendEmailNow: true,
           },
@@ -351,6 +353,27 @@ test(
         'system-admin',
         'existing system role is preserved',
       )
+
+      const russianEmail = `russian-${suffix}@example.test`
+      const russianInvite = await invite(russianEmail, 'leader', 'ru')
+      const russianAccount = await account(russianEmail)
+      assert.equal(russianAccount.preferredLanguage, 'ru')
+      assert.equal(russianAccount.systemRole, 'member')
+      const russianMessage = messages.at(-1)
+      assert.match(russianMessage.subject, /Приглашение/)
+      assert.match(russianMessage.text, /Создать пароль/)
+      assert.match(russianMessage.text, /language=ru/)
+      const russianToken = russianMessage.text.match(/\/admin\/reset\/([a-f0-9]+)/)[1]
+      const russianSignIn = await payload.resetPassword({ collection: 'users', overrideAccess: false,
+        data: { token: russianToken, password: randomUUID() } })
+      assert.equal(russianSignIn.user.preferredLanguage, 'ru')
+      assert.equal((await members(russianAccount.id)).docs[0].role, 'leader')
+      assert.ok((await payload.findByID({ collection: 'community-invites', id: russianInvite.id })).acceptedAt)
+      const ownerInvitation = (await payload.find({ collection: 'community-invites', overrideAccess: true,
+        where: { and: [{ community: { equals: church.id } }, { email: { equals: admin.email } }] } })).docs[0]
+      await payload.update({ collection: 'community-invites', id: ownerInvitation.id, overrideAccess: false,
+        user: actor, data: { active: true, preferredLanguage: 'ru', sendEmailNow: true } })
+      assert.equal((await account(admin.email)).preferredLanguage, 'en', 'existing account language is preserved')
 
       failMail = true
       const failedEmail = `failure-${suffix}@example.test`

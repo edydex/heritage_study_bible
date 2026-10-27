@@ -1,3 +1,5 @@
+import { isScripturePageGroup } from './plannerScriptureGroups'
+
 type Project = Record<string, any>
 
 /** A reading's first numbered slide is also its visual parent in the outline. */
@@ -19,7 +21,7 @@ export function sectionOwner(project: Project, selectedId: string | null): strin
   let current = selectedId
   while (current) {
     const item = project.items[current]
-    if (isReadingGroup(project, item) || isSongGroup(project, item)) return current
+    if (isReadingGroup(project, item) || isSongGroup(project, item) || isScripturePageGroup(project, item)) return current
     current = (Object.values(project.items) as any[]).find(
       value => value.kind === 'group' && value.childIds.includes(current))?.id || null
   }
@@ -112,6 +114,10 @@ export function attachSectionBlanks(project: Project): boolean {
 }
 
 export function appendBlankSlide(project: Project, itemId: string) {
+  // Automatic closing blanks belong to service readings/songs, never sermon slides.
+  const source = project.items[itemId]
+  if (source?.kind === 'sermon' || source?.kind === 'bible'
+    && ['wotbc-sermon-scripture', 'wotbc-sermon-verse'].includes(source.presetId)) return project
   const next = JSON.parse(JSON.stringify(project)), item = next.items[itemId]
   const id = `${itemId}-blank`
   if (!next.items[id]) {
