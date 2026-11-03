@@ -9,6 +9,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -33,6 +34,7 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class ReaderChromeIntegrationTest {
     @Rule public ActivityScenarioRule<MainActivity> activity = new ActivityScenarioRule<>(MainActivity.class);
+    private String lastGestureTarget = "none";
 
     private String js(String source) throws Exception {
         CountDownLatch done = new CountDownLatch(1);
@@ -48,12 +50,25 @@ public class ReaderChromeIntegrationTest {
     }
 
     private void await(Callable<Boolean> condition) throws Exception {
+        await("Reader condition", condition);
+    }
+
+    private void await(String stage, Callable<Boolean> condition) throws Exception {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(25);
         while (System.nanoTime() < deadline) {
             if (condition.call()) return;
             Thread.sleep(100);
         }
-        fail("Reader/system-bar condition timed out; route=" + js("location.hash") + "; bars=" + bars());
+        String evidence = "stage=" + stage + "; bars=" + bars() + "; lastTarget=" + lastGestureTarget
+            + "; reader=" + js("JSON.stringify((()=>{const target=document.querySelector('.navigation-wheel-trigger');"
+                + "const rect=target?.getBoundingClientRect();const hit=rect?document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2):null;"
+                + "return {route:location.hash,scrollY,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},"
+                + "visualViewport:visualViewport?{height:visualViewport.height,offsetTop:visualViewport.offsetTop,scale:visualViewport.scale}:null,"
+                + "title:target?{text:target.textContent,rect:rect.toJSON(),hit:hit?.outerHTML.slice(0,300)}:null,"
+                + "targetReady:window.__nativeTitleTarget,pointerEvents:window.__nativeTitleEvents,body:document.body.innerText.slice(0,500)}})())");
+        try { screenshot("reader-failure"); }
+        catch (Exception error) { evidence += "; screenshotError=" + error; }
+        fail("Reader acceptance condition timed out; " + evidence);
     }
 
     private JSONObject bars() {
@@ -82,7 +97,7 @@ public class ReaderChromeIntegrationTest {
     }
 
     private void awaitBars(boolean visible) throws Exception {
-        await(() -> bars().optBoolean("statusVisible", !visible) == visible
+        await("Both system bars " + (visible ? "visible" : "hidden"), () -> bars().optBoolean("statusVisible", !visible) == visible
             && bars().optBoolean("navigationVisible", !visible) == visible);
         await(() -> {
             String cssBottom = js("parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--native-safe-bottom'))");
@@ -114,8 +129,50 @@ public class ReaderChromeIntegrationTest {
             float density = instance.getResources().getDisplayMetrics().density;
             result.set(new float[] { location[0] + (float) css.optDouble("x") * density,
                 location[1] + (float) css.optDouble("y") * density });
+            lastGestureTarget = selector + "; css=" + css + "; nativeWeb={x:" + location[0] + ",y:" + location[1]
+                + ",width:" + web.getWidth() + ",height:" + web.getHeight() + ",density:" + density + "}";
         });
         return result.get();
+    }
+
+    private void awaitVisualCommit() throws Exception {
+        CountDownLatch painted = new CountDownLatch(1);
+        activity.getScenario().onActivity(instance -> {
+            WebView web = instance.getBridge().getWebView();
+            assertTrue("Native gesture requires a visible focused WebView", web.isShown() && web.hasWindowFocus());
+            // DOM queries can succeed before WebView has committed the route's
+            // frame and hit-test tree. The callback guarantees the next draw
+            // contains the queried DOM; observe that draw before native input.
+            web.postVisualStateCallback(System.nanoTime(), new WebView.VisualStateCallback() {
+                @Override public void onComplete(long requestId) {
+                    web.postInvalidateOnAnimation();
+                    web.postOnAnimation(() -> web.postOnAnimation(painted::countDown));
+                }
+            });
+        });
+        assertTrue("WebView did not commit the native gesture target", painted.await(10, TimeUnit.SECONDS));
+    }
+
+    private float[] readyTitleCenter() throws Exception {
+        js("window.__nativeTitleTarget={ready:false};(()=>{let previous='',lastNode=null,stable=0;"
+            + "const sample=()=>{const node=document.querySelector('.navigation-wheel-trigger'),rect=node?.getBoundingClientRect();"
+            + "const x=rect?rect.x+rect.width/2:-1,y=rect?rect.y+rect.height/2:-1,hit=document.elementFromPoint(x,y);"
+            + "const hittable=Boolean(node&&rect.width>0&&rect.height>0&&x>0&&y>0&&x<innerWidth&&y<innerHeight"
+            + "&&node.contains(hit)&&getComputedStyle(node).pointerEvents!=='none'&&node.checkVisibility?.({checkOpacity:true,checkVisibilityCSS:true})!==false);"
+            + "const signature=JSON.stringify([rect?.x,rect?.y,rect?.width,rect?.height,innerWidth,innerHeight,scrollY]);"
+            + "stable=hittable&&node===lastNode&&signature===previous?stable+1:0;previous=signature;lastNode=node;"
+            + "window.__nativeTitleTarget={ready:stable>=2,hittable,stable,signature};"
+            + "if(stable<2)requestAnimationFrame(sample)};requestAnimationFrame(sample)})()");
+        await("Title has a stable unobstructed touch target", () -> "true".equals(js("window.__nativeTitleTarget.ready")));
+        awaitVisualCommit();
+        return screenCenter(".navigation-wheel-trigger");
+    }
+
+    private void traceTitlePointerEvents() throws Exception {
+        js("window.__nativeTitleEvents=[];for(const type of ['pointerdown','pointerup','pointercancel','touchstart','touchend','touchcancel','click'])"
+            + "document.addEventListener(type,event=>{window.__nativeTitleEvents.push({type:event.type,pointerType:event.pointerType,"
+            + "x:event.clientX,y:event.clientY,target:event.target.tagName+'.'+event.target.className,time:performance.now()});"
+            + "if(window.__nativeTitleEvents.length>32)window.__nativeTitleEvents.shift()},true)");
     }
 
     private void touch(int action, long downTime, float x, float y) {
@@ -219,12 +276,13 @@ public class ReaderChromeIntegrationTest {
         js("location.hash='/genesis/1';window.scrollTo({top:0,behavior:'instant'})");
         await(() -> "true".equals(js("Boolean(document.querySelector('#verse-1-1') && document.querySelector('.navigation-wheel-trigger'))")));
         awaitBars(true);
-        float[] title = screenCenter(".navigation-wheel-trigger");
+        traceTitlePointerEvents();
+        float[] title = readyTitleCenter();
         long tapDown = SystemClock.uptimeMillis();
         touch(MotionEvent.ACTION_DOWN, tapDown, title[0], title[1]);
         Thread.sleep(80);
         touch(MotionEvent.ACTION_UP, tapDown, title[0], title[1]);
-        await(() -> "true".equals(js("document.body.innerText.includes('Select Book')")));
+        await("One native short title tap opens Select Book", () -> "true".equals(js("document.body.innerText.includes('Select Book')")));
         InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
         await(() -> "false".equals(js("document.body.innerText.includes('Select Book')")));
 
@@ -233,7 +291,7 @@ public class ReaderChromeIntegrationTest {
         Thread.sleep(800);
         js("window.scrollTo({top:520,behavior:'instant'})");
         awaitBars(false);
-        title = screenCenter(".navigation-wheel-trigger");
+        title = readyTitleCenter();
         long downTime = SystemClock.uptimeMillis();
         float x = title[0], y = title[1];
         touch(MotionEvent.ACTION_DOWN, downTime, x, y);
