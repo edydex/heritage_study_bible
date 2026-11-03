@@ -72,6 +72,9 @@ the actual form, dictionary form (lemma), part of speech and applicable tense /
 aspect, voice, mood, person, number, case and gender. Open a term for a short
 explanation in **English** or **Russian**. The explanation language is remembered.
 Grammar belongs to that exact occurrence, rather than every occurrence of its lemma.
+Device volume scrolling follows the open Word Study dialog. At its end, repeated
+down presses cannot advance the Bible chapter behind it; closing the dialog
+restores Bible scrolling.
 
 The pilot preserves all **8,675 source tokens** in Romans and Colossians, including
 **71 occurrences with different functional and form-oriented tags**. Both analyses

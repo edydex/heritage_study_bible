@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { studyWord, sourceVerseWords, loadOccurrenceTranslations, occurrenceKey } from '../services/wordStudy'
 import GreekWordForm from './GreekWordForm'
+import { NATIVE_READER_TARGET_CHANGE_EVENT } from '../services/androidControls'
 
 export function OccurrenceText({ text, ranges = [] }) {
   const merged = []
@@ -34,7 +35,8 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
   useEffect(() => {
     const node = dialog.current
     node.showModal()
-    return () => node.close()
+    window.dispatchEvent(new Event(NATIVE_READER_TARGET_CHANGE_EVENT))
+    return () => { node.close(); window.dispatchEvent(new Event(NATIVE_READER_TARGET_CHANGE_EVENT)) }
   }, [])
   useEffect(() => {
     let live = true
@@ -57,7 +59,7 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
     try { setSourceWords(await sourceVerseWords(word)) } catch { setSourceError(true) }
     finally { setSourceLoading(false) }
   }
-  return <dialog ref={dialog} onCancel={onClose} onClick={event => { if (event.target === dialog.current) onClose() }} className="word-study-dialog rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-5" aria-label={`Word study: ${word.word}`}>
+  return <dialog ref={dialog} data-word-study-scroll-region="true" onCancel={onClose} onClick={event => { if (event.target === dialog.current) onClose() }} className="word-study-dialog overflow-y-auto rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-5" aria-label={`Word study: ${word.word}`}>
     <header className="flex items-center justify-between gap-4"><h2 className="text-xl font-semibold">{studyTarget.word}</h2><button autoFocus onClick={onClose} aria-label="Close word study" className="p-2">✕</button></header>
     {word.notes?.length > 0 && <details className="mt-3 text-sm"><summary>Reading note</summary>{word.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}
     {word.translationId !== 'ORIGINAL' && !word.sourceRange && <div className="mt-3 border rounded p-3">

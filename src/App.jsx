@@ -160,6 +160,10 @@ function getBestScrollTarget() {
   if (isEditableTarget(active)) return null
   if (document.querySelector('[role="dialog"][aria-modal="true"]')) return null
 
+  const wordStudy = document.querySelector('dialog[open][data-word-study-scroll-region="true"]')
+  if (wordStudy) return wordStudy
+  if (document.querySelector('dialog[open]')) return null
+
   // An open commentary pane owns the buttons even when its content is short.
   // Falling through here would scroll Scripture hidden behind the pane.
   const commentary = document.querySelector('[data-commentary-scroll-region="true"]')
@@ -457,8 +461,8 @@ function AndroidReaderControls({ enabled, volumeScrollAnimationMs = 0, volumeScr
       const now = performance.now()
       if (now < blockNativeScrollUntilRef.current) return
 
-      const isCommentary = target.matches('[data-commentary-scroll-region="true"]')
-      if (direction !== 'down' || isCommentary) {
+      const isOverlay = target.matches('[data-commentary-scroll-region="true"], [data-word-study-scroll-region="true"]')
+      if (direction !== 'down' || isOverlay) {
         lastBottomDownPressAtRef.current = 0
       } else if (isScrollTargetAtBottom(target)) {
         if (lastBottomDownPressAtRef.current > 0 && now - lastBottomDownPressAtRef.current <= NATIVE_VOLUME_NEXT_DOUBLE_PRESS_MS) {
