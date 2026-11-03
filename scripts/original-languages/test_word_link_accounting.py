@@ -6,6 +6,26 @@ from shared_phrase_links import transfer_groups
 SPEC = importlib.util.spec_from_file_location('accounting', Path(__file__).with_name('audit-nt-word-links.py'))
 audit = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(audit)
+REVIEW_SPEC = importlib.util.spec_from_file_location('reviews', Path(__file__).with_name('compile-reviewed-links.py'))
+reviews = importlib.util.module_from_spec(REVIEW_SPEC)
+REVIEW_SPEC.loader.exec_module(reviews)
+
+
+class ArticleAuxiliaries(unittest.TestCase):
+    def test_a_stranded_auxiliary_is_rejected_using_the_actual_original_article_identity(self):
+        lemmas = [{'lemma': 'ὁ', 'strongs': ['3588']}, {'lemma': 'ζάω', 'strongs': ['2198']}]
+        words = {'1:1': [[0, 1, 0], [2, 5, 1]]}
+        reference = {'chapter': 1, 'verse': 1}
+        incorrect = {'groups': [{'sourceTokens': [0], 'targetPhrases': [{'text': 'who is'}]}, {'sourceTokens': [1], 'targetPhrases': [{'text': 'living'}]}]}
+        with self.assertRaisesRegex(AssertionError, 'sole Greek article'):
+            reviews.validate_article_auxiliaries(incorrect, words, lemmas, reference)
+        corrected = {'groups': [{'sourceTokens': [0], 'targetPhrases': [{'text': 'who'}]}, {'sourceTokens': [1], 'targetPhrases': [{'text': 'is living'}]}]}
+        reviews.validate_article_auxiliaries(corrected, words, lemmas, reference)
+
+    def test_a_foreign_source_uses_its_own_lemma_and_whole_constituents_remain_allowed(self):
+        lemmas = [{'lemma': 'ὁ', 'strongs': ['3588']}, {'lemma': 'ζάω', 'strongs': ['2198']}]
+        words = {'1:1': [[0, 1, 0], [2, 5, 1]], '1:2': [[0, 5, 1]]}
+        reviews.validate_article_auxiliaries({'groups': [{'sourceTokens': [0], 'sourceReference': {'chapter': 1, 'verse': 2}, 'targetPhrases': [{'text': 'is living'}]}, {'sourceTokens': [0, 1], 'targetPhrases': [{'text': 'who is living'}]}]}, words, lemmas, {'chapter': 1, 'verse': 1})
 
 
 class PhraseTransfer(unittest.TestCase):
@@ -62,6 +82,19 @@ class WordAccounting(unittest.TestCase):
         self.assertEqual(counts['source']['mappedWords'], 1)
         self.assertEqual(counts['source']['explainedUnpairedWords'], 1)
         self.assertEqual(counts['target']['mappedWords'], 2)
+        self.assertEqual(gaps, {})
+
+    def test_a_source_only_boundary_review_does_not_inflate_the_reviewed_english_verse_count(self):
+        source = {'1:1': 'α', '1:2': 'β'}
+        target = {'1:1': 'A B'}
+        entries = {
+            '1:1': {'sourceText': 'α', 'targetText': 'A B', 'groups': [{'source': [0, 1], 'target': [0, 1]}, {'sourceAnchors': [{'chapter': 1, 'verse': 2, 'startOffset': 0, 'endOffset': 1, 'text': 'β'}], 'target': [2, 3]}], 'review': {'completeAccounting': True}},
+            '1:2': {'sourceText': 'β', 'targetText': '', 'groups': [], 'targetAbsent': True, 'review': {'completeAccounting': True}},
+        }
+        counts, gaps = audit.audit_book(source, target, entries)
+        self.assertEqual(counts['reviewedTargetVerseRecords'], 1)
+        self.assertEqual(counts['reviewedSourceOnlyRecords'], 1)
+        self.assertTrue(counts['completeReviewedBook'])
         self.assertEqual(gaps, {})
 
 

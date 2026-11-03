@@ -1140,7 +1140,7 @@
           ],
           "targetPhrases": [
             {
-              "text": "who is",
+              "text": "who",
               "occurrence": 0
             }
           ]
@@ -1306,7 +1306,13 @@
         }
       ],
       "unmappedSource": [],
-      "unmappedTarget": []
+      "unmappedTarget": [
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies is in who is mightier. Greek has the article and comparative adjective, the mightier one, without a separate being verb in that phrase."
+        }
+      ]
     },
     "1:8": {
       "sourceText": "ἐγὼ ἐβάπτισα ὑμᾶς ὕδατι, αὐτὸς δὲ βαπτίσει ὑμᾶς Πνεύματι Ἁγίῳ.",

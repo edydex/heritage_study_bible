@@ -27,6 +27,20 @@ for (const target of ['BSB', 'LSV', 'KJV']) it(`${target} links the final Corint
   expect(greeting.id).not.toBe(grace.id)
 })
 
+for (const target of ['BSB', 'LSV', 'KJV']) it(`${target} connects the separate Greek 3 John closing to its English 1:14 counterpart`, () => {
+  const data = mapping(target, '3-john'), original = sourceBook('3 John')
+  const links = chapterWordAnchors({ primaryData: data, secondaryData: null, primaryBook: translation(target, '3-john'), secondaryBook: original, sourceBook: original, chapter: 1 })
+  expect(links.invalidReferences).toEqual([])
+  const text = data.verses['1:14'].targetText
+  const peace = links.primary.get('1:14').find(link => text.slice(link.startOffset, link.endOffset) === 'Peace')
+  const rawText = original.chapters[0].verses.find(verse => verse.number === 15).text
+  const rawPeace = links.secondary.get('1:15').find(link => rawText.slice(link.startOffset, link.endOffset) === 'Εἰρήνη')
+  expect(peace.id).toBe(rawPeace.id)
+  expect(peace.studySourceAnchors).toMatchObject([{ chapter: 1, verse: 15, text: 'Εἰρήνη' }])
+  expect(links.primary.has('1:15')).toBe(false)
+  if (target === 'KJV') expect(links.primaryNotes.get('1:14').some(note => /possessive/.test(note.reason))).toBe(true)
+})
+
 it('studies each Thessalonian verb at its own lemma despite their shared English may in the preceding verse', () => {
   const data = mapping('LSV', '2-thessalonians'), original = sourceBook('2 Thessalonians')
   const links = chapterWordAnchors({ primaryData: data, secondaryData: null, primaryBook: translation('LSV', '2-thessalonians'), secondaryBook: original, sourceBook: original, chapter: 2 })

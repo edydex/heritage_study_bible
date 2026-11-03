@@ -25,6 +25,21 @@ def merge(ranges):
         else:out.append([a,b])
     return out
 
+def validate_article_auxiliaries(review,source_words,lemmas,reference):
+    """An English verbal auxiliary cannot be attributed to a sole article.
+
+    The actual source occurrence metadata distinguishes articles from accented
+    lookalikes. A complete multiword constituent remains permitted; this check
+    never guesses an alternative verb or edits a review automatically.
+    """
+    for group in review['groups']:
+        if len(group['sourceTokens'])!=1:continue
+        ref=group.get('sourceReference',reference)
+        words=source_words[f"{ref['chapter']}:{ref['verse']}"]
+        lemma=lemmas[words[group['sourceTokens'][0]][2]]
+        if not any(str(strong).lstrip('0')=='3588' for strong in lemma['strongs']):continue
+        assert not any(re.search(r'\b(?:is|are|was|were)\b',phrase['text'],re.I) for phrase in group['targetPhrases']), 'A sole Greek article cannot anchor an English verbal auxiliary. Link the actual predicate or explain a supplied copula.'
+
 def compile_verse(review,source_text,target_text,allow_incomplete=False,source_verses=None,reference=None):
     assert review['sourceText']==source_text,'Reviewed Greek text differs from displayed witness'
     assert review['targetText']==target_text,'Reviewed translation differs from displayed edition'
@@ -97,7 +112,10 @@ def compile_verse(review,source_text,target_text,allow_incomplete=False,source_v
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--reviews',type=Path,default=ROOT/'scripts/original-languages/reviewed-lsv');p.add_argument('--input',type=Path,default=DATA/'lsv-word-links');p.add_argument('--output',type=Path,required=True);p.add_argument('--target',default='LSV');p.add_argument('--allow-incomplete',action='store_true');p.add_argument('--registry',type=Path);p.add_argument('--all-reviews',action='store_true');a=p.parse_args()
-    greek=corpus(read(DATA/'greek-nt-n1904.json'));target=corpus(read(ROOT/f'public/data/translations/{a.target}.json'))
+    greek_corpus=read(DATA/'greek-nt-n1904.json');greek=corpus(greek_corpus);target=corpus(read(ROOT/f'public/data/translations/{a.target}.json'))
+    concordance=read(DATA/'greek-concordance.json')
+    assert concordance['sourceSha256']==greek_corpus['sources'][0]['sha256'],'Review metadata belongs to a different Greek source'
+    source_words={book['name']:book['verses'] for book in concordance['books']}
     registry=a.registry or a.reviews.parent/f'{a.target.lower()}-review-status.json'
     if a.output.resolve()==(DATA/f'{a.target.lower()}-word-links').resolve() and not registry.exists():
         raise ValueError('Canonical review output requires an accepted-resource registry')
@@ -124,7 +142,9 @@ def main():
             raw_ref=f"{source_ref['chapter']}:{source_ref['verse']}"
             assert raw_ref in greek[book] or entry.get('sourceAbsent'),'Missing source reference needs an explicit witness-absence review'
             assert ref in target[book] or entry.get('targetAbsent'),'Missing target reference needs an explicit witness-absence review'
-            try:compiled=compile_verse(entry,greek[book].get(raw_ref,''),target[book].get(ref,''),a.allow_incomplete,greek[book],source_ref)
+            try:
+                compiled=compile_verse(entry,greek[book].get(raw_ref,''),target[book].get(ref,''),a.allow_incomplete,greek[book],source_ref)
+                validate_article_auxiliaries(entry,source_words[book],concordance['lemmas'],source_ref)
             except (AssertionError,ValueError) as e:raise ValueError(f'{path.name} {ref}: {e}') from e
             absolute=path.resolve()
             compiled['review']['resource']=absolute.relative_to(ROOT).as_posix() if absolute.is_relative_to(ROOT) else path.name

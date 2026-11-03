@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "book": "3 John",
+  "chapter": 1,
+  "verses": {
+    "1:14": {
+      "sourceText": "ἐλπίζω δὲ εὐθέως σε ἰδεῖν, καὶ στόμα πρὸς στόμα λαλήσομεν.",
+      "targetText": "But I trust I shall shortly see thee, and we shall speak face to face. Peace be to thee. Our friends salute thee. Greet the friends by name.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I trust",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "shortly",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "thee",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 1
+            },
+            {
+              "text": "shall",
+              "occurrence": 0
+            },
+            {
+              "text": "see",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            7,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "face to face",
+              "occurrence": 0
+            }
+          ],
+          "note": "The Greek idiom mouth to mouth is rendered face to face in this English edition."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "we shall speak",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Peace",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 15
+          }
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "to thee",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 15
+          }
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "salute",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 15
+          }
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "thee",
+              "occurrence": 2
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 15
+          }
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "friends",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 15
+          }
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Greet",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 15
+          }
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 15
+          }
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "friends",
+              "occurrence": 1
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 15
+          }
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 15
+          }
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "name",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 15
+          }
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "be",
+          "occurrence": 0,
+          "reason": "English supplies a copula in the Greek nominal peace greeting."
+        },
+        {
+          "text": "Our",
+          "occurrence": 0,
+          "reason": "English supplies an inclusive possessive with friends; the Greek has the definite article and friends, without a written our pronoun."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/blob/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph/Nestle1904.csv",
+        "note": "The Greek witness has a separate closing greeting at 1:15; this translation joins it to 1:14. The original witness reference and wording remain unchanged."
+      }
+    },
+    "1:15": {
+      "sourceText": "Εἰρήνη σοι. ἀσπάζονταί σε οἱ φίλοι. ἀσπάζου τοὺς φίλους κατ’ ὄνομα.",
+      "targetText": "",
+      "groups": [],
+      "sourceMoved": [
+        {
+          "tokens": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "targetReference": {
+            "chapter": 1,
+            "verse": 14
+          },
+          "reason": "The Greek witness numbers the closing peace and friends greeting 1:15; this English edition prints it at the end of 1:14. Exact source anchors are retained there."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "The Greek definite article with friends is not separately expressed by an English definite article. A supplied English possessive is explained at 1:14."
+        }
+      ],
+      "targetAbsent": true,
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/blob/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph/Nestle1904.csv",
+        "note": "The Greek witness has a separate closing greeting at 1:15; this translation joins it to 1:14. The original witness reference and wording remain unchanged."
+      }
+    }
+  }
+}

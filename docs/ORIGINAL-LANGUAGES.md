@@ -200,7 +200,13 @@ mechanical validation and a separate assistant semantic review. Accepted source
 files are hash-pinned; editing one requires renewing that review entry. New draft
 chapters are excluded. This is assistant review, with the reader's review still
 pending, rather than a claim of human scholarly certification. The generated
-index records the current accepted resources and reviewed-verse count.
+index records the current accepted resources and reviewed-entry count, including
+source-only boundary records whose English counterpart is at another reference.
+The compiler also uses the exact occurrence's article identity to reject a sole
+Greek article linked to English `is`, `are`, `was` or `were`. Such an auxiliary
+belongs with an actual predicate or needs a supplied-copula explanation. Complete
+nominal constituents remain supported; this guard does not invent a substitute
+verb or replace semantic review.
 
 The source witness reference is an explicit part of an anchor. For example,
 Philippians 1:16–17 is transposed between LSV and N1904; John and Romans also move

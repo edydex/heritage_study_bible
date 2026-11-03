@@ -60,7 +60,7 @@ def audit_book(source, target, entries):
         assert isinstance(start, int) and isinstance(end, int) and 0 <= start < end <= len(texts[side][ref]), f'Invalid {side} range {ref}: {start}:{end}'
         ownership[side, status][ref].update(i for i, (a, b, _) in enumerate(words[side][ref]) if start <= a and end >= b)
 
-    complete_reviews = []
+    complete_reviews, source_only_reviews = [], []
     for ref, entry in entries.items():
         raw_reference = entry.get('sourceReference')
         raw_ref = f"{raw_reference['chapter']}:{raw_reference['verse']}" if raw_reference else ref
@@ -84,10 +84,11 @@ def audit_book(source, target, entries):
             assert note['reason'].strip()
             cover('target', ref, note['startOffset'], note['endOffset'], 'explained')
         if review.get('completeAccounting'):
-            complete_reviews.append(ref)
+            (complete_reviews if ref in target else source_only_reviews).append(ref)
     counts = {'targetVerseRecords': len(target), 'sourceVerseRecords': len(source),
               'linkedVerseRecords': sum(bool(entry['groups']) for entry in entries.values()),
               'reviewedTargetVerseRecords': len(complete_reviews),
+              'reviewedSourceOnlyRecords': len(source_only_reviews),
               'groups': sum(len(entry['groups']) for entry in entries.values())}
     gaps = {}
     for side in texts:
@@ -127,6 +128,7 @@ def main():
                 for name, count in books[book][key].items():
                     if name != 'mappedPercent':totals[f'{key}_{name}'] += count
             totals['reviewedTargetVerseRecords'] += books[book]['reviewedTargetVerseRecords']
+            totals['reviewedSourceOnlyRecords'] += books[book]['reviewedSourceOnlyRecords']
             totals['completeReviewedBooks'] += books[book]['completeReviewedBook']
         report['translations'][target_id] = {'manifestSha256': sha(folder / 'index.json'), 'totals': dict(totals), 'books': books, 'unresolved': gaps}
     args.output.parent.mkdir(parents=True, exist_ok=True)
