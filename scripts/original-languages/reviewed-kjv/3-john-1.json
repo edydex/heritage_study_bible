@@ -2,7 +2,2305 @@
   "schemaVersion": 1,
   "book": "3 John",
   "chapter": 1,
+  "review": {
+    "method": "Explicit full lexical/constituent review of exact N1904 Greek and displayed KJV; author spacing_audit. Existing accepted entries retained verbatim. Pending independent semantic peer and reader review; no automatic global synonym links.",
+    "references": [
+      "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+      "https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml"
+    ]
+  },
   "verses": {
+    "1:1": {
+      "sourceText": "Ὁ πρεσβύτερος Γαΐῳ τῷ ἀγαπητῷ, ὃν ἐγὼ ἀγαπῶ ἐν ἀληθείᾳ.",
+      "targetText": "THE elder unto the wellbeloved Gaius, whom I love in the truth.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "THE",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "elder",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "unto",
+              "occurrence": 0
+            },
+            {
+              "text": "Gaius",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative Gaius gives the recipient, rendered unto Gaius without a separately printed Greek unto preposition."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "wellbeloved",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual beloved adjective is intensified as wellbeloved; no separate Greek well adverb is printed."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "whom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "love",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the truth",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:2": {
+      "sourceText": "Ἀγαπητέ, περὶ πάντων εὔχομαί σε εὐοδοῦσθαι καὶ ὑγιαίνειν, καθὼς εὐοδοῦταί σου ἡ ψυχή.",
+      "targetText": "Beloved, I wish above all things that thou mayest prosper and be in health, even as thy soul prospereth.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Beloved",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "above all things",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual concerning-all-things phrase is rendered above all things in KJV. This may express comprehensive concern or English priority wording; the actual peri relation is retained, not relabeled as a printed hyper/above preposition, and no priority conclusion is drawn from this mapping."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "I wish",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "thou",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            },
+            {
+              "text": "mayest prosper",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual prosperity infinitive is rendered as the English finite content clause that thou mayest prosper; that/mayest are this complement framing, not additional printed Greek words."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "be in health",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual be-healthy verb is rendered be in health as one predicate; no separate Greek copula, in preposition or health noun is printed."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "even as",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "prospereth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "thy",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "soul",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:3": {
+      "sourceText": "ἐχάρην γὰρ λίαν ἐρχομένων ἀδελφῶν καὶ μαρτυρούντων σου τῇ ἀληθείᾳ, καθὼς σὺ ἐν ἀληθείᾳ περιπατεῖς.",
+      "targetText": "For I rejoiced greatly, when the brethren came and testified of the truth that is in thee, even as thou walkest in the truth.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I rejoiced",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "greatly",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "when",
+              "occurrence": 0
+            },
+            {
+              "text": "came",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual genitive participle in the brethren-coming construction gives the temporal circumstance, rendered when ... came."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the brethren",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "testified of",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual testimony verb takes the dative truth object; of states that English testimony relation without a separate Greek of preposition."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "in thee",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive your qualifies truth; English recasts that personal truth/fidelity relation as in thee, without a separately printed en preposition."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            },
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual definite article identifies the truth qualified by your. English uses the and a relative that to state that one adjectival relation; the additional is copula is separately explained."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "truth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "even as",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "thou",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "the truth",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "walkest",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies a copula in a Greek nominal expression; no corresponding finite Greek being verb is printed."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:4": {
+      "sourceText": "μειζοτέραν τούτων οὐκ ἔχω χαράν, ἵνα ἀκούω τὰ ἐμὰ τέκνα ἐν τῇ ἀληθείᾳ περιπατοῦντα.",
+      "targetText": "I have no greater joy than to hear that my children walk in truth.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "greater",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "than",
+              "occurrence": 0
+            },
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual than-these plus the explanatory hina clause identifies the joy content; KJV renders that whole comparative/content frame than ... that, without a separate Greek that-clause claim."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "no",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "I have",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "joy",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "to hear",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "children",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "truth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "walk",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        },
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:5": {
+      "sourceText": "Ἀγαπητέ, πιστὸν ποιεῖς ὃ ἐὰν ἐργάσῃ εἰς τοὺς ἀδελφοὺς καὶ τοῦτο ξένους,",
+      "targetText": "Beloved, thou doest faithfully whatsoever thou doest to the brethren, and to strangers;",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Beloved",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "faithfully",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual faithful adjective is the object/complement of you-do; KJV renders it adverbially as faithfully. The source is not changed to a Greek adverb."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "thou doest",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "whatsoever",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "thou doest",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "brethren",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "strangers",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "Actual and-this emphasizes that the same brothers served are strangers. KJV instead presents a separate to-strangers coordinated phrase and does not separately render this emphatic demonstrative."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "to",
+          "occurrence": 1,
+          "reason": "English repeats the beneficiary preposition before strangers; no second Greek eis/to is printed at that position."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:6": {
+      "sourceText": "οἳ ἐμαρτύρησάν σου τῇ ἀγάπῃ ἐνώπιον ἐκκλησίας, οὓς καλῶς ποιήσεις προπέμψας ἀξίως τοῦ Θεοῦ·",
+      "targetText": "Which have borne witness of thy charity before the church: whom if thou bring forward on their journey after a godly sort, thou shalt do well:",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Which",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "have borne witness of",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual testified verb is expressed as have borne witness of; no separate Greek bearing verb or witness noun is printed."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "thy",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "charity",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "before",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the church",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "whom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "well",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "thou shalt do",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "if thou bring forward on their journey",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual sending-on/journey-assistance participle is rendered conditionally as if thou bring forward on their journey. If and journey/possessive are English expansion of that one conditional participial action, not independent Greek words."
+        },
+        {
+          "sourceTokens": [
+            11,
+            12,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "after a godly sort",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual worthily-of-God is rendered after a godly sort as one adverbial constituent. The actual God noun remains part of that head/relation; no separate Greek godly adjective is invented."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:7": {
+      "sourceText": "ὑπὲρ γὰρ τοῦ Ὀνόματος ἐξῆλθαν μηδὲν λαμβάνοντες ἀπὸ τῶν ἐθνικῶν.",
+      "targetText": "Because that for his name’s sake they went forth, taking nothing of the Gentiles.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            },
+            {
+              "text": "sake",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual on-behalf-of relation is rendered for ... sake, without a separately printed sake noun."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Because that",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual explanatory for is rendered Because that, a single older English causal connector."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "name’s",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Name is genitive under hyper/on-behalf-of; English makes name possessive inside for name’s sake. This does not supply a separately printed person/title identifier."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "they went forth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "nothing",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "taking",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Gentiles",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "his",
+          "occurrence": 0,
+          "reason": "KJV supplies a name possessor his; pinned N1904 writes the Name without a personal possessive here."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:8": {
+      "sourceText": "ἡμεῖς οὖν ὀφείλομεν ὑπολαμβάνειν τοὺς τοιούτους, ἵνα συνεργοὶ γινώμεθα τῇ ἀληθείᾳ.",
+      "targetText": "We therefore ought to receive such, that we might be fellowhelpers to the truth.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "We",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "therefore",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "ought",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "to receive",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "such",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "fellowhelpers",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "we might be",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual become first-plural subjunctive is rendered we might be; this does not substitute a Greek eimi be lemma."
+        },
+        {
+          "sourceTokens": [
+            9,
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "to the truth",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual dative article and truth noun jointly supply the to-the-truth coworker relation; no separately printed Greek to preposition occurs."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:9": {
+      "sourceText": "Ἔγραψά τι τῇ ἐκκλησίᾳ· ἀλλ’ ὁ φιλοπρωτεύων αὐτῶν Διοτρεφὴς οὐκ ἐπιδέχεται ἡμᾶς.",
+      "targetText": "I wrote unto the church: but Diotrephes, who loveth to have the preeminence among them, receiveth us not.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I wrote",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2,
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "unto the church",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "loveth to have the preeminence",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual philoproteuo is one compound verb expressing love of first place, rendered loveth to have the preeminence. No separate Greek have verb or preeminence noun is printed."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "among them",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Diotrephes",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "receiveth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "us",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "Pinned N1904 writes indefinite something as the writing object; KJV does not render it separately and follows a shorter source reading at this point."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:10": {
+      "sourceText": "διὰ τοῦτο, ἐὰν ἔλθω, ὑπομνήσω αὐτοῦ τὰ ἔργα ἃ ποιεῖ λόγοις πονηροῖς φλυαρῶν ἡμᾶς, καὶ μὴ ἀρκούμενος ἐπὶ τούτοις οὔτε αὐτὸς ἐπιδέχεται τοὺς ἀδελφοὺς καὶ τοὺς βουλομένους κωλύει καὶ ἐκ τῆς ἐκκλησίας ἐκβάλλει.",
+      "targetText": "Wherefore, if I come, I will remember his deeds which he doeth, prating against us with malicious words: and not content therewith, neither doth he himself receive the brethren, and forbiddeth them that would, and casteth them out of the church.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Wherefore",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "if",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "I come",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "I will remember",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hypomimnesko remind/call-attention-to is rendered I will remember in the older active reminding sense. The source is not changed to a simple remember-only mnemonic head."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "his",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "deeds",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "which",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "he doeth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            },
+            {
+              "text": "words",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual instrumental dative words expresses the means of prating, rendered with ... words without a separately printed Greek with preposition."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "malicious",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "prating",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "against us",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual accusative us is the object/target of the prating, rendered against us without a printed Greek against preposition."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "content",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17,
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "therewith",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "neither",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "he himself",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "doth",
+              "occurrence": 0
+            },
+            {
+              "text": "receive",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "brethren",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "them that",
+              "occurrence": 0
+            },
+            {
+              "text": "them",
+              "occurrence": 1
+            }
+          ],
+          "note": "The actual willing people are both forbidden and expelled in the immediately coordinated action. English repeats them as the cast-out object without a second written Greek object pronoun."
+        },
+        {
+          "sourceTokens": [
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "would",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual willing participle is rendered would in the older volitional sense, not a separately written modal-only form."
+        },
+        {
+          "sourceTokens": [
+            27
+          ],
+          "targetPhrases": [
+            {
+              "text": "forbiddeth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            28
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            29
+          ],
+          "targetPhrases": [
+            {
+              "text": "out of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            30
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            31
+          ],
+          "targetPhrases": [
+            {
+              "text": "church",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            32
+          ],
+          "targetPhrases": [
+            {
+              "text": "casteth",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:11": {
+      "sourceText": "Ἀγαπητέ, μὴ μιμοῦ τὸ κακὸν ἀλλὰ τὸ ἀγαθόν. ὁ ἀγαθοποιῶν ἐκ τοῦ Θεοῦ ἐστιν· ὁ κακοποιῶν οὐχ ἑώρακεν τὸν Θεόν.",
+      "targetText": "Beloved, follow not that which is evil, but that which is good. He that doeth good is of God: but he that doeth evil hath not seen God.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Beloved",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "follow",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual mimeomai imitate is rendered follow in the imitation/model sense, not a different Greek following/travel verb."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "that which",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "evil",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "that which",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "good",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "He that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "doeth good",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "he that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "doeth evil",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "hath",
+              "occurrence": 0
+            },
+            {
+              "text": "seen",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            18
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies a copula in a Greek nominal expression; no corresponding finite Greek being verb is printed."
+        },
+        {
+          "text": "is",
+          "occurrence": 1,
+          "reason": "English supplies a copula in a Greek nominal expression; no corresponding finite Greek being verb is printed."
+        },
+        {
+          "text": "but",
+          "occurrence": 1,
+          "reason": "KJV adds a contrast connector before the evil-doer clause; pinned N1904 has no separate but at that clause opening."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:12": {
+      "sourceText": "Δημητρίῳ μεμαρτύρηται ὑπὸ πάντων καὶ ὑπὸ αὐτῆς τῆς ἀληθείας· καὶ ἡμεῖς δὲ μαρτυροῦμεν, καὶ οἶδας ὅτι ἡ μαρτυρία ἡμῶν ἀληθής ἐστιν.",
+      "targetText": "Demetrius hath good report of all men, and of the truth itself: yea, and we also bear record; and ye know that our record is true.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Demetrius",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "hath good report",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual perfect passive attestation verb is rendered hath good report. Good expresses the positive testimony context; no separate Greek have verb, good adjective or report noun is printed."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hypo marks the testimony agents, rendered older English of; the source remains hypo, not a genitive possession preposition."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "all men",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            }
+          ],
+          "note": "The second actual hypo likewise marks the source/agent truth, rendered of."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "itself",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "truth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "yea",
+              "occurrence": 0
+            },
+            {
+              "text": "and",
+              "occurrence": 1
+            },
+            {
+              "text": "also",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kai/de jointly add the author’s testimony; KJV expands that transition as yea, and ... also. No extra Greek yes particle is asserted."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "we",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "bear record",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual finite testify verb is rendered bear record; no independent Greek bear verb or record noun is printed."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "know",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual singular knowing form corresponds to KJV plural-address know, with the unlike English subject separately explained."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "record",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "true",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            16
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "ye",
+          "occurrence": 0,
+          "reason": "Source-witness number difference: KJV ye know follows a plural address, whereas pinned N1904 oidas is singular you know. The knowing head remains linked without relabeling the actual singular subject plural."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:13": {
+      "sourceText": "Πολλὰ εἶχον γράψαι σοι, ἀλλ’ οὐ θέλω διὰ μέλανος καὶ καλάμου σοι γράφειν·",
+      "targetText": "I had many things to write, but I will not with ink and pen write unto thee:",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "many things",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "I had",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to write",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "I will",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual thelo wanting/willing is rendered I will in its volitional sense, not relabeled as a future tense marker."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "ink",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "pen",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual reed denotes the writing reed/pen in this context; no other writing-instrument noun is substituted."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "unto thee",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "write",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "Actual first to-you writing recipient is not separately expressed in KJV’s opening to-write clause; the source contains a second to-you that is retained with the final writing predicate."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed KJV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
     "1:14": {
       "sourceText": "ἐλπίζω δὲ εὐθέως σε ἰδεῖν, καὶ στόμα πρὸς στόμα λαλήσομεν.",
       "targetText": "But I trust I shall shortly see thee, and we shall speak face to face. Peace be to thee. Our friends salute thee. Greet the friends by name.",
