@@ -2,6 +2,8 @@ import { expect, it } from 'vitest'
 import { greekLemmaIds, greekOccurrences, interactiveWordRanges, normalizeWord } from './wordStudy'
 import concordance from '../../public/data/original-languages/greek-concordance.json'
 import corpus from '../../public/data/original-languages/greek-nt-n1904.json'
+import philemonBsb from '../../public/data/original-languages/bsb-word-links/philemon.json'
+import { verseWordLinks } from '../data/originalLanguages'
 it('keeps every lemma range within the corresponding source verse', () => {
   let count = 0
   const errors = []
@@ -43,4 +45,12 @@ it('distinguishes Assos and the possessive his from lookalike adverbs at their e
   expect(concordance.metadataCorrections).toHaveLength(3)
   expect(concordance.metadataCorrections.every(row => row.original.lemma && row.corrected.lemma && row.evidence.length)).toBe(true)
   expect(concordance.sourceSha256).toBe(corpus.sources[0].sha256)
+})
+it('opens the personal lemma for Philemon’s ours while retaining the full in-us construction', () => {
+  const entry = philemonBsb.verses['1:6']
+  const link = verseWordLinks(philemonBsb, 1, 6, entry.sourceText, entry.targetText).target.find(word => entry.targetText.slice(word.startOffset, word.endOffset) === 'ours')
+  expect(link).toBeTruthy()
+  const ids = greekLemmaIds(concordance, { ...link, translationId: 'BSB', book: 'Philemon', chapter: 1, verse: 6, word: 'ours' })
+  expect(concordance.lemmas[ids[0]].strongs).toContain('1473')
+  expect(ids.map(id => concordance.lemmas[id].strongs).flat()).toContain('1722')
 })

@@ -166,6 +166,26 @@ test('the Corinthian benediction highlights Greek 13:13 from English 13:14', asy
   await expect(original).toBeInViewport()
 })
 
+test('Hebrews keeps the festal assembly at its actual Greek verse instead of inventing a place noun', async ({ page }) => {
+  await compareJohn(page, 'ORIGINAL')
+  await page.goto('/#/hebrews/12')
+  if (await page.getByTitle('Enable parallel mode', { exact: true }).count()) {
+    await page.getByTitle('Enable parallel mode', { exact: true }).click()
+    await page.getByRole('button', { name: 'Original languages', exact: true }).click()
+    await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).click()
+  }
+  const english = page.locator('#verse-12-23 [data-translation="LSV"] [data-word-link]:visible').filter({ hasText: /^place$/ })
+  const greek = page.locator('#verse-12-22 [data-translation="ORIGINAL"] [data-word-link]:visible').filter({ hasText: /^πανηγύρει$/ })
+  await expectSameTint(english, greek)
+  await english.click()
+  await expect(greek).toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('button', { name: 'Show Original 12:22', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  const study = page.getByRole('dialog')
+  await expect(study).toContainText('G3831')
+  await expect(study).not.toContainText('G5117')
+})
+
 for (const dark of [false, true]) test(`a verse has distinct matching word colors in ${dark ? 'dark' : 'light'} mode`, async ({ page }) => {
   await page.setViewportSize({ width: 430, height: 932 })
   await page.addInitScript(dark => localStorage.setItem('heritage-dark-mode', String(dark)), dark)

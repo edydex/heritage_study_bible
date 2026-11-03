@@ -6,6 +6,16 @@ The manifests record current groups and linked references across all 27 NT books
 
 The concordance applies three documented occurrence-specific annotation errata before positional matching. Its artifact hash and errata hash are pinned in KJV provenance in addition to the unchanged raw Greek source checksum. The accepted correction registry is `scripts/original-languages/kjv-review-status.json`; unreviewed drafts are excluded.
 
+Philemon has a complete verse-by-verse review in both BSB and KJV, including
+existing publisher links, missing counterparts and all unpaired wording. The
+review keeps such differences as KJV's plural “we have” versus N1904's singular
+“I had,” and its closing “Lord” versus the printed “Christ.” Shared recipients,
+repayment objects and greeting predicates retain their actual original
+references across verse boundaries. The KJV subscription after the closing
+verse is explicitly explained as absent from the pinned Greek; its Rome and
+Onesimus wording does not acquire invented source anchors. Browser cases check
+these differences and the word-study paths through the actual shipped data.
+
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
 To rebuild, download the pinned OSIS file and N1904 morphology, then run:

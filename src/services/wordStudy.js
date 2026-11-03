@@ -56,8 +56,8 @@ function prioritizeGreekLemmas(ids, data, word) {
   if (word.translationId === 'ORIGINAL' || ids.length < 2 || !data.lemmas) return ids
   const preferred = {
     the: ['3588'], and: ['2532','1161','5037'], but: ['235','1161'], or: ['2228'],
-    i: ['1473'], me: ['1473'], my: ['1473'], our: ['1473'], we: ['1473'], us: ['1473'],
-    you: ['4771'], your: ['4771'], he: ['846'], him: ['846'], his: ['846'], she: ['846'], her: ['846'], they: ['846'], them: ['846'], their: ['846'],
+    i: ['1473'], me: ['1473'], my: ['1473'], mine: ['1473'], our: ['1473'], ours: ['1473'], we: ['1473'], us: ['1473'],
+    you: ['4771'], your: ['4771'], yours: ['4771'], he: ['846'], him: ['846'], his: ['846'], she: ['846'], her: ['846'], hers: ['846'], they: ['846'], them: ['846'], their: ['846'], theirs: ['846'],
   }[normalizeWord(word.word || '')] || []
   const grammatical = new Set(['3588','2532','1161','5037','235','2228','1473','4771','846','1519','1722','1537','1223','2596','5228','4012','1909','4314','3326','4862','575'])
   const rank = id => {
