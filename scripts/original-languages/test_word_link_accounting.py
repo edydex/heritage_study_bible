@@ -97,6 +97,15 @@ class WordAccounting(unittest.TestCase):
         self.assertTrue(counts['completeReviewedBook'])
         self.assertEqual(gaps, {})
 
+    def test_an_unreviewed_alternative_original_ending_keeps_the_book_incomplete(self):
+        source = {'16:8': 'α', '16:99': 'β'}
+        target = {'16:8': 'A'}
+        entries = {'16:8': {'sourceText': 'α', 'targetText': 'A', 'groups': [{'source': [0, 1], 'target': [0, 1]}], 'review': {'completeAccounting': True}}}
+        counts, gaps = audit.audit_book(source, target, entries)
+        self.assertTrue(counts['allTargetReferencesReviewed'])
+        self.assertFalse(counts['completeReviewedBook'])
+        self.assertEqual(gaps['16:99']['source'][0]['text'], 'β')
+
 
 if __name__ == '__main__':
     unittest.main()

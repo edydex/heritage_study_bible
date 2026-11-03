@@ -102,7 +102,8 @@ def audit_book(source, target, entries):
                 gaps.setdefault(ref, {})[side] = [{'index': i, 'start': spans[i][0], 'end': spans[i][1], 'text': spans[i][2]} for i in sorted(unresolved)]
         counts[side] = dict(totals)
         counts[side]['mappedPercent'] = round(100 * totals['mappedWords'] / totals['words'], 4) if totals['words'] else 0
-    counts['completeReviewedBook'] = set(complete_reviews) >= set(target)
+    counts['allTargetReferencesReviewed'] = set(complete_reviews) >= set(target)
+    counts['completeReviewedBook'] = counts['allTargetReferencesReviewed'] and all(counts[side]['unresolvedWords'] == 0 for side in texts)
     return counts, gaps
 
 

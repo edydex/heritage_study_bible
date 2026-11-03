@@ -1,4 +1,5 @@
 import { visibleVerseText } from '../data/originalLanguages'
+import { assignWordLinkColors } from './wordLinkColors'
 
 const referenceKey = ({ chapter, verse }) => `${chapter}:${verse}`
 const parseReference = key => { const [chapter, verse] = key.split(':').map(Number); return { chapter, verse } }
@@ -199,5 +200,5 @@ export function chapterWordAnchors({ primaryData, secondaryData, primaryBook, se
       result[side].get(ref).push(link)
     }
   }
-  return result
+  return assignWordLinkColors(result)
 }

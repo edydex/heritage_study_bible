@@ -16,6 +16,12 @@ function WordLink({ link, activeWordLink, onWordLink, onWordTap, children }) {
   return <span
     className={`bible-word-link${link.paired === false ? ' bible-word-unpaired' : ''}${activeWordLink === link.id ? ' bible-word-link-active' : ''}`}
     data-word-link={link.id} data-word-pattern={link.pattern}
+    data-word-color={link.pattern != null ? link.color?.index : undefined}
+    data-word-texture={link.pattern != null && link.color ? link.texture : undefined}
+    style={link.pattern != null && link.color ? {
+      '--word-link-light': link.color.light, '--word-link-dark': link.color.dark,
+      '--word-link-edge': link.color.edge, '--word-link-dark-edge': link.color.darkEdge,
+    } : undefined}
     data-word-paired={link.paired !== false}
     title={onWordTap ? 'Tap to highlight the match; hold (or Shift+Enter) for word study' : link.label} role="button" tabIndex={0} aria-label={link.label}
     aria-pressed={activeWordLink === link.id}

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-async function compareJohn(page, secondary) {
+async function compareJohn(page, secondary, monochrome = false) {
   await page.addInitScript(() => {
     localStorage.setItem('heritage-translation', 'LSV')
     localStorage.setItem('heritage-default-translation-v2', 'done')
@@ -10,7 +10,7 @@ async function compareJohn(page, secondary) {
   await page.getByRole('button', { name: secondary === 'ORIGINAL' ? 'Original languages' : 'English', exact: true }).click()
   await page.getByRole('button', { name: secondary === 'ORIGINAL' ? /^Original (Selected )?Original languages/ : /^KJV (Selected )?/ }).click()
   await expect(page.getByLabel('Word links', { exact: true })).toBeChecked()
-  await expect(page.locator('.word-links-color')).toBeVisible()
+  await expect(page.locator(monochrome ? '.word-links-monochrome' : '.word-links-color')).toBeVisible()
   await expect(page.getByText('Loading word links…', { exact: true })).toHaveCount(0)
   await expect(page.locator('#verse-1-1 [data-translation="LSV"] [data-word-paired="true"]:visible').first()).toBeVisible()
 }
@@ -164,4 +164,44 @@ test('the Corinthian benediction highlights Greek 13:13 from English 13:14', asy
   await expect(page.getByRole('region', { name: 'Selected word match' })).toContainText('Greek 13:13')
   await page.getByRole('button', { name: 'Show Original 13:13', exact: true }).click()
   await expect(original).toBeInViewport()
+})
+
+for (const dark of [false, true]) test(`a verse has distinct matching word colors in ${dark ? 'dark' : 'light'} mode`, async ({ page }) => {
+  await page.setViewportSize({ width: 430, height: 932 })
+  await page.addInitScript(dark => localStorage.setItem('heritage-dark-mode', String(dark)), dark)
+  await compareJohn(page, 'ORIGINAL')
+  const row = page.locator('#verse-1-14')
+  await row.scrollIntoViewIfNeeded()
+  const colors = await row.locator('[data-word-color]:visible').evaluateAll(nodes => nodes.map(node => ({
+    id: node.dataset.wordLink, color: getComputedStyle(node).backgroundColor,
+    texture: node.dataset.wordTexture, image: getComputedStyle(node).backgroundImage,
+  })))
+  const pairs = new Map()
+  for (const { id, color } of colors) {
+    if (!pairs.has(id)) pairs.set(id, new Set())
+    pairs.get(id).add(color)
+  }
+  expect(pairs.size).toBeGreaterThan(10)
+  expect([...pairs.values()].every(colors => colors.size === 1 && !colors.has('rgba(0, 0, 0, 0)'))).toBe(true)
+  expect(new Set([...pairs.values()].map(colors => [...colors][0])).size).toBe(pairs.size)
+  expect(new Set(colors.map(word => word.texture)).size).toBeGreaterThanOrEqual(6)
+  for (const id of pairs.keys()) {
+    const matches = colors.filter(word => word.id === id)
+    expect(new Set(matches.map(word => `${word.texture}:${word.image}`)).size).toBe(1)
+    expect(matches[0].image).not.toBe('none')
+  }
+  await row.screenshot({ animations: 'disabled', path: test.info().outputPath(`distinct-word-patterns-${dark ? 'dark' : 'light'}.png`) })
+  await page.getByLabel('Word links', { exact: true }).uncheck()
+  await expect(row.locator('[data-word-color]')).toHaveCount(0)
+  await expect(row.locator('[data-word-texture]')).toHaveCount(0)
+})
+
+test('B&W mode keeps underline patterns without the expanded color fills', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('heritage-audio-settings', JSON.stringify({ parallelMonochrome: true })))
+  await compareJohn(page, 'ORIGINAL', true)
+  const appearance = await page.locator('#verse-1-14 [data-word-pattern]:visible').evaluateAll(nodes => nodes.map(node => ({
+    fill: getComputedStyle(node).backgroundColor, pattern: getComputedStyle(node).backgroundImage,
+  })))
+  expect(appearance.length).toBeGreaterThan(20)
+  expect(appearance.every(word => word.fill === 'rgba(0, 0, 0, 0)' && word.pattern !== 'none')).toBe(true)
 })

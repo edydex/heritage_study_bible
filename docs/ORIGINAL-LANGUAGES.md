@@ -26,8 +26,14 @@ npx vitest run src/data/hebrewOriginal.test.js
 ## Greek New Testament word links and occurrences
 
 With BSB, LSV or KJV compared with Original languages—or with each other—the Greek New Testament offers
-**Word links**. Six subtle background tints repeat. **Settings → B&W word links**
-replaces them with patterns, including diagonal strokes distinct from dots.
+**Word links**. Each distinct checked correspondence has its own tint within a
+verse, plus a shared background texture: diagonal strokes, dots, horizontal or
+vertical lines, crosshatching, grids or rings. Nearby matches favor different
+colors and textures using the actual ordering in both translated columns and
+the original. Words translated together share the same combination, including
+counterparts at another verse reference. Uncertain words remain uncolored.
+**Settings → B&W** retains the six monochrome underline patterns. Light and dark
+fills preserve text contrast, and saved text highlights keep their own colors.
 Tap a word to emphasize its counterpart in both columns. **Study word**, a hold
 (450 ms), or **Shift+Enter** opens occurrences while retaining the selection.
 Moving a finger cancels a pending hold so scrolling is not mistaken for a word
