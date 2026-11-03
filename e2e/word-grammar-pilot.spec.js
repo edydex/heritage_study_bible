@@ -1,0 +1,80 @@
+import { test, expect } from '@playwright/test'
+
+test.use({ hasTouch: true, isMobile: true, viewport: { width: 430, height: 932 } })
+
+async function compareOriginal(page, translation, path) {
+  await page.addInitScript(id => {
+    localStorage.setItem('heritage-translation', id)
+    localStorage.setItem('heritage-default-translation-v2', 'done')
+  }, translation)
+  await page.goto(`/#/${path}`)
+  await page.getByTitle('Enable parallel mode', { exact: true }).tap()
+  await page.getByRole('button', { name: 'Original languages', exact: true }).tap()
+  await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).tap()
+}
+
+async function study(page, translation, chapter, verse, word) {
+  const token = page.locator(`#verse-${chapter}-${verse} [data-translation="${translation}"] [data-word-link]:visible`).filter({ hasText: word })
+  await expect(token).toHaveCount(1)
+  await token.tap()
+  await page.getByRole('button', { name: 'Study word', exact: true }).tap()
+  return page.getByRole('dialog')
+}
+
+for (const translation of ['LSV', 'BSB']) test(`${translation} checked rescue word opens its actual Colossians grammar`, async ({ page }) => {
+  await compareOriginal(page, translation, 'colossians/1')
+  const studyDialog = await study(page, translation, 1, 13, /^rescued$/)
+  const grammar = studyDialog.locator('[data-word-grammar]')
+  await expect(grammar).toBeVisible()
+  await expect(grammar.locator('[data-grammar-reference="Colossians:1:13"]')).toHaveCount(1)
+  await expect(grammar).toContainText('ἐρύσατο')
+  await expect(grammar).toContainText('ῥύομαι')
+  await expect(grammar).toContainText('Aorist')
+  await expect(grammar).toContainText('Indicative')
+  await expect(grammar).toContainText('Third person')
+  await expect(grammar).toContainText('Singular')
+  await grammar.getByText('Source analysis and limits', { exact: true }).tap()
+  await expect(grammar).toContainText('V-ANI-3S')
+  await expect(grammar).toContainText('V-ADI-3S')
+  await expect(grammar).toContainText('same Greek text')
+  await grammar.getByText('Source analysis and limits', { exact: true }).tap()
+  await expect(studyDialog.getByLabel('Verse wording')).toHaveValue(translation)
+  await expect(studyDialog.locator(`[data-occurrence-translation="${translation}"]`).first()).toBeVisible()
+  await studyDialog.evaluate(node => { node.scrollTop = 0 })
+  await page.screenshot({ path: test.info().outputPath(`${translation.toLowerCase()}-colossians-grammar.png`) })
+})
+
+test('Romans future form has the same lemma but retains its own tense', async ({ page }) => {
+  await compareOriginal(page, 'LSV', 'romans/7')
+  const studyDialog = await study(page, 'LSV', 7, 24, /^deliver$/)
+  const grammar = studyDialog.locator('[data-word-grammar]')
+  await expect(grammar.locator('[data-grammar-reference="Romans:7:24"]')).toHaveCount(1)
+  await expect(grammar).toContainText('ῥύσεται')
+  await expect(grammar).toContainText('ῥύομαι')
+  await expect(grammar.locator('summary').filter({ hasText: /Future/ })).toHaveCount(1)
+  await expect(grammar.locator('summary').filter({ hasText: /Aorist/ })).toHaveCount(0)
+  await grammar.getByRole('button', { name: 'Русский', exact: true }).tap()
+  await expect(grammar).toHaveAttribute('lang', 'ru')
+  await expect(grammar).toContainText('Будущее')
+  await expect(grammar).toContainText('кто избавит меня')
+})
+
+test('Synodal chooses an actual Greek form and shows Russian context without fabricated highlights', async ({ page }) => {
+  await compareOriginal(page, 'SYNO-W', 'colossians/1')
+  const studyDialog = await study(page, 'SYNO-W', 1, 13, /^избавившего$/)
+  await studyDialog.getByRole('button', { name: 'Изучить слова оригинала в этом стихе', exact: true }).tap()
+  await expect(studyDialog).toContainText('Точное соответствие русскому слову')
+  await studyDialog.getByRole('button', { name: 'ἐρύσατο', exact: true }).tap()
+  const grammar = studyDialog.locator('[data-word-grammar]')
+  await expect(grammar).toBeVisible()
+  await expect(grammar).toHaveAttribute('lang', 'ru')
+  await expect(grammar).toContainText('Аорист')
+  await expect(grammar).toContainText('Словарная форма')
+  await expect(studyDialog.getByLabel('Verse wording')).toHaveValue('SYNO-W')
+  const context = studyDialog.locator('[data-occurrence-translation="SYNO-W"]')
+  await expect(context.first()).toBeVisible()
+  await expect(context.filter({ hasText: 'избавившего нас от власти тьмы' })).toHaveCount(1)
+  await expect(context.locator('mark')).toHaveCount(0)
+  await studyDialog.evaluate(node => { node.scrollTop = 0 })
+  await page.screenshot({ path: test.info().outputPath('synodal-colossians-grammar.png') })
+})

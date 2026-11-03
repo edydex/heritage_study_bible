@@ -52,8 +52,8 @@ in this verse** opens the complete source verse and lets the reader choose a sou
 word; it does not guess which source word translates the selected English word.
 Tap a result to navigate to that verse.
 
-Each original-language occurrence includes the full selected English verse
-(**BSB**, **LSV** or **KJV**, with BSB as fallback). For
+Each original-language occurrence includes the full selected translated verse
+(**BSB**, **LSV**, **KJV**, or **Russian Synodal**, with BSB as fallback). For
 checked Greek correspondences, it also says **BSB · “translated phrase”** and
 highlights the actual translated wording and the matching Greek form. The same
 lemma can appear as “servant,” “slaves,” or “in slavery” in different contexts;
@@ -63,6 +63,49 @@ Unmapped words, differing editions and Hebrew/Aramaic results show the whole tra
 verse with an explicit notice that an exact word match is unavailable. Other
 translations' word-form searches remain labeled as such; this change does not
 invent Russian/Ukrainian word alignments.
+
+### Romans and Colossians grammar pilot
+
+**Word form here** describes the selected Greek occurrence, reached directly
+from Original or through a checked **LSV**, **BSB** or **KJV** word link. It shows
+the actual form, dictionary form (lemma), part of speech and applicable tense /
+aspect, voice, mood, person, number, case and gender. Open a term for a short
+explanation in **English** or **Russian**. The explanation language is remembered.
+Grammar belongs to that exact occurrence, rather than every occurrence of its lemma.
+
+The pilot preserves all **8,675 source tokens** in Romans and Colossians, including
+**71 occurrences with different functional and form-oriented tags**. Both analyses
+remain visible in source details; they are annotations of the same printed word,
+not different textual witnesses. Unknown code parts are never guessed. The
+optional Strong TVM suffix is not used because the source says it is not
+synchronized with its morphology.
+
+These are published per-occurrence tags with shared, reviewed explanations, not
+new interpretations generated on tap. Aorist notes distinguish an event viewed as
+a whole from a claim that it happened instantaneously or once for all. Two short
+context notes contrast Colossians 1:13 **ἐρύσατο** and Romans 7:24 **ῥύσεται** while
+keeping interpretation distinct from parsing. A lemma is a dictionary form,
+not an assertion about a word's historical root or its meaning in every passage.
+
+For **Russian Synodal**, unlinked words offer an explicit original-word chooser;
+the reader selects a Greek form before seeing its grammar. Synodal verse wording
+can accompany occurrence results, with no fabricated Russian word highlights.
+Full Russian and Ukrainian word alignment is outside this pilot. User/pastor
+review precedes grammar expansion beyond these two books; the NT mapping goal's
+review boundary before OT work remains in place.
+
+Rebuild the separate pilot artifact from the same pinned CSV as the concordance:
+
+```sh
+python3 scripts/original-languages/build-greek-morphology-pilot.py /path/to/Nestle1904/morph/Nestle1904.csv
+npx vitest run src/services/greekMorphology.test.js src/services/wordStudyRussianContext.test.js
+npx playwright test e2e/word-grammar-pilot.spec.js
+```
+
+Source code descriptions are retained under
+`scripts/original-languages/morphology-sources/` with checksums in the generated
+artifact. See [the source tagging guide](https://github.com/biblicalhumanities/Nestle1904/blob/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph/parsing.txt)
+and [Mounce's discussion of the aorist and context](https://www.billmounce.com/newtestamentgreek1/exegetical-insight-chapter-23).
 
 ### Old Testament lemma concordance
 

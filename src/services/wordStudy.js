@@ -150,10 +150,11 @@ export function occurrenceTranslation(row, alignment, targetText) {
 // Enrich only the currently displayed page. Successful book mappings are cached;
 // a failed request is retryable and never removes the original occurrence list.
 export async function loadOccurrenceTranslations(rows, sourceId, translationId = 'BSB') {
-  const targetId = greekWordLinkTranslations.includes(translationId) ? translationId : 'BSB'
-  const [corpus, original] = await Promise.all([loadTranslation(targetId), sourceId === 'N1904' ? loadTranslation('ORIGINAL') : null])
+  const targetId = [...greekWordLinkTranslations, 'SYNO-W'].includes(translationId) ? translationId : 'BSB'
+  const hasMappings = sourceId === 'N1904' && greekWordLinkTranslations.includes(targetId)
+  const [corpus, original] = await Promise.all([loadTranslation(targetId), hasMappings ? loadTranslation('ORIGINAL') : null])
   const books = [...new Set(rows.map(row => row.book))]
-  const mappings = sourceId === 'N1904' && greekWordLinkTranslations.includes(targetId) ? await Promise.allSettled(books.map(book => loadGreekWordLinks(book, targetId))) : []
+  const mappings = hasMappings ? await Promise.allSettled(books.map(book => loadGreekWordLinks(book, targetId))) : []
   const results = {}
   let failed = false
   for (const row of rows) {
