@@ -1,18 +1,18 @@
 import { expect, test } from '@playwright/test'
 
-const words = (page, translation, verse, text) => page.locator(`#verse-1-${verse} [data-translation="${translation}"] [data-word-link]:visible`).filter({ hasText: text })
+const words = (page, translation, verse, text, chapter = 1) => page.locator(`#verse-${chapter}-${verse} [data-translation="${translation}"] [data-word-link]:visible`).filter({ hasText: text })
 
-async function compare(page, book, original = false) {
+async function compare(page, book, original = false, chapter = 1) {
   await page.addInitScript(() => {
     localStorage.setItem('heritage-translation', 'BSB')
     localStorage.setItem('heritage-default-translation-v2', 'done')
   })
-  await page.goto(`/#/${book}/1`)
+  await page.goto(`/#/${book}/${chapter}`)
   await page.getByTitle('Enable parallel mode', { exact: true }).click()
   await page.getByRole('button', { name: original ? 'Original languages' : 'English', exact: true }).click()
   await page.getByRole('button', { name: original ? /^Original (Selected )?Original languages/ : /^KJV (Selected )?/ }).click()
-  const readiness = book === 'jude' ? /^Jude$/ : /^elder$/
-  await expect(words(page, 'BSB', 1, readiness)).toHaveAttribute('data-word-paired', 'true')
+  const readiness = book === 'jude' ? /^Jude$/ : book === 'titus' ? (chapter === 3 ? /^Remind$/ : /^Paul$/) : /^elder$/
+  await expect(words(page, 'BSB', 1, readiness, chapter)).toHaveAttribute('data-word-paired', 'true')
 }
 
 test('the two love renderings retain the actual noun and pronoun in 2 John', async ({ page }) => {
@@ -58,4 +58,28 @@ test('Jude keeps doubting recipients distinct from the differing KJV mercy-giver
   await difference.click()
   await expect(page.getByRole('region', { name: 'Selected word match' })).toContainText('mercy-givers')
   await expect(doubt).not.toHaveClass(/bible-word-link-active/)
+})
+
+test('Titus keeps supplied possessors separate from the genuine-child adjective', async ({ page }) => {
+  await compare(page, 'titus')
+  await expect(words(page, 'BSB', 4, /^my$/)).toHaveAttribute('data-word-paired', 'false')
+  await expect(words(page, 'KJV', 4, /^mine$/)).toHaveAttribute('data-word-paired', 'false')
+  await words(page, 'KJV', 4, /^own$/).click()
+  await expect(words(page, 'BSB', 4, /^true$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'BSB', 4, /^my$/)).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G1103')
+})
+
+test('Titus studies the repeated Spirit noun at its actual preceding source reference', async ({ page }) => {
+  await compare(page, 'titus', true, 3)
+  const spirit = words(page, 'BSB', 6, /^Spirit$/, 3)
+  const source = words(page, 'ORIGINAL', 5, /^Πνεύματος$/, 3)
+  const relative = words(page, 'ORIGINAL', 6, /^οὗ$/, 3)
+  await spirit.click()
+  await expect(source).toHaveClass(/bible-word-link-active/)
+  await expect(relative).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('button', { name: 'Show Original 3:5', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G4151')
 })

@@ -186,6 +186,30 @@ test('Hebrews keeps the festal assembly at its actual Greek verse instead of inv
   await expect(study).not.toContainText('G5117')
 })
 
+test('Matthew preserves the actual source reference when the two sons’ responses appear in reversed order', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('heritage-translation', 'LSV')
+    localStorage.setItem('heritage-default-translation-v2', 'done')
+  })
+  await page.goto('/#/matthew/21')
+  await page.getByTitle('Enable parallel mode', { exact: true }).click()
+  await page.getByRole('button', { name: 'Original languages', exact: true }).click()
+  await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).click()
+  const english = page.locator('#verse-21-29 [data-translation="LSV"] [data-word-link]:visible').filter({ hasText: /^regretted$/ })
+  const greek = page.locator('#verse-21-30 [data-translation="ORIGINAL"] [data-word-link]:visible').filter({ hasText: /^μεταμεληθεὶς$/ })
+  await expectSameTint(english, greek)
+  await english.click()
+  await expect(greek).toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('button', { name: 'Show Original 21:30', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G3338')
+  await page.getByRole('button', { name: 'Close word study', exact: true }).click()
+  const go = page.locator('#verse-21-30 [data-translation="LSV"] [data-word-link]:visible').filter({ hasText: /^go$/ })
+  await expect(go).toHaveCount(2)
+  await expect(go.first()).toHaveAttribute('data-word-paired', 'false')
+  await expect(go.nth(1)).toHaveAttribute('data-word-paired', 'true')
+})
+
 for (const dark of [false, true]) test(`a verse has distinct matching word colors in ${dark ? 'dark' : 'light'} mode`, async ({ page }) => {
   await page.setViewportSize({ width: 430, height: 932 })
   await page.addInitScript(dark => localStorage.setItem('heritage-dark-mode', String(dark)), dark)
