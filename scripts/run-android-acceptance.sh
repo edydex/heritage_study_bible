@@ -84,6 +84,13 @@ timeout --kill-after=5 10 adb shell settings put global animator_duration_scale 
 timeout --kill-after=5 10 adb shell cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.threebutton
 timeout --kill-after=5 10 adb shell cmd overlay list > "$output/navigation-mode.txt"
 grep -F '[x] com.android.internal.systemui.navbar.threebutton' "$output/navigation-mode.txt" >/dev/null
+# Pre-acknowledge the disposable AVD's first-use full-screen tutorial, whose
+# delayed native window can take focus during a held reader gesture. This is
+# the exact value Android's Got it button stores (Android 15 AOSP source):
+# https://android.googlesource.com/platform/frameworks/base/+/android-15.0.0_r1/services/core/java/com/android/server/wm/ImmersiveModeConfirmation.java
+timeout --kill-after=5 10 adb shell settings put secure immersive_mode_confirmations confirmed
+timeout --kill-after=5 10 adb shell settings get secure immersive_mode_confirmations | tr -d '\r' > "$output/immersive-mode-confirmation.txt"
+grep -Fx 'confirmed' "$output/immersive-mode-confirmation.txt" >/dev/null
 # The Google APIs image's first-boot setup re-enables Wi-Fi asynchronously.
 # This AVD is disposable and needs no Google-account setup during offline tests.
 timeout --kill-after=5 10 adb shell pm disable-user --user 0 com.google.android.googlesdksetup
