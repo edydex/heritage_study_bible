@@ -83,12 +83,14 @@ not different textual witnesses. Unknown code parts are never guessed. The
 optional Strong TVM suffix is not used because the source says it is not
 synchronized with its morphology.
 
-These are published per-occurrence tags with shared, reviewed explanations, not
-new interpretations generated on tap. Aorist notes distinguish an event viewed as
-a whole from a claim that it happened instantaneously or once for all. Two short
-context notes contrast Colossians 1:13 **ἐρύσατο** and Romans 7:24 **ῥύσεται** while
-keeping interpretation distinct from parsing. A lemma is a dictionary form,
-not an assertion about a word's historical root or its meaning in every passage.
+These are published per-occurrence tags with shared definitions of the grammar
+terms. For example, the aorist definition describes an event viewed as a whole
+and explains what the tag itself establishes. Word Study provides forms,
+dictionary resources, grammar, occurrences and translation correspondence;
+passage interpretation belongs in Commentary. There are no passage-specific
+interpretive notes or explanations generated on tap in this pilot. A lemma is a
+dictionary form, not an assertion about a word's historical root or its meaning
+in every passage.
 
 For **Russian Synodal**, unlinked words offer an explicit original-word chooser;
 the reader selects a Greek form before seeing its grammar. Synodal verse wording

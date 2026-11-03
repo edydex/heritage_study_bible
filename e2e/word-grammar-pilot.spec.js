@@ -33,6 +33,9 @@ for (const translation of ['LSV', 'BSB']) test(`${translation} checked rescue wo
   await expect(grammar).toContainText('Indicative')
   await expect(grammar).toContainText('Third person')
   await expect(grammar).toContainText('Singular')
+  const aorist = grammar.locator('details').filter({ has: page.locator('summary').filter({ hasText: /Aorist/ }) }).first()
+  await aorist.locator('summary').tap()
+  await expect(aorist).toContainText('in the indicative it usually refers to the past')
   await grammar.getByText('Source analysis and limits', { exact: true }).tap()
   await expect(grammar).toContainText('V-ANI-3S')
   await expect(grammar).toContainText('V-ADI-3S')
@@ -56,7 +59,9 @@ test('Romans future form has the same lemma but retains its own tense', async ({
   await grammar.getByRole('button', { name: 'Русский', exact: true }).tap()
   await expect(grammar).toHaveAttribute('lang', 'ru')
   await expect(grammar).toContainText('Будущее')
-  await expect(grammar).toContainText('кто избавит меня')
+  const future = grammar.locator('details').filter({ has: page.locator('summary').filter({ hasText: /Будущее/ }) }).first()
+  await future.locator('summary').tap()
+  await expect(future).toContainText('Обычно относит действие или состояние к будущему')
 })
 
 test('Synodal chooses an actual Greek form and shows Russian context without fabricated highlights', async ({ page }) => {

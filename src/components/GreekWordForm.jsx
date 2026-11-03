@@ -10,8 +10,8 @@ const wording = {
     difference: 'The source supplies different functional and form tags for this word. Both are retained below; these are analyses of the same Greek text.',
     analysisHelp: 'Functional analysis considers how the verb is used. Form-oriented analysis emphasizes what its grammatical shape distinguishes. For example, present middle and passive forms share endings; context can help distinguish their use.',
     functionTag: 'Functional tag', formTag: 'Form tag', unknown: 'Some source tags are not explained yet:',
-    context: 'Reading this form in context', limits: 'Grammar helps describe the wording. It does not, by itself, settle the meaning of a whole passage.',
-    attribution: 'Greek text and tags: Nestle 1904 / Biblical Humanities, CC0. Explanations are shared grammar notes, not a new interpretation generated for each word.',
+    limits: 'Grammar helps describe the wording. It does not, by itself, settle the meaning of a whole passage.',
+    attribution: 'Greek text and tags: Nestle 1904 / Biblical Humanities, CC0. Grammar explanations are shared definitions of the source’s tags.',
     codes: 'Source tagging conventions', grammar: 'Why aorist does not automatically mean “once for all”',
   },
   ru: {
@@ -22,22 +22,10 @@ const wording = {
     difference: 'Источник указывает разные функциональные пометы и пометы формы. Оба разбора сохранены ниже: это разборы одного и того же греческого текста.',
     analysisHelp: 'Функциональный разбор учитывает употребление глагола. Разбор по форме прежде всего отмечает различия, видимые в его строении. Например, в настоящем времени окончания среднего и страдательного залога совпадают; контекст помогает различить их употребление.',
     functionTag: 'Функциональная помета', formTag: 'Помета формы', unknown: 'Некоторые пометы источника пока не объяснены:',
-    context: 'Эта форма в контексте', limits: 'Грамматика помогает понять формулировку, но сама по себе не определяет смысл всего отрывка.',
-    attribution: 'Греческий текст и пометы: Nestle 1904 / Biblical Humanities, CC0. Используются общие объяснения грамматики, а не новое автоматически созданное толкование каждого слова.',
+    limits: 'Грамматика помогает понять формулировку, но сама по себе не определяет смысл всего отрывка.',
+    attribution: 'Греческий текст и пометы: Nestle 1904 / Biblical Humanities, CC0. Объяснения грамматики — общие определения помет источника.',
     codes: 'Условные обозначения источника', grammar: 'Почему аорист сам по себе не означает «раз и навсегда»',
   },
-}
-
-function readingNote(item, language) {
-  const lemma = item.lemma?.normalize('NFD').replace(/\p{M}/gu, '')
-  if (lemma !== 'ρυομαι') return null
-  if (item.book === 'Colossians' && item.chapter === 1 && item.verse === 13) return language === 'ru'
-    ? 'Здесь ἐρύσατο представляет избавление как событие в прошлом: «Он избавил». Сам аорист не означает «раз и навсегда» и не говорит, что действие было мгновенным или что Бог больше не будет избавлять. Вывод о смысле всего отрывка требует контекста.'
-    : 'Here ἐρύσατο presents the rescue as past: “he rescued/delivered.” Aorist alone does not say this was the final act of rescue or that it was instantaneous. Read the surrounding sentence before drawing conclusions about its scope.'
-  if (item.book === 'Romans' && item.chapter === 7 && item.verse === 24) return language === 'ru'
-    ? 'Здесь ῥύσεται — форма будущего времени в вопросе: «кто избавит меня?» Это то же словарное слово, что и ἐρύσατο в Колоссянам 1:13, но другая временная форма. Сам грамматический разбор не даёт ответа на этот вопрос.'
-    : 'Here ῥύσεται is future in the question “who will rescue/deliver me?” It shares a dictionary form with ἐρύσατο in Colossians 1:13, but has a different tense form. The grammar alone does not answer the question being asked.'
-  return null
 }
 
 function Analysis({ analysis, words }) {
@@ -84,12 +72,11 @@ export default function GreekWordForm({ word, lemma, defaultLanguage = 'en' }) {
     {!items && !error && <p role="status" className="mt-3 text-sm">{words.loading}</p>}
     {error && <p role="status" className="mt-3 text-sm">{words.error} <button className="underline" onClick={() => setRetry(value => value + 1)}>{words.retry}</button></p>}
     {items?.map(item => {
-      const note = readingNote(item, locale), analysis = decodeGreekMorphology(item.funcMorph, locale)
+      const analysis = decodeGreekMorphology(item.funcMorph, locale)
       return <article key={item.key} className="mt-4 border-t border-blue-200 dark:border-blue-800 pt-3" data-grammar-reference={`${item.book}:${item.chapter}:${item.verse}`}>
         <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><strong lang="grc" className="text-xl">{item.text}</strong><span className="text-sm">{locale === 'ru' ? ({ Romans: 'Римлянам', Colossians: 'Колоссянам' }[item.book]) : item.book} {item.chapter}:{item.verse}</span></p>
         <p className="text-sm mt-1">{words.lemma}: <span lang="grc">{item.lemma}</span></p>
         <div className="mt-3 space-y-2"><Analysis analysis={analysis} words={words} /></div>
-        {note && <div className="mt-3 text-sm leading-relaxed"><h4 className="font-semibold">{words.context}</h4><p className="mt-1">{note}</p></div>}
         <details className="mt-3 text-xs leading-relaxed">
           <summary className="cursor-pointer underline">{words.source}</summary>
           <p className="mt-2">{words.functionTag}: <code>{item.funcMorph}</code> · {words.formTag}: <code>{item.formMorph}</code></p>
