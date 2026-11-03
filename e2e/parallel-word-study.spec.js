@@ -71,7 +71,17 @@ test('occurrence links navigate on the first click and unsupported matching rema
 })
 
 test('word occurrences show contextual translations on later pages and retain source verses on mapping failure', async ({ page }) => {
-  await page.route('**/bsb-word-links/matthew.json', route => route.fulfill({ status: 503, body: 'Temporarily unavailable' }))
+  let mappingUnavailable = true
+  await page.route('**/bsb-word-links/matthew.json', async route => {
+    if (mappingUnavailable) return route.fulfill({ status: 503, body: 'Temporarily unavailable' })
+    const response = await route.fetch()
+    const mapping = await response.json()
+    // Exercise an absent match deliberately as the reviewed corpus grows.
+    delete mapping.verses['18:27']
+    await route.fulfill({ response, json: mapping })
+  })
+  // Grammar and translation requests have independent status messages.
+  await page.route('**/greek-morphology-pilot.json', route => route.fulfill({ status: 503, body: 'Temporarily unavailable' }))
   const requested = []
   page.on('request', request => { if (request.url().includes('/bsb-word-links/')) requested.push(request.url()) })
   await enable(page)
@@ -79,12 +89,13 @@ test('word occurrences show contextual translations on later pages and retain so
   await page.getByRole('button', { name: 'Study word', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Word study: servant' })
   const first = dialog.getByRole('button', { name: /^Matthew 8:9/ })
-  await expect(dialog.getByRole('status')).toContainText('Some BSB wording or word mappings could not load')
+  await expect(dialog.getByRole('status').filter({ hasText: 'Some BSB wording or word mappings could not load' })).toBeVisible()
+  await expect(dialog.getByRole('status').filter({ hasText: 'The grammar could not load' })).toBeVisible()
   await expect(first).toContainText('For I myself am a man under authority')
   await expect(first).toContainText('Greek · N1904')
   await expect(first.locator('[data-occurrence-translation=BSB] mark')).toHaveCount(0)
   expect(requested.some(url => url.endsWith('/revelation.json'))).toBe(false)
-  await page.unroute('**/bsb-word-links/matthew.json')
+  mappingUnavailable = false
   await dialog.getByRole('button', { name: 'Retry translations' }).click()
   await expect(first.locator('[data-occurrence-translation=BSB] mark')).toHaveText('servant')
   const unmapped = dialog.getByRole('button', { name: /^Matthew 18:27/ })
