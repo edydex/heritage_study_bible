@@ -205,3 +205,35 @@ test('B&W mode keeps underline patterns without the expanded color fills', async
   expect(appearance.length).toBeGreaterThan(20)
   expect(appearance.every(word => word.fill === 'rgba(0, 0, 0, 0)' && word.pattern !== 'none')).toBe(true)
 })
+
+test('1 John keeps the earthly witnesses at their actual source reference', async ({ page }) => {
+  await compareJohn(page, 'ORIGINAL')
+  await page.goto('/#/1-john/5')
+  if (await page.getByTitle('Enable parallel mode', { exact: true }).count()) {
+    await page.getByTitle('Enable parallel mode', { exact: true }).click()
+    await page.getByRole('button', { name: 'Original languages', exact: true }).click()
+    await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).click()
+  }
+  const original = page.locator('#verse-5-7 [data-translation="ORIGINAL"] [data-word-link]:visible').filter({ hasText: /^τρεῖς$/ })
+  const earthly = page.locator('#verse-5-8 [data-translation="LSV"] [data-word-link]:visible').filter({ hasText: /^three$/ })
+  const heavenly = page.locator('#verse-5-7 [data-translation="LSV"] [data-word-link]:visible').filter({ hasText: /^three$/ })
+  await expect(earthly).toHaveCount(2)
+  await expectSameTint(earthly.first(), original)
+  await expect(earthly.first()).toHaveAttribute('data-word-texture', await original.getAttribute('data-word-texture'))
+  expect(await earthly.first().getAttribute('data-word-link')).not.toBe(await earthly.last().getAttribute('data-word-link'))
+  await expect(heavenly).toHaveCount(2)
+  for (const word of await heavenly.all()) {
+    await expect(word).toHaveAttribute('data-word-paired', 'false')
+    await expect(word).not.toHaveAttribute('data-word-color')
+  }
+  await earthly.first().click()
+  await expect(original).toHaveClass(/bible-word-link-active/)
+  await expect(earthly.last()).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.locator('#verse-5-7 [data-translation="LSV"] .bible-word-link-active:visible')).toHaveCount(0)
+  const match = page.getByRole('region', { name: 'Selected word match' })
+  await expect(match).toContainText('Greek 5:7')
+  await match.getByText('Reading note', { exact: true }).click()
+  await expect(match).toContainText(/earthly.*heavenly/)
+  await page.getByRole('button', { name: 'Show Original 5:7', exact: true }).click()
+  await expect(original).toBeInViewport()
+})
