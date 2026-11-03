@@ -25,13 +25,17 @@ npx vitest run src/data/hebrewOriginal.test.js
 
 ## Greek New Testament word links and occurrences
 
-With BSB as the main text and Original languages as the parallel, the Greek New Testament offers
+With BSB, LSV or KJV compared with Original languages—or with each other—the Greek New Testament offers
 **Word links**. Six subtle background tints repeat. **Settings → B&W word links**
 replaces them with patterns, including diagonal strokes distinct from dots.
-Hold a word (450 ms) or press **Shift+Enter** to identify its checked counterpart.
-Moving a finger cancels the hold so scrolling is not mistaken for a word action.
+Tap a word to emphasize its counterpart in both columns. **Study word**, a hold
+(450 ms), or **Shift+Enter** opens occurrences while retaining the selection.
+Moving a finger cancels a pending hold so scrolling is not mistaken for a word
+action. The release click from a completed hold cannot immediately dismiss its
+new study dialog. A reading note explains documented witness or grammar differences.
 
-Tap or press Enter on a word to open occurrences. Greek words use the source's
+For verse-boundary differences, **Show Original / BSB / LSV / KJV** identifies the
+actual matching reference rather than forcing a same-number pairing. Greek words use the source's
 actual lemma metadata, including inflected forms throughout all 27 NT books.
 BSB/LSV phrases with an installed correspondence look up those same Greek
 lemmas. Multiple source lemmas remain separate choices. Hebrew and Aramaic
@@ -151,6 +155,7 @@ Download the pinned repository and the publisher TSV. Then, from this repo:
 python3 scripts/generateOriginalLanguages.py \
   --nestle /path/to/Nestle1904/morph/Nestle1904.csv \
   --berean /path/to/bsb_tables.tsv --all-nt-links
+python3 scripts/original-languages/build-kjv-links.py --osis /path/to/kjv.osis.xml
 python3 scripts/original-languages/build-lsv-links.py
 npx vitest run src/data/originalLanguages.test.js src/services/wordStudyTranslations.test.js src/components/WordLinks.test.jsx src/components/VerseText.test.jsx
 npm run build
@@ -170,32 +175,50 @@ passed. The generator checks all written source-word identities and output
 hashes; these checks do not establish word alignment with every translation.
 Physical-phone and e-ink acceptance, deployment and a new APK remain separate.
 
-## Partial LSV links
+## LSV correspondence reviews
 
-LSV can use the same parallel colors, hold-to-identify and Greek lemma lookup.
-There was no LSV mapping in the installed corpus. The new per-book package
-contains 24,752 groups across 6,374 NT verses. These are **partial automatic
-phrase correspondences**, not a complete publisher-attested LSV interlinear.
-The generator transfers a BSB publisher correspondence only when its whole-word
-English phrase occurs once in both the BSB and LSV verse. Function-only phrases,
-repeated phrases, overlapping destinations and differing Greek editions are
-omitted. Philippians 4:12 has an explicit reviewed mapping, including
-“initiated,” “full” and “in want.” Romans 1:3 and 1:12 also have explicit reviewed
-phrase mappings against the installed LSV wording and pinned Greek tokens,
-checked against the published [Romans 1:3](https://biblehub.com/interlinear/romans/1-3.htm)
-and [Romans 1:12](https://biblehub.com/interlinear/romans/1-12.htm) interlinear.
-Runtime text and offset checks remain strict.
-Hebrew/Aramaic English phrase links are not supplied by this package. LSV has
-source-word study throughout the installed OT/NT witness, and its occurrence
-results now show LSV context. Translated-phrase highlighting remains partial and
-explicit. The absence of a reliable English match never prevents choosing the
-original word from the complete source verse.
+LSV mappings are being completed chapter by chapter across all 27 New Testament
+books. This work remains in progress; neither a linked-verse count nor a high
+color percentage establishes complete or correct correspondence.
 
-Run `build-lsv-links.py` after the publisher-data generator to restore the
-reviewed BSB repair and regenerate all LSV files and manifest hashes. LSV text
-and the mapping adaptation retain Covenant Press attribution and CC BY-SA 4.0.
-The LSV USFM Strong tags were not used: the downloaded Philippians 4:12 tags
-misassign several phrases, including “full,” and omit others.
+The reproducible base transfers exact shared BSB phrases, and preserves all
+publisher correspondences when the complete displayed English word sequences
+are identical. It does not guess synonyms or trust the defective eBible LSV
+Strong tags. A broader lexical-scoring experiment was withheld after independent
+samples found wrong articles, pronouns and repeated verbs; its proposals are not
+part of the installed corpus.
+
+`/scripts/original-languages/reviewed-lsv/` holds explicit verse reviews. Each
+source token is either linked to exact English wording, accounted for at its
+actual neighboring translated reference, or given a specific explanation for a
+real witness difference or unexpressed grammatical word. Supplied English words
+also have explicit explanations. Source and English phrase offsets are compiled
+from the unchanged displayed corpora. Disjoint source and target segments remain
+separate; intervening words are not swept into a highlight.
+
+`lsv-review-status.json` admits a resource to the canonical build only after
+mechanical validation and a separate assistant semantic review. Accepted source
+files are hash-pinned; editing one requires renewing that review entry. New draft
+chapters are excluded. This is assistant review, with the reader's review still
+pending, rather than a claim of human scholarly certification. The generated
+index records the current accepted resources and reviewed-verse count.
+
+The source witness reference is an explicit part of an anchor. For example,
+Philippians 1:16–17 is transposed between LSV and N1904; John and Romans also move
+clauses across verse boundaries. The reader joins exact original token identities
+across these references and shows the actual matching reference. It never changes
+the named Greek source to agree with a translation. Source-lemma lookup retains
+those original references, even from an English word in a different verse.
+
+The generic compiler also supports `reviewed-kjv/` corrections. KJV Philippians
+3:21 corrects a publisher's pronoun assignment: the actual genitive **His** is
+linked to **his**, while the longer witness's **that it may be** is explicitly
+unpaired. Publisher data is source evidence, not a guarantee against semantic
+annotation errors. See [KJV sources and reproduction](KJV-WORD-LINKS.md).
+
+All mappings retain Covenant Press attribution and CC BY-SA 4.0 for the LSV
+adaptation. The Old Testament phrase-mapping phase has not started; it follows
+the reader's New Testament review.
 
 ### LSV paragraph source audit
 

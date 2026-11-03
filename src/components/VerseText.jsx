@@ -8,23 +8,31 @@ function WordLink({ link, activeWordLink, onWordLink, onWordTap, children }) {
   useEffect(() => cancel, [])
   const activate = event => {
     event.stopPropagation()
-    if (suppressClick.current) { suppressClick.current = false; event.preventDefault(); return }
+    if (event.type === 'click' && suppressClick.current) { suppressClick.current = false; event.preventDefault(); return }
+    suppressClick.current = false
     if (globalThis.window?.getSelection?.()?.isCollapsed === false) return
     ;(onWordTap || onWordLink)?.(link)
   }
   return <span
     className={`bible-word-link${link.paired === false ? ' bible-word-unpaired' : ''}${activeWordLink === link.id ? ' bible-word-link-active' : ''}`}
     data-word-link={link.id} data-word-pattern={link.pattern}
-    title={onWordTap ? 'Tap for occurrences; hold (or Shift+Enter) for translation match' : link.label} role="button" tabIndex={0} aria-label={link.label}
+    data-word-paired={link.paired !== false}
+    title={onWordTap ? 'Tap to highlight the match; hold (or Shift+Enter) for word study' : link.label} role="button" tabIndex={0} aria-label={link.label}
     aria-pressed={activeWordLink === link.id}
     onPointerDown={event => {
       if (!onWordTap || event.button !== 0) return
+      if (event.isPrimary === false) { cancel(); suppressClick.current = true; return }
       cancel(); suppressClick.current = false
       const point = { x: event.clientX, y: event.clientY }
-      gesture.current = { ...point, timer: setTimeout(() => { suppressClick.current = true; onWordLink?.(link); gesture.current = null }, 450) }
+      event.currentTarget.setPointerCapture?.(event.pointerId)
+      gesture.current = { ...point, pointerId: event.pointerId, timer: setTimeout(() => {
+        suppressClick.current = true
+        if (globalThis.window?.getSelection?.()?.isCollapsed !== false) onWordLink?.(link, { pointerId: event.pointerId, pointerType: event.pointerType })
+        gesture.current = null
+      }, 450) }
     }}
-    onPointerMove={event => { if (gesture.current && Math.hypot(event.clientX - gesture.current.x, event.clientY - gesture.current.y) > 10) { cancel(); suppressClick.current = true } }}
-    onPointerUp={cancel} onPointerCancel={() => { cancel(); suppressClick.current = true }} onPointerLeave={cancel}
+    onPointerMove={event => { if (gesture.current?.pointerId === event.pointerId && Math.hypot(event.clientX - gesture.current.x, event.clientY - gesture.current.y) > 10) { cancel(); suppressClick.current = true } }}
+    onPointerUp={cancel} onPointerCancel={() => { cancel(); suppressClick.current = true }}
     onContextMenu={event => { if (onWordTap) event.preventDefault() }}
     onClick={activate}
     onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); if (event.shiftKey) onWordLink?.(link); else activate(event) } }}

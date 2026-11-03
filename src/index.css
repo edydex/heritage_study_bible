@@ -306,7 +306,10 @@ html.capacitor-android header.sticky.top-0 {
 .word-links-color [data-word-pattern="3"] { background-color: rgb(192 132 252 / .18); }
 .word-links-color [data-word-pattern="4"] { background-color: rgb(251 113 133 / .18); }
 .word-links-color [data-word-pattern="5"] { background-color: rgb(34 211 238 / .18); }
-.parallel-word-study .bible-word-link { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.parallel-word-study .bible-word-link { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: pan-y pinch-zoom; }
+.parallel-word-study .bible-word-link-active { background-color: rgb(250 204 21 / .36); outline: 2px solid currentColor; outline-offset: 1px; border-radius: 3px; box-shadow: 0 0 0 2px rgb(250 204 21 / .15); }
+.word-links-monochrome .bible-word-link-active { background-color: rgb(127 127 127 / .2); box-shadow: none; }
+.word-match-bar > [role="status"] { flex: 1 1 180px; overflow-wrap: anywhere; }
 .word-study-dialog { width: min(680px, calc(100vw - 24px)); max-height: calc(100dvh - 48px); margin: auto; }
 .word-study-dialog::backdrop { background: rgb(0 0 0 / .5); }
 

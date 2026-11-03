@@ -102,8 +102,8 @@ public class ReaderChromeIntegrationTest {
     }
 
     private float[] screenCenter(String selector) throws Exception {
-        String encoded = js("JSON.stringify((()=>{const element=document.querySelector(" + JSONObject.quote(selector)
-            + ");if(!element)return null;const rect=element.getBoundingClientRect();return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}})())");
+        String encoded = js("JSON.stringify((()=>{const element=[...document.querySelectorAll(" + JSONObject.quote(selector)
+            + ")].find(node=>node.getClientRects().length);if(!element)return null;const rect=element.getBoundingClientRect();return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}})())");
         Object value = new JSONTokener(encoded).nextValue();
         assertNotEquals("Missing native gesture target: " + selector, "null", value.toString());
         JSONObject css = new JSONObject(value.toString());
@@ -132,6 +132,87 @@ public class ReaderChromeIntegrationTest {
         try {
             assertTrue("Native touch injection failed", InstrumentationRegistry.getInstrumentation().getUiAutomation().injectInputEvent(event, true));
         } finally { event.recycle(); }
+    }
+
+    private void tap(String selector) throws Exception {
+        float[] point = screenCenter(selector);
+        long downTime = SystemClock.uptimeMillis();
+        touch(MotionEvent.ACTION_DOWN, downTime, point[0], point[1]);
+        try { Thread.sleep(80); }
+        finally { touch(MotionEvent.ACTION_UP, downTime, point[0], point[1]); }
+    }
+
+    private void configureButton(String text, boolean exact) throws Exception {
+        // Configure the comparison through its normal UI handlers; only the
+        // word gestures under test are injected as native touchscreen events.
+        String match = "[...document.querySelectorAll('button')].find(button=>button.getClientRects().length && button.textContent.trim()"
+            + (exact ? "===" + JSONObject.quote(text) : ".includes(" + JSONObject.quote(text) + ")") + ")";
+        await(() -> "true".equals(js("Boolean(" + match + ")")));
+        js(match + ".click()");
+    }
+
+    @Test public void parallelWordsRespondToNativeTapHoldReleaseAndScrolling() throws Exception {
+        await(() -> "true".equals(js("Boolean(window.Capacitor?.isNativePlatform() && document.getElementById('root')?.innerText.length > 30)")));
+        js("location.hash='/romans/1';window.scrollTo({top:0,behavior:'instant'})");
+        await(() -> "true".equals(js("Boolean(document.querySelector('#verse-1-1') && document.querySelector('[title=\"Change translation\"]'))")));
+        js("document.querySelector('[title=\"Change translation\"]').click()");
+        configureButton("Berean Standard Bible", false);
+        js("document.querySelector('[title=\"Enable parallel mode\"]').click()");
+        configureButton("English", true);
+        configureButton("Literal Standard Version", false);
+        String word = "#verse-1-1 [data-translation='BSB'] [data-word-paired='true']";
+        await(() -> "true".equals(js("Boolean([...document.querySelectorAll(" + JSONObject.quote(word)
+            + ")].find(node=>node.getClientRects().length) && document.querySelector('#verse-1-1 [data-translation=\"LSV\"] [data-word-paired=\"true\"]'))")));
+        String active = "[...document.querySelectorAll('.bible-word-link-active')].filter(node=>node.getClientRects().length)";
+
+        tap(word);
+        await(() -> "2".equals(js(active + ".length")));
+        assertEquals("Both translations must select the checked Paul source anchor", "\"Paul|Paul\"", js(active + ".map(node=>node.textContent).join('|')"));
+        assertEquals("A short word tap must leave the comparison visible", "false", js("Boolean(document.querySelector('.word-study-dialog[open]'))"));
+        screenshot("parallel-native-tap-pair");
+        tap("[aria-label='Clear word match']");
+        await(() -> "0".equals(js(active + ".length")));
+
+        float[] held = screenCenter(word);
+        long downTime = SystemClock.uptimeMillis();
+        touch(MotionEvent.ACTION_DOWN, downTime, held[0], held[1]);
+        try {
+            Thread.sleep(700);
+            assertEquals("A native finger hold must open word study", "true", js("Boolean(document.querySelector('.word-study-dialog[open]'))"));
+        } finally { touch(MotionEvent.ACTION_UP, downTime, held[0], held[1]); }
+        // The original finger's release must not click the newly opened modal
+        // backdrop and dismiss it. Wait for the real occurrence content too.
+        await(() -> "true".equals(js("Boolean(document.querySelector('.word-study-dialog[open]')?.textContent.includes('Occurrences of the source lemma'))")));
+        js("window.__wordReleasePainted=false;requestAnimationFrame(()=>requestAnimationFrame(()=>{window.__wordReleasePainted=true}))");
+        await(() -> "true".equals(js("window.__wordReleasePainted")));
+        assertEquals("Held-release compatibility click dismissed word study", "true", js("Boolean(document.querySelector('.word-study-dialog[open]'))"));
+        screenshot("parallel-native-hold-release-study");
+        tap("[aria-label='Close word study']");
+        await(() -> "false".equals(js("Boolean(document.querySelector('.word-study-dialog[open]'))")));
+        assertEquals("Closing study must retain the selected pair", "2", js(active + ".length"));
+        tap("[aria-label='Clear word match']");
+        await(() -> "0".equals(js(active + ".length")));
+
+        float[] start = screenCenter(word);
+        double beforeScroll = Double.parseDouble(js("window.scrollY"));
+        AtomicReference<Float> density = new AtomicReference<>(1f);
+        activity.getScenario().onActivity(instance -> density.set(instance.getResources().getDisplayMetrics().density));
+        downTime = SystemClock.uptimeMillis();
+        touch(MotionEvent.ACTION_DOWN, downTime, start[0], start[1]);
+        float endY = start[1];
+        try {
+            for (int step = 1; step <= 8; step++) {
+                Thread.sleep(16);
+                endY = start[1] - step * 14 * density.get();
+                touch(MotionEvent.ACTION_MOVE, downTime, start[0], endY);
+            }
+        } finally { touch(MotionEvent.ACTION_UP, downTime, start[0], endY); }
+        await(() -> Double.parseDouble(js("window.scrollY")) > beforeScroll + 30);
+        long remainingHold = downTime + 700 - SystemClock.uptimeMillis();
+        if (remainingHold > 0) Thread.sleep(remainingHold);
+        assertEquals("Scrolling must cancel the pending study hold", "false", js("Boolean(document.querySelector('.word-study-dialog[open]'))"));
+        assertEquals("A scroll release must not select a word", "0", js(active + ".length"));
+        screenshot("parallel-native-scroll-cancels-study");
     }
 
     private void verifyNativeTitleTapAndHoldSlide() throws Exception {

@@ -4,10 +4,13 @@
 Run after generateOriginalLanguages.py --all-nt-links. No synonym guesses or
 untrusted USFM Strong tags are used. Every entry pins both displayed texts.
 """
-import hashlib, json, re
+import argparse, hashlib, json, os, re, subprocess, sys, tempfile
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT/'public/data/original-languages'
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output',type=Path,default=DATA/'lsv-word-links')
+args=parser.parse_args()
 read = lambda path: json.loads(path.read_text())
 sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
 def write(path, value):
@@ -71,7 +74,8 @@ index_path = DATA/'bsb-word-links/index.json'; index = read(index_path)
 index['books']['Philippians'].update(sha256=sha(path),linkedVerses=len(item['verses']),unlinkedVerses=len(item['unavailable']),groups=sum(len(v['groups']) for v in item['verses'].values()))
 index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2)+'\n')
 STOP = set('a an the and or but for to of in on at by as with from into is are was were be been being am i me my we us our you your he him his she her it its they them their this that these those who whom which what when where how not no all any every both each have has had do does did so if than then also'.split())
-folder = DATA/'lsv-word-links'; folder.mkdir(exist_ok=True)
+staging=tempfile.TemporaryDirectory(prefix='heritage-lsv-links-')
+folder=Path(staging.name)
 manifest = {}; provenance = {'url':'https://ebible.org/find/details.php?id=englsv','license':'CC BY-SA 4.0','licenseUrl':'https://creativecommons.org/licenses/by-sa/4.0/','attribution':'LSV © 2020 Covenant Press; alignment adaptation for Heritage Study Bible.', 'targetSha256':sha(lsv_path),'greekSha256':index['provenance']['greekSha256'],'bsbMappingManifestSha256':sha(index_path)}
 for name, meta in index['books'].items():
     original = read(DATA/'bsb-word-links'/meta['file']); aligned = {}; unavailable = {}
@@ -82,8 +86,13 @@ for name, meta in index['books'].items():
         groups = []
         if entry and entry['sourceText'] == source_text and entry['targetText']==bsb[name].get(ref):
             target_words = words(target_text); bsb_words = words(entry['targetText'])
+            identical=[w[0] for w in target_words]==[w[0] for w in bsb_words]
             for group in entry['groups']:
                 phrase = [w[0] for w in words(entry['targetText'][slice(*group['target'])])]
+                if identical:
+                    indexes=[i for i,w in enumerate(bsb_words) if w[1]<group['target'][1] and w[2]>group['target'][0]]
+                    if indexes:groups.append({**group,'target':[target_words[indexes[0]][1],target_words[indexes[-1]][2]]})
+                    continue
                 if not phrase or not any(w not in STOP for w in phrase): continue
                 # A repeated phrase cannot establish which occurrence it links.
                 if sum([w[0] for w in bsb_words[i:i+len(phrase)]]==phrase for i in range(len(bsb_words)))!=1: continue
@@ -99,9 +108,19 @@ for name, meta in index['books'].items():
         if book == name and 'LSV' in review['groups']:
             aligned[ref]=reviewed('LSV', book, ref); unavailable.pop(ref,None)
     value={'schemaVersion':1,'book':name,'sourceId':'N1904','targetId':'LSV','provenance':provenance,
-           'method':'Partial automatic links: identical whole-word BSB phrases occurring once in each displayed verse, transferred from pinned publisher Greek links. Function-only phrases, repeats, overlaps and Greek edition differences omitted. Philippians 4:12 and Romans 1:3, 1:12 use explicit reviewed mappings. No inferred synonyms or USFM Strong tags.',
+           'method':'Whole-verse identical English word sequences retain publisher source correspondences; otherwise only unique whole-word shared BSB phrases are transferred, omitting function-only phrases, repeats and overlaps. Independently reviewed chapter resources override these partial automatic links with explicit original-source anchors and per-word explanations, including moved clauses. No inferred synonyms or LSV USFM Strong tags.',
            'verses':aligned,'unavailable':unavailable}
     path=folder/meta['file'];write(path,value)
     manifest[name]={'file':path.name,'sha256':sha(path),'linkedVerses':len(aligned),'unlinkedVerses':len(unavailable),'groups':sum(len(v['groups']) for v in aligned.values())}
 write(folder/'index.json',{'schemaVersion':1,'sourceId':'N1904','targetId':'LSV','provenance':provenance,'books':manifest})
-print(json.dumps({'linkedVerses':sum(b['linkedVerses'] for b in manifest.values()),'groups':sum(b['groups'] for b in manifest.values())}))
+subprocess.run([sys.executable,str(ROOT/'scripts/original-languages/compile-reviewed-links.py'),'--registry',str(ROOT/'scripts/original-languages/lsv-review-status.json'),'--input',str(folder),'--output',str(folder)],check=True)
+# Canonical files are replaced only after every accepted chapter and moved-word
+# counterpart has passed validation. In-progress review drafts are excluded.
+args.output.mkdir(parents=True,exist_ok=True)
+for path in sorted(folder.glob('*.json'),key=lambda p:p.name=='index.json'):
+    with tempfile.NamedTemporaryFile(dir=args.output,prefix=path.name+'.',suffix='.tmp',delete=False) as target:
+        target.write(path.read_bytes()); temporary=Path(target.name)
+    os.replace(temporary,args.output/path.name)
+staging.cleanup()
+final=read(args.output/'index.json')
+print(json.dumps({'linkedVerses':sum(b['linkedVerses'] for b in final['books'].values()),'groups':sum(b['groups'] for b in final['books'].values()),'reviewedVerses':final['reviewedVerseCount']}))

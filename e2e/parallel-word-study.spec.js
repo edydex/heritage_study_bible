@@ -8,12 +8,16 @@ async function enable(page) {
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => { localStorage.setItem('heritage-translation', 'BSB'); localStorage.setItem('heritage-default-translation-v2', 'done') })
 })
-test('tap opens real Greek lemma occurrences; hold identifies the translation without opening notes', async ({ page }) => {
+test('tap visibly highlights both columns and hold opens real Greek word study', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await enable(page)
   const servant = page.locator('#verse-1-1 [data-translation="BSB"] [data-word-link="1:1:1"]:visible').filter({ hasText: 'servant' })
   await expect(servant).toBeVisible()
   await servant.click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Selected word match' })).toContainText('δοῦλος ↔ a servant')
+  await expect(page.locator('.bible-word-link-active:visible')).toHaveCount(3)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Word study: servant' })
   await expect(dialog).toBeVisible()
   await expect(dialog).toContainText('δοῦλος (II) G1401')
@@ -24,12 +28,14 @@ test('tap opens real Greek lemma occurrences; hold identifies the translation wi
   await expect(example).toContainText('For I myself am a man under authority')
   await dialog.getByRole('button', { name: 'Close word study' }).click()
   await servant.click({ delay: 600 })
-  await expect(page.getByRole('dialog')).toHaveCount(0)
-  await expect(page.getByRole('status')).toContainText('δοῦλος ↔ a servant')
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close word study' }).click()
+  await expect(page.getByRole('region', { name: 'Selected word match' })).toContainText('δοῦλος ↔ a servant')
   await expect(page.locator('.bible-word-link-active:visible')).toHaveCount(3)
   await page.getByRole('button', { name: 'Clear word match' }).click()
   await servant.press('Shift+Enter')
-  await expect(page.getByRole('status')).toContainText('δοῦλος ↔ a servant')
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close word study' }).click()
   await page.getByRole('button', { name: 'Clear word match' }).click()
   await page.getByTitle('Text size settings').click()
   await page.getByRole('button', { name: 'More settings', exact: true }).click()
@@ -48,6 +54,7 @@ test('tap opens real Greek lemma occurrences; hold identifies the translation wi
 test('occurrence links navigate on the first click and unsupported matching remains explicit', async ({ page }) => {
   await enable(page)
   await page.locator('#verse-1-1 [data-translation="ORIGINAL"] [data-word-link="1:1:0"]:visible').click()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Word study: Παῦλος' })
   await expect(dialog).toContainText('Greek New Testament · Nestle 1904')
   await dialog.getByRole('button', { name: /^Acts 13:9/ }).click()
@@ -59,6 +66,7 @@ test('occurrence links navigate on the first click and unsupported matching rema
   await page.getByLabel('Word links', { exact: true }).uncheck()
   const paul = page.locator('#verse-13-9 [data-translation="BSB"] [role="button"]:visible').filter({ hasText: /^Paul$/ })
   await paul.click()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
   await expect(page.getByRole('dialog', { name: 'Word study: Paul' })).toContainText('Occurrences of the source lemma')
 })
 
@@ -68,6 +76,7 @@ test('word occurrences show contextual translations on later pages and retain so
   page.on('request', request => { if (request.url().includes('/bsb-word-links/')) requested.push(request.url()) })
   await enable(page)
   await page.locator('#verse-1-1 [data-translation="BSB"] [data-word-link="1:1:1"]:visible').filter({ hasText: 'servant' }).click()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Word study: servant' })
   const first = dialog.getByRole('button', { name: /^Matthew 8:9/ })
   await expect(dialog.getByRole('status')).toContainText('Some BSB wording or word mappings could not load')
@@ -91,5 +100,71 @@ test('word occurrences show contextual translations on later pages and retain so
   await dialog.getByRole('button', { name: 'Close word study' }).click()
   await page.context().setOffline(true)
   await page.locator('#verse-1-1 [data-translation="BSB"] [data-word-link="1:1:1"]:visible').filter({ hasText: 'servant' }).click()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
   await expect(dialog.getByRole('button', { name: /^Matthew 8:9/ }).locator('[data-occurrence-translation=BSB] mark')).toHaveText('servant')
+})
+
+for (const translation of ['LSV', 'KJV']) {
+  test(`BSB and ${translation} highlight the same checked Greek source anchor without an Original column`, async ({ page }) => {
+    const displayedName = translation === 'KJV' ? 'PAUL' : 'Paul'
+    await page.goto('/#/romans/1')
+    await page.getByTitle('Enable parallel mode', { exact: true }).click()
+    await page.getByRole('button', { name: 'English', exact: true }).click()
+    await page.getByRole('button', { name: new RegExp(`^${translation} (Selected )?`) }).click()
+    const paul = page.locator('#verse-1-1 [data-translation="BSB"] [data-word-paired="true"]:visible').filter({ hasText: /^Paul$/ })
+    await expect(paul).toBeVisible()
+    await paul.click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    const match = page.getByRole('region', { name: 'Selected word match' })
+    await expect(match).toContainText('Παῦλος')
+    await expect(match).toContainText(`${translation}: ${displayedName}`)
+    await expect(page.locator('.bible-word-link-active:visible')).toHaveCount(2)
+    const translated = page.locator(`#verse-1-1 [data-translation="${translation}"] .bible-word-link-active:visible`)
+    await expect(translated).toHaveText(displayedName)
+    await translated.click()
+    await page.getByRole('button', { name: 'Study word', exact: true }).click()
+    await expect(page.getByRole('dialog', { name: `Word study: ${displayedName}` })).toContainText('Occurrences of the source lemma')
+    await page.getByRole('button', { name: 'Close word study' }).click()
+    await expect(translated).toHaveClass(/bible-word-link-active/)
+  })
+}
+
+test.describe('touch word interactions', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } })
+  test('finger tap selects both columns, a long hold studies the word, and vertical swipes still scroll', async ({ page }) => {
+    await enable(page)
+    const word = page.locator('#verse-1-1 [data-translation="ORIGINAL"] [data-word-link="1:1:0"]:visible')
+    await word.tap()
+    await expect(page.locator('.bible-word-link-active:visible')).toHaveCount(2)
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Clear word match' }).tap()
+    await word.scrollIntoViewIfNeeded()
+    const box = await word.boundingBox()
+    const touch = await page.context().newCDPSession(page)
+    const x = box.x + box.width / 2, y = box.y + box.height / 2
+    try {
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] })
+      // Hold beyond the browser's usual long-press threshold. A later pointer
+      // cancellation must not undo the already completed word-study action.
+      await page.waitForTimeout(700)
+      await expect(page.getByRole('dialog', { name: 'Word study: Παῦλος' })).toBeVisible()
+    } finally { await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }) }
+    await page.getByRole('button', { name: 'Close word study' }).tap()
+    await expect(page.locator('.bible-word-link-active:visible')).toHaveCount(2)
+    await page.getByRole('button', { name: 'Clear word match' }).tap()
+    await word.scrollIntoViewIfNeeded()
+    const start = await word.boundingBox(), before = await page.evaluate(() => window.scrollY)
+    const sx = start.x + start.width / 2, sy = start.y + start.height / 2
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: sx, y: sy, id: 2 }] })
+    for (let step = 1; step <= 5; step++) {
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: sx, y: sy - step * 20, id: 2 }] })
+      await page.waitForTimeout(20)
+    }
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+    await page.waitForTimeout(500)
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(page.getByRole('region', { name: 'Selected word match' })).toHaveCount(0)
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 30)
+    await touch.detach()
+  })
 })

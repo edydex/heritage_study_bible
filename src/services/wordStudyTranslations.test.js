@@ -40,7 +40,22 @@ it('checks every new word mapping against the installed source and BSB, includin
     }
   }
   expect(errors).toEqual([])
-  expect({ linked, unlinked, groups }).toEqual({ linked: 6647, unlinked: 1296, groups: 95567 })
+  expect({ linked, unlinked, groups }).toEqual({ linked: 7938, unlinked: 5, groups: 114476 })
+})
+
+it('retains exact publisher correspondences across local Greek and English edition differences', () => {
+  const row = occurrence('Revelation', 1, 1)
+  expect(mappings.Revelation.verses['1:1'].partial).toBeTruthy()
+  expect(occurrenceTranslation(row, mappings.Revelation, english('Revelation', 1, 1))).toMatchObject({
+    status: 'matched', phrases: ['servants', 'servant'], missingCount: 0,
+  })
+  const entry = mappings.Romans.verses['4:1']
+  expect(entry.partial).toBeTruthy()
+  expect(entry.groups.some(group => entry.sourceText.slice(...group.source) === 'Ἀβραὰμ' && entry.targetText.slice(...group.target) === 'that Abraham')).toBe(true)
+  expect(entry.groups.some(group => entry.sourceText.slice(...group.source) === 'εὑρηκέναι' && entry.targetText.slice(...group.target) === 'has discovered')).toBe(true)
+  // The installed English omits the publisher's “according to the flesh.”
+  // Its surviving Greek words must not acquire invented English partners.
+  expect(entry.groups.some(group => ['κατὰ', 'σάρκα;'].includes(entry.sourceText.slice(...group.source)))).toBe(false)
 })
 
 it('shows contextual translated phrases across books and preserves repeated instances in one verse', () => {
@@ -59,7 +74,7 @@ it('shows contextual translated phrases across books and preserves repeated inst
 })
 
 it('shows full context without inventing a match for a differing edition, omitted source word or changed text', () => {
-  for (const [book, chapter, verse] of [['Revelation', 1, 1], ['Matthew', 18, 27]]) {
+  for (const [book, chapter, verse] of [['Matthew', 18, 27]]) {
     const row = occurrence(book, chapter, verse)
     const translation = occurrenceTranslation(row, mappings[book], english(book, chapter, verse))
     expect(translation.text).toBe(visibleVerseText(english(book, chapter, verse)))
