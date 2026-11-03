@@ -27,6 +27,42 @@ describe('original witness anchors across translated verse boundaries', () => {
     expect(links.primary.get('1:2')[0].id).toBe(links.secondary.get('1:1')[0].id)
     expect(links.primary.get('1:1')[0].pattern).toBe(links.secondary.get('1:2')[0].pattern)
   })
+  it('keeps an English auxiliary and verb head in different verses connected to their one original verb', () => {
+    const original = book({ 1: 'νῦν', 2: 'παρακαλέσαι' })
+    const english = book({ 1: 'may', 2: 'comfort' })
+    const anchor = { chapter: 1, verse: 2, startOffset: 0, endOffset: 11, text: 'παρακαλέσαι' }
+    const data = { book: 'Example', targetId: 'LSV', verses: {
+      '1:1': { sourceText: 'νῦν', targetText: 'may', groups: [{ id: 0, source: [0, 11], target: [0, 3], sourceAnchors: [anchor] }] },
+      '1:2': { sourceText: 'παρακαλέσαι', targetText: 'comfort', groups: [{ id: 0, source: [0, 11], target: [0, 7], sourceAnchors: [anchor] }] },
+    } }
+    const links = chapterWordAnchors({ primaryData: data, secondaryData: null, primaryBook: english, secondaryBook: original, sourceBook: original, chapter: 1 })
+    expect(links.primary.get('1:1')[0].id).toBe(links.primary.get('1:2')[0].id)
+    expect(links.primary.get('1:2')[0].id).toBe(links.secondary.get('1:2')[0].id)
+    expect(links.secondary.has('1:1')).toBe(false)
+    const occurrence = occurrenceWordAnchors({ book: 'Example', chapter: 1, verse: 2, text: 'παρακαλέσαι', ranges: [[0, 11]], count: 1 }, data, english, original)
+    expect(occurrence.missingCount).toBe(0)
+    expect(occurrence.contexts.map(row => [row.verse, row.text])).toEqual([[1, 'may'], [2, 'comfort']])
+  })
+  it('retains each translated word’s own lemma when the other translation combines them into one phrase', () => {
+    const original = book({ 1: 'λόγος Θεός' })
+    const primary = book({ 1: 'Word God' }), secondary = book({ 1: 'Word and God' })
+    const fine = { book: 'Example', targetId: 'LSV', verses: { '1:1': {
+      sourceText: 'λόγος Θεός', targetText: 'Word God', groups: [
+        { id: 0, source: [0, 5], target: [0, 4] }, { id: 1, source: [6, 10], target: [5, 8] },
+      ],
+    } } }
+    const broad = { book: 'Example', targetId: 'BSB', verses: { '1:1': {
+      sourceText: 'λόγος Θεός', targetText: 'Word and God', groups: [{ id: 0, source: [0, 10], target: [0, 12] }],
+    } } }
+    const links = chapterWordAnchors({ primaryData: fine, secondaryData: broad, primaryBook: primary, secondaryBook: secondary, sourceBook: original, chapter: 1 })
+    const [word, god] = interactiveWordRanges('Word God', links.primary.get('1:1'), { book: 'Example', chapter: 1, verse: 1, translationId: 'LSV' })
+    expect(word.id).toBe(god.id)
+    expect(god.sourceAnchors).toHaveLength(2)
+    expect(god.studySourceAnchors).toMatchObject([{ startOffset: 6, endOffset: 10 }])
+    const concordance = { books: [{ name: 'Example', verses: { '1:1': [[0, 5, 10], [6, 10, 20]] } }] }
+    expect(greekLemmaIds(concordance, word)).toEqual([10])
+    expect(greekLemmaIds(concordance, god)).toEqual([20])
+  })
   it('keeps known Greek lemma lookup when the other translation has no checked counterpart', () => {
     const missing = { ...secondaryData, verses: {} }
     const links = chapterWordAnchors({ primaryData, secondaryData: missing, primaryBook, secondaryBook, sourceBook, chapter: 1 })

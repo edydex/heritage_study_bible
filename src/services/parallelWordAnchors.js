@@ -183,7 +183,14 @@ export function chapterWordAnchors({ primaryData, secondaryData, primaryBook, se
     }])).values()]
     const common = { id, pattern, sourceRange, sourceRanges, sourceAnchors, label, notes, counterparts }
     for (const side of ['primary', 'secondary']) for (const { ref, range } of uniqueTargets(side)) {
-      const link = { ...common, startOffset: range[0], endOffset: range[1] }
+      // Another translation may express several source words as one phrase.
+      // Its shared color must not replace this word's more precise lemma link.
+      const studyKeys = [...new Set(component.filter(node => node.side === side && node.ref === ref
+        && node.targets.some(target => overlaps(target, range))).flatMap(node => node.keys))]
+      const studySourceAnchors = studyKeys.map(key => wordAnchors.get(key))
+        .sort((a, b) => a.chapter - b.chapter || a.verse - b.verse || a.startOffset - b.startOffset)
+        .map(({ key, index, ...anchor }) => anchor)
+      const link = { ...common, studySourceAnchors, startOffset: range[0], endOffset: range[1] }
       const lookup = result[side === 'primary' ? 'lookupPrimary' : 'lookupSecondary']
       if (!lookup.has(ref)) lookup.set(ref, [])
       lookup.get(ref).push(link)

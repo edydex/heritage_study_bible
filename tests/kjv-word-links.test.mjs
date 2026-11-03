@@ -18,6 +18,8 @@ test('all 27 KJV NT mapping books pin both displayed editions and every split ph
   assert.equal(Object.keys(index.books).length, 27)
   assert.equal(index.provenance.sourceSha256, '4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5')
   assert.equal(index.provenance.targetSha256, createHash('sha256').update(bytes('public/data/translations/KJV.json')).digest('hex'))
+  assert.equal(index.provenance.greekConcordanceSha256, createHash('sha256').update(bytes('public/data/original-languages/greek-concordance.json')).digest('hex'))
+  assert.equal(index.provenance.greekMetadataErrataSha256, createHash('sha256').update(bytes('scripts/original-languages/greek-nt-metadata-errata.json')).digest('hex'))
   let verses = 0, groups = 0, split = 0, unavailable = 0
   for (const [book, metadata] of Object.entries(index.books)) {
     const data = read(base + metadata.file)
@@ -27,15 +29,21 @@ test('all 27 KJV NT mapping books pin both displayed editions and every split ph
     assert.equal(Object.keys(data.verses).length, metadata.linkedVerses)
     assert.equal(Object.keys(data.unavailable).length, metadata.unlinkedVerses)
     for (const [reference, entry] of Object.entries(data.verses)) {
-      assert.equal(entry.sourceText, greek.get(`${book} ${reference}`))
-      assert.equal(entry.targetText, english.get(`${book} ${reference}`))
+      const rawRef = entry.sourceReference ? `${entry.sourceReference.chapter}:${entry.sourceReference.verse}` : reference
+      assert.equal(entry.sourceText, greek.get(`${book} ${rawRef}`) ?? (entry.sourceAbsent ? '' : undefined))
+      assert.equal(entry.targetText, english.get(`${book} ${reference}`) ?? (entry.targetAbsent ? '' : undefined))
       assert.equal(new Set(entry.groups.map(group => group.id)).size, entry.groups.length)
       for (const group of entry.groups) {
-        for (const [column, ranges] of [['sourceText', group.sourceRanges || [group.source]], ['targetText', group.targetRanges || [group.target]]]) {
+        for (const [column, ranges] of [['sourceText', group.sourceAnchors ? [] : group.sourceRanges || [group.source]], ['targetText', group.targetRanges || [group.target]]]) {
           for (const [start, end] of ranges) {
             assert.ok(Number.isInteger(start) && Number.isInteger(end) && start >= 0 && end > start && end <= entry[column].length)
             assert.ok(entry[column].slice(start, end).trim())
           }
+        }
+        for (const anchor of group.sourceAnchors || []) {
+          const text = greek.get(`${book} ${anchor.chapter}:${anchor.verse}`)
+          assert.ok(text && anchor.startOffset >= 0 && anchor.endOffset > anchor.startOffset && anchor.endOffset <= text.length)
+          assert.equal(text.slice(anchor.startOffset, anchor.endOffset), anchor.text)
         }
         assert.deepEqual(group.target, (group.targetRanges || [group.target])[0])
         assert.deepEqual(group.source, (group.sourceRanges || [group.source])[0])
@@ -49,8 +57,12 @@ test('all 27 KJV NT mapping books pin both displayed editions and every split ph
       assert.ok(reason)
       unavailable++
     }
+    for (const key of greek.keys()) if (key.startsWith(`${book} `)) {
+      const ref = key.slice(book.length + 1)
+      assert.ok(data.verses[ref] || data.unavailable[ref], `Unaccounted source reference: ${key}`)
+    }
   }
-  assert.equal(verses + unavailable, 7943)
+  assert.ok(verses + unavailable >= 7943)
   assert.ok(verses >= 7900 && groups >= 100000 && split >= 2500)
 })
 

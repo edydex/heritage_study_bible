@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "book": "Luke",
+  "chapter": 1,
+  "verses": {
+    "1:50": {
+      "sourceText": "καὶ τὸ ἔλεος αὐτοῦ εἰς γενεὰς καὶ γενεὰς τοῖς φοβουμένοις αὐτόν.",
+      "targetText": "And his mercy is on them that fear him from generation to generation.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "mercy",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "his",
+              "occurrence": 0
+            }
+          ],
+          "note": "The possessive αὐτοῦ modifies mercy; accusative αὐτόν is the object of fear. These two pronouns were reversed in the pinned publisher annotation."
+        },
+        {
+          "sourceTokens": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "from generation to generation",
+              "occurrence": 0
+            }
+          ],
+          "note": "The coordinated Greek generations expression is rendered by the English temporal idiom from generation to generation. The two prepositions and coordinated noun forms are not asserted to match independently."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "on them that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "fear",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "Greek article is not separately expressed in this English possessive, naming or noun construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English copula supplied in the Greek nominal mercy statement; no separate copula is written."
+        }
+      ]
+    }
+  }
+}

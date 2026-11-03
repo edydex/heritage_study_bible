@@ -130,3 +130,38 @@ test('a transposed Philippians verse highlights the source in its actual neighbo
   await page.getByRole('button', { name: 'Study word', exact: true }).click()
   await expect(page.getByRole('dialog', { name: 'Word study: affliction' })).toContainText('G2347')
 })
+
+test('a shared English auxiliary does not make establish open the comfort lemma', async ({ page }) => {
+  await compareJohn(page, 'ORIGINAL')
+  await page.goto('/#/2-thessalonians/2')
+  if (await page.getByTitle('Enable parallel mode', { exact: true }).count()) {
+    await page.getByTitle('Enable parallel mode', { exact: true }).click()
+    await page.getByRole('button', { name: 'Original languages', exact: true }).click()
+    await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).click()
+  }
+  const establish = page.locator('#verse-2-17 [data-translation="LSV"] [data-word-link]:visible').filter({ hasText: /^establish$/ })
+  await expect(establish).toHaveAttribute('data-word-paired', 'true')
+  await establish.click()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  const study = page.getByRole('dialog', { name: 'Word study: establish' })
+  await expect(study).toContainText('G4741')
+  await expect(study).not.toContainText('G3870')
+})
+
+test('the Corinthian benediction highlights Greek 13:13 from English 13:14', async ({ page }) => {
+  await compareJohn(page, 'ORIGINAL')
+  await page.goto('/#/2-corinthians/13')
+  if (await page.getByTitle('Enable parallel mode', { exact: true }).count()) {
+    await page.getByTitle('Enable parallel mode', { exact: true }).click()
+    await page.getByRole('button', { name: 'Original languages', exact: true }).click()
+    await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).click()
+  }
+  const english = page.locator('#verse-13-14 [data-translation="LSV"] [data-word-link]:visible').filter({ hasText: /^grace$/ })
+  const original = page.locator('#verse-13-13 [data-translation="ORIGINAL"] [data-word-link]:visible').filter({ hasText: /^χάρις$/ })
+  await expectSameTint(english, original)
+  await english.click()
+  await expect(original).toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('region', { name: 'Selected word match' })).toContainText('Greek 13:13')
+  await page.getByRole('button', { name: 'Show Original 13:13', exact: true }).click()
+  await expect(original).toBeInViewport()
+})

@@ -38,9 +38,10 @@ export async function loadGreekConcordance() {
   return concordancePromise
 }
 export function greekLemmaIds(data, word) {
-  if (word.translationId !== 'ORIGINAL' && word.sourceAnchors?.length) {
+  const studyAnchors = word.studySourceAnchors?.length ? word.studySourceAnchors : word.sourceAnchors
+  if (word.translationId !== 'ORIGINAL' && studyAnchors?.length) {
     const verses = data.books.find(book => book.name === word.book)?.verses || {}
-    return prioritizeGreekLemmas([...new Set(word.sourceAnchors.flatMap(anchor => (verses[`${anchor.chapter}:${anchor.verse}`] || [])
+    return prioritizeGreekLemmas([...new Set(studyAnchors.flatMap(anchor => (verses[`${anchor.chapter}:${anchor.verse}`] || [])
       .filter(([start, end]) => start < anchor.endOffset && end > anchor.startOffset).map(row => row[2])))], data, word)
   }
   const ranges = word.translationId === 'ORIGINAL' ? [[word.startOffset, word.endOffset]] : word.sourceRanges || (word.sourceRange ? [word.sourceRange] : [])

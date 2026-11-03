@@ -33,3 +33,14 @@ it('retains exact visible offsets and never invents an unpaired word match', () 
   expect(words.map(row => [row.word, row.startOffset, row.paired])).toEqual([['For', 0, false], ['God', 4, true], ['loved', 8, false]])
   expect(normalizeWord('θεοῦ')).toBe(normalizeWord('Θεοῦ'))
 })
+it('distinguishes Assos and the possessive his from lookalike adverbs at their exact occurrences', () => {
+  const lemmaAt = (book, ref, token) => concordance.lemmas[concordance.books.find(row => row.name === book).verses[ref][token][2]]
+  expect(lemmaAt('Acts', '20:13', 9).strongs).toContain('789')
+  expect(lemmaAt('Acts', '20:14', 6).strongs).toContain('789')
+  expect(lemmaAt('John', '11:32', 11).strongs).toContain('846')
+  const nearer = concordance.books.find(row => row.name === 'Acts').verses['27:13']
+  expect(nearer.some(([, , id]) => concordance.lemmas[id].strongs.includes('788'))).toBe(true)
+  expect(concordance.metadataCorrections).toHaveLength(3)
+  expect(concordance.metadataCorrections.every(row => row.original.lemma && row.corrected.lemma && row.evidence.length)).toBe(true)
+  expect(concordance.sourceSha256).toBe(corpus.sources[0].sha256)
+})

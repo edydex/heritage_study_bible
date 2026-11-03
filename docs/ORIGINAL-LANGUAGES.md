@@ -88,9 +88,14 @@ No verse notes are displayed or opened by ordinary parallel taps.
 Turning off correspondence colors/patterns retains word lookup. Multi-verse
 selection temporarily pauses word interactions. Saved annotations are unchanged.
 
-The generated Greek concordance has 137,779 source-word records and 5,401 distinct
-source lemma labels. The generator checks every word range against the exact
-installed verse text and pins the same morphology file SHA-256 as the reader:
+The generated Greek concordance has 137,779 source-word records and 5,402 distinct
+lemma labels. The generator checks every word range against the exact installed
+verse text and pins the same morphology file SHA-256 as the reader. Three exact
+occurrence corrections in `greek-nt-metadata-errata.json` distinguish the place
+name Assos (Acts 20:13–14) and the possessive pronoun in John 11:32 from lookalike
+adverbs. The generated concordance retains their original annotations, corrected
+annotations, reasons and primary-source citations. Raw Greek text and its source
+checksum remain unchanged; unrelated lemma indexes remain stable:
 
 ```sh
 python3 scripts/original-languages/build-concordance.py /path/to/Nestle1904/morph/Nestle1904.csv
@@ -103,29 +108,21 @@ correspond to several English words, including translator-supplied syntax.
 Patterns show the publisher’s correspondence, not an assertion of one-to-one
 lexical equivalence.
 
-The importer requires the entire verse’s Greek token sequence to match the
-chosen Nestle edition (ignoring accents, punctuation and case, plus two reviewed
-spelling pairs: Δαυεὶδ/Δαυὶδ and συνπαρακληθῆναι/συμπαρακληθῆναι), and the entire
-English token sequence to match the bundled BSB wording (ignoring case and
-punctuation). It leaves differing verses unlinked. Runtime checks also require
-exact displayed texts and valid character ranges before showing any links.
+The importer transfers only token correspondences present in every optimal exact
+sequence alignment across the publisher and installed editions. A changed verse
+can retain its unambiguous phrases; ambiguous repeated words remain unlinked.
+Every publisher English phrase must survive whole and contiguous. Greek matching
+ignores accents, punctuation and case, with two reviewed spelling pairs:
+Δαυεὶδ/Δαυὶδ and συνπαρακληθῆναι/συμπαρακληθῆναι. Accepted semantic corrections
+then replace misleading publisher edges, including the three Mark 4 cases where
+accent removal had confused the preposition ἐν with the numeral ἕν.
 
-Current pinned BSB data has **95,567 word/phrase groups across 6,647 NT verses**.
-**1,296 Greek-source verse records have no links** because a Greek or English
-edition's wording differs. The Romans subset has 5,232 groups across 380 verses,
-with 52 unlinked verses. Romans 1:3 and 1:12 previously had `greek-edition-differs`
-because of the two spelling pairs above. The pinned source morphology and BSB
-publisher table attest the same words (G1138 and G4837). Allowing only these
-exact pairs restores 50 NT verses; existing mappings and displayed Greek text
-remain unchanged. No fuzzy or lemma matching is used. The repaired Philippians
-4:12 entry records an explicit reviewed phrase mapping, checked against the
-displayed Greek and BSB texts and the published interlinear. It previously had
-`english-edition-differs`, which explained the missing colors. Other differing
-verses remain unlinked with a visible explanation. The per-book files and index include counts, source hashes and
-artifact hashes. Tests check every shipped mapping against both installed texts,
-plus contextual and repeated-word examples. These checks establish source
-correspondence, not a human review of every lexical interpretation. Changing
-BSB text or the Greek source requires regenerating and reviewing the artifacts.
+The per-book manifests record current counts, source hashes and artifact hashes.
+Runtime checks require exact displayed texts and valid source/target ranges.
+Tests check every shipped mapping against both editions, alongside contextual,
+repeated-word and independently reviewed correction examples. Mechanical checks
+and publisher provenance do not establish human review of every interpretation.
+Changing BSB text or the Greek source requires regeneration and review.
 
 ## Sources and licensing
 
@@ -155,8 +152,10 @@ Download the pinned repository and the publisher TSV. Then, from this repo:
 python3 scripts/generateOriginalLanguages.py \
   --nestle /path/to/Nestle1904/morph/Nestle1904.csv \
   --berean /path/to/bsb_tables.tsv --all-nt-links
+python3 scripts/original-languages/build-concordance.py /path/to/Nestle1904/morph/Nestle1904.csv
 python3 scripts/original-languages/build-kjv-links.py --osis /path/to/kjv.osis.xml
 python3 scripts/original-languages/build-lsv-links.py
+python3 scripts/original-languages/audit-nt-word-links.py --output /tmp/nt-word-accounting.json
 npx vitest run src/data/originalLanguages.test.js src/services/wordStudyTranslations.test.js src/components/WordLinks.test.jsx src/components/VerseText.test.jsx
 npm run build
 ```
@@ -210,11 +209,21 @@ across these references and shows the actual matching reference. It never change
 the named Greek source to agree with a translation. Source-lemma lookup retains
 those original references, even from an English word in a different verse.
 
-The generic compiler also supports `reviewed-kjv/` corrections. KJV Philippians
+The generic compiler also supports hash-pinned `reviewed-bsb/` and `reviewed-kjv/`
+corrections. The LSV build stages accepted BSB corrections before deriving shared
+phrases and promotes them only after review validation succeeds. The KJV builder
+applies its own accepted registry. KJV Philippians
 3:21 corrects a publisher's pronoun assignment: the actual genitive **His** is
 linked to **his**, while the longer witness's **that it may be** is explicitly
 unpaired. Publisher data is source evidence, not a guarantee against semantic
 annotation errors. See [KJV sources and reproduction](KJV-WORD-LINKS.md).
+
+`audit-nt-word-links.py` counts actual original identities and every English
+word across the entire NT, including references with no same-numbered Greek
+verse. Each word is mapped, explicitly explained as unpaired, or unresolved.
+Moved clauses count at their actual source reference. Linked verses, mapped word
+percentages, and fully reviewed verses are reported separately. An unresolved
+word is not automatically classified as a witness difference or omitted grammar.
 
 All mappings retain Covenant Press attribution and CC BY-SA 4.0 for the LSV
 adaptation. The Old Testament phrase-mapping phase has not started; it follows

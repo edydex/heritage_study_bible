@@ -1,0 +1,26 @@
+{
+  "description": "Explicit semantic regression cases for reviewed BSB/KJV publisher annotations. These expectations identify the actual Greek occurrence and phrase; source/target witness differences remain unpaired.",
+  "sourceSha256": "3beee6abb6302f691110fe0fc949fc195593b999cf2d0e463c9b573c1bb67150",
+  "publisherSources": {
+    "BSB": {"url": "https://bereanbible.com/bsb_tables.tsv", "sha256": "aa2a9a0f004d015738cd1839c7c56c3be2549e0d4f4537090c2017268c223c60"},
+    "KJV": {"url": "https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml", "sha256": "4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5"}
+  },
+  "cases": [
+    {"target": "KJV", "file": "matthew-1.json", "reference": "1:11", "groups": [{"sourceTokens": [8], "phrases": [{"text": "his"}]}, {"sourceTokens": [9,10,11,12], "phrases": [{"text": "about the time they were carried away to Babylon"}]}]},
+    {"target": "KJV", "file": "matthew-1.json", "reference": "1:21", "groups": [{"sourceTokens": [14], "phrases": [{"text": "his", "occurrence": 1}]}, {"sourceTokens": [18], "phrases": [{"text": "their"}]}]},
+    {"target": "KJV", "file": "luke-1.json", "reference": "1:50", "groups": [{"sourceTokens": [3], "phrases": [{"text": "his"}]}, {"sourceTokens": [10], "phrases": [{"text": "him"}]}]},
+    {"target": "KJV", "file": "john-9.json", "reference": "9:2", "groups": [{"sourceTokens": [2], "phrases": [{"text": "him"}]}, {"sourceTokens": [5], "phrases": [{"text": "his", "occurrence": 0}]}]},
+    {"target": "KJV", "file": "john-10.json", "reference": "10:4", "groups": [{"sourceTokens": [6], "phrases": [{"text": "them"}]}, {"sourceTokens": [7], "phrases": [{"text": "he goeth"}]}], "unpairedSource": [3], "unpairedTarget": [{"text": "sheep", "occurrence": 0}]},
+    {"target": "KJV", "file": "acts-1.json", "reference": "1:9", "groups": [{"sourceTokens": [3,4], "phrases": [{"text": "while they beheld"}]}, {"sourceTokens": [5], "phrases": [{"text": "he was taken up"}]}]},
+    {"target": "KJV", "file": "acts-2.json", "reference": "2:1", "groups": [{"sourceTokens": [8], "phrases": [{"text": "they were"}]}, {"sourceTokens": [11,12,13], "phrases": [{"text": "in one place"}]}], "unpairedSource": [10], "unpairedTarget": [{"text": "with one accord"}]},
+    {"target": "KJV", "file": "2-corinthians-7.json", "reference": "7:12", "unpairedSource": [19,22], "unpairedTarget": [{"text": "our"}, {"text": "you", "occurrence": 1}]},
+    {"target": "KJV", "file": "1-john-2.json", "reference": "2:5", "groups": [{"sourceTokens": [15,16], "phrases": [{"text": "hereby"}]}, {"sourceTokens": [20], "phrases": [{"text": "him", "occurrence": 1}]}, {"sourceTokens": [21], "phrases": [{"text": "we are"}]}]},
+    {"target": "KJV", "file": "2-john-1.json", "reference": "1:3", "unpairedSource": [2], "unpairedTarget": [{"text": "you"}]},
+    {"target": "KJV", "file": "revelation-17.json", "reference": "17:17", "groups": [{"sourceTokens": [7], "phrases": [{"text": "their", "occurrence": 0}]}, {"sourceTokens": [11], "phrases": [{"text": "his"}]}]},
+    {"target": "BSB", "file": "matthew-18.json", "reference": "18:21", "groups": [{"sourceTokens": [10], "phrases": [{"text": "me"}]}, {"sourceTokens": [13], "phrases": [{"text": "my"}]}]},
+    {"target": "BSB", "file": "mark-4.json", "reference": "4:8", "groups": [{"sourceTokens": [19,20], "phrases": [{"text": "sixtyfold"}]}, {"sourceTokens": [22,23], "phrases": [{"text": "a hundredfold"}]}], "unpairedTarget": [{"text": "another", "occurrence": 0}, {"text": "another", "occurrence": 1}], "sourceIdentity": [{"index": 19, "text": "ἐν", "strongs": "1722", "publisherText": "ἓν", "publisherStrongs": "1520"}, {"index": 22, "text": "ἐν", "strongs": "1722", "publisherText": "ἓν", "publisherStrongs": "1520"}]},
+    {"target": "BSB", "file": "mark-4.json", "reference": "4:20", "groups": [{"sourceTokens": [23,24,25], "phrases": [{"text": "or a hundredfold"}]}], "sourceIdentity": [{"index": 24, "text": "ἐν", "strongs": "1722", "publisherText": "ἓν", "publisherStrongs": "1520"}]},
+    {"target": "BSB", "file": "mark-7.json", "reference": "7:36", "groups": [{"sourceTokens": [8], "phrases": [{"text": "them", "occurrence": 1}]}, {"sourceTokens": [9], "phrases": [{"text": "He ordered"}]}, {"sourceTokens": [10], "phrases": [{"text": "they"}]}]},
+    {"target": "BSB", "file": "revelation-9.json", "reference": "9:16", "groups": [{"sourceTokens": [7,8], "phrases": [{"text": "two hundred million"}]}], "unpairedTarget": [{"text": "was"}]}
+  ]
+}

@@ -2,10 +2,19 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
+import { spawnSync } from 'node:child_process'
 const root = new URL('../public/data/', import.meta.url)
 const read = path => JSON.parse(readFileSync(new URL(path, root), 'utf8'))
 const visible = text => text.replace(/^\s*¶\s*/, '').replace(/\s+¶\s+/g, '\n').replace(/\s*\|\|\s*/g, '\n').replace(/<\/?b>/g, '')
 const corpus = id => new Map(read(id === 'ORIGINAL' ? 'original-languages/greek-nt-n1904.json' : `translations/${id}.json`).books.flatMap(b => b.chapters.flatMap(c => c.verses.map(v => [`${b.name}:${c.number}:${v.number}`,visible(v.text)]))))
+test('reviewed publisher pronouns, number phrases and witness differences retain their actual source heads', () => {
+  const result = spawnSync('python3', ['scripts/original-languages/test_publisher_semantic_reviews.py'], { cwd: new URL('../', import.meta.url), encoding: 'utf8', env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' } })
+  assert.equal(result.status, 0, result.stdout + result.stderr)
+})
+test('mapping progress counts individual words and preserves complete split phrases', () => {
+  const result = spawnSync('python3', ['scripts/original-languages/test_word_link_accounting.py'], { cwd: new URL('../', import.meta.url), encoding: 'utf8', env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' } })
+  assert.equal(result.status, 0, result.stdout + result.stderr)
+})
 for (const targetId of ['BSB','LSV']) test(`${targetId} maps pin the displayed edition and have valid paired offsets`, () => {
   const index = read(`original-languages/${targetId.toLowerCase()}-word-links/index.json`), source = corpus('ORIGINAL'), target = corpus(targetId)
   assert.equal(Object.keys(index.books).length, 27)
@@ -17,8 +26,8 @@ for (const targetId of ['BSB','LSV']) test(`${targetId} maps pin the displayed e
     assert.equal(Object.keys(item.verses).length, metadata.linkedVerses)
     for (const [ref, entry] of Object.entries(item.verses)) {
       const rawRef = entry.sourceReference ? `${entry.sourceReference.chapter}:${entry.sourceReference.verse}` : ref
-      assert.equal(entry.sourceText, source.get(`${book}:${rawRef}`))
-      assert.equal(entry.targetText, target.get(`${book}:${ref}`))
+      assert.equal(entry.sourceText, source.get(`${book}:${rawRef}`) ?? (entry.sourceAbsent ? '' : undefined))
+      assert.equal(entry.targetText, target.get(`${book}:${ref}`) ?? (entry.targetAbsent ? '' : undefined))
       assert.equal(new Set(entry.groups.map(g => g.id)).size, entry.groups.length)
       for (const group of entry.groups) {
         for (const [start, end] of group.targetRanges || [group.target]) assert.ok(Number.isInteger(start) && Number.isInteger(end) && start >= 0 && end > start && end <= entry.targetText.length)

@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "book": "Acts",
+  "chapter": 2,
+  "verses": {
+    "2:1": {
+      "sourceText": "Καὶ ἐν τῷ συνπληροῦσθαι τὴν ἡμέραν τῆς Πεντηκοστῆς ἦσαν πάντες ὁμοῦ ἐπὶ τὸ αὐτό·",
+      "targetText": "AND when the day of Pentecost was fully come, they were all with one accord in one place.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "AND",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1,
+            2,
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "when",
+              "occurrence": 0
+            },
+            {
+              "text": "was fully come",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "day",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Pentecost",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "they were",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            12,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "in one place",
+              "occurrence": 0
+            }
+          ],
+          "note": "The idiom ἐπὶ τὸ αὐτό is the shared-place phrase, in one place. Its αὐτό must not be mapped to the separate English subject they."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "Source-witness difference: N1904 reads ὁμοῦ, together, whereas KJV follows ὁμοθυμαδόν, with one accord."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "with one accord",
+          "occurrence": 0,
+          "reason": "Source-witness difference: this follows ὁμοθυμαδόν rather than the ὁμοῦ written in N1904."
+        }
+      ]
+    }
+  }
+}

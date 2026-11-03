@@ -265,6 +265,8 @@ def build(osis_path, output):
         'licenseUrl': f'https://gitlab.com/crosswire-bible-society/kjv/-/blob/{REVISION}/kjv.conf',
         'attribution': 'KJV2003 Project / CrossWire Bible Society; Greek TR data by Maurice A. Robinson.',
         'targetSha256': sha(kjv_path.read_bytes()), 'greekSha256': concordance['sourceSha256'],
+        'greekConcordanceSha256': sha((DATA / 'greek-concordance.json').read_bytes()),
+        'greekMetadataErrataSha256': concordance.get('metadataErrataSha256'),
     }
     output.mkdir(parents=True, exist_ok=True)
     manifest, audit = {}, {}

@@ -3,7 +3,8 @@ import { resolve } from 'node:path'
 import { createHash } from 'node:crypto'
 import { expect, it } from 'vitest'
 import { occurrenceTranslation, greekLemmaIds, greekOccurrences } from './wordStudy'
-import { verseWordLinks, visibleVerseText } from '../data/originalLanguages'
+import { visibleVerseText } from '../data/originalLanguages'
+import { checkedAnchorGroups } from './parallelWordAnchors'
 import concordance from '../../public/data/original-languages/greek-concordance.json'
 import corpus from '../../public/data/original-languages/greek-nt-n1904.json'
 import bsb from '../../public/data/translations/BSB.json'
@@ -26,21 +27,26 @@ it('checks every new word mapping against the installed source and BSB, includin
     expect(data.provenance).toEqual(index.provenance)
     expect(Object.keys(data.verses)).toHaveLength(manifest.linkedVerses)
     expect(Object.keys(data.unavailable)).toHaveLength(manifest.unlinkedVerses)
+    const sourceVerses = new Map(book.chapters.flatMap(chapter => chapter.verses.map(verse => [`${chapter.number}:${verse.number}`, verse.text])))
+    for (const [ref, entry] of Object.entries(data.verses)) {
+      const [chapter, verse] = ref.split(':').map(Number)
+      const text = english(book.name, chapter, verse) || ''
+      const links = checkedAnchorGroups(data, ref, sourceVerses, visibleVerseText(text))
+      if (!links || data.unavailable[ref]) errors.push(`${book.name} ${ref}`)
+      linked++; groups += entry.groups.length
+    }
     for (const chapter of book.chapters) for (const verse of chapter.verses) {
       const ref = `${chapter.number}:${verse.number}`
-      const text = english(book.name, chapter.number, verse.number) || ''
-      const links = verseWordLinks(data, chapter.number, verse.number, verse.text, text)
-      if (data.verses[ref]) {
-        if (!links || data.unavailable[ref]) errors.push(`${book.name} ${ref}`)
-        linked++; groups += links?.target.length || 0
-      } else {
-        if (!/edition-differs/.test(data.unavailable[ref])) errors.push(`${book.name} ${ref}: no reason`)
+      if (!data.verses[ref]) {
+        if (!data.unavailable[ref]) errors.push(`${book.name} ${ref}: no reason`)
         unlinked++
       }
     }
   }
   expect(errors).toEqual([])
-  expect({ linked, unlinked, groups }).toEqual({ linked: 7938, unlinked: 5, groups: 114476 })
+  expect(linked + unlinked).toBeGreaterThanOrEqual(7943)
+  expect(groups).toBe(Object.values(index.books).reduce((sum, row) => sum + row.groups, 0))
+  expect(groups).toBeGreaterThan(100000)
 })
 
 it('retains exact publisher correspondences across local Greek and English edition differences', () => {

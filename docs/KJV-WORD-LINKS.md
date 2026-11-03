@@ -2,15 +2,19 @@ KJV New Testament links come directly from CrossWire's KJV OSIS word markup. The
 
 The installed KJV is retained. Exact English words are aligned by the same mandatory sequence rule, allowing unchanged phrases through minor printing differences while refusing changed words or ambiguous repetitions. Supplied English words outside publisher word tags, colophons, next-book headings, cross-verse source positions and unmatched textual variants do not gain invented Greek links. A publisher phrase with separated English or Greek pieces uses `targetRanges` or `sourceRanges`; its intervening words keep their own correspondence. `target` and `source` retain their first segments for schema-1 compatibility. A single Greek compound/numeral may retain several component Strong identities. A genuinely inconsistent Strong array is skipped individually, with neighboring links required to agree across every compatible missing identity assignment and an unmatched-witness possibility.
 
-The initial package has 108,268 groups in 7,936 of the 7,943 installed Greek verses, across all 27 NT books. It covers 160,012 of 180,312 displayed KJV word tokens and 122,362 of 137,779 Greek source tokens. These are **paired-word coverage counts**, not a claim that every word has an exact translation equivalent. There are 3,108 groups with separated target pieces and 273 with separated source pieces. Seven source verses have no accepted groups: three have incomplete publisher source sequences, three lack a corresponding installed KJV verse (the alternative Mark 16:99 ending, 3 John 1:15, and Revelation 12:18), and one has no unambiguous shared phrase. KJV verses absent from the N1904 witness cannot acquire a source correspondence by this process.
+The manifests record current groups and linked references across all 27 NT books. Hash-pinned reviews correct publisher annotation errors, including swapped pronoun occurrences; the original publisher baseline is not semantic certification. The word-accounting audit includes **all** installed KJV NT references, including those without a same-numbered N1904 verse. It distinguishes mapped words, explicitly explained unpaired words and unresolved words. Missing same-numbered verses such as 3 John 1:15 and Revelation 12:18 require review of the actual neighboring English counterpart. They are not evidence that the words are absent from the translation. Genuine witness differences must remain explicitly unpaired.
+
+The concordance applies three documented occurrence-specific annotation errata before positional matching. Its artifact hash and errata hash are pinned in KJV provenance in addition to the unchanged raw Greek source checksum. The accepted correction registry is `scripts/original-languages/kjv-review-status.json`; unreviewed drafts are excluded.
 
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
-To rebuild, download the pinned OSIS file, then run:
+To rebuild, download the pinned OSIS file and N1904 morphology, then run:
 
 ```sh
+python3 scripts/original-languages/build-concordance.py /path/to/Nestle1904.csv
 python3 scripts/original-languages/build-kjv-links.py \
   --osis /path/to/kjv.osis.xml --audit /tmp/kjv-links-audit.json
+python3 scripts/original-languages/audit-nt-word-links.py --output /tmp/nt-word-accounting.json
 node --test tests/kjv-word-links.test.mjs
 ```
 
