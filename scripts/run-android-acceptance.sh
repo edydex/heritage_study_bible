@@ -73,6 +73,17 @@ while (( SECONDS < boot_deadline )); do
   sleep 2
 done
 [[ "$booted" == true ]] || { echo 'Android emulator did not boot.' >&2; exit 1; }
+# Complete first-boot setup on this disposable AVD before navigation setup.
+# Launcher caches USER_SETUP_COMPLETE and can use a larger setup-only window:
+# https://android.googlesource.com/platform/packages/apps/Launcher3/+/android-15.0.0_r1/quickstep/src/com/android/launcher3/taskbar/TaskbarActivityContext.java
+printf 'emulator-setup\n' > "$output/runner-phase.txt"
+timeout --kill-after=5 10 adb shell settings put global device_provisioned 1
+timeout --kill-after=5 10 adb shell settings put secure user_setup_complete 1
+timeout --kill-after=5 10 adb shell settings get global device_provisioned | tr -d '\r' > "$output/device-provisioned.txt"
+timeout --kill-after=5 10 adb shell settings get secure user_setup_complete | tr -d '\r' > "$output/user-setup-complete.txt"
+grep -Fx '1' "$output/device-provisioned.txt" >/dev/null
+grep -Fx '1' "$output/user-setup-complete.txt" >/dev/null
+printf 'emulator-configure\n' > "$output/runner-phase.txt"
 # Unlock through WindowManager without dispatching input to the still-starting
 # launcher; an early MENU key can create a launcher ANR over the tested app.
 timeout --kill-after=5 10 adb shell wm dismiss-keyguard

@@ -269,6 +269,14 @@ across these references and shows the actual matching reference. It never change
 the named Greek source to agree with a translation. Source-lemma lookup retains
 those original references, even from an English word in a different verse.
 
+An English name can clarify a printed Greek pronoun; its link retains the actual
+pronoun and identifies the naming as the translation's wording. When source
+evidence instead documents a different printed noun/pronoun reading, the unlike
+heads remain unpaired with a witness note. For example, Luke 6:10 has N1904
+«to him» versus the named «to the man» reading documented in the pinned TR.
+LSV USFM Strong tags do not establish these identities; some tags do not match
+the words they annotate.
+
 The generic compiler also supports hash-pinned `reviewed-bsb/` and `reviewed-kjv/`
 corrections. The LSV build stages accepted BSB corrections before deriving shared
 phrases and promotes them only after review validation succeeds. The KJV builder

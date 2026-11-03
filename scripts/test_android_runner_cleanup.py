@@ -49,6 +49,10 @@ def check(scenario):
                 time.sleep(60)
             elif args == ['shell', 'getprop', 'sys.boot_completed']:
                 print('1')
+            elif args == ['shell', 'settings', 'get', 'global', 'device_provisioned']:
+                print('0' if scenario == 'device-provisioned-readback-mismatch' else '1')
+            elif args == ['shell', 'settings', 'get', 'secure', 'user_setup_complete']:
+                print('0' if scenario == 'user-setup-readback-mismatch' else '1')
             elif args == ['shell', 'cmd', 'overlay', 'list']:
                 print('[x] com.android.internal.systemui.navbar.threebutton')
             elif args == ['shell', 'settings', 'get', 'secure', 'immersive_mode_confirmations']:
@@ -112,7 +116,8 @@ def check(scenario):
         calls = json.loads((root / 'adb-state.json').read_text())['calls']
         startup = (evidence / 'adb-startup.log').read_text()
         phase = (evidence / 'runner-phase.txt').read_text().strip()
-        expected_exit = 0 if scenario == 'startup-recovers' else 1 if scenario == 'immersive-readback-mismatch' else 124
+        setup_mismatches = ['device-provisioned-readback-mismatch', 'user-setup-readback-mismatch']
+        expected_exit = 0 if scenario == 'startup-recovers' else 1 if scenario in setup_mismatches + ['immersive-readback-mismatch'] else 124
         assert process.returncode == expected_exit, (scenario, process.returncode, stdout, stderr)
         assert (evidence / 'runner-exit.txt').read_text().strip() == f'exitCode={expected_exit}'
         assert (evidence / 'adb-daemon.log').read_text() == 'simulated-adb-daemon'
@@ -128,10 +133,17 @@ def check(scenario):
             assert calls.count(['start-server']) == 2
             assert calls[:3] == [['start-server'], ['kill-server'], ['start-server']]
             assert (root / 'native-tests.txt').read_text() == 'native-tests-once\n'
+            assert (evidence / 'device-provisioned.txt').read_text() == '1\n'
+            assert (evidence / 'user-setup-complete.txt').read_text() == '1\n'
             assert (evidence / 'immersive-mode-confirmation.txt').read_text() == 'confirmed\n'
+            provision = ['shell', 'settings', 'put', 'global', 'device_provisioned', '1']
+            setup = ['shell', 'settings', 'put', 'secure', 'user_setup_complete', '1']
+            provision_readback = ['shell', 'settings', 'get', 'global', 'device_provisioned']
+            setup_readback = ['shell', 'settings', 'get', 'secure', 'user_setup_complete']
             navigation = ['shell', 'cmd', 'overlay', 'enable-exclusive', '--category', 'com.android.internal.systemui.navbar.threebutton']
             acknowledgement = ['shell', 'settings', 'put', 'secure', 'immersive_mode_confirmations', 'confirmed']
             readback = ['shell', 'settings', 'get', 'secure', 'immersive_mode_confirmations']
+            assert calls.index(provision) < calls.index(setup) < calls.index(provision_readback) < calls.index(setup_readback) < calls.index(navigation)
             assert calls.index(navigation) < calls.index(acknowledgement) < calls.index(readback)
             assert calls.index(readback) < next(i for i, args in enumerate(calls) if args[:1] == ['install'])
             assert phase == 'native-tests'
@@ -142,12 +154,22 @@ def check(scenario):
                 pass
             else:
                 raise AssertionError('Successful-run cleanup left the simulated emulator running')
-        elif scenario == 'immersive-readback-mismatch':
+        elif scenario in setup_mismatches + ['immersive-readback-mismatch']:
             assert calls.count(['start-server']) == 1
-            assert (evidence / 'immersive-mode-confirmation.txt').read_text() == 'not-confirmed\n'
+            if scenario in setup_mismatches:
+                expected_provisioned = '0\n' if scenario == 'device-provisioned-readback-mismatch' else '1\n'
+                expected_setup = '0\n' if scenario == 'user-setup-readback-mismatch' else '1\n'
+                assert (evidence / 'device-provisioned.txt').read_text() == expected_provisioned
+                assert (evidence / 'user-setup-complete.txt').read_text() == expected_setup
+                assert not any(args[:3] == ['shell', 'cmd', 'overlay'] for args in calls)
+                assert not any(args[:3] == ['shell', 'pm', 'disable-user'] for args in calls)
+                assert not (evidence / 'immersive-mode-confirmation.txt').exists()
+                assert phase == 'emulator-setup'
+            else:
+                assert (evidence / 'immersive-mode-confirmation.txt').read_text() == 'not-confirmed\n'
+                assert phase == 'emulator-configure'
             assert not (root / 'native-tests.txt').exists()
             assert not any(args[:1] == ['install'] for args in calls)
-            assert phase == 'emulator-boot'
             emulator_pid = int((root / 'emulator.pid').read_text())
             try:
                 os.kill(emulator_pid, 0)
@@ -179,5 +201,5 @@ def check(scenario):
         }))
 
 
-for scenario in ['emulator-fails', 'startup-recovers', 'startup-always-hangs', 'reset-hangs', 'immersive-readback-mismatch']:
+for scenario in ['emulator-fails', 'startup-recovers', 'startup-always-hangs', 'reset-hangs', 'device-provisioned-readback-mismatch', 'user-setup-readback-mismatch', 'immersive-readback-mismatch']:
     check(scenario)

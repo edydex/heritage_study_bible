@@ -110,6 +110,23 @@ test('the John 1 Bethabara reading does not claim a match with the Greek Bethany
   await expect(page.getByRole('dialog')).toHaveCount(0)
 })
 
+test('Luke keeps a documented man-noun reading distinct from the displayed source pronoun', async ({ page }) => {
+  await compareJohn(page, 'ORIGINAL')
+  await page.goto('/#/luke/6')
+  if (await page.getByTitle('Enable parallel mode', { exact: true }).count()) {
+    await page.getByTitle('Enable parallel mode', { exact: true }).click()
+    await page.getByRole('button', { name: 'Original languages', exact: true }).click()
+    await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).click()
+  }
+  const english = page.locator('#verse-6-10 [data-translation="LSV"] [data-word-link]:visible').filter({ hasText: /^man$/ })
+  const pronoun = page.locator('#verse-6-10 [data-translation="ORIGINAL"] [data-word-link]:visible').filter({ hasText: /^αὐτῷ$/ })
+  await expect(english).toHaveAttribute('data-word-paired', 'false')
+  await expect(pronoun).toHaveAttribute('data-word-paired', 'false')
+  await english.click()
+  await expect(pronoun).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('region', { name: 'Selected word match' })).toContainText('τῷ ἀνθρώπῳ')
+})
+
 test('a transposed Philippians verse highlights the source in its actual neighboring row', async ({ page }) => {
   await compareJohn(page, 'ORIGINAL')
   await page.goto('/#/philippians/1')
