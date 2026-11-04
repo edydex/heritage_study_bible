@@ -173,3 +173,82 @@ test('a translated verse absent from the Greek numbering studies the actual prec
   await page.getByRole('button', { name: 'Study word', exact: true }).click()
   await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText(/G0*630\b/)
 })
+
+test('reordered eating conditions keep their own repeated Greek predicates and negative', async ({ page }) => {
+  await compare(page, '1-corinthians', 8, 'LSV', 'ORIGINAL')
+  const english = words(page, 'LSV', 8, 8, /^eat$/)
+  const original = words(page, 'ORIGINAL', 8, 8, /^φ.γωμεν$/)
+  await expect(english).toHaveCount(2)
+  await expect(original).toHaveCount(2)
+  for (const [target, source] of [[0, 1], [1, 0]]) {
+    await english.nth(target).click()
+    await expect(original.nth(source)).toHaveClass(/bible-word-link-active/)
+    await expect(original.nth(1 - source)).not.toHaveClass(/bible-word-link-active/)
+    await page.getByRole('button', { name: 'Clear word match' }).click()
+  }
+  await words(page, 'LSV', 8, 8, /^not$/).nth(1).click()
+  await expect(words(page, 'ORIGINAL', 8, 8, /^μ.$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 8, 8, /^ο.$/)).not.toHaveClass(/bible-word-link-active/)
+})
+
+test('mighty studies the actual power noun without selecting angels or the possessor', async ({ page }) => {
+  await compare(page, '2-thessalonians', 1, 'BSB', 'KJV')
+  const mighty = words(page, 'BSB', 1, 7, /^mighty$/)
+  const counterpart = words(page, 'KJV', 1, 7, /^mighty$/)
+  await expect(mighty).toHaveAttribute('data-word-paired', 'true')
+  const color = await mighty.getAttribute('data-word-color')
+  expect(color).not.toBeNull()
+  await expect(counterpart).toHaveAttribute('data-word-color', color)
+  await expect(counterpart).toHaveAttribute('data-word-texture', await mighty.getAttribute('data-word-texture'))
+  await mighty.click()
+  await expect(counterpart).toHaveClass(/bible-word-link-active/)
+  for (const translation of ['BSB', 'KJV']) {
+    await expect(words(page, translation, 1, 7, /^angels$/)).not.toHaveClass(/bible-word-link-active/)
+    await expect(words(page, translation, 1, 7, /^his$/i)).not.toHaveClass(/bible-word-link-active/)
+  }
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText(/G0*1411\b/)
+})
+
+test('the grant of relief shares the real preceding recompense predicate across translations', async ({ page }) => {
+  await compare(page, '2-thessalonians', 1, 'BSB', 'KJV')
+  await words(page, 'BSB', 1, 7, /^grant$/).click()
+  await expect(words(page, 'BSB', 1, 6, /^repay$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 1, 6, /^recompense$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 1, 7, /^rest$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('region', { name: 'Selected word match' }).getByRole('status')).toContainText('Greek 1:6:')
+})
+
+test('the repeated restraining predicate matches its actual present head without inventing continuation', async ({ page }) => {
+  await compare(page, '2-thessalonians', 2, 'KJV', 'BSB')
+  await words(page, 'KJV', 2, 7, /^let$/).click()
+  await expect(words(page, 'KJV', 2, 7, /^letteth$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'BSB', 2, 7, /^restrains$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'BSB', 2, 7, /^continue$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'BSB', 2, 7, /^continue$/)).toHaveAttribute('data-word-paired', 'false')
+})
+
+test.describe('reviewed Thessalonian heads on touch screens', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } })
+
+  test('tap and a long finger hold study the efficacy head across powerful and strong', async ({ page }) => {
+    await compare(page, '2-thessalonians', 2, 'BSB', 'KJV')
+    const powerful = words(page, 'BSB', 2, 11, /^powerful$/)
+    await powerful.tap()
+    await expect(words(page, 'KJV', 2, 11, /^strong$/)).toHaveClass(/bible-word-link-active/)
+    await expect(words(page, 'BSB', 2, 11, /^delusion$/)).not.toHaveClass(/bible-word-link-active/)
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await page.getByRole('button', { name: 'Clear word match' }).tap()
+    await powerful.scrollIntoViewIfNeeded()
+    const box = await powerful.boundingBox()
+    const touch = await page.context().newCDPSession(page)
+    const x = box.x + box.width / 2, y = box.y + box.height / 2
+    try {
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] })
+      await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText(/G0*1753\b/)
+    } finally {
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+      await touch.detach()
+    }
+  })
+})

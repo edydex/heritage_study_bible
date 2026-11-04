@@ -53,6 +53,18 @@ checks the actual walking subject behind BSB “urging you to walk” against KJ
 The KJV subscription and trailing next-book heading remain explicitly unpaired
 paratext; these words receive no invented Greek anchors.
 
+All three chapters of 2 Thessalonians have complete author and separate assistant
+peer reviews in both translations. The actual power noun behind “mighty” and
+activity/efficacy noun behind KJV “strong” and BSB “powerful” retain separate
+study anchors from “angels” and “delusion.” The one recompense predicate in 1:6
+also supplies BSB's coordinated “grant” in 1:7, preserving its actual reference.
+In 2:7, KJV's “letteth” and immediate “will let” resumption share the actual
+present restraining participle; BSB's added “continue” remains explained as
+supplied wording. Neither rendering changes the Greek tags to future. The
+unlike receiving participants in 3:6 and closing KJV subscription remain
+explicitly unpaired. Browser checks cover these distinct heads, shared
+predicates, matching colors and finger tap/hold word study.
+
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
 To rebuild, download the pinned OSIS file and N1904 morphology, then run:

@@ -286,6 +286,13 @@ across these references and shows the actual matching reference. It never change
 the named Greek source to agree with a translation. Source-lemma lookup retains
 those original references, even from an English word in a different verse.
 
+Repeated words also retain their identities when clauses change order within a
+verse. In 1 Corinthians 8:8, LSV puts the eating/being-in-advance condition before
+the not-eating/being-behind condition; N1904 has the reverse order. The two actual
+eating predicates, condition markers and negatives stay with their own clauses.
+The unlike habit/conscience readings in 8:7 remain explicitly unpaired rather
+than assigning the later conscience occurrence to both English words.
+
 An English name can clarify a printed Greek pronoun; its link retains the actual
 pronoun and identifies the naming as the translation's wording. When source
 evidence instead documents a different printed noun/pronoun reading, the unlike
