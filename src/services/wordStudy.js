@@ -51,15 +51,16 @@ export function greekLemmaIds(data, word) {
 }
 
 // Every lemma remains available in a many-to-many phrase. Choose a useful
-// initial tab for an English content word instead of defaulting to its article.
+// initial tab for an English content word before its article or supporting copula.
 function prioritizeGreekLemmas(ids, data, word) {
   if (word.translationId === 'ORIGINAL' || ids.length < 2 || !data.lemmas) return ids
   const preferred = {
     the: ['3588'], and: ['2532','1161','5037'], but: ['235','1161'], or: ['2228'],
+    am: ['1510'], are: ['1510'], be: ['1510'], been: ['1510'], being: ['1510'], is: ['1510'], was: ['1510'], were: ['1510'],
     i: ['1473'], me: ['1473'], my: ['1473'], mine: ['1473'], our: ['1473'], ours: ['1473'], we: ['1473'], us: ['1473'],
     you: ['4771'], your: ['4771'], yours: ['4771'], he: ['846'], him: ['846'], his: ['846'], she: ['846'], her: ['846'], hers: ['846'], they: ['846'], them: ['846'], their: ['846'], theirs: ['846'],
   }[normalizeWord(word.word || '')] || []
-  const grammatical = new Set(['3588','2532','1161','5037','235','2228','1473','4771','846','1519','1722','1537','1223','2596','5228','4012','1909','4314','3326','4862','575'])
+  const grammatical = new Set(['3588','1510','2532','1161','5037','235','2228','1473','4771','846','1519','1722','1537','1223','2596','5228','4012','1909','4314','3326','4862','575'])
   const rank = id => {
     const strongs = data.lemmas[id]?.strongs || []
     if (strongs.some(strong => preferred.includes(String(Number(strong))))) return -1

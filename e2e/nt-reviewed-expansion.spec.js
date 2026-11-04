@@ -15,6 +15,35 @@ async function compare(page, book, chapter, primary, secondary) {
   await expect(page.locator(`[data-translation="${primary}"] [data-word-paired="true"]:visible`).first()).toBeVisible()
 }
 
+test('the repeated seeing subject in Acts retains its actual preceding infinitive subject', async ({ page }) => {
+  await compare(page, 'acts', 22, 'LSV', 'ORIGINAL')
+  await words(page, 'LSV', 22, 18, /^I$/).click()
+  await expect(words(page, 'ORIGINAL', 22, 17, /^με$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 22, 18, /^ἰδεῖν$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('button', { name: 'Show Original 22:17', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G1473')
+})
+
+test('the Asian name moved in Acts preserves its true source verse and separate indefinite qualifier', async ({ page }) => {
+  await compare(page, 'acts', 24, 'LSV', 'ORIGINAL')
+  await words(page, 'LSV', 24, 18, /^Asia$/).click()
+  await expect(words(page, 'ORIGINAL', 24, 19, /^Ἀσίας$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 24, 19, /^τινὲς$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('button', { name: 'Show Original 24:19', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G773')
+})
+
+test('Colossians publisher cross wording studies the actual pronoun without borrowing the earlier cross noun', async ({ page }) => {
+  await compare(page, 'colossians', 2, 'BSB', 'KJV')
+  await words(page, 'BSB', 2, 15, /^cross$/).click()
+  await expect(words(page, 'KJV', 2, 15, /^it$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'BSB', 2, 14, /^cross$/)).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G846')
+})
+
 test('the resumed prices in Acts keep the actual preceding-verse source occurrence', async ({ page }) => {
   await compare(page, 'acts', 4, 'LSV', 'ORIGINAL')
   const resumed = words(page, 'LSV', 4, 35, /^them$/)

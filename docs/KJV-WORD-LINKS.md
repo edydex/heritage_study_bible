@@ -65,6 +65,12 @@ unlike receiving participants in 3:6 and closing KJV subscription remain
 explicitly unpaired. Browser checks cover these distinct heads, shared
 predicates, matching colors and finger tap/hold word study.
 
+Colossians 2 has complete BSB and KJV assistant author-and-peer reviews. At 2:15,
+the publisher's BSB “by the cross” wording and KJV “in it” retain the actual
+preposition and pronoun. Word study opens that pronoun without borrowing the
+cross noun from 2:14 or deciding the pronoun's Greek antecedent. A browser case
+checks the shared colors and the actual source lemma.
+
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
 To rebuild, download the pinned OSIS file and N1904 morphology, then run:

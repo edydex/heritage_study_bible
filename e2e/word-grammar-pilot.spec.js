@@ -69,6 +69,22 @@ test('Romans future form has the same lemma but retains its own tense', async ({
   await expect(grammar.locator('[data-dictionary-gloss] [lang="en"]')).toHaveText('to rescue')
 })
 
+test('carrying opens its content verb while explicit be opens the supporting future form', async ({ page }) => {
+  await compareOriginal(page, 'LSV', 'colossians/2')
+  const dialog = await study(page, 'LSV', 2, 8, /^carrying$/)
+  await expect(dialog.getByRole('heading', { level: 3, name: /G4812/ })).toBeVisible()
+  const grammar = dialog.locator('[data-word-grammar]')
+  await expect(grammar).toContainText('συλαγωγῶν')
+  await expect(grammar.getByRole('button', { name: /Tense \/ aspect: Present/ })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'εἰμί', exact: true })).toHaveAttribute('aria-pressed', 'false')
+  await dialog.getByRole('button', { name: 'Close word study' }).tap()
+  const beDialog = await study(page, 'LSV', 2, 8, /^be$/)
+  await expect(beDialog.getByRole('heading', { level: 3, name: /G1510/ })).toBeVisible()
+  await expect(beDialog.locator('[data-word-grammar]')).toContainText('ἔσται')
+  await expect(beDialog.locator('[data-word-grammar]').getByRole('button', { name: /Tense \/ aspect: Future/ })).toBeVisible()
+  await expect(beDialog.getByRole('button', { name: 'συλαγωγέω', exact: true })).toHaveAttribute('aria-pressed', 'false')
+})
+
 test('Synodal chooses an actual Greek form and shows Russian context without fabricated highlights', async ({ page }) => {
   await compareOriginal(page, 'SYNO-W', 'colossians/1')
   const studyDialog = await study(page, 'SYNO-W', 1, 13, /^избавившего$/)

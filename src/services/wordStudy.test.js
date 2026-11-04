@@ -3,7 +3,10 @@ import { greekLemmaIds, greekOccurrences, interactiveWordRanges, normalizeWord }
 import concordance from '../../public/data/original-languages/greek-concordance.json'
 import corpus from '../../public/data/original-languages/greek-nt-n1904.json'
 import philemonBsb from '../../public/data/original-languages/bsb-word-links/philemon.json'
+import colossiansLsv from '../../public/data/original-languages/lsv-word-links/colossians.json'
+import lsv from '../../public/data/translations/LSV.json'
 import { verseWordLinks } from '../data/originalLanguages'
+import { chapterWordAnchors } from './parallelWordAnchors'
 it('keeps every lemma range within the corresponding source verse', () => {
   let count = 0
   const errors = []
@@ -53,4 +56,29 @@ it('opens the personal lemma for Philemon’s ours while retaining the full in-u
   const ids = greekLemmaIds(concordance, { ...link, translationId: 'BSB', book: 'Philemon', chapter: 1, verse: 6, word: 'ours' })
   expect(concordance.lemmas[ids[0]].strongs).toContain('1473')
   expect(ids.map(id => concordance.lemmas[id].strongs).flat()).toContain('1722')
+})
+
+it('opens carrying before its supporting be verb, while keeping explicit be and original-word choices', () => {
+  const sourceBook = corpus.books.find(book => book.name === 'Colossians')
+  const primaryBook = lsv.books.find(book => book.name === 'Colossians')
+  const graph = chapterWordAnchors({ primaryData: colossiansLsv, primaryBook, secondaryData: null, secondaryBook: sourceBook, sourceBook, chapter: 2 })
+  expect(graph.invalidReferences).toEqual([])
+  const entry = colossiansLsv.verses['2:8']
+  const words = interactiveWordRanges(entry.targetText, graph.primary.get('2:8'), {
+    translationId: 'LSV', book: 'Colossians', chapter: 2, verse: 8, lookupLinks: graph.lookupPrimary.get('2:8'),
+  })
+  const carrying = words.find(word => word.word === 'carrying'), be = words.find(word => word.word === 'be')
+  expect(carrying.paired).toBe(true)
+  expect(be.studySourceAnchors).toEqual(carrying.studySourceAnchors)
+  const ids = greekLemmaIds(concordance, carrying), beIds = greekLemmaIds(concordance, be)
+  expect(concordance.lemmas[ids[0]].strongs).toContain('4812')
+  expect(concordance.lemmas[beIds[0]].strongs).toContain('1510')
+  expect(new Set(beIds)).toEqual(new Set(ids))
+  expect(ids.flatMap(id => concordance.lemmas[id].strongs).sort()).toEqual(['1510', '3588', '4812'])
+  for (const anchor of carrying.studySourceAnchors) {
+    const original = { ...anchor, translationId: 'ORIGINAL', book: 'Colossians', word: anchor.text }
+    const originalIds = greekLemmaIds(concordance, original)
+    expect(originalIds).toHaveLength(1)
+    expect(ids).toContain(originalIds[0])
+  }
 })

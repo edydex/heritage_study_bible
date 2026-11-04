@@ -279,12 +279,24 @@ preserve the exact previous resource and a separate author-and-peer proof of
 the changed groups; the registry then pins the reviewed replacement. Other
 candidate constructions remain subject to individual review.
 
+Word study retains every lemma in a checked phrase. For English content words,
+the initial selection prefers the content head over a supporting Greek being
+verb, article or other function word. In Colossians 2:8, clicking LSV “carrying”
+opens the actual carrying participle, while “be” opens the actual future being
+form. Original-language clicks continue to select their exact original word.
+
 The source witness reference is an explicit part of an anchor. For example,
 Philippians 1:16–17 is transposed between LSV and N1904; John and Romans also move
 clauses across verse boundaries. The reader joins exact original token identities
 across these references and shows the actual matching reference. It never changes
 the named Greek source to agree with a translation. Source-lemma lookup retains
 those original references, even from an English word in a different verse.
+
+Acts 22:17–18 shares the one written accusative subject of its two coordinated
+infinitives; the repeated English “I” keeps that actual 22:17 anchor. Acts 24:18
+places the Asian Jews phrase before “found,” while N1904 prints those words at
+24:19. Each linked word keeps its true 24:19 identity. The longer LSV passage in
+24:6–8 has explicit witness notes, including the wholly absent Greek 24:7.
 
 Repeated words also retain their identities when clauses change order within a
 verse. In 1 Corinthians 8:8, LSV puts the eating/being-in-advance condition before
