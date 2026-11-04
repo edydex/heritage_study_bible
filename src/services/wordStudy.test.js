@@ -82,3 +82,18 @@ it('opens carrying before its supporting be verb, while keeping explicit be and 
     expect(ids).toContain(originalIds[0])
   }
 })
+
+it('opens the actual negative for Ephesians no while retaining all and exact original choices', () => {
+  const source = concordance.books.find(book => book.name === 'Ephesians').verses['4:29']
+  const sourceAnchors = [0, 7].map(index => ({ chapter: 4, verse: 29, startOffset: source[index][0], endOffset: source[index][1] }))
+  const word = { translationId: 'BSB', book: 'Ephesians', chapter: 4, verse: 29, word: 'no', sourceAnchors }
+  const ids = greekLemmaIds(concordance, word)
+  expect(ids.flatMap(id => concordance.lemmas[id].strongs)).toEqual(['3361', '3956'])
+  const all = greekLemmaIds(concordance, { ...word, word: 'all' })
+  expect(concordance.lemmas[all[0]].strongs).toContain('3956')
+  expect(new Set(all)).toEqual(new Set(ids))
+  for (const [index, anchor] of sourceAnchors.entries()) {
+    expect(greekLemmaIds(concordance, { ...word, ...anchor, translationId: 'ORIGINAL' })).toEqual([source[[0, 7][index]][2]])
+  }
+  expect(greekLemmaIds(concordance, { ...word, sourceAnchors: sourceAnchors.slice(0, 1) })).toEqual([source[0][2]])
+})

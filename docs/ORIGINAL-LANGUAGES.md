@@ -351,7 +351,7 @@ pinned publisher USFM, so those original words remain studyable without an
 invented English match. In 15:44, the three actual body nouns keep their separate
 occurrences; LSV's fourth body noun remains explained as additional wording.
 
-The first fourteen chapters of Revelation have full LSV author-and-peer reviews.
+The first eighteen chapters of Revelation have full LSV author-and-peer reviews.
 English 1:10's "saying" retains its original 1:11 participle. The received-from-
 Father comparison at the end of English 2:27 keeps its actual original 2:28
 identities; the unexpressed Father article stays an explained original word.
@@ -380,6 +380,21 @@ At 13:16, the changed giving predicate remains explained as unpaired while its
 real recipient stays linked. The different guile/falsehood nouns in 14:5 keep
 an explicit witness gap rather than an invented common source lemma.
 
+The being-full participle in 15:7 keeps its actual stative head. In 16:3,
+English “living” retains the actual life noun rather than importing a living
+participle from the printed TR. The extra “another out of” frame in 16:7 remains
+unpaired, while the actual altar noun and saying participle retain their forms.
+The supplied plural English subject in 16:16 does not invent a source pronoun
+or settle the actor from the singular Greek verb form.
+
+The kings clause displayed in English 17:10 retains its actual 17:9 words,
+including the second being occurrence. The final concessive present wording
+in 17:8 stays separate from the actual coordinated future presence expression.
+At 18:5, “reached up” retains the actual piling-to-height head, with the passive
+source form and different TR head documented. The second “went away” and the
+changed finding predicate in 18:14 remain explained gaps instead of borrowing
+the first departure verb or inventing a second-person original.
+
 All four Philippians chapters have full BSB and KJV author-and-peer reviews.
 KJV's 1:16 and 1:17
 clauses retain their actual original 1:17 and 1:16 references, so the love clause
@@ -399,7 +414,7 @@ to-account construction recast as “may be credited to” in BSB. The actual ac
 participle remains unchanged. The full KJV chapter 3 resource preserves its
 previously accepted 3:21 object and serialized entry exactly.
 
-The first three Ephesians chapters have full BSB and KJV author-and-separate-
+The first five Ephesians chapters have full BSB and KJV author-and-separate-
 assistant-peer reviews. BSB 1:4's single “us” retains both actual Greek pronoun
 occurrences. Its first “Him” in 1:11 keeps the original 1:10 anchor and matches
 KJV there. BSB 2:6's repeated God and first Christ retain their actual earlier
@@ -414,6 +429,20 @@ table and current official wording without inventing an extinguishing lemma.
 The purpose connector and encoded ability subject displayed at the end of
 KJV 3:17 retain their real 3:18 source words. Shared encoded-subject renderings
 are declared separately from exclusive movement of words across references.
+
+In 4:13, “mature” opens the actual adjective rather than an unexpressed man noun.
+In 4:16, “builds ... up” retains the actual edification noun and matches KJV's
+“edifying.” In 4:29, the negative and universal adjective jointly correspond
+to “no”; Word Study initially selects the actual negative while retaining both
+dictionary heads and precise Original-word choices.
+
+KJV 5:13's active-agent “doth make manifest” remains an explicit translation-
+role/form gap against the source's functional passive and formal nonactive
+analyses. N1904 and the printed TR have the same word here. The note preserves
+the shared middle/passive shape's ambiguity rather than asserting a textual
+variant or settling contextual interpretation. The earlier real manifesting
+finite keeps its separate English occurrence; the unpaired original participle
+remains studyable.
 
 An English name can clarify a printed Greek pronoun; its link retains the actual
 pronoun and identifies the naming as the translation's wording. When source

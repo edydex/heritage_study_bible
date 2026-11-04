@@ -93,7 +93,7 @@ translations, separate from the preceding increasing-to-account predicate.
 The expanded KJV chapter 3 review preserves the previously accepted 3:21 object
 and its serialized entry exactly; only that resource's reviewed hash is renewed.
 
-Ephesians chapters 1–3 have complete BSB and KJV author-and-separate-assistant-
+Ephesians chapters 1–5 have complete BSB and KJV author-and-separate-assistant-
 peer reviews. BSB 1:11's first “Him” matches KJV's actual 1:10 pronoun. The
 repeated subjects in BSB 2:6 retain their earlier real sources, while distinct
 local Christ occurrences stay separate. KJV 2:1's supplied quickening expression
@@ -104,6 +104,17 @@ The purpose connector and encoded subject displayed in KJV 3:17 retain their
 actual 3:18 identities, with exclusive movement and shared subject/predicate
 renderings accounted for separately. Browser checks cover those references,
 matching colors and textures, precise study heads and genuine unpaired words.
+
+At 4:16, BSB “builds ... up” and KJV “edifying” retain the actual edification
+noun. BSB 4:29's “no” initially opens the actual negative while keeping the
+universal adjective available; Original-word selection retains its exact head.
+At 5:13, KJV's second manifesting expression has active-agent wording against
+the actual functional passive/formal nonactive analysis. That whole expression
+remains explained as unpaired. The note explicitly preserves the same printed
+N1904/TR word and middle/passive shape ambiguity, rather than claiming a
+textual variant or an interpretation proved by an ending. The first English
+manifesting expression keeps its real finite; the original participle stays
+available for study.
 
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
