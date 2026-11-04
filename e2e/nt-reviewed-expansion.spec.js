@@ -100,3 +100,16 @@ test('Peter comparison keeps different named readings separate and preserves mov
   await page.getByRole('button', { name: 'Study word', exact: true }).click()
   await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText(/G0*5401\b/)
 })
+
+test('one Peter comparison word covers its coordinated list without selecting the later occurrence', async ({ page }) => {
+  await compare(page, '1-peter', 4, 'KJV', 'ORIGINAL')
+  const translated = words(page, 'KJV', 4, 15, /^as$/)
+  const originals = words(page, 'ORIGINAL', 4, 15, /^ὡς$/)
+  await expect(translated).toHaveCount(4)
+  await expect(originals).toHaveCount(2)
+  await translated.nth(2).click()
+  for (const index of [0, 1, 2]) await expect(translated.nth(index)).toHaveClass(/bible-word-link-active/)
+  await expect(originals.nth(0)).toHaveClass(/bible-word-link-active/)
+  await expect(translated.nth(3)).not.toHaveClass(/bible-word-link-active/)
+  await expect(originals.nth(1)).not.toHaveClass(/bible-word-link-active/)
+})

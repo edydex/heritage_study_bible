@@ -26,12 +26,16 @@ recipient occurrences, with the number and grammatical-role changes recorded.
 The affliction/mourning/weeping words displayed at 4:9 retain their actual
 N1904 4:8 references. None of these reviews adds a passage interpretation.
 
-The reviews of 1 Peter 1–3 cover both BSB and KJV. KJV's repeated “let it be”
+The complete reviews of 1 Peter cover both BSB and KJV. KJV's repeated “let it be”
 in 3:4 retains the one actual Greek imperative in 3:3, shared across the
 immediate contrast. The gentleness and fear qualification displayed at the end
 of 3:15 retains its actual N1904 3:16 references. The Christ/God difference in
 3:15 remains unpaired. Browser checks exercise the repeated predicate, that
 named-reading difference, and the moved qualification's word-study source.
+In 4:15, one actual comparison word governs the three repeated English “as”
+phrases; the following contrast retains the earlier actual suffering predicate.
+Grammar notes distinguish the pinned analyses from a homographic reading where
+needed, including the command in 5:12, without changing the Greek source data.
 
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
