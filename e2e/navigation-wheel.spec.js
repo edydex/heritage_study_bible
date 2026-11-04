@@ -86,6 +86,15 @@ test.afterEach(async ({ page }, testInfo) => {
 })
 
 const wheel = page => page.getByRole('dialog', { name: 'Slide to navigate' })
+async function readyBibleTitle(page) {
+  // These geometry fixtures need the finished footer: its audio button and
+  // swapped web font can both move/shrink the title after the first paint.
+  await expect(page.getByRole('button', { name: 'Play chapter audio', exact: true })).toBeVisible()
+  const trigger = page.locator('.navigation-wheel-trigger')
+  await trigger.evaluate(async () => { await document.fonts.ready })
+  await trigger.hover({ trial: true })
+  return trigger
+}
 async function pressTitle(page) {
   const trigger = page.locator('.navigation-wheel-trigger')
   await expect(trigger).toBeVisible()
@@ -104,10 +113,10 @@ for (const width of [320, 390]) {
   test(`the ${width}px upper wheel stays anchored at the held title with every choice above the finger`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 })
     await page.goto('/#/genesis/1')
-    const trigger = page.locator('.navigation-wheel-trigger')
+    const trigger = await readyBibleTitle(page)
     const title = await trigger.boundingBox()
     const origin = { x: title.x + title.width * .4, y: title.y + title.height / 2 }
-    await page.mouse.move(origin.x, origin.y)
+    await trigger.hover({ position: { x: title.width * .4, y: title.height / 2 } })
     await page.mouse.down()
     await expect(wheel(page)).toBeVisible()
     const fan = await wheel(page).boundingBox()
@@ -131,9 +140,10 @@ for (const width of [320, 390]) {
 test('a right-edge hold on a narrow phone keeps each visible label inside its own sector', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 })
   await page.goto('/#/genesis/1')
-  const title = await page.locator('.navigation-wheel-trigger').boundingBox()
+  const trigger = await readyBibleTitle(page)
+  const title = await trigger.boundingBox()
   const origin = { x: title.x + title.width * .95, y: title.y + title.height / 2 }
-  await page.mouse.move(origin.x, origin.y)
+  await trigger.hover({ position: { x: title.width * .95, y: title.height / 2 } })
   await page.mouse.down()
   await expect(wheel(page)).toBeVisible()
   for (const label of ['Chapters', 'Audiobooks', 'Books', 'Reading plans']) {

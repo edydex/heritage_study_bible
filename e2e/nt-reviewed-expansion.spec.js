@@ -44,6 +44,54 @@ test('Colossians publisher cross wording studies the actual pronoun without borr
   await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G846')
 })
 
+test('the repeated clothing command keeps its real Colossians source across translated columns', async ({ page }) => {
+  await compare(page, 'colossians', 3, 'BSB', 'KJV')
+  await words(page, 'BSB', 3, 14, /^put$/).click()
+  await expect(words(page, 'KJV', 3, 14, /^put$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 3, 12, /^Put$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'BSB', 3, 14, /^love$/)).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { level: 3 }).first()).toContainText('G1746')
+  await expect(dialog.locator('[data-grammar-reference="Colossians:3:12"]')).toHaveCount(1)
+})
+
+test('the repeated sending event retains its original Colossians verb and tense', async ({ page }) => {
+  await compare(page, 'colossians', 4, 'BSB', 'KJV')
+  await words(page, 'BSB', 4, 9, /^sending$/).click()
+  await expect(words(page, 'KJV', 4, 8, /^sent$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'BSB', 4, 9, /^Onesimus$/)).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { level: 3 }).first()).toContainText('G3992')
+  const grammar = dialog.locator('[data-word-grammar]')
+  await expect(grammar.locator('[data-grammar-reference="Colossians:4:8"]')).toHaveCount(1)
+  await expect(grammar.getByRole('button', { name: /Tense \/ aspect: Aorist/ })).toBeVisible()
+})
+
+test('the added broken wording does not borrow the earlier real breaking predicate', async ({ page }) => {
+  await compare(page, '1-corinthians', 11, 'LSV', 'ORIGINAL')
+  const broken = words(page, 'LSV', 11, 24, /^broken$/)
+  await expect(broken).toHaveAttribute('data-word-paired', 'false')
+  await broken.click()
+  await expect(words(page, 'ORIGINAL', 11, 24, /^ἔκλασεν$/)).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Clear word match' }).click()
+  await words(page, 'LSV', 11, 24, /^broke$/).click()
+  await expect(words(page, 'ORIGINAL', 11, 24, /^ἔκλασεν$/)).toHaveClass(/bible-word-link-active/)
+  await expect(broken).not.toHaveClass(/bible-word-link-active/)
+})
+
+test('a feeding verb does not invent a source pronoun for its supplied English recipient', async ({ page }) => {
+  await compare(page, '1-corinthians', 13, 'LSV', 'ORIGINAL')
+  const others = words(page, 'LSV', 13, 3, /^others$/)
+  await expect(others).toHaveAttribute('data-word-paired', 'false')
+  await words(page, 'LSV', 13, 3, /^feed$/).click()
+  await expect(words(page, 'ORIGINAL', 13, 3, /^ψωμίσω$/)).toHaveClass(/bible-word-link-active/)
+  await expect(others).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G5595')
+})
+
 test('the resumed prices in Acts keep the actual preceding-verse source occurrence', async ({ page }) => {
   await compare(page, 'acts', 4, 'LSV', 'ORIGINAL')
   const resumed = words(page, 'LSV', 4, 35, /^them$/)

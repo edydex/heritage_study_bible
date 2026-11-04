@@ -305,6 +305,12 @@ eating predicates, condition markers and negatives stay with their own clauses.
 The unlike habit/conscience readings in 8:7 remain explicitly unpaired rather
 than assigning the later conscience occurrence to both English words.
 
+First Corinthians 11:24 keeps LSV's additional taking/eating and broken-body
+wording explicitly unpaired where absent from the pinned witness. Its earlier
+actual breaking predicate stays linked to “broke” and is not borrowed for the
+added “broken.” In 13:3, the actual feeding/distributing verb supports the verbal
+paraphrase, while the English recipient “others” remains explicitly supplied.
+
 An English name can clarify a printed Greek pronoun; its link retains the actual
 pronoun and identifies the naming as the translation's wording. When source
 evidence instead documents a different printed noun/pronoun reading, the unlike
