@@ -84,6 +84,15 @@ it matches BSB's 1:22 reconciliation, with the actual aorist analysis retained
 under the English perfect wording. Desktop and finger tap/hold browser cases
 check the shared colors, separate alienation word and original study reference.
 
+All four chapters of Philippians have complete BSB and KJV author-and-separate-
+assistant-peer reviews. English 2:8's appearance/fashion wording retains its
+actual original 2:7 noun. KJV's purpose connector repeated at 2:11 shares the
+actual 2:10 connector, while the local confession connector stays separate.
+At 4:17, the actual account noun retains its own study head across both
+translations, separate from the preceding increasing-to-account predicate.
+The expanded KJV chapter 3 review preserves the previously accepted 3:21 object
+and its serialized entry exactly; only that resource's reviewed hash is renewed.
+
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
 To rebuild, download the pinned OSIS file and N1904 morphology, then run:

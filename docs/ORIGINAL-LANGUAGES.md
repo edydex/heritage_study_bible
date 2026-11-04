@@ -351,7 +351,7 @@ pinned publisher USFM, so those original words remain studyable without an
 invented English match. In 15:44, the three actual body nouns keep their separate
 occurrences; LSV's fourth body noun remains explained as additional wording.
 
-The first five chapters of Revelation have full LSV author-and-peer reviews.
+The first eight chapters of Revelation have full LSV author-and-peer reviews.
 English 1:10's "saying" retains its original 1:11 participle. The received-from-
 Father comparison at the end of English 2:27 keeps its actual original 2:28
 identities; the unexpressed Father article stays an explained original word.
@@ -362,7 +362,17 @@ and their actual source forms. At 5:7, the local scroll noun added in the printe
 TR reading remains explained as absent from N1904; the separately printed 5:8
 scroll noun keeps its own occurrence.
 
-Philippians 1 has full BSB and KJV author-and-peer reviews. KJV's 1:16 and 1:17
+At 6:11, “each one” retains its actual distributive word, without borrowing the
+separate unexpressed recipient pronoun. At 7:1, N1904's singular demonstrative
+and the printed TR/LSV plural expression remain an explained witness gap. The
+continuous tribe list in 7:5–8 shares its real first sealing participle where
+the translation repeats it, while the separately printed final Benjamin
+participle keeps its own identity. At 8:7, the earth-burning clause absent from
+LSV remains studyable in Original without borrowing the separate tree clause.
+The eagle/messenger noun difference in 8:13 stays explicitly unpaired.
+
+All four Philippians chapters have full BSB and KJV author-and-peer reviews.
+KJV's 1:16 and 1:17
 clauses retain their actual original 1:17 and 1:16 references, so the love clause
 matches BSB 1:16 across the verse boundary. In 1:7, the notes distinguish the
 translations' chosen "I have you" syntax from what the two Greek accusative
@@ -370,6 +380,15 @@ forms alone establish; the notes do not rule out the other grammatical reading.
 BSB 1:16's repeated preaching expression uses only its immediately preceding
 actual preaching predicate, with the retained local use and shared scope
 declared explicitly.
+
+English 2:8's appearance/fashion noun retains its actual original 2:7 reference.
+KJV's repeated purpose connector in 2:11 shares the actual 2:10 connector and
+stays separate from the local confession connector. At 2:28, BSB's “send” and
+“eager” open their distinct actual sending and promptness heads. At 4:17,
+“account” retains its actual noun head, separate from the preceding increase-
+to-account construction recast as “may be credited to” in BSB. The actual active
+participle remains unchanged. The full KJV chapter 3 resource preserves its
+previously accepted 3:21 object and serialized entry exactly.
 
 An English name can clarify a printed Greek pronoun; its link retains the actual
 pronoun and identifies the naming as the translation's wording. When source
