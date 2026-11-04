@@ -415,6 +415,24 @@ accounts for all 137,779 Greek source words and 182,613 LSV words, with zero
 unresolved words. Mapped words and explicitly explained unpaired words remain
 separate categories; human reader verification is still pending.
 
+Both Timothy letters have complete BSB and KJV author-and-separate-assistant
+reviews across all ten chapters. Their 390 newly reviewed target records retain
+the previously accepted BSB 1 Timothy 1:12 and 2 Timothy 1:3 entries exactly.
+Repeated willing, qualification, instruction and personal-owner expressions
+retain their actual earlier references. Shared source identities are declared
+explicitly and distinguished from exclusively moved words. Supplied participants,
+unprinted copulas and genuinely different witness clauses remain explained.
+The installed KJV 2 Timothy 4:22 subscription is retained as English paratext;
+it does not acquire Greek words absent from the pinned witness.
+
+Fresh complete independent checks of LSV John 1–3 retain all original forms
+and texts. Immediate Spirit and personal-all renderings have precise source
+anchors. John 3's life noun and adjective, and Son noun and only-begotten
+adjective, now have separate study links. The accusative infinitive subject
+in 3:30 owns the English case phrase “[for] Him” without inventing a Greek
+preposition. Notes retain actual adjective analyses and singular/plural witness
+differences rather than retagging the original from English wording.
+
 Complete accounting does not establish the scope of a semantic review. An
 inventory of older LSV evidence found retained full-chapter peer receipt gaps
 in an initial ten-resource check; narrower correction reviews and preservation
