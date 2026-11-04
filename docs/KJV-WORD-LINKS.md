@@ -37,6 +37,13 @@ phrases; the following contrast retains the earlier actual suffering predicate.
 Grammar notes distinguish the pinned analyses from a homographic reading where
 needed, including the command in 5:12, without changing the Greek source data.
 
+Chapter 1 of 2 Peter and chapter 1 of 1 Thessalonians also have separate author
+and peer reviews in both translations. The continual-remembering adverb displayed
+at 1 Thessalonians 1:3 retains its actual N1904 1:2 occurrence. A browser case
+checks BSB “continually” against KJV “without ceasing,” preserves that reference
+in word study, and keeps the distinct “always” occurrence separate. These chapter
+reviews do not certify the remaining chapters of either book.
+
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
 To rebuild, download the pinned OSIS file and N1904 morphology, then run:

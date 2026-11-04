@@ -113,3 +113,16 @@ test('one Peter comparison word covers its coordinated list without selecting th
   await expect(translated.nth(3)).not.toHaveClass(/bible-word-link-active/)
   await expect(originals.nth(1)).not.toHaveClass(/bible-word-link-active/)
 })
+
+test('translated Thessalonian adverbs match across the verse boundary and retain their original study reference', async ({ page }) => {
+  await compare(page, '1-thessalonians', 1, 'BSB', 'KJV')
+  const continually = words(page, 'BSB', 1, 3, /^continually$/)
+  await expect(continually).toHaveAttribute('data-word-paired', 'true')
+  await continually.click()
+  await expect(words(page, 'KJV', 1, 3, /^without$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 1, 3, /^ceasing$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 1, 2, /^always$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('region', { name: 'Selected word match' }).getByRole('status')).toContainText('Greek 1:2:')
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText(/G0*89\b/)
+})
