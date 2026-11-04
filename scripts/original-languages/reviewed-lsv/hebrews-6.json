@@ -964,25 +964,20 @@
         },
         {
           "sourceTokens": [
-            10
+            10,
+            11
           ],
           "targetPhrases": [
             {
               "text": "of",
               "occurrence": 0
-            }
-          ]
-        },
-        {
-          "sourceTokens": [
-            11
-          ],
-          "targetPhrases": [
+            },
             {
               "text": "God",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual genitive article and God noun jointly supply of God as the Son qualifier. The shared foreign6:4 patient nominalizer remains unchanged."
         },
         {
           "sourceTokens": [
@@ -2259,14 +2254,20 @@
       "groups": [
         {
           "sourceTokens": [
-            0
+            0,
+            2
           ],
           "targetPhrases": [
             {
               "text": "to",
               "occurrence": 0
+            },
+            {
+              "text": "Abraham",
+              "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual dative article and indeclinable Abraham name jointly supply to Abraham as the promise recipient. The article is T-DSM, while both raw analyses retain N-PRI for Abraham; the name is not falsely retagged as a declined dative form."
         },
         {
           "sourceTokens": [
@@ -2275,17 +2276,6 @@
           "targetPhrases": [
             {
               "text": "For",
-              "occurrence": 0
-            }
-          ]
-        },
-        {
-          "sourceTokens": [
-            2
-          ],
-          "targetPhrases": [
-            {
-              "text": "Abraham",
               "occurrence": 0
             }
           ]

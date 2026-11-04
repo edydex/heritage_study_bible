@@ -338,6 +338,14 @@ html.capacitor-android header.sticky.top-0 {
 .word-match-bar > [role="status"] { flex: 1 1 180px; overflow-wrap: anywhere; }
 .word-study-dialog { width: min(680px, calc(100vw - 24px)); max-height: calc(100dvh - 48px); margin: auto; }
 .word-study-dialog::backdrop { background: rgb(0 0 0 / .5); }
+.word-grammar-tooltip { left: 0; }
+/* Let a pointer cross the visual spacing without dismissing the help. */
+.word-grammar-tooltip::before { content: ''; position: absolute; inset: -8px 0 auto; height: 8px; }
+.word-grammar-feature:nth-child(2n) .word-grammar-tooltip { left: auto; right: 0; }
+@media (min-width: 640px) {
+  .word-grammar-feature:nth-child(2n) .word-grammar-tooltip { left: 0; right: auto; }
+  .word-grammar-feature:nth-child(3n) .word-grammar-tooltip { left: auto; right: 0; }
+}
 
 /* Keep reading text responsive to the shared header font controls. */
 .reader-content { overflow-wrap: anywhere; }

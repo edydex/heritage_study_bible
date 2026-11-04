@@ -69,8 +69,10 @@ invent Russian/Ukrainian word alignments.
 **Word form here** describes the selected Greek occurrence, reached directly
 from Original or through a checked **LSV**, **BSB** or **KJV** word link. It shows
 the actual form, dictionary form (lemma), part of speech and applicable tense /
-aspect, voice, mood, person, number, case and gender. Open a term for a short
-explanation in **English** or **Russian**. The explanation language is remembered.
+aspect, voice, mood, person, number, case and gender. A compact grid has three
+columns on wider screens and two on phones. Hover, focus or tap a term for its
+short explanation in **English** or **Russian**; Escape dismisses the explanation.
+The explanation language is remembered.
 Grammar belongs to that exact occurrence, rather than every occurrence of its lemma.
 Device volume scrolling follows the open Word Study dialog. At its end, repeated
 down presses cannot advance the Bible chapter behind it; closing the dialog
@@ -91,6 +93,14 @@ passage interpretation belongs in Commentary. There are no passage-specific
 interpretive notes or explanations generated on tap in this pilot. A lemma is a
 dictionary form, not an assertion about a word's historical root or its meaning
 in every passage.
+
+**Common translation** beside the dictionary form is a brief sourced English
+gloss from STEPBible TBESG. The match requires the actual Greek headword and
+Strong identity; shared numbering alone cannot join different dictionary words.
+Multiple source glosses remain general alternatives, and unavailable matches
+are not guessed. Russian grammar labels explicitly identify the gloss as English.
+Source credit, license and the filtering notice appear in the source details.
+See [the glossary source and rebuild notes](../scripts/original-languages/GREEK-BRIEF-GLOSSES.md).
 
 For **Russian Synodal**, unlinked words offer an explicit original-word chooser;
 the reader selects a Greek form before seeing its grammar. Synodal verse wording

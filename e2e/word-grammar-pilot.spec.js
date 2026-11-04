@@ -2,22 +2,22 @@ import { test, expect } from '@playwright/test'
 
 test.use({ hasTouch: true, isMobile: true, viewport: { width: 430, height: 932 } })
 
-async function compareOriginal(page, translation, path) {
+async function compareOriginal(page, translation, path, gesture = 'tap') {
   await page.addInitScript(id => {
     localStorage.setItem('heritage-translation', id)
     localStorage.setItem('heritage-default-translation-v2', 'done')
   }, translation)
   await page.goto(`/#/${path}`)
-  await page.getByTitle('Enable parallel mode', { exact: true }).tap()
-  await page.getByRole('button', { name: 'Original languages', exact: true }).tap()
-  await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).tap()
+  await page.getByTitle('Enable parallel mode', { exact: true })[gesture]()
+  await page.getByRole('button', { name: 'Original languages', exact: true })[gesture]()
+  await page.getByRole('button', { name: /^Original (Selected )?Original languages/ })[gesture]()
 }
 
-async function study(page, translation, chapter, verse, word) {
+async function study(page, translation, chapter, verse, word, gesture = 'tap') {
   const token = page.locator(`#verse-${chapter}-${verse} [data-translation="${translation}"] [data-word-link]:visible`).filter({ hasText: word })
   await expect(token).toHaveCount(1)
-  await token.tap()
-  await page.getByRole('button', { name: 'Study word', exact: true }).tap()
+  await token[gesture]()
+  await page.getByRole('button', { name: 'Study word', exact: true })[gesture]()
   return page.getByRole('dialog')
 }
 
@@ -33,9 +33,13 @@ for (const translation of ['LSV', 'BSB']) test(`${translation} checked rescue wo
   await expect(grammar).toContainText('Indicative')
   await expect(grammar).toContainText('Third person')
   await expect(grammar).toContainText('Singular')
-  const aorist = grammar.locator('details').filter({ has: page.locator('summary').filter({ hasText: /Aorist/ }) }).first()
-  await aorist.locator('summary').tap()
-  await expect(aorist).toContainText('in the indicative it usually refers to the past')
+  const grid = grammar.locator('[data-grammar-grid]').first()
+  await expect(grid.locator(':scope > div')).toHaveCount(6)
+  expect(await grid.evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length)).toBe(2)
+  await expect(grammar.locator('[data-dictionary-gloss]')).toContainText('Common translation:')
+  await expect(grammar.locator('[data-dictionary-gloss]')).toContainText('to rescue')
+  await grid.getByRole('button', { name: /Tense \/ aspect: Aorist/ }).tap()
+  await expect(grammar.getByRole('tooltip')).toContainText('in the indicative it usually refers to the past')
   await grammar.getByText('Source analysis and limits', { exact: true }).tap()
   await expect(grammar).toContainText('V-ANI-3S')
   await expect(grammar).toContainText('V-ADI-3S')
@@ -54,14 +58,15 @@ test('Romans future form has the same lemma but retains its own tense', async ({
   await expect(grammar.locator('[data-grammar-reference="Romans:7:24"]')).toHaveCount(1)
   await expect(grammar).toContainText('ῥύσεται')
   await expect(grammar).toContainText('ῥύομαι')
-  await expect(grammar.locator('summary').filter({ hasText: /Future/ })).toHaveCount(1)
-  await expect(grammar.locator('summary').filter({ hasText: /Aorist/ })).toHaveCount(0)
+  await expect(grammar.getByRole('button', { name: /Tense \/ aspect: Future/ })).toHaveCount(1)
+  await expect(grammar.getByRole('button', { name: /Tense \/ aspect: Aorist/ })).toHaveCount(0)
   await grammar.getByRole('button', { name: 'Русский', exact: true }).tap()
   await expect(grammar).toHaveAttribute('lang', 'ru')
   await expect(grammar).toContainText('Будущее')
-  const future = grammar.locator('details').filter({ has: page.locator('summary').filter({ hasText: /Будущее/ }) }).first()
-  await future.locator('summary').tap()
-  await expect(future).toContainText('Обычно относит действие или состояние к будущему')
+  await grammar.getByRole('button', { name: /Время \/ вид: Будущее/ }).tap()
+  await expect(grammar.getByRole('tooltip')).toContainText('Обычно относит действие или состояние к будущему')
+  await expect(grammar.locator('[data-dictionary-gloss]')).toContainText('Обычный перевод (англ.)')
+  await expect(grammar.locator('[data-dictionary-gloss] [lang="en"]')).toHaveText('to rescue')
 })
 
 test('Synodal chooses an actual Greek form and shows Russian context without fabricated highlights', async ({ page }) => {
@@ -112,4 +117,38 @@ test('volume buttons scroll the visible word study and cannot advance the Bible 
   await page.evaluate(() => window.scrollTo({ top: 200, behavior: 'instant' }))
   await volume('down')
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(200)
+})
+
+test.describe('desktop grammar grid', () => {
+  test.use({ hasTouch: false, isMobile: false, viewport: { width: 1180, height: 1000 } })
+
+  test('shows three columns with hover, focus and dismissible explanations', async ({ page }) => {
+    await compareOriginal(page, 'LSV', 'colossians/1', 'click')
+    const dialog = await study(page, 'LSV', 1, 13, /^rescued$/, 'click')
+    const grammar = dialog.locator('[data-word-grammar]'), grid = grammar.locator('[data-grammar-grid]').first()
+    expect(await grid.evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length)).toBe(3)
+    expect((await grid.boundingBox()).height).toBeLessThan(200)
+    const tense = grid.getByRole('button', { name: /Tense \/ aspect: Aorist/ })
+    await tense.hover()
+    await expect(grammar.getByRole('tooltip')).toContainText('in the indicative it usually refers to the past')
+    const card = await tense.boundingBox(), tip = await grammar.getByRole('tooltip').boundingBox()
+    await page.mouse.move(card.x + card.width / 2, card.y + card.height + 4, { steps: 4 })
+    await expect(grammar.getByRole('tooltip')).toBeVisible()
+    await page.mouse.move(card.x + card.width / 2, tip.y + 12, { steps: 4 })
+    await expect(grammar.getByRole('tooltip')).toBeVisible()
+    await dialog.getByRole('heading', { level: 2 }).hover()
+    await expect(grammar.getByRole('tooltip')).toHaveCount(0)
+    await tense.focus()
+    await expect(grammar.getByRole('tooltip')).toBeVisible()
+    await tense.press('Escape')
+    await expect(grammar.getByRole('tooltip')).toHaveCount(0)
+    await expect(dialog).toBeVisible()
+    const voice = grid.getByRole('button', { name: /^Voice:/ })
+    await voice.click()
+    await expect(voice).toHaveAttribute('aria-expanded', 'true')
+    await voice.click()
+    await expect(voice).toHaveAttribute('aria-expanded', 'false')
+    await dialog.evaluate(node => { node.scrollTop = 0 })
+    await page.screenshot({ path: test.info().outputPath('compact-colossians-grammar-desktop.png') })
+  })
 })

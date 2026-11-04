@@ -43,14 +43,15 @@ weather “mists” occurrence distinct. In 3:10, N1904's finding predicate unde
 BSB “laid bare” remains separate from KJV's burning reading. All supplied words
 and source differences retain explicit explanations.
 
-Chapters 1–2 of 1 Thessalonians also have separate author and peer reviews in
-both translations. The continual-remembering adverb displayed
+All five chapters of 1 Thessalonians also have separate author and peer reviews
+in both translations. The continual-remembering adverb displayed
 at 1 Thessalonians 1:3 retains its actual N1904 1:2 occurrence. A browser case
 checks BSB “continually” against KJV “without ceasing,” preserves that reference
 in word study, and keeps the distinct “always” occurrence separate. Another case
 checks the actual walking subject behind BSB “urging you to walk” against KJV
 “ye,” without selecting the distinct encouragement or calling recipients.
-These chapter reviews do not certify the remaining Thessalonian chapters.
+The KJV subscription and trailing next-book heading remain explicitly unpaired
+paratext; these words receive no invented Greek anchors.
 
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 

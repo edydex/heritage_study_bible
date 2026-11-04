@@ -161,3 +161,15 @@ test('the writing instrument relation selects the real hand head and preserves i
   await expect(possessors).toHaveCount(2)
   for (const index of [0, 1]) await expect(possessors.nth(index)).not.toHaveClass(/bible-word-link-active/)
 })
+
+test('a translated verse absent from the Greek numbering studies the actual preceding-verse word', async ({ page }) => {
+  await compare(page, 'acts', 19, 'LSV', 'ORIGINAL')
+  const dismissed = words(page, 'LSV', 19, 41, /^dismissed$/)
+  await expect(dismissed).toHaveAttribute('data-word-paired', 'true')
+  await dismissed.click()
+  await expect(words(page, 'ORIGINAL', 19, 40, /^ἀπ.λυσεν$/)).toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('region', { name: 'Selected word match' }).getByRole('status')).toContainText('Greek 19:40:')
+  await expect(page.getByRole('button', { name: 'Show Original 19:40', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText(/G0*630\b/)
+})

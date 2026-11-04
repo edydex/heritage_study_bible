@@ -102,7 +102,11 @@ def compile_verse(review,source_text,target_text,allow_incomplete=False,source_v
     result={'sourceText':source_text,'targetText':target_text,'groups':groups,'review':{**review.get('review',{}),'method':'Explicit phrase and occurrence review by coding assistant; pending reader verification. Text and offsets mechanically validated.','sourceNotes':source_notes,'targetNotes':target_notes,'completeAccounting':not(missing_source or missing_target)}}
     if reference:result['sourceReference']=reference
     if review.get('sourceAbsent'):
-        assert not source_text and not groups,'An absent source cannot contain words or links'
+        assert not source_text,'An absent local source cannot contain words'
+        # Verse numbering can put the entire translation at a reference absent
+        # from this witness. Its links still need the actual neighboring source;
+        # the loop above validates that lookup, indices and unique identities.
+        assert all(g.get('sourceReference') and g['sourceReference']!=reference for g in review['groups']),'An absent local source can only link explicit foreign references'
         result['sourceAbsent']=True
     if review.get('targetAbsent'):
         assert not target_text and not groups,'An absent translation cannot contain words or links'

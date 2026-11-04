@@ -48,6 +48,56 @@ class PhraseTransfer(unittest.TestCase):
         self.assertEqual(transfer_groups([group], 'Word and Word', 'Word then Word'), [])
 
 
+class AbsentLocalSource(unittest.TestCase):
+    def test_a_translated_verse_after_the_greek_boundary_keeps_only_actual_prior_verse_anchors(self):
+        original = {'19:40': 'πρῶτον καὶ ταῦτα εἰπὼν ἀπέλυσεν τὴν ἐκκλησίαν.'}
+        english = {'19:40': 'First.', '19:41': 'And saying these things he dismissed the assembly.'}
+        preceding = {
+            'sourceText': original['19:40'], 'targetText': english['19:40'],
+            'groups': [{'sourceTokens': [0], 'targetPhrases': [{'text': 'First'}]}],
+            'sourceMoved': [{'tokens': list(range(1, 7)), 'targetReference': {'chapter': 19, 'verse': 41}, 'reason': 'The closing clause is numbered in the following English verse.'}],
+        }
+        following = {
+            'sourceText': '', 'sourceAbsent': True, 'targetText': english['19:41'],
+            'groups': [
+                {'sourceTokens': [index], 'sourceReference': {'chapter': 19, 'verse': 40}, 'targetPhrases': [{'text': text}]}
+                for index, text in enumerate(['And', 'these things', 'saying', 'he dismissed', 'the', 'assembly'], start=1)
+            ],
+        }
+        compiled = {
+            '19:40': reviews.compile_verse(preceding, original['19:40'], english['19:40'], source_verses=original, reference={'chapter': 19, 'verse': 40}),
+            '19:41': reviews.compile_verse(following, '', english['19:41'], source_verses=original, reference={'chapter': 19, 'verse': 41}),
+        }
+        self.assertTrue(compiled['19:41']['sourceAbsent'])
+        self.assertEqual(compiled['19:41']['sourceText'], '')
+        anchors = [anchor for group in compiled['19:41']['groups'] for anchor in group['sourceAnchors']]
+        self.assertEqual({(anchor['chapter'], anchor['verse']) for anchor in anchors}, {(19, 40)})
+        for anchor in anchors:
+            self.assertEqual(anchor['text'], original['19:40'][anchor['startOffset']:anchor['endOffset']])
+        counts, gaps = audit.audit_book(original, english, compiled)
+        self.assertEqual(counts['source']['words'], 7)
+        self.assertEqual(counts['source']['mappedWords'], 7)
+        self.assertEqual(counts['reviewedTargetVerseRecords'], 2)
+        self.assertTrue(counts['completeReviewedBook'])
+        self.assertEqual(gaps, {})
+
+    def test_absence_does_not_allow_local_words_even_with_valid_links(self):
+        review = {'sourceText': 'α', 'sourceAbsent': True, 'targetText': 'A', 'groups': [{'sourceTokens': [0], 'targetPhrases': [{'text': 'A'}]}]}
+        with self.assertRaisesRegex(AssertionError, 'absent local source cannot contain words'):
+            reviews.compile_verse(review, 'α', 'A', reference={'chapter': 1, 'verse': 1})
+
+    def test_foreign_links_still_require_a_pinned_lookup_and_valid_source_indices(self):
+        review = {'sourceText': '', 'sourceAbsent': True, 'targetText': 'A', 'groups': [{'sourceTokens': [0], 'sourceReference': {'chapter': 1, 'verse': 1}, 'targetPhrases': [{'text': 'A'}]}]}
+        reference = {'chapter': 1, 'verse': 2}
+        with self.assertRaisesRegex(AssertionError, 'pinned source_verses lookup'):
+            reviews.compile_verse(review, '', 'A', reference=reference)
+        with self.assertRaisesRegex(AssertionError, 'Invalid source token indices'):
+            reviews.compile_verse(review, '', 'A', source_verses={'1:1': ''}, reference=reference)
+        with self.assertRaisesRegex(AssertionError, 'Invalid source token indices'):
+            local = {**review, 'groups': [{**review['groups'][0], 'sourceReference': reference}]}
+            reviews.compile_verse(local, '', 'A', source_verses={'1:1': 'α'}, reference=reference)
+
+
 class WordAccounting(unittest.TestCase):
     def test_moved_clause_counts_the_actual_original_identity_once(self):
         source = {'1:1': 'α β', '1:2': 'γ'}

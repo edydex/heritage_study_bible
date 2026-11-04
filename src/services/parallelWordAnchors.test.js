@@ -13,6 +13,65 @@ const entry = (targetText, sourceVerse) => ({
 const primaryData = { book: 'Example', targetId: 'LSV', verses: { '1:1': entry('second', 2), '1:2': entry('first', 1) } }
 const secondaryData = { book: 'Example', targetId: 'BSB', verses: { '1:1': entry('first', 1), '1:2': entry('second', 2) } }
 
+// The last six N1904 Acts 19:40 words are numbered Acts 19:41 in LSV.
+// There is no N1904 19:41 text to use as a local range fallback.
+const absentBoundaryFixture = () => {
+  const greek = 'καὶ γὰρ κινδυνεύομεν ἐγκαλεῖσθαι στάσεως περὶ τῆς σήμερον, μηδενὸς αἰτίου ὑπάρχοντος, περὶ οὗ οὐ δυνησόμεθα ἀποδοῦναι λόγον περὶ τῆς συστροφῆς ταύτης. καὶ ταῦτα εἰπὼν ἀπέλυσεν τὴν ἐκκλησίαν.'
+  const english = 'and having said these things, he dismissed the assembly.'
+  const words = [...greek.matchAll(/\S+/g)]
+  const phrases = ['and', 'these things', 'having said', 'he dismissed', 'the', 'assembly']
+  const groups = words.slice(-6).map((word, index) => ({
+    id: 1_019_040_000 + words.length - 6 + index,
+    source: [word.index, word.index + word[0].length],
+    sourceAnchors: [{ chapter: 19, verse: 40, startOffset: word.index, endOffset: word.index + word[0].length, text: word[0] }],
+    target: [english.indexOf(phrases[index]), english.indexOf(phrases[index]) + phrases[index].length],
+  }))
+  const makeBook = (verse, text) => ({ name: 'Acts', chapters: [{ number: 19, verses: [{ number: verse, text }] }] })
+  const data = { book: 'Acts', targetId: 'LSV', verses: { '19:41': { sourceText: '', sourceAbsent: true, targetText: english, groups } } }
+  return { greek, english, words, data, sourceVerses: new Map([['19:40', greek]]), sourceBook: makeBook(40, greek), targetBook: makeBook(41, english) }
+}
+
+describe('explicit foreign anchors when the local Greek verse number is absent', () => {
+  it('colors the real prior-verse words and opens their exact lemma and translated occurrence context', () => {
+    const { greek, english, words, data, sourceVerses, sourceBook: original, targetBook: translated } = absentBoundaryFixture()
+    expect(checkedAnchorGroups(data, '19:41', sourceVerses, english)).toHaveLength(6)
+    const links = chapterWordAnchors({ primaryData: data, secondaryData: null, primaryBook: translated, secondaryBook: original, sourceBook: original, chapter: 19 })
+    expect(links.invalidReferences).toEqual([])
+    expect(links.primary.get('19:41')).toHaveLength(6)
+    expect(links.primarySourceReferences.get('19:41')).toEqual([{ chapter: 19, verse: 40 }])
+    expect(links.primary.get('19:41').map(link => link.id)).toEqual(links.secondary.get('19:40').map(link => link.id))
+    const dismissed = interactiveWordRanges(english, links.primary.get('19:41'), { book: 'Acts', chapter: 19, verse: 41, translationId: 'LSV' })
+      .find(word => word.word === 'dismissed')
+    const originalWord = words.at(-3), range = [originalWord.index, originalWord.index + originalWord[0].length]
+    expect(dismissed.studySourceAnchors).toEqual([{ chapter: 19, verse: 40, startOffset: range[0], endOffset: range[1], text: originalWord[0] }])
+    const concordance = { books: [{ name: 'Acts', verses: { '19:40': words.map((word, index) => [word.index, word.index + word[0].length, index]) } }] }
+    expect(greekLemmaIds(concordance, dismissed)).toEqual([words.length - 3])
+    const occurrence = occurrenceWordAnchors({ book: 'Acts', chapter: 19, verse: 40, text: greek, ranges: [range], count: 1 }, data, translated, original)
+    expect(occurrence.status).toBe('matched')
+    expect(occurrence.missingCount).toBe(0)
+    expect(occurrence.contexts).toMatchObject([{ chapter: 19, verse: 41, text: english, phrases: ['he dismissed'] }])
+  })
+
+  it.each([
+    ['local source text', ({ data }) => { data.verses['19:41'].sourceText = 'invented' }],
+    ['existing local source', ({ sourceVerses }) => { sourceVerses.set('19:41', 'invented') }],
+    ['missing explicit foreign anchors', ({ data }) => { delete data.verses['19:41'].groups[0].sourceAnchors }],
+    ['empty explicit foreign anchors', ({ data }) => { data.verses['19:41'].groups[0].sourceAnchors = [] }],
+    ['a local anchor', ({ data }) => { data.verses['19:41'].groups[0].sourceAnchors[0].verse = 41 }],
+    ['an unknown source', ({ data }) => { data.verses['19:41'].groups[0].sourceAnchors[0].verse = 99 }],
+    ['an invalid offset', ({ data, greek }) => { data.verses['19:41'].groups[0].sourceAnchors[0].endOffset = greek.length + 1 }],
+    ['a wrong source text', ({ data }) => { data.verses['19:41'].groups[0].sourceAnchors[0].text = 'different' }],
+    ['a duplicate group id', ({ data }) => { data.verses['19:41'].groups[1].id = data.verses['19:41'].groups[0].id }],
+    ['a repeated source within one group', ({ data }) => { const group = data.verses['19:41'].groups[0]; group.sourceAnchors.push({ ...group.sourceAnchors[0] }) }],
+    ['the same source owned by two groups', ({ data }) => { data.verses['19:41'].groups[1].sourceAnchors = structuredClone(data.verses['19:41'].groups[0].sourceAnchors) }],
+    ['stale translated text', ({ data }) => { data.verses['19:41'].targetText = 'different' }],
+  ])('rejects %s without inventing a local mapping', (_, mutate) => {
+    const fixture = absentBoundaryFixture()
+    mutate(fixture)
+    expect(checkedAnchorGroups(fixture.data, '19:41', fixture.sourceVerses, fixture.english)).toBeNull()
+  })
+})
+
 describe('original witness anchors across translated verse boundaries', () => {
   it('highlights the actual source word in the neighboring row instead of matching by verse number', () => {
     const links = chapterWordAnchors({ primaryData, secondaryData: null, primaryBook, secondaryBook: sourceBook, sourceBook, chapter: 1 })

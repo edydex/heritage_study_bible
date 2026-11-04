@@ -18,10 +18,16 @@ export function checkedAnchorGroups(data, ref, sourceVerses, targetText) {
   const defaultSource = entry.sourceReference || parseReference(ref)
   const rawSource = sourceVerses.get(referenceKey(defaultSource))
   if (!validReference(defaultSource) || (entry.sourceAbsent
-    ? rawSource != null || entry.sourceText !== '' || entry.groups.length > 0
+    ? rawSource != null || entry.sourceText !== ''
     : entry.sourceText !== rawSource)) return null
   const result = []
+  const absentSourceAnchors = new Map(), absentGroupIds = new Set()
   for (const group of entry.groups) {
+    // A translated-only verse number may own words from another Greek verse.
+    // It cannot fall back to ranges in its nonexistent local source.
+    if (entry.sourceAbsent && (!Array.isArray(group.sourceAnchors) || !group.sourceAnchors.length
+      || group.sourceAnchors.some(anchor => !validReference(anchor) || referenceKey(anchor) === referenceKey(defaultSource))
+      || absentGroupIds.has(group.id))) return null
     const anchors = group.sourceAnchors || (group.sourceRanges || [group.source]).map(range => ({
       ...defaultSource, startOffset: range?.[0], endOffset: range?.[1],
     }))
@@ -32,7 +38,15 @@ export function checkedAnchorGroups(data, ref, sourceVerses, targetText) {
       const text = sourceVerses.get(referenceKey(anchor))
       if (!validReference(anchor) || text == null || !validRange([anchor.startOffset, anchor.endOffset], text.length)
         || (anchor.text != null && anchor.text !== text.slice(anchor.startOffset, anchor.endOffset))) return null
+      if (entry.sourceAbsent) {
+        const key = referenceKey(anchor), range = [anchor.startOffset, anchor.endOffset]
+        const owned = absentSourceAnchors.get(key) || []
+        if (owned.some(previous => overlaps(previous, range))) return null
+        owned.push(range)
+        absentSourceAnchors.set(key, owned)
+      }
     }
+    if (entry.sourceAbsent) absentGroupIds.add(group.id)
     result.push({ anchors, targets, id: group.id, note: group.note })
   }
   return result
