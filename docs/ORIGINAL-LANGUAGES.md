@@ -436,7 +436,14 @@ adding 89 reviewed target records and preserving the accepted BSB 1:23 entry
 exactly. The co-crucifixion clause displayed in 2:20 retains its actual N1904
 2:19 identities. The moved dative Christ remains separate from the local
 nominative Christ; the repeated law nouns retain their distinct case roles.
-Galatians 3–6 now also have full BSB and KJV author-and-peer reviews, completing the letter's word accounting. Hebrews 1–2 have the same full source review; later chapters remain in progress.
+Galatians 3–6 now also have full BSB and KJV author-and-peer reviews, completing the letter's word accounting. Hebrews 1–5 have the same full source review; later chapters remain in progress.
+
+BSB Hebrews 4:13's “Nothing” opens the actual negative first while retaining
+the creation noun and the complete phrase correspondence. In 4:2, BSB's active
+share construction and the source's singular passive mixed participle retain
+separate explanations where their participant roles differ; the KJV passive
+wording keeps its actual source link. Original selections still study the
+precise printed Greek word.
 
 Fresh complete independent checks of LSV John 1–4 retain all original forms
 and texts. Immediate Spirit and personal-all renderings have precise source
@@ -463,6 +470,14 @@ six have author-only evidence, ten bounded reviews, and 37 mechanical or otherwi
 unproven full-peer scope. These classify retained evidence, not mapping errors or
 proof that a historical review never occurred. Fresh source reviews continue
 alongside BSB, KJV and Russian Synodal work.
+
+Fresh full author-and-distinct-peer source reviews now also cover LSV Romans 1
+and Philippians 4. Romans 1:15 separates the readiness adjective from the
+extent phrase and supplied copula wording. Philippians 4:2 separates “the”
+from “same,” so each opens its actual article or pronoun. The remaining
+refinements explain actual nominal, participial and finite forms without
+retagging Greek from its English rendering. These two new review chains
+supplement the historical inventory above rather than rewriting its evidence.
 
 All four Philippians chapters have full BSB and KJV author-and-peer reviews.
 KJV's 1:16 and 1:17

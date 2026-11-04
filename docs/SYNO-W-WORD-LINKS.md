@@ -6,7 +6,7 @@ Nestle 1904 Greek occurrences. The same occurrences connect Russian to BSB,
 LSV and KJV, with shared colors and textures. This is phrase correspondence,
 not a claim that every Russian word is a separate Greek word.
 
-The first accepted chapters are **Romans 1 and Colossians 1, all 61 verses**. Remaining passages
+The accepted chapters are **Romans 1–4 and Colossians 1, all 146 verses**. Remaining passages
 stay unreviewed and unlinked. The per-book files and manifest record the current
 accepted coverage; the reader shows a chapter-specific review count. Unreviewed
 words can still open the original-word chooser without guessing a match.
@@ -19,6 +19,11 @@ Russian back into Greek. For example, Romans 1:17's **правда** retains the
 righteousness lemma, and the Russian **Христова** addition in 1:16 is unpaired
 where the installed Greek has no corresponding name. The whisperer word in
 Greek 1:29 links to its actual Russian rendering **злоречивы** at 1:30.
+Romans 2:22's opening preaching clause retains its actual Greek 2:21 reference.
+In 3:26, **явится** opens the printed being infinitive, rather than an invented
+appearing verb. In 4:21, **обещанное** opens the actual finite promising verb;
+the translated word does not change the source's grammatical form. Other
+dictionary choices within each checked phrase remain available.
 
 The Romans/Colossians grammar pilot also works through reviewed Russian links.
 It describes the Greek occurrence, with Russian grammar labels available;

@@ -2495,21 +2495,28 @@
         },
         {
           "sourceTokens": [
-            1,
             2,
-            3,
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "as much as in me",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual κατ’ ἐμέ is a prepositional phrase with an accusative first-person pronoun, rendered by the named English personal-extent expression as much as in me within the nominal readiness construction. It contains no written copula."
+        },
+        {
+          "sourceTokens": [
             4
           ],
           "targetPhrases": [
             {
-              "text": "as much as in me is",
-              "occurrence": 0
-            },
-            {
-              "text": "I am ready",
+              "text": "ready",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual πρόθυμον is A-NSN in both pinned analyses, a nominative singular neuter adjective used nominally in τὸ πρόθυμον, readiness/eagerness (Mounce, exact Romans 1:15). English renders that readiness as the personal predicate ready; no Greek first-person finite verb is supplied by this adjective."
         },
         {
           "sourceTokens": [
@@ -2578,12 +2585,29 @@
           ]
         }
       ],
-      "unmappedSource": [],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "The actual neuter nominative article nominalizes πρόθυμον, readiness. English recasts this nominal construction into a personal readiness clause; the article has no independent English word and does not encode either English copula."
+        }
+      ],
       "unmappedTarget": [
         {
           "text": "[are]",
           "occurrence": 0,
           "reason": "Translation addition explicitly bracketed in LSV; the Greek prepositional phrase has no separately written copula."
+        },
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies this copula in the personal-extent wording as much as in me is; neither the actual N1904 clause nor the pinned complete TR clause prints an εἰμί verb here."
+        },
+        {
+          "text": "I am",
+          "occurrence": 0,
+          "reason": "English supplies a personal finite subject/copula frame for the actual nominal readiness construction τὸ κατ’ ἐμὲ πρόθυμον. Actual ἐμέ remains accusative in its extent phrase, not a printed nominative I or first-person finite am."
         }
       ]
     },
@@ -3238,15 +3262,27 @@
         },
         {
           "sourceTokens": [
-            5,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "revealed",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual φανερόν is A-NSN in both pinned analyses, the adjective clear/manifest; the named LSV renders this predicate property revealed. It is distinct from the later actual finite ἐφανέρωσεν, which owns the second English revealed."
+        },
+        {
+          "sourceTokens": [
             6
           ],
           "targetPhrases": [
             {
-              "text": "is revealed",
-              "occurrence": 0
+              "text": "is",
+              "occurrence": 1
             }
-          ]
+          ],
+          "note": "Actual ἐστιν is the present active indicative third-person singular copula, retained separately from the predicate adjective φανερόν. It owns the second English is in this verse; the earlier is belongs to the English nominal-property paraphrase that which is known."
         },
         {
           "sourceTokens": [
@@ -3598,8 +3634,13 @@
             {
               "text": "God",
               "occurrence": 0
+            },
+            {
+              "text": "[Him]",
+              "occurrence": 0
             }
-          ]
+          ],
+          "note": "One actual accusative noun Θεόν supplies the explicitly known object God and its immediate English [Him] resumption under the coordinated glorifying predicate. No separately written personal pronoun or second source occurrence is claimed. The later comparative Θεόν at source6 retains its own as God role and English occurrence."
         },
         {
           "sourceTokens": [
@@ -3778,13 +3819,7 @@
           "reason": "Greek article has no separate English word in this possessive or proper-name construction."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "[Him]",
-          "occurrence": 0,
-          "reason": "Translation addition explicitly bracketed in LSV; the object God is understood but no separate object pronoun occurs with glorify in N1904."
-        }
-      ]
+      "unmappedTarget": []
     },
     "1:22": {
       "sourceText": "φάσκοντες εἶναι σοφοὶ ἐμωράνθησαν,",
@@ -5838,8 +5873,13 @@
             {
               "text": "them",
               "occurrence": 0
+            },
+            {
+              "text": "them",
+              "occurrence": 1
             }
-          ]
+          ],
+          "note": "One actual accusative neuter plural αὐτά owns them after do and the immediate repeated English object them under the contrasted practicing phrase, referring to the same deeds in this coordinated statement. The final Greek participle has no second written αὐτά; the original pronoun identity and case are retained, with no additional Greek token invented. Both actual practicing participles remain independently anchored."
         },
         {
           "sourceTokens": [
@@ -5916,13 +5956,7 @@
           "reason": "Greek article has no separate English word in this possessive or proper-name construction."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "them",
-          "occurrence": 1,
-          "reason": "Translation addition: the final English object is understood from such things; no separate αὐτά follows the final Greek participle."
-        }
-      ]
+      "unmappedTarget": []
     }
   }
 }
