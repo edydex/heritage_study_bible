@@ -16,6 +16,16 @@ verse is explicitly explained as absent from the pinned Greek; its Rome and
 Onesimus wording does not acquire invented source anchors. Browser cases check
 these differences and the word-study paths through the actual shipped data.
 
+James has a complete assistant author-and-peer review in both BSB and KJV;
+reader review remains pending. In James 4:5, N1904's causative κατοικίζω and
+KJV's intransitive dwelling reading remain separate despite sharing Strong's
+2730 ([causative entry](https://www.billmounce.com/greek-dictionary/katoikizo),
+[dwelling entry](https://www.billmounce.com/greek-dictionary/katoikeo)). In
+James 2:16, BSB's singular him/his retains the two distinct original plural
+recipient occurrences, with the number and grammatical-role changes recorded.
+The affliction/mourning/weeping words displayed at 4:9 retain their actual
+N1904 4:8 references. None of these reviews adds a passage interpretation.
+
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
 To rebuild, download the pinned OSIS file and N1904 morphology, then run:
