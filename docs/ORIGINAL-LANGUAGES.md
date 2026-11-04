@@ -285,6 +285,11 @@ the initial selection prefers the content head over a supporting Greek being
 verb, article or other function word. In Colossians 2:8, clicking LSV “carrying”
 opens the actual carrying participle, while “be” opens the actual future being
 form. Original-language clicks continue to select their exact original word.
+In negative-plus-verb phrases, English content words such as John 4:2's
+“immersing” open the actual verb before the negative. Explicit negative words
+such as “not,” “never,” “neither” and “without” retain their previous selection
+order. Every original head remains available; this adjustment does not split
+an inseparable phrase or change its source identities.
 
 The source witness reference is an explicit part of an anchor. For example,
 Philippians 1:16–17 is transposed between LSV and N1904; John and Romans also move
@@ -425,13 +430,27 @@ unprinted copulas and genuinely different witness clauses remain explained.
 The installed KJV 2 Timothy 4:22 subscription is retained as English paratext;
 it does not acquire Greek words absent from the pinned witness.
 
-Fresh complete independent checks of LSV John 1–3 retain all original forms
+Galatians 1–2 now have full BSB and KJV author-and-separate-assistant reviews,
+adding 89 reviewed target records and preserving the accepted BSB 1:23 entry
+exactly. The co-crucifixion clause displayed in 2:20 retains its actual N1904
+2:19 identities. The moved dative Christ remains separate from the local
+nominative Christ; the repeated law nouns retain their distinct case roles.
+The rest of Galatians remains outside these accepted reviews.
+
+Fresh complete independent checks of LSV John 1–4 retain all original forms
 and texts. Immediate Spirit and personal-all renderings have precise source
 anchors. John 3's life noun and adjective, and Son noun and only-begotten
 adjective, now have separate study links. The accusative infinitive subject
 in 3:30 owns the English case phrase “[for] Him” without inventing a Greek
 preposition. Notes retain actual adjective analyses and singular/plural witness
 differences rather than retagging the original from English wording.
+John 4 separates clear adjective/numeral/participle heads from their nouns,
+including living/water, true/worshipers, own/country, seventh/hour and
+whole/house. The bracketed “[for] Him” infinitive subject retains its actual
+accusative pronoun. Notes distinguish the printed Greek future indicative
+thirst form from the TR subjunctive and English wording, and keep the actual
+compound coming verb separate from “here.” Existing witness gaps remain
+explained.
 
 Complete accounting does not establish the scope of a semantic review. An
 inventory of older LSV evidence found retained full-chapter peer receipt gaps

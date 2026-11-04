@@ -61,7 +61,8 @@ function prioritizeGreekLemmas(ids, data, word) {
     i: ['1473'], me: ['1473'], my: ['1473'], mine: ['1473'], our: ['1473'], ours: ['1473'], we: ['1473'], us: ['1473'],
     you: ['4771'], your: ['4771'], yours: ['4771'], he: ['846'], him: ['846'], his: ['846'], she: ['846'], her: ['846'], hers: ['846'], it: ['846'], its: ['846'], they: ['846'], them: ['846'], their: ['846'], theirs: ['846'],
   }[normalizeWord(word.word || '')] || []
-  const grammatical = new Set(['3588','1510','2532','1161','5037','235','2228','1473','4771','846','1519','1722','1537','1223','2596','5228','4012','1909','4314','3326','4862','575'])
+  const preserveNegativeFallback = ["no","not","never","neither","nor","none","nobody","without"].includes(normalizeWord(word.word || ''))
+  const grammatical = new Set(['3588','1510','2532','1161','5037','235','2228','1473','4771','846','1519','1722','1537','1223','2596','5228','4012','1909','4314','3326','4862','575', ...(!preserveNegativeFallback ? ['3756','3361'] : [])])
   const rank = id => {
     const strongs = data.lemmas[id]?.strongs || []
     if (strongs.some(strong => preferred.includes(String(Number(strong))))) return -1

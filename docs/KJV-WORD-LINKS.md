@@ -145,6 +145,14 @@ keeps the real adjective head rather than an invented giving verb. The final
 The installed KJV subscription and extra title names remain visible and
 explicitly unpaired where the pinned Greek has no corresponding words.
 
+Galatians 1–2 have complete BSB and KJV author-and-separate-assistant reviews.
+The accepted BSB 1:23 entry is preserved exactly. The co-crucifixion clause at
+English 2:20 retains the two actual N1904 words printed at 2:19; its dative
+Christ is distinct from the later local nominative name. Repeated law and
+living words retain their individual source occurrences. KJV's supplied
+concessive “yet” remains explained separately from the actual no-longer
+negative word. These reviews cover only the first two chapters of Galatians.
+
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
 To rebuild, download the pinned OSIS file and N1904 morphology, then run:

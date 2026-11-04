@@ -385,10 +385,11 @@
           ],
           "targetPhrases": [
             {
-              "text": "Him",
+              "text": "[for] Him",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual auton is the accusative subject of the infinitive under edei, realized as the whole English [for] Him subject construction. Both pinned analyses remain P-ASM. No separate Greek for preposition or additional pronoun is printed."
         },
         {
           "sourceTokens": [
@@ -426,13 +427,7 @@
         }
       ],
       "unmappedSource": [],
-      "unmappedTarget": [
-        {
-          "text": "[for]",
-          "occurrence": 0,
-          "reason": "Translation addition: the English preposition is supplied before the accusative subject of the infinitive; no corresponding Greek preposition is expressed."
-        }
-      ]
+      "unmappedTarget": []
     },
     "4:5": {
       "sourceText": "ἔρχεται οὖν εἰς πόλιν τῆς Σαμαρίας λεγομένην Συχὰρ, πλησίον τοῦ χωρίου ὃ ἔδωκεν Ἰακὼβ Ἰωσὴφ τῷ υἱῷ αὐτοῦ·",
@@ -692,7 +687,8 @@
               "text": "having been weary",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual kekopiakōs is PERFECT ACTIVE PARTICIPLE, V-RAP-NSM in both pinned analyses. LSV having been weary expresses the same weariness state; its English been does not make the Greek form passive or introduce a separate source copula."
         },
         {
           "sourceTokens": [
@@ -768,12 +764,27 @@
         },
         {
           "sourceTokens": [
-            18,
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            },
+            {
+              "text": "hour",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual nominative hour noun owns the English nominal frame the ... hour; actual sixth adjective remains separately linked."
+        },
+        {
+          "sourceTokens": [
             21
           ],
           "targetPhrases": [
             {
-              "text": "the sixth hour",
+              "text": "sixth",
               "occurrence": 0
             }
           ]
@@ -1085,16 +1096,31 @@
         {
           "sourceTokens": [
             3,
-            4,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            },
+            {
+              "text": "woman",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
             5,
             6
           ],
           "targetPhrases": [
             {
-              "text": "the Samaritan woman",
+              "text": "Samaritan",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual feminine Samaritan designation retains N-NSF in both pinned analyses and its actual article; LSV uses it attributively with the separately linked woman noun."
         },
         {
           "sourceTokens": [
@@ -1190,15 +1216,30 @@
         },
         {
           "sourceTokens": [
-            15,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "a",
+              "occurrence": 1
+            },
+            {
+              "text": "woman",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
             16
           ],
           "targetPhrases": [
             {
-              "text": "a Samaritan woman",
-              "occurrence": 0
+              "text": "Samaritan",
+              "occurrence": 1
             }
-          ]
+          ],
+          "note": "Actual Samaritan designation retains N-GSF in both pinned analyses, used as the English attributive designation within the same genitive woman construction."
         },
         {
           "sourceTokens": [
@@ -1524,15 +1565,26 @@
         },
         {
           "sourceTokens": [
-            28,
+            28
+          ],
+          "targetPhrases": [
+            {
+              "text": "water",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
             29
           ],
           "targetPhrases": [
             {
-              "text": "living water",
+              "text": "living",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual zōn is a present active participle, V-PAP-ASN in both pinned analyses, rendered as the modifier living; it remains distinct from the actual water noun."
         }
       ],
       "unmappedSource": [],
@@ -1697,16 +1749,31 @@
         {
           "sourceTokens": [
             14,
-            15,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            },
+            {
+              "text": "water",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
             16,
             17
           ],
           "targetPhrases": [
             {
-              "text": "the living water",
+              "text": "living",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "The actual qualifier article plus zōn present active participle (V-PAP-ASN in both pinned analyses) owns living, separately from the actual water noun."
         }
       ],
       "unmappedSource": [],
@@ -1735,17 +1802,29 @@
         },
         {
           "sourceTokens": [
-            2,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "greater",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual comparative adjective meizōn retains A-NSM-C in both pinned analyses and owns greater separately from the genitive comparison complement."
+        },
+        {
+          "sourceTokens": [
             4,
             5,
             6
           ],
           "targetPhrases": [
             {
-              "text": "greater than our father",
+              "text": "than our father",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual genitive article, father noun and first-plural possessor jointly realize the genitive comparison complement than our father. No separately printed Greek than preposition is invented."
         },
         {
           "sourceTokens": [
@@ -2176,7 +2255,8 @@
               "text": "may not thirst",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual dipsēsei13 is FUTURE ACTIVE INDICATIVE THIRD-SINGULAR (V-FAI-3S in both pinned analyses), under actual ou mē. Printed TR has subjunctive dipsēsē; LSV renders may not thirst, while this correspondence retains the actual N1904 future indicative thirst head and analysis."
         },
         {
           "sourceTokens": [
@@ -2326,15 +2406,26 @@
         },
         {
           "sourceTokens": [
-            30,
+            30
+          ],
+          "targetPhrases": [
+            {
+              "text": "life",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
             31
           ],
           "targetPhrases": [
             {
-              "text": "continuous life",
+              "text": "continuous",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual aiōnion retains A-ASF in both pinned analyses and is rendered continuous by LSV, separately from the actual zōēn life noun."
         }
       ],
       "unmappedSource": [],
@@ -2468,7 +2559,8 @@
               "text": "come",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual dierchōmai is the compound dierchomai head, with V-PNS-1S in both pinned analyses, rendered come in LSV’s come-here wording; actual enthade separately owns here. The primary lexical entry directly attests the coming usage at John4:15; the complete printed TR instead has simple erchōmai. The actual compound lemma is retained rather than substituted with erchomai."
         },
         {
           "sourceTokens": [
@@ -3673,15 +3765,30 @@
         {
           "sourceTokens": [
             7,
-            8,
             9
           ],
           "targetPhrases": [
             {
-              "text": "the true worshipers",
+              "text": "the",
+              "occurrence": 0
+            },
+            {
+              "text": "worshipers",
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "true",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual alēthinoi retains A-NPM in both pinned analyses, separately linked from the worshipers noun."
         },
         {
           "sourceTokens": [
@@ -4886,7 +4993,8 @@
               "text": "His disciples",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual article plus disciples noun is the whole nominal phrase rendered His disciples. LSV identifies their owner in this immediate asking-Him scene; neither pinned N1904 nor the complete printed TR has a separate possessive pronoun in this noun phrase. The article alone is not mapped to His."
         },
         {
           "sourceTokens": [
@@ -5689,15 +5797,26 @@
         },
         {
           "sourceTokens": [
-            8,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "life",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
             9
           ],
           "targetPhrases": [
             {
-              "text": "continuous life",
+              "text": "continuous",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual aiōnion retains A-ASF in both pinned analyses and is rendered continuous by LSV, separately from the actual zōēn life noun."
         },
         {
           "sourceTokens": [
@@ -6472,12 +6591,22 @@
         },
         {
           "sourceTokens": [
-            15,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "two",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
             16
           ],
           "targetPhrases": [
             {
-              "text": "two days",
+              "text": "days",
               "occurrence": 0
             }
           ]
@@ -6823,12 +6952,26 @@
         {
           "sourceTokens": [
             2,
-            3,
             4
           ],
           "targetPhrases": [
             {
-              "text": "the two days",
+              "text": "the",
+              "occurrence": 0
+            },
+            {
+              "text": "days",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "two",
               "occurrence": 0
             }
           ]
@@ -6972,15 +7115,26 @@
         {
           "sourceTokens": [
             7,
-            8,
             9
           ],
           "targetPhrases": [
             {
-              "text": "his own country",
+              "text": "country",
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "his own",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual idiāi is the A-DSF adjective in both pinned analyses, rendered his own within the same country phrase; no separately printed autos pronoun is claimed."
         },
         {
           "sourceTokens": [
@@ -7737,7 +7891,7 @@
         {
           "text": "Him",
           "occurrence": 1,
-          "reason": "Translation addition/explicit object: LSV repeats Him after was asking; pinned N1904 ἠρώτα has no corresponding expressed object there."
+          "reason": "Source witness difference: the complete printed TR adds auton after the asking predicate, reflected by LSV Him here. Pinned N1904 ērota has no separately printed object at that point; the earlier pros auton occurrence retains its own to Him correspondence."
         }
       ]
     },
@@ -8207,7 +8361,8 @@
               "text": "his servants",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual article plus servants noun is the whole nominal phrase rendered his servants under the immediately described man going down and being met. N1904 prints no separate possessor after servants, while the complete printed TR adds autou there. No additional N1904 pronoun is invented or assigned to the article alone."
         },
         {
           "sourceTokens": [
@@ -8417,12 +8572,27 @@
         },
         {
           "sourceTokens": [
-            15,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "at the",
+              "occurrence": 0
+            },
+            {
+              "text": "hour",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual hour noun is temporal accusative N-ASF in both pinned analyses and owns the recast English at the ... hour frame. No separate Greek at preposition or definite article is printed in this time phrase."
+        },
+        {
+          "sourceTokens": [
             16
           ],
           "targetPhrases": [
             {
-              "text": "at the seventh hour",
+              "text": "seventh",
               "occurrence": 0
             }
           ]
@@ -8655,15 +8825,30 @@
           "sourceTokens": [
             22,
             23,
-            24,
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "his",
+              "occurrence": 0
+            },
+            {
+              "text": "house",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
             25
           ],
           "targetPhrases": [
             {
-              "text": "his whole house",
+              "text": "whole",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual holē remains A-NSF in both pinned analyses and separately qualifies the same house nominal phrase."
         }
       ],
       "unmappedSource": [],
@@ -8703,12 +8888,26 @@
         },
         {
           "sourceTokens": [
-            3,
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "second",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
             4
           ],
           "targetPhrases": [
             {
-              "text": "a second sign",
+              "text": "a",
+              "occurrence": 0
+            },
+            {
+              "text": "sign",
               "occurrence": 0
             }
           ]

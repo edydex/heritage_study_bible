@@ -2,7 +2,4005 @@
   "schemaVersion": 1,
   "book": "Galatians",
   "chapter": 1,
+  "review": {
+    "method": "Full explicit original coding-assistant lexical, raw-functional/form morphology, constituent and exact occurrence review of pinned N1904 and displayed BSB; author release_review; pending separate full independent semantic peer. No Strong-only induction, automatic alignment, source-text repair or passage conclusions."
+  },
   "verses": {
+    "1:1": {
+      "sourceText": "Παῦλος ἀπόστολος, οὐκ ἀπ’ ἀνθρώπων οὐδὲ δι’ ἀνθρώπου ἀλλὰ διὰ Ἰησοῦ Χριστοῦ καὶ Θεοῦ Πατρὸς τοῦ ἐγείραντος αὐτὸν ἐκ νεκρῶν,",
+      "targetText": "Paul, an apostle—sent not from men nor by man, but by Jesus Christ and God the Father, who raised Him from the dead—",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Paul",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "an apostle",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual apostolos is anarthrous NOMINATIVE MASCULINE SINGULAR apostle NOUN, expanded an-apostle; the added sent qualification is separately explained."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "men",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "nor",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "man",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anthrōpou is GENITIVE MASCULINE SINGULAR person noun, distinct from plural people source4."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the Father",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anarthrous GENITIVE Father noun owns the-Father through English definiteness, no Greek article printed at this noun."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article personalizes the genuine raising participle and owns who, not a source relative pronoun."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "raised",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual egeirantos is AORIST ACTIVE GENITIVE MASCULINE SINGULAR raising PARTICIPLE, rendered finite raised under the English relative frame, with actual nonfinite/case retained."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "the dead",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual nekrōn is anarthrous GENITIVE MASCULINE PLURAL dead ADJECTIVE used substantivally, expanded the-dead without a separately printed article."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "sent",
+          "occurrence": 0,
+          "reason": "English supplies an explicit sending qualification after the apostle noun. Actual N/TR prints apostle and the origin/agency phrases, with no separately written sending predicate here."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:2": {
+      "sourceText": "καὶ οἱ σὺν ἐμοὶ πάντες ἀδελφοί, ταῖς ἐκκλησίαις τῆς Γαλατίας·",
+      "targetText": "and all the brothers with me,  To the churches of Galatia:",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual emoi is FIRST-SINGULAR DATIVE personal pronoun after syn, rendered me with genuine case retained."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "brothers",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "To the",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative feminine plural article specifies the church recipients and owns To-the through case/definiteness; no standalone Greek to preposition."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "churches",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Galatia",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual GENITIVE article/Galatia name jointly owns of-Galatia with its genuine nominal head."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:3": {
+      "sourceText": "χάρις ὑμῖν καὶ εἰρήνη ἀπὸ Θεοῦ Πατρὸς ἡμῶν καὶ Κυρίου Ἰησοῦ Χριστοῦ,",
+      "targetText": "Grace and peace to you from God our Father and the Lord Jesus Christ,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "to you",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hymin is SECOND-PLURAL DATIVE personal recipient, expanded to-you through its genuine case."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "peace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Father",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hēmōn is GENITIVE FIRST-PLURAL personal pronoun immediately after Father in N, realized our before Father. Printed TR instead places its first-plural possessor after Lord; actual N word order/attachment are retained."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the Lord",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Lord noun is anarthrous GENITIVE MASCULINE SINGULAR, expanded the-Lord through English definiteness."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:4": {
+      "sourceText": "τοῦ δόντος ἑαυτὸν ὑπὲρ τῶν ἁμαρτιῶν ἡμῶν, ὅπως ἐξέληται ἡμᾶς ἐκ τοῦ αἰῶνος τοῦ ἐνεστῶτος πονηροῦ κατὰ τὸ θέλημα τοῦ Θεοῦ καὶ Πατρὸς ἡμῶν,",
+      "targetText": "who gave Himself for our sins to rescue us from the present evil age, according to the will of our God and Father,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "gave",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dontos is SECOND-AORIST ACTIVE GENITIVE MASCULINE SINGULAR giving PARTICIPLE, rendered gave through the real article-relative qualification."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Himself",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual heauton is THIRD-PERSON ACCUSATIVE MASCULINE SINGULAR reflexive, not an autos personal pronoun."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "sins",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hopōs is recorded ADV in both raw fields and marks the rescue-purpose clause, rendered to without asserting a Greek infinitive or a separate to preposition."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "rescue",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual exelētai is SECOND-AORIST MIDDLE THIRD-SINGULAR rescuing SUBJUNCTIVE, rendered rescue under English infinitival purpose, with actual mood/voice/person retained."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "us",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "age",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual aiōnos is GENITIVE MASCULINE SINGULAR age noun; no kosmos head substituted."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "present",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual enestōtos is PERFECT ACTIVE GENITIVE MASCULINE SINGULAR present/impending PARTICIPLE, rendered present with genuine verbal form retained."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "evil",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "according to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "will",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19,
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/God noun jointly owns of ... God across the personal possessor."
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "Father",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual first-plural genitive hēmōn qualifies the coordinated God-and-Father title phrase, rendered our before God; actual modifier and title heads stay distinct."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        },
+        {
+          "tokens": [
+            13
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:5": {
+      "sourceText": "ᾧ ἡ δόξα εἰς τοὺς αἰῶνας τῶν αἰώνων· ἀμήν.",
+      "targetText": "to whom be glory forever and ever. Amen.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "to whom",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hōi is DATIVE MASCULINE SINGULAR relative, owning to-whom through genuine case, separate from the supplied doxological copula."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "glory",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "forever and ever",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eis plus article/ages and genitive article/ages forms the complete ages-of-ages temporal idiom, rendered forever-and-ever. All five real identities/forms remain, no printed kai asserted for English and."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Amen",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual amēn has HEB annotations in both source fields, retained as the closing loanword Amen."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "be",
+          "occurrence": 0,
+          "reason": "English supplies this copula in a Greek nominal expression; no separate written being verb occurs here."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:6": {
+      "sourceText": "Θαυμάζω ὅτι οὕτως ταχέως μετατίθεσθε ἀπὸ τοῦ καλέσαντος ὑμᾶς ἐν χάριτι Χριστοῦ εἰς ἕτερον εὐαγγέλιον,",
+      "targetText": "I am amazed how quickly you are deserting the One who called you by the grace of Christ and are turning to a different gospel—",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I am amazed",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual thaumazō is PRESENT ACTIVE FIRST-SINGULAR marveling finite, expanded I-am-amazed without a printed eimi/passive source form."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "how",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "quickly",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "you are deserting",
+              "occurrence": 0
+            },
+            {
+              "text": "are turning",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual metatithesthe is one PRESENT MIDDLE-PASSIVE SECOND-PLURAL transfer finite, V-PEI-2P in both fields. English divides its from/to transfer into you-are-deserting and are-turning, the same addressees and immediate transfer event. No second Greek turning predicate or active source retag is printed."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the One who",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article nominalizes the calling participle and expands the-One-who without an independent numeral/personal/relative source pronoun."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "called",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kalesantos is AORIST ACTIVE GENITIVE MASCULINE SINGULAR calling PARTICIPLE, rendered called under the relative-finite English frame."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "the grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive Christ name owns of-Christ through its real case."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "a different",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "gospel",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "Actual hoti introduces the amazed-at content; BSB states the following how-clause without a separately expressed that."
+        },
+        {
+          "tokens": [
+            5
+          ],
+          "reason": "Actual apo marks the transferred-away source. English makes that source the direct deserting object, without separately expressing from."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "and",
+          "occurrence": 0,
+          "reason": "English divides the transfer-from/to frame into coordinated deserting/turning predicates with and; actual N/TR has one transfer finite and no local kai."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:7": {
+      "sourceText": "ὃ οὐκ ἔστιν ἄλλο· εἰ μή τινές εἰσιν οἱ ταράσσοντες ὑμᾶς καὶ θέλοντες μεταστρέψαι τὸ εὐαγγέλιον τοῦ Χριστοῦ.",
+      "targetText": "which is not even a gospel. Evidently some people are troubling you and trying to distort the gospel of Christ.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "which",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "some people",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual tines is NOMINATIVE MASCULINE PLURAL INDEFINITE pronoun, expanded some-people without a separately printed person noun."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "are",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "troubling",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual tarassontes is PRESENT ACTIVE NOMINATIVE MASCULINE PLURAL troubling PARTICIPLE, rendered troubling under real eisin7."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "trying",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual thelontes is PRESENT ACTIVE NOMINATIVE MASCULINE PLURAL wanting PARTICIPLE, rendered trying as the named volitional realization before distortion; no separate attempt verb printed."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "to distort",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual metastrepsai is AORIST ACTIVE distortion INFINITIVE, not a source present finite."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "gospel",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16,
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/Christ name jointly owns of-Christ."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "Actual allo is NOMINATIVE NEUTER SINGULAR other ADJECTIVE in the not-another predication. BSB recasts the contrast as not-even-a-gospel without independently retaining this other head; both N and printed TR have allo, so this is translation-frame wording rather than a Greek witness gap."
+        },
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "Actual ei with mē forms the except/but-that limiting frame. BSB instead introduces its inference with Evidently, with no direct conditional/except counterpart; this is a rendering-frame gap, not a different printed N/TR reading."
+        },
+        {
+          "tokens": [
+            5
+          ],
+          "reason": "Actual mē belongs to the real ei-mē limiting frame, not a separate negative in BSB’s affirmative Evidently sentence."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "Actual nominative plural article specifies the troubling/wanting people already expressed through the English some-people subject, without another separate target word."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Evidently",
+          "occurrence": 0,
+          "reason": "BSB introduces an explicit inferential discourse adverb. Actual N/TR prints the ei-mē limiting construction, not a lexical evidence/certainty adverb; the relation is explained without assigning evidently to ei or mē."
+        },
+        {
+          "text": "even",
+          "occurrence": 0,
+          "reason": "BSB adds explicit emphatic even in its not-even-a-gospel recast; actual N/TR here has ouk without a separately printed intensifier."
+        },
+        {
+          "text": "a gospel",
+          "occurrence": 0,
+          "reason": "BSB supplies this predicate-category noun phrase for the Greek not-another contrast. Actual local allo is an other adjective, not a separately written gospel noun; the real later gospel15 remains linked to its own occurrence."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:8": {
+      "sourceText": "ἀλλὰ καὶ ἐὰν ἡμεῖς ἢ ἄγγελος ἐξ οὐρανοῦ εὐαγγελίσηται ὑμῖν παρ’ ὃ εὐηγγελισάμεθα ὑμῖν, ἀνάθεμα ἔστω.",
+      "targetText": "But even if we or an angel from heaven should preach a gospel contrary to the one we preached to you, let him be under a curse!",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "even",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "if",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "we",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "or",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "an angel",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "heaven",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "should preach a gospel",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual euangelisētai is AORIST MIDDLE THIRD-SINGULAR preaching SUBJUNCTIVE in both raw fields, expanded should-preach-a-gospel as the real gospel-announcing verb. Complete printed TR has present euangelizētai; actual aorist/middle remains, no gospel noun or modal source word invented."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "contrary to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the one",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ho is ACCUSATIVE NEUTER SINGULAR relative, expanded the-one for the compared gospel content without a source numeral."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "we preached",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual euēngelisametha is AORIST MIDDLE FIRST-PLURAL gospel-announcing finite, expanded we-preached with its genuine nonactive form/person."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "to you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "under a curse",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anathema is NOMINATIVE NEUTER SINGULAR curse NOUN, expanded under-a-curse as the English status predication without a Greek under preposition."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "let him be",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual estō is PRESENT ACTIVE THIRD-SINGULAR being IMPERATIVE, expanded let-him-be with its encoded subject; no local autos or letting verb."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "Actual first hymin is SECOND-PLURAL DATIVE recipient of the proposed preaching. BSB leaves this first recipient implicit; final to-you belongs to the separately written second hymin13, not both source pronouns collapsed."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:9": {
+      "sourceText": "ὡς προειρήκαμεν, καὶ ἄρτι πάλιν λέγω, εἴ τις ὑμᾶς εὐαγγελίζεται παρ’ ὃ παρελάβετε, ἀνάθεμα ἔστω.",
+      "targetText": "As we have said before, so now I say again: If anyone is preaching to you a gospel contrary to the one you received, let him be under a curse!",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "As",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "we have said before",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual proeirēkamen is PERFECT ACTIVE FIRST-PLURAL prior-saying finite, expanded we-have-said-before as the compound head; no separate before adverb printed."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "so",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "now",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "again",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "I say",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "If",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "anyone",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "to you",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hymas is ACCUSATIVE SECOND-PLURAL personal preaching recipient, rendered to-you without a source dative retag."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "is preaching",
+              "occurrence": 0
+            },
+            {
+              "text": "a gospel",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual euangelizetai is PRESENT THIRD-SINGULAR functional MIDDLE/formal MIDDLE-PASSIVE gospel-announcing finite, split is-preaching ... a-gospel around the real personal recipient. No separate Greek eimi/gospel noun is printed."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "contrary to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the one",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual accusative neuter singular relative owns the-one for the compared content, no source numeral."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "you received",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual parelabete is SECOND-AORIST ACTIVE SECOND-PLURAL receiving finite, expanded you-received through its actual person."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "under a curse",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anathema curse NOUN owns under-a-curse as the English status phrase, no separately printed under preposition."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "let him be",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual third-singular present being imperative supplies let-him-be with encoded subject, not a local autos."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:10": {
+      "sourceText": "Ἄρτι γὰρ ἀνθρώπους πείθω ἢ τὸν Θεόν; ἢ ζητῶ ἀνθρώποις ἀρέσκειν; εἰ ἔτι ἀνθρώποις ἤρεσκον, Χριστοῦ δοῦλος οὐκ ἂν ἤμην.",
+      "targetText": "Am I now seeking the approval of men, or of God? Or am I striving to please men? If I were still trying to please men, I would not be a servant of Christ.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "now",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "of men",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anthrōpous is ACCUSATIVE MASCULINE PLURAL person noun, rendered genitive-worded of-men as the object of English’s approval nominalization; actual case remains accusative."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Am I",
+              "occurrence": 0
+            },
+            {
+              "text": "seeking the approval",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual peithō is PRESENT ACTIVE FIRST-SINGULAR persuasion/winning-favor finite, expanded Am-I ... seeking-the-approval as BSB’s named approval frame. No real zēteō/seek or approval noun is printed in this source token; actual separate seeking finite8 keeps its own clause."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "or",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5,
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual accusative article/God noun jointly owns of-God within the same approval-object nominalization, not a genitive source retag."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Or",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "am I striving",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual zētō is the separate PRESENT ACTIVE FIRST-SINGULAR seeking finite, rendered am-I-striving with genuine head retained."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "men",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "to please",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "If",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "still",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "men",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "I were",
+              "occurrence": 0
+            },
+            {
+              "text": "trying to please",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ēreskon is IMPERFECT ACTIVE FIRST-SINGULAR pleasing finite, expanded I-were ... trying-to-please as the English conative/counterfactual realization; no independent trying verb or Greek subjunctive is asserted."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "a servant",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "would",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual an is the counterfactual modal particle, rendered would separately from actual eimi19."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 3
+            },
+            {
+              "text": "be",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ēmēn is IMPERFECT FIRST-SINGULAR being finite, functional MIDDLE/formal MIDDLE-PASSIVE in the two raw fields, split I ... be around the actual modal/negative. No source present or additional pronoun is printed."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "Actual first gar introduces the present question; BSB states the question without a separate For."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:11": {
+      "sourceText": "γνωρίζω γὰρ ὑμῖν, ἀδελφοί, τὸ εὐαγγέλιον τὸ εὐαγγελισθὲν ὑπ’ ἐμοῦ ὅτι οὐκ ἔστιν κατὰ ἄνθρωπον·",
+      "targetText": "For I certify to you, brothers, that the gospel I preached was not devised by man.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I certify",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual gnōrizō is PRESENT ACTIVE FIRST-SINGULAR making-known finite, rendered I-certify; no additional source pronoun."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "brothers",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "gospel",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "preached",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual euangelisthen is AORIST PASSIVE ACCUSATIVE NEUTER SINGULAR gospel-announcing PARTICIPLE qualifying the gospel, rendered active finite preached while its real passive/nonfinite form is retained."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual emou is FIRST-SINGULAR GENITIVE preaching agent after hypo, realized as the English active subject I in the passive-to-active recast, not a nominative source retag."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual estin is PRESENT ACTIVE THIRD-SINGULAR being finite, rendered past was in the named translation; the recorded source present remains."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kata with the accusative human noun expresses the human-standard/source qualification, realized by in BSB’s devised-by-man frame. The added devising head is separately supplied; actual kata is not an agency hypo or a devising verb."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "man",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "Actual hypo explicitly marks the first-person preaching agent. BSB realizes that same agent as the active English I subject, leaving no independent by in the preaching clause."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "devised",
+          "occurrence": 0,
+          "reason": "BSB supplies the explicit devising predicate in its not-by-man rendering of actual kata-anthrōpon, according-to-human standard/source wording. No Greek devising verb is printed; the real present being verb and human noun remain separate."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:12": {
+      "sourceText": "οὐδὲ γὰρ ἐγὼ παρὰ ἀνθρώπου παρέλαβον αὐτό οὔτε ἐδιδάχθην, ἀλλὰ δι’ ἀποκαλύψεως Ἰησοῦ Χριστοῦ.",
+      "targetText": "I did not receive it from any man, nor was I taught it; rather, I received it by revelation from Jesus Christ.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "any man",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anarthrous GENITIVE SINGULAR human noun expands any-man as the generic human source, not a printed tis indefinite."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "did",
+              "occurrence": 0
+            },
+            {
+              "text": "receive",
+              "occurrence": 0
+            },
+            {
+              "text": "I received",
+              "occurrence": 0
+            }
+          ],
+          "note": "The one actual SECOND-AORIST ACTIVE FIRST-SINGULAR receiving finite supplies did ... receive and the immediate contrastive I-received restatement before the by-revelation phrase. Both English predicates describe the same receiving/content, not two written Greek receiving words."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "it",
+              "occurrence": 0
+            },
+            {
+              "text": "it",
+              "occurrence": 1
+            },
+            {
+              "text": "it",
+              "occurrence": 2
+            }
+          ],
+          "note": "Actual ACCUSATIVE NEUTER SINGULAR auto is the same gospel-content object, shared by receiving, being-taught and the immediate receiving restatement. English repeats it three times; one actual source identity is retained, not three pronouns."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "nor",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "was I taught",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual edidachthēn is AORIST PASSIVE FIRST-SINGULAR teaching finite, expanded was-I-taught with genuine passive/person retained; its immediately shared content object belongs to actual auto6."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "rather",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "revelation",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "from Jesus",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual GENITIVE Jesus name owns from-Jesus as BSB’s revelation-source realization, with actual name/case retained and no separate Greek from preposition here."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "Actual gar introduces the explanation; BSB states it without a separate For."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:13": {
+      "sourceText": "Ἠκούσατε γὰρ τὴν ἐμὴν ἀναστροφήν ποτε ἐν τῷ Ἰουδαϊσμῷ, ὅτι καθ’ ὑπερβολὴν ἐδίωκον τὴν ἐκκλησίαν τοῦ Θεοῦ καὶ ἐπόρθουν αὐτήν,",
+      "targetText": "For you have heard of my former way of life in Judaism, how severely I persecuted the church of God and tried to destroy it.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "you have heard of",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ēkousate is AORIST ACTIVE SECOND-PLURAL hearing finite, expanded you-have-heard-of before the actual accusative way-of-life object; no separate Greek of is printed."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual emēn is FIRST-SINGULAR POSSESSIVE ADJECTIVE, ACCUSATIVE FEMININE SINGULAR, not a personal genitive pronoun."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "way of life",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anastrophē is ACCUSATIVE FEMININE SINGULAR conduct/manner-of-life noun, expanded way-of-life as one lexical head."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "former",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual pote is recorded PRT in both fields and supplies temporal former; no adjective source retag."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Judaism",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "how",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hoti introduces the heard content, realized how without a Greek pōs source head."
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "severely",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kata plus accusative hyperbolē jointly forms the degree idiom beyond-measure, rendered severely; both real identities remain, not a stand-alone Greek severity adverb."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "I persecuted",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "church",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15,
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/God noun jointly owns of-God."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "tried to destroy",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eporthoun is IMPERFECT ACTIVE FIRST-SINGULAR destruction finite, rendered conatively tried-to-destroy without an independent trying verb or aorist source retag."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "it",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        },
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:14": {
+      "sourceText": "καὶ προέκοπτον ἐν τῷ Ἰουδαϊσμῷ ὑπὲρ πολλοὺς συνηλικιώτας ἐν τῷ γένει μου, περισσοτέρως ζηλωτὴς ὑπάρχων τῶν πατρικῶν μου παραδόσεων.",
+      "targetText": "I was advancing in Judaism beyond many of my contemporaries and was extremely zealous for the traditions of my fathers.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "I was advancing",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual proekopton is IMPERFECT ACTIVE FIRST-SINGULAR advancing finite, expanded I-was-advancing with genuine imperfect retained."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Judaism",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "beyond",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "many",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "of my contemporaries",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual synēlikiōtas is ACCUSATIVE MASCULINE PLURAL coeval/contemporary noun, expanded of-my-contemporaries after many. The primary definition is a person of one’s own age, and its exact-verse example uses of-my-own-age. This intrinsic relational noun supplies the English owner frame, not an independent Greek personal pronoun."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "extremely",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual perissoterōs is COMPARATIVE ADVERB in both raw fields, rendered extremely; actual comparative form is retained."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "zealous",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual zēlōtēs is NOMINATIVE MASCULINE SINGULAR zealot NOUN, rendered zealous adjectivally without changing its actual noun analysis."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual hyparchōn is PRESENT ACTIVE NOMINATIVE MASCULINE SINGULAR being PARTICIPLE, rendered past finite was in the coordinated English clause; no finite eimi is printed."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "for the",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive plural article specifies the traditions with their parental qualifier and owns for-the through its case/definiteness relation under the zeal noun."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            },
+            {
+              "text": "fathers",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual patrikōn is GENITIVE FEMININE PLURAL ancestral/paternal ADJECTIVE modifying traditions, nominally rendered of ... fathers while its real adjective/head agreement remains."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 1
+            }
+          ],
+          "note": "The second actual mou is the separate first-person genitive possessor in the ancestral traditions phrase, rendered my@1, not conflated with mou11."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "traditions",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "Actual initial kai coordinates this advance statement with the preceding description. BSB leaves that initial connection unexpressed and supplies its separate and before the finite zeal clause."
+        },
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "Actual en introduces in-my-race affiliation; BSB compresses that ethnic phrase while retaining the first-person owner with contemporaries."
+        },
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        },
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "Actual genos is DATIVE NEUTER SINGULAR race/stock noun in the in-my-race qualification. BSB has no separate race/nation noun in its compressed contemporaries phrase."
+        },
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "Actual first mou is the FIRST-SINGULAR GENITIVE owner of the omitted race/stock phrase. English my with contemporaries realizes the relational coeval noun’s one-of-one’s-own-age sense; it is not this separately written nation possessor reassigned to a different modifier head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "and",
+          "occurrence": 0,
+          "reason": "BSB supplies an explicit coordinating and when recasting the actual being participle as a second finite was clause; the initial actual kai has its own preceding-clause connection."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:15": {
+      "sourceText": "Ὅτε δὲ εὐδόκησεν ὁ ἀφορίσας με ἐκ κοιλίας μητρός μου καὶ καλέσας διὰ τῆς χάριτος αὐτοῦ",
+      "targetText": "But when God, who set me apart from my mother’s womb and called me by His grace, was pleased",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "when",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "was pleased",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eudokēsen is AORIST ACTIVE THIRD-SINGULAR good-pleasure finite, rendered was-pleased while actual active form remains, not a Greek passive/eimi."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual nominative masculine article nominalizes the separating/calling personal participles and owns who; the explicit God noun of TR/English is separately explained."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "set",
+              "occurrence": 0
+            },
+            {
+              "text": "apart",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual aphorisas is AORIST ACTIVE NOMINATIVE MASCULINE SINGULAR separating PARTICIPLE, expanded set ... apart with its real nonfinite form retained."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            },
+            {
+              "text": "me",
+              "occurrence": 1
+            }
+          ],
+          "note": "The one actual FIRST-SINGULAR ACCUSATIVE me is the same immediately separated/called patient. English repeats me with both coordinated participles; one actual source identity remains."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "womb",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "mother’s",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive mother noun owns mother’s, distinct from actual mou9 first-person owner."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "called",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kalesas is AORIST ACTIVE NOMINATIVE MASCULINE SINGULAR calling PARTICIPLE, rendered called without a source finite retag."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            13
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "God",
+          "occurrence": 0,
+          "reason": "Complete printed TR and BSB print the explicit God noun here; actual N has the nominalizing article and separating/calling participles without a local theos head. That printed-name difference remains a whole lexical-head gap, not an invented God lemma for the article."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:16": {
+      "sourceText": "ἀποκαλύψαι τὸν Υἱὸν αὐτοῦ ἐν ἐμοὶ, ἵνα εὐαγγελίζωμαι αὐτὸν ἐν τοῖς ἔθνεσιν, εὐθέως οὐ προσανεθέμην σαρκὶ καὶ αἵματι,",
+      "targetText": "to reveal His Son in me so that I might preach Him among the Gentiles, I did not rush to consult with flesh and blood,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "to reveal",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual apokalypsai is AORIST ACTIVE revealing INFINITIVE, not a finite source verb."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Son",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "so that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "I might preach",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual euangelizōmai is PRESENT FIRST-SINGULAR gospel-announcing SUBJUNCTIVE, functional MIDDLE/formal MIDDLE-PASSIVE; I-might-preach retains the real subject/mood without a Greek independent might."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "among",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Gentiles",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "rush",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eutheōs is the immediately/at-once ADVERB. BSB realizes its timing as rush in did-not-rush-to-consult; actual adverb and negation/consulting heads remain separate, with no Greek rush verb printed."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "I did",
+              "occurrence": 0
+            },
+            {
+              "text": "to consult",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual prosanethēmēn is SECOND-AORIST MIDDLE FIRST-SINGULAR consulting finite, split I-did ... to-consult under BSB’s not-rush timing recast. The source is not an infinitive or a separate do predicate."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "with flesh",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual sarki is anarthrous DATIVE FEMININE SINGULAR flesh noun, owning with-flesh as the genuine consulting complement, without a written Greek with preposition."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "blood",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:17": {
+      "sourceText": "οὐδὲ ἀνῆλθον εἰς Ἱεροσόλυμα πρὸς τοὺς πρὸ ἐμοῦ ἀποστόλους, ἀλλὰ ἀπῆλθον εἰς Ἀραβίαν, καὶ πάλιν ὑπέστρεψα εἰς Δαμασκόν.",
+      "targetText": "nor did I go up to Jerusalem to the apostles who came before me, but I went into Arabia and later returned to Damascus.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "nor",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "did I go up",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anēlthon is SECOND-AORIST ACTIVE FIRST-SINGULAR ascending finite, expanded did-I-go-up without separate Greek do/up heads."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jerusalem",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            },
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual accusative plural article determines the apostles and their before-me qualification, realized the ... who; no source hos relative or came verb is printed."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "before",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "apostles",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "I went",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual apēlthon is SECOND-AORIST ACTIVE FIRST-SINGULAR going-away finite, rendered I-went with its real compound lemma retained."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "into",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Arabia",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "returned",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hypestrepsa is AORIST ACTIVE FIRST-SINGULAR returning finite; no past-perfect source analysis."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "Damascus",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            14
+          ],
+          "reason": "Actual palin expresses again/repetition before the returning head. BSB has no separate again, and its added later sequential qualifier is separately explained rather than assigning a different time adverb to this source."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "came",
+          "occurrence": 0,
+          "reason": "English supplies this coming predicate in its apostles-who-came-before-me expansion of the actual article/apostles plus pro-emou qualification; no local coming head is printed in that qualification."
+        },
+        {
+          "text": "later",
+          "occurrence": 0,
+          "reason": "BSB supplies this explicit later qualifier in its sequential return wording. Actual palin is the again/repetition adverb, not a separate later head."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:18": {
+      "sourceText": "Ἔπειτα μετὰ τρία ἔτη ἀνῆλθον εἰς Ἱεροσόλυμα ἱστορῆσαι Κηφᾶν, καὶ ἐπέμεινα πρὸς αὐτὸν ἡμέρας δεκαπέντε·",
+      "targetText": "Only after three years did I go up to Jerusalem to confer with Cephas, and I stayed with him fifteen days.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "after",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "three",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "years",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "did I go up",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anēlthon is SECOND-AORIST ACTIVE FIRST-SINGULAR ascending finite, expanded did-I-go-up."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jerusalem",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "to confer with",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual historēsai is AORIST ACTIVE visiting/becoming-acquainted INFINITIVE, expanded to-confer-with; with belongs to the actual verb’s English realization, no separate source preposition."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Cephas",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Kēphan is the ACCUSATIVE MASCULINE SINGULAR Cephas name, retained directly; the complete printed TR instead names Petron."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "I stayed",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual epemeina is AORIST ACTIVE FIRST-SINGULAR remaining/staying finite, expanded I-stayed with the actual compound lemma retained."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "days",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "fifteen",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dekapente has indeclinable numeral A-NUI in both fields, retained as fifteen without an accusative retag."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "Actual epeita is the then/afterwards sequencing adverb before the distinct after-three-years phrase. BSB leaves then implicit and adds the explicit Only restriction; no actual monos/only head is printed."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Only",
+          "occurrence": 0,
+          "reason": "BSB adds this explicit restriction to its after-three-years phrase; actual epeita/meta supplies temporal sequence/after wording without a separate only head."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:19": {
+      "sourceText": "ἕτερον δὲ τῶν ἀποστόλων οὐκ εἶδον, εἰ μὴ Ἰάκωβον τὸν ἀδελφὸν τοῦ Κυρίου.",
+      "targetText": "But I saw none of the other apostles except James, the Lord’s brother.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "other",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual heteron is ACCUSATIVE MASCULINE SINGULAR other adjective used for another apostle, rendered other within English’s plural other-apostles phrase; the source singular remains."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "of the",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual GENITIVE MASCULINE PLURAL article owns of-the through the partitive apostles construction, not a separate Greek of preposition."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "apostles",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "none",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ouk is the negative particle, realized none in the English negative/other-apostles frame; no source indefinite pronoun is printed."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "I saw",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eidon is SECOND-AORIST ACTIVE FIRST-SINGULAR seeing finite, expanded I-saw."
+        },
+        {
+          "sourceTokens": [
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "except",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ei plus mē jointly forms the complete except limiting construction, preserving both true source identities."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "James",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "brother",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Lord’s",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Lord noun is GENITIVE MASCULINE SINGULAR and owns Lord’s through its actual possessive relation; article11 is unexpressed before that possessive."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:20": {
+      "sourceText": "ἃ δὲ γράφω ὑμῖν, ἰδοὺ ἐνώπιον τοῦ Θεοῦ ὅτι οὐ ψεύδομαι.",
+      "targetText": "I assure you before God that what I am writing to you is no lie.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "what",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ha is ACCUSATIVE NEUTER PLURAL relative, rendered number-unmarked what for the written content; its actual plural is retained."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "I am writing",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual graphō is PRESENT ACTIVE FIRST-SINGULAR writing finite, expanded I-am-writing without an independent eimi."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "to you",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hymin is SECOND-PLURAL DATIVE writing recipient and owns to-you; it is not duplicated into the separately supplied assurance recipient."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "before",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual enōpion has PREP in both pinned fields, rendered before; the sparse OSIS ADV tag is not substituted for the actual source analysis."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "no",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "lie",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual pseudomai is PRESENT FUNCTIONALLY NONACTIVE FIRST-SINGULAR lying finite, V-PNI-1S in both fields. BSB nominalizes the lexical lying head as lie with the written content as its English subject. The actual finite subject/form remains explicit; the new is copula is separately supplied rather than attributed to a third-person Greek predicate."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "Actual de marks this following statement; BSB states it without an independent Now/But."
+        },
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "Actual idou has SECOND-AORIST MIDDLE SECOND-SINGULAR IMPERATIVE analyses in both fields, functioning as behold/attention wording. BSB instead supplies the first-person assurance frame I-assure-you; no actual first-person assure head is printed."
+        },
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "I assure you",
+          "occurrence": 0,
+          "reason": "BSB supplies this explicit first-person assurance/recipient frame in place of the actual behold attention formula. The actual imperative form is retained as an explained source difference, not retagged into a first-person assure verb."
+        },
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies this copula in a Greek nominal expression; no separate written being verb occurs here."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:21": {
+      "sourceText": "ἔπειτα ἦλθον εἰς τὰ κλίματα τῆς Συρίας καὶ τῆς Κιλικίας.",
+      "targetText": "Later I went to the regions of Syria and Cilicia.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Later",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "I went",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ēlthon is SECOND-AORIST ACTIVE FIRST-SINGULAR coming finite, rendered I-went with its real erchomai head retained."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "regions",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5,
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Syria",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/Syria proper noun jointly owns of-Syria; the independent genitive article8 before Cilicia is not separately expressed."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Cilicia",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "1:22": {
+      "sourceText": "ἤμην δὲ ἀγνοούμενος τῷ προσώπῳ ταῖς ἐκκλησίαις τῆς Ἰουδαίας ταῖς ἐν Χριστῷ.",
+      "targetText": "I was personally unknown, however, to the churches of Judea that are in Christ.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I was",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ēmēn is IMPERFECT FIRST-SINGULAR being finite, functional MIDDLE/formal MIDDLE-PASSIVE, realized I-was. This real first-person head does not also supply the church-relative are."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "however",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "unknown",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual agnooumenos is PRESENT NOMINATIVE MASCULINE SINGULAR not-known PARTICIPLE, functional PASSIVE/formal MIDDLE-PASSIVE in the two fields, rendered unknown with the real being finite0."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "personally",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual prosōpōi is DATIVE NEUTER SINGULAR face noun, rendered personally as the face/respect qualifier; actual noun/case remain, no Greek adverb retag."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "to the",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative plural article owns to-the through the real church-recipient relation."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "churches",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Judea",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/Judea name jointly owns of-Judea."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual DATIVE FEMININE PLURAL article qualifies the churches with the in-Christ phrase and owns that; no source relative or copula is printed in this qualifier."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "are",
+          "occurrence": 0,
+          "reason": "English supplies this copula in a Greek nominal expression; no separate written being verb occurs here."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
     "1:23": {
       "sourceText": "μόνον δὲ ἀκούοντες ἦσαν ὅτι Ὁ διώκων ἡμᾶς ποτε νῦν εὐαγγελίζεται τὴν πίστιν ἥν ποτε ἐπόρθει,",
       "targetText": "They only heard the account: “The man who formerly persecuted us is now preaching the faith he once tried to destroy.”",
@@ -192,6 +4190,83 @@
           "reason": "BSB names the former persecutor with a contextual man noun; Greek has only the articular persecuting participle, with no man noun."
         }
       ]
+    },
+    "1:24": {
+      "sourceText": "καὶ ἐδόξαζον ἐν ἐμοὶ τὸν Θεόν.",
+      "targetText": "And they glorified God because of me.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "they glorified",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual edoxazon is IMPERFECT ACTIVE THIRD-PLURAL glorifying finite, expanded they-glorified without a separately written subject pronoun."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "because of",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en with the dative first-person pronoun is rendered causal because-of in the named translation. The real preposition remains en, not a source dia/hoti substitution."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual emoi is FIRST-SINGULAR DATIVE personal pronoun, retained under the causal en phrase with no genitive retag."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
     }
   }
 }
