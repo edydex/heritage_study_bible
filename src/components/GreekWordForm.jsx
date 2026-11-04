@@ -45,8 +45,18 @@ function Analysis({ analysis, words }) {
     const outside = event => {
       if (!grid.current?.contains(event.target)) { setOpenKey(null); setPinnedKey(null) }
     }
+    const dismiss = event => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      event.stopPropagation()
+      setOpenKey(null); setPinnedKey(null)
+    }
     document.addEventListener('pointerdown', outside)
-    return () => document.removeEventListener('pointerdown', outside)
+    document.addEventListener('keydown', dismiss, true)
+    return () => {
+      document.removeEventListener('pointerdown', outside)
+      document.removeEventListener('keydown', dismiss, true)
+    }
   }, [openKey])
   return <>
     <div ref={grid} data-grammar-grid className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -59,7 +69,6 @@ function Analysis({ analysis, words }) {
           onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) { setOpenKey(null); setPinnedKey(null) } }}>
           <button type="button" aria-expanded={open} aria-describedby={open ? tooltipId : undefined}
             onClick={() => { const next = pinnedKey === feature.key ? null : feature.key; setPinnedKey(next); setOpenKey(next) }}
-            onKeyDown={event => { if (event.key === 'Escape' && open) { event.preventDefault(); event.stopPropagation(); setOpenKey(null); setPinnedKey(null) } }}
             className={`w-full h-full min-h-[4.5rem] rounded-lg border px-3 py-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 ${open ? 'border-blue-400 bg-blue-100/60 dark:border-blue-500 dark:bg-blue-900/40' : 'border-gray-200 bg-white/60 dark:border-gray-700 dark:bg-gray-900/40'}`}>
             <span className="flex items-start justify-between gap-2 text-xs text-gray-600 dark:text-gray-300"><span>{feature.label}: </span><span aria-hidden="true" className="opacity-60">ⓘ</span></span>
             <strong className="block mt-1 text-sm leading-snug">{feature.value}</strong>

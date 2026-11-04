@@ -71,7 +71,8 @@ from Original or through a checked **LSV**, **BSB** or **KJV** word link. It sho
 the actual form, dictionary form (lemma), part of speech and applicable tense /
 aspect, voice, mood, person, number, case and gender. A compact grid has three
 columns on wider screens and two on phones. Hover, focus or tap a term for its
-short explanation in **English** or **Russian**; Escape dismisses the explanation.
+short explanation in **English** or **Russian**; Escape dismisses an open explanation
+before closing Word Study, including when help was opened only by hovering.
 The explanation language is remembered.
 Grammar belongs to that exact occurrence, rather than every occurrence of its lemma.
 Device volume scrolling follows the open Word Study dialog. At its end, repeated
@@ -306,7 +307,7 @@ its pinned publisher USFM; those actual source words remain explicitly
 unpaired. These reviews preserve the named texts rather than silently editing
 either witness.
 
-The first nine chapters of 2 Corinthians have full LSV author-and-peer reviews.
+All thirteen chapters of 2 Corinthians have full LSV author-and-peer reviews.
 At 2:10, the two actual perfect forgiveness predicates retain their distinct
 occurrences despite the English clause order. The final supplied forgiveness
 resumption shares only its immediate real predicate. At 4:14, N1904's
@@ -324,6 +325,12 @@ opposite personal roles in the installed English wording remain explicitly
 unpaired; the pinned printed TR also differs from that English wording. At
 9:10, the actual future predicates keep their source analyses under LSV's
 "may ... supply and multiply ... increase" wording.
+
+At 11:6, the actual active revealing participle remains separate from LSV's
+different passive reading. At 12:9, the actual grace possessor is not duplicated
+into the additional power and weakness possessors. The expanded chapter 13
+review preserves its three previously accepted verse objects exactly, including
+English 13:14's actual original 13:13 benediction reference.
 
 Repeated words also retain their identities when clauses change order within a
 verse. In 1 Corinthians 8:8, LSV puts the eating/being-in-advance condition before
@@ -344,11 +351,25 @@ pinned publisher USFM, so those original words remain studyable without an
 invented English match. In 15:44, the three actual body nouns keep their separate
 occurrences; LSV's fourth body noun remains explained as additional wording.
 
-The first two chapters of Revelation have full LSV author-and-peer reviews.
+The first five chapters of Revelation have full LSV author-and-peer reviews.
 English 1:10's "saying" retains its original 1:11 participle. The received-from-
 Father comparison at the end of English 2:27 keeps its actual original 2:28
 identities; the unexpressed Father article stays an explained original word.
 These reference differences do not move or retag the original text.
+The two English "what" words in 3:3 retain their different actual Greek heads.
+The having participle and later having finite in 4:8 retain separate occurrences
+and their actual source forms. At 5:7, the local scroll noun added in the printed
+TR reading remains explained as absent from N1904; the separately printed 5:8
+scroll noun keeps its own occurrence.
+
+Philippians 1 has full BSB and KJV author-and-peer reviews. KJV's 1:16 and 1:17
+clauses retain their actual original 1:17 and 1:16 references, so the love clause
+matches BSB 1:16 across the verse boundary. In 1:7, the notes distinguish the
+translations' chosen "I have you" syntax from what the two Greek accusative
+forms alone establish; the notes do not rule out the other grammatical reading.
+BSB 1:16's repeated preaching expression uses only its immediately preceding
+actual preaching predicate, with the retained local use and shared scope
+declared explicitly.
 
 An English name can clarify a printed Greek pronoun; its link retains the actual
 pronoun and identifies the naming as the translation's wording. When source
