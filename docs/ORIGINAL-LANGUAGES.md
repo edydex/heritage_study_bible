@@ -262,6 +262,13 @@ belongs with an actual predicate or needs a supplied-copula explanation. Complet
 nominal constituents remain supported; this guard does not invent a substitute
 verb or replace semantic review.
 
+Case relations stay with their actual nominal or infinitival heads. For example,
+Colossians 4:18 “by ... hand” selects the dative hand constituent, while “my”
+retains its separate possessive anchor. Bounded corrections to accepted reviews
+preserve the exact previous resource and a separate author-and-peer proof of
+the changed groups; the registry then pins the reviewed replacement. Other
+candidate constructions remain subject to individual review.
+
 The source witness reference is an explicit part of an anchor. For example,
 Philippians 1:16–17 is transposed between LSV and N1904; John and Romans also move
 clauses across verse boundaries. The reader joins exact original token identities

@@ -126,3 +126,38 @@ test('translated Thessalonian adverbs match across the verse boundary and retain
   await page.getByRole('button', { name: 'Study word', exact: true }).click()
   await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText(/G0*89\b/)
 })
+
+test('the Thessalonian walking subject stays separate from the encouragement and calling recipients', async ({ page }) => {
+  await compare(page, '1-thessalonians', 2, 'BSB', 'KJV')
+  const recipients = words(page, 'BSB', 2, 12, /^you$/)
+  await expect(recipients).toHaveCount(4)
+  await recipients.nth(2).click()
+  await expect(words(page, 'KJV', 2, 12, /^ye$/)).toHaveClass(/bible-word-link-active/)
+  for (const index of [0, 1, 3]) await expect(recipients.nth(index)).not.toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 2, 12, /^you$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 2, 11, /^you$/)).not.toHaveClass(/bible-word-link-active/)
+})
+
+test('Peter links the actual gloom word without confusing it with weather mists', async ({ page }) => {
+  await compare(page, '2-peter', 2, 'BSB', 'KJV')
+  const mist = words(page, 'KJV', 2, 17, /^mist$/)
+  await expect(mist).toHaveAttribute('data-word-paired', 'true')
+  await mist.click()
+  await expect(words(page, 'BSB', 2, 17, /^Blackest$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'BSB', 2, 17, /^mists$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'BSB', 2, 17, /^darkness$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 2, 17, /^clouds$/)).toHaveAttribute('data-word-paired', 'false')
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText(/G0*2217\b/)
+})
+
+test('the writing instrument relation selects the real hand head and preserves its separate possessor', async ({ page }) => {
+  await compare(page, 'colossians', 4, 'LSV', 'ORIGINAL')
+  await words(page, 'LSV', 4, 18, /^by$/).click()
+  await expect(words(page, 'LSV', 4, 18, /^hand$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 4, 18, /^τῇ$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 4, 18, /^χειρὶ$/)).toHaveClass(/bible-word-link-active/)
+  const possessors = words(page, 'LSV', 4, 18, /^my$/)
+  await expect(possessors).toHaveCount(2)
+  for (const index of [0, 1]) await expect(possessors.nth(index)).not.toHaveClass(/bible-word-link-active/)
+})
