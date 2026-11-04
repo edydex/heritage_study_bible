@@ -351,7 +351,7 @@ pinned publisher USFM, so those original words remain studyable without an
 invented English match. In 15:44, the three actual body nouns keep their separate
 occurrences; LSV's fourth body noun remains explained as additional wording.
 
-The first eighteen chapters of Revelation have full LSV author-and-peer reviews.
+All twenty-two chapters of Revelation have accepted LSV reviews.
 English 1:10's "saying" retains its original 1:11 participle. The received-from-
 Father comparison at the end of English 2:27 keeps its actual original 2:28
 identities; the unexpressed Father article stays an explained original word.
@@ -395,6 +395,33 @@ source form and different TR head documented. The second “went away” and the
 changed finding predicate in 18:14 remain explained gaps instead of borrowing
 the first departure verb or inventing a second-person original.
 
+The visible alternative in 19:17 keeps the actual banquet adjective attached
+to the banquet, while the main English great-God modifier stays explained as
+a different printed attachment. The repeated English banquet/God mentions
+retain their single actual source identities. In 20:12, the second scroll
+noun also supplies its immediate nominal resumption “that”; the different
+throne/God reading remains unpaired.
+
+English 21:4's continued God subject retains the actual 21:3 subject noun,
+separate from the added final God title in English 21:3. At 21:6, the actual
+plural perfect completion verb keeps its form under “is done,” while the
+supplied singular “It” remains explicit. The spirits/holy difference in 22:6,
+personal/demonstrative wording in 22:18, and tree/Scroll difference in 22:19
+remain explained. Both real book nouns in 22:19 retain their own occurrences
+and are not borrowed for the unlike middle Scroll wording.
+
+All 27 New Testament books now have accepted LSV reviews. The full NT audit
+accounts for all 137,779 Greek source words and 182,613 LSV words, with zero
+unresolved words. Mapped words and explicitly explained unpaired words remain
+separate categories; human reader verification is still pending.
+
+Complete accounting does not establish the scope of a semantic review. An
+inventory of older LSV evidence found retained full-chapter peer receipt gaps
+in an initial ten-resource check; narrower correction reviews and preservation
+lists are not counted as full-chapter reviews. Fresh complete source checks
+are being added for those chapters. This evidence audit is continuing alongside
+the remaining BSB and KJV work.
+
 All four Philippians chapters have full BSB and KJV author-and-peer reviews.
 KJV's 1:16 and 1:17
 clauses retain their actual original 1:17 and 1:16 references, so the love clause
@@ -414,7 +441,7 @@ to-account construction recast as “may be credited to” in BSB. The actual ac
 participle remains unchanged. The full KJV chapter 3 resource preserves its
 previously accepted 3:21 object and serialized entry exactly.
 
-The first five Ephesians chapters have full BSB and KJV author-and-separate-
+All six Ephesians chapters have full BSB and KJV author-and-separate-
 assistant-peer reviews. BSB 1:4's single “us” retains both actual Greek pronoun
 occurrences. Its first “Him” in 1:11 keeps the original 1:10 anchor and matches
 KJV there. BSB 2:6's repeated God and first Christ retain their actual earlier
@@ -443,6 +470,15 @@ the shared middle/passive shape's ambiguity rather than asserting a textual
 variant or settling contextual interpretation. The earlier real manifesting
 finite keeps its separate English occurrence; the unpaired original participle
 remains studyable.
+
+In 6:8, the receiving/recompense head keeps its actual nonactive form under
+BSB's reward construction, with the same giver/receiver roles traced through
+the converse wording. In 6:14, the belt/buckled-around expression retains the
+actual girding participle, not an invented belt noun. The repeated Pray in
+6:19 retains the actual 6:18 praying participle; the later supplied Pray in
+6:20 remains explained. BSB's “it” and KJV's “therein” share the actual
+preposition/pronoun construction. Word Study opens the actual pronoun first
+for “it,” while retaining the preposition and exact Original-word choices.
 
 An English name can clarify a printed Greek pronoun; its link retains the actual
 pronoun and identifies the naming as the translation's wording. When source

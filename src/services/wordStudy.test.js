@@ -97,3 +97,15 @@ it('opens the actual negative for Ephesians no while retaining all and exact ori
   }
   expect(greekLemmaIds(concordance, { ...word, sourceAnchors: sourceAnchors.slice(0, 1) })).toEqual([source[0][2]])
 })
+
+it('opens the actual pronoun for Ephesians it while retaining the preposition and Original choices', () => {
+  const source = concordance.books.find(book => book.name === 'Ephesians').verses['6:20']
+  const sourceAnchors = [6, 7].map(index => ({ chapter: 6, verse: 20, startOffset: source[index][0], endOffset: source[index][1] }))
+  const word = { translationId: 'BSB', book: 'Ephesians', chapter: 6, verse: 20, word: 'it', sourceAnchors }
+  const ids = greekLemmaIds(concordance, word)
+  expect(ids.flatMap(id => concordance.lemmas[id].strongs)).toEqual(['846', '1722'])
+  for (const [index, anchor] of sourceAnchors.entries()) {
+    expect(greekLemmaIds(concordance, { ...word, ...anchor, translationId: 'ORIGINAL' })).toEqual([source[[6, 7][index]][2]])
+  }
+  expect(greekLemmaIds(concordance, { ...word, sourceAnchors: sourceAnchors.slice(0, 1) })).toEqual([source[6][2]])
+})

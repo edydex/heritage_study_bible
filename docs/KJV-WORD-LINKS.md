@@ -93,7 +93,7 @@ translations, separate from the preceding increasing-to-account predicate.
 The expanded KJV chapter 3 review preserves the previously accepted 3:21 object
 and its serialized entry exactly; only that resource's reviewed hash is renewed.
 
-Ephesians chapters 1–5 have complete BSB and KJV author-and-separate-assistant-
+All six Ephesians chapters have complete BSB and KJV author-and-separate-assistant-
 peer reviews. BSB 1:11's first “Him” matches KJV's actual 1:10 pronoun. The
 repeated subjects in BSB 2:6 retain their earlier real sources, while distinct
 local Christ occurrences stay separate. KJV 2:1's supplied quickening expression
@@ -115,6 +115,14 @@ N1904/TR word and middle/passive shape ambiguity, rather than claiming a
 textual variant or an interpretation proved by an ending. The first English
 manifesting expression keeps its real finite; the original participle stays
 available for study.
+
+In 6:14, BSB belt/buckled-around and KJV girt retain the actual girding verb
+and shared styling, with source participle/voice intact. BSB 6:19's resumed
+praying command retains its actual 6:18 reference. At 6:20, BSB “it” and KJV
+“therein” retain the same real preposition/pronoun heads. Word Study initially
+selects the pronoun for “it,” preserves both heads, and keeps an Original-word
+selection tied to that exact word. KJV 6:24's subscription remains explicitly
+unpaired where absent from the pinned Greek source.
 
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
