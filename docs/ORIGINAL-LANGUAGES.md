@@ -25,7 +25,7 @@ npx vitest run src/data/hebrewOriginal.test.js
 
 ## Greek New Testament word links and occurrences
 
-With BSB, LSV or KJV compared with Original languages—or with each other—the Greek New Testament offers
+With BSB, LSV, KJV or reviewed Russian Synodal passages compared with Original languages—or with each other—the Greek New Testament offers
 **Word links**. Each distinct checked correspondence has its own tint within a
 verse, plus a shared background texture: diagonal strokes, dots, horizontal or
 vertical lines, crosshatching, grids or rings. Nearby matches favor different
@@ -40,10 +40,10 @@ Moving a finger cancels a pending hold so scrolling is not mistaken for a word
 action. The release click from a completed hold cannot immediately dismiss its
 new study dialog. A reading note explains documented witness or grammar differences.
 
-For verse-boundary differences, **Show Original / BSB / LSV / KJV** identifies the
+For verse-boundary differences, **Show Original / BSB / LSV / KJV / SYNO-W** identifies the
 actual matching reference rather than forcing a same-number pairing. Greek words use the source's
 actual lemma metadata, including inflected forms throughout all 27 NT books.
-BSB/LSV phrases with an installed correspondence look up those same Greek
+Translated phrases with an installed correspondence look up those same Greek
 lemmas. Multiple source lemmas remain separate choices. Hebrew and Aramaic
 source words now use the pinned OSHB lexical identifiers across the entire OT,
 including inflected and attached-prefix forms. Other English words use explicitly
@@ -67,7 +67,7 @@ invent Russian/Ukrainian word alignments.
 ### Romans and Colossians grammar pilot
 
 **Word form here** describes the selected Greek occurrence, reached directly
-from Original or through a checked **LSV**, **BSB** or **KJV** word link. It shows
+from Original or through a checked **LSV**, **BSB**, **KJV** or **Russian Synodal** word link. It shows
 the actual form, dictionary form (lemma), part of speech and applicable tense /
 aspect, voice, mood, person, number, case and gender. A compact grid has three
 columns on wider screens and two on phones. Hover, focus or tap a term for its
@@ -103,10 +103,11 @@ are not guessed. Russian grammar labels explicitly identify the gloss as English
 Source credit, license and the filtering notice appear in the source details.
 See [the glossary source and rebuild notes](../scripts/original-languages/GREEK-BRIEF-GLOSSES.md).
 
-For **Russian Synodal**, unlinked words offer an explicit original-word chooser;
-the reader selects a Greek form before seeing its grammar. Synodal verse wording
-can accompany occurrence results, with no fabricated Russian word highlights.
-Full Russian and Ukrainian word alignment is outside this pilot. User/pastor
+For **Russian Synodal**, reviewed links open the actual Greek form directly and
+highlight matching Russian occurrence wording. Unlinked words retain an explicit
+original-word chooser. Russian NT matching is now in progress, beginning with
+Romans and Colossians; see [sources, coverage and rebuild notes](SYNO-W-WORD-LINKS.md).
+Ukrainian word alignment remains outside this pilot. User/pastor
 review precedes grammar expansion beyond these two books; the NT mapping goal's
 review boundary before OT work remains in place.
 
@@ -435,7 +436,7 @@ adding 89 reviewed target records and preserving the accepted BSB 1:23 entry
 exactly. The co-crucifixion clause displayed in 2:20 retains its actual N1904
 2:19 identities. The moved dative Christ remains separate from the local
 nominative Christ; the repeated law nouns retain their distinct case roles.
-The rest of Galatians remains outside these accepted reviews.
+Galatians 3–6 now also have full BSB and KJV author-and-peer reviews, completing the letter's word accounting. Hebrews 1–2 have the same full source review; later chapters remain in progress.
 
 Fresh complete independent checks of LSV John 1–4 retain all original forms
 and texts. Immediate Spirit and personal-all renderings have precise source
@@ -452,12 +453,16 @@ thirst form from the TR subjunctive and English wording, and keep the actual
 compound coming verb separate from “here.” Existing witness gaps remain
 explained.
 
-Complete accounting does not establish the scope of a semantic review. An
-inventory of older LSV evidence found retained full-chapter peer receipt gaps
-in an initial ten-resource check; narrower correction reviews and preservation
-lists are not counted as full-chapter reviews. Fresh complete source checks
-are being added for those chapters. This evidence audit is continuing alongside
-the remaining BSB and KJV work.
+Complete accounting does not establish the scope of a semantic review. The
+retained-evidence inventory now covers all 260 LSV chapters: 51 have intact
+original-author and distinct full-source-peer chains; four further chains have
+secondary-artifact retention limits; eight fresh full-source peer reviews do not
+establish the original author's historical scope. Another 144 retain substantive
+full semantic-read receipts with incomplete source/analysis/primary/author scope;
+six have author-only evidence, ten bounded reviews, and 37 mechanical or otherwise
+unproven full-peer scope. These classify retained evidence, not mapping errors or
+proof that a historical review never occurred. Fresh source reviews continue
+alongside BSB, KJV and Russian Synodal work.
 
 All four Philippians chapters have full BSB and KJV author-and-peer reviews.
 KJV's 1:16 and 1:17
@@ -534,7 +539,7 @@ linked to **his**, while the longer witness's **that it may be** is explicitly
 unpaired. Publisher data is source evidence, not a guarantee against semantic
 annotation errors. See [KJV sources and reproduction](KJV-WORD-LINKS.md).
 
-`audit-nt-word-links.py` counts actual original identities and every English
+`audit-nt-word-links.py` counts actual original identities and every translated
 word across the entire NT, including references with no same-numbered Greek
 verse. Each word is mapped, explicitly explained as unpaired, or unresolved.
 Moved clauses count at their actual source reference. Linked verses, mapped word

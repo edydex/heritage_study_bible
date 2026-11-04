@@ -21,7 +21,7 @@ export function checkedAnchorGroups(data, ref, sourceVerses, targetText) {
     ? rawSource != null || entry.sourceText !== ''
     : entry.sourceText !== rawSource)) return null
   const result = []
-  const absentSourceAnchors = new Map(), absentGroupIds = new Set()
+  const absentSourceAnchors = new Map(), absentGroupIds = new Set(), headTargets = []
   for (const group of entry.groups) {
     // A translated-only verse number may own words from another Greek verse.
     // It cannot fall back to ranges in its nonexistent local source.
@@ -46,8 +46,34 @@ export function checkedAnchorGroups(data, ref, sourceVerses, targetText) {
         absentSourceAnchors.set(key, owned)
       }
     }
+    const studyHeads = group.studyHeads || []
+    if (group.studyHeads !== undefined && (!Array.isArray(studyHeads) || !studyHeads.length)) return null
+    for (const head of studyHeads) {
+      if (!head || !Array.isArray(head.sourceAnchors) || !head.sourceAnchors.length
+        || !Array.isArray(head.targetRanges) || !head.targetRanges.length || typeof head.note !== 'string' || !head.note.trim()) return null
+      for (const range of head.targetRanges) {
+        if (!validRange(range, targetText.length) || !targets.some(outer => range[0] >= outer[0] && range[1] <= outer[1])
+          || headTargets.some(previous => overlaps(previous, range))) return null
+        headTargets.push(range)
+      }
+      const headSources = []
+      for (const anchor of head.sourceAnchors) {
+        if (!validReference(anchor)) return null
+        const text = sourceVerses.get(referenceKey(anchor))
+        if (text == null || !validRange([anchor.startOffset, anchor.endOffset], text.length)
+          || anchor.text !== text.slice(anchor.startOffset, anchor.endOffset)
+          || /\s/.test(anchor.text)
+          || (anchor.startOffset > 0 && !/\s/.test(text[anchor.startOffset - 1]))
+          || (anchor.endOffset < text.length && !/\s/.test(text[anchor.endOffset]))
+          || headSources.some(previous => referenceKey(previous) === referenceKey(anchor)
+            && overlaps([previous.startOffset, previous.endOffset], [anchor.startOffset, anchor.endOffset]))
+          || !anchors.some(owner => referenceKey(owner) === referenceKey(anchor)
+            && anchor.startOffset >= owner.startOffset && anchor.endOffset <= owner.endOffset)) return null
+        headSources.push(anchor)
+      }
+    }
     if (entry.sourceAbsent) absentGroupIds.add(group.id)
-    result.push({ anchors, targets, id: group.id, note: group.note })
+    result.push({ anchors, targets, id: group.id, note: group.note, ...(studyHeads.length ? { studyHeads } : {}) })
   }
   return result
 }
@@ -149,7 +175,7 @@ export function chapterWordAnchors({ primaryData, secondaryData, primaryBook, se
       for (const group of groups) {
         const keys = [...new Set(group.anchors.flatMap(anchor => (sourceWords.get(referenceKey(anchor)) || [])
           .filter(word => overlaps([anchor.startOffset, anchor.endOffset], [word.startOffset, word.endOffset])).map(word => word.key)))]
-        if (keys.length) nodes.push({ side, ref, targets: group.targets, keys, notes: [data[side].verses[ref].review?.note, group.note].filter(Boolean) })
+        if (keys.length) nodes.push({ side, ref, targets: group.targets, keys, studyHeads: group.studyHeads, notes: [data[side].verses[ref].review?.note, group.note].filter(Boolean) })
       }
       for (const note of entry.review?.targetNotes || []) addNote(side, ref, note)
       const opposite = side === 'primary' ? 'secondary' : 'primary'
@@ -165,7 +191,7 @@ export function chapterWordAnchors({ primaryData, secondaryData, primaryBook, se
   nodes.forEach((node, i) => {
     for (const key of node.keys) { if (sourceOwner.has(key)) parent[find(i)] = find(sourceOwner.get(key)); else sourceOwner.set(key, i) }
     const text = targetVerses[node.side].get(node.ref) || ''
-    for (const match of text.matchAll(/[\p{L}\p{M}]+(?:[’'][\p{L}\p{M}]+)*/gu)) {
+    for (const match of text.matchAll(/[\p{L}\p{M}\p{N}]+(?:[’'][\p{L}\p{M}\p{N}]+)*/gu)) {
       if (!node.targets.some(range => overlaps(range, [match.index, match.index + match[0].length]))) continue
       const key = `${node.side}:${node.ref}:${match.index}`
       if (targetOwner.has(key)) parent[find(i)] = find(targetOwner.get(key)); else targetOwner.set(key, i)
@@ -205,7 +231,10 @@ export function chapterWordAnchors({ primaryData, secondaryData, primaryBook, se
       const studySourceAnchors = studyKeys.map(key => wordAnchors.get(key))
         .sort((a, b) => a.chapter - b.chapter || a.verse - b.verse || a.startOffset - b.startOffset)
         .map(({ key, index, ...anchor }) => anchor)
-      const link = { ...common, studySourceAnchors, startOffset: range[0], endOffset: range[1] }
+      const studyHeads = component.filter(node => node.side === side && node.ref === ref
+        && node.targets.some(target => overlaps(target, range))).flatMap(node => node.studyHeads || [])
+        .filter(head => head.targetRanges.some(target => overlaps(target, range)))
+      const link = { ...common, studySourceAnchors, ...(studyHeads.length ? { studyHeads } : {}), startOffset: range[0], endOffset: range[1] }
       const lookup = result[side === 'primary' ? 'lookupPrimary' : 'lookupSecondary']
       if (!lookup.has(ref)) lookup.set(ref, [])
       lookup.get(ref).push(link)

@@ -11,7 +11,7 @@
     "sourceTokenization": "Explicit zero-based whitespace tokens including punctuation.",
     "coverageAudit": {
       "verses": 30,
-      "groups": 398,
+      "groups": 401,
       "sourceTokens": 431,
       "mappedSourceTokens": 415,
       "targetWords": 595,
@@ -306,15 +306,31 @@
         },
         {
           "sourceTokens": [
-            5,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual to is the T-ASN article in both pinned analyses and owns the first English the in this same nominal phrase."
+        },
+        {
+          "sourceTokens": [
             6
           ],
           "targetPhrases": [
             {
-              "text": "the same thing",
+              "text": "same",
+              "occurrence": 0
+            },
+            {
+              "text": "thing",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual auto retains P-ASN in both pinned analyses and is the nominal same-thing head, rendered same ... thing. No separately printed Greek thing noun is invented."
         },
         {
           "sourceTokens": [
@@ -702,7 +718,8 @@
               "text": "mind be",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual phroneite is V-PAM-2P in both pinned analyses, a PRESENT ACTIVE SECOND-PLURAL imperative. The complete printed TR has phroneistho, a third-singular nonactive imperative. LSV writes let this mind be; the correspondence retains the actual phroneo verbal head, with no separately printed N1904 mind noun or eimi verb."
         },
         {
           "sourceTokens": [
@@ -2949,7 +2966,21 @@
               "occurrence": 0
             }
           ],
-          "note": "LSV gives the short substantival τὸ αὐτό a causal rendering, because of this (compare KJV the same cause); the whole constituent is linked, without assigning because individually to an article or pronoun. The unexpressed δέ connective is recorded separately."
+          "note": "LSV gives the short substantival τὸ αὐτό a causal rendering, because of this (compare KJV the same cause); the whole constituent is linked, without assigning because individually to an article or pronoun. The unexpressed δέ connective is recorded separately.",
+          "studyHeads": [
+            {
+              "sourceTokens": [
+                2
+              ],
+              "targetPhrases": [
+                {
+                  "text": "because of this",
+                  "occurrence": 0
+                }
+              ],
+              "note": "Actual substantival auto is the nominal head of the whole causal English rendering. The actual article remains available; this does not assert a separate Greek because conjunction or of preposition."
+            }
+          ]
         },
         {
           "sourceTokens": [
@@ -3428,15 +3459,27 @@
         },
         {
           "sourceTokens": [
-            8,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Christou retains N-GSM in both pinned analyses and owns its English genitive name phrase of Christ, separately from Jesus. No independent Greek of preposition is printed."
+        },
+        {
+          "sourceTokens": [
             9
           ],
           "targetPhrases": [
             {
-              "text": "of Christ Jesus",
+              "text": "Jesus",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual Iesou retains N-GSM in both pinned analyses and separately owns English Jesus in this same genitive name phrase."
         }
       ],
       "unmappedSource": [],
@@ -3678,15 +3721,27 @@
         {
           "sourceTokens": [
             5,
-            6,
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "when",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hos plus an form the temporal-contingency frame rendered when; both distinct printed source identities are retained."
+        },
+        {
+          "sourceTokens": [
             7
           ],
           "targetPhrases": [
             {
-              "text": "when I may see through",
+              "text": "I may see through",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual aphido retains V-2AAS-1S in both pinned analyses: aorist ACTIVE SUBJUNCTIVE FIRST-SINGULAR of aphorao. Its encoded first-person subject and subjunctive predicate are rendered I may see through; no separate Greek I pronoun or through preposition is invented."
         },
         {
           "sourceTokens": [

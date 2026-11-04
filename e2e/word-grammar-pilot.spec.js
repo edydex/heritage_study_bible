@@ -85,12 +85,11 @@ test('carrying opens its content verb while explicit be opens the supporting fut
   await expect(beDialog.getByRole('button', { name: 'συλαγωγέω', exact: true })).toHaveAttribute('aria-pressed', 'false')
 })
 
-test('Synodal chooses an actual Greek form and shows Russian context without fabricated highlights', async ({ page }) => {
+test('reviewed Synodal opens its actual Greek form directly and highlights the checked Russian wording', async ({ page }) => {
   await compareOriginal(page, 'SYNO-W', 'colossians/1')
   const studyDialog = await study(page, 'SYNO-W', 1, 13, /^избавившего$/)
-  await studyDialog.getByRole('button', { name: 'Изучить слова оригинала в этом стихе', exact: true }).tap()
-  await expect(studyDialog).toContainText('Точное соответствие русскому слову')
-  await studyDialog.getByRole('button', { name: 'ἐρύσατο', exact: true }).tap()
+  await expect(studyDialog.getByRole('button', { name: 'Изучить слова оригинала в этом стихе', exact: true })).toHaveCount(0)
+  await expect(studyDialog.getByRole('heading', { level: 3, name: /G4506/ })).toBeVisible()
   const grammar = studyDialog.locator('[data-word-grammar]')
   await expect(grammar).toBeVisible()
   await expect(grammar).toHaveAttribute('lang', 'ru')
@@ -100,7 +99,7 @@ test('Synodal chooses an actual Greek form and shows Russian context without fab
   const context = studyDialog.locator('[data-occurrence-translation="SYNO-W"]')
   await expect(context.first()).toBeVisible()
   await expect(context.filter({ hasText: 'избавившего нас от власти тьмы' })).toHaveCount(1)
-  await expect(context.locator('mark')).toHaveCount(0)
+  await expect(context.filter({ hasText: 'избавившего нас от власти тьмы' }).locator('mark')).toHaveText('избавившего')
   await studyDialog.evaluate(node => { node.scrollTop = 0 })
   await page.screenshot({ path: test.info().outputPath('synodal-colossians-grammar.png') })
 })

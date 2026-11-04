@@ -2,7 +2,7 @@ import { loadTranslation } from '../data/translations'
 import { hebrewOriginalBooks, visibleVerseText, verseWordLinks, loadGreekWordLinks, greekWordLinkTranslations } from '../data/originalLanguages'
 import { occurrenceWordAnchors } from './parallelWordAnchors'
 
-export const wordTokens = text => [...visibleVerseText(text).matchAll(/[\p{L}\p{M}]+(?:[’'][\p{L}\p{M}]+)*/gu)]
+export const wordTokens = text => [...visibleVerseText(text).matchAll(/[\p{L}\p{M}\p{N}]+(?:[’'][\p{L}\p{M}\p{N}]+)*/gu)]
 export const normalizeWord = text => text.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase().replace(/ς/g, 'σ')
 export function interactiveWordRanges(text, pairs = [], context = {}) {
   const { unpairedNotes = [], lookupLinks = [], ...wordContext } = context
@@ -11,7 +11,11 @@ export function interactiveWordRanges(text, pairs = [], context = {}) {
     const pair = pairs.find(item => item.startOffset < endOffset && item.endOffset > startOffset)
     const lookup = pair || lookupLinks.find(item => item.startOffset < endOffset && item.endOffset > startOffset)
     const note = !pair && unpairedNotes.find(item => item.startOffset < endOffset && item.endOffset > startOffset)
-    return { ...lookup, ...wordContext, id: pair?.id || `${context.translationId}:${context.book}:${context.chapter}:${context.verse}:${startOffset}`,
+    const studyHeadAnchors = (Array.isArray(lookup?.studyHeads) ? lookup.studyHeads : [])
+      .filter(head => Array.isArray(head?.targetRanges) && Array.isArray(head.sourceAnchors)
+        && head.targetRanges.some(range => Array.isArray(range) && range[0] < endOffset && range[1] > startOffset))
+      .flatMap(head => head.sourceAnchors)
+    return { ...lookup, ...wordContext, ...(studyHeadAnchors.length ? { studyHeadAnchors } : {}), id: pair?.id || `${context.translationId}:${context.book}:${context.chapter}:${context.verse}:${startOffset}`,
       pattern: pair?.pattern, startOffset, endOffset, word: match[0], paired: Boolean(pair), label: pair?.label || match[0],
       unpairedReason: note?.reason || (!pair && lookup && context.translationId !== 'ORIGINAL' ? `${lookup.label}. No checked counterpart is available in the other column.` : undefined) }
   })
@@ -41,8 +45,17 @@ export function greekLemmaIds(data, word) {
   const studyAnchors = word.studySourceAnchors?.length ? word.studySourceAnchors : word.sourceAnchors
   if (word.translationId !== 'ORIGINAL' && studyAnchors?.length) {
     const verses = data.books.find(book => book.name === word.book)?.verses || {}
-    return prioritizeGreekLemmas([...new Set(studyAnchors.flatMap(anchor => (verses[`${anchor.chapter}:${anchor.verse}`] || [])
+    const ids = prioritizeGreekLemmas([...new Set(studyAnchors.flatMap(anchor => (verses[`${anchor.chapter}:${anchor.verse}`] || [])
       .filter(([start, end]) => start < anchor.endOffset && end > anchor.startOffset).map(row => row[2])))], data, word)
+    // A reviewed head chooses the first tab within this word's own phrase;
+    // every other linked lemma remains available in its existing order.
+    const heads = new Set((Array.isArray(word.studyHeadAnchors) ? word.studyHeadAnchors : [])
+      .filter(head => head && Number.isInteger(head.startOffset) && Number.isInteger(head.endOffset) && head.endOffset > head.startOffset
+        && studyAnchors.some(owner => head.chapter === owner.chapter && head.verse === owner.verse
+        && head.startOffset >= owner.startOffset && head.endOffset <= owner.endOffset))
+      .flatMap(anchor => (verses[`${anchor.chapter}:${anchor.verse}`] || [])
+        .filter(([start, end]) => start < anchor.endOffset && end > anchor.startOffset).map(row => row[2])))
+    return heads.size ? [...ids.filter(id => heads.has(id)), ...ids.filter(id => !heads.has(id))] : ids
   }
   const ranges = word.translationId === 'ORIGINAL' ? [[word.startOffset, word.endOffset]] : word.sourceRanges || (word.sourceRange ? [word.sourceRange] : [])
   if (!ranges.length) return []
@@ -153,7 +166,7 @@ export function occurrenceTranslation(row, alignment, targetText) {
 // Enrich only the currently displayed page. Successful book mappings are cached;
 // a failed request is retryable and never removes the original occurrence list.
 export async function loadOccurrenceTranslations(rows, sourceId, translationId = 'BSB') {
-  const targetId = [...greekWordLinkTranslations, 'SYNO-W'].includes(translationId) ? translationId : 'BSB'
+  const targetId = greekWordLinkTranslations.includes(translationId) ? translationId : 'BSB'
   const hasMappings = sourceId === 'N1904' && greekWordLinkTranslations.includes(targetId)
   const [corpus, original] = await Promise.all([loadTranslation(targetId), hasMappings ? loadTranslation('ORIGINAL') : null])
   const books = [...new Set(rows.map(row => row.book))]

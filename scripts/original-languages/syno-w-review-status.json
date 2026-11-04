@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "targetId": "SYNO-W",
+  "status": "Partial NT reviews; only exact accepted resources create links. Reader verification pending.",
+  "resources": [
+    {
+      "file": "romans-1.json",
+      "sha256": "cfbecf38f118858636665be2c1fd4251b6aabefe6fcdc84c12d9e0d03e0c320c",
+      "status": "accepted",
+      "authorReceipt": {
+        "sha256": "7f4222b319908fda93bfb6b9f9f375a1b66d4197bd1f95e8f1717cd926b1d3f9"
+      },
+      "independentPeer": {
+        "sha256": "d6b89e2cf782b240caf8f8c575f9997637a090e374c0e772f7a8af2310e67a53"
+      }
+    },
+    {
+      "file": "colossians-1.json",
+      "sha256": "36992a2005434178e3af01baccda02a48201b6112879be41d7bbc7aebaeb1038",
+      "status": "accepted",
+      "authorReceipt": {
+        "sha256": "f024404fe2e9c6267d28c5e7d799b9a2bf97b210c6c0947888d9f72b8b39cd65"
+      },
+      "independentPeer": {
+        "sha256": "1a40eb2cea7ff1df8ac58a3294796b37dec0415fd5e5ac9948237e4296693f12"
+      }
+    }
+  ],
+  "crossReferenceShared": {
+    "Romans": {
+      "1:3:0": [
+        "1:3",
+        "1:4"
+      ],
+      "1:28:10": [
+        "1:28",
+        "1:29"
+      ]
+    }
+  },
+  "reviewStandard": "Full actual original-source and Russian-word author review plus distinct full independent semantic review. Word accounting is separate from language accuracy."
+}

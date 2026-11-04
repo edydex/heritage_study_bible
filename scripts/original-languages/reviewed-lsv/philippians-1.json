@@ -11,7 +11,7 @@
     "sourceTokenization": "Explicit zero-based whitespace tokens including punctuation.",
     "coverageAudit": {
       "verses": 30,
-      "groups": 453,
+      "groups": 458,
       "sourceTokens": 502,
       "mappedSourceTokens": 482,
       "targetWords": 644,
@@ -71,15 +71,27 @@
         },
         {
           "sourceTokens": [
-            4,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Christ name retains N-GSM in both pinned analyses and its own occurrence identity, separately from the other name in this same genitive phrase."
+        },
+        {
+          "sourceTokens": [
             5
           ],
           "targetPhrases": [
             {
-              "text": "of Jesus Christ",
+              "text": "of Jesus",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual Jesus name retains N-GSM in both pinned analyses and its own occurrence identity, separately from the other name in this same genitive phrase. Its genitive case phrase is rendered of Jesus; no separately printed Greek of preposition is claimed."
         },
         {
           "sourceTokens": [
@@ -807,19 +819,36 @@
               "text": "having been confident of",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual pepoithōs is a SECOND PERFECT ACTIVE PARTICIPLE, V-2RAP-NSM in both pinned analyses, with the lexical confidence sense. LSV having been confident of does not make the source participle passive or print a separate source copula."
         },
         {
           "sourceTokens": [
-            1,
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "very",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual auto retains P-ASN in both pinned analyses. Its intensive use is rendered very here, independently attested at this exact passage by the primary dictionary; no source adjective is substituted."
+        },
+        {
+          "sourceTokens": [
             2
           ],
           "targetPhrases": [
             {
-              "text": "this very thing",
+              "text": "this",
+              "occurrence": 0
+            },
+            {
+              "text": "thing",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual touto retains D-ASN in both pinned analyses and owns the nominal English this ... thing realization. No separately printed Greek pragma or other thing noun is claimed."
         },
         {
           "sourceTokens": [
@@ -937,15 +966,27 @@
         },
         {
           "sourceTokens": [
-            13,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Christ name retains N-GSM in both pinned analyses and its own occurrence identity, separately from the other name in this same genitive phrase."
+        },
+        {
+          "sourceTokens": [
             14
           ],
           "targetPhrases": [
             {
-              "text": "of Jesus Christ",
+              "text": "of Jesus",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual Jesus name retains N-GSM in both pinned analyses and its own occurrence identity, separately from the other name in this same genitive phrase. Its genitive case phrase is rendered of Jesus; no separately printed Greek of preposition is claimed."
         }
       ],
       "unmappedSource": [],
@@ -1481,15 +1522,27 @@
         },
         {
           "sourceTokens": [
-            11,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Christ name retains N-GSM in both pinned analyses and its own occurrence identity, separately from the other name in this same genitive phrase."
+        },
+        {
+          "sourceTokens": [
             12
           ],
           "targetPhrases": [
             {
-              "text": "of Jesus Christ",
+              "text": "of Jesus",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual Jesus name retains N-GSM in both pinned analyses and its own occurrence identity, separately from the other name in this same genitive phrase. Its genitive case phrase is rendered of Jesus; no separately printed Greek of preposition is claimed."
         }
       ],
       "unmappedSource": [
@@ -1504,7 +1557,7 @@
         {
           "text": "is",
           "occurrence": 0,
-          "reason": "English copula supplied in a Greek verbless clause; no corresponding finite Greek verb."
+          "reason": "Pinned N1904 has no written copula in this nominal witness clause. The complete printed TR explicitly includes estin, while LSV writes is; no N1904 eimi occurrence is invented."
         },
         {
           "text": "[the]",
@@ -2742,7 +2795,8 @@
               "text": "one",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "This entry uses actual N1904 source1:17. Actual hoi is T-NPM in both analyses, a plural personal nominalizer; LSV renders the contrasted group with singular one. No Greek numeral heis is printed here."
         },
         {
           "sourceTokens": [
@@ -2797,7 +2851,8 @@
               "text": "proclaims",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual source1:17 katangellousin is V-PAI-3P in both analyses; LSV proclaims uses singular English agreement with one. The actual Greek third-plural form is retained, not changed to a singular verb."
         },
         {
           "sourceTokens": [
@@ -3417,15 +3472,27 @@
         },
         {
           "sourceTokens": [
-            16,
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Jesus name retains N-GSM in both pinned analyses and its own occurrence identity, separately from the other name in this same genitive phrase."
+        },
+        {
+          "sourceTokens": [
             17
           ],
           "targetPhrases": [
             {
-              "text": "of Christ Jesus",
+              "text": "of Christ",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual Christ name retains N-GSM in both pinned analyses and its own occurrence identity, separately from the other name in this same genitive phrase. Its genitive case phrase is rendered of Christ; no separately printed Greek of preposition is claimed."
         }
       ],
       "unmappedSource": [

@@ -2,12 +2,12 @@ import { splitParagraphText } from '../utils/verseLayout'
 
 export const originalLanguages = {
   id: 'ORIGINAL', abbr: 'Original', name: 'Original languages', language: 'Original languages',
-  description: 'Hebrew/Aramaic · WLC/OSHB; Greek · Nestle 1904. Source lemma concordances, BSB word links and partial LSV phrase links.',
+  description: 'Hebrew/Aramaic · WLC/OSHB; Greek · Nestle 1904. Source lemma concordances and reviewed translation word links.',
   license: 'Public domain / CC0; OSHB metadata CC BY 4.0', parallelOnly: true,
 }
 
 const translationLinks = new Map()
-export const greekWordLinkTranslations = ['BSB', 'LSV', 'KJV']
+export const greekWordLinkTranslations = ['BSB', 'LSV', 'KJV', 'SYNO-W']
 export function loadGreekWordLinks(book, targetId = 'BSB') {
   if (!greekWordLinkTranslations.includes(targetId)) return Promise.reject(new Error('Word mappings are not installed for this translation.'))
   const key = `${targetId}:${book}`

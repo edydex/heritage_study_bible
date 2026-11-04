@@ -72,3 +72,30 @@ for (const fixture of [
     await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText(fixture.strong)
   })
 }
+
+test('reviewed joint name metadata opens Christ while retaining Jesus as a separate dictionary choice', async ({ page }) => {
+  await compare(page, '1-peter', 1, 'BSB', 'ORIGINAL')
+  await words(page, 'BSB', 1, 2, /^Christ$/).click()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { level: 3 }).first()).toContainText('G5547')
+  await expect(dialog.getByRole('button', { name: 'Ἰησοῦς', exact: true })).toHaveAttribute('aria-pressed', 'false')
+})
+
+test('the whole LSV causal phrase opens its real nominal head while retaining the article choice', async ({ page }) => {
+  await compare(page, 'philippians', 2, 'LSV', 'ORIGINAL')
+  await words(page, 'LSV', 2, 18, /^this$/).click()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { level: 3 }).first()).toContainText('G846')
+  await expect(dialog.getByRole('button', { name: 'ὁ', exact: true })).toHaveAttribute('aria-pressed', 'false')
+})
+
+test('reviewed Galatians 4 separates the actual eye noun in both translated columns', async ({ page }) => {
+  await compare(page, 'galatians', 4, 'BSB', 'KJV')
+  const bsb = words(page, 'BSB', 4, 15, /^eyes$/), kjv = words(page, 'KJV', 4, 15, /^eyes$/)
+  await bsb.click()
+  await expect(kjv).toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G3788')
+})

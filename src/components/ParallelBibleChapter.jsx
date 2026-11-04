@@ -5,7 +5,7 @@ import { getTranslationById, loadTranslation } from '../data/translations'
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
 import VerseText from './VerseText'
 import VerseNumber from './VerseNumber'
-import { loadGreekWordLinks, greekWordLinkTranslations, originalSourceForBook, originalVerseLanguage } from '../data/originalLanguages'
+import { loadGreekWordLinks, greekWordLinkTranslations, originalSourceForBook, originalVerseLanguage, visibleVerseText } from '../data/originalLanguages'
 import { chapterWordAnchors } from '../services/parallelWordAnchors'
 import { getVerseLayout } from '../utils/verseLayout'
 import { getParallelVerseHighlightClasses } from '../utils/highlightColors'
@@ -83,6 +83,13 @@ function ParallelBibleChapter({
     sourceBook: alignment.sourceBook, primaryBook: alignment.primaryBook, secondaryBook: alignment.secondaryBook,
     chapter: primaryChapter.number,
   }) : null, [alignment, canLink, selectionMode, primaryChapter.number])
+
+  const russianChapter = primaryTranslationId === 'SYNO-W' ? primaryChapter : secondaryTranslationId === 'SYNO-W' ? secondaryChapter : null
+  const russianLinks = primaryTranslationId === 'SYNO-W' ? alignment?.primary : secondaryTranslationId === 'SYNO-W' ? alignment?.secondary : null
+  const reviewedRussianVerses = (russianChapter?.verses || []).filter(verse => {
+    const entry = russianLinks?.verses?.[`${russianChapter.number}:${verse.number}`]
+    return entry?.review?.completeAccounting && entry.targetText === visibleVerseText(verse.text)
+  }).length
 
 
   const primaryVerseMap = useMemo(() => {
@@ -184,12 +191,13 @@ function ParallelBibleChapter({
         {canLink ? <>
           <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={showWordLinks} onChange={event => setShowWordLinks(event.target.checked)} /> Word links</label>
           {!selectionMode && <p className="mt-2 text-xs">Tap a word to highlight its match in both columns. Hold it, or choose Study word, for occurrences.</p>}
-          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Each checked match has a distinct color and pattern combination, shared across both columns. Nearby matches favor contrasting colors and textures; words translated together share one combination. B&W mode uses underline patterns. Uncertain matches and differing source readings remain uncolored. Hold a word, or press Shift+Enter, for word study.</p><p className="mt-1">BSB links use Berean’s published translation tables and checked repairs. LSV and KJV use checked phrase correspondences; a phrase can include several words. Uncolored words can still be studied without implying an exact translation match.</p></details>}
+          {russianChapter && alignment && <p className="mt-1 text-xs" data-russian-link-coverage="true">Russian Synodal: {reviewedRussianVerses} of {russianChapter.verses.length} verses in this chapter have reviewed word links. Work is continuing; unreviewed words remain unlinked.</p>}
+          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Each checked match has a distinct color and pattern combination, shared across both columns. Nearby matches favor contrasting colors and textures; words translated together share one combination. B&W mode uses underline patterns. Uncertain matches and differing source readings remain uncolored. Hold a word, or press Shift+Enter, for word study.</p><p className="mt-1">BSB links use Berean’s published translation tables and checked repairs. LSV, KJV and Russian Synodal use reviewed phrase correspondences; a phrase can include several words. Uncolored words can still be studied without implying an exact translation match.</p></details>}
           {selectionMode && showWordLinks && <p className="mt-1 text-xs">Word links pause while selecting verses.</p>}
           {linkError && <p role="status" className="mt-2">{linkError} <button className="underline" onClick={() => setLinkRetry(value => value + 1)}>Retry links</button></p>}
           {showWordLinks && !alignment && !linkError && <p role="status" className="mt-1 text-xs">Loading word links…</p>}
 
-        </> : <p className="mt-1 text-xs">{hebrew ? 'Tap a Hebrew or Aramaic word, then choose Study word (or hold it), to find its source lemma throughout the Old Testament, including inflected forms. Strong’s identifiers follow OSHB. English phrase links are not installed.' : 'Checked word links are available for BSB, LSV and KJV in the Greek New Testament. Tap a word, then choose Study word (or hold it), for occurrences.'}</p>}
+        </> : <p className="mt-1 text-xs">{hebrew ? 'Tap a Hebrew or Aramaic word, then choose Study word (or hold it), to find its source lemma throughout the Old Testament, including inflected forms. Strong’s identifiers follow OSHB. English phrase links are not installed.' : 'Word links are available for BSB, LSV, KJV and reviewed Russian Synodal passages in the Greek New Testament. Tap a word, then choose Study word (or hold it), for occurrences.'}</p>}
       </div>}
       {heldMessage && <div role="region" aria-label="Selected word match" className="word-match-bar sticky top-16 z-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-3 mb-3 shadow-sm flex flex-wrap items-center justify-between gap-2"><span role="status">{heldMessage}</span>{activeWord?.notes?.length > 0 && <details className="w-full text-sm"><summary>Reading note</summary>{activeWord.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}<div className="flex flex-wrap items-center gap-2">{activeWord?.counterparts?.filter(ref => ref.chapter !== activeWord.chapter || ref.verse !== activeWord.verse).map(ref => <button key={`${ref.translationId}:${ref.chapter}:${ref.verse}`} className="rounded border px-3 py-2 text-sm" onClick={() => showCounterpart(ref)}>Show {ref.translationId === 'ORIGINAL' ? 'Original' : ref.translationId} {ref.chapter}:{ref.verse}</button>)}<button className="rounded border px-3 py-2 text-sm font-semibold" onClick={() => setStudy(activeWord)}>Study word</button><button className="rounded px-3 py-2" aria-label="Clear word match" onClick={() => { setActiveWord(null); setHeldMessage('') }}>✕</button></div></div>}
       {study && <WordStudyDialog word={study} onClose={() => setStudy(null)} onNavigate={onOccurrenceNavigate} />}

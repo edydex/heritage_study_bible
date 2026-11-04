@@ -37,7 +37,10 @@ def transfer_groups(groups, source_english, target_english):
             ranges.append([target_words[position][1], target_words[position + len(phrase) - 1][2]])
         else:
             ranges.sort()
-            result.append({**group, 'target': ranges[0], 'targetRanges': ranges, 'method': 'exact-shared-publisher-phrase'})
+            # Study heads belong to the reviewed wording and offsets of one
+            # translation. A transferred phrase needs its own head review.
+            transferred={key:value for key,value in group.items() if key!='studyHeads'}
+            result.append({**transferred, 'target': ranges[0], 'targetRanges': ranges, 'method': 'exact-shared-publisher-phrase'})
     # Refuse overlaps between complete groups rather than choosing a partial
     # segment or silently assigning the same translated word twice.
     return [group for group in result if not any(

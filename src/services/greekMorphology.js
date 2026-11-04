@@ -5,7 +5,7 @@ const REVISION = '713f28a3b7d4d66132f5aa809fa223fe79762e5d'
 const CODE_GUIDE_URL = `https://github.com/biblicalhumanities/Nestle1904/blob/${REVISION}/morph/parsing.txt`
 const AORIST_HELP = { title: 'Why aorist alone does not mean once for all', url: 'https://www.billmounce.com/newtestamentgreek1/exegetical-insight-chapter-23' }
 const PILOT_BOOKS = new Set(['Romans', 'Colossians'])
-const CHECKED_TRANSLATIONS = new Set(['LSV', 'BSB', 'KJV'])
+const CHECKED_TRANSLATIONS = new Set(['LSV', 'BSB', 'KJV', 'SYNO-W'])
 const bilingual = (en, ru) => ({ en, ru })
 const item = (en, ru, explanationEn, explanationRu) => ({ label: bilingual(en, ru), explanation: bilingual(explanationEn, explanationRu) })
 const POS = {

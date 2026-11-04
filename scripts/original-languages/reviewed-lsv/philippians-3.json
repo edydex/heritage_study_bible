@@ -11,13 +11,13 @@
     "sourceTokenization": "Explicit zero-based whitespace tokens including punctuation.",
     "coverageAudit": {
       "verses": 21,
-      "groups": 309,
+      "groups": 313,
       "sourceTokens": 340,
       "mappedSourceTokens": 330,
       "targetWords": 479,
-      "mappedTargetWords": 447,
+      "mappedTargetWords": 445,
       "unmappedSourceTokens": 10,
-      "unmappedTargetWords": 32
+      "unmappedTargetWords": 34
     }
   },
   "verses": {
@@ -94,15 +94,31 @@
         },
         {
           "sourceTokens": [
-            7,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ],
+          "note": "Actual ta retains T-APN in both pinned analyses and owns the English article in the same nominal phrase."
+        },
+        {
+          "sourceTokens": [
             8
           ],
           "targetPhrases": [
             {
-              "text": "the same things",
+              "text": "same",
+              "occurrence": 0
+            },
+            {
+              "text": "things",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual auta retains P-APN in both pinned analyses and supplies the nominal same-things wording. No separately printed Greek things noun is invented."
         },
         {
           "sourceTokens": [
@@ -287,15 +303,27 @@
         },
         {
           "sourceTokens": [
-            5,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "evil",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kakous retains A-APM in both pinned analyses and owns evil, the modifier within LSV evil-workers."
+        },
+        {
+          "sourceTokens": [
             6
           ],
           "targetPhrases": [
             {
-              "text": "evil-workers",
+              "text": "workers",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual ergatas retains N-APM in both pinned analyses and separately owns workers. The English hyphen does not merge these two Greek lexical heads."
         },
         {
           "sourceTokens": [
@@ -657,15 +685,31 @@
         },
         {
           "sourceTokens": [
-            8,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "any",
+              "occurrence": 0
+            },
+            {
+              "text": "one",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual tis retains X-NSM in both pinned analyses and is the personal indefinite realized as any ... one. No Greek numeral or person noun is invented."
+        },
+        {
+          "sourceTokens": [
             10
           ],
           "targetPhrases": [
             {
-              "text": "any other one",
+              "text": "other",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual allos retains A-NSM in both pinned analyses and separately owns the other modifier of this same indefinite person."
         },
         {
           "sourceTokens": [
@@ -1291,15 +1335,27 @@
         },
         {
           "sourceTokens": [
-            14,
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Christou retains N-GSM in both pinned analyses and owns its genitive name phrase of Christ, separately from Jesus. No independent Greek of preposition is printed."
+        },
+        {
+          "sourceTokens": [
             15
           ],
           "targetPhrases": [
             {
-              "text": "of Christ Jesus",
+              "text": "Jesus",
               "occurrence": 0
             }
-          ]
+          ],
+          "note": "Actual Iesou retains N-GSM in both pinned analyses and separately owns English Jesus in this same genitive name phrase."
         },
         {
           "sourceTokens": [
@@ -1386,10 +1442,6 @@
           "targetPhrases": [
             {
               "text": "count",
-              "occurrence": 1
-            },
-            {
-              "text": "to be",
               "occurrence": 1
             }
           ]
@@ -1512,6 +1564,11 @@
           "text": "them",
           "occurrence": 0,
           "reason": "English object pronoun supplied from all things; N1904 has no pronoun in the second count … refuse clause."
+        },
+        {
+          "text": "to be",
+          "occurrence": 1,
+          "reason": "The complete printed TR includes a second einai after skybala, while pinned N1904 has no second being infinitive there. LSV second to be is therefore explained without assigning it to actual hegeomai25, which retains count. The actual first einai8 keeps its own first to be correspondence."
         }
       ],
       "review": {

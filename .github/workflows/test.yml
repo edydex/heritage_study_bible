@@ -28,6 +28,9 @@ jobs:
       - name: Check complete Bible timing validation
         run: python3 -m unittest discover -s scripts/bible-audio -p 'test_*.py'
 
+      - name: Check reviewed original-language mapping pipeline
+        run: python3 -m unittest discover -s scripts/original-languages -p 'test_*.py'
+
       - name: Run tests
         run: npm test
 

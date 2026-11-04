@@ -117,7 +117,7 @@ def main():
               'standard': 'Mapped words have actual range anchors. Explained words have an explicit unpaired reason. All remaining words are unresolved, regardless of likely cause. Mechanical accounting is not semantic certification.',
               'rawSourceSha256': greek_corpus['sources'][0]['sha256'],
               'greekCorpusSha256': sha(DATA / 'greek-nt-n1904.json'), 'translations': {}}
-    for target_id in ('BSB', 'LSV', 'KJV'):
+    for target_id in ('BSB', 'LSV', 'KJV', 'SYNO-W'):
         folder = DATA / f'{target_id.lower()}-word-links'
         index = read(folder / 'index.json')
         target = corpus(read(ROOT / f'public/data/translations/{target_id}.json'))
@@ -135,11 +135,11 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     lines = ['# New Testament mapping progress', '', report['standard'], '',
-             'The reviewed column counts accepted verse resources with complete word accounting and a separate assistant semantic review. Reader verification remains pending.', '']
+             'The reviewed column counts accepted verse resources with complete word accounting. These counts do not certify the depth of retained semantic-review evidence; reader verification remains pending.', '']
     for target_id, translation in report['translations'].items():
         totals = translation['totals']
-        lines += [f'## {target_id}', '', f"Accepted reviewed verses: **{totals['reviewedTargetVerseRecords']}**. Completely reviewed books: **{totals['completeReviewedBooks']} / 27**.", '',
-                  '| Book | Greek mapped | English mapped | Unresolved Greek words | Unresolved English words | Reviewed verses |',
+        lines += [f'## {target_id}', '', f"Accepted reviewed verses: **{totals['reviewedTargetVerseRecords']}**. Books with complete word accounting: **{totals['completeReviewedBooks']} / 27**.", '',
+                  '| Book | Greek mapped | Translation mapped | Unresolved Greek words | Unresolved translated words | Reviewed verses |',
                   '|---|---:|---:|---:|---:|---:|']
         for book, counts in translation['books'].items():
             lines.append(f"| {book} | {counts['source']['mappedPercent']:.2f}% | {counts['target']['mappedPercent']:.2f}% | {counts['source']['unresolvedWords']} | {counts['target']['unresolvedWords']} | {counts['reviewedTargetVerseRecords']} / {counts['targetVerseRecords']} |")

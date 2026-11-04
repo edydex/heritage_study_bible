@@ -45,7 +45,7 @@ def compile_verse(review,source_text,target_text,allow_incomplete=False,source_v
     assert review['targetText']==target_text,'Reviewed translation differs from displayed edition'
     tokens=list(re.finditer(r'\S+',source_text));target_words=list(re.finditer(r"[^\W_]+(?:['’][^\W_]+)*",target_text))
     reference=reference or review.get('sourceReference')
-    source_used=set();all_source_used=set();target_ranges=[];groups=[]
+    source_used=set();all_source_used=set();target_ranges=[];head_target_ranges=[];groups=[]
     for n,g in enumerate(review['groups']):
         indexes=g['sourceTokens']
         source_reference=g.get('sourceReference',reference)
@@ -69,6 +69,25 @@ def compile_verse(review,source_text,target_text,allow_incomplete=False,source_v
         assert not any(key in all_source_used for key in keys),'Source token assigned to more than one review group; combine its targetPhrases instead'
         if source_reference:
             group['sourceAnchors']=[{**source_reference,'startOffset':a,'endOffset':b,'text':raw_source[a:b]} for a,b in ranges]
+        if 'studyHeads' in g:
+            assert source_reference and isinstance(g['studyHeads'],list) and g['studyHeads'],'Study heads require an actual source reference and nonempty list'
+            heads=[]
+            for head in g['studyHeads']:
+                assert isinstance(head,dict),'Study head must be a selector object'
+                assert 'sourceReference' not in head,'Study head inherits its own group source reference'
+                selected=head.get('sourceTokens',[])
+                assert isinstance(selected,list) and selected and all(type(i) is int for i in selected) and len(set(selected))==len(selected) and set(selected)<=set(indexes),'Study head must select actual words of its own group'
+                assert isinstance(head.get('note'),str) and head['note'].strip(),'Study head requires its source-review note'
+                assert isinstance(head.get('targetPhrases'),list) and head['targetPhrases'],'Study head requires actual translated selectors'
+                spans=merge([phrase_range(target_text,p) for p in head.get('targetPhrases',[])])
+                assert spans and all(any(a>=x and b<=y for x,y in targets) for a,b in spans),'Study head target must belong to its own translated group'
+                assert not any(a<y and b>x for a,b in spans for x,y in head_target_ranges),'Overlapping study head targets'
+                head_target_ranges.extend(spans)
+                # Keep explicit word identities; the reader's own anchors are
+                # per word even when a correspondence spans adjacent words.
+                selected_ranges=[[actual_tokens[i].start(),actual_tokens[i].end()] for i in sorted(selected)]
+                heads.append({'sourceAnchors':[{**source_reference,'startOffset':a,'endOffset':b,'text':raw_source[a:b]} for a,b in selected_ranges], 'targetRanges':spans,'note':head['note']})
+            group['studyHeads']=heads
         assert not any(a<y and b>x for a,b in targets for x,y in target_ranges),'Overlapping target phrases in explicit review'
         groups.append(group);all_source_used.update(keys)
         if not external:source_used.update(indexes)
