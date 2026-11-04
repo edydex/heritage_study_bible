@@ -93,6 +93,18 @@ translations, separate from the preceding increasing-to-account predicate.
 The expanded KJV chapter 3 review preserves the previously accepted 3:21 object
 and its serialized entry exactly; only that resource's reviewed hash is renewed.
 
+Ephesians chapters 1–3 have complete BSB and KJV author-and-separate-assistant-
+peer reviews. BSB 1:11's first “Him” matches KJV's actual 1:10 pronoun. The
+repeated subjects in BSB 2:6 retain their earlier real sources, while distinct
+local Christ occurrences stay separate. KJV 2:1's supplied quickening expression
+remains explained as unpaired where its correspondence to the later predicate
+is uncertain. In 2:16, installed BSB “extinguished” and KJV “slain” share the
+actual killing head; an English edition note explains the BSB wording difference.
+The purpose connector and encoded subject displayed in KJV 3:17 retain their
+actual 3:18 identities, with exclusive movement and shared subject/predicate
+renderings accounted for separately. Browser checks cover those references,
+matching colors and textures, precise study heads and genuine unpaired words.
+
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 
 To rebuild, download the pinned OSIS file and N1904 morphology, then run:

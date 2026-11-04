@@ -351,7 +351,7 @@ pinned publisher USFM, so those original words remain studyable without an
 invented English match. In 15:44, the three actual body nouns keep their separate
 occurrences; LSV's fourth body noun remains explained as additional wording.
 
-The first eight chapters of Revelation have full LSV author-and-peer reviews.
+The first fourteen chapters of Revelation have full LSV author-and-peer reviews.
 English 1:10's "saying" retains its original 1:11 participle. The received-from-
 Father comparison at the end of English 2:27 keeps its actual original 2:28
 identities; the unexpressed Father article stays an explained original word.
@@ -371,6 +371,15 @@ participle keeps its own identity. At 8:7, the earth-burning clause absent from
 LSV remains studyable in Original without borrowing the separate tree clause.
 The eagle/messenger noun difference in 8:13 stays explicitly unpaired.
 
+At the 12:18/13:1 chapter boundary, the sand and first sea keep their actual
+original 12:18 references; the second sea retains its separate 13:1 occurrence.
+The first-person English standing predicate stays unpaired against the actual
+third-person original. In 13:10, the first English passive killing expression
+does not borrow the separately printed passive infinitive later in the verse.
+At 13:16, the changed giving predicate remains explained as unpaired while its
+real recipient stays linked. The different guile/falsehood nouns in 14:5 keep
+an explicit witness gap rather than an invented common source lemma.
+
 All four Philippians chapters have full BSB and KJV author-and-peer reviews.
 KJV's 1:16 and 1:17
 clauses retain their actual original 1:17 and 1:16 references, so the love clause
@@ -389,6 +398,22 @@ stays separate from the local confession connector. At 2:28, BSB's “send” an
 to-account construction recast as “may be credited to” in BSB. The actual active
 participle remains unchanged. The full KJV chapter 3 resource preserves its
 previously accepted 3:21 object and serialized entry exactly.
+
+The first three Ephesians chapters have full BSB and KJV author-and-separate-
+assistant-peer reviews. BSB 1:4's single “us” retains both actual Greek pronoun
+occurrences. Its first “Him” in 1:11 keeps the original 1:10 anchor and matches
+KJV there. BSB 2:6's repeated God and first Christ retain their actual earlier
+references; its second Christ keeps the distinct local occurrence. The repeated
+remembering command in 2:12 retains the actual 2:11 imperative.
+
+KJV's supplied opening quickening expression in 2:1 stays explicitly unpaired
+where a hard correspondence to the later main predicate is uncertain. At 2:16,
+the installed BSB “extinguished” and KJV “slain” retain the actual killing verb;
+the note distinguishes the installed BSB wording from the pinned publisher
+table and current official wording without inventing an extinguishing lemma.
+The purpose connector and encoded ability subject displayed at the end of
+KJV 3:17 retain their real 3:18 source words. Shared encoded-subject renderings
+are declared separately from exclusive movement of words across references.
 
 An English name can clarify a printed Greek pronoun; its link retains the actual
 pronoun and identifies the naming as the translation's wording. When source
