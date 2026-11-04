@@ -39,6 +39,9 @@ Tap a word to emphasize its counterpart in both columns. **Study word**, a hold
 Moving a finger cancels a pending hold so scrolling is not mistaken for a word
 action. The release click from a completed hold cannot immediately dismiss its
 new study dialog. A reading note explains documented witness or grammar differences.
+If links are still loading, the reader keeps the tapped or held word and shows
+the loading state. Its match and requested study resolve when the links arrive.
+**Clear word match** also cancels a study requested during loading.
 
 For verse-boundary differences, **Show Original / BSB / LSV / KJV / SYNO-W** identifies the
 actual matching reference rather than forcing a same-number pairing. Greek words use the source's
@@ -436,7 +439,7 @@ adding 89 reviewed target records and preserving the accepted BSB 1:23 entry
 exactly. The co-crucifixion clause displayed in 2:20 retains its actual N1904
 2:19 identities. The moved dative Christ remains separate from the local
 nominative Christ; the repeated law nouns retain their distinct case roles.
-Galatians 3–6 now also have full BSB and KJV author-and-peer reviews, completing the letter's word accounting. Hebrews 1–5 have the same full source review; later chapters remain in progress.
+Galatians 3–6 now also have full BSB and KJV author-and-peer reviews, completing the letter's word accounting. Hebrews 1–7 have the same full source review; later chapters remain in progress.
 
 BSB Hebrews 4:13's “Nothing” opens the actual negative first while retaining
 the creation noun and the complete phrase correspondence. In 4:2, BSB's active
@@ -444,6 +447,12 @@ share construction and the source's singular passive mixed participle retain
 separate explanations where their participant roles differ; the KJV passive
 wording keeps its actual source link. Original selections still study the
 precise printed Greek word.
+
+In Hebrews 7, explicit source preferences distinguish the first dictionary
+choice within four unchanged joint phrases: KJV “therefore,” BSB “So,” BSB
+“others,” and KJV “those.” The explanatory or inferential connector, or actual
+personal article, opens first; the correlative particle remains available.
+KJV “those” retains its actual Greek 7:20 occurrence while displayed at 7:21.
 
 Fresh complete independent checks of LSV John 1–4 retain all original forms
 and texts. Immediate Spirit and personal-all renderings have precise source
@@ -459,6 +468,13 @@ accusative pronoun. Notes distinguish the printed Greek future indicative
 thirst form from the TR subjunctive and English wording, and keep the actual
 compound coming verb separate from “here.” Existing witness gaps remain
 explained.
+
+John 5 now also has a fresh full source-author and distinct full-peer review.
+The source's printed parenthetical 5:4 words remain present. The actual life
+noun and its adjective have separate study links in 5:24 and 5:39; LSV's
+“continuous” opens that printed adjective. In 5:15, “told” retains the actual
+Greek saying verb while a note records the different printed TR reporting
+verb. The original is not retagged or replaced from the translation.
 
 Complete accounting does not establish the scope of a semantic review. The
 retained-evidence inventory now covers all 260 LSV chapters: 51 have intact

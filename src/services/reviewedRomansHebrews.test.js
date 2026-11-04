@@ -9,6 +9,9 @@ import lsv from '../../public/data/translations/LSV.json'
 import romans from '../../public/data/original-languages/syno-w-word-links/romans.json'
 import hebrews from '../../public/data/original-languages/bsb-word-links/hebrews.json'
 import philippians from '../../public/data/original-languages/lsv-word-links/philippians.json'
+import kjv from '../../public/data/translations/KJV.json'
+import kjvHebrews from '../../public/data/original-languages/kjv-word-links/hebrews.json'
+import lsvJohn from '../../public/data/original-languages/lsv-word-links/john.json'
 
 const strongs = word => greekLemmaIds(concordance, word).flatMap(id => concordance.lemmas[id].strongs)
 function chapter(mapping, corpus, number) {
@@ -49,9 +52,11 @@ function exactSources(fixture, word, book, sourceChapter, sourceVerse, indices) 
     translationId: 'ORIGINAL', book, chapter: sourceChapter, verse: sourceVerse,
   })
   for (const [start, end, id] of selected) {
-    const actual = original.find(word => word.startOffset === start && word.endOffset === end)
-    expect(actual).toBeDefined()
-    expect(greekLemmaIds(concordance, actual)).toEqual([id])
+    // Source index spans retain surrounding punctuation; clickable words omit it.
+    const matches = original.filter(word => word.startOffset >= start && word.endOffset <= end)
+    expect(matches).toHaveLength(1)
+    expect(matches[0].word).toBe(text.slice(start, end).replace(/^[^\p{L}\p{M}\p{N}]+|[^\p{L}\p{M}\p{N}]+$/gu, ''))
+    expect(greekLemmaIds(concordance, matches[0])).toEqual([id])
   }
 }
 
@@ -92,4 +97,38 @@ it('Philippians same and the retain distinct pronoun/article occurrences rather 
   expect(same.id).not.toEqual(article.id)
   exactSources(fixture, same, 'Philippians', 4, 2, [6])
   exactSources(fixture, article, 'Philippians', 4, 2, [5])
+})
+
+it.each([
+  ['KJV', 11, 'therefore', 11, [1, 2], ['3767', '3303']],
+  ['BSB', 18, 'So', 18, [1, 2], ['1063', '3303']],
+  ['BSB', 20, 'others', 20, [6, 7], ['3588', '3303']],
+  ['KJV', 21, 'those', 20, [6, 7], ['3588', '3303']],
+])('%s Hebrews 7:%i %s prefers its actual connective or personal class and preserves Original', (target, verse, text, sourceVerse, indices, expected) => {
+  const fixture = chapter(target === 'BSB' ? hebrews : kjvHebrews, target === 'BSB' ? bsb : kjv, 7)
+  const selected = fixture.word(verse, text)
+  expect(strongs(selected)).toEqual(expected)
+  exactSources(fixture, selected, 'Hebrews', 7, sourceVerse, indices)
+})
+
+it.each([[9, [0, 2]], [10, [13, 14]], [15, [18, 19]], [17, [12, 13]]])('Russian Romans 5:%i comparative retains both actual degree words with the comparative first', (verse, indices) => {
+  const fixture = chapter(romans, synodal, 5), selected = fixture.word(verse, 'более')
+  expect(strongs(selected)).toEqual(['3123', '4183'])
+  exactSources(fixture, selected, 'Romans', 5, verse, indices)
+})
+
+it('Russian rejection keeps the two actual next-verse occurrences and prefers the negative', () => {
+  const fixture = chapter(romans, synodal, 6), selected = fixture.word(1, 'Никак')
+  expect(strongs(selected)).toEqual(['3361', '1096'])
+  exactSources(fixture, selected, 'Romans', 6, 2, [0, 1])
+  expect(selected.counterparts).toContainEqual({ translationId: 'ORIGINAL', chapter: 6, verse: 2 })
+})
+
+it.each([[24, 17, 16, 2], [39, 9, 8, 1]])('John 5:%i continuous and life retain separate actual adjective and noun choices', (verse, adjective, noun, lifeCount) => {
+  const fixture = chapter(lsvJohn, lsv, 5), continuous = fixture.word(verse, 'continuous'), life = fixture.word(verse, 'life', 0, lifeCount)
+  expect(strongs(continuous)).toEqual(['166'])
+  expect(strongs(life)).toEqual(['2222'])
+  expect(continuous.id).not.toEqual(life.id)
+  exactSources(fixture, continuous, 'John', 5, verse, [adjective])
+  exactSources(fixture, life, 'John', 5, verse, [noun])
 })

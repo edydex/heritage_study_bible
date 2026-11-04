@@ -151,13 +151,20 @@ English 2:20 retains the two actual N1904 words printed at 2:19; its dative
 Christ is distinct from the later local nominative name. Repeated law and
 living words retain their individual source occurrences. KJV's supplied
 concessive “yet” remains explained separately from the actual no-longer
-negative word. Later chapters retain each actual repeated source occurrence and explicit witness gaps. Hebrews 1–5 also have full author-and-peer reviews; later chapters remain in progress.
+negative word. Later chapters retain each actual repeated source occurrence and explicit witness gaps. Hebrews 1–7 also have full author-and-peer reviews; later chapters remain in progress.
 
 In Hebrews 3:9, KJV's forty-years wording keeps its actual Greek 3:10
 occurrences. Hebrews 4:2's KJV passive mixed wording retains the printed
 singular passive participle. BSB's different active share construction is
 explained separately where its participant roles cannot be mapped to that
 form. The accepted BSB 5:12 entry remains unchanged.
+
+Hebrews 6 retains the actual immediate class, ground and hope resumptions
+across translated verse boundaries. Eight Greek 7:20 words are printed in KJV
+7:21 and keep their true source reference. In 7:11, “therefore” opens the actual
+inferential connector before the accompanying correlative particle. In 7:21,
+“those” opens the actual personal article from 7:20 while retaining that
+particle and every precise Original selection.
 
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 

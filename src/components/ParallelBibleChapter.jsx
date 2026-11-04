@@ -41,16 +41,15 @@ function ParallelBibleChapter({
   selectionMode = false,
 }) {
   const audio = useHeritageAudio()
-  const [study, setStudy] = useState(null)
-  const [heldMessage, setHeldMessage] = useState('')
+  const [studySelection, setStudy] = useState(null)
   const heldStudyClick = useRef(false)
-  const selectWord = word => { setActiveWord(word); setHeldMessage(word.paired ? word.label : word.unpairedReason || `No checked translation match is installed for “${word.word}”.`) }
+  const selectWord = word => setActiveWord(word)
   const studyWord = (word, pointerGesture) => { heldStudyClick.current = Boolean(pointerGesture); selectWord(word); setStudy(word) }
   const containerRef = useRef(null)
   const rowRefs = useRef({})
   const [alignment, setAlignment] = useState(null)
   const [showWordLinks, setShowWordLinks] = useState(true)
-  const [activeWord, setActiveWord] = useState(null)
+  const [activeSelection, setActiveWord] = useState(null)
   const [linkError, setLinkError] = useState('')
   const [linkRetry, setLinkRetry] = useState(0)
   const original = secondaryTranslationId === 'ORIGINAL'
@@ -63,7 +62,7 @@ function ParallelBibleChapter({
     && linkTranslations.includes(primaryTranslationId) && linkTranslations.includes(secondaryTranslationId)
   useEffect(() => {
     let cancelled = false
-    setAlignment(null); setActiveWord(null); setHeldMessage(''); setLinkError('')
+    setAlignment(null); setLinkError('')
     if (canLink) Promise.all([
       primaryOriginal ? null : loadGreekWordLinks(bookName, primaryTranslationId),
       original ? null : loadGreekWordLinks(bookName, secondaryTranslationId),
@@ -76,7 +75,7 @@ function ParallelBibleChapter({
       .catch(() => { if (!cancelled) setLinkError('Word links could not load. The Bible text is still available.') })
     return () => { cancelled = true }
   }, [canLink, bookName, primaryTranslationId, secondaryTranslationId, primaryChapter.number, original, primaryOriginal, linkRetry])
-  useEffect(() => { setActiveWord(null); setStudy(null); setHeldMessage('') }, [bookName, primaryChapter.number, primaryTranslationId, secondaryTranslationId, selectionMode])
+  useEffect(() => { setActiveWord(null); setStudy(null) }, [bookName, primaryChapter.number, primaryTranslationId, secondaryTranslationId, selectionMode])
 
   const chapterLinks = useMemo(() => alignment && canLink && !selectionMode ? chapterWordAnchors({
     primaryData: alignment.primary, secondaryData: alignment.secondary,
@@ -99,6 +98,41 @@ function ParallelBibleChapter({
   const secondaryVerseMap = useMemo(() => {
     return new Map((numberingUnsupported ? [] : secondaryChapter?.verses || []).map(verse => [verse.number, verse]))
   }, [secondaryChapter, numberingUnsupported])
+
+  const getWords = useCallback((side, verseNumber) => {
+    if (selectionMode) return []
+    const primary = side === 'primary'
+    const verse = (primary ? primaryVerseMap : secondaryVerseMap).get(verseNumber)
+    const ref = `${primaryChapter.number}:${verseNumber}`
+    const pairs = chapterLinks?.[side].get(ref)
+    return interactiveWordRanges(verse?.text || '', showWordLinks ? pairs : pairs?.map(({ pattern, ...pair }) => pair), {
+      book: bookName, chapter: primaryChapter.number, verse: verseNumber,
+      translationId: primary ? primaryTranslationId : secondaryTranslationId,
+      comparisonTranslationId: primary
+        ? primaryOriginal ? secondaryTranslationId : primaryTranslationId
+        : original ? primaryTranslationId : secondaryTranslationId,
+      lookupLinks: chapterLinks?.[primary ? 'lookupPrimary' : 'lookupSecondary'].get(ref),
+      unpairedNotes: chapterLinks?.[primary ? 'primaryNotes' : 'secondaryNotes'].get(ref),
+      sourceReferences: chapterLinks?.[primary ? 'primarySourceReferences' : 'secondarySourceReferences'].get(ref),
+    })
+  }, [selectionMode, primaryVerseMap, secondaryVerseMap, primaryChapter.number, chapterLinks, showWordLinks,
+    bookName, primaryTranslationId, secondaryTranslationId, primaryOriginal, original])
+
+  // Keep the physical selection while links load; derive its current anchors
+  // instead of retaining the unpaired snapshot captured by an early tap/hold.
+  const resolveSelection = useCallback(selection => {
+    if (!selection || selection.book !== bookName || selection.chapter !== primaryChapter.number) return null
+    const side = selection.translationId === primaryTranslationId ? 'primary'
+      : selection.translationId === secondaryTranslationId ? 'secondary' : null
+    return side ? getWords(side, selection.verse).find(word => word.startOffset === selection.startOffset
+      && word.endOffset === selection.endOffset && word.word === selection.word) || null : null
+  }, [bookName, primaryChapter.number, primaryTranslationId, secondaryTranslationId, getWords])
+  const activeWord = useMemo(() => resolveSelection(activeSelection), [resolveSelection, activeSelection])
+  const study = useMemo(() => resolveSelection(studySelection), [resolveSelection, studySelection])
+  const linksLoading = canLink && !alignment && !linkError && !selectionMode
+  const heldMessage = !activeWord ? '' : linksLoading ? `Loading word links for “${activeWord.word}”…`
+    : linkError ? `Word links could not load for “${activeWord.word}”.`
+      : activeWord.paired ? activeWord.label : activeWord.unpairedReason || `No checked translation match is installed for “${activeWord.word}”.`
 
   const verseNumbers = useMemo(() => {
     const keys = new Set([...primaryVerseMap.keys(), ...secondaryVerseMap.keys()])
@@ -199,8 +233,8 @@ function ParallelBibleChapter({
 
         </> : <p className="mt-1 text-xs">{hebrew ? 'Tap a Hebrew or Aramaic word, then choose Study word (or hold it), to find its source lemma throughout the Old Testament, including inflected forms. Strong’s identifiers follow OSHB. English phrase links are not installed.' : 'Word links are available for BSB, LSV, KJV and reviewed Russian Synodal passages in the Greek New Testament. Tap a word, then choose Study word (or hold it), for occurrences.'}</p>}
       </div>}
-      {heldMessage && <div role="region" aria-label="Selected word match" className="word-match-bar sticky top-16 z-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-3 mb-3 shadow-sm flex flex-wrap items-center justify-between gap-2"><span role="status">{heldMessage}</span>{activeWord?.notes?.length > 0 && <details className="w-full text-sm"><summary>Reading note</summary>{activeWord.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}<div className="flex flex-wrap items-center gap-2">{activeWord?.counterparts?.filter(ref => ref.chapter !== activeWord.chapter || ref.verse !== activeWord.verse).map(ref => <button key={`${ref.translationId}:${ref.chapter}:${ref.verse}`} className="rounded border px-3 py-2 text-sm" onClick={() => showCounterpart(ref)}>Show {ref.translationId === 'ORIGINAL' ? 'Original' : ref.translationId} {ref.chapter}:{ref.verse}</button>)}<button className="rounded border px-3 py-2 text-sm font-semibold" onClick={() => setStudy(activeWord)}>Study word</button><button className="rounded px-3 py-2" aria-label="Clear word match" onClick={() => { setActiveWord(null); setHeldMessage('') }}>✕</button></div></div>}
-      {study && <WordStudyDialog word={study} onClose={() => setStudy(null)} onNavigate={onOccurrenceNavigate} />}
+      {heldMessage && <div role="region" aria-label="Selected word match" className="word-match-bar sticky top-16 z-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-3 mb-3 shadow-sm flex flex-wrap items-center justify-between gap-2"><span role="status">{heldMessage}</span>{activeWord?.notes?.length > 0 && <details className="w-full text-sm"><summary>Reading note</summary>{activeWord.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}<div className="flex flex-wrap items-center gap-2">{activeWord?.counterparts?.filter(ref => ref.chapter !== activeWord.chapter || ref.verse !== activeWord.verse).map(ref => <button key={`${ref.translationId}:${ref.chapter}:${ref.verse}`} className="rounded border px-3 py-2 text-sm" onClick={() => showCounterpart(ref)}>Show {ref.translationId === 'ORIGINAL' ? 'Original' : ref.translationId} {ref.chapter}:{ref.verse}</button>)}<button className="rounded border px-3 py-2 text-sm font-semibold" onClick={() => setStudy(activeWord)}>Study word</button><button className="rounded px-3 py-2" aria-label="Clear word match" onClick={() => { setActiveWord(null); setStudy(null) }}>✕</button></div></div>}
+      {study && !linksLoading && <WordStudyDialog word={study} onClose={() => setStudy(null)} onNavigate={onOccurrenceNavigate} />}
       <div className="space-y-2">
         {verseNumbers.map((verseNumber) => {
           const primaryVerse = primaryVerseMap.get(verseNumber)
@@ -219,12 +253,8 @@ function ParallelBibleChapter({
 
           const primaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, primaryTranslationId, primaryVerse?.text || '') || []
           const secondaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, secondaryTranslationId, secondaryVerse?.text || '') || []
-          const context = { book: bookName, chapter: primaryChapter.number, verse: verseNumber, comparisonTranslationId: primaryTranslationId }
-          const displayLinks = pairs => showWordLinks ? pairs : pairs?.map(({ pattern, ...pair }) => pair)
-          const primaryWords = selectionMode ? [] : interactiveWordRanges(primaryVerse?.text || '', displayLinks(links?.primary), { ...context, translationId: primaryTranslationId, comparisonTranslationId: primaryOriginal ? secondaryTranslationId : primaryTranslationId,
-            lookupLinks: chapterLinks?.lookupPrimary.get(ref), unpairedNotes: chapterLinks?.primaryNotes.get(ref), sourceReferences: chapterLinks?.primarySourceReferences.get(ref) })
-          const secondaryWords = selectionMode ? [] : interactiveWordRanges(secondaryVerse?.text || '', displayLinks(links?.secondary), { ...context, translationId: secondaryTranslationId, comparisonTranslationId: original ? primaryTranslationId : secondaryTranslationId,
-            lookupLinks: chapterLinks?.lookupSecondary.get(ref), unpairedNotes: chapterLinks?.secondaryNotes.get(ref), sourceReferences: chapterLinks?.secondarySourceReferences.get(ref) })
+          const primaryWords = getWords('primary', verseNumber)
+          const secondaryWords = getWords('secondary', verseNumber)
           const rowClassName = `relative rounded-lg border transition-all ${selectionMode ? 'verse-selection-target cursor-pointer' : ''} ${startsParagraph ? 'mt-4' : ''} ${
             selected
               ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700'

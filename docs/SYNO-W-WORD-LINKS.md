@@ -6,7 +6,7 @@ Nestle 1904 Greek occurrences. The same occurrences connect Russian to BSB,
 LSV and KJV, with shared colors and textures. This is phrase correspondence,
 not a claim that every Russian word is a separate Greek word.
 
-The accepted chapters are **Romans 1–4 and Colossians 1, all 146 verses**. Remaining passages
+The accepted chapters are **Romans 1–6 and Colossians 1, all 190 verses**. Remaining passages
 stay unreviewed and unlinked. The per-book files and manifest record the current
 accepted coverage; the reader shows a chapter-specific review count. Unreviewed
 words can still open the original-word chooser without guessing a match.
@@ -24,6 +24,10 @@ In 3:26, **явится** opens the printed being infinitive, rather than an inv
 appearing verb. In 4:21, **обещанное** opens the actual finite promising verb;
 the translated word does not change the source's grammatical form. Other
 dictionary choices within each checked phrase remain available.
+Romans 5's four **более** occurrences open the actual comparative adverb while
+retaining the accompanying degree adjective. The **Никак** at the end of 6:1
+keeps its two actual Greek 6:2 words; Word Study opens the negative first and
+retains the optative becoming verb and its own Greek grammar as a separate choice.
 
 The Romans/Colossians grammar pilot also works through reviewed Russian links.
 It describes the Greek occurrence, with Russian grammar labels available;
