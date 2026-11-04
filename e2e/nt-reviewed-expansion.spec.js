@@ -69,3 +69,34 @@ test('singular English recipients retain their distinct actual plural pronoun oc
     await page.getByRole('button', { name: 'Clear word match' }).click()
   }
 })
+
+test('the repeated contrast predicate retains its one actual preceding-verse source', async ({ page }) => {
+  await compare(page, '1-peter', 3, 'KJV', 'ORIGINAL')
+  const repeated = words(page, 'KJV', 3, 4, /^be$/).first()
+  const original = words(page, 'ORIGINAL', 3, 3, /^ἔστω$/)
+  await repeated.click()
+  await expect(original).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 3, 3, /^be$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 3, 4, /^is$/).first()).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('button', { name: 'Show Original 3:3', exact: true })).toBeVisible()
+})
+
+test('Peter comparison keeps different named readings separate and preserves moved qualifications', async ({ page }) => {
+  await compare(page, '1-peter', 3, 'BSB', 'KJV')
+  const christ = words(page, 'BSB', 3, 15, /^Christ$/)
+  const god = words(page, 'KJV', 3, 15, /^God$/)
+  await expect(christ).toHaveAttribute('data-word-paired', 'false')
+  await expect(god).toHaveAttribute('data-word-paired', 'false')
+  await christ.click()
+  await expect(god).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Clear word match' }).click()
+
+  const respect = words(page, 'BSB', 3, 15, /^respect$/)
+  const fear = words(page, 'KJV', 3, 15, /^fear$/)
+  await expect(respect).toHaveAttribute('data-word-paired', 'true')
+  await respect.click()
+  await expect(fear).toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('region', { name: 'Selected word match' }).getByRole('status')).toContainText('Greek 3:16:')
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText(/G0*5401\b/)
+})
