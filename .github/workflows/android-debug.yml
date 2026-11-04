@@ -46,6 +46,9 @@ jobs:
       - name: Verify failed-emulator cleanup
         run: python3 scripts/test_android_runner_cleanup.py
 
+      - name: Verify native acceptance result validation
+        run: python3 scripts/test_verify_android_apk.py
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
