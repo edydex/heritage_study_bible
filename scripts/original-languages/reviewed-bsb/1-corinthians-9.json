@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "book": "1 Corinthians",
+  "chapter": 9,
+  "verses": {
+    "9:17": {
+      "sourceText": "εἰ γὰρ ἑκὼν τοῦτο πράσσω, μισθὸν ἔχω· εἰ δὲ ἄκων, οἰκονομίαν πεπίστευμαι.",
+      "targetText": "If my preaching is voluntary, I have a reward. But if it is not voluntary, I am still entrusted with a responsibility.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "If",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2,
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "my preaching is voluntary",
+              "occurrence": 0
+            }
+          ],
+          "note": "Greek I do this willingly is recast as my preaching is voluntary. The actual willing adjective, demonstrative object and first-person doing verb form the whole short predicate; preaching identifies this doing from its gospel-preaching context."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "a reward",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "I have",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "if",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "it is not voluntary",
+              "occurrence": 0
+            }
+          ],
+          "note": "Greek unwilling qualifies the implicit first-person agent; BSB expresses the same condition as it is not voluntary, referring to the preaching. The whole unwilling condition is retained with this agent-to-action and adjective-to-negative-clause recasting explicit."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "a responsibility",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "I am",
+              "occurrence": 0
+            },
+            {
+              "text": "entrusted with",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB does not separately express the opening explanatory Greek for."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "still",
+          "occurrence": 0,
+          "reason": "BSB adds continuative still with the entrusting statement; no separate continuation adverb is printed in N1904."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "book": "Philippians",
+  "chapter": 3,
+  "review": {
+    "method": "Explicit coding-assistant review of the displayed KJV Philippians3:21 and exact pinned N1904 Greek. Corrects the reversed pronoun annotations in the pinned CrossWire source. No direct publisher link is accepted without reviewing its actual role.",
+    "references": [
+      "https://biblehub.com/interlinear/philippians/3.htm",
+      "https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml"
+    ],
+    "sourceTokenization": "Explicit zero-based whitespace tokens including punctuation."
+  },
+  "verses": {
+    "3:21": {
+      "sourceText": "ὃς μετασχηματίσει τὸ σῶμα τῆς ταπεινώσεως ἡμῶν σύμμορφον τῷ σώματι τῆς δόξης αὐτοῦ, κατὰ τὴν ἐνέργειαν τοῦ δύνασθαι αὐτὸν καὶ ὑποτάξαι αὐτῷ τὰ πάντα.",
+      "targetText": "Who shall change our vile body, that it may be fashioned like unto his glorious body, according to the working whereby he is able even to subdue all things unto himself.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "shall change",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2,
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "body",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "vile",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "fashioned like unto",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "body",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "glorious",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "his",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "according to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "the working",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16,
+            17,
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "whereby he is able",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "even",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "to subdue",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "unto himself",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22,
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "all things",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "that it may be",
+          "occurrence": 0,
+          "reason": "Source-witness difference: KJV renders TR εἰς τὸ γενέσθαι αὐτό before σύμμορφον. These extra words are absent from pinned N1904, which directly predicates σύμμορφον (conformed/fashioned like). The object it is not the later αὐτοῦ (His) modifying glory."
+        }
+      ],
+      "review": {
+        "reference": "https://biblehub.com/interlinear/philippians/3-21.htm",
+        "note": "The CrossWire OSIS annotation at commit d490be7e34762deb2c76cb2c1306d4808e27890d reverses the two pronouns: English it is tagged src17 lemma.TR:αυτου, while English his is tagged src11 lemma.TR:αυτο. This explicit review instead links actual N1904 αὐτοῦ (token12, modifying glory) to English his. TR-only that it may be remains explicit. τῆς δόξης is the genitive phrase rendered adjectivally glorious; τοῦ δύνασθαι αὐτόν is the short nominalized ability clause rendered whereby he is able."
+      }
+    }
+  }
+}

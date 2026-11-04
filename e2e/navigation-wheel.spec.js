@@ -1,11 +1,88 @@
 import { test, expect } from '@playwright/test'
+import { writeFile } from 'node:fs/promises'
+
+test.use({ trace: 'retain-on-failure', screenshot: 'only-on-failure' })
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.addInitScript(() => {
     localStorage.setItem('heritage-translation', 'BSB')
     localStorage.setItem('heritage-default-translation-v2', 'done')
+    const trail = window.__heritageWheelDiagnostic = {
+      documentId: crypto.randomUUID(), timeOrigin: performance.timeOrigin,
+      events: [], layouts: [],
+    }
+    const ids = new WeakMap()
+    let nextId = 0, pressed = false, scheduled = false, previous = ''
+    const boundedPush = (items, value) => { items.push(value); if (items.length > 120) items.shift() }
+    const describe = node => node instanceof Element ? {
+      tag: node.tagName, class: String(node.getAttribute('class') || '').slice(0, 180),
+      label: node.getAttribute('aria-label'),
+      trigger: Boolean(node.closest('.navigation-wheel-trigger')),
+    } : null
+    const snapshot = () => {
+      const button = document.querySelector('.navigation-wheel-trigger')
+      if (button && !ids.has(button)) ids.set(button, ++nextId)
+      const rect = button?.getBoundingClientRect()
+      const style = button && getComputedStyle(button)
+      return {
+        href: location.href, readyState: document.readyState,
+        viewport: { width: innerWidth, height: innerHeight, scale: visualViewport?.scale, devicePixelRatio, scrollX, scrollY },
+        title: button ? {
+          id: ids.get(button), text: button.textContent,
+          rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+          display: style.display, visibility: style.visibility, pointerEvents: style.pointerEvents,
+        } : null,
+        menuOpen: Boolean(document.querySelector('[role="dialog"][aria-label="Slide to navigate"]')),
+      }
+    }
+    trail.snapshot = snapshot
+    const sample = () => {
+      scheduled = false
+      const state = snapshot(), serialized = JSON.stringify(state)
+      if (serialized !== previous) {
+        boundedPush(trail.layouts, { time: performance.now(), ...state })
+        previous = serialized
+      }
+      if (performance.now() < 2500 || pressed) queueSample()
+    }
+    const queueSample = () => {
+      if (!scheduled) { scheduled = true; requestAnimationFrame(sample) }
+    }
+    for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'gotpointercapture', 'lostpointercapture', 'contextmenu', 'resize', 'popstate']) {
+      window.addEventListener(type, event => {
+        const button = document.querySelector('.navigation-wheel-trigger')
+        if (type === 'pointerdown') pressed = true
+        if (type === 'pointerup' || type === 'pointercancel') pressed = false
+        boundedPush(trail.events, {
+          time: performance.now(), type, x: event.clientX, y: event.clientY,
+          pointerId: event.pointerId, pointerType: event.pointerType, buttons: event.buttons,
+          target: describe(event.target),
+          hit: Number.isFinite(event.clientX) ? describe(document.elementFromPoint(event.clientX, event.clientY)) : null,
+          triggerHasCapture: event.pointerId != null && Boolean(button?.hasPointerCapture(event.pointerId)),
+          state: snapshot(),
+        })
+        queueSample()
+      }, true)
+    }
+    queueSample()
   })
+})
+
+test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status === testInfo.expectedStatus) return
+  let diagnostic
+  try {
+    diagnostic = await page.evaluate(() => {
+      const trail = window.__heritageWheelDiagnostic
+      return trail ? { ...trail, snapshot: undefined, final: trail.snapshot() } : { missingTrail: true, href: location.href }
+    })
+  } catch (error) {
+    diagnostic = { captureError: String(error) }
+  }
+  const path = testInfo.outputPath('navigation-wheel-failure.json')
+  await writeFile(path, JSON.stringify({ title: testInfo.title, retry: testInfo.retry, status: testInfo.status, diagnostic }, null, 2))
+  await testInfo.attach('navigation-wheel-failure', { path, contentType: 'application/json' })
 })
 
 const wheel = page => page.getByRole('dialog', { name: 'Slide to navigate' })
@@ -226,11 +303,18 @@ test('Android Back dismisses the wheel and consumes the event before the underly
 })
 
 test('moving before the hold threshold cancels navigation instead of opening the picker', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') })
   await page.goto('/#/genesis/1')
-  const trigger = await pressTitle(page)
+  const trigger = page.locator('.navigation-wheel-trigger')
+  await expect(trigger).toBeVisible()
+  // Keep the move before the application deadline even if a host/browser call
+  // stalls. The other hold/slide cases continue to exercise real elapsed time.
+  await page.clock.pauseAt(new Date('2026-01-01T00:01:00Z'))
   const bounds = await trigger.boundingBox()
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
+  await page.mouse.down()
   await page.mouse.move(bounds.x + bounds.width / 2, bounds.y - 40)
-  await page.waitForTimeout(550)
+  await page.clock.runFor(550)
   await page.mouse.up()
   await expect(wheel(page)).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Select Book', exact: true })).toHaveCount(0)

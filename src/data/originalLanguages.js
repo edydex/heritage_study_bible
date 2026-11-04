@@ -7,8 +7,9 @@ export const originalLanguages = {
 }
 
 const translationLinks = new Map()
+export const greekWordLinkTranslations = ['BSB', 'LSV', 'KJV']
 export function loadGreekWordLinks(book, targetId = 'BSB') {
-  if (!['BSB', 'LSV'].includes(targetId)) return Promise.reject(new Error('Word mappings are not installed for this translation.'))
+  if (!greekWordLinkTranslations.includes(targetId)) return Promise.reject(new Error('Word mappings are not installed for this translation.'))
   const key = `${targetId}:${book}`
   if (!translationLinks.has(key)) {
     const filename = encodeURIComponent(book.toLowerCase().replaceAll(' ', '-'))
@@ -32,24 +33,88 @@ export function verseWordLinks(data, chapter, verse, sourceText, targetText) {
   const entry = data?.verses?.[`${chapter}:${verse}`]
   const source = visibleVerseText(sourceText), target = visibleVerseText(targetText)
   if (!entry || entry.sourceText !== source || entry.targetText !== target || !Array.isArray(entry.groups)) return null
+  // The one-verse compatibility helper cannot represent shifted references.
+  // Chapter-level consumers use the exact source-anchor graph instead.
+  if ((entry.sourceReference && (entry.sourceReference.chapter !== chapter || entry.sourceReference.verse !== verse))
+    || entry.groups.some(group => group.sourceAnchors?.some(anchor => anchor.chapter !== chapter || anchor.verse !== verse))) return null
   const ranges = (range, length) => Array.isArray(range) && range.length === 2 && range.every(Number.isInteger)
     && range[0] >= 0 && range[1] > range[0] && range[1] <= length
   if (entry.groups.some(group => !Number.isInteger(group.id) || group.id < 0
-    || !ranges(group.source, source.length) || !ranges(group.target, target.length))) return null
-  return {
-    source: entry.groups.map(group => ({
-      id: `${chapter}:${verse}:${group.id}`, pattern: group.id % 6,
-      startOffset: group.source[0], endOffset: group.source[1],
-      sourceRange: group.source,
-      label: `${source.slice(...group.source)} ↔ ${target.slice(...group.target)}`,
-    })),
-    target: entry.groups.map(group => ({
-      id: `${chapter}:${verse}:${group.id}`, pattern: group.id % 6,
-      startOffset: group.target[0], endOffset: group.target[1],
-      sourceRange: group.source,
-      label: `${source.slice(...group.source)} ↔ ${target.slice(...group.target)}`,
-    })),
+    || !ranges(group.source, source.length) || !ranges(group.target, target.length)
+    || (group.sourceRanges && (!Array.isArray(group.sourceRanges) || !group.sourceRanges.length
+      || group.sourceRanges.some(range => !ranges(range, source.length))))
+    || (group.targetRanges && (!Array.isArray(group.targetRanges) || !group.targetRanges.length
+      || group.targetRanges.some(range => !ranges(range, target.length)))))) return null
+  const groups = entry.groups.map(group => ({ ...group, sources: group.sourceRanges || [group.source], targets: group.targetRanges || [group.target] }))
+  const parent = groups.map((_, i) => i)
+  const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i] } return i }
+  const overlap = (a, b) => a[0] < b[1] && a[1] > b[0]
+  for (let i = 0; i < groups.length; i++) for (let j = i + 1; j < groups.length; j++) {
+    if (groups[i].sources.some(a => groups[j].sources.some(b => overlap(a, b)))
+      || groups[i].targets.some(a => groups[j].targets.some(b => overlap(a, b)))) parent[find(j)] = find(i)
   }
+  const components = new Map()
+  groups.forEach((group, i) => { const key = find(i); if (!components.has(key)) components.set(key, []); components.get(key).push(group) })
+  const unique = values => [...new Map(values.map(range => [range.join(':'), range])).values()].sort((a, b) => a[0] - b[0])
+  const result = { source: [], target: [] }
+  for (const component of components.values()) {
+    const sourceRanges = unique(component.flatMap(group => group.sources)), targetRanges = unique(component.flatMap(group => group.targets))
+    const id = `${chapter}:${verse}:${Math.min(...component.map(group => group.id))}`
+    const pattern = [...source.slice(0, sourceRanges[0][0]).matchAll(/\S+/g)].length % 6
+    const sourceRange = [sourceRanges[0][0], Math.max(...sourceRanges.map(range => range[1]))]
+    const label = `${sourceRanges.map(range => source.slice(...range)).join(' … ')} ↔ ${targetRanges.map(range => target.slice(...range)).join(' … ')}`
+    const common = { id, pattern, sourceRange, sourceRanges, label }
+    for (const range of sourceRanges) result.source.push({ ...common, startOffset: range[0], endOffset: range[1] })
+    for (const range of targetRanges) result.target.push({ ...common, startOffset: range[0], endOffset: range[1] })
+  }
+  return result
+}
+
+// Translation comparisons join the exact words of this source verse, rather
+// than a Strong's number: repeated words in a verse must remain distinct.
+export function parallelVerseWordLinks(primaryData, secondaryData, chapter, verse, sourceText, primaryText, secondaryText) {
+  const source = visibleVerseText(sourceText)
+  const identity = () => [...source.matchAll(/[\p{L}\p{M}]+(?:[’'][\p{L}\p{M}]+)*/gu)].map((match, id) => ({
+    id, source: [match.index, match.index + match[0].length], target: [match.index, match.index + match[0].length],
+  }))
+  const checked = (data, text) => {
+    if (!data) return visibleVerseText(text) === source ? identity() : null
+    return verseWordLinks(data, chapter, verse, sourceText, text) ? data.verses[`${chapter}:${verse}`].groups.flatMap(group =>
+      (group.sourceRanges || [group.source]).flatMap(source => (group.targetRanges || [group.target]).map(target => ({ ...group, source, target })))) : null
+  }
+  const primary = checked(primaryData, primaryText), secondary = checked(secondaryData, secondaryText)
+  if (!primary || !secondary) return null
+  const nodes = [...primary.map(group => ({ side: 'primary', group })), ...secondary.map(group => ({ side: 'secondary', group }))]
+  const parent = nodes.map((_, i) => i)
+  const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i] } return i }
+  const overlaps = (a, b) => a[0] < b[1] && a[1] > b[0]
+  for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+    if (overlaps(nodes[i].group.source, nodes[j].group.source)
+      || (nodes[i].side === nodes[j].side && overlaps(nodes[i].group.target, nodes[j].group.target))) parent[find(j)] = find(i)
+  }
+  const components = new Map()
+  nodes.forEach((node, i) => { const key = find(i); if (!components.has(key)) components.set(key, []); components.get(key).push(node) })
+  const result = { primary: [], secondary: [] }
+  const texts = { primary: visibleVerseText(primaryText), secondary: visibleVerseText(secondaryText) }
+  const names = { primary: primaryData?.targetId || 'Original', secondary: secondaryData?.targetId || 'Original' }
+  const uniqueRanges = ranges => [...new Map(ranges.map(range => [range.join(':'), range])).values()].sort((a, b) => a[0] - b[0])
+  for (const component of components.values()) {
+    if (!component.some(node => node.side === 'primary') || !component.some(node => node.side === 'secondary')) continue
+    const ranges = uniqueRanges(component.map(node => node.group.source))
+    const sourceRange = [Math.min(...ranges.map(range => range[0])), Math.max(...ranges.map(range => range[1]))]
+    const id = `${chapter}:${verse}:source-${ranges.map(range => range.join('-')).join('_')}`
+    const phrases = side => uniqueRanges(component.filter(node => node.side === side).map(node => node.group.target)).map(range => texts[side].slice(...range)).join(' … ')
+    const label = `${ranges.map(range => source.slice(...range)).join(' … ')} ↔ ${names.primary}: ${phrases('primary')} ↔ ${names.secondary}: ${phrases('secondary')}`
+    // Source position also determines the tint; the same source word must have
+    // the same color regardless of English word order or selected translation.
+    const pattern = [...source.slice(0, sourceRange[0]).matchAll(/\S+/g)].length % 6
+    for (const side of ['primary', 'secondary']) {
+      for (const range of uniqueRanges(component.filter(node => node.side === side).map(node => node.group.target))) {
+        result[side].push({ id, pattern, startOffset: range[0], endOffset: range[1], sourceRange, sourceRanges: ranges, label })
+      }
+    }
+  }
+  return result
 }
 
 export const hebrewOriginalBooks = {

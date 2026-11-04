@@ -42,7 +42,16 @@ native media library. Continue listening has one resumable chapter per book,
 ordered by recent listening, with completion information for the car display.
 The phone and car share the same playback owner and saved progress.
 
-Connecting restores the last recording's queue, position and speed and prepares
+A verified Android Auto companion receives standard player commands explicitly,
+including play/pause, seeking and track navigation. Its package identity must be
+verified by Media3 or checked against its actual UID with PackageManager. This
+does not depend on Android granting the companion notification-listener trust;
+Media3 otherwise gives framework-untrusted controllers read-only defaults.
+Other controllers retain Media3's defaults. The private `heritage.audio.command`
+stays restricted to Heritage's own UID, and requested recordings still resolve
+through the installed catalog rather than caller-supplied URLs.
+
+Cold connection restores the last recording's queue, position and speed and prepares
 it while paused, so Android Auto can expose its player. It never starts playback. The car's explicit Play starts or resumes it. Android Auto
 may send its own Play command according to its “Start music automatically”
 setting; Heritage never issues Play merely because a browser connects. With no
@@ -74,7 +83,7 @@ separate test host exercises the platform's external-controller path and retains
 the actual playing, saved-position, pause, replay and no-autoplay assertions.
 The disposable-emulator runner enables the test host's empty notification-listener
 component to obtain the platform's trusted-controller status, as Android Auto
-does. Media3 1.11 gives untrusted external controllers read-only defaults. The host
+normally does. Media3 1.11 gives untrusted external controllers read-only defaults. The host
 asserts its trust, visible state and distinct UID before dispatching commands.
 The fixture contains no notification-payload handling, is absent from the installed
 reader APK, and changes no production permission or audio-focus policy. Physical
@@ -83,3 +92,11 @@ See the pinned Android 15
 [media-session allowlist implementation](https://android.googlesource.com/platform/frameworks/base/+/refs/tags/android-15.0.0_r1/services/core/java/com/android/server/media/MediaSessionService.java)
 and [audio-focus guidance](https://developer.android.com/media/optimize/audio-focus),
 plus [Media3 controller defaults](https://developer.android.com/reference/androidx/media3/session/MediaSession.ConnectionResult.AcceptedResultBuilder).
+
+A separate instrumentation matrix invokes the actual live service connection
+callback with synthetic Media3 controller descriptors, including verified Auto
+without framework trust, mismatched UID/package identities and trusted generic
+controllers. It checks standard player grants, private-command restrictions,
+saved position and no autoplay. The test-only probe is absent from the reader
+APK. The external controller case also checks that fast-forward and rewind move
+the paused player by 15 seconds in each direction.

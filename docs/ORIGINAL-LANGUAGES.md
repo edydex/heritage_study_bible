@@ -25,13 +25,23 @@ npx vitest run src/data/hebrewOriginal.test.js
 
 ## Greek New Testament word links and occurrences
 
-With BSB as the main text and Original languages as the parallel, the Greek New Testament offers
-**Word links**. Six subtle background tints repeat. **Settings → B&W word links**
-replaces them with patterns, including diagonal strokes distinct from dots.
-Hold a word (450 ms) or press **Shift+Enter** to identify its checked counterpart.
-Moving a finger cancels the hold so scrolling is not mistaken for a word action.
+With BSB, LSV or KJV compared with Original languages—or with each other—the Greek New Testament offers
+**Word links**. Each distinct checked correspondence has its own tint within a
+verse, plus a shared background texture: diagonal strokes, dots, horizontal or
+vertical lines, crosshatching, grids or rings. Nearby matches favor different
+colors and textures using the actual ordering in both translated columns and
+the original. Words translated together share the same combination, including
+counterparts at another verse reference. Uncertain words remain uncolored.
+**Settings → B&W** retains the six monochrome underline patterns. Light and dark
+fills preserve text contrast, and saved text highlights keep their own colors.
+Tap a word to emphasize its counterpart in both columns. **Study word**, a hold
+(450 ms), or **Shift+Enter** opens occurrences while retaining the selection.
+Moving a finger cancels a pending hold so scrolling is not mistaken for a word
+action. The release click from a completed hold cannot immediately dismiss its
+new study dialog. A reading note explains documented witness or grammar differences.
 
-Tap or press Enter on a word to open occurrences. Greek words use the source's
+For verse-boundary differences, **Show Original / BSB / LSV / KJV** identifies the
+actual matching reference rather than forcing a same-number pairing. Greek words use the source's
 actual lemma metadata, including inflected forms throughout all 27 NT books.
 BSB/LSV phrases with an installed correspondence look up those same Greek
 lemmas. Multiple source lemmas remain separate choices. Hebrew and Aramaic
@@ -42,8 +52,8 @@ in this verse** opens the complete source verse and lets the reader choose a sou
 word; it does not guess which source word translates the selected English word.
 Tap a result to navigate to that verse.
 
-Each original-language occurrence includes the full selected English verse
-(**BSB**, **LSV** or **KJV**, with BSB as fallback). For
+Each original-language occurrence includes the full selected translated verse
+(**BSB**, **LSV**, **KJV**, or **Russian Synodal**, with BSB as fallback). For
 checked Greek correspondences, it also says **BSB · “translated phrase”** and
 highlights the actual translated wording and the matching Greek form. The same
 lemma can appear as “servant,” “slaves,” or “in slavery” in different contexts;
@@ -53,6 +63,64 @@ Unmapped words, differing editions and Hebrew/Aramaic results show the whole tra
 verse with an explicit notice that an exact word match is unavailable. Other
 translations' word-form searches remain labeled as such; this change does not
 invent Russian/Ukrainian word alignments.
+
+### Romans and Colossians grammar pilot
+
+**Word form here** describes the selected Greek occurrence, reached directly
+from Original or through a checked **LSV**, **BSB** or **KJV** word link. It shows
+the actual form, dictionary form (lemma), part of speech and applicable tense /
+aspect, voice, mood, person, number, case and gender. A compact grid has three
+columns on wider screens and two on phones. Hover, focus or tap a term for its
+short explanation in **English** or **Russian**; Escape dismisses the explanation.
+The explanation language is remembered.
+Grammar belongs to that exact occurrence, rather than every occurrence of its lemma.
+Device volume scrolling follows the open Word Study dialog. At its end, repeated
+down presses cannot advance the Bible chapter behind it; closing the dialog
+restores Bible scrolling.
+
+The pilot preserves all **8,675 source tokens** in Romans and Colossians, including
+**71 occurrences with different functional and form-oriented tags**. Both analyses
+remain visible in source details; they are annotations of the same printed word,
+not different textual witnesses. Unknown code parts are never guessed. The
+optional Strong TVM suffix is not used because the source says it is not
+synchronized with its morphology.
+
+These are published per-occurrence tags with shared definitions of the grammar
+terms. For example, the aorist definition describes an event viewed as a whole
+and explains what the tag itself establishes. Word Study provides forms,
+dictionary resources, grammar, occurrences and translation correspondence;
+passage interpretation belongs in Commentary. There are no passage-specific
+interpretive notes or explanations generated on tap in this pilot. A lemma is a
+dictionary form, not an assertion about a word's historical root or its meaning
+in every passage.
+
+**Common translation** beside the dictionary form is a brief sourced English
+gloss from STEPBible TBESG. The match requires the actual Greek headword and
+Strong identity; shared numbering alone cannot join different dictionary words.
+Multiple source glosses remain general alternatives, and unavailable matches
+are not guessed. Russian grammar labels explicitly identify the gloss as English.
+Source credit, license and the filtering notice appear in the source details.
+See [the glossary source and rebuild notes](../scripts/original-languages/GREEK-BRIEF-GLOSSES.md).
+
+For **Russian Synodal**, unlinked words offer an explicit original-word chooser;
+the reader selects a Greek form before seeing its grammar. Synodal verse wording
+can accompany occurrence results, with no fabricated Russian word highlights.
+Full Russian and Ukrainian word alignment is outside this pilot. User/pastor
+review precedes grammar expansion beyond these two books; the NT mapping goal's
+review boundary before OT work remains in place.
+
+Rebuild the separate pilot artifact from the same pinned CSV as the concordance:
+
+```sh
+python3 scripts/original-languages/build-greek-morphology-pilot.py /path/to/Nestle1904/morph/Nestle1904.csv
+npx vitest run src/services/greekMorphology.test.js src/services/wordStudyRussianContext.test.js
+npx playwright test e2e/word-grammar-pilot.spec.js
+```
+
+Source code descriptions are retained under
+`scripts/original-languages/morphology-sources/` with checksums in the generated
+artifact. See [the source tagging guide](https://github.com/biblicalhumanities/Nestle1904/blob/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph/parsing.txt)
+and [Mounce's discussion of the aorist and context](https://www.billmounce.com/newtestamentgreek1/exegetical-insight-chapter-23).
 
 ### Old Testament lemma concordance
 
@@ -84,9 +152,14 @@ No verse notes are displayed or opened by ordinary parallel taps.
 Turning off correspondence colors/patterns retains word lookup. Multi-verse
 selection temporarily pauses word interactions. Saved annotations are unchanged.
 
-The generated Greek concordance has 137,779 source-word records and 5,401 distinct
-source lemma labels. The generator checks every word range against the exact
-installed verse text and pins the same morphology file SHA-256 as the reader:
+The generated Greek concordance has 137,779 source-word records and 5,402 distinct
+lemma labels. The generator checks every word range against the exact installed
+verse text and pins the same morphology file SHA-256 as the reader. Three exact
+occurrence corrections in `greek-nt-metadata-errata.json` distinguish the place
+name Assos (Acts 20:13–14) and the possessive pronoun in John 11:32 from lookalike
+adverbs. The generated concordance retains their original annotations, corrected
+annotations, reasons and primary-source citations. Raw Greek text and its source
+checksum remain unchanged; unrelated lemma indexes remain stable:
 
 ```sh
 python3 scripts/original-languages/build-concordance.py /path/to/Nestle1904/morph/Nestle1904.csv
@@ -99,29 +172,21 @@ correspond to several English words, including translator-supplied syntax.
 Patterns show the publisher’s correspondence, not an assertion of one-to-one
 lexical equivalence.
 
-The importer requires the entire verse’s Greek token sequence to match the
-chosen Nestle edition (ignoring accents, punctuation and case, plus two reviewed
-spelling pairs: Δαυεὶδ/Δαυὶδ and συνπαρακληθῆναι/συμπαρακληθῆναι), and the entire
-English token sequence to match the bundled BSB wording (ignoring case and
-punctuation). It leaves differing verses unlinked. Runtime checks also require
-exact displayed texts and valid character ranges before showing any links.
+The importer transfers only token correspondences present in every optimal exact
+sequence alignment across the publisher and installed editions. A changed verse
+can retain its unambiguous phrases; ambiguous repeated words remain unlinked.
+Every publisher English phrase must survive whole and contiguous. Greek matching
+ignores accents, punctuation and case, with two reviewed spelling pairs:
+Δαυεὶδ/Δαυὶδ and συνπαρακληθῆναι/συμπαρακληθῆναι. Accepted semantic corrections
+then replace misleading publisher edges, including the three Mark 4 cases where
+accent removal had confused the preposition ἐν with the numeral ἕν.
 
-Current pinned BSB data has **95,567 word/phrase groups across 6,647 NT verses**.
-**1,296 Greek-source verse records have no links** because a Greek or English
-edition's wording differs. The Romans subset has 5,232 groups across 380 verses,
-with 52 unlinked verses. Romans 1:3 and 1:12 previously had `greek-edition-differs`
-because of the two spelling pairs above. The pinned source morphology and BSB
-publisher table attest the same words (G1138 and G4837). Allowing only these
-exact pairs restores 50 NT verses; existing mappings and displayed Greek text
-remain unchanged. No fuzzy or lemma matching is used. The repaired Philippians
-4:12 entry records an explicit reviewed phrase mapping, checked against the
-displayed Greek and BSB texts and the published interlinear. It previously had
-`english-edition-differs`, which explained the missing colors. Other differing
-verses remain unlinked with a visible explanation. The per-book files and index include counts, source hashes and
-artifact hashes. Tests check every shipped mapping against both installed texts,
-plus contextual and repeated-word examples. These checks establish source
-correspondence, not a human review of every lexical interpretation. Changing
-BSB text or the Greek source requires regenerating and reviewing the artifacts.
+The per-book manifests record current counts, source hashes and artifact hashes.
+Runtime checks require exact displayed texts and valid source/target ranges.
+Tests check every shipped mapping against both editions, alongside contextual,
+repeated-word and independently reviewed correction examples. Mechanical checks
+and publisher provenance do not establish human review of every interpretation.
+Changing BSB text or the Greek source requires regeneration and review.
 
 ## Sources and licensing
 
@@ -151,7 +216,10 @@ Download the pinned repository and the publisher TSV. Then, from this repo:
 python3 scripts/generateOriginalLanguages.py \
   --nestle /path/to/Nestle1904/morph/Nestle1904.csv \
   --berean /path/to/bsb_tables.tsv --all-nt-links
+python3 scripts/original-languages/build-concordance.py /path/to/Nestle1904/morph/Nestle1904.csv
+python3 scripts/original-languages/build-kjv-links.py --osis /path/to/kjv.osis.xml
 python3 scripts/original-languages/build-lsv-links.py
+python3 scripts/original-languages/audit-nt-word-links.py --output /tmp/nt-word-accounting.json
 npx vitest run src/data/originalLanguages.test.js src/services/wordStudyTranslations.test.js src/components/WordLinks.test.jsx src/components/VerseText.test.jsx
 npm run build
 ```
@@ -170,32 +238,100 @@ passed. The generator checks all written source-word identities and output
 hashes; these checks do not establish word alignment with every translation.
 Physical-phone and e-ink acceptance, deployment and a new APK remain separate.
 
-## Partial LSV links
+## LSV correspondence reviews
 
-LSV can use the same parallel colors, hold-to-identify and Greek lemma lookup.
-There was no LSV mapping in the installed corpus. The new per-book package
-contains 24,752 groups across 6,374 NT verses. These are **partial automatic
-phrase correspondences**, not a complete publisher-attested LSV interlinear.
-The generator transfers a BSB publisher correspondence only when its whole-word
-English phrase occurs once in both the BSB and LSV verse. Function-only phrases,
-repeated phrases, overlapping destinations and differing Greek editions are
-omitted. Philippians 4:12 has an explicit reviewed mapping, including
-“initiated,” “full” and “in want.” Romans 1:3 and 1:12 also have explicit reviewed
-phrase mappings against the installed LSV wording and pinned Greek tokens,
-checked against the published [Romans 1:3](https://biblehub.com/interlinear/romans/1-3.htm)
-and [Romans 1:12](https://biblehub.com/interlinear/romans/1-12.htm) interlinear.
-Runtime text and offset checks remain strict.
-Hebrew/Aramaic English phrase links are not supplied by this package. LSV has
-source-word study throughout the installed OT/NT witness, and its occurrence
-results now show LSV context. Translated-phrase highlighting remains partial and
-explicit. The absence of a reliable English match never prevents choosing the
-original word from the complete source verse.
+LSV mappings are being completed chapter by chapter across all 27 New Testament
+books. This work remains in progress; neither a linked-verse count nor a high
+color percentage establishes complete or correct correspondence.
 
-Run `build-lsv-links.py` after the publisher-data generator to restore the
-reviewed BSB repair and regenerate all LSV files and manifest hashes. LSV text
-and the mapping adaptation retain Covenant Press attribution and CC BY-SA 4.0.
-The LSV USFM Strong tags were not used: the downloaded Philippians 4:12 tags
-misassign several phrases, including “full,” and omit others.
+The reproducible base transfers exact shared BSB phrases, and preserves all
+publisher correspondences when the complete displayed English word sequences
+are identical. It does not guess synonyms or trust the defective eBible LSV
+Strong tags. A broader lexical-scoring experiment was withheld after independent
+samples found wrong articles, pronouns and repeated verbs; its proposals are not
+part of the installed corpus.
+
+`/scripts/original-languages/reviewed-lsv/` holds explicit verse reviews. Each
+source token is either linked to exact English wording, accounted for at its
+actual neighboring translated reference, or given a specific explanation for a
+real witness difference or unexpressed grammatical word. Supplied English words
+also have explicit explanations. Source and English phrase offsets are compiled
+from the unchanged displayed corpora. Disjoint source and target segments remain
+separate; intervening words are not swept into a highlight.
+
+`lsv-review-status.json` admits a resource to the canonical build only after
+mechanical validation and a separate assistant semantic review. Accepted source
+files are hash-pinned; editing one requires renewing that review entry. New draft
+chapters are excluded. This is assistant review, with the reader's review still
+pending, rather than a claim of human scholarly certification. The generated
+index records the current accepted resources and reviewed-entry count, including
+source-only boundary records whose English counterpart is at another reference.
+The compiler also uses the exact occurrence's article identity to reject a sole
+Greek article linked to English `is`, `are`, `was` or `were`. Such an auxiliary
+belongs with an actual predicate or needs a supplied-copula explanation. Complete
+nominal constituents remain supported; this guard does not invent a substitute
+verb or replace semantic review.
+
+Case relations stay with their actual nominal or infinitival heads. For example,
+Colossians 4:18 “by ... hand” selects the dative hand constituent, while “my”
+retains its separate possessive anchor. Bounded corrections to accepted reviews
+preserve the exact previous resource and a separate author-and-peer proof of
+the changed groups; the registry then pins the reviewed replacement. Other
+candidate constructions remain subject to individual review.
+
+Word study retains every lemma in a checked phrase. For English content words,
+the initial selection prefers the content head over a supporting Greek being
+verb, article or other function word. In Colossians 2:8, clicking LSV “carrying”
+opens the actual carrying participle, while “be” opens the actual future being
+form. Original-language clicks continue to select their exact original word.
+
+The source witness reference is an explicit part of an anchor. For example,
+Philippians 1:16–17 is transposed between LSV and N1904; John and Romans also move
+clauses across verse boundaries. The reader joins exact original token identities
+across these references and shows the actual matching reference. It never changes
+the named Greek source to agree with a translation. Source-lemma lookup retains
+those original references, even from an English word in a different verse.
+
+Acts 22:17–18 shares the one written accusative subject of its two coordinated
+infinitives; the repeated English “I” keeps that actual 22:17 anchor. Acts 24:18
+places the Asian Jews phrase before “found,” while N1904 prints those words at
+24:19. Each linked word keeps its true 24:19 identity. The longer LSV passage in
+24:6–8 has explicit witness notes, including the wholly absent Greek 24:7.
+
+Repeated words also retain their identities when clauses change order within a
+verse. In 1 Corinthians 8:8, LSV puts the eating/being-in-advance condition before
+the not-eating/being-behind condition; N1904 has the reverse order. The two actual
+eating predicates, condition markers and negatives stay with their own clauses.
+The unlike habit/conscience readings in 8:7 remain explicitly unpaired rather
+than assigning the later conscience occurrence to both English words.
+
+An English name can clarify a printed Greek pronoun; its link retains the actual
+pronoun and identifies the naming as the translation's wording. When source
+evidence instead documents a different printed noun/pronoun reading, the unlike
+heads remain unpaired with a witness note. For example, Luke 6:10 has N1904
+«to him» versus the named «to the man» reading documented in the pinned TR.
+LSV USFM Strong tags do not establish these identities; some tags do not match
+the words they annotate.
+
+The generic compiler also supports hash-pinned `reviewed-bsb/` and `reviewed-kjv/`
+corrections. The LSV build stages accepted BSB corrections before deriving shared
+phrases and promotes them only after review validation succeeds. The KJV builder
+applies its own accepted registry. KJV Philippians
+3:21 corrects a publisher's pronoun assignment: the actual genitive **His** is
+linked to **his**, while the longer witness's **that it may be** is explicitly
+unpaired. Publisher data is source evidence, not a guarantee against semantic
+annotation errors. See [KJV sources and reproduction](KJV-WORD-LINKS.md).
+
+`audit-nt-word-links.py` counts actual original identities and every English
+word across the entire NT, including references with no same-numbered Greek
+verse. Each word is mapped, explicitly explained as unpaired, or unresolved.
+Moved clauses count at their actual source reference. Linked verses, mapped word
+percentages, and fully reviewed verses are reported separately. An unresolved
+word is not automatically classified as a witness difference or omitted grammar.
+
+All mappings retain Covenant Press attribution and CC BY-SA 4.0 for the LSV
+adaptation. The Old Testament phrase-mapping phase has not started; it follows
+the reader's New Testament review.
 
 ### LSV paragraph source audit
 

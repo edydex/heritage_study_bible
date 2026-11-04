@@ -37,5 +37,18 @@ jobs:
       - name: Run E2E tests
         run: npm run test:e2e
 
+      - name: Retain navigation wheel failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: heritage-navigation-wheel-failures
+          path: |
+            test-results/navigation-wheel-*/trace.zip
+            test-results/navigation-wheel-*/test-failed-*.png
+            test-results/navigation-wheel-*/navigation-wheel-failure.json
+            test-results/navigation-wheel-*/error-context.md
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Build
         run: npm run build

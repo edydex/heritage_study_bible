@@ -260,6 +260,10 @@ public class HeritagePlaybackService extends MediaLibraryService {
                 player.prepare();
             }
             MediaSession.ConnectionResult.AcceptedResultBuilder builder = new MediaSession.ConnectionResult.AcceptedResultBuilder(mediaSession, controller);
+            // Auto's verified app identity is sufficient for standard playback
+            // controls even without framework notification-listener trust.
+            if (verified && mediaSession.isAutoCompanionController(controller))
+                builder.setAvailablePlayerCommands(MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS);
             if (controller.getUid() == android.os.Process.myUid()) builder.setAvailableSessionCommands(
                 MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon().add(new SessionCommand(COMMAND, Bundle.EMPTY)).build());
             return Futures.immediateFuture(builder.build());

@@ -274,8 +274,8 @@ html.capacitor-android header.sticky.top-0 {
   }
 }
 
-/* Word correspondence is separate from saved verse/text highlights. Patterns
-   deliberately repeat; focus/tap identifies the exact pair on both sides. */
+/* Correspondence colors are unique within a verse. B&W patterns repeat, while
+   focus/tap identifies the exact pair on both sides. */
 .bible-word-link {
   padding-bottom: 4px;
   background-position: left bottom;
@@ -306,9 +306,46 @@ html.capacitor-android header.sticky.top-0 {
 .word-links-color [data-word-pattern="3"] { background-color: rgb(192 132 252 / .18); }
 .word-links-color [data-word-pattern="4"] { background-color: rgb(251 113 133 / .18); }
 .word-links-color [data-word-pattern="5"] { background-color: rgb(34 211 238 / .18); }
-.parallel-word-study .bible-word-link { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.word-links-color .bible-word-link[data-word-color] {
+  --word-link-texture-ink: rgb(0 0 0 / .09);
+  --word-link-cross-ink: rgb(0 0 0 / .05);
+  background-color: var(--word-link-light);
+  background-image: var(--word-link-texture, none);
+  background-size: var(--word-link-texture-size, 8px 8px);
+  background-position: left top;
+  background-repeat: repeat;
+  box-shadow: inset 0 -1.5px 0 var(--word-link-edge);
+  border-radius: 2px;
+}
+.dark .word-links-color .bible-word-link[data-word-color] {
+  --word-link-texture-ink: rgb(0 0 0 / .36);
+  --word-link-cross-ink: rgb(0 0 0 / .22);
+  background-color: var(--word-link-dark);
+  box-shadow: inset 0 -1.5px 0 var(--word-link-dark-edge);
+}
+.word-links-color [data-word-texture="0"] { --word-link-texture: repeating-linear-gradient(135deg, var(--word-link-texture-ink) 0 1px, transparent 1px 7px); }
+.word-links-color [data-word-texture="1"] { --word-link-texture: radial-gradient(circle at 2px 2px, var(--word-link-texture-ink) 1px, transparent 1.3px); --word-link-texture-size: 7px 7px; }
+.word-links-color [data-word-texture="2"] { --word-link-texture: repeating-linear-gradient(45deg, var(--word-link-texture-ink) 0 1px, transparent 1px 7px); }
+.word-links-color [data-word-texture="3"] { --word-link-texture: repeating-linear-gradient(0deg, var(--word-link-texture-ink) 0 1px, transparent 1px 6px); }
+.word-links-color [data-word-texture="4"] { --word-link-texture: repeating-linear-gradient(90deg, var(--word-link-texture-ink) 0 1px, transparent 1px 6px); }
+.word-links-color [data-word-texture="5"] { --word-link-texture: repeating-linear-gradient(45deg, var(--word-link-cross-ink) 0 1px, transparent 1px 8px), repeating-linear-gradient(135deg, var(--word-link-cross-ink) 0 1px, transparent 1px 8px); }
+.word-links-color [data-word-texture="6"] { --word-link-texture: linear-gradient(var(--word-link-cross-ink) 1px, transparent 1px), linear-gradient(90deg, var(--word-link-cross-ink) 1px, transparent 1px); --word-link-texture-size: 7px 7px; }
+.word-links-color [data-word-texture="7"] { --word-link-texture: radial-gradient(circle at 3px 3px, transparent 1.2px, var(--word-link-texture-ink) 1.3px 2px, transparent 2.1px); }
+.parallel-word-study .bible-word-link { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: pan-y pinch-zoom; }
+.parallel-word-study .bible-word-link-active { background-color: rgb(250 204 21 / .36); outline: 2px solid currentColor; outline-offset: 1px; border-radius: 3px; box-shadow: 0 0 0 2px rgb(250 204 21 / .15); }
+.parallel-word-study.word-links-color .bible-word-link-active[data-word-color] { background-color: rgb(250 204 21 / .36); box-shadow: 0 0 0 2px rgb(250 204 21 / .15); }
+.word-links-monochrome .bible-word-link-active { background-color: rgb(127 127 127 / .2); box-shadow: none; }
+.word-match-bar > [role="status"] { flex: 1 1 180px; overflow-wrap: anywhere; }
 .word-study-dialog { width: min(680px, calc(100vw - 24px)); max-height: calc(100dvh - 48px); margin: auto; }
 .word-study-dialog::backdrop { background: rgb(0 0 0 / .5); }
+.word-grammar-tooltip { left: 0; }
+/* Let a pointer cross the visual spacing without dismissing the help. */
+.word-grammar-tooltip::before { content: ''; position: absolute; inset: -8px 0 auto; height: 8px; }
+.word-grammar-feature:nth-child(2n) .word-grammar-tooltip { left: auto; right: 0; }
+@media (min-width: 640px) {
+  .word-grammar-feature:nth-child(2n) .word-grammar-tooltip { left: 0; right: auto; }
+  .word-grammar-feature:nth-child(3n) .word-grammar-tooltip { left: auto; right: 0; }
+}
 
 /* Keep reading text responsive to the shared header font controls. */
 .reader-content { overflow-wrap: anywhere; }

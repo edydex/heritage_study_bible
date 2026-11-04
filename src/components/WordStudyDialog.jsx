@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { studyWord, sourceVerseWords, loadOccurrenceTranslations, occurrenceKey } from '../services/wordStudy'
+import GreekWordForm from './GreekWordForm'
+import { NATIVE_READER_TARGET_CHANGE_EVENT } from '../services/androidControls'
 
 export function OccurrenceText({ text, ranges = [] }) {
   const merged = []
@@ -24,13 +26,17 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
   const [comparison, setComparison] = useState(null), [comparisonError, setComparisonError] = useState(false), [comparisonRetry, setComparisonRetry] = useState(0)
   const [sourceWords, setSourceWords] = useState(null), [sourceError, setSourceError] = useState(false), [sourceLoading, setSourceLoading] = useState(false), [sourceWord, setSourceWord] = useState(null)
   const studyTarget = sourceWord || word
-  const comparisonTranslationId = ['LSV', 'KJV'].includes(word.comparisonTranslationId || word.translationId) ? (word.comparisonTranslationId || word.translationId) : 'BSB'
-  useEffect(() => { setSourceWords(null); setSourceError(false); setSourceLoading(false); setSourceWord(null) }, [word])
+  const preferredTranslation = word.comparisonTranslationId || word.translationId
+  const defaultComparisonId = ['LSV', 'KJV', 'SYNO-W'].includes(preferredTranslation) ? preferredTranslation : 'BSB'
+  const [comparisonTranslationId, setComparisonTranslationId] = useState(defaultComparisonId)
+  const russian = preferredTranslation === 'SYNO-W'
+  useEffect(() => { setSourceWords(null); setSourceError(false); setSourceLoading(false); setSourceWord(null); setComparisonTranslationId(defaultComparisonId) }, [word, defaultComparisonId])
   const dialog = useRef(null)
   useEffect(() => {
     const node = dialog.current
     node.showModal()
-    return () => node.close()
+    window.dispatchEvent(new Event(NATIVE_READER_TARGET_CHANGE_EVENT))
+    return () => { node.close(); window.dispatchEvent(new Event(NATIVE_READER_TARGET_CHANGE_EVENT)) }
   }, [])
   useEffect(() => {
     let live = true
@@ -53,14 +59,18 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
     try { setSourceWords(await sourceVerseWords(word)) } catch { setSourceError(true) }
     finally { setSourceLoading(false) }
   }
-  return <dialog ref={dialog} onCancel={onClose} onClick={event => { if (event.target === dialog.current) onClose() }} className="word-study-dialog rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-5" aria-label={`Word study: ${word.word}`}>
+  return <dialog ref={dialog} data-word-study-scroll-region="true" onCancel={onClose} onClick={event => { if (event.target === dialog.current) onClose() }} className="word-study-dialog overflow-y-auto rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-5" aria-label={`Word study: ${word.word}`}>
     <header className="flex items-center justify-between gap-4"><h2 className="text-xl font-semibold">{studyTarget.word}</h2><button autoFocus onClick={onClose} aria-label="Close word study" className="p-2">✕</button></header>
+    {word.notes?.length > 0 && <details className="mt-3 text-sm"><summary>Reading note</summary>{word.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}
     {word.translationId !== 'ORIGINAL' && !word.sourceRange && <div className="mt-3 border rounded p-3">
-      <button className="underline" disabled={sourceLoading} onClick={openSourceVerse}>{sourceLoading ? 'Loading original verse…' : sourceWords ? 'Reload original verse' : 'Study original words in this verse'}</button>
+      <button className="underline" disabled={sourceLoading} onClick={openSourceVerse}>{russian ? (sourceLoading ? 'Загрузка оригинала…' : sourceWords ? 'Загрузить оригинал ещё раз' : 'Изучить слова оригинала в этом стихе') : (sourceLoading ? 'Loading original verse…' : sourceWords ? 'Reload original verse' : 'Study original words in this verse')}</button>
       {sourceError && <p role="status">The original verse could not load. Try again.</p>}
       {sourceWords?.length === 0 && <p className="mt-2 text-sm">No original verse is present in the installed source at this reference.</p>}
-      {sourceWords?.length > 0 && <><p className="mt-2 text-sm">Choose a word from the original verse to find its source lemma across the Bible. No exact translation match is implied for “{word.word}”.</p>
-        <div dir="auto" className="mt-2 flex flex-wrap gap-2">{sourceWords.map(item => <button key={item.id} className="border rounded px-2 py-1 text-lg" aria-pressed={sourceWord?.id === item.id} onClick={() => setSourceWord(item)}>{item.word}</button>)}</div>
+      {sourceWords?.length > 0 && <><p className="mt-2 text-sm">{russian ? `Выберите слово в оригинале. Точное соответствие русскому слову «${word.word}» пока не установлено.` : `Choose a word from the original verse to find its source lemma across the Bible. No exact translation match is implied for “${word.word}”.`}</p>
+        <div dir="auto" className="mt-2 flex flex-wrap gap-2">{sourceWords.map((item, index) => <Fragment key={item.id}>
+          {(index === 0 || sourceWords[index - 1].chapter !== item.chapter || sourceWords[index - 1].verse !== item.verse) && <span className="basis-full text-xs">Original · {item.book} {item.chapter}:{item.verse}</span>}
+          <button className="border rounded px-2 py-1 text-lg" aria-pressed={sourceWord?.id === item.id} onClick={() => setSourceWord(item)}>{item.word}</button>
+        </Fragment>)}</div>
         {sourceWord && <button className="mt-2 underline text-sm" onClick={() => setSourceWord(null)}>Back to {word.translationId} word forms</button>}
       </>}
     </div>}
@@ -68,21 +78,33 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
     {error && <p role="status">{error} <button className="underline" onClick={() => setRetry(value => value + 1)}>Retry</button></p>}
     {data && <>
       <p className="text-sm mt-2">{data.kind === 'lemma' ? 'Occurrences of the source lemma, including its inflected forms.' : 'Matching word form (accents and case ignored), not a dictionary root.'} {data.scope}.</p>
-      {showTranslation && <p className="text-sm mt-2">{comparisonTranslationId} wording appears with each verse. {data.sourceId === 'WLC-OSHB' ? 'The Hebrew/Aramaic word is highlighted; an exact English word match is not available.' : <>Highlighted phrases use installed translation links; a phrase may include more than one English word.{comparisonTranslationId === 'LSV' && ' LSV phrase links are partial.'}</>}</p>}
+      {showTranslation && <>
+        <label className="block text-sm mt-3">Verse wording <select className="ml-2 rounded border bg-white dark:bg-gray-800 px-2 py-1" value={comparisonTranslationId} onChange={event => setComparisonTranslationId(event.target.value)}>
+          <option value="BSB">BSB</option><option value="LSV">LSV</option><option value="KJV">KJV</option><option value="SYNO-W">Russian Synodal</option>
+        </select></label>
+        <p className="text-sm mt-2">{comparisonTranslationId === 'SYNO-W' ? 'Синодальный перевод показан для контекста. Точные связи русских слов со словами оригинала пока не установлены; русские слова здесь не выделяются.' : <>{comparisonTranslationId} wording appears with each verse. {data.sourceId === 'WLC-OSHB' ? 'The Hebrew/Aramaic word is highlighted; an exact English word match is not available.' : <>Highlighted phrases use installed translation links; a phrase may include more than one English word.{comparisonTranslationId === 'LSV' && ' LSV phrase links are partial.'}</>}</>}</p>
+      </>}
       {data.groups.length > 1 && <div className="flex flex-wrap gap-2 mt-3">{data.groups.map((item, index) => <button key={item.lemma} className="border rounded px-3 py-2" aria-pressed={selected === index} onClick={() => { setSelected(index); setLimit(40) }}>{item.lemma}</button>)}</div>}
       {group && <>
         <h3 className="font-semibold mt-4">{group.lemma} {data.sourceId !== 'WLC-OSHB' && group.strongs.map(value => `G${value}`).join(' / ')}{group.language && <span className="ml-2 font-normal text-sm">{group.language === 'arc' ? 'Aramaic' : 'Hebrew'}</span>}</h3>
         <p className="text-sm">{group.results.reduce((count, row) => count + row.count, 0)} occurrences in {group.results.length} verses</p>
+        {data.sourceId === 'N1904' && <GreekWordForm word={studyTarget} lemma={group.lemma} defaultLanguage={russian ? 'ru' : 'en'} />}
         {showTranslation && !comparison && !comparisonError && <p role="status" className="text-sm mt-2">Loading {comparisonTranslationId} wording…</p>}
         {comparisonError && <p role="status" className="text-sm mt-2">Some {comparisonTranslationId} wording or word mappings could not load. The source verses are still available. <button className="underline" onClick={() => setComparisonRetry(value => value + 1)}>Retry translations</button></p>}
         <ul className="mt-3 space-y-3">{group.results.slice(0, limit).map(row => {
           const translation = comparison?.[occurrenceKey(row)]
-          return <li key={occurrenceKey(row)}><button className="text-left w-full rounded border border-gray-200 dark:border-gray-700 p-3" onClick={() => { onClose(); onNavigate?.(row.book, row.chapter, row.verse || 1) }}>
+          const contexts = translation?.contexts?.length ? translation.contexts : translation ? [translation] : []
+          const destination = translation?.contexts?.[0] || row
+          return <li key={occurrenceKey(row)}><button className="text-left w-full rounded border border-gray-200 dark:border-gray-700 p-3" onClick={() => { onClose(); onNavigate?.(row.book, destination.chapter, destination.verse || 1) }}>
             <strong>{row.book} {row.chapter}{row.heading ? ' · source heading' : `:${row.verse}`}</strong>
             {translation && <div className="mt-2" data-occurrence-translation={comparisonTranslationId}>
-              <p className="text-sm font-semibold">{translation.phrases.length ? `${comparisonTranslationId} · ${translation.phrases.map(phrase => `“${phrase}”`).join(' / ')}` : comparisonTranslationId}</p>
-              {translation.text ? <p className="mt-1"><OccurrenceText text={translation.text} ranges={translation.ranges} /></p> : <p className="text-sm italic">{row.heading ? 'Source heading shown below.' : `Verse not present in ${comparisonTranslationId}.`}</p>}
-              {translation.status === 'unmapped' && <p className="text-xs mt-1 text-gray-600 dark:text-gray-300">Exact word mapping unavailable; the full verse is shown for context.</p>}
+              {contexts.map((context, index) => <div key={index} className={index ? 'mt-3' : ''}>
+                <p className="text-sm font-semibold">{comparisonTranslationId}{context.chapter && (context.chapter !== row.chapter || context.verse !== row.verse) ? ` ${context.chapter}:${context.verse}` : ''}{context.phrases.length ? ` · ${context.phrases.map(phrase => `“${phrase}”`).join(' / ')}` : ''}</p>
+                {context.text ? <p className="mt-1"><OccurrenceText text={context.text} ranges={context.ranges} /></p> : <p className="text-sm italic">{row.heading ? 'Source heading shown below.' : `Verse not present in ${comparisonTranslationId}.`}</p>}
+                {context.notes?.map((note, noteIndex) => <p key={noteIndex} className="text-xs mt-1 text-gray-600 dark:text-gray-300">Reading note: {note}</p>)}
+              </div>)}
+              {translation.status === 'unmapped' && <p className="text-xs mt-1 text-gray-600 dark:text-gray-300">{comparisonTranslationId === 'SYNO-W' ? 'Точное соответствие слов пока не установлено; стих показан для контекста.' : 'Exact word mapping unavailable; the full verse is shown for context.'}</p>}
+              {translation.reasons?.map((reason, index) => <p key={index} className="text-xs mt-1 text-gray-600 dark:text-gray-300">{reason}</p>)}
               {translation.status === 'matched' && translation.missingCount > 0 && <p className="text-xs mt-1 text-gray-600 dark:text-gray-300">Some occurrences in this verse have no checked translation match.</p>}
             </div>}
             <p className={`mt-2 ${showTranslation ? 'text-sm text-gray-600 dark:text-gray-300' : ''}`}>
