@@ -65,7 +65,8 @@ unlike receiving participants in 3:6 and closing KJV subscription remain
 explicitly unpaired. Browser checks cover these distinct heads, shared
 predicates, matching colors and finger tap/hold word study.
 
-Colossians 2–4 have complete BSB and KJV assistant author-and-peer reviews. At 2:15,
+All four chapters of Colossians have complete BSB and KJV assistant
+author-and-peer reviews. At 2:15,
 the publisher's BSB “by the cross” wording and KJV “in it” retain the actual
 preposition and pronoun. Word study opens that pronoun without borrowing the
 cross noun from 2:14 or deciding the pronoun's Greek antecedent. A browser case
@@ -76,9 +77,12 @@ repeated sending event at 4:9 retains the actual 4:8 sending verb and its aorist
 analysis. The same coordinated greeting list keeps the actual 4:10 greeting
 predicate when BSB repeats it at 4:11. These are scoped resumptions of the same
 events, with their original references, rather than invented source words.
-Chapter 1 remains partial in this checkpoint. Admitting its full-chapter
-replacement requires preserving the existing accepted entries and renewing the
-resource's reviewed hash before the canonical build.
+The full chapter 1 replacements preserve the three previously accepted verse
+objects exactly and renew only those two resources' reviewed hashes. KJV's
+reconciliation predicate displayed at 1:21 keeps its actual N1904 1:22 anchor;
+it matches BSB's 1:22 reconciliation, with the actual aorist analysis retained
+under the English perfect wording. Desktop and finger tap/hold browser cases
+check the shared colors, separate alienation word and original study reference.
 
 The source is [CrossWire KJV](https://gitlab.com/crosswire-bible-society/kjv) revision `d490be7e34762deb2c76cb2c1306d4808e27890d`, file [`kjv.osis.xml`](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml), SHA-256 `4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5`. Its [module configuration](https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.conf) identifies version 3.1, credits the KJV2003 Project, CrossWire Bible Society and Maurice A. Robinson's TR data, records `DistributionLicense=GPL`, and grants use of the project text for any purpose. The generated provenance retains those terms and credits; it does not relabel the source as CC0.
 

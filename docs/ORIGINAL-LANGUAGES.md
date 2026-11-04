@@ -298,6 +298,25 @@ places the Asian Jews phrase before “found,” while N1904 prints those words 
 24:19. Each linked word keeps its true 24:19 identity. The longer LSV passage in
 24:6–8 has explicit witness notes, including the wholly absent Greek 24:7.
 
+All 28 chapters of Acts now have full LSV author-and-peer correspondence
+reviews. The double-bracketed LSV 28:29 remains explained as absent from N1904,
+with no neighboring Greek borrowed to fill it. At 28:27, the second hearing
+clause is printed in both Greek witnesses but omitted in the installed LSV and
+its pinned publisher USFM; those actual source words remain explicitly
+unpaired. These reviews preserve the named texts rather than silently editing
+either witness.
+
+The first four chapters of 2 Corinthians have full LSV author-and-peer reviews.
+At 2:10, the two actual perfect forgiveness predicates retain their distinct
+occurrences despite the English clause order. The final supplied forgiveness
+resumption shares only its immediate real predicate. At 4:14, N1904's
+with-Jesus relation differs from LSV's through-Jesus relation following printed
+TR; the preposition stays explicitly unpaired while the actual Jesus name
+retains its dative analysis. Differences in English expression do not change
+the source tags. For example, 1:23's actual negative-temporal word is left
+separate from LSV's “not ... yet”; the note distinguishes this translation
+difference from a written N1904/TR variant.
+
 Repeated words also retain their identities when clauses change order within a
 verse. In 1 Corinthians 8:8, LSV puts the eating/being-in-advance condition before
 the not-eating/being-behind condition; N1904 has the reverse order. The two actual

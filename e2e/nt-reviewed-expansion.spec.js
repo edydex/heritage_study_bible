@@ -92,6 +92,95 @@ test('a feeding verb does not invent a source pronoun for its supplied English r
   await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G5595')
 })
 
+test('the moved Colossians reconciliation keeps its source verse and cross-translation styling', async ({ page }) => {
+  await compare(page, 'colossians', 1, 'KJV', 'BSB')
+  const kjv = words(page, 'KJV', 1, 21, /^reconciled$/)
+  const bsb = words(page, 'BSB', 1, 22, /^reconciled$/)
+  await expect(kjv).toHaveAttribute('data-word-paired', 'true')
+  const color = await kjv.getAttribute('data-word-color')
+  expect(color).not.toBeNull()
+  await expect(bsb).toHaveAttribute('data-word-color', color)
+  await expect(bsb).toHaveAttribute('data-word-texture', await kjv.getAttribute('data-word-texture'))
+  await kjv.click()
+  await expect(bsb).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'KJV', 1, 21, /^alienated$/)).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { level: 3 }).first()).toContainText('G604')
+  const grammar = dialog.locator('[data-word-grammar]')
+  await expect(grammar.locator('[data-grammar-reference="Colossians:1:22"]')).toHaveCount(1)
+  await expect(grammar.getByRole('button', { name: /Tense \/ aspect: Aorist/ })).toBeVisible()
+})
+
+test('reordered forgiveness clauses retain both actual perfect occurrences and only their own resumption', async ({ page }) => {
+  await compare(page, '2-corinthians', 2, 'LSV', 'ORIGINAL')
+  const english = words(page, 'LSV', 2, 10, /^forgiven$/)
+  const greek = words(page, 'ORIGINAL', 2, 10, /^κεχ.ρισμαι$/)
+  await expect(english).toHaveCount(2)
+  await expect(greek).toHaveCount(2)
+  for (const [target, source] of [[0, 1], [1, 0]]) {
+    await english.nth(target).click()
+    await expect(greek.nth(source)).toHaveClass(/bible-word-link-active/)
+    await expect(greek.nth(1 - source)).not.toHaveClass(/bible-word-link-active/)
+    await page.getByRole('button', { name: 'Clear word match' }).click()
+  }
+  await words(page, 'LSV', 2, 10, /^forgive$/).nth(1).click()
+  await expect(greek.nth(0)).toHaveClass(/bible-word-link-active/)
+  await expect(english.nth(1)).toHaveClass(/bible-word-link-active/)
+  await expect(english.nth(0)).not.toHaveClass(/bible-word-link-active/)
+})
+
+test('an unlike through reading stays unpaired while the actual second Jesus remains distinct', async ({ page }) => {
+  await compare(page, '2-corinthians', 4, 'LSV', 'ORIGINAL')
+  await expect(words(page, 'LSV', 4, 14, /^through$/)).toHaveAttribute('data-word-paired', 'false')
+  const english = words(page, 'LSV', 4, 14, /^Jesus$/)
+  await english.nth(1).click()
+  await expect(words(page, 'ORIGINAL', 4, 14, /^Ἰησοῦ$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 4, 14, /^Ἰησοῦν$/)).not.toHaveClass(/bible-word-link-active/)
+  const withWords = words(page, 'ORIGINAL', 4, 14, /^σὺν$/)
+  await expect(withWords).toHaveCount(2)
+  await expect(withWords.nth(0)).toHaveAttribute('data-word-paired', 'false')
+  await expect(withWords.nth(1)).toHaveAttribute('data-word-paired', 'true')
+  for (const index of [0, 1]) await expect(withWords.nth(index)).not.toHaveClass(/bible-word-link-active/)
+  await expect(english.nth(0)).not.toHaveClass(/bible-word-link-active/)
+})
+
+test('the added Acts verse has explained English without borrowing neighboring Greek', async ({ page }) => {
+  await compare(page, 'acts', 28, 'LSV', 'ORIGINAL')
+  const verse = page.locator('#verse-28-29')
+  await expect(verse.locator('[data-translation="LSV"] [data-word-link]')).not.toHaveCount(0)
+  await expect(verse.locator('[data-translation="LSV"] [data-word-paired="true"]')).toHaveCount(0)
+  await expect(verse.locator('[data-translation="ORIGINAL"] [data-word-link]')).toHaveCount(0)
+  await words(page, 'LSV', 28, 29, /^went$/).click()
+  await expect(page.locator('[data-translation="ORIGINAL"] .bible-word-link-active')).toHaveCount(0)
+})
+
+test.describe('reviewed Colossians reconciliation on touch screens', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } })
+
+  test('tap and a held finger study the moved reconciliation predicate', async ({ page }) => {
+    await compare(page, 'colossians', 1, 'KJV', 'BSB')
+    const reconciled = words(page, 'KJV', 1, 21, /^reconciled$/)
+    await reconciled.tap()
+    await expect(words(page, 'BSB', 1, 22, /^reconciled$/)).toHaveClass(/bible-word-link-active/)
+    await page.getByRole('button', { name: 'Clear word match' }).tap()
+    await reconciled.scrollIntoViewIfNeeded()
+    const box = await reconciled.boundingBox()
+    const touch = await page.context().newCDPSession(page)
+    const x = box.x + box.width / 2, y = box.y + box.height / 2
+    try {
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] })
+      const dialog = page.getByRole('dialog')
+      await expect(dialog.getByRole('heading', { level: 3 }).first()).toContainText('G604')
+      await expect(dialog.locator('[data-grammar-reference="Colossians:1:22"]')).toHaveCount(1)
+    } finally {
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+      await touch.detach()
+    }
+    await expect(page.getByRole('dialog')).toBeVisible()
+  })
+})
+
 test('the resumed prices in Acts keep the actual preceding-verse source occurrence', async ({ page }) => {
   await compare(page, 'acts', 4, 'LSV', 'ORIGINAL')
   const resumed = words(page, 'LSV', 4, 35, /^them$/)

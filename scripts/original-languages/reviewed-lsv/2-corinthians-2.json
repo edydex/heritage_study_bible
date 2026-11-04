@@ -1,0 +1,3384 @@
+{
+  "schemaVersion": 1,
+  "book": "2 Corinthians",
+  "chapter": 2,
+  "review": {
+    "method": "Explicit coding-assistant source/constituent/occurrence review, author android_audio; pending separate full semantic peer and reader verification. No blanket lexical or source-witness equivalences."
+  },
+  "verses": {
+    "2:1": {
+      "sourceText": "ἔκρινα δὲ ἐμαυτῷ τοῦτο, τὸ μὴ πάλιν ἐν λύπῃ πρὸς ὑμᾶς ἐλθεῖν.",
+      "targetText": "And I decided this to myself, not to come again to you in sorrow,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I decided",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ekrina is aorist active first-singular judging/deciding, rendered I-decided without an independently printed subject pronoun."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to myself",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual emauto is dative first-person reflexive, rendered to-myself with its real case relation, not a separate to preposition."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "again",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "sorrow",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "to come",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual elthein is second-aorist active coming infinitive; English places it before the route/destination expressions while its actual source identity remains."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:2": {
+      "sourceText": "εἰ γὰρ ἐγὼ λυπῶ ὑμᾶς, καὶ τίς ὁ εὐφραίνων με εἰ μὴ ὁ λυπούμενος ἐξ ἐμοῦ;",
+      "targetText": "for if I make you sorry, then who is he who is making me glad, except he who is made sorry by me?",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "if",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "make",
+              "occurrence": 0
+            },
+            {
+              "text": "sorry",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual lypo is present active first-singular grieving predicate, expanded make ... sorry with no independent make verb or sorry adjective in Greek."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "then",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kai is the consequential question-linking conjunction, rendered then here without claiming a printed tote adverb."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "he who",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article nominalizes the following glad-making participle, rendered he-who without a separately printed personal/relative pronoun pair."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "is making",
+              "occurrence": 0
+            },
+            {
+              "text": "glad",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual euphrainon is present active nominative singular glad-making participle, rendered is-making ... glad with the true predicate head retained."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "except",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual conditional ei plus negative me jointly form the except/if-not idiom; neither original word is silently dropped."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "he who",
+              "occurrence": 1
+            }
+          ],
+          "note": "The second actual nominalizing article owns the second he-who phrase, distinct from the first article and participle."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "is made sorry",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual lypoumenos has functional V-PPP-NSM/formal V-PEP-NSM present nonactive participial analyses, rendered is-made-sorry without retagging the source as a finite indicative."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ex is the source/origin preposition under the passive grieving expression, rendered by; no hypo source is substituted."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English is after who follows the explicit estin printed in the complete TR. Exact N1904 has no corresponding independent being verb at this question; its later two actual participles retain their own English auxiliary realizations."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:3": {
+      "sourceText": "καὶ ἔγραψα τοῦτο αὐτὸ ἵνα μὴ ἐλθὼν λύπην σχῶ ἀφ’ ὧν ἔδει με χαίρειν, πεποιθὼς ἐπὶ πάντας ὑμᾶς ὅτι ἡ ἐμὴ χαρὰ πάντων ὑμῶν ἐστιν.",
+      "targetText": "And I wrote to you this same thing, that having come, I may not have sorrow from them of whom it was necessary [for] me to have joy, having confidence in you all, that my joy is of you all,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "I wrote",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "same thing",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual auto is the intensive same modifier of this, rendered same-thing; no independently printed thing noun occurs."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "having come",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual elthon is second-aorist active nominative singular coming participle, rendered having-come."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "sorrow",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "I may",
+              "occurrence": 0
+            },
+            {
+              "text": "have",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual scho is second-aorist active first-singular subjunctive having predicate, supplying I-may ... have around its separately actual negative. Complete printed TR instead has present-subjunctive echo; the actual aorist analysis is retained without changing the shared echo lexical head."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "them of whom",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hon is genitive plural relative, expanded them-of-whom under from and the necessary-joy expression; no independent them pronoun or second source relative is invented."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "it was necessary",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual edei is imperfect active third-singular impersonal necessity, rendered it-was-necessary; no independently printed it or being predicate occurs."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "[for] me",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual me is accusative first-singular subject of the rejoicing infinitive, rendered [for]-me with that case role retained and no independent for preposition claimed."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "to have joy",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual chairein is present active rejoicing infinitive, expanded to-have-joy without an echo/have source verb or chara noun."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "having confidence",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual pepoithos is second-perfect active nominative singular trusting participle, rendered having-confidence; the actual perfect/peitho head remains, not a printed having verb or confidence noun."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eme is a first-person possessive adjective with S-1SNSF analyses, not a substituted personal-pronoun form."
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "joy",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "of you",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hymon is genitive second-plural pronoun, rendered of-you beside the actual separate all modifier."
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            19
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "to you",
+          "occurrence": 0,
+          "reason": "Complete printed TR adds hymin as the written recipient of I-wrote, reflected in LSV to-you. Exact N1904 has no matching recipient at this predicate; the later actual personal occurrences keep their separate roles."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:4": {
+      "sourceText": "ἐκ γὰρ πολλῆς θλίψεως καὶ συνοχῆς καρδίας ἔγραψα ὑμῖν διὰ πολλῶν δακρύων, οὐχ ἵνα λυπηθῆτε, ἀλλὰ τὴν ἀγάπην ἵνα γνῶτε ἣν ἔχω περισσοτέρως εἰς ὑμᾶς.",
+      "targetText": "for out of much tribulation and pressure of heart I wrote to you through many tears, not that you might be made sorry, but that you might know the love that I have more abundantly toward you.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "out of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "much",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "tribulation",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "pressure",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual synoche is a genitive pressure/distress noun, rendered pressure, keeping its real nominal head rather than an invented constraining predicate."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of heart",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anarthrous genitive heart noun owns of-heart as the pressure qualifier; no independent of preposition or source article occurs."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "I wrote",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "to you",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hymin is dative second-plural recipient pronoun, expanded to-you with its actual case relation retained."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "many",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "tears",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "you might be made sorry",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual lypethete is aorist passive second-plural subjunctive grieving predicate, rendered you-might-be-made-sorry without an independent source make/being verb."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "love",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "you might know",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual gnote is second-aorist active second-plural knowing subjunctive, rendered you-might-know with its actual form retained."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "I have",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "more abundantly",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual perissoteros is one comparative adverb, expanded more-abundantly; no separate source more identity is invented."
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "toward",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 3
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:5": {
+      "sourceText": "Εἰ δέ τις λελύπηκεν, οὐκ ἐμὲ λελύπηκεν, ἀλλὰ ἀπὸ μέρους, ἵνα μὴ ἐπιβαρῶ, πάντας ὑμᾶς.",
+      "targetText": "And if anyone has caused sorrow, he has not caused sorrow to me, but in part, that I may not burden you all;",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "if",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "anyone",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "has caused sorrow",
+              "occurrence": 0
+            }
+          ],
+          "note": "The first actual lelypeken is perfect active third-singular grieving predicate, expanded has-caused-sorrow with its true verbal head rather than separate causing and sorrow heads."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "to me",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eme is accusative first-singular grieving patient, rendered to-me in the English causative-sorrow frame; the source case is not retagged dative."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "he has",
+              "occurrence": 0
+            },
+            {
+              "text": "caused sorrow",
+              "occurrence": 1
+            }
+          ],
+          "note": "The second actual lelypeken is its own perfect active third-singular grieving predicate, supplying he-has ... caused-sorrow around the actual negative; no independent Greek he pronoun occurs."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "in part",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual apo plus genitive meros jointly owns in-part as the part/extent idiom, retaining both actual identities."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "I may",
+              "occurrence": 0
+            },
+            {
+              "text": "burden",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual epibaro is present active first-singular subjunctive burdening predicate, supplying I-may ... burden around its actual negative."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:6": {
+      "sourceText": "ἱκανὸν τῷ τοιούτῳ ἡ ἐπιτιμία αὕτη ἡ ὑπὸ τῶν πλειόνων,",
+      "targetText": "sufficient to such a one is this punishment, that [is] by the greater part,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "sufficient",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hikanon is nominative neuter singular sufficient adjective in a nominal predication, not a written being verb."
+        },
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to such a one",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative article/demonstrative jointly owns to-such-a-one, a substantive person designation with no separate one noun or to preposition."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "punishment",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual epitimia is the nominative punishment/penalty noun; the following this demonstrative remains a separate real source word. Primary lexical source: https://www.billmounce.com/greek-dictionary/epitimia ."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual second nominalizing article introduces the by-the-majority qualification and is rendered relative that; it is not assigned either English copula."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the greater part",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive plural article/comparative adjective jointly supplies the-greater-part as the personal majority designation, with actual A-GPM-C retained and no separate part noun invented."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies this copula in a Greek nominal expression; no separate written being verb occurs here."
+        },
+        {
+          "text": "[is]",
+          "occurrence": 0,
+          "reason": "English supplies this copula in a Greek nominal expression; no separate written being verb occurs here."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:7": {
+      "sourceText": "ὥστε τοὐναντίον μᾶλλον ὑμᾶς χαρίσασθαι καὶ παρακαλέσαι, μή πως τῇ περισσοτέρᾳ λύπῃ καταποθῇ ὁ τοιοῦτος.",
+      "targetText": "so that, on the contrary, [it is] rather for you to forgive and to comfort, lest by over abundant sorrow such a one may be swallowed up;",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "so that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "on the contrary",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual tounantion is the crasis expression to-enantion, tagged ADV-K in both pinned fields, jointly realized on-the-contrary without independent Greek on/contrary words."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "rather",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "for you",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hymas is accusative second-plural subject of the coordinated forgiving/comforting infinitives, rendered for-you; no independent Greek for preposition occurs."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "to forgive",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual charisasthai is aorist nonactive/deponent forgiving infinitive, rendered to-forgive with its actual analysis retained."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "to comfort",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual parakalesai is aorist active comforting infinitive, not a second finite imperative."
+        },
+        {
+          "sourceTokens": [
+            7,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "lest",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual negative me plus interrogative pos jointly supply lest, the negative apprehension idiom. The complete printed TR writes mepos joined; the two actual N source identities remain."
+        },
+        {
+          "sourceTokens": [
+            9,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            },
+            {
+              "text": "sorrow",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative article/sorrow jointly owns by ... sorrow around the actual separate comparative modifier, preserving the real nominal case head."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "over abundant",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual perissotera is dative feminine singular comparative adjective in both raw fields, expanded over-abundant with no separate source over preposition."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "may be swallowed up",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual katapothe is aorist passive third-singular swallowing subjunctive, expanded may-be-swallowed-up with its real compound predicate retained."
+        },
+        {
+          "sourceTokens": [
+            13,
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "such a one",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual nominalizing article/demonstrative jointly supplies such-a-one, not an independently printed one noun."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "[it is]",
+          "occurrence": 0,
+          "reason": "English supplies this copula in a Greek nominal expression; no separate written being verb occurs here."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:8": {
+      "sourceText": "διὸ παρακαλῶ ὑμᾶς κυρῶσαι εἰς αὐτὸν ἀγάπην·",
+      "targetText": "for this reason, I call on you to confirm love to him,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "for this reason",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dio is one inferential conjunction, expanded for-this-reason without independently printed this/reason source words."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "I call on",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual parakalo is present active first-singular calling/urging predicate, rendered I-call-on; its real parakaleo head remains, not an invented separate calling verb/preposition."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "to confirm",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kyrosai is aorist active confirming/ratifying infinitive, rendered to-confirm with its distinct kyroo head, not the separate bebaioo predicate from chapter 1."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "love",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:9": {
+      "sourceText": "εἰς τοῦτο γὰρ καὶ ἔγραψα, ἵνα γνῶ τὴν δοκιμὴν ὑμῶν, εἰ εἰς πάντα ὑπήκοοί ἐστε.",
+      "targetText": "for this also I wrote, that I might know your proof, whether you are obedient in regard to all things.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eis introduces the writing-purpose this phrase, rendered for; the distinct actual gar discourse connective is separately explained."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "also",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "I wrote",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "I might know",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual gno is second-aorist active first-singular knowing subjunctive, rendered I-might-know without a separate Greek subject pronoun or modal verb."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "proof",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dokime is accusative proof/testing noun, rendered proof; the true nominal head remains rather than a fabricated prove verb."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "whether",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "in regard to",
+              "occurrence": 0
+            }
+          ],
+          "note": "The second actual eis governs all-things, expanded in-regard-to; the earlier eis purpose phrase remains a different occurrence."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "all things",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual panta is accusative neuter plural all adjective used substantivally, expanded all-things without a separate Greek things noun."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "obedient",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "you are",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual este is present active second-plural being predicate, rendered you-are beside the separate actual obedient adjective."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "Actual gar is the explanatory for connective. English for-this realizes the separate actual eis-touto purpose phrase, leaving no second separately expressed explanatory connective; this is a translation condensation, not a printed witness difference."
+        },
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:10": {
+      "sourceText": "ᾧ δέ τι χαρίζεσθε, κἀγώ· καὶ γὰρ ἐγὼ ὃ κεχάρισμαι, εἴ τι κεχάρισμαι, δι’ ὑμᾶς ἐν προσώπῳ Χριστοῦ,",
+      "targetText": "And to whom you forgive anything—I also; for I also, if I have forgiven anything, to whom I have forgiven [it], because of you—in the person of Christ—[I forgive it,]",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "to whom",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual first ho is dative masculine singular recipient relative, expanded to-whom; it remains separate from the later unlike accusative neuter source relative."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "anything",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "you forgive",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual charizesthe is present nonactive/deponent second-plural forgiving predicate, rendered you-forgive with its real source person retained."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "I also",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kago is the kai-ego crasis, tagged P-1NS-K in both fields, jointly rendered I-also without dropping its additive component."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "also",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 1
+            }
+          ],
+          "note": "The separately written ego owns the second English I after for, distinct from the preceding actual kago and the encoded first-person subjects of the two perfect predicates."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "[it]",
+              "occurrence": 0
+            },
+            {
+              "text": "it",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual ho is accusative neuter singular object-relative before the first actual perfect forgiving predicate. English resumes that immediately forgiven object as middle [it] and final it in the same completion. Its true neuter accusative relative analysis remains, not a fabricated autos pronoun or a dative personal recipient. The second English to-whom follows the unlike printed TR dative relative and remains separately unpaired; no broader antecedent is decided."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "I have forgiven",
+              "occurrence": 1
+            },
+            {
+              "text": "[I forgive",
+              "occurrence": 0
+            }
+          ],
+          "note": "The first actual kecharismai is perfect nonactive/deponent first-singular forgiving predicate in the source object-relative frame. It owns the second written English I-have-forgiven and the final [I-forgive] resumption of that same immediate predicate; the latter English present realization does not change the actual perfect or invent a third Greek predicate. Source order is relative-object/perfect[8,9] then conditional/perfect[10,11,12]; printed TR/English instead places the conditional perfect first. Both actual perfect occurrences retain their own roles and positions."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "if",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "anything",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "I have forgiven",
+              "occurrence": 0
+            }
+          ],
+          "note": "The second actual kecharismai is the conditional perfect nonactive/deponent first-singular forgiving predicate under actual ei-ti, rendered the first English I-have-forgiven; it is not merged with the preceding actual perfect."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "because of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "the person",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual prosopo is anarthrous dative person/face/presence noun, rendered the-person under actual en. This records the named LSV lexical realization without inventing an article or settling a further idiomatic interpretation."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Christou is genitive Christ, rendered of-Christ with its nominal case relation and head retained."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "to whom",
+          "occurrence": 1,
+          "reason": "This second personal dative relative follows complete printed TR ho, whereas the actual N1904 relative is accusative neuter ho, a forgiving object. The unlike person/argument frame is not silently equated; the actual neuter object remains at its own English object resumptions, not this personal recipient."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:11": {
+      "sourceText": "ἵνα μὴ πλεονεκτηθῶμεν ὑπὸ τοῦ Σατανᾶ· οὐ γὰρ αὐτοῦ τὰ νοήματα ἀγνοοῦμεν.",
+      "targetText": "that we may not be over-reached by Satan, for we are not ignorant of his schemes.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "we may",
+              "occurrence": 0
+            },
+            {
+              "text": "be over-reached",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual pleonektethomen is aorist passive first-plural being-overreached/defrauded subjunctive, supplying we-may ... be-over-reached around its actual negative; no separate source being verb or over preposition is invented."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Satan",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "his",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "schemes",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual noemata is accusative neuter plural thoughts/designs noun, rendered schemes, keeping its real noun head and occurrence."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "we are",
+              "occurrence": 0
+            },
+            {
+              "text": "ignorant of",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual agnooumen is present active first-plural not-knowing predicate, expanded we-are ... ignorant-of around its actual negative; no independent Greek being verb, ignorant adjective or of preposition is printed."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        },
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:12": {
+      "sourceText": "Ἐλθὼν δὲ εἰς τὴν Τρῳάδα εἰς τὸ εὐαγγέλιον τοῦ Χριστοῦ, καὶ θύρας μοι ἀνεῳγμένης ἐν Κυρίῳ,",
+      "targetText": "And having come to Troas for the good news of the Christ, and a door having been opened to me in the LORD,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "having come",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual elthon is second-aorist active nominative singular coming participle, rendered having-come."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Troas",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "good news",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual euangelion is one accusative good-news noun, expanded good-news without separate Greek good/news heads."
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "of the Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/Christ jointly owns of-the-Christ as the good-news qualifier."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "a door",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual thyras is genitive feminine singular door in the absolute opening construction, rendered English a-door subject with the original case retained."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "to me",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual moi is dative first-singular opening beneficiary, expanded to-me with its actual case relation retained."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "having been opened",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual aneogmenes is perfect passive genitive feminine singular opening participle, rendered having-been-opened; its actual perfect and genitive agreement with door remain."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "the LORD",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual anarthrous dative Lord noun is rendered the-LORD under actual en; no independently printed source article occurs."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:13": {
+      "sourceText": "οὐκ ἔσχηκα ἄνεσιν τῷ πνεύματί μου τῷ μὴ εὑρεῖν με Τίτον τὸν ἀδελφόν μου, ἀλλὰ ἀποταξάμενος αὐτοῖς ἐξῆλθον εἰς Μακεδονίαν.",
+      "targetText": "I have not had rest to my spirit, on my not finding my brother Titus, but having taken leave of them, I went forth to Macedonia;",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "I have",
+              "occurrence": 0
+            },
+            {
+              "text": "had",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual escheka is perfect active first-singular having predicate, supplying I-have ... had around its separately written negative; its actual perfect remains."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "rest",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            },
+            {
+              "text": "spirit",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative article/spirit jointly owns to ... spirit around its actual my possessor, preserving the nominal case head without a printed to preposition."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "on",
+              "occurrence": 0
+            },
+            {
+              "text": "finding",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative article/second-aorist finding infinitive jointly owns on ... finding in the articular infinitival circumstance, with the intervening negative and accusative subject separately retained."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual me is accusative first-singular subject of finding, realized as English possessive my in on-my-not-finding; its actual infinitival-subject case and role remain explicit."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Titus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "brother",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "having taken leave",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual apotaxamenos is aorist middle nominative singular taking-leave/bidding-farewell participle, expanded having-taken-leave; no separately printed taking verb or leave noun is invented. Primary lexical source: https://www.billmounce.com/greek-dictionary/apotasso ."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "of them",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual autois is dative plural farewell participant, rendered of-them under the English take-leave construction, retaining the actual dative rather than a fabricated genitive source pronoun."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "I went forth",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual exelthon is second-aorist active first-singular going-out predicate, expanded I-went-forth with its real exerchomai compound retained."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "Macedonia",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:14": {
+      "sourceText": "Τῷ δὲ Θεῷ χάρις τῷ πάντοτε θριαμβεύοντι ἡμᾶς ἐν τῷ Χριστῷ καὶ τὴν ὀσμὴν τῆς γνώσεως αὐτοῦ φανεροῦντι δι’ ἡμῶν ἐν παντὶ τόπῳ·",
+      "targetText": "and to God [is] thanks, who at all times is leading us in triumph in the Christ, and the fragrance of His knowledge He is revealing through us in every place;",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to God",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative article/God jointly owns to-God as the thanks recipient, retaining the real case-bearing noun."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "thanks",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative article nominalizes the following God-agreeing participial description, rendered nominative relative who in English; it is not a source hos pronoun or a copula."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "at all times",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual pantote is one always adverb, expanded at-all-times without separate source time nouns or an at preposition."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "is leading",
+              "occurrence": 0
+            },
+            {
+              "text": "in triumph",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual thriambeuonti is present active dative singular leading-in-triumph participle, expanded is-leading ... in-triumph around the actual us patient. The real compound verb remains, not a separate leading verb plus triumph noun. Primary lexical source: https://www.billmounce.com/greek-dictionary/thriambeuo ."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "us",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "fragrance",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "knowledge",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/knowledge jointly owns of ... knowledge around the actual His pronoun; neither the article nor the nominal head is dropped."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual autou is genitive personal pronoun qualifying knowledge, rendered His. The source pronoun/case remain without resolving additional subject/object scope from this named English possessive."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "He is revealing",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual phanerounti is present active dative singular revealing participle coordinated with the earlier God-agreeing participle, rendered He-is-revealing. English explicitly realizes that same participant as He, but no separately written Greek personal pronoun or finite source indicative is claimed."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "us",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "every",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "place",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "[is]",
+          "occurrence": 0,
+          "reason": "English supplies this copula in a Greek nominal expression; no separate written being verb occurs here."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:15": {
+      "sourceText": "ὅτι Χριστοῦ εὐωδία ἐσμὲν τῷ Θεῷ ἐν τοῖς σωζομένοις καὶ ἐν τοῖς ἀπολλυμένοις,",
+      "targetText": "we are a refreshing fragrance to God because of Christ, in those being saved, and in those being lost;",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "because",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hoti is a clause-level causal conjunction. Named LSV moves its because wording beside of-Christ in the rearranged sentence; this records that English realization without claiming hoti itself prints a Christ-specific prepositional phrase or settling further causal attachment."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Christou is a genitive Christ noun accompanying the fragrance expression, rendered of-Christ in named LSV because-of-Christ wording. Its actual nominal case and head remain, not a fabricated causal preposition or alternate printed source."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "a refreshing fragrance",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual euodia is one nominative sweet/fragrant-odor noun, rendered a-refreshing-fragrance as one lexical expansion. No independent refreshing adjective or fragrance noun pair occurs in Greek. Primary lexical source: https://www.billmounce.com/greek-dictionary/gk:2380 ."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "we are",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "to God",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative article/God jointly owns to-God as the fragrance recipient, preserving the real case head."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "those",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "being saved",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual sozomenois has functional V-PPP-DPM/formal V-PEP-DPM present nonactive participial analyses, rendered being-saved beside its actual nominalizing article/those."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "those",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "being lost",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual apollymenois has present nonactive V-PEP-DPM analyses in both fields, rendered being-lost beside its actual nominalizing article/those; no source perfect or future form is inferred from English."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:16": {
+      "sourceText": "οἷς μὲν ὀσμὴ ἐκ θανάτου εἰς θάνατον, οἷς δὲ ὀσμὴ ἐκ ζωῆς εἰς ζωήν. καὶ πρὸς ταῦτα τίς ἱκανός;",
+      "targetText": "to one, indeed, a fragrance of death to death, and to the other, a fragrance of life to life; and who is sufficient for these things?",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "to one",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hois is dative masculine plural relative, rendered to-one as the first English contrasting class. Its actual plural relative analysis remains, not a Greek singular one numeral."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "indeed",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "a fragrance",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ek is the explicit from/out-of source preposition, rendered of in the fragrance-of-death qualifier. Complete printed TR omits ek at this relation; the actual N preposition remains rather than being silently dropped or replaced by a genitive article. Primary lexical of/from range: https://www.billmounce.com/greek-dictionary/ek ."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "death",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "death",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "to the other",
+              "occurrence": 0
+            }
+          ],
+          "note": "The second actual hois is a separate dative masculine plural relative, rendered to-the-other as the contrasted English class. No separately printed singular other adjective is claimed."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "a fragrance",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            }
+          ],
+          "note": "The second actual ek is another explicit from/out-of preposition, rendered of in fragrance-of-life. Complete printed TR omits this ek too; it stays a distinct original occurrence."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "life",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "life",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "these things",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual tauta is accusative neuter plural demonstrative, expanded these-things without a separately printed things noun."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "sufficient",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hikanos is nominative masculine singular sufficient adjective in a nominal question; the English is is explicitly supplied, not assigned to this adjective or the actual who pronoun."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies this copula in a Greek nominal expression; no separate written being verb occurs here."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "2:17": {
+      "sourceText": "οὐ γάρ ἐσμεν ὡς οἱ πολλοὶ καπηλεύοντες τὸν λόγον τοῦ Θεοῦ, ἀλλ’ ὡς ἐξ εἰλικρινίας, ἀλλ’ ὡς ἐκ Θεοῦ κατέναντι Θεοῦ ἐν Χριστῷ λαλοῦμεν.",
+      "targetText": "For we are not as the many, adulterating the word of God, but as of sincerity—but as of God; in the presence of God, in Christ we speak.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "we are",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "as",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "many",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "adulterating",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kapeleuontes is present active nominative plural peddling/adulterating participle. Named LSV adulterating retains the lexical head while its actual present participle is not retagged a finite predicate. Primary lexical source includes corrupt/adulterate: https://www.billmounce.com/greek-dictionary/kapeleuo ."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "word",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/God jointly owns of-God as the word qualifier, keeping this first God occurrence distinct from the two following ones."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "as",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual ex is the from/out-of preposition, rendered of under the sincerity-origin phrase; no genitive-only relation or different source word is fabricated."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "sincerity",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "as",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 2
+            }
+          ],
+          "note": "The second actual ek is its own from/out-of preposition, rendered of under the second God-origin phrase, not borrowed from the preceding sincerity clause."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "in the presence of",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual katenanti is one in-front-of/before preposition, expanded in-the-presence-of. The complete printed TR has the related but differently written katenopion; no separate Greek presence noun or article is invented."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "we speak",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual laloumen is present active first-plural speaking predicate, supplying we-speak with its encoded subject, not a separately printed Greek we pronoun."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed LSV text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    }
+  }
+}
