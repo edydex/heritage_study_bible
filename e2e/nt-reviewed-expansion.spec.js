@@ -155,6 +155,101 @@ test('the added Acts verse has explained English without borrowing neighboring G
   await expect(page.locator('[data-translation="ORIGINAL"] .bible-word-link-active')).toHaveCount(0)
 })
 
+test('a source body question absent from LSV remains studyable without an invented translation', async ({ page }) => {
+  await compare(page, '1-corinthians', 15, 'LSV', 'ORIGINAL')
+  const body = words(page, 'ORIGINAL', 15, 35, /^σ.ματι$/)
+  await expect(body).toHaveAttribute('data-word-paired', 'false')
+  await body.click()
+  await expect(page.locator('#verse-15-35 [data-translation="LSV"] .bible-word-link-active')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G4983')
+})
+
+test('three actual body nouns keep their occurrences and the added fourth stays unpaired', async ({ page }) => {
+  await compare(page, '1-corinthians', 15, 'LSV', 'ORIGINAL')
+  const english = words(page, 'LSV', 15, 44, /^body$/)
+  const greek = words(page, 'ORIGINAL', 15, 44, /^σῶμα$/)
+  await expect(english).toHaveCount(4)
+  await expect(greek).toHaveCount(3)
+  for (const index of [0, 1, 2]) {
+    await english.nth(index).click()
+    for (const other of [0, 1, 2]) {
+      if (other === index) await expect(greek.nth(other)).toHaveClass(/bible-word-link-active/)
+      else await expect(greek.nth(other)).not.toHaveClass(/bible-word-link-active/)
+    }
+    await page.getByRole('button', { name: 'Clear word match' }).click()
+  }
+  await expect(english.nth(3)).toHaveAttribute('data-word-paired', 'false')
+  await english.nth(3).click()
+  await expect(page.locator('#verse-15-44 [data-translation="ORIGINAL"] .bible-word-link-active')).toHaveCount(0)
+})
+
+test('the moved light question studies its actual preceding source verse', async ({ page }) => {
+  await compare(page, '2-corinthians', 6, 'LSV', 'ORIGINAL')
+  await words(page, 'LSV', 6, 15, /^light$/).click()
+  await expect(words(page, 'ORIGINAL', 6, 14, /^φωτὶ$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 6, 15, /^Χριστοῦ$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('button', { name: 'Show Original 6:14', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G5457')
+})
+
+test('Revelation saying retains its actual following-verse participle', async ({ page }) => {
+  await compare(page, 'revelation', 1, 'LSV', 'ORIGINAL')
+  await words(page, 'LSV', 1, 10, /^saying$/).click()
+  await expect(words(page, 'ORIGINAL', 1, 11, /^λεγούσης$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 1, 10, /^φωνὴν$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('button', { name: 'Show Original 1:11', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G3004')
+})
+
+test('the two equality nouns keep their distinct source verses and cases', async ({ page }) => {
+  await compare(page, '2-corinthians', 8, 'LSV', 'ORIGINAL')
+  const equality = words(page, 'LSV', 8, 14, /^equality$/)
+  await expect(equality).toHaveCount(2)
+  await equality.nth(0).click()
+  await expect(words(page, 'ORIGINAL', 8, 13, /^ἰσότητος$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 8, 14, /^ἰσότης$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('button', { name: 'Show Original 8:13', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Clear word match' }).click()
+  await equality.nth(1).click()
+  await expect(words(page, 'ORIGINAL', 8, 14, /^ἰσότης$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 8, 13, /^ἰσότητος$/)).not.toHaveClass(/bible-word-link-active/)
+})
+
+test('the moved Father noun keeps its actual source and separate possessor', async ({ page }) => {
+  await compare(page, 'revelation', 2, 'LSV', 'ORIGINAL')
+  await words(page, 'LSV', 2, 27, /^Father$/).click()
+  await expect(words(page, 'ORIGINAL', 2, 28, /^Πατρός$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 2, 28, /^μου$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 2, 28, /^τοῦ$/)).not.toHaveClass(/bible-word-link-active/)
+  await expect(page.getByRole('button', { name: 'Show Original 2:28', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G3962')
+})
+
+test.describe('reviewed Revelation participle on touch screens', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } })
+
+  test('a held finger opens the actual moved saying word and survives release', async ({ page }) => {
+    await compare(page, 'revelation', 1, 'LSV', 'ORIGINAL')
+    const saying = words(page, 'LSV', 1, 10, /^saying$/)
+    await saying.scrollIntoViewIfNeeded()
+    const box = await saying.boundingBox()
+    const touch = await page.context().newCDPSession(page)
+    const x = box.x + box.width / 2, y = box.y + box.height / 2
+    try {
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] })
+      await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G3004')
+    } finally {
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+      await touch.detach()
+    }
+    await expect(page.getByRole('dialog')).toBeVisible()
+  })
+})
+
 test.describe('reviewed Colossians reconciliation on touch screens', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } })
 

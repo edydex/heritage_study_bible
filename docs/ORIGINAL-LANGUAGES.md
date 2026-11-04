@@ -306,7 +306,7 @@ its pinned publisher USFM; those actual source words remain explicitly
 unpaired. These reviews preserve the named texts rather than silently editing
 either witness.
 
-The first four chapters of 2 Corinthians have full LSV author-and-peer reviews.
+The first nine chapters of 2 Corinthians have full LSV author-and-peer reviews.
 At 2:10, the two actual perfect forgiveness predicates retain their distinct
 occurrences despite the English clause order. The final supplied forgiveness
 resumption shares only its immediate real predicate. At 4:14, N1904's
@@ -316,6 +316,14 @@ retains its dative analysis. Differences in English expression do not change
 the source tags. For example, 1:23's actual negative-temporal word is left
 separate from LSV's “not ... yet”; the note distinguishes this translation
 difference from a written N1904/TR variant.
+
+The light/darkness question in 6:15 retains its original 6:14 identities. The two
+equality nouns in English 8:14 remain distinct: its first is the genitive noun
+from original 8:13, and its last is the local nominative noun. At 7:12, the
+opposite personal roles in the installed English wording remain explicitly
+unpaired; the pinned printed TR also differs from that English wording. At
+9:10, the actual future predicates keep their source analyses under LSV's
+"may ... supply and multiply ... increase" wording.
 
 Repeated words also retain their identities when clauses change order within a
 verse. In 1 Corinthians 8:8, LSV puts the eating/being-in-advance condition before
@@ -329,6 +337,18 @@ wording explicitly unpaired where absent from the pinned witness. Its earlier
 actual breaking predicate stays linked to “broke” and is not borrowed for the
 added “broken.” In 13:3, the actual feeding/distributing verb supports the verbal
 paraphrase, while the English recipient “others” remains explicitly supplied.
+
+All 16 chapters of 1 Corinthians now have full LSV author-and-peer reviews.
+The Greek body question in 15:35 is absent from both the installed LSV and its
+pinned publisher USFM, so those original words remain studyable without an
+invented English match. In 15:44, the three actual body nouns keep their separate
+occurrences; LSV's fourth body noun remains explained as additional wording.
+
+The first two chapters of Revelation have full LSV author-and-peer reviews.
+English 1:10's "saying" retains its original 1:11 participle. The received-from-
+Father comparison at the end of English 2:27 keeps its actual original 2:28
+identities; the unexpressed Father article stays an explained original word.
+These reference differences do not move or retag the original text.
 
 An English name can clarify a printed Greek pronoun; its link retains the actual
 pronoun and identifies the naming as the translation's wording. When source
