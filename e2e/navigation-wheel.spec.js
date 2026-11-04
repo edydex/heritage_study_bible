@@ -303,11 +303,18 @@ test('Android Back dismisses the wheel and consumes the event before the underly
 })
 
 test('moving before the hold threshold cancels navigation instead of opening the picker', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') })
   await page.goto('/#/genesis/1')
-  const trigger = await pressTitle(page)
+  const trigger = page.locator('.navigation-wheel-trigger')
+  await expect(trigger).toBeVisible()
+  // Keep the move before the application deadline even if a host/browser call
+  // stalls. The other hold/slide cases continue to exercise real elapsed time.
+  await page.clock.pauseAt(new Date('2026-01-01T00:01:00Z'))
   const bounds = await trigger.boundingBox()
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
+  await page.mouse.down()
   await page.mouse.move(bounds.x + bounds.width / 2, bounds.y - 40)
-  await page.waitForTimeout(550)
+  await page.clock.runFor(550)
   await page.mouse.up()
   await expect(wheel(page)).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Select Book', exact: true })).toHaveCount(0)
