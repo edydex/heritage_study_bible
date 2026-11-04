@@ -6,10 +6,16 @@ import synodal from '../../public/data/translations/SYNO-W.json'
 beforeEach(() => vi.resetModules())
 afterEach(() => vi.unstubAllGlobals())
 
-function installFetch() {
+function installFetch({ unreviewedRomansRefs = [] } = {}) {
   const fetch = vi.fn(async url => {
     const relative = String(url).replace(/^\//, '')
-    return { ok: true, json: async () => JSON.parse(readFileSync('public/' + relative, 'utf8')) }
+    return { ok: true, json: async () => {
+      const data = JSON.parse(readFileSync('public/' + relative, 'utf8'))
+      if (relative.endsWith('/syno-w-word-links/romans.json')) {
+        for (const ref of unreviewedRomansRefs) delete data.verses[ref]
+      }
+      return data
+    } }
   })
   vi.stubGlobal('fetch', fetch)
   return fetch
@@ -21,8 +27,8 @@ function row(chapter, verse, word) {
   return { book: 'Romans', chapter, verse, text, count: 1, ranges: [[start, start + word.length]] }
 }
 
-it('highlights reviewed Synodal wording while keeping an unreviewed occurrence explicitly unlinked', async () => {
-  const fetch = installFetch()
+it('highlights reviewed Synodal wording while keeping an explicitly unreviewed fixture occurrence unlinked', async () => {
+  const fetch = installFetch({ unreviewedRomansRefs: ['7:24'] })
   const { loadOccurrenceTranslations, occurrenceKey } = await import('./wordStudy')
   const checked = row(1, 1, 'Παῦλος'), unreviewed = row(7, 24, 'ῥύσεται')
   const result = await loadOccurrenceTranslations([checked, unreviewed], 'N1904', 'SYNO-W')
@@ -31,6 +37,15 @@ it('highlights reviewed Synodal wording while keeping an unreviewed occurrence e
   const text = synodal.books.find(b => b.name === 'Romans').chapters.find(c => c.number === 7).verses.find(v => v.number === 24).text
   expect(result.results[occurrenceKey(unreviewed)]).toMatchObject({ text, status: 'unmapped', ranges: [], phrases: [], missingCount: 1 })
   expect(fetch.mock.calls.map(([url]) => url)).toContain('/data/original-languages/syno-w-word-links/romans.json')
+})
+
+it('the newly reviewed Romans 7 rescue occurrence has its actual Russian wording', async () => {
+  installFetch()
+  const { loadOccurrenceTranslations, occurrenceKey } = await import('./wordStudy')
+  const greek = row(7, 24, 'ῥύσεται')
+  const result = await loadOccurrenceTranslations([greek], 'N1904', 'SYNO-W')
+  expect(result.failed).toBe(false)
+  expect(result.results[occurrenceKey(greek)]).toMatchObject({ status: 'matched', phrases: ['избавит'], missingCount: 0 })
 })
 
 it('occurrence context follows the actual Russian counterpart in the next verse', async () => {

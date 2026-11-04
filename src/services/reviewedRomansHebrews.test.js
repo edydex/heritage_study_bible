@@ -132,3 +132,64 @@ it.each([[24, 17, 16, 2], [39, 9, 8, 1]])('John 5:%i continuous and life retain 
   exactSources(fixture, continuous, 'John', 5, verse, [adjective])
   exactSources(fixture, life, 'John', 5, verse, [noun])
 })
+
+it.each([
+  [13, 'плотские', 13, [13], '4983'],
+  [15, 'Которым', 15, [12, 13], '3739'],
+  [19, 'надеждою', 19, [2], '603'],
+  [35, 'написано', 36, [1], '1125'],
+])('Russian Romans 8:%i %s keeps the actual noun, relative or moved source occurrence', (verse, text, sourceVerse, indices, firstStrong) => {
+  const f = chapter(romans, synodal, 8), w = f.word(verse, text)
+  expect(strongs(w)[0]).toBe(firstStrong)
+  exactSources(f, w, 'Romans', 8, sourceVerse, indices)
+})
+
+it('the two Russian seeing frames preserve the honest voice gap and the actual second active occurrence', () => {
+  const f = chapter(romans, synodal, 8), first = f.word(24, 'видит', 0, 2), second = f.word(24, 'видит', 1, 2)
+  expect(first.paired).toBe(false)
+  expect(first.unpairedReason).toContain('active seeing')
+  expect(greekLemmaIds(concordance, first)).toEqual([])
+  exactSources(f, second, 'Romans', 8, 24, [12])
+})
+
+it('the formed object immediately resumes its real noun while the differently qualified righteousness phrase stays unlinked', () => {
+  const nine = chapter(romans, synodal, 9)
+  for (const text of ['Изделие', 'его']) exactSources(nine, nine.word(20, text), 'Romans', 9, 20, [13])
+  const ten = chapter(romans, synodal, 10)
+  const supplied = ten.word(3, 'праведность')
+  expect(supplied.paired).toBe(false)
+  expect(greekLemmaIds(concordance, supplied)).toEqual([])
+  exactSources(ten, ten.word(3, 'праведности', 0, 2), 'Romans', 10, 3, [5])
+  exactSources(ten, ten.word(3, 'праведности', 1, 2), 'Romans', 10, 3, [12])
+  expect(ten.word(3, 'праведности', 0, 2).id).not.toBe(ten.word(3, 'праведности', 1, 2).id)
+})
+
+it.each([
+  [5, 'во', 17, '1519'], [9, 'в', 5, '2596'], [17, 'для', 7, '1519'],
+  [26, 'на', 2, '1722'], [26, 'том', 3, '3588'],
+])('Russian Romans 9:%i %s opens its actual grammatical word inside the unchanged phrase', (verse, text, index, firstStrong) => {
+  const f = chapter(romans, synodal, 9), w = f.word(verse, text)
+  expect(strongs(w)[0]).toBe(firstStrong)
+  const actual = concordance.books.find(b => b.name === 'Romans').verses[`9:${verse}`][index]
+  expect(w.studySourceAnchors.some(a => a.startOffset <= actual[0] && a.endOffset >= actual[1])).toBe(true)
+})
+
+it('KJV neighbour retains actual polites while BSB hope uses the correct article occurrence', () => {
+  const f = chapter(kjvHebrews, kjv, 8), neighbour = f.word(11, 'neighbour')
+  expect(strongs(neighbour)[0]).toBe('4177')
+  exactSources(f, neighbour, 'Hebrews', 8, 11, [5, 6])
+  const g = chapter(hebrews, bsb, 10)
+  exactSources(g, g.word(23, 'hope'), 'Hebrews', 10, 23, [3, 4])
+  const need = g.word(36, 'need')
+  expect(strongs(need)[0]).toBe('5532')
+  exactSources(g, need, 'Hebrews', 10, 36, [2, 3])
+})
+
+it('the Hebrews architect and builder remain distinct physical source nouns', () => {
+  const f = chapter(hebrews, bsb, 11)
+  exactSources(f, f.word(10, 'architect'), 'Hebrews', 11, 10, [8])
+  exactSources(f, f.word(10, 'builder'), 'Hebrews', 11, 10, [10])
+  expect(strongs(f.word(10, 'architect'))).toEqual(['5079'])
+  expect(strongs(f.word(10, 'builder'))).toEqual(['1217'])
+  expect(f.word(10, 'architect').id).not.toBe(f.word(10, 'builder').id)
+})

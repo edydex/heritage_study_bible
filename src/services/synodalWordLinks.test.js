@@ -13,10 +13,10 @@ const read = file => JSON.parse(readFileSync('public/data/' + file, 'utf8'))
 const sourceBook = greek.books.find(book => book.name === 'Romans')
 const russianBook = synodal.books.find(book => book.name === 'Romans')
 const strongs = word => greekLemmaIds(concordance, word).flatMap(id => concordance.lemmas[id].strongs)
-function compare(target = 'ORIGINAL', chapter = 1) {
+function compare(target = 'ORIGINAL', chapter = 1, mapping = russian) {
   const opposite = target === 'ORIGINAL' ? null : read('original-languages/' + target.toLowerCase() + '-word-links/romans.json')
   const oppositeBook = target === 'ORIGINAL' ? sourceBook : read('translations/' + target + '/romans.json')
-  const graph = chapterWordAnchors({ primaryData: russian, secondaryData: opposite, sourceBook,
+  const graph = chapterWordAnchors({ primaryData: mapping, secondaryData: opposite, sourceBook,
     primaryBook: russianBook, secondaryBook: oppositeBook, chapter })
   expect(graph.invalidReferences).toEqual([])
   const words = verse => {
@@ -53,11 +53,13 @@ it('a moved Russian word retains its preceding Greek occurrence and has no inven
   expect(strongs(moved)).toEqual(['5588'])
 })
 
-it('unpaired witness words and an unreviewed chapter have no invented Greek lemma', () => {
+it('unpaired witness words and an explicitly unreviewed chapter fixture have no invented Greek lemma', () => {
   const extra = compare().words(16).find(word => word.word === 'Христова')
   expect(extra.paired).toBe(false)
   expect(strongs(extra)).toEqual([])
-  const unreviewed = compare('ORIGINAL', 7).words(24)
+  // Keep the missing-review contract independent of growing real coverage.
+  const missingChapter = { ...russian, verses: Object.fromEntries(Object.entries(russian.verses).filter(([ref]) => !ref.startsWith('7:'))) }
+  const unreviewed = compare('ORIGINAL', 7, missingChapter).words(24)
   expect(unreviewed.every(word => !word.paired && strongs(word).length === 0)).toBe(true)
 })
 
