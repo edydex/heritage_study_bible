@@ -39,6 +39,31 @@ test('Russian counterpart navigation points to the actual preceding Greek verse'
   await expect(token(page, '1-29', 'ORIGINAL', /^ψιθυριστάς$/)).toHaveClass(/bible-word-link-active/)
 })
 
+test('Philemon returning clause points to the following Greek verse and the extra invitation stays unlinked', async ({ page }) => {
+  await compare(page, 'SYNO-W', 'philemon/1')
+  await expect(page.locator('[data-russian-link-coverage]')).toContainText('25 of 25')
+  await token(page, '1-11', 'SYNO-W', /^возвращаю$/).click()
+  const selected = page.getByRole('region', { name: 'Selected word match' })
+  await expect(selected).toContainText('ἀνέπεμψά')
+  await selected.getByRole('button', { name: 'Show Original 1:12', exact: true }).click()
+  await expect(token(page, '1-12', 'ORIGINAL', /^ἀνέπεμψά$/)).toHaveClass(/bible-word-link-active/)
+
+  const invitation = token(page, '1-12', 'SYNO-W', /^прими$/)
+  await expect(invitation).toHaveAttribute('data-word-paired', 'false')
+  await invitation.click()
+  await expect(selected).toContainText('extra printed TR wording')
+})
+
+test('Russian names in Romans 16 link to their own Greek names in a different order', async ({ page }) => {
+  await compare(page, 'SYNO-W', 'romans/16')
+  await expect(page.locator('[data-russian-link-coverage]')).toContainText('27 of 27')
+  for (const [russian, greek] of [[/^Ерма$/, /^Ἑρμᾶν$/], [/^Ермия$/, /^Ἑρμῆν$/]]) {
+    await token(page, '16-14', 'SYNO-W', russian).click()
+    await expect(token(page, '16-14', 'ORIGINAL', greek)).toHaveClass(/bible-word-link-active/)
+    await expect(page.locator('.bible-word-link-active:visible')).toHaveCount(2)
+  }
+})
+
 test('an unreviewed Russian numeric word stays studyable without a guessed Greek link', async ({ page }) => {
   await compare(page, 'SYNO-W', 'john/21')
   await expect(page.locator('[data-russian-link-coverage]')).toContainText('0 of 25')
