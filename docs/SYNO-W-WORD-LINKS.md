@@ -6,10 +6,10 @@ Nestle 1904 Greek occurrences. The same occurrences connect Russian to BSB,
 LSV and KJV, with shared colors and textures. This is phrase correspondence,
 not a claim that every Russian word is a separate Greek word.
 
-The accepted chapters are **Romans 1–6 and Colossians 1, all 190 verses**. Remaining passages
-stay unreviewed and unlinked. The per-book files and manifest record the current
-accepted coverage; the reader shows a chapter-specific review count. Unreviewed
-words can still open the original-word chooser without guessing a match.
+The accepted word links cover **5,994 displayed verses and 23 complete books**.
+Luke, John, Acts, and Revelation still have chapters awaiting review. The
+reader shows the review count for each chapter. Unreviewed words can open
+the original-word chooser.
 
 Each accepted resource has a full source-author review and a distinct full
 semantic peer review. Reviews retain the actual Greek forms, both published
@@ -56,6 +56,33 @@ both OT reference maps are preserved.
 Both reference-map artifacts contain NT `sourcePieces` with exact offsets into
 `SYNO-W-native.json`. Offsets are UTF-16 code units, start inclusive and end
 exclusive. A reference map does not itself establish word correspondence.
+
+## Textual differences in the Russian reader
+
+`[[…]]` marks selected, reviewed New Testament wording found in the installed
+Russian Synodal edition and absent from the corresponding passage in the
+installed Nestle 1904 Greek. This display convention preserves the Synodal
+text and its verse numbering. The current set covers 121 spans across 115
+verses, including whole verses and smaller passages that carry distinct
+content. Further passages still await review.
+
+A passage remains visible without double brackets when the installed Greek
+prints it in parentheses, as it does at John 5:3b–4 and 7:53–8:11; individual
+differences inside those passages require their own review. Verse divisions
+also differ between these editions. In 2 Corinthians the Greek benediction at
+13:13 still corresponds to Russian 13:14. The presence or absence of a Greek
+word link by itself says nothing about whether to bracket a Russian word.
+
+Selections were checked against the [installed Nestle 1904
+edition](https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph),
+[the Synodal source](https://ebible.org/find/details.php?id=russyn), and the
+[CrossWire printed TR](https://crosswire.org/study/passagestudy.jsp?mod=TR&key=Matt+6).
+Luke 17:36 also occurs in a separately identified [alternate Greek
+reading](https://github.com/byztxt/greektext-textus-receptus/blob/7fd4d02c3e5adebd379ebfbc824040820dde10fc/parsed/LU.UTR).
+These comparisons describe edition differences without assigning a source to
+the Russian translators. The renderer applies ranges only when the entire
+verse matches the reviewed Russian text, with brackets outside word-link and
+selection offsets.
 
 ## Rebuild and checks
 

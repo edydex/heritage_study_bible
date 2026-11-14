@@ -114,6 +114,41 @@ process.stdout.write(JSON.stringify(p.books));
         self.assertNotIn('12:18', revelation['verses'])
         self.assertEqual(revelation['unavailable']['12:18'], 'target-reference-absent-unreviewed')
 
+    def test_reviewed_greek_only_reference_leaves_the_unreviewed_list(self):
+        source = builder.compiler.corpus(builder.read(builder.DATA / 'greek-nt-n1904.json'))['Mark']['16:99']
+        reviews = self.folder / 'reviews-with-greek-only'
+        reviews.mkdir()
+        (reviews / 'romans-1.json').write_bytes((self.reviews / 'romans-1.json').read_bytes())
+        resource = reviews / 'mark-16.json'
+        write(resource, {
+            'schemaVersion': 1, 'book': 'Mark', 'targetId': 'SYNO-W', 'sourceId': 'N1904',
+            'verses': {'16:99': {
+                'sourceText': source, 'targetText': '', 'targetAbsent': True, 'groups': [],
+                'unmappedSource': [{
+                    'tokens': list(range(len(source.split()))),
+                    'reason': 'This Greek-only ending has no corresponding displayed Synodal verse.',
+                }],
+            }},
+        })
+        registry = copy.deepcopy(self.registry_value)
+        registry['resources'].append({
+            'file': resource.name, 'sha256': builder.sha(resource), 'status': 'accepted',
+            'authorReceipt': {'sha256': AUTHOR_SHA}, 'independentPeer': {'sha256': PEER_SHA},
+        })
+        registry_path = self.folder / 'registry-with-greek-only.json'
+        write(registry_path, registry)
+        output = self.folder / 'greek-only-output'
+        report = self.build(output=output, reviews=reviews, registry=registry_path)
+        index = builder.read(output / 'index.json')
+        mark = builder.read(output / 'mark.json')
+        self.assertEqual(report['greekOnlyUnreviewedReferences'], ['Revelation|12|18'])
+        self.assertEqual(index['coverage']['greekOnlyUnreviewedReferences'], ['Revelation|12|18'])
+        self.assertEqual(index['reviewedVerseCount'], 33)
+        self.assertEqual(report['unreviewedTargetVerseRecords'], 7926)
+        self.assertTrue(mark['verses']['16:99']['targetAbsent'])
+        self.assertFalse(mark['verses']['16:99']['groups'])
+        self.assertNotIn('16:99', mark['unavailable'])
+
     def test_actual_moved_shared_and_preferred_head_identities_survive_compilation(self):
         roman = builder.read(self.output / 'romans.json')['verses']
         source = builder.compiler.corpus(builder.read(builder.DATA / 'greek-nt-n1904.json'))['Romans']

@@ -295,7 +295,7 @@ def build(*, output, reviews, registry, target_corpus,
               'targetVerseRecords': len(plan['targetTexts']),
               'unreviewedTargetVerseRecords': len(plan['targetTexts']) - reviewed_target_count,
               'greekOnlyUnreviewedReferences': [f'{name}|{ref.replace(":", "|")}' for name in plan['books']
-                                               for ref in greek[name] if ref not in target[name]],
+                                               for ref in greek[name] if ref not in target[name] and ref in books[name]['unavailable']],
               'versification': plan['report'], 'books': manifest['books']}
     manifest['coverage'] = {key: report[key] for key in ('targetVerseRecords', 'unreviewedTargetVerseRecords', 'greekOnlyUnreviewedReferences')}
     artifacts['index.json'] = (json.dumps(manifest, ensure_ascii=False, separators=(',', ':')) + '\n').encode()

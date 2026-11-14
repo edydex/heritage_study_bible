@@ -1,9 +1,11 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { studyWord, sourceVerseWords, loadOccurrenceTranslations, occurrenceKey } from '../services/wordStudy'
 import GreekWordForm from './GreekWordForm'
+import { TextualAdditionBracket } from './VerseText'
+import { synodalAdditionRanges } from '../data/synodalTextAdditions'
 import { NATIVE_READER_TARGET_CHANGE_EVENT } from '../services/androidControls'
 
-export function OccurrenceText({ text, ranges = [] }) {
+export function OccurrenceText({ text, ranges = [], additions = [] }) {
   const merged = []
   for (const [start, end] of [...ranges].sort((a, b) => a[0] - b[0])) {
     if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start || end > text.length) continue
@@ -11,14 +13,18 @@ export function OccurrenceText({ text, ranges = [] }) {
     if (previous && start <= previous[1]) previous[1] = Math.max(previous[1], end)
     else merged.push([start, end])
   }
-  const parts = []
-  let cursor = 0
-  for (const [start, end] of merged) {
-    parts.push(text.slice(cursor, start), <mark key={start} className="font-semibold underline decoration-2 bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white">{text.slice(start, end)}</mark>)
-    cursor = end
-  }
-  parts.push(text.slice(cursor))
-  return <span className="whitespace-pre-wrap" dir="auto">{parts}</span>
+  const points = [...new Set([0, text.length, ...merged.flat(), ...additions.flat()])].sort((a, b) => a - b)
+  return <span className="whitespace-pre-wrap" dir="auto">{points.slice(0, -1).map((start, index) => {
+    const end = points[index + 1]
+    const value = text.slice(start, end)
+    return <Fragment key={start}>
+      {additions.some(([opening]) => opening === start) && <TextualAdditionBracket opening />}
+      {merged.some(([from, to]) => start >= from && end <= to)
+        ? <mark className="font-semibold underline decoration-2 bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white">{value}</mark>
+        : value}
+      {additions.some(([, closing]) => closing === end) && <TextualAdditionBracket />}
+    </Fragment>
+  })}</span>
 }
 
 export default function WordStudyDialog({ word, onClose, onNavigate }) {
@@ -100,7 +106,9 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
             {translation && <div className="mt-2" data-occurrence-translation={comparisonTranslationId}>
               {contexts.map((context, index) => <div key={index} className={index ? 'mt-3' : ''}>
                 <p className="text-sm font-semibold">{comparisonTranslationId}{context.chapter && (context.chapter !== row.chapter || context.verse !== row.verse) ? ` ${context.chapter}:${context.verse}` : ''}{context.phrases.length ? ` · ${context.phrases.map(phrase => `“${phrase}”`).join(' / ')}` : ''}</p>
-                {context.text ? <p className="mt-1"><OccurrenceText text={context.text} ranges={context.ranges} /></p> : <p className="text-sm italic">{row.heading ? 'Source heading shown below.' : `Verse not present in ${comparisonTranslationId}.`}</p>}
+                {context.text ? <p className="mt-1"><OccurrenceText text={context.text} ranges={context.ranges} additions={synodalAdditionRanges(
+                  comparisonTranslationId, row.book, context.chapter ?? row.chapter, context.verse ?? row.verse, context.text
+                )} /></p> : <p className="text-sm italic">{row.heading ? 'Source heading shown below.' : `Verse not present in ${comparisonTranslationId}.`}</p>}
                 {context.notes?.map((note, noteIndex) => <p key={noteIndex} className="text-xs mt-1 text-gray-600 dark:text-gray-300">Reading note: {note}</p>)}
               </div>)}
               {translation.status === 'unmapped' && <p className="text-xs mt-1 text-gray-600 dark:text-gray-300">{comparisonTranslationId === 'SYNO-W' ? 'Точное соответствие слов пока не установлено; стих показан для контекста.' : 'Exact word mapping unavailable; the full verse is shown for context.'}</p>}
@@ -109,7 +117,9 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
             </div>}
             <p className={`mt-2 ${showTranslation ? 'text-sm text-gray-600 dark:text-gray-300' : ''}`}>
               {showTranslation && <span className="block text-xs mb-1">{data.sourceId === 'N1904' ? 'Greek · N1904' : 'Hebrew / Aramaic · WLC'}</span>}
-              <OccurrenceText text={row.text} ranges={row.ranges} />
+              <OccurrenceText text={row.text} ranges={row.ranges} additions={synodalAdditionRanges(
+                data.sourceId, row.book, row.chapter, row.verse, row.text
+              )} />
             </p>
           </button></li>
         })}</ul>

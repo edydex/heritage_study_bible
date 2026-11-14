@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { splitParagraphText } from '../utils/verseLayout'
 import { getTextHighlightClasses } from '../utils/highlightColors'
+import { synodalAdditionNote } from '../data/synodalTextAdditions'
 
 function WordLink({ link, activeWordLink, onWordLink, onWordTap, children }) {
   const gesture = useRef(null), suppressClick = useRef(false)
@@ -45,7 +46,14 @@ function WordLink({ link, activeWordLink, onWordLink, onWordTap, children }) {
   >{children}</span>
 }
 
-function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLinks, activeWordLink, onWordLink, onWordTap) {
+export function TextualAdditionBracket({ opening }) {
+  return <span data-selection-ignore data-textual-addition={opening ? 'start' : 'end'} title={synodalAdditionNote} className="select-none text-amber-800 dark:text-amber-300">
+    {opening && <span lang="ru" data-textual-addition-explanation className="sr-only">{synodalAdditionNote} </span>}
+    <span aria-hidden="true">{opening ? '[[' : ']]'}</span>
+  </span>
+}
+
+function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLinks, activeWordLink, onWordLink, onWordTap, additions) {
   const boundaries = new Set([0, text.length])
   const annotations = [...highlights, ...wordLinks]
   annotations.forEach(highlight => {
@@ -56,6 +64,10 @@ function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLin
       boundaries.add(end)
     }
   })
+  for (const [start, end] of additions) {
+    if (start > startOffset && start < startOffset + text.length) boundaries.add(start - startOffset)
+    if (end > startOffset && end < startOffset + text.length) boundaries.add(end - startOffset)
+  }
   const points = [...boundaries].sort((a, b) => a - b)
   return points.slice(0, -1).map((start, index) => {
     const end = points[index + 1]
@@ -79,18 +91,23 @@ function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLin
         : <mark key={`${keyPrefix}-h${index}`} data-highlight-color={highlight.color || 'yellow'} className={`rounded-sm px-0 ${getTextHighlightClasses(highlight.color)}`}>{value}</mark>
       : <span key={`${keyPrefix}-t${index}`}>{value}</span>
     const link = wordLinks.find(item => item.startOffset < startOffset + end && item.endOffset > startOffset + start)
-    return link
+    const renderedWord = link
       ? <WordLink key={`${keyPrefix}-w${index}`} link={link} activeWordLink={activeWordLink} onWordLink={onWordLink} onWordTap={onWordTap}>{rendered}</WordLink>
       : rendered
+    return <Fragment key={`${keyPrefix}-${index}`}>
+      {additions.some(([opening]) => opening === startOffset + start) && <TextualAdditionBracket opening />}
+      {renderedWord}
+      {additions.some(([, closing]) => closing === startOffset + end) && <TextualAdditionBracket />}
+    </Fragment>
   })
 }
 
-function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap) {
+function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap, additions) {
   let cursor = startOffset
   return line.split(/(<b>.*?<\/b>)/g).map((part, index) => {
     const match = part.match(/^<b>(.*?)<\/b>$/)
     const value = match ? match[1] : part
-    const rendered = renderHighlightedText(value, cursor, highlights, `${keyPrefix}-${index}`, wordLinks, activeWordLink, onWordLink, onWordTap)
+    const rendered = renderHighlightedText(value, cursor, highlights, `${keyPrefix}-${index}`, wordLinks, activeWordLink, onWordLink, onWordTap, additions)
     cursor += value.length
     if (match) {
       return <strong key={`${keyPrefix}-b${index}`} className="font-bold">{rendered}</strong>
@@ -115,7 +132,7 @@ function ParagraphMarker() {
   )
 }
 
-export default function VerseText({ text, layout = null, highlights = [], wordLinks = [], activeWordLink = null, onWordLink, onWordTap }) {
+export default function VerseText({ text, layout = null, highlights = [], additions = [], wordLinks = [], activeWordLink = null, onWordLink, onWordTap }) {
   const { startsParagraph, segments } = splitParagraphText(text)
   const showLeadingMarker = startsParagraph || Boolean(layout?.breakBefore)
   let currentOffset = 0
@@ -143,7 +160,7 @@ export default function VerseText({ text, layout = null, highlights = [], wordLi
                 return (
                   <span key={`line-${lineIndex}`}>
                     {lineIndex > 0 && <><br /><span data-selection-ignore className="inline-block w-4" /></>}
-                    {renderFormattedLine(line, `${segmentIndex}-${lineIndex}`, lineOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap)}
+                    {renderFormattedLine(line, `${segmentIndex}-${lineIndex}`, lineOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap, additions)}
                   </span>
                 )
               })()

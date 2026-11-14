@@ -4,6 +4,7 @@ import WordStudyDialog from './WordStudyDialog'
 import { getTranslationById, loadTranslation } from '../data/translations'
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
 import VerseText from './VerseText'
+import { synodalAdditionNote, synodalAdditionRanges } from '../data/synodalTextAdditions'
 import VerseNumber from './VerseNumber'
 import { loadGreekWordLinks, greekWordLinkTranslations, originalSourceForBook, originalVerseLanguage, visibleVerseText } from '../data/originalLanguages'
 import { chapterWordAnchors } from '../services/parallelWordAnchors'
@@ -226,6 +227,8 @@ function ParallelBibleChapter({
           <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={showWordLinks} onChange={event => setShowWordLinks(event.target.checked)} /> Word links</label>
           {!selectionMode && <p className="mt-2 text-xs">Tap a word to highlight its match in both columns. Hold it, or choose Study word, for occurrences.</p>}
           {russianChapter && alignment && <p className="mt-1 text-xs" data-russian-link-coverage="true">Russian Synodal: {reviewedRussianVerses} of {russianChapter.verses.length} verses in this chapter have reviewed word links. Work is continuing; unreviewed words remain unlinked.</p>}
+          {russianChapter?.verses.some(verse => synodalAdditionRanges('SYNO-W', bookName, russianChapter.number, verse.number, verse.text).length > 0)
+            && <p lang="ru" className="mt-1 text-xs">[[…]] — {synodalAdditionNote}</p>}
           {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Each checked match has a distinct color and pattern combination, shared across both columns. Nearby matches favor contrasting colors and textures; words translated together share one combination. B&W mode uses underline patterns. Uncertain matches and differing source readings remain uncolored. Hold a word, or press Shift+Enter, for word study.</p><p className="mt-1">BSB links use Berean’s published translation tables and checked repairs. LSV, KJV and Russian Synodal use reviewed phrase correspondences; a phrase can include several words. Uncolored words can still be studied without implying an exact translation match.</p></details>}
           {selectionMode && showWordLinks && <p className="mt-1 text-xs">Word links pause while selecting verses.</p>}
           {linkError && <p role="status" className="mt-2">{linkError} <button className="underline" onClick={() => setLinkRetry(value => value + 1)}>Retry links</button></p>}
@@ -251,6 +254,8 @@ function ParallelBibleChapter({
           const secondaryLayout = getVerseLayout(secondaryVerseLayout, bookName, primaryChapter.number, verseNumber)
           const startsParagraph = primaryLayout?.breakBefore || secondaryLayout?.breakBefore
 
+          const primaryAdditions = synodalAdditionRanges(primaryTranslationId, bookName, primaryChapter.number, verseNumber, primaryVerse?.text)
+          const secondaryAdditions = synodalAdditionRanges(secondaryTranslationId, bookName, primaryChapter.number, verseNumber, secondaryVerse?.text)
           const primaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, primaryTranslationId, primaryVerse?.text || '') || []
           const secondaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, secondaryTranslationId, secondaryVerse?.text || '') || []
           const primaryWords = getWords('primary', verseNumber)
@@ -306,7 +311,7 @@ function ParallelBibleChapter({
                     data-verse={verseNumber}
                     data-translation={primaryTranslationId}
                   >
-                    {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={primaryTranslationId} />}
+                    {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} additions={primaryAdditions} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={primaryTranslationId} />}
                   </p>
                 </div>
 
@@ -323,7 +328,7 @@ function ParallelBibleChapter({
                     dir={original ? source.direction : undefined}
                     lang={hebrew ? secondaryVerse?.languages?.length === 1 ? secondaryVerse.languages[0] : 'he' : original ? 'grc' : undefined}
                   >
-                    {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} wordLinks={secondaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={secondaryTranslationId} />}
+                    {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} additions={secondaryAdditions} wordLinks={secondaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={secondaryTranslationId} />}
                   </p>
                 </div>
               </div>
@@ -342,7 +347,7 @@ function ParallelBibleChapter({
                       data-verse={verseNumber}
                       data-translation={primaryTranslationId}
                     >
-                      {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={primaryTranslationId} />}
+                      {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} additions={primaryAdditions} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={primaryTranslationId} />}
                     </p>
                   </div>
                 </div>
@@ -362,7 +367,7 @@ function ParallelBibleChapter({
                       dir={original ? source.direction : undefined}
                       lang={hebrew ? secondaryVerse?.languages?.length === 1 ? secondaryVerse.languages[0] : 'he' : original ? 'grc' : undefined}
                     >
-                      {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} wordLinks={secondaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={secondaryTranslationId} />}
+                      {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} additions={secondaryAdditions} wordLinks={secondaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={secondaryTranslationId} />}
                     </p>
                   </div>
                 </div>
