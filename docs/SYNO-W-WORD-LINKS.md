@@ -57,6 +57,20 @@ Both reference-map artifacts contain NT `sourcePieces` with exact offsets into
 `SYNO-W-native.json`. Offsets are UTF-16 code units, start inclusive and end
 exclusive. A reference map does not itself establish word correspondence.
 
+## Paragraph layout
+
+The reader loads SYNO-W paragraph starts from `public/data/verse-layout/SYNO-W.json`.
+Its source is the [Only.Bible 66-book USFM edition](https://github.com/onlydotbible/rst/tree/00ae4ffbd7a4ac1fb70ebb941109439316e4f5c9/usfm/rst66),
+derived from the Russian Bible Society's 1995 Synodal edition. The paragraph
+markers are stored separately from Heritage's Russian text and word-link data.
+
+Regenerate the metadata with `node scripts/generateSynodalLayout.mjs <usfm/rst66>`
+using the pinned revision above. The generator checks the opening Russian words
+at the native reference and follows Heritage's verse maps to confirm that those
+words start the displayed verse. It omits chapter openings, markers inside a
+verse, and any boundary that cannot be verified. The current import places
+8,500 internal paragraph starts across all 66 books.
+
 ## Textual differences in the Russian reader
 
 `[[…]]` marks selected, reviewed New Testament wording found in the installed

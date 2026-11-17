@@ -12,6 +12,25 @@ async function compare(page, primary, path, secondary = 'ORIGINAL') {
 }
 const token = (page, ref, translation, text) => page.locator('#verse-' + ref + ' [data-translation="' + translation + '"] [data-word-link]:visible').filter({ hasText: text })
 
+for (const flowing of [true, false]) {
+  test(`Synodal displays its own paragraph breaks with ${flowing ? 'flowing' : 'individual'} verses`, async ({ page }) => {
+    await page.addInitScript(flowing => {
+      localStorage.setItem('heritage-translation', 'SYNO-W')
+      localStorage.setItem('heritage-default-translation-v2', 'done')
+      localStorage.setItem('heritage-verse-stacking', String(flowing))
+    }, flowing)
+    await page.goto('/#/romans/1')
+    await expect(page.locator('#verse-1-25 [data-verse-content]')).toContainText('Они заменили истину Божию')
+    if (flowing) {
+      await expect(page.locator('span.block[aria-hidden="true"] + #verse-1-25')).toBeVisible()
+      await expect(page.locator('span.block[aria-hidden="true"] + #verse-1-26')).toHaveCount(0)
+    } else {
+      await expect(page.locator('#verse-1-25')).toHaveClass(/\bmt-3\b/)
+      await expect(page.locator('#verse-1-26')).not.toHaveClass(/\bmt-3\b/)
+    }
+  })
+}
+
 for (const english of ['BSB', 'LSV']) test(english + ' and Russian share reviewed colors without an Original column', async ({ page }) => {
   await compare(page, english, 'romans/1', 'SYNO-W')
   await expect(page.locator('[data-russian-link-coverage]')).toContainText('32 of 32')
@@ -31,6 +50,8 @@ for (const english of ['BSB', 'LSV']) test(english + ' and Russian share reviewe
 
 test('Russian counterpart navigation points to the actual preceding Greek verse', async ({ page }) => {
   await compare(page, 'SYNO-W', 'romans/1')
+  await expect(page.locator('#verse-1-25')).toHaveClass(/\bmt-4\b/)
+  await expect(page.locator('#verse-1-26')).not.toHaveClass(/\bmt-4\b/)
   await token(page, '1-30', 'SYNO-W', /^злоречивы$/).click()
   const selected = page.getByRole('region', { name: 'Selected word match' })
   await expect(selected).toContainText('ψιθυριστάς')
