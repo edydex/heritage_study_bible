@@ -65,6 +65,7 @@ function materialize(project: Project, itemIds: Set<string>, fresh: (prefix: str
       delete item.sourceRangeReplacement
       if (item.kind === 'song') {
         const isTitle = original.showTitle !== false && row.index === 0
+        item.cueItemId = original.cueItemId || itemId
         item.showTitle = isTitle
         item.arrangement = isTitle ? [] : [expanded.arrangement[row.index - (original.showTitle === false ? 0 : 1)]]
       } else item.slides = [expanded.slides[row.index]]
@@ -97,7 +98,7 @@ export function changePlannerSelection(project: Project, ids: string[], operatio
   const chosen = selectedPlannerSlides(rows, ids), chosenIds = new Set(chosen.map(row => row.id))
   const containsSelection = (row: PlannerSlide) => {
     const descendants = rows.filter(value => value.cue && (value === row || groupContains(rows, row, value)))
-    return descendants.length > 1 && descendants.every(value => chosenIds.has(value.id))
+    return descendants.length > 0 && descendants.every(value => chosenIds.has(value.id))
   }
   const candidates = rows.filter(row => row.kind === 'group' && ids.includes(row.id)
     || (row.sectionItemId || isSongTitleSlide(row)) && containsSelection(row))

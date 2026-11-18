@@ -5,10 +5,26 @@
 .presentation-accessibility li { display:flex; align-items:center; gap:.5rem; overflow-wrap:anywhere; }
 .presentation-accessibility i,.presentation-color-picker i { display:inline-block; flex:0 0 1.5rem; width:1.5rem; height:1.5rem; border:1px solid #555; background-color:white; vertical-align:middle; }
 .presentation-color-picker { position:relative; min-width:0; }
-.presentation-color-picker button { display:flex; align-items:center; gap:.4rem; text-align:left; white-space:normal; font-size:.75rem; }
-.presentation-color-options { position:absolute; z-index:30; top:100%; right:0; max-height:17rem; overflow:auto; min-width:12rem; padding:.3rem; border:1px solid #555; border-radius:.3rem; background:white; box-shadow:0 3px 10px #0005; }
-.presentation-color-options button { width:100%; background:white!important; color:black!important; border:1px solid #aaa!important; margin:2px 0; padding:.35rem!important; }
-.presentation-color-options button[aria-pressed=true] { outline:2px solid black; outline-offset:-3px; font-weight:bold; }
+.presentation-color-picker__trigger { display:flex; align-items:center; gap:.3rem; padding:.25rem .4rem; color:#edf0f4; background:#30343c; border:1px solid #626d7c; border-radius:.3rem; font:12px system-ui; cursor:pointer; }
+.presentation-color-picker__trigger i { flex:0 0 1.25rem; width:1.25rem; height:1.25rem; border:1px solid #a1aab6; border-radius:2px; }
+.presentation-color-picker i[data-empty] { background:linear-gradient(135deg,transparent 44%,#b7c3d2 45%,#b7c3d2 55%,transparent 56%); }
+.presentation-color-picker__value { font-size:11px; }
+.presentation-color-options { position:fixed; z-index:2100; box-sizing:border-box; width:232px; max-width:calc(100vw - 16px); padding:10px; border:1px solid #626d7c; border-radius:7px; color:#edf0f4; background:#262a30; box-shadow:0 5px 20px #0008; font:12px/1.4 system-ui; }
+.presentation-color-options > strong { display:block; margin-bottom:7px; font-size:12px; }
+.presentation-color-options .presentation-color-options__swatches { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; margin:0 0 9px; }
+.presentation-color-options .presentation-color-options__swatches button { display:flex; align-items:center; justify-content:center; width:30px; min-width:0; height:30px; padding:3px; border:1px solid #697381; border-radius:4px; background:transparent; cursor:pointer; }
+.presentation-color-options__swatches button i { width:22px; height:22px; flex:0 0 22px; border:0; border-radius:2px; }
+.presentation-color-options .presentation-color-options__swatches button[aria-pressed=true] { outline:2px solid #a9d2ff; outline-offset:1px; background:#374b63; }
+.presentation-color-options .presentation-color-options__custom { display:flex; gap:6px; margin:0; }
+.presentation-color-options .presentation-color-options__custom input { box-sizing:border-box; flex:1; width:0; min-width:0; height:30px; padding:4px 6px; border:1px solid #697381; border-radius:4px; color:#edf0f4; caret-color:#edf0f4; background:#191c21; font:12px monospace; }
+.presentation-color-options .presentation-color-options__custom button,
+.presentation-color-options .presentation-color-options__reset { width:auto; padding:5px 8px; color:#edf0f4; background:#343b45; border:1px solid #697381; border-radius:4px; font:12px system-ui; cursor:pointer; }
+.presentation-color-options .presentation-color-options__reset { margin-top:8px; width:100%; }
+.presentation-color-options button:disabled { opacity:.7; cursor:default; }
+.presentation-color-picker button:focus-visible,.presentation-color-options input:focus-visible { outline:2px solid #a9d2ff; outline-offset:2px; }
+.heritage-slide-format__color { display:flex; align-items:center; gap:4px; padding:0 4px; }
+.heritage-slide-format .presentation-color-picker__value { display:none; }
+.heritage-slide-format .presentation-color-picker__trigger { min-width:0; }
 .heritage-service-planner__stage[data-monochrome] { color:#111!important; background-color:white!important; background-image:none!important; }
 .heritage-service-planner__stage[data-monochrome] :is([data-role],.heritage-service-planner__scripture-reference,.heritage-service-planner__stage-status) { color:inherit; }
 .heritage-service-planner__stage[data-monochrome] :is(img,video) { filter:grayscale(1); }

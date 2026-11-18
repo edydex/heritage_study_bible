@@ -245,7 +245,7 @@ test('DELETE is a CAS-protected archive tombstone and physical song deletion is 
   assert.match(songs, /delete: \(\) => false/)
 })
 
-test('song catalog lists Published only and direct member content retains access checks', async () => {
+test('song catalog lists Published only and private content stays manager-only', async () => {
   const [catalog, content, access, publicConfig] = await Promise.all([
     source('app/catalogs/[type]/route.ts'),
     source('app/content/[type]/[id]/route.ts'),
@@ -258,13 +258,14 @@ test('song catalog lists Published only and direct member content retains access
   assert.match(catalog, /status: \{ not_equals: 'archived' \}/)
   assert.match(catalog, /const catalogJson = \['songs','books'\]\.includes\(type\) \? privateAuthorizationJson : publicJson/)
   assert.match(content, /!access\.authenticated/)
-  assert.match(content, /isSongVisibleToMember/)
+  assert.doesNotMatch(content, /isSongVisibleToMember/)
+  assert.match(content, /!access.manager/)
   assert.match(content, /const contentJson = \['songs','books'\]\.includes\(type\) \? privateAuthorizationJson : publicJson/)
   assert.doesNotMatch(content, /return publicJson\(\{ error: 'Not found\.'/)
   assert.match(publicConfig, /headers\.set\('Cache-Control', 'private, no-store'\)/)
   assert.match(publicConfig, /vary\.push\('Authorization'\)/)
   assert.match(access, /readSongsByVisibility/)
-  assert.match(access, /publishAt: \{ less_than_equal: now \}/)
+  assert.match(access, /readSongsByVisibility: Access = manageCommunityContent/)
 })
 
 test('strict public sermons advertise only the authoritative materialized lane', async () => {

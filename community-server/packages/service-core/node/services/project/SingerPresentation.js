@@ -18,6 +18,9 @@ function singerNextLine(value) {
 
 function singerSourceCue(cue, sourceChannelId) {
   if (!cue) return cue;
+  if (cue.singerTextStyle) cue = {...cue, textStyle:cue.singerTextStyle};
+  // Caption bands never cover the singer screen; its text keeps its own size.
+  if (cue.captionTextSizes) { cue = {...cue}; delete cue.captionTextSizes; }
   // Source blocks are captured before audience translation stacking. The
   // condensed cue still retains its original first-lines transform for other
   // consumers; singer displays must use this complete, unstacked source.
@@ -31,4 +34,25 @@ function singerSourceCue(cue, sourceChannelId) {
   };
 }
 
-module.exports = { MAX_SINGER_LINE_LENGTH, singerNextLine, singerSourceCue };
+// Hints describe the concrete next slide; a contextual sermon heading is not
+// useful when the next content is Scripture, a quotation, or a new point.
+function nextSlideHint(cue, channelId) {
+  if (!cue) return '';
+  const source = cue.channels?.[channelId]?.mode === 'condensed' ? singerSourceCue(cue, channelId) : cue;
+  const output = source.channels?.[channelId];
+  if (!output || output.mode === 'hide') return '';
+  const blocks = output.blocks || [];
+  const bible = blocks.find(block => block.type === 'bible');
+  if (bible) return require('./ReadingLabels').localizedReference(bible.displayReference || bible.reference, channelId === 'russian' || channelId === 'media' && ['SYNO','SYNO-W'].includes(bible.translationId) ? 'ru' : 'en');
+  const body = blocks.find(block => block.type === 'text' && ['body','lyrics','caption'].includes(block.role));
+  if (body) {
+    const rows = require('./SermonContext').outlineRows(body.text);
+    return singerNextLine(cue.presetId === 'wotbc-sermon' && rows.length ? rows.at(-1).text : body.text);
+  }
+  const text = blocks.map(block => block.type === 'text' ? block.text
+    : block.type === 'canvas' ? require('./CanvasLayout').canvasText(block.objects)
+      : block.type === 'image' && block.role !== 'background' ? block.altText : '').filter(Boolean).join('\n');
+  return singerNextLine(text);
+}
+
+module.exports = { MAX_SINGER_LINE_LENGTH, singerNextLine, singerSourceCue, nextSlideHint };

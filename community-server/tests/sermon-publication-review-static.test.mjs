@@ -27,8 +27,8 @@ test('Payload wires a manager-only same-origin sermon review view into the norma
   assert.match(config, /Component:\s*'@\/components\/SermonPublicationReview'/)
   assert.match(config, /path:\s*'\/sermon-publications'/)
   assert.match(importMap, /"@\/components\/SermonPublicationReview#default"/)
-  assert.match(welcome, /href:\s*'\/admin\/sermon-publications'/)
-  assert.match(welcome, /title:\s*'Publish a sermon'/)
+  assert.match(welcome, /href="\/admin\/sermon-publications"/)
+  assert.match(welcome, /t\('Publish a sermon'\)/)
 
   assert.match(view, /DefaultTemplate/)
   assert.match(view, /viewType="sermon-publications"/)

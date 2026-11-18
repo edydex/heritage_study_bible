@@ -1,0 +1,3 @@
+import {defineConfig} from 'vite'
+const root=new URL('../../../',import.meta.url).pathname
+export default defineConfig({root,esbuild:{jsx:"automatic"},resolve:{dedupe:['react','react-dom'],alias:{'@':root+'community-server/src'}},build:{outDir:process.env.ADJUST_REHEARSAL_BUILD || root+'node_modules/.cache/heritage-adjust-rehearsal',emptyOutDir:true,target:"esnext",commonjsOptions:{include:[/node_modules/,/service-core/]},rollupOptions:{input:root+'community-server/tests/browser/adjust-rehearsal.html'}},preview:{host:'127.0.0.1',port:4297,strictPort:true}})
