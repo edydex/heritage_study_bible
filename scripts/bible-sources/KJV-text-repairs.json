@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "translation": "KJV",
+  "source": {
+    "provider": "CrossWire Bible Society KJV 3.1",
+    "revision": "d490be7e34762deb2c76cb2c1306d4808e27890d",
+    "url": "https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml",
+    "sha256": "4bcbfe45722fca396adbeac9c81025bbb173cb1e30296da90864f0400cb0e3f5"
+  },
+  "repairs": [
+    {
+      "book": "Romans",
+      "chapter": 8,
+      "verse": 1,
+      "reason": "Installed vendor KJVPCE source and both generated delivery formats contained an empty canonical verse.",
+      "sourceText": "",
+      "correctedText": "There is therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, but after the Spirit."
+    }
+  ],
+  "remainingOldTestamentEmptyVerses": ["Joshua 15:1", "Job 7:1", "Hosea 8:1"],
+  "remainingScope": "The three empty Old Testament verses require the separate OT source review. Scribal colophons and stray next-book headings remain unlinked to the Greek witness."
+}

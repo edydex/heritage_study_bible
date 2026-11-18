@@ -1,3 +1,4 @@
+import { isScripturePageGroup } from './plannerScriptureGroups'
 import core from '../../packages/service-core/index.js'
 import formatting from '../../packages/service-core/node/services/project/SlideFormatting.js'
 import { scripturePages } from './plannerPresentation'
@@ -42,6 +43,9 @@ function combine(items:any[]) {
     passage.verses=verses
     passage.spans=spans
     passage.reference=reference(passage,merged,verses.map(v=>v.number))
+    if (items.some(item=>item.passagesByChannel[channel].displayReference !== undefined)) {
+      passage.displayReference=items[0].passagesByChannel[channel].displayReference ?? passage.reference
+    }
   }
   const all=numbers(merged)
   merged.range.end.verse=all.at(-1)
@@ -59,10 +63,11 @@ function pageFrom(merged:any,verses:number[],id:string,first:boolean) {
     passage.spans=(passage.spans||[]).filter((s:any)=>s.end>offset&&s.start<offset+length)
       .map((s:any)=>({...s,start:Math.max(0,s.start-offset),end:Math.min(length,s.end-offset)}))
     passage.reference=reference(passage,page,verses)
+    if (passage.displayReference !== undefined) passage.displayReference=first ? passage.displayReference : ''
     delete passage.contentSha256
   }
   page.title=(Object.values(page.passagesByChannel)[0] as any).reference
-  if(!first){delete page.translationCues;delete page.plannedDurationSeconds}
+  if(!first){delete page.translationCues;delete page.translationCueSettings;delete page.plannedDurationSeconds}
   return page
 }
 
@@ -91,7 +96,7 @@ export function reflowScripture(project:Project,selectedId:string,bodySize:numbe
     // A formerly single page needs a standard pagination group so its pages
     // stay one passage for subsequent size/edition changes and SyncShow.
     const existingPageGroup=parent && (isReadingGroup(next,parent)
-      || selectedId.startsWith(`${parent.id.slice(0,100)}-v`))
+      || isScripturePageGroup(next,parent))
     const wrap=scope.itemIds.length===1 && pages.length>1 && !existingPageGroup
     let prefix=wrap ? original.id : (parent && parent.childIds.every((id:string)=>next.items[id]?.kind==='bible') ? parent.id : ids[0].replace(/-v\d+-\d+$/,''))
     if(wrap) {

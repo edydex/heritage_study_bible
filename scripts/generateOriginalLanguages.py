@@ -2,8 +2,9 @@
 """Generate the named Greek NT source and conservative Greek–BSB links.
 
 Inputs are publisher/source downloads, never AI-generated text. Source words
-must agree for the whole verse, allowing only the reviewed spelling pairs below,
-before transferring the Berean row links.
+are paired only where an exact match is mandatory in every longest common
+subsequence, allowing only the reviewed spelling pairs below. Publisher English
+phrases must remain complete and contiguous before their row links transfer.
 """
 import argparse
 import csv
@@ -40,6 +41,39 @@ def visible_text(value):
     value = re.sub(r'\s+¶\s+', '\n', value)
     value = re.sub(r'\s*\|\|\s*', '\n', value)
     return re.sub(r'</?b>', '', value)
+
+def mandatory_exact_pairs(source, target):
+    """Return only exact token pairs present in every maximum subsequence.
+
+    A single LCS can arbitrarily pair repeated words or choose one side of a
+    reordered passage. A token must be used in every optimal alignment AND have
+    exactly one possible counterpart before it can carry a publisher link.
+    """
+    if source == target:
+        return {index: index for index in range(len(source))}
+    n, m = len(source), len(target)
+    if not n or not m:
+        return {}
+    prefix = [[0] * (m + 1) for _ in range(n + 1)]
+    for i in range(n):
+        for j in range(m):
+            prefix[i + 1][j + 1] = prefix[i][j] + 1 if source[i] == target[j] else max(prefix[i][j + 1], prefix[i + 1][j])
+    suffix = [[0] * (m + 1) for _ in range(n + 1)]
+    for i in range(n - 1, -1, -1):
+        for j in range(m - 1, -1, -1):
+            suffix[i][j] = suffix[i + 1][j + 1] + 1 if source[i] == target[j] else max(suffix[i + 1][j], suffix[i][j + 1])
+    longest = prefix[n][m]
+    pairs = {}
+    for i in range(n):
+        # If an optimal path can omit this source token, its identity is not
+        # established even when its sole possible counterpart looks unique.
+        if max(prefix[i][j] + suffix[i + 1][j] for j in range(m + 1)) == longest:
+            continue
+        candidates = [j for j in range(m) if source[i] == target[j]
+                      and prefix[i][j] + 1 + suffix[i + 1][j + 1] == longest]
+        if len(candidates) == 1:
+            pairs[i] = candidates[0]
+    return pairs
 
 def generate(nestle_path, berean_path, bsb_path, output, all_nt_links=False):
     if checksum(nestle_path) != NESTLE_SHA256:
@@ -96,34 +130,49 @@ def generate(nestle_path, berean_path, bsb_path, output, all_nt_links=False):
         rows = table[ref]
         greek_rows = sorted((r for r in rows if r[5].strip()), key=lambda r:int(r[1]))
         english_rows = sorted((r for r in rows if r[18].strip() not in ['', '-', 'vvv', '. . .']), key=lambda r:int(r[2]))
-        if [greek_word(w) for w in words] != [greek_word(r[5]) for r in greek_rows]:
-            unavailable[f'{chapter}:{verse}'] = 'greek-edition-differs'
-            continue
+        source_words = [greek_word(w) for w in words]
+        publisher_words = [greek_word(r[5]) for r in greek_rows]
+        source_pairs = mandatory_exact_pairs(source_words, publisher_words)
         tokenized = english_words(target_text)
         expected = [w[0] for r in english_rows for w in english_words(r[18])]
-        if [w[0] for w in tokenized] != expected:
-            unavailable[f'{chapter}:{verse}'] = 'english-edition-differs'
-            continue
+        target_pairs = mandatory_exact_pairs(expected, [w[0] for w in tokenized])
         source_ranges, cursor = {}, 0
-        for index, (word, row) in enumerate(zip(words, greek_rows)):
-            source_ranges[row[2]] = (index, cursor, cursor+len(word))
+        for index, word in enumerate(words):
+            if index in source_pairs:
+                row = greek_rows[source_pairs[index]]
+                source_ranges[row[2]] = (index, cursor, cursor+len(word))
             cursor += len(word)+1
         groups, cursor = [], 0
         for row in english_rows:
             count = len(english_words(row[18]))
             if not count: continue
-            start, end = tokenized[cursor][1], tokenized[cursor+count-1][2]
+            positions = [target_pairs.get(index) for index in range(cursor, cursor + count)]
             cursor += count
+            # Never reduce a changed multiword publisher phrase to a guessed
+            # subphrase. Every token must retain one contiguous destination.
+            if any(position is None for position in positions) or positions != list(range(positions[0], positions[0] + count)):
+                continue
             link = source_ranges.get(row[2])
             if link is None: continue
             index, source_start, source_end = link
+            start, end = tokenized[positions[0]][1], tokenized[positions[-1]][2]
             groups.append({'id': index, 'source': [source_start, source_end], 'target': [start, end]})
-        aligned[f'{chapter}:{verse}'] = {'sourceText': source_text, 'targetText': target_text, 'groups': groups}
+        if not groups:
+            unavailable[f'{chapter}:{verse}'] = ('greek-edition-differs' if source_words != publisher_words
+                else 'english-edition-differs' if [w[0] for w in tokenized] != expected else 'no-publisher-word-correspondence')
+            continue
+        entry = {'sourceText': source_text, 'targetText': target_text, 'groups': groups}
+        if source_words != publisher_words or [w[0] for w in tokenized] != expected:
+            entry['partial'] = {'method': 'Mandatory exact token pairs across edition differences; complete publisher English phrases only.',
+                'sourceWords': len(words), 'matchedSourceWords': len(source_pairs),
+                'publisherGreekWords': len(greek_rows), 'targetWords': len(tokenized),
+                'matchedTargetWords': len(target_pairs), 'publisherEnglishWords': len(expected)}
+        aligned[f'{chapter}:{verse}'] = entry
     aligned, unavailable = aligned_books['Romans'], unavailable_books['Romans']
     alignment = {
         'schemaVersion': 1, 'book': 'Romans', 'sourceId': 'N1904', 'targetId': 'BSB',
         'provenance': {'url': 'https://bereanbible.com/bsb_tables.tsv', 'license': 'CC0', 'licenseUrl': 'https://berean.bible/terms.htm', 'tableSha256': checksum(berean_path), 'targetSha256': checksum(bsb_path), 'greekSha256': source['sha256']},
-        'method': 'Publisher row links transferred only when the whole Greek and English verse word sequences agree; Greek comparison ignores accents, case and punctuation and allows two reviewed spelling pairs: Δαυεὶδ/Δαυὶδ and συνπαρακληθῆναι/συμπαρακληθῆναι. English comparison ignores case and punctuation. No inferred synonym or Strong-number matching.',
+        'method': 'Publisher row links transferred through exact token pairs mandatory in every longest common subsequence. Complete publisher English phrases must map contiguously; repeated or reordered ambiguity remains unlinked. Greek comparison ignores accents, case and punctuation and allows two reviewed spelling pairs: Δαυεὶδ/Δαυὶδ and συνπαρακληθῆναι/συμπαρακληθῆναι. English comparison ignores case and punctuation. Edition differences are recorded per verse. No inferred synonym or Strong-number matching.',
         'verses': aligned, 'unavailable': unavailable,
     }
     output.mkdir(parents=True, exist_ok=True)

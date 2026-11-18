@@ -11,8 +11,10 @@ import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.session.LibraryResult;
+import androidx.media3.session.HeritageSessionConnectionProbe;
 import androidx.media3.session.MediaBrowser;
 import androidx.media3.session.MediaConstants;
+import androidx.media3.session.MediaSession;
 import androidx.media3.session.SessionCommand;
 import androidx.media3.session.SessionResult;
 import androidx.media3.session.SessionToken;
@@ -431,6 +433,38 @@ public class AudioPlaybackIntegrationTest {
         assertFalse("External car host launched the Bible reader", readerOpened.get());
         return result;
     }
+    @Test public void verifiedAutoGetsStandardControlsWithoutFrameworkTrustAndOtherControllersKeepTheirPolicy() throws Exception {
+        int hostUid = InstrumentationRegistry.getInstrumentation().getContext().getApplicationInfo().uid;
+        assertNotEquals("The verification fallback needs a real external package UID", android.os.Process.myUid(), hostUid);
+        String[] hostPackages = context.getPackageManager().getPackagesForUid(hostUid);
+        assertNotNull("The external test package must be visible for UID verification", hostPackages);
+        assertFalse(java.util.Arrays.asList(hostPackages).contains("com.google.android.projection.gearhead"));
+        String[] packages = {"com.google.android.projection.gearhead", "example.untrusted.controller",
+            "com.google.android.projection.gearhead", "com.google.android.projection.gearhead",
+            "example.trusted.controller", "example.trusted.controller", context.getPackageName()};
+        boolean[] trusted = {false, false, false, false, true, true, true};
+        boolean[] verified = {true, true, false, false, true, false, true};
+        boolean[] controllable = {true, false, false, false, true, true, true};
+        int[] uids = {hostUid, hostUid, -1, hostUid, hostUid, hostUid, android.os.Process.myUid()};
+        int[] commands = {Player.COMMAND_PLAY_PAUSE, Player.COMMAND_PREPARE, Player.COMMAND_SET_MEDIA_ITEM,
+            Player.COMMAND_SEEK_BACK, Player.COMMAND_SEEK_FORWARD, Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+            Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM};
+        for (int index = 0; index < packages.length; index++) {
+            int uid = uids[index];
+            MediaSession.ControllerInfo controller = MediaSession.ControllerInfo.createTestOnlyControllerInfo(
+                packages[index], -1, uid, MediaSession.ControllerInfo.LEGACY_CONTROLLER_VERSION,
+                MediaSession.ControllerInfo.LEGACY_CONTROLLER_INTERFACE_VERSION, trusted[index], Bundle.EMPTY, verified[index]);
+            MediaSession.ConnectionResult result = main(() -> HeritageSessionConnectionProbe.connect(controller, ID)).get(10, TimeUnit.SECONDS);
+            String label = packages[index] + "; trusted=" + trusted[index] + "; verified=" + verified[index];
+            assertTrue("Connection rejected: " + label, result.isAccepted);
+            for (int playerCommand : commands) assertEquals("Player command " + playerCommand + ": " + label,
+                controllable[index], result.availablePlayerCommands.contains(playerCommand));
+            assertEquals("Private app command policy: " + label, uid == android.os.Process.myUid(),
+                result.availableSessionCommands.contains(new SessionCommand(HeritagePlaybackService.COMMAND, Bundle.EMPTY)));
+        }
+        assertFalse("Connection negotiation must not autoplay", main(() -> browser.getPlayWhenReady()));
+        assertEquals(12d, state().getDouble("position"), .1);
+    }
     @Test public void legacyCarPlayAndPauseResumeColdSavedQueueWithoutReaderOrPrepare() throws Exception {
         main(() -> { browser.release(); return null; }); browser = null;
         context.stopService(new Intent(context, HeritagePlaybackService.class));
@@ -455,6 +489,12 @@ public class AudioPlaybackIntegrationTest {
         double paused = state().getDouble("position");
         Thread.sleep(350);
         assertEquals(paused, state().getDouble("position"), .05);
+        carCommand("fastForward", null);
+        await(() -> Math.abs(state().getDouble("position") - paused - 15) < .1);
+        assertFalse("Fast-forward must retain paused state", main(() -> browser.getPlayWhenReady()));
+        carCommand("rewind", null);
+        await(() -> Math.abs(state().getDouble("position") - paused) < .1);
+        assertFalse("Rewind must retain paused state", main(() -> browser.getPlayWhenReady()));
         carCommand("mediaPlayPause", null);
         await(() -> main(() -> browser.isPlaying()));
         assertTrue(state().getJSONObject("lastPlayed").getDouble(ID) > 0);

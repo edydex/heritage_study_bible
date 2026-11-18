@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { splitParagraphText } from '../utils/verseLayout'
 import { getTextHighlightClasses } from '../utils/highlightColors'
+import { synodalAdditionNote } from '../data/synodalTextAdditions'
 
 function WordLink({ link, activeWordLink, onWordLink, onWordTap, children }) {
   const gesture = useRef(null), suppressClick = useRef(false)
@@ -8,30 +9,51 @@ function WordLink({ link, activeWordLink, onWordLink, onWordTap, children }) {
   useEffect(() => cancel, [])
   const activate = event => {
     event.stopPropagation()
-    if (suppressClick.current) { suppressClick.current = false; event.preventDefault(); return }
+    if (event.type === 'click' && suppressClick.current) { suppressClick.current = false; event.preventDefault(); return }
+    suppressClick.current = false
     if (globalThis.window?.getSelection?.()?.isCollapsed === false) return
     ;(onWordTap || onWordLink)?.(link)
   }
   return <span
     className={`bible-word-link${link.paired === false ? ' bible-word-unpaired' : ''}${activeWordLink === link.id ? ' bible-word-link-active' : ''}`}
     data-word-link={link.id} data-word-pattern={link.pattern}
-    title={onWordTap ? 'Tap for occurrences; hold (or Shift+Enter) for translation match' : link.label} role="button" tabIndex={0} aria-label={link.label}
+    data-word-color={link.pattern != null ? link.color?.index : undefined}
+    data-word-texture={link.pattern != null && link.color ? link.texture : undefined}
+    style={link.pattern != null && link.color ? {
+      '--word-link-light': link.color.light, '--word-link-dark': link.color.dark,
+      '--word-link-edge': link.color.edge, '--word-link-dark-edge': link.color.darkEdge,
+    } : undefined}
+    data-word-paired={link.paired !== false}
+    title={onWordTap ? 'Tap to highlight the match; hold (or Shift+Enter) for word study' : link.label} role="button" tabIndex={0} aria-label={link.label}
     aria-pressed={activeWordLink === link.id}
     onPointerDown={event => {
       if (!onWordTap || event.button !== 0) return
+      if (event.isPrimary === false) { cancel(); suppressClick.current = true; return }
       cancel(); suppressClick.current = false
       const point = { x: event.clientX, y: event.clientY }
-      gesture.current = { ...point, timer: setTimeout(() => { suppressClick.current = true; onWordLink?.(link); gesture.current = null }, 450) }
+      event.currentTarget.setPointerCapture?.(event.pointerId)
+      gesture.current = { ...point, pointerId: event.pointerId, timer: setTimeout(() => {
+        suppressClick.current = true
+        if (globalThis.window?.getSelection?.()?.isCollapsed !== false) onWordLink?.(link, { pointerId: event.pointerId, pointerType: event.pointerType })
+        gesture.current = null
+      }, 450) }
     }}
-    onPointerMove={event => { if (gesture.current && Math.hypot(event.clientX - gesture.current.x, event.clientY - gesture.current.y) > 10) { cancel(); suppressClick.current = true } }}
-    onPointerUp={cancel} onPointerCancel={() => { cancel(); suppressClick.current = true }} onPointerLeave={cancel}
+    onPointerMove={event => { if (gesture.current?.pointerId === event.pointerId && Math.hypot(event.clientX - gesture.current.x, event.clientY - gesture.current.y) > 10) { cancel(); suppressClick.current = true } }}
+    onPointerUp={cancel} onPointerCancel={() => { cancel(); suppressClick.current = true }}
     onContextMenu={event => { if (onWordTap) event.preventDefault() }}
     onClick={activate}
     onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); if (event.shiftKey) onWordLink?.(link); else activate(event) } }}
   >{children}</span>
 }
 
-function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLinks, activeWordLink, onWordLink, onWordTap) {
+export function TextualAdditionBracket({ opening }) {
+  return <span data-selection-ignore data-textual-addition={opening ? 'start' : 'end'} title={synodalAdditionNote} className="select-none text-amber-800 dark:text-amber-300">
+    {opening && <span lang="ru" data-textual-addition-explanation className="sr-only">{synodalAdditionNote} </span>}
+    <span aria-hidden="true">{opening ? '[[' : ']]'}</span>
+  </span>
+}
+
+function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLinks, activeWordLink, onWordLink, onWordTap, additions) {
   const boundaries = new Set([0, text.length])
   const annotations = [...highlights, ...wordLinks]
   annotations.forEach(highlight => {
@@ -42,6 +64,10 @@ function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLin
       boundaries.add(end)
     }
   })
+  for (const [start, end] of additions) {
+    if (start > startOffset && start < startOffset + text.length) boundaries.add(start - startOffset)
+    if (end > startOffset && end < startOffset + text.length) boundaries.add(end - startOffset)
+  }
   const points = [...boundaries].sort((a, b) => a - b)
   return points.slice(0, -1).map((start, index) => {
     const end = points[index + 1]
@@ -65,18 +91,23 @@ function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLin
         : <mark key={`${keyPrefix}-h${index}`} data-highlight-color={highlight.color || 'yellow'} className={`rounded-sm px-0 ${getTextHighlightClasses(highlight.color)}`}>{value}</mark>
       : <span key={`${keyPrefix}-t${index}`}>{value}</span>
     const link = wordLinks.find(item => item.startOffset < startOffset + end && item.endOffset > startOffset + start)
-    return link
+    const renderedWord = link
       ? <WordLink key={`${keyPrefix}-w${index}`} link={link} activeWordLink={activeWordLink} onWordLink={onWordLink} onWordTap={onWordTap}>{rendered}</WordLink>
       : rendered
+    return <Fragment key={`${keyPrefix}-${index}`}>
+      {additions.some(([opening]) => opening === startOffset + start) && <TextualAdditionBracket opening />}
+      {renderedWord}
+      {additions.some(([, closing]) => closing === startOffset + end) && <TextualAdditionBracket />}
+    </Fragment>
   })
 }
 
-function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap) {
+function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap, additions) {
   let cursor = startOffset
   return line.split(/(<b>.*?<\/b>)/g).map((part, index) => {
     const match = part.match(/^<b>(.*?)<\/b>$/)
     const value = match ? match[1] : part
-    const rendered = renderHighlightedText(value, cursor, highlights, `${keyPrefix}-${index}`, wordLinks, activeWordLink, onWordLink, onWordTap)
+    const rendered = renderHighlightedText(value, cursor, highlights, `${keyPrefix}-${index}`, wordLinks, activeWordLink, onWordLink, onWordTap, additions)
     cursor += value.length
     if (match) {
       return <strong key={`${keyPrefix}-b${index}`} className="font-bold">{rendered}</strong>
@@ -101,7 +132,7 @@ function ParagraphMarker() {
   )
 }
 
-export default function VerseText({ text, layout = null, highlights = [], wordLinks = [], activeWordLink = null, onWordLink, onWordTap }) {
+export default function VerseText({ text, layout = null, highlights = [], additions = [], wordLinks = [], activeWordLink = null, onWordLink, onWordTap }) {
   const { startsParagraph, segments } = splitParagraphText(text)
   const showLeadingMarker = startsParagraph || Boolean(layout?.breakBefore)
   let currentOffset = 0
@@ -129,7 +160,7 @@ export default function VerseText({ text, layout = null, highlights = [], wordLi
                 return (
                   <span key={`line-${lineIndex}`}>
                     {lineIndex > 0 && <><br /><span data-selection-ignore className="inline-block w-4" /></>}
-                    {renderFormattedLine(line, `${segmentIndex}-${lineIndex}`, lineOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap)}
+                    {renderFormattedLine(line, `${segmentIndex}-${lineIndex}`, lineOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap, additions)}
                   </span>
                 )
               })()

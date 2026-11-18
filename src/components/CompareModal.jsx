@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { translations, loadTranslation } from '../data/translations'
+import { bracketSynodalAdditions } from '../data/synodalTextAdditions'
 import { bibleBooks } from '../data/bible-books.js'
 import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptions'
 
@@ -98,7 +99,7 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
             item.verse,
             tId
           )
-          return `${bookName} ${item.chapter}:${item.verse} ${text || '(verse not found)'}`
+          return `${bookName} ${item.chapter}:${item.verse} ${bracketSynodalAdditions(tId, bookName, item.chapter, item.verse, text) || '(verse not found)'}`
         })
         .join('\n\n')
       setLoadedTexts(prev => ({ ...prev, [tId]: combinedText }))
@@ -155,7 +156,7 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
     return text.replace(/ \|\| /g, ' ')
   }
   const readingText = selectedPassages
-    .map(item => `${bookName} ${item.chapter}:${item.verse} ${item.text || '(verse not found)'}`)
+    .map(item => `${bookName} ${item.chapter}:${item.verse} ${bracketSynodalAdditions(translationId, bookName, item.chapter, item.verse, item.text) || '(verse not found)'}`)
     .join('\n\n')
 
   return (

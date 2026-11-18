@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "sourceId": "N1904",
+  "sourceSha256": "3beee6abb6302f691110fe0fc949fc195593b999cf2d0e463c9b573c1bb67150",
+  "description": "Explicit, evidence-backed metadata errata to the pinned Greek morphology. Original annotations are retained for provenance. The Greek text and raw source checksum must remain unchanged.",
+  "corrections": [
+    {
+      "reference": {
+        "book": "John",
+        "chapter": 11,
+        "verse": 32
+      },
+      "tokenIndex": 11,
+      "text": "αὐτοῦ",
+      "original": {
+        "lemma": "αὐτοῦ",
+        "strongs": "847",
+        "func_morph": "ADV",
+        "form_morph": "ADV"
+      },
+      "corrected": {
+        "lemma": "αὐτός",
+        "strongs": "846",
+        "func_morph": "P-GSM",
+        "form_morph": "P-GSM"
+      },
+      "reason": "This occurrence is the genitive singular masculine personal pronoun, his, determining feet, not the local adverb there. The genitive precedes the intervening prepositional phrase in the Greek word order. Correct the lexical and morphological annotation while preserving the exact Greek text and pinned raw-source hash; the existing BSB link to His is valid.",
+      "evidence": [
+        {
+          "url": "https://www.billmounce.com/greek-dictionary/autos?page=83",
+          "support": "The author’s own dictionary concordance explicitly parses the αὐτοῦ belonging to his feet in John 11:32 as genitive singular masculine, under the personal pronoun αὐτός, Strong 846."
+        },
+        {
+          "url": "https://bereanbible.com/bsb_tables.tsv",
+          "sha256": "aa2a9a0f004d015738cd1839c7c56c3be2549e0d4f4537090c2017268c223c60",
+          "support": "The pinned publisher row has the exact form αὐτοῦ, Strong 846, personal-pronoun genitive masculine third-person singular parsing, and the English possessive His."
+        }
+      ]
+    },
+    {
+      "reference": {
+        "book": "Acts",
+        "chapter": 20,
+        "verse": 13
+      },
+      "tokenIndex": 9,
+      "text": "Ἆσσον,",
+      "original": {
+        "lemma": "ἆσσον",
+        "strongs": "788",
+        "func_morph": "ADV-C",
+        "form_morph": "ADV-C"
+      },
+      "corrected": {
+        "lemma": "Ἄσσος",
+        "strongs": "789",
+        "func_morph": "N-ASF",
+        "form_morph": "N-ASF"
+      },
+      "reason": "This is the accusative singular feminine place name Assos, the destination of the voyage and meeting place, not the comparative adverb nearer. Correct the lexical and morphological annotation while preserving the exact Greek text and pinned raw-source hash.",
+      "evidence": [
+        {
+          "url": "https://www.billmounce.com/greek-dictionary/assos",
+          "support": "The author’s dictionary assigns Strong 789 to Assos and explicitly parses both Acts 20:13 and 20:14 forms as accusative singular feminine."
+        },
+        {
+          "url": "https://greekcntr.org/resources/ALC/ALC.pdf",
+          "support": "Alan Bunning, Analytical Lexicon and Concordance of the Greek New Testament (2025), printed page 93: the Assos form is listed as noun, accusative feminine singular, for Acts 20:13,14.",
+          "attribution": "Alan Bunning and the Center for New Testament Restoration",
+          "license": "CC BY-SA 4.0"
+        },
+        {
+          "url": "https://bereanbible.com/bsb_tables.tsv",
+          "sha256": "aa2a9a0f004d015738cd1839c7c56c3be2549e0d4f4537090c2017268c223c60",
+          "support": "Pinned publisher rows for both places contain the same Greek form, Strong 789, and N-AFS (accusative feminine singular) parsing."
+        }
+      ]
+    },
+    {
+      "reference": {
+        "book": "Acts",
+        "chapter": 20,
+        "verse": 14
+      },
+      "tokenIndex": 6,
+      "text": "Ἆσσον,",
+      "original": {
+        "lemma": "ἆσσον",
+        "strongs": "788",
+        "func_morph": "ADV-C",
+        "form_morph": "ADV-C"
+      },
+      "corrected": {
+        "lemma": "Ἄσσος",
+        "strongs": "789",
+        "func_morph": "N-ASF",
+        "form_morph": "N-ASF"
+      },
+      "reason": "This is the accusative singular feminine place name Assos, the destination of the voyage and meeting place, not the comparative adverb nearer. Correct the lexical and morphological annotation while preserving the exact Greek text and pinned raw-source hash.",
+      "evidence": [
+        {
+          "url": "https://www.billmounce.com/greek-dictionary/assos",
+          "support": "The author’s dictionary assigns Strong 789 to Assos and explicitly parses both Acts 20:13 and 20:14 forms as accusative singular feminine."
+        },
+        {
+          "url": "https://greekcntr.org/resources/ALC/ALC.pdf",
+          "support": "Alan Bunning, Analytical Lexicon and Concordance of the Greek New Testament (2025), printed page 93: the Assos form is listed as noun, accusative feminine singular, for Acts 20:13,14.",
+          "attribution": "Alan Bunning and the Center for New Testament Restoration",
+          "license": "CC BY-SA 4.0"
+        },
+        {
+          "url": "https://bereanbible.com/bsb_tables.tsv",
+          "sha256": "aa2a9a0f004d015738cd1839c7c56c3be2549e0d4f4537090c2017268c223c60",
+          "support": "Pinned publisher rows for both places contain the same Greek form, Strong 789, and N-AFS (accusative feminine singular) parsing."
+        }
+      ]
+    }
+  ]
+}

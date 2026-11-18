@@ -1,0 +1,5283 @@
+{
+  "schemaVersion": 1,
+  "book": "Colossians",
+  "sourceId": "N1904",
+  "targetId": "SYNO-W",
+  "review": {
+    "status": "Private full-source author review; separate independent semantic peer required before Russian source admission/highlights.",
+    "method": "Every actual source word, both raw morphology fields, complete printed TR and exact Russian wording reviewed; no English mapping gold or normalized Cyrillic inference.",
+    "scope": "Full native Russian chapter1,29verses. The actual N1904 blessing boundary2→Russian3 remains explicit.",
+    "sourceFactsOnly": true
+  },
+  "verses": {
+    "1:1": {
+      "sourceText": "Παῦλος ἀπόστολος Χριστοῦ Ἰησοῦ διὰ θελήματος Θεοῦ καὶ Τιμόθεος ὁ ἀδελφὸς",
+      "targetText": "Павел, волею Божиею Апостол Иисуса Христа, и Тимофей брат",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Павел",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Апостол",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Христа",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Иисуса",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "волею",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dia plus genitive will noun becomes the Russian instrumental волею; no Greek instrumental case is substituted."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Божиею",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive God noun is realized as a Russian possessive adjective."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Тимофей",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "брат",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:2": {
+      "sourceText": "τοῖς ἐν Κολοσσαῖς ἁγίοις καὶ πιστοῖς ἀδελφοῖς ἐν Χριστῷ· χάρις ὑμῖν καὶ εἰρήνη ἀπὸ Θεοῦ Πατρὸς ἡμῶν.",
+      "targetText": "находящимся в Колоссах святым и верным братиям во Христе Иисусе:",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "находящимся в",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative plural article plus en introduces the locative designation in-Colossae. Russian supplies its locative-person framing with находящимся; there is no separately printed Greek being or finding participle here. The place name remains separate."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Колоссах",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "святым",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "верным",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "братиям",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "во",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Христе",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "Иисусе",
+          "occurrence": 0,
+          "reason": "Russian explicitly prints Иисусе here; neither actual N1904 nor complete printed TR prints a Jesus name at this occurrence. The later true Greek names in3 are not borrowed."
+        }
+      ],
+      "sourceMoved": [
+        {
+          "tokens": [
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          "targetReference": {
+            "chapter": 1,
+            "verse": 3
+          },
+          "reason": "The native Russian text places the blessing at the start of verse3. These eight actual N1904 verse2 identities are used exclusively there, not relabeled as Greek verse3."
+        }
+      ]
+    },
+    "1:3": {
+      "sourceText": "Εὐχαριστοῦμεν τῷ Θεῷ Πατρὶ τοῦ Κυρίου ἡμῶν Ἰησοῦ Χριστοῦ πάντοτε περὶ ὑμῶν προσευχόμενοι,",
+      "targetText": "благодать вам и мир от Бога Отца нашего и Господа Иисуса Христа. Благодарим Бога и Отца Господа нашего Иисуса Христа, всегда молясь о вас,",
+      "groups": [
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "благодать",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Greek1:2 blessing noun continues at the opening of native Russian1:3.",
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 2
+          }
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "вам",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 2
+          }
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 2
+          }
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "мир",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 2
+          }
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "от",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 2
+          }
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Бога",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 2
+          }
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "Отца",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 2
+          }
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "нашего",
+              "occurrence": 0
+            }
+          ],
+          "sourceReference": {
+            "chapter": 1,
+            "verse": 2
+          }
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Благодарим",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Бога",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual dative thanksgiving recipient becomes a Russian accusative object."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Отца",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Господа",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "нашего",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Иисуса",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Христа",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "всегда",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "о",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "вас",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "молясь",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual present nonactive/deponent nominative plural praying participle becomes the Russian adverbial participle, not an independent finite predicate."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1,
+            4
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "и Господа Иисуса Христа",
+          "occurrence": 0,
+          "reason": "The blessing has this additional title/name phrase in complete printed TR2 and Russian3, absent from actual N1904 blessing2. It is distinct from the real local thanksgiving Lord/Jesus/Christ occurrences later in3."
+        },
+        {
+          "text": "и",
+          "occurrence": 2,
+          "reason": "Complete printed TR3 has kai between God and Father, absent from the actual N1904 appositional wording."
+        }
+      ]
+    },
+    "1:4": {
+      "sourceText": "ἀκούσαντες τὴν πίστιν ὑμῶν ἐν Χριστῷ Ἰησοῦ καὶ τὴν ἀγάπην ἣν ἔχετε εἰς πάντας τοὺς ἁγίους",
+      "targetText": "услышав о вере вашей во Христа Иисуса и о любви ко всем святым,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "услышав",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "о вере",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual article plus accusative faith object of hearing becomes a Russian prepositional topic phrase; no separate Greek peri is invented."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "вашей",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "во",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Христа",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Иисуса",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "о любви",
+              "occurrence": 0
+            }
+          ],
+          "note": "The second actual accusative noun phrase becomes the coordinated Russian prepositional hearing topic."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "ко",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "всем",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "святым",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article and holy adjective are a personal designation; no Greek people noun is invented."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            10,
+            11
+          ],
+          "reason": "Actual N1904 explicitly writes which-you-have; complete printed TR instead uses the attributive article, and Russian has no separate relative/holding predicate here."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:5": {
+      "sourceText": "διὰ τὴν ἐλπίδα τὴν ἀποκειμένην ὑμῖν ἐν τοῖς οὐρανοῖς, ἣν προηκούσατε ἐν τῷ λόγῳ τῆς ἀληθείας τοῦ εὐαγγελίου",
+      "targetText": "в надежде на уготованное вам на небесах, о чем вы прежде слышали в истинном слове благовествования,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "в надежде",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dia with accusative hope is causal; Russian realizes this as в надежде. The whole actual preposition/noun construction is retained, not a standalone dia=in equivalence."
+        },
+        {
+          "sourceTokens": [
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "на уготованное",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article plus present nonactive/deponent accusative feminine stored-up participle qualifies hope. Russian recasts it as a substantival neuter complement to hope; no hetoimazo preparation lemma is substituted."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "вам",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "на",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "небесах",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "о чем",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual accusative feminine relative referring to hope is rendered as a Russian prepositional neuter relative frame; no independent Greek about preposition is printed."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "вы прежде слышали",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual prior-hearing compound is aorist active second-plural: its prefix and encoded subject are expressed by прежде and вы."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "слове",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "истинном",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual truth genitive NOUN becomes the Russian attributive adjective; no Greek true adjective is substituted."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "благовествования",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            7,
+            12,
+            14,
+            16
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:6": {
+      "sourceText": "τοῦ παρόντος εἰς ὑμᾶς, καθὼς καὶ ἐν παντὶ τῷ κόσμῳ ἐστὶν καρποφορούμενον καὶ αὐξανόμενον καθὼς καὶ ἐν ὑμῖν, ἀφ’ ἧς ἡμέρας ἠκούσατε καὶ ἐπέγνωτε τὴν χάριν τοῦ Θεοῦ ἐν ἀληθείᾳ·",
+      "targetText": "которое пребывает у вас, как и во всем мире, и приносит плод, и возрастает, как и между вами, с того дня, как вы услышали и познали благодать Божию в истине,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "которое пребывает",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article plus present ACTIVE genitive neuter pareimi participle becomes a Russian finite-relative clause; no independent Greek hos is printed."
+        },
+        {
+          "sourceTokens": [
+            2,
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "у вас",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eis plus accusative personal complement is realized as Russian locative у вас."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "как",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "во",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "всем",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "мире",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "приносит плод",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual fruit-bearing participle is functional V-PMP-NSN, formal V-PEP-NSN; Russian makes it a finite active predicate. No independent Greek fruit noun or bringing verb is invented."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "возрастает",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual growing participle is functional V-PPP-NSN, formal V-PEP-NSN; Russian uses a finite growing predicate. Both actual nonactive analyses remain, not a substituted active source form."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "как",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "между",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "вами",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "с",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "того",
+              "occurrence": 0
+            },
+            {
+              "text": "как",
+              "occurrence": 2
+            }
+          ],
+          "note": "The actual genitive day-relative is realized by the Russian того…как temporal frame, retaining its real relative identity."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "дня",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "вы услышали",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 4
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "познали",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "благодать",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            27
+          ],
+          "targetPhrases": [
+            {
+              "text": "Божию",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive God noun becomes the Russian possessive adjective."
+        },
+        {
+          "sourceTokens": [
+            28
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            29
+          ],
+          "targetPhrases": [
+            {
+              "text": "истине",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "The actual finite estin supports the Greek participial construction; Russian uses finite fruit-bearing/growing predicates with no separate copula."
+        },
+        {
+          "tokens": [
+            8,
+            24,
+            26
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "и",
+          "occurrence": 1,
+          "reason": "Complete printed TR has an additional kai before estin/fruit-bearing; actual N1904 has no independent second connector there."
+        }
+      ]
+    },
+    "1:7": {
+      "sourceText": "καθὼς ἐμάθετε ἀπὸ Ἐπαφρᾶ τοῦ ἀγαπητοῦ συνδούλου ἡμῶν, ὅς ἐστιν πιστὸς ὑπὲρ ὑμῶν διάκονος τοῦ Χριστοῦ,",
+      "targetText": "как и научились от Епафраса, возлюбленного сотрудника нашего, верного для вас служителя Христова,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "как",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "научились",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "от",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Епафраса",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "возлюбленного",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "сотрудника",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual syndoulos is the fellow-servant/fellow-minister noun, rendered сотрудника here; the Greek synergos fellow-worker head is not printed."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "нашего",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "верного",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual nominative faithful adjective is recased into the Russian genitive apposition."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "для",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "вас",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "служителя",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "Христова",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive Christ name is realized as a Russian possessive adjective, not another Greek adjective."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            8,
+            9
+          ],
+          "reason": "Actual relative plus finite copula introduce the faithful-minister description; Russian renders it as a genitive appositional designation with neither relative nor copula separately."
+        },
+        {
+          "tokens": [
+            4,
+            14
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "и",
+          "occurrence": 0,
+          "reason": "The additional connective is printed in TR at this point, not in actual N1904."
+        }
+      ]
+    },
+    "1:8": {
+      "sourceText": "ὁ καὶ δηλώσας ἡμῖν τὴν ὑμῶν ἀγάπην ἐν Πνεύματι.",
+      "targetText": "который и известил нас о вашей любви в духе.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "который",
+              "occurrence": 0
+            },
+            {
+              "text": "известил",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article plus aorist active nominative singular declaring participle is rendered as a finite-relative clause. No separately printed Greek hos occurs."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "нас",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative first-plural recipient becomes Russian accusative with известил; the same recipient role is retained."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "вашей",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "о",
+              "occurrence": 0
+            },
+            {
+              "text": "любви",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article/love accusative object becomes the Russian reported-topic phrase; no independent Greek about word."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "духе",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "1:9": {
+      "sourceText": "Διὰ τοῦτο καὶ ἡμεῖς, ἀφ’ ἧς ἡμέρας ἠκούσαμεν, οὐ παυόμεθα ὑπὲρ ὑμῶν προσευχόμενοι καὶ αἰτούμενοι ἵνα πληρωθῆτε τὴν ἐπίγνωσιν τοῦ θελήματος αὐτοῦ ἐν πάσῃ σοφίᾳ καὶ συνέσει πνευματικῇ,",
+      "targetText": "Посему и мы с того дня, как о сем услышали, не перестаем молиться о вас и просить, чтобы вы исполнялись познанием воли Его, во всякой премудрости и разумении духовном,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Посему",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dia touto is the complete because-of-this connective, condensed as Посему."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "мы",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "с",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "того",
+              "occurrence": 0
+            },
+            {
+              "text": "как",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive day-relative becomes the Russian того…как temporal frame."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "дня",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "услышали",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "не",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "перестаем",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "о",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "вас",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "молиться",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual present nonactive nominative plural participle becomes an infinitive complement to the finite ceasing predicate in Russian."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "просить",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual present middle/formal nonactive nominative plural asking participle becomes a Russian infinitive."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "чтобы",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "вы исполнялись",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual aorist PASSIVE subjunctive second-plural owns the Russian passive/reflexive finite realization and its explicit subject; actual source aorist/subjunctive retained."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "познанием",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual accusative knowledge noun becomes Russian instrumental complement of filling."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "воли",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "Его",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "во",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "всякой",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "премудрости",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "разумении",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            27
+          ],
+          "targetPhrases": [
+            {
+              "text": "духовном",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            17,
+            19
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "о сем",
+          "occurrence": 0,
+          "reason": "Russian overtly names the thing heard in this clause; actual Greek has no separately printed demonstrative or about phrase at this occurrence."
+        }
+      ]
+    },
+    "1:10": {
+      "sourceText": "περιπατῆσαι ἀξίως τοῦ Κυρίου εἰς πᾶσαν ἀρεσκείαν, ἐν παντὶ ἔργῳ ἀγαθῷ καρποφοροῦντες καὶ αὐξανόμενοι τῇ ἐπιγνώσει τοῦ Θεοῦ,",
+      "targetText": "чтобы поступали достойно Бога, во всем угождая Ему, принося плод во всяком деле благом и возрастая в познании Бога,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "чтобы поступали",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual aorist ACTIVE walking/conduct infinitive is realized as a Russian finite purpose clause. No additional Greek hina or second-person pronoun is fabricated."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "достойно",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "во всем",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eis plus all scopes the pleasing noun as a goal phrase; Russian recasts this as во всем with a verbalized pleasing expression."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "угождая",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual areskeia is an accusative NOUN denoting pleasing, rendered by the Russian adverbial participle. No Greek aresko verb is printed."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "во",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "всяком",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "деле",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "благом",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "принося плод",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual fruit-bearing present active participle owns the Russian verbal phrase; no separate Greek fruit noun."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "возрастая",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual growing participle is functional passive V-PPP-NPM, formal nonactive V-PEP-NPM, under Russian growing wording; both source analyses are preserved."
+        },
+        {
+          "sourceTokens": [
+            14,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "в познании",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative article+knowledge noun becomes Russian в познании; the whole case-governed noun phrase owns the relation, not an article alone."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "Бога",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2,
+            3
+          ],
+          "reason": "The actual article+Lord genitive phrase is retained as written. Russian names God at this occurrence; complete printed TR also writes Lord, so this is Russian wording versus the same Greek title, not an N/TR variant."
+        },
+        {
+          "tokens": [
+            16
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Бога",
+          "occurrence": 0,
+          "reason": "Russian prints Бога here while both actual N1904 and complete printed TR write Kyriou/Lord. The distinct actual God occurrence at the end of this verse is not borrowed."
+        },
+        {
+          "text": "Ему",
+          "occurrence": 0,
+          "reason": "Russian supplies an explicit pleasing recipient pronoun; actual Greek has no separate personal pronoun here."
+        }
+      ]
+    },
+    "1:11": {
+      "sourceText": "ἐν πάσῃ δυνάμει δυναμούμενοι κατὰ τὸ κράτος τῆς δόξης αὐτοῦ εἰς πᾶσαν ὑπομονὴν καὶ μακροθυμίαν, μετὰ χαρᾶς",
+      "targetText": "укрепляясь всякою силою по могуществу славы Его, во всяком терпении и великодушии с радостью,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "силою",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en plus dative power noun becomes a Russian instrumental power phrase."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "всякою",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "укрепляясь",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual strengthening participle is functional present passive/formal nonactive nominative plural; Russian uses a reflexive adverbial participle."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "по",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "могуществу",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "славы",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Его",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "во",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual goal eis is rendered as the Russian respect/sphere relation во within the patience phrase."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "всяком",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "терпении",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "великодушии",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "с",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "радостью",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            5,
+            7
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:12": {
+      "sourceText": "εὐχαριστοῦντες τῷ Πατρὶ τῷ ἱκανώσαντι ὑμᾶς εἰς τὴν μερίδα τοῦ κλήρου τῶν ἁγίων ἐν τῷ φωτί·",
+      "targetText": "благодаря Бога и Отца, призвавшего нас к участию в наследии святых во свете,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "благодаря",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual present active nominative plural thanksgiving participle is realized as a Russian adverbial participle, not a source preposition."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Отца",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "призвавшего",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hikanosanti is the aorist ACTIVE dative participle of hikanoo, make competent/qualify. Russian renders this same Father-to-inheritance predicate with призвавшего calling wording. Both N1904 and complete TR print hikanoo here; no kaleo head or calling dictionary sense is substituted."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "к",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "участию",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "в наследии",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article+allotment genitive noun becomes the Russian inheritance locative complement; no independent Greek en here."
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "святых",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/holy adjective is a personal designation, without a separate Greek people noun."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "во",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "свете",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            5
+          ],
+          "reason": "Actual accusative second-plural you differs from the first-plural us printed in TR and Russian."
+        },
+        {
+          "tokens": [
+            1,
+            3,
+            7,
+            14
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Бога и",
+          "occurrence": 0,
+          "reason": "Russian explicitly adds God and a connective to Father; neither actual N1904 nor complete printed TR writes that added God/kai phrase here."
+        },
+        {
+          "text": "нас",
+          "occurrence": 0,
+          "reason": "Russian first-plural нас agrees with printed TR hemas, not actual N1904 second-plural hymas."
+        }
+      ]
+    },
+    "1:13": {
+      "sourceText": "ὃς ἐρύσατο ἡμᾶς ἐκ τῆς ἐξουσίας τοῦ σκότους καὶ μετέστησεν εἰς τὴν βασιλείαν τοῦ Υἱοῦ τῆς ἀγάπης αὐτοῦ,",
+      "targetText": "избавившего нас от власти тьмы и введшего в Царство возлюбленного Сына Своего,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "избавившего",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual personal relative plus AORIST finite third-singular erysato becomes the one Russian past participle. Actual functional V-ANI-3S and formal V-ADI-3S remain; no source participle is invented. The real rescuing verb is the preferred study head for this compressed word.",
+          "studyHeads": [
+            {
+              "targetPhrases": [
+                {
+                  "text": "избавившего",
+                  "occurrence": 0
+                }
+              ],
+              "sourceTokens": [
+                1
+              ],
+              "note": "The translated rescue word studies actual erysato4506 first; the real relative and every alternative remain available."
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "нас",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "от",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "власти",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "тьмы",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "введшего",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual methistemi transfer verb is aorist ACTIVE finite third-singular; Russian renders it as a past participle. No Greek eisago bringing-in lemma is substituted."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Царство",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Сына",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "возлюбленного",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual agape is a genitive love NOUN qualifying Son; Russian realizes this with the beloved adjective/participle wording, without a printed Greek agapao participle."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "Своего",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual personal genitive autos becomes the Russian reflexive possessive for the same Son-owner relation; actual P-GSM is retained."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4,
+            6,
+            11,
+            13,
+            15
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:14": {
+      "sourceText": "ἐν ᾧ ἔχομεν τὴν ἀπολύτρωσιν, τὴν ἄφεσιν τῶν ἁμαρτιῶν·",
+      "targetText": "в Котором мы имеем искупление Кровию Его и прощение грехов,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Котором",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "мы имеем",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "искупление",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "прощение",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "грехов",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            5,
+            7
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Кровию Его",
+          "occurrence": 0,
+          "reason": "Complete printed TR includes dia tou haimatos autou, reflected by Russian; actual N1904 has no blood or its possessor phrase here."
+        },
+        {
+          "text": "и",
+          "occurrence": 0,
+          "reason": "Russian adds a connective before forgiveness; actual N1904 and printed TR place forgiveness appositionally without a separate kai."
+        }
+      ]
+    },
+    "1:15": {
+      "sourceText": "ὅς ἐστιν εἰκὼν τοῦ Θεοῦ τοῦ ἀοράτου, πρωτότοκος πάσης κτίσεως,",
+      "targetText": "Который есть образ Бога невидимого, рожденный прежде всякой твари;",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Который",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "есть",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "образ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Бога",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "невидимого",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "рожденный прежде",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual prototokos is the firstborn adjective, both fields A-NSM-S, realized by Russian рожденный прежде. There is no separately printed Greek birth verb or before preposition in this expression."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "всякой",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "твари",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            5
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:16": {
+      "sourceText": "ὅτι ἐν αὐτῷ ἐκτίσθη τὰ πάντα ἐν τοῖς οὐρανοῖς καὶ ἐπὶ τῆς γῆς, τὰ ὁρατὰ καὶ τὰ ἀόρατα, εἴτε θρόνοι εἴτε κυριότητες εἴτε ἀρχαὶ εἴτε ἐξουσίαι· τὰ πάντα δι’ αὐτοῦ καὶ εἰς αὐτὸν ἔκτισται·",
+      "targetText": "ибо Им создано все, что на небесах и что на земле, видимое и невидимое: престолы ли, господства ли, начальства ли, власти ли - все Им и для Него создано;",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "ибо",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Им",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en plus dative personal pronoun becomes a Russian instrumental participant phrase; the source preposition remains en, not dia."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "создано",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual first creating predicate is AORIST PASSIVE third-singular, distinct from the later perfect."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "все",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "что на",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual locative preposition/article frame modifying all-things becomes Russian что на; there is no independently printed Greek relative here. The heaven noun remains separate."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "небесах",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "что на",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual epi/article locative frame becomes the second Russian relative-locative expression; the earth noun remains separate."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "земле",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "видимое",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "невидимое",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "ли",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "престолы",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "ли",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "господства",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "ли",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "начальства",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "ли",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "власти",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            27
+          ],
+          "targetPhrases": [
+            {
+              "text": "все",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            28,
+            29
+          ],
+          "targetPhrases": [
+            {
+              "text": "Им",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual dia plus genitive personal pronoun becomes a Russian instrumental expression; this is the second, distinct source pronoun."
+        },
+        {
+          "sourceTokens": [
+            30
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            31,
+            32
+          ],
+          "targetPhrases": [
+            {
+              "text": "для Него",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eis plus accusative person becomes Russian для Него, retaining its real accusative source case."
+        },
+        {
+          "sourceTokens": [
+            33
+          ],
+          "targetPhrases": [
+            {
+              "text": "создано",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual second creating predicate is PERFECT PASSIVE third-singular, kept distinct from the earlier aorist despite the same Russian word."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4,
+            13,
+            16,
+            26
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:17": {
+      "sourceText": "καὶ αὐτός ἐστιν πρὸ πάντων καὶ τὰ πάντα ἐν αὐτῷ συνέστηκεν,",
+      "targetText": "и Он есть прежде всего, и все Им стоит.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Он",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "есть",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "прежде",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "всего",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "все",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Им",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en plus dative personal pronoun becomes Russian instrumental; the actual case and preposition are retained."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "стоит",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual synesteken is PERFECT ACTIVE third-singular of the compound synistemi, hold/stand together; Russian has стоит. No plain histemi head or present source tense is substituted."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:18": {
+      "sourceText": "καὶ αὐτός ἐστιν ἡ κεφαλὴ τοῦ σώματος, τῆς ἐκκλησίας· ὅς ἐστιν ἀρχή, πρωτότοκος ἐκ τῶν νεκρῶν, ἵνα γένηται ἐν πᾶσιν αὐτὸς πρωτεύων,",
+      "targetText": "И Он есть Глава тела Церкви; Он - начаток, первенец из мертвых, дабы иметь Ему во всем первенство,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "И",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Он",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "есть",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Глава",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "тела",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Церкви",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Он",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual personal relative becomes Russian personal Он in the following description."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "начаток",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "первенец",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual firstborn adjective A-NSM-S is realized as a Russian personal noun."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "из",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "мертвых",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article/dead adjective is a substantive personal designation."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "дабы",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17,
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "иметь",
+              "occurrence": 0
+            },
+            {
+              "text": "первенство",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual become AORIST nonactive/deponent subjunctive third-singular plus present ACTIVE preeminence participle is realized as Russian иметь…первенство. No Greek have verb or preeminence noun is printed. Both actual predicates/forms remain available.",
+          "studyHeads": [
+            {
+              "targetPhrases": [
+                {
+                  "text": "первенство",
+                  "occurrence": 0
+                }
+              ],
+              "sourceTokens": [
+                21
+              ],
+              "note": "The preeminence wording studies the actual proteuo participle first, retaining ginomai as the other actual construction head."
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18,
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "во всем",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "Ему",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual nominative masculine singular autos subject becomes the dative subject of the Russian infinitival construction; it is not retagged as a Greek dative."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "The second actual finite estin is unexpressed by the Russian dash/zero-copula wording; the earlier actual estin remains linked to its separate есть."
+        },
+        {
+          "tokens": [
+            3,
+            5,
+            7
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:19": {
+      "sourceText": "ὅτι ἐν αὐτῷ εὐδόκησεν πᾶν τὸ πλήρωμα κατοικῆσαι",
+      "targetText": "ибо благоугодно было Отцу, чтобы в Нем обитала всякая полнота",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "ибо",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "в Нем",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "благоугодно было",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eudokesen is one aorist ACTIVE third-singular verb realized as a Russian past predicative-state expression; no additional Greek copula is printed."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "чтобы",
+              "occurrence": 0
+            },
+            {
+              "text": "обитала",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual katoikeo AORIST ACTIVE infinitive becomes the Russian finite clause with чтобы; no Greek hina or third-person feminine morphology is invented."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "всякая",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "полнота",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            5
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Отцу",
+          "occurrence": 0,
+          "reason": "Russian explicitly names Father as the pleased participant. Neither actual N1904 nor complete printed TR prints a Father noun in this clause; an earlier Father occurrence is not imported."
+        }
+      ]
+    },
+    "1:20": {
+      "sourceText": "καὶ δι’ αὐτοῦ ἀποκαταλλάξαι τὰ πάντα εἰς αὐτόν, εἰρηνοποιήσας διὰ τοῦ αἵματος τοῦ σταυροῦ αὐτοῦ, δι’ αὐτοῦ εἴτε τὰ ἐπὶ τῆς γῆς εἴτε τὰ ἐν τοῖς οὐρανοῖς.",
+      "targetText": "и чтобы посредством Его примирить с Собою все, умиротворив через Него, Кровию креста Его, и земное и небесное.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "посредством Его",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "чтобы",
+              "occurrence": 0
+            },
+            {
+              "text": "примирить",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual apokatallasso aorist ACTIVE infinitive is realized with Russian чтобы plus infinitive, without a separately printed Greek hina."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "все",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "с Собою",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eis plus accusative plain personal autos becomes Russian с Собою. The complete relation/personal construction is retained; no Greek reflexive or syn is printed."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "умиротворив",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Кровию",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dia plus article/genitive blood noun becomes Russian instrumental."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "креста",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Его",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15,
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "через Него",
+              "occurrence": 0
+            }
+          ],
+          "note": "This is the second actual dia/autou occurrence, fronted before blood in Russian; it is not the first through-Him phrase."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18,
+            19,
+            20,
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "земное",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual whole articular on-the-earth locative noun construction becomes a Russian substantive earthly adjective; no Greek earthly adjective is substituted."
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23,
+            24,
+            25,
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "небесное",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual whole articular in-the-heavens locative noun construction becomes a Russian substantive heavenly adjective; actual heaven noun/case remain."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4,
+            12
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:21": {
+      "sourceText": "καὶ ὑμᾶς ποτε ὄντας ἀπηλλοτριωμένους καὶ ἐχθροὺς τῇ διανοίᾳ ἐν τοῖς ἔργοις τοῖς πονηροῖς,",
+      "targetText": "И вас, бывших некогда отчужденными и врагами, по расположению к злым делам,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "И",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "вас",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "некогда",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "бывших",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual onta is a PRESENT ACTIVE accusative plural being participle; Russian uses a past participle within its former-alienation description. The source present/nonfinite analysis is retained."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "отчужденными",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual PERFECT PASSIVE accusative plural participle is retained under Russian past passive participial wording."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "врагами",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hostile adjective is used as a personal description; Russian renders it by an enemies noun."
+        },
+        {
+          "sourceTokens": [
+            7,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "по расположению",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article+dative mind/disposition noun becomes Russian по расположению; no Greek disposition preposition is invented."
+        },
+        {
+          "sourceTokens": [
+            9,
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "к",
+              "occurrence": 0
+            },
+            {
+              "text": "делам",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en plus dative article/works phrase is a locative expression. Russian recasts the works relation as the directional complement к…делам to disposition; the same works head and actual en/dative remain, without rewriting the source attachment."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "злым",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            12
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:22": {
+      "sourceText": "νυνὶ δὲ ἀποκατήλλαξεν ἐν τῷ σώματι τῆς σαρκὸς αὐτοῦ διὰ τοῦ θανάτου, παραστῆσαι ὑμᾶς ἁγίους καὶ ἀμώμους καὶ ἀνεγκλήτους κατενώπιον αὐτοῦ,",
+      "targetText": "ныне примирил в теле Плоти Его, смертью Его, чтобы представить вас святыми и непорочными и неповинными пред Собою,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "ныне",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "примирил",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "теле",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Плоти",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Его",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "смертью Его",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dia plus article/death genitive noun becomes Russian смертью Его for the same immediate body/death participant. Russian makes the owner explicit; no second Greek autos is printed or borrowed. The actual death head owns this complete case/implicit-owner phrase."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "чтобы представить",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual aorist ACTIVE presenting infinitive becomes Russian purpose wording, not a printed Greek hina."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "вас",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "святыми",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "непорочными",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "неповинными",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "пред",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "Собою",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive plain personal autos is rendered by Russian reflexive instrumental wording; no Greek reflexive tag is substituted."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "The actual de connector has no separately expressed Russian connective here."
+        },
+        {
+          "tokens": [
+            4,
+            6
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:23": {
+      "sourceText": "εἴ γε ἐπιμένετε τῇ πίστει τεθεμελιωμένοι καὶ ἑδραῖοι καὶ μὴ μετακινούμενοι ἀπὸ τῆς ἐλπίδος τοῦ εὐαγγελίου οὗ ἠκούσατε, τοῦ κηρυχθέντος ἐν πάσῃ κτίσει τῇ ὑπὸ τὸν οὐρανόν, οὗ ἐγενόμην ἐγὼ Παῦλος διάκονος.",
+      "targetText": "если только пребываете тверды и непоколебимы в вере и не отпадаете от надежды благовествования, которое вы слышали, которое возвещено всей твари поднебесной, которого я, Павел, сделался служителем.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "если",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "только",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "пребываете",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "в вере",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative article/faith nominal construction becomes Russian в вере; no sole article-to-preposition link."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "тверды",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual perfect PASSIVE foundation participle becomes a Russian short stable adjective; no steadfast Greek adjective is substituted for this occurrence."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "непоколебимы",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual hedraios is a steadfast ADJECTIVE, realized as a Russian negative-looking adjective; there is no separately printed Greek negative or shaking verb here."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "не",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "отпадаете",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual shifting-away participle is functional PASSIVE/formal NONACTIVE nominative plural; Russian uses a finite active falling-away expression, without a Greek piptō substitution."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "от",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "надежды",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "благовествования",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "которое",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "вы слышали",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18,
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "которое возвещено",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article plus aorist PASSIVE genitive proclamation participle becomes a Russian finite-relative expression, without a separately printed Greek relative at this occurrence."
+        },
+        {
+          "sourceTokens": [
+            20,
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "твари",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en plus dative creation noun becomes a Russian dative recipient/complement phrase; the whole relation/head is retained under the changed construction."
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "всей",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23,
+            24,
+            25,
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "поднебесной",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual articular under-the-heaven construction becomes one Russian attributive adjective; actual heaven remains a noun, not a Greek adjective.",
+          "studyHeads": [
+            {
+              "targetPhrases": [
+                {
+                  "text": "поднебесной",
+                  "occurrence": 0
+                }
+              ],
+              "sourceTokens": [
+                26
+              ],
+              "note": "The heaven element of the Russian compound studies the real heaven noun first; actual under and both article occurrences remain available in the same complete construction."
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            27
+          ],
+          "targetPhrases": [
+            {
+              "text": "которого",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            28
+          ],
+          "targetPhrases": [
+            {
+              "text": "сделался",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            29
+          ],
+          "targetPhrases": [
+            {
+              "text": "я",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            30
+          ],
+          "targetPhrases": [
+            {
+              "text": "Павел",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            31
+          ],
+          "targetPhrases": [
+            {
+              "text": "служителем",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            12,
+            14
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:24": {
+      "sourceText": "Νῦν χαίρω ἐν τοῖς παθήμασιν ὑπὲρ ὑμῶν, καὶ ἀνταναπληρῶ τὰ ὑστερήματα τῶν θλίψεων τοῦ Χριστοῦ ἐν τῇ σαρκί μου ὑπὲρ τοῦ σώματος αὐτοῦ, ὅ ἐστιν ἡ ἐκκλησία,",
+      "targetText": "Ныне радуюсь в страданиях моих за вас и восполняю недостаток в плоти моей скорбей Христовых за Тело Его, которое есть Церковь,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Ныне",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "радуюсь",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "страданиях",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "за",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "вас",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "восполняю",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "недостаток",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual plural deficiencies noun becomes a Russian singular collective lack noun; actual N-APN remains."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "скорбей",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Христовых",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive Christ name becomes Russian possessive adjective."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "плоти",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "моей",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "за",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "Тело",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "Его",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "которое",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "есть",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "Церковь",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            9,
+            11,
+            13,
+            16,
+            20,
+            25
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "моих",
+          "occurrence": 0,
+          "reason": "Complete printed TR adds mou qualifying sufferings, reflected in Russian моих; actual N1904 omits that possessor. The later actual mou owns the separately printed flesh possessor."
+        }
+      ]
+    },
+    "1:25": {
+      "sourceText": "ἧς ἐγενόμην ἐγὼ διάκονος κατὰ τὴν οἰκονομίαν τοῦ Θεοῦ τὴν δοθεῖσάν μοι εἰς ὑμᾶς πληρῶσαι τὸν λόγον τοῦ Θεοῦ,",
+      "targetText": "которой сделался я служителем по домостроительству Божию, вверенному мне для вас, чтобы исполнить слово Божие,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "которой",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "сделался",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "я",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "служителем",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "по",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "домостроительству",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Божию",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive God noun becomes the Russian possessive adjective."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "вверенному",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual giving AORIST PASSIVE accusative feminine participle qualifies the stewardship. Russian uses an entrusted participle; the actual didomi lemma and source case remain, not a substituted entrusting verb."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "мне",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "для",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "вас",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "чтобы исполнить",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual aorist ACTIVE infinitive is rendered with Russian чтобы plus infinitive; no Greek hina is separately printed."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "слово",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "Божие",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            5,
+            7,
+            9,
+            15,
+            17
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:26": {
+      "sourceText": "τὸ μυστήριον τὸ ἀποκεκρυμμένον ἀπὸ τῶν αἰώνων καὶ ἀπὸ τῶν γενεῶν— νῦν δὲ ἐφανερώθη τοῖς ἁγίοις αὐτοῦ,",
+      "targetText": "тайну, сокрытую от веков и родов, ныне же открытую святым Его,",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "тайну",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "сокрытую",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "от",
+              "occurrence": 0
+            }
+          ],
+          "note": "The two distinct actual apo prepositions govern the immediate coordinated ages/generations phrases; Russian writes one от over both. Both real identities remain, without fabricating a second Russian occurrence."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "веков",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "родов",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "ныне",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "же",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "открытую",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual aorist PASSIVE finite third-singular manifestation predicate becomes a Russian accusative participial qualifier of mystery. No Greek participle is substituted for the source indicative."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "святым",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "Его",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0,
+            2,
+            5,
+            9,
+            14
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:27": {
+      "sourceText": "οἷς ἠθέλησεν ὁ Θεὸς γνωρίσαι τί τὸ πλοῦτος τῆς δόξης τοῦ μυστηρίου τούτου ἐν τοῖς ἔθνεσιν, ὅς ἐστιν Χριστὸς ἐν ὑμῖν, ἡ ἐλπὶς τῆς δόξης·",
+      "targetText": "Которым благоволил Бог показать, какое богатство славы в тайне сей для язычников, которая есть Христос в вас, упование славы,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Которым",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "благоволил",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual ethelesen is the aorist ACTIVE third-singular willing/choosing verb, rendered благоволил; no eudokeo head is substituted."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Бог",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "показать",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual gnorizo make-known infinitive is rendered показать; no deiknymi head is invented."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "какое",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual interrogative is neuter nominative singular, agreeing with actual neuter wealth; printed TR has masculine tis/ploutos analysis. Actual I-NSN remains."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "богатство",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "славы",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "в тайне",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article/mystery genitive qualifier becomes Russian в тайне; the actual genitive construction is retained without inventing a local Greek en."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "сей",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "для",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en with dative nations is rendered by Russian для; this retains the Greek sphere construction rather than replacing it with hyper."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "язычников",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "которая",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual relative is R-NSM; Russian uses a feminine relative in its displayed construction. No feminine Greek relative is substituted."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "есть",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "Христос",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "вас",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "упование",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "славы",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2,
+            6,
+            8,
+            14,
+            21,
+            23
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:28": {
+      "sourceText": "ὃν ἡμεῖς καταγγέλλομεν νουθετοῦντες πάντα ἄνθρωπον καὶ διδάσκοντες πάντα ἄνθρωπον ἐν πάσῃ σοφίᾳ, ἵνα παραστήσωμεν πάντα ἄνθρωπον τέλειον ἐν Χριστῷ·",
+      "targetText": "Которого мы проповедуем, вразумляя всякого человека и научая всякой премудрости, чтобы представить всякого человека совершенным во Христе Иисусе;",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Которого",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "мы",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "проповедуем",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "вразумляя",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "всякого",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "человека",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "научая",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "премудрости",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en with dative wisdom becomes a Russian dative teaching complement, preserving the actual preposition/head despite changed displayed attachment."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "всякой",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "чтобы",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "представить",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual aorist ACTIVE subjunctive FIRST-PLURAL becomes Russian infinitive; the source first-person plural and mood remain, not an infinitive source tag."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "всякого",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "человека",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "совершенным",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "во",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "Христе",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            8,
+            9
+          ],
+          "reason": "Actual second every-person phrase belongs to teaching; Russian omits that separate repeated person phrase. The first and final printed Russian every-person occurrences retain their distinct actual Greek counterparts."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Иисусе",
+          "occurrence": 0,
+          "reason": "Complete printed TR adds Jesus here; actual N1904 writes Christ without the additional Jesus name at this occurrence."
+        }
+      ]
+    },
+    "1:29": {
+      "sourceText": "εἰς ὃ καὶ κοπιῶ ἀγωνιζόμενος κατὰ τὴν ἐνέργειαν αὐτοῦ τὴν ἐνεργουμένην ἐν ἐμοὶ ἐν δυνάμει.",
+      "targetText": "для чего я и тружусь и подвизаюсь силою Его, действующею во мне могущественно.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "для",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "чего",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "я",
+              "occurrence": 0
+            },
+            {
+              "text": "тружусь",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "подвизаюсь",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual present nonactive/deponent nominative singular striving participle becomes a Russian finite reflexive predicate; the finite first-person frame comes from the continuing actual laboring construction."
+        },
+        {
+          "sourceTokens": [
+            5,
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "силою",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual kata plus article/active-energy accusative noun becomes Russian instrumental силою. Actual energeia1753 is retained, not dynamis1411 from the distinct final power phrase."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Его",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "действующею",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual participle is functional MIDDLE V-PMP-ASF, formal NONACTIVE V-PEP-ASF; its operative sense is rendered by Russian active participial wording."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "во",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "мне",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13,
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "могущественно",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en plus dative power NOUN becomes one Russian adverb of manner; no separately printed Greek powerful adverb is invented."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "Actual Greek article(s) have no separately expressed Russian article here. Source identities and both analyses are retained; no article alone is made into a possessive, preposition, copula or content head."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "и",
+          "occurrence": 1,
+          "reason": "Russian adds a separate coordinator between labor and the following striving predicate; actual N1904 and complete TR have an asyndetic participle, with no second kai."
+        }
+      ]
+    }
+  }
+}

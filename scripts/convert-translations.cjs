@@ -10,7 +10,9 @@
 const fs = require('fs')
 const path = require('path')
 const { execSync } = require('child_process')
+const { isDeepStrictEqual } = require('node:util')
 const { applyTranslationWhitespaceRepairs } = require('./lib/translationWhitespaceRepairs.cjs')
+const { NT_BOOKS, resolveSynodalNtVersification } = require('./lib/synodalNtVersification.cjs')
 
 const SOURCES_DIR = path.join(__dirname, 'bible-sources')
 const OUTPUT_DIR = path.join(__dirname, '..', 'public', 'data', 'translations')
@@ -653,97 +655,154 @@ function logTranslationSummary(data, id) {
   console.log(`  ${id}: ${data.books.length} books, ${countVerses(data)} verses`)
 }
 
+// Keep the historical OT conversion separate from the reviewed NT policy.
+// Unequal NT verse counts must never be spread proportionally across a chapter.
+function buildReviewedSynodalRemap({ nativeData, canonicalTemplateData, mappingRules, policy }) {
+  const nt = new Set(NT_BOOKS)
+  const onlyOt = data => ({ ...data, books: data.books.filter(book => !nt.has(book.name)) })
+  const ntResult = resolveSynodalNtVersification({ nativeData, canonicalTemplateData, policy })
+  const otResult = buildSynodalWesternRemap({
+    synodalNativeData: onlyOt(nativeData),
+    canonicalTemplateData: onlyOt(canonicalTemplateData),
+    mappingRules: mappingRules.filter(rule => rule.sourceRefs.every(ref => !nt.has(ref.book))
+      && rule.targetRefs.every(ref => !nt.has(ref.book))),
+  })
+  const byName = new Map([...otResult.synoWestern.books, ...ntResult.books].map(book => [book.name, book]))
+  const synoWestern = { ...otResult.synoWestern, books: canonicalTemplateData.books.map(book => byName.get(book.name)) }
+  return {
+    synoWestern,
+    nativeToCanonical: { ...otResult.nativeToCanonical, ...ntResult.nativeToCanonical },
+    canonicalToNative: { ...otResult.canonicalToNative, ...ntResult.canonicalToNative },
+    nativeToCanonicalPieces: ntResult.nativeToCanonicalPieces,
+    canonicalToNativePieces: ntResult.sourcePieces,
+    report: {
+      ...otResult.report,
+      scope: 'Legacy OT conversion; reviewed source-piece NT conversion',
+      rulesScope: 'OT only',
+      nativeVerseCount: otResult.report.nativeVerseCount + ntResult.report.nativeVerseCount,
+      canonicalVerseCount: otResult.report.canonicalVerseCount + ntResult.report.canonicalSlotCount,
+      materializedVerseCount: countVerses(synoWestern),
+      explicitlyAbsentCanonicalRefsCount: ntResult.report.absentSlotCount,
+      newTestament: ntResult.report,
+    },
+    hasBlockingErrors: otResult.hasBlockingErrors,
+  }
+}
+
+function assertSynodalRepairPreservesOt({ nativeData, retainedNativeData, repairedData, installedData, maps, installedMaps }) {
+  const nt = new Set(NT_BOOKS)
+  const otBooks = data => data.books.filter(book => !nt.has(book.name))
+  const otMap = map => Object.fromEntries(Object.entries(map).filter(([ref]) => !nt.has(ref.split('|')[0])))
+  if (!isDeepStrictEqual(nativeData, retainedNativeData)) throw new Error('SYNO-W: parsed native source changed; review before replacing retained native data.')
+  if (!isDeepStrictEqual(otBooks(repairedData), otBooks(installedData))) throw new Error('SYNO-W: this NT repair would change OT text.')
+  for (const direction of ['nativeToCanonical', 'canonicalToNative']) {
+    if (!isDeepStrictEqual(otMap(maps[direction]), otMap(installedMaps[direction]))) throw new Error(`SYNO-W: this NT repair would change the OT ${direction} map.`)
+  }
+}
+
 // --- Main ---
-fs.mkdirSync(OUTPUT_DIR, { recursive: true })
-fs.mkdirSync(VERSIFICATION_OUTPUT_DIR, { recursive: true })
+function main(argv = process.argv.slice(2)) {
+  if (argv.some(arg => arg !== '--synodal-only')) throw new Error('Unknown conversion option.')
+  const synodalOnly = argv.includes('--synodal-only')
+  const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'))
+  let lsv
+  if (!synodalOnly) {
+    // 1. BSB
+    const bsb = convertScrollmapper(
+      path.join(SOURCES_DIR, 'BSB-source.json'),
+      'BSB',
+      'Berean Standard Bible'
+    )
+    applyTranslationWhitespaceRepairs(bsb, require('./bible-sources/BSB-spacing-repairs.json'))
+    logTranslationSummary(bsb, 'BSB')
+    writeTranslation(bsb, 'BSB')
 
-// 1. BSB
-const bsb = convertScrollmapper(
-  path.join(SOURCES_DIR, 'BSB-source.json'),
-  'BSB',
-  'Berean Standard Bible'
-)
-applyTranslationWhitespaceRepairs(bsb, require('./bible-sources/BSB-spacing-repairs.json'))
-logTranslationSummary(bsb, 'BSB')
-writeTranslation(bsb, 'BSB')
+    // 2. KJV
+    const kjv = convertScrollmapper(
+      path.join(SOURCES_DIR, 'KJVPCE-source.json'),
+      'KJV',
+      'King James Version'
+    )
+    logTranslationSummary(kjv, 'KJV')
+    writeTranslation(kjv, 'KJV')
 
-// 2. KJV
-const kjv = convertScrollmapper(
-  path.join(SOURCES_DIR, 'KJVPCE-source.json'),
-  'KJV',
-  'King James Version'
-)
-logTranslationSummary(kjv, 'KJV')
-writeTranslation(kjv, 'KJV')
+    // 3. LSV
+    lsv = convertVPLByBase('englsv_vpl', 'LSV', 'Literal Standard Version')
+    logTranslationSummary(lsv, 'LSV')
+    writeTranslation(lsv, 'LSV')
 
-// 3. LSV
-const lsv = convertVPLByBase('englsv_vpl', 'LSV', 'Literal Standard Version')
-logTranslationSummary(lsv, 'LSV')
-writeTranslation(lsv, 'LSV')
+    // WEB is retained only as an archival generator input for historical plan
+    // counts and Psalm headings. It is not an installed translation or APK asset.
 
-// WEB is retained only as an archival generator input for historical plan
-// counts and Psalm headings. It is not an installed translation or APK asset.
+    // 5. UKRK (ukr1871 source)
+    const ukrk = convertVPLByBase('ukr1871_vpl', 'UKRK', 'Ukrainian Kulish/Pulyui (ukr1871)', {
+      strictCanonicalOnly: true,
+    })
+    ensureCanonical66Books(ukrk, 'UKRK')
+    logTranslationSummary(ukrk, 'UKRK')
+    writeTranslation(ukrk, 'UKRK')
 
-// 5. UKRK (ukr1871 source)
-const ukrk = convertVPLByBase('ukr1871_vpl', 'UKRK', 'Ukrainian Kulish/Pulyui (ukr1871)', {
-  strictCanonicalOnly: true,
-})
-ensureCanonical66Books(ukrk, 'UKRK')
-logTranslationSummary(ukrk, 'UKRK')
-writeTranslation(ukrk, 'UKRK')
+  } else {
+    lsv = readJson(path.join(OUTPUT_DIR, 'LSV.json'))
+  }
 
-// 6. SYNO native + SYNO-W remap
-const synoNative = convertVPLByBase('russyn_vpl', 'SYNO-NATIVE', 'Russian Synodal (Native)', {
-  strictCanonicalOnly: true,
-})
-ensureCanonical66Books(synoNative, 'SYNO-NATIVE')
-logTranslationSummary(synoNative, 'SYNO-NATIVE')
-writeJsonFile(path.join(OUTPUT_DIR, 'SYNO-W-native.json'), synoNative)
-
-const mappingRules = parseSynodalMappingRules(
-  path.join(SOURCES_DIR, 'Synodal.properties'),
-  buildVerseCountMap(synoNative),
-  buildVerseCountMap(lsv)
-)
-
-const remapResult = buildSynodalWesternRemap({
-  synodalNativeData: synoNative,
-  canonicalTemplateData: lsv,
-  mappingRules,
-})
-
-const synoWestern = remapResult.synoWestern
-ensureCanonical66Books(synoWestern, 'SYNO-W')
-logTranslationSummary(synoWestern, 'SYNO-W')
-writeTranslation(synoWestern, 'SYNO-W')
-
-const nativeToCanonicalPayload = {
-  translation: 'SYNO-W',
-  sourceTranslation: 'SYNO-NATIVE',
-  direction: 'native-to-canonical',
-  versification: { from: 'Synodal', to: 'western' },
-  map: remapResult.nativeToCanonical,
-}
-
-const canonicalToNativePayload = {
-  translation: 'SYNO-W',
-  sourceTranslation: 'SYNO-NATIVE',
-  direction: 'canonical-to-native',
-  versification: { from: 'western', to: 'Synodal' },
-  map: remapResult.canonicalToNative,
-}
-
-writeJsonFile(path.join(VERSIFICATION_OUTPUT_DIR, 'SYNO-W.native-to-canonical.json'), nativeToCanonicalPayload)
-writeJsonFile(path.join(VERSIFICATION_OUTPUT_DIR, 'SYNO-W.canonical-to-native.json'), canonicalToNativePayload)
-writeJsonFile(path.join(VERSIFICATION_OUTPUT_DIR, 'SYNO-W.validation-report.json'), remapResult.report)
-
-console.log(`  SYNO-W mapping: ${Object.keys(remapResult.nativeToCanonical).length} native refs`) 
-console.log(`  SYNO-W validation: missingCanonical=${remapResult.report.missingCanonicalRefsCount}, droppedNative=${remapResult.report.droppedNativeRefsCount}`)
-
-if (remapResult.hasBlockingErrors) {
-  throw new Error(
-    `SYNO-W remap validation failed. See ${path.join(VERSIFICATION_OUTPUT_DIR, 'SYNO-W.validation-report.json')}`
+  const synoNative = convertVPLByBase('russyn_vpl', 'SYNO-NATIVE', 'Russian Synodal (Native)', {
+    strictCanonicalOnly: true,
+  })
+  ensureCanonical66Books(synoNative, 'SYNO-NATIVE')
+  const mappingRules = parseSynodalMappingRules(
+    path.join(SOURCES_DIR, 'Synodal.properties'), buildVerseCountMap(synoNative), buildVerseCountMap(lsv)
   )
+  const remapResult = buildReviewedSynodalRemap({
+    nativeData: synoNative, canonicalTemplateData: lsv, mappingRules,
+    policy: readJson(path.join(SOURCES_DIR, 'SYNO-W-nt-versification.json')),
+  })
+  const synoWestern = remapResult.synoWestern
+  ensureCanonical66Books(synoWestern, 'SYNO-W')
+  if (remapResult.hasBlockingErrors) throw new Error('SYNO-W remap validation failed before writing output.')
+
+  if (synodalOnly) {
+    assertSynodalRepairPreservesOt({
+      nativeData: synoNative,
+      retainedNativeData: readJson(path.join(OUTPUT_DIR, 'SYNO-W-native.json')),
+      repairedData: synoWestern, installedData: readJson(path.join(OUTPUT_DIR, 'SYNO-W.json')),
+      maps: remapResult,
+      installedMaps: {
+        nativeToCanonical: readJson(path.join(VERSIFICATION_OUTPUT_DIR, 'SYNO-W.native-to-canonical.json')).map,
+        canonicalToNative: readJson(path.join(VERSIFICATION_OUTPUT_DIR, 'SYNO-W.canonical-to-native.json')).map,
+      },
+    })
+  }
+
+  const pieceMetadata = {
+    scope: 'NT', nativeTextFile: '../translations/SYNO-W-native.json',
+    offsets: 'UTF-16 code units; start inclusive, end exclusive in the retained native verse',
+  }
+  const common = { translation: 'SYNO-W', sourceTranslation: 'SYNO-NATIVE' }
+  const nativeToCanonicalPayload = {
+    ...common, direction: 'native-to-canonical', versification: { from: 'Synodal', to: 'western' },
+    map: remapResult.nativeToCanonical, sourcePieceMetadata: pieceMetadata,
+    sourcePieces: remapResult.nativeToCanonicalPieces,
+  }
+  const canonicalToNativePayload = {
+    ...common, direction: 'canonical-to-native', versification: { from: 'western', to: 'Synodal' },
+    map: remapResult.canonicalToNative, sourcePieceMetadata: pieceMetadata,
+    sourcePieces: remapResult.canonicalToNativePieces,
+  }
+
+  // All source, conservation and preservation checks precede the first Russian write.
+  fs.mkdirSync(VERSIFICATION_OUTPUT_DIR, { recursive: true })
+  writeJsonFile(path.join(OUTPUT_DIR, 'SYNO-W-native.json'), synoNative)
+  writeTranslation(synoWestern, 'SYNO-W')
+  writeJsonFile(path.join(VERSIFICATION_OUTPUT_DIR, 'SYNO-W.native-to-canonical.json'), nativeToCanonicalPayload)
+  writeJsonFile(path.join(VERSIFICATION_OUTPUT_DIR, 'SYNO-W.canonical-to-native.json'), canonicalToNativePayload)
+  writeJsonFile(path.join(VERSIFICATION_OUTPUT_DIR, 'SYNO-W.validation-report.json'), remapResult.report)
+  logTranslationSummary(synoWestern, 'SYNO-W')
+  console.log('Done. Synodal NT source pieces were validated before writing.')
 }
 
-console.log('\nDone! All translations converted.')
+if (require.main === module) main()
+module.exports = {
+  buildReviewedSynodalRemap, assertSynodalRepairPreservesOt,
+  convertVPLText, buildVerseCountMap, parseSynodalMappingRules,
+}

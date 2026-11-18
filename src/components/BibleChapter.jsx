@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useCallback } from 'react'
 import VerseText from './VerseText'
+import { synodalAdditionRanges } from '../data/synodalTextAdditions'
 import VerseNumber from './VerseNumber'
 import { getVerseLayout } from '../utils/verseLayout'
 import InlineVerseNotes, { getInlineNotesAfterVerse } from './InlineVerseNotes'
@@ -95,6 +96,7 @@ function BibleChapter({
             const highlightColor = getVerseHighlightColor?.(chapter.number, verse.number)
               || (isVerseHighlighted?.(chapter.number, verse.number) ? 'yellow' : null)
             const layout = getVerseLayout(verseLayout, bookName, chapter.number, verse.number)
+            const additions = synodalAdditionRanges(translationId, bookName, chapter.number, verse.number, verse.text)
             const textHighlights = getTextHighlights?.(chapter.number, verse.number, translationId, verse.text) || []
             const inlineNotes = selectionMode ? [] : getInlineNotesAfterVerse(
               notes, bookName, chapter.number, verse.number, translationId
@@ -152,7 +154,7 @@ function BibleChapter({
                   data-verse={verse.number}
                   data-translation={translationId}
                 >
-                  <VerseText text={verse.text} layout={layout} highlights={textHighlights} />
+                  <VerseText text={verse.text} layout={layout} highlights={textHighlights} additions={additions} />
                 </p>
 
                 {/* Bookmark Button */}
@@ -170,6 +172,7 @@ function BibleChapter({
             const highlightColor = getVerseHighlightColor?.(chapter.number, verse.number)
               || (isVerseHighlighted?.(chapter.number, verse.number) ? 'yellow' : null)
             const layout = getVerseLayout(verseLayout, bookName, chapter.number, verse.number)
+            const additions = synodalAdditionRanges(translationId, bookName, chapter.number, verse.number, verse.text)
             const textHighlights = getTextHighlights?.(chapter.number, verse.number, translationId, verse.text) || []
             const inlineNotes = selectionMode ? [] : getInlineNotesAfterVerse(
               notes, bookName, chapter.number, verse.number, translationId
@@ -223,7 +226,7 @@ function BibleChapter({
                   data-verse={verse.number}
                   data-translation={translationId}
                 >
-                  <VerseText text={verse.text} layout={layout} highlights={textHighlights} />
+                  <VerseText text={verse.text} layout={layout} highlights={textHighlights} additions={additions} />
                 </span>
                   {verseIndex < chapter.verses.length - 1 && ' '}
                 </span>

@@ -81,6 +81,8 @@ public final class CarControllerTestActivity extends Activity {
                 case "connect": case "state": break;
                 case "play": controller.getTransportControls().play(); break;
                 case "pause": controller.getTransportControls().pause(); break;
+                case "fastForward": controller.getTransportControls().fastForward(); break;
+                case "rewind": controller.getTransportControls().rewind(); break;
                 case "playFromMediaId": controller.getTransportControls().playFromMediaId(request.getStringExtra("trackId"), Bundle.EMPTY); break;
                 case "mediaPlayPause":
                     controller.dispatchMediaButtonEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE));

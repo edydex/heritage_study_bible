@@ -1,0 +1,2404 @@
+{
+  "schemaVersion": 1,
+  "book": "1 Peter",
+  "chapter": 5,
+  "review": {
+    "method": "Full explicit lexical/constituent author review of exact pinned N1904 and displayed BSB; author spacing_audit. Pending independent semantic peer and reader review. Existing accepted verse objects are preserved exactly.",
+    "references": [
+      "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+      "https://gitlab.com/crosswire-bible-society/kjv/-/blob/d490be7e34762deb2c76cb2c1306d4808e27890d/kjv.osis.xml"
+    ]
+  },
+  "verses": {
+    "5:1": {
+      "sourceText": "Πρεσβυτέρους οὖν ἐν ὑμῖν παρακαλῶ ὁ συνπρεσβύτερος καὶ μάρτυς τῶν τοῦ Χριστοῦ παθημάτων, ὁ καὶ τῆς μελλούσης ἀποκαλύπτεσθαι δόξης κοινωνός,",
+      "targetText": "As a fellow elder, a witness of Christ’s sufferings, and a partaker of the glory to be revealed, I appeal to the elders among you:",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "to the elders",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual elders accusative is the appeal object, rendered to-the-elders as the English appeal complement without a Greek to preposition or article."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "among",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "I appeal",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "a fellow elder",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual co-elder compound noun supplies a-fellow-elder without separately printed fellow/elder words."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "a witness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "sufferings",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/sufferings supplies of ... sufferings with its real nominal head."
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ’s",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/Christ supplies possessive Christ’s with the same name head."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15,
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "of the glory",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/glory supplies of-the-glory with the same nominal head."
+        },
+        {
+          "sourceTokens": [
+            16,
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "to be revealed",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual being-about-to plus passive-revealing infinitive supplies to-be-revealed as the coming revelation modifier; no independent Greek future tense is substituted."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "a partaker",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "Actual therefore connects the elder appeal; BSB does not separately express this conjunction."
+        },
+        {
+          "tokens": [
+            5
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        },
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "Actual and coordinates fellow-elder and witness; BSB uses a comma without expressing that conjunction."
+        },
+        {
+          "tokens": [
+            13
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "As",
+          "occurrence": 0,
+          "reason": "English supplies an As frame for the speaker’s co-elder designation; the pinned publisher brackets As on the actual article row, without a Greek comparison marker."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:2": {
+      "sourceText": "ποιμάνατε τὸ ἐν ὑμῖν ποίμνιον τοῦ Θεοῦ, μὴ ἀναγκαστῶς ἀλλὰ ἑκουσίως κατὰ Θεόν, μηδὲ αἰσχροκερδῶς ἀλλὰ προθύμως,",
+      "targetText": "Be shepherds of God’s flock that is among you, watching over them not out of compulsion, but because it is God’s will; not out of greed, but out of eagerness;",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Be shepherds of",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual shepherd aorist imperative is nominalized Be-shepherds-of with the flock object; its source remains poimaino, not an independently printed shepherd noun or being verb."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual definite article introduces the fronted among-you flock modifier; English uses that as the relative frame for that same modifier, with its copula separately supplied."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "among",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "flock",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5,
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "God’s",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/God supplies possessive God’s with flock."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "out of compulsion",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual compulsorily adverb is expanded out-of-compulsion without a separate noun or preposition."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "because it is God’s will",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual according-to-God preposition/name is rendered because-it-is-God’s-will in the displayed BSB. The actual standard relation and God name remain one qualified constituent; no separately printed Greek will noun, causal marker or being predicate is claimed. The newer pinned publisher table instead reads willingly, as God would have you, so its row wording is not silently substituted into this displayed edition."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "out of greed",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual shameful-gain-seeking adverb is expanded out-of-greed without a separate greed noun or preposition."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "out of eagerness",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eagerly adverb is nominalized out-of-eagerness without a separate eagerness noun or preposition."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "Actual hekousios (ἑκουσίως) willingly describes the shepherds’ voluntary manner. The displayed BSB does not separately state that human willingness; its God’s-will clause renders the following according-to-God relation, not a change of the human adverb into God’s volition."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies a copula in the that-is-among-you flock modifier; no corresponding Greek being verb is printed."
+        },
+        {
+          "text": "watching over them",
+          "occurrence": 0,
+          "reason": "The displayed BSB follows an overseeing-participle phrase present in another witness/TR but absent from pinned N1904; no second shepherding/overseeing head or them pronoun is invented."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:3": {
+      "sourceText": "μηδ’ ὡς κατακυριεύοντες τῶν κλήρων ἀλλὰ τύποι γινόμενοι τοῦ ποιμνίου·",
+      "targetText": "not lording it over those entrusted to you, but being examples to the flock.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "lording it over",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual domineering/lording-over present participle is rendered the idiom lording-it-over; no independent Greek it pronoun is printed."
+        },
+        {
+          "sourceTokens": [
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "those entrusted to you",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/allotments noun designates the assigned charges, rendered personally those-entrusted-to-you. No separately printed Greek person, entrusting verb or you pronoun is invented in that metonymic person designation."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "examples",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "being",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual becoming present participle is rendered being; the source remains ginomai becoming."
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "to the flock",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/flock is rendered to-the-flock as the English example relation, preserving its actual genitive source forms."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "Actual as qualifies the domineering manner; BSB expresses a direct lording prohibition without that comparison marker."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:4": {
+      "sourceText": "καὶ φανερωθέντος τοῦ Ἀρχιποίμενος κομιεῖσθε τὸν ἀμαράντινον τῆς δόξης στέφανον.",
+      "targetText": "And when the Chief Shepherd appears, you will receive the crown of glory that will never fade away.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "when",
+              "occurrence": 0
+            },
+            {
+              "text": "appears",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual having-been-manifested aorist passive participle is rendered when ... appears as the English circumstance; its source remains participial."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Chief Shepherd",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual chief-shepherd compound noun is rendered Chief-Shepherd without separately printed chief/shepherd words."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "you will receive",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "that will never fade away",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual unfading adjective supplies the whole negative-property paraphrase that-will-never-fade-away. No separate Greek relative, negative, modal or fading verb is invented."
+        },
+        {
+          "sourceTokens": [
+            7,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "of glory",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/glory supplies of-glory with the same nominal head."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "crown",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:5": {
+      "sourceText": "Ὁμοίως, νεώτεροι, ὑποτάγητε πρεσβυτέροις· πάντες δὲ ἀλλήλοις τὴν ταπεινοφροσύνην ἐγκομβώσασθε, ὅτι ὁ Θεὸς ὑπερηφάνοις ἀντιτάσσεται, ταπεινοῖς δὲ δίδωσιν χάριν.",
+      "targetText": "Young men, in the same way, submit yourselves to your elders. And all of you, clothe yourselves with humility toward one another, because,  “God opposes the proud, but gives grace to the humble.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "in the same way",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Young men",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual younger comparative adjective is substantival for people, expanded Young-men without a separate Greek man noun."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "submit yourselves",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual submit aorist passive imperative is rendered submit-yourselves without a Greek reflexive pronoun."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            },
+            {
+              "text": "elders",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual elder dative plural gives the submission complement, rendered to ... elders with its case relation."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "all of you",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual all nominative plural identifies the addressed people, expanded all-of-you without an independent personal pronoun."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "toward one another",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual one-another dative supplies toward-one-another as the humility relation, without a Greek toward preposition."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "humility",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "clothe yourselves with",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual gird/fasten-on aorist middle imperative supplies clothe-yourselves-with as the clothing metaphor, without an independent reflexive pronoun or with preposition."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "because",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "the proud",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual proud dative plural adjective is substantival, rendered the-proud without a person noun."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "opposes",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "to the humble",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual humble dative plural adjective is substantival, rendered to-the-humble with its case relation."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "gives",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        },
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "your",
+          "occurrence": 0,
+          "reason": "English supplies a possessor on elders; no corresponding Greek possessive pronoun is printed."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:6": {
+      "sourceText": "Ταπεινώθητε οὖν ὑπὸ τὴν κραταιὰν χεῖρα τοῦ Θεοῦ, ἵνα ὑμᾶς ὑψώσῃ ἐν καιρῷ,",
+      "targetText": "Humble yourselves, therefore, under God’s mighty hand, so that in due time He may exalt you.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Humble yourselves",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual humble aorist passive imperative is rendered reflexively Humble-yourselves, without an independent reflexive pronoun."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "therefore",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "under",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "mighty",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "hand",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "God’s",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/God supplies possessive God’s with hand."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "so that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "He may exalt",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual exalt aorist subjunctive is rendered He-may-exalt under purpose, without independently printed personal/modal words."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "due time",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual time/occasion dative noun is expanded due-time, without a separate Greek due adjective."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:7": {
+      "sourceText": "πᾶσαν τὴν μέριμναν ὑμῶν ἐπιρίψαντες ἐπ’ αὐτόν, ὅτι αὐτῷ μέλει περὶ ὑμῶν.",
+      "targetText": "Cast all your anxiety on Him, because He cares for you.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "anxiety",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Cast",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual having-cast aorist active participle is rendered imperative Cast; its original participial form remains."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "on",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "because",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "He",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative to-Him marks the experiencer in the impersonal care construction, rendered nominative He in English’s personal care clause. Its actual dative form remains."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "cares",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual impersonal it-is-a-care predicate is rendered personal cares with the same divine experiencer; no separate Greek care noun or being word is printed."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:8": {
+      "sourceText": "Νήψατε, γρηγορήσατε. ὁ ἀντίδικος ὑμῶν διάβολος ὡς λέων ὠρυόμενος περιπατεῖ ζητῶν τινα καταπιεῖν·",
+      "targetText": "Be sober-minded and alert. Your adversary the devil prowls around like a roaring lion, seeking someone to devour.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Be sober-minded",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual be-sober aorist imperative supplies Be-sober-minded without a separate Greek being verb or mind noun."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "alert",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual watch/be-alert aorist imperative is rendered alert under the shared English instruction frame; its source remains the gregoreo verb."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual article articulates the adversary identified appositionally as devil. English places the same-person definite marker before devil instead of possessive Your-adversary."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "adversary",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "devil",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "like",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "a",
+              "occurrence": 0
+            },
+            {
+              "text": "lion",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "roaring",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "prowls around",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual walk-about present predicate is rendered prowls-around in the lion comparison; its source remains peripateo walking, not a different prowling verb."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "seeking",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "someone",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "to devour",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "and",
+          "occurrence": 0,
+          "reason": "English coordinates sober-minded and alert; no Greek conjunction is printed between the two imperatives."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:9": {
+      "sourceText": "ᾧ ἀντίστητε στερεοὶ τῇ πίστει, εἰδότες τὰ αὐτὰ τῶν παθημάτων τῇ ἐν τῷ κόσμῳ ὑμῶν ἀδελφότητι ἐπιτελεῖσθαι.",
+      "targetText": "Resist him, standing firm in your faith and in the knowledge that your brothers throughout the world are undergoing the same kinds of suffering.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative relative whom is rendered personal him, retaining the same adversary referent."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Resist",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "standing firm",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual firm plural adjective is rendered standing-firm as a state expression; no Greek standing participle or histemi verb is printed here."
+        },
+        {
+          "sourceTokens": [
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            },
+            {
+              "text": "faith",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual dative article/faith supplies in ... faith with the same nominal head."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "and in the knowledge that",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual knowing perfect active participle is nominalized and-in-the-knowledge-that as the accompanying English circumstance, without a separate Greek and conjunction or knowledge noun."
+        },
+        {
+          "sourceTokens": [
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the same kinds",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual the-same neuter plural substantive is expanded the-same-kinds, without a separately printed genos kind noun."
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "of suffering",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/sufferings supplies of-suffering with the same nominal head; English uses singular mass suffering."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "throughout",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en in marks the world location, rendered throughout."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "world",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "brothers",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual brotherhood collective noun is rendered plural brothers, without a substituted Greek adelphos brother lemma."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "are undergoing",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual to-be-accomplished present passive infinitive has sufferings as its topic and brotherhood as dative experiencer/location. English recasts brothers as active undergoing subjects and sufferings as their object; the actual epiteleo head and original forms remain."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "your",
+          "occurrence": 0,
+          "reason": "English supplies a possessor with faith; no corresponding Greek possessive pronoun is printed on faith."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:10": {
+      "sourceText": "Ὁ δὲ Θεὸς πάσης χάριτος, ὁ καλέσας ὑμᾶς εἰς τὴν αἰώνιον αὐτοῦ δόξαν ἐν Χριστῷ, ὀλίγον παθόντας αὐτὸς καταρτίσει, στηρίξει, σθενώσει, θεμελιώσει.",
+      "targetText": "And after you have suffered for a little while, the God of all grace, who has called you to His eternal glory in Christ, will Himself restore you, secure you, strengthen you, and establish you.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "of all",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual all genitive adjective supplies of-all with the grace qualifier, without a separate of preposition."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual nominalizing article identifies the calling God, rendered who without a Greek relative pronoun."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "has called",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            },
+            {
+              "text": "you",
+              "occurrence": 2
+            },
+            {
+              "text": "you",
+              "occurrence": 3
+            },
+            {
+              "text": "you",
+              "occurrence": 4
+            },
+            {
+              "text": "you",
+              "occurrence": 5
+            }
+          ],
+          "note": "The actual you accusative names the called people and is the same immediately suffering/restored audience. English repeats that one actual personal identity as the object of all four restoration predicates; no extra Greek object pronouns are invented."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "eternal",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "glory",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "for a little while",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual oligon short-duration expression is expanded for-a-little-while without a separate Greek time noun or for preposition."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "after you have suffered",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual having-suffered aorist active participle is rendered after-you-have-suffered as the English prior circumstance, without a Greek after conjunction."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "Himself",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "will",
+              "occurrence": 0
+            },
+            {
+              "text": "restore",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual restore/put-in-order future predicate supplies will ... restore; the shared English future auxiliary also scopes the following coordinated predicates."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "secure",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual establish/make-firm future predicate is rendered secure; its source remains sterizo, distinct from the later themelioo establish rendering."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "strengthen",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual make-strong future predicate is rendered strengthen."
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "establish",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual found/lay-foundation future predicate is rendered establish; its source remains themelioo, not a substituted sterizo lemma."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "and",
+          "occurrence": 0,
+          "reason": "English supplies a serial-list coordinator before establish; no Greek conjunction is printed between the four restoration predicates."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:11": {
+      "sourceText": "αὐτῷ τὸ κράτος εἰς τοὺς αἰῶνας τῶν αἰώνων· ἀμήν.",
+      "targetText": "To Him be the power forever and ever. Amen.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "To Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "power",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "forever and ever",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual into-the-ages-of-the-ages duration idiom supplies forever-and-ever as one whole expression."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Amen",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "be",
+          "occurrence": 0,
+          "reason": "English supplies a copula in a Greek nominal expression; no corresponding finite Greek being verb is printed."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:12": {
+      "sourceText": "Διὰ Σιλουανοῦ ὑμῖν τοῦ πιστοῦ ἀδελφοῦ, ὡς λογίζομαι, δι’ ὀλίγων ἔγραψα, παρακαλῶν καὶ ἐπιμαρτυρῶν ταύτην εἶναι ἀληθῆ χάριν τοῦ Θεοῦ, εἰς ἣν στῆτε.",
+      "targetText": "Through Silvanus, whom I regard as a faithful brother, I have written to you briefly, encouraging you and testifying that this is the true grace of God. Stand firm in it.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Through",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Silvanus",
+              "occurrence": 0
+            },
+            {
+              "text": "whom",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual Silvanus name under through is resumed as whom in the same immediately qualified faithful-brother person. No separate Greek relative object pronoun is printed."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to you",
+              "occurrence": 0
+            },
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ],
+          "note": "Actual dative you are the writing recipients and same immediate exhortation targets; English repeats that real audience as encouraging-you. No second Greek personal object is printed."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "a",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual definite article articulates the faithful-brother name apposition; English frames that same designation with indefinite a."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "faithful",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "brother",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "as",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual as parenthetical with I-reckon is placed with faithful-brother in the English regard-as complement; its original comparison word remains."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "I regard",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "briefly",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual through-few plural quantity constituent is adverbialized briefly; no separate Greek briefly adverb or word noun is invented."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "I have written",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual wrote aorist is rendered I-have-written; the original tense remains aorist."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "encouraging",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "testifying",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            },
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual being infinitive under testifying is rendered finite that ... is in the English indirect-content clause; no separate Greek hoti that marker is printed."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "true",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            },
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18,
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual genitive article/God supplies of-God with the real nominal head."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual eis towards is rendered in with the grace reference."
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "it",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual relative which refers to grace, rendered personal it without a second grace noun."
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "Stand firm",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual stete has V-2AAS-2P aorist active subjunctive in both pinned functional/form analyses. This same written form is homographic with the aorist imperative and is read as a command here (Mounce parses this occurrence imperative), rendered Stand-firm; no separate Greek firm adjective is printed. Pinned TR hestekate is a different perfect active indicative form. The actual spelling and both raw analyses are retained."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:13": {
+      "sourceText": "Ἀσπάζεται ὑμᾶς ἡ ἐν Βαβυλῶνι συνεκλεκτὴ καὶ Μάρκος ὁ υἱός μου.",
+      "targetText": "The church in Babylon, chosen together with you, sends you greetings, as does my son Mark.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "sends",
+              "occurrence": 0
+            },
+            {
+              "text": "greetings",
+              "occurrence": 0
+            },
+            {
+              "text": "does",
+              "occurrence": 0
+            }
+          ],
+          "note": "The actual greets predicate is expanded sends ... greetings and repeated as does for the coordinated Mark subject. No separate sending verb, greeting noun or second greeting predicate is printed."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "The",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual feminine nominalizing article introduces the co-chosen sender, rendered The; its grammatical gender alone does not supply an ekklesia church noun."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Babylon",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "chosen together with you",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual co-elect compound adjective is expanded chosen-together-with-you. Its co-selection relation is made explicit to the addressed people without a separate Greek you pronoun or choosing verb."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "as",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual and coordinates Mark with the greeting sender, rendered as with the repeated greeting predicate."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Mark",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "son",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "The actual Greek definite article is not separately expressed in this English noun/name/possessive construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "church",
+          "occurrence": 0,
+          "reason": "English identifies the feminine co-chosen sender as church; no Greek ekklesia church noun is printed. The actual feminine article/co-elect designation remains without assigning it a church lemma."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    },
+    "5:14": {
+      "sourceText": "ἀσπάσασθε ἀλλήλους ἐν φιλήματι ἀγάπης. Εἰρήνη ὑμῖν πᾶσιν τοῖς ἐν Χριστῷ.",
+      "targetText": "Greet one another with a kiss of love.  Peace to all of you who are in Christ.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Greet",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "one another",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual en in is rendered with as the greeting means."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "a kiss",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "of love",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual love genitive supplies of-love with its real nominal head."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Peace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "to all of you",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual to-you plus all dative words supply to-all-of-you as the full greeting audience."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "Actual nominalizing article identifies the in-Christ recipients, rendered who without a Greek relative pronoun."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "are",
+          "occurrence": 0,
+          "reason": "English supplies a copula in a Greek nominal expression; no corresponding finite Greek being verb is printed."
+        }
+      ],
+      "review": {
+        "reference": "https://github.com/biblicalhumanities/Nestle1904/tree/713f28a3b7d4d66132f5aa809fa223fe79762e5d/morph",
+        "note": "Full constituent and repeated-occurrence review against the exact pinned N1904 and displayed BSB text. Inflection, recasting, omitted words and source-witness differences remain explicit; pending independent peer and reader verification."
+      }
+    }
+  }
+}

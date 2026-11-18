@@ -39,8 +39,8 @@ export async function seedConfiguredSongs(payload: Payload) {
         syncId: song.slug,
         syncDocuments,
         syncVersion: 1,
-        visibility: 'public',
-        status: 'published',
+        visibility: 'private',
+        status: 'draft',
       },
     })
     created += 1

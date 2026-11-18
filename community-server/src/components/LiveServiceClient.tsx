@@ -19,7 +19,12 @@ export function LiveServiceClient({ settings, video = false }: { settings: LiveS
         if (!configured) throw new Error('Translation has not been configured')
         const base = configured === '/translate' ? new URL('/translation/', window.location.origin)
           : new URL(configured.endsWith('/') ? configured : `${configured}/`)
-        const url = new URL('client/heritage.js', base).href
+        // This companion is deployed independently of the Community app. Older
+        // clients cached its unversioned module, so each new listener mount must
+        // request the current entry (as the operator client already does).
+        const entry = new URL('client/heritage.js', base)
+        entry.searchParams.set('load', String(Date.now()))
+        const url = entry.href
         const client = await import(/* webpackIgnore: true */ url) as {
           clientVersion: number
           mount(element: HTMLElement, options: { apiBase: string; broadcastDelaySeconds: number; churchName: string; videoId: string | null; channelUrl: string | null }): () => void

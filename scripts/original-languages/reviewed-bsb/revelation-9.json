@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "book": "Revelation",
+  "chapter": 9,
+  "verses": {
+    "9:16": {
+      "sourceText": "καὶ ὁ ἀριθμὸς τῶν στρατευμάτων τοῦ ἱππικοῦ δισμυριάδες μυριάδων· ἤκουσα τὸν ἀριθμὸν αὐτῶν.",
+      "targetText": "And the number of mounted troops was two hundred million; I heard their number.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "number",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of mounted troops",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "two hundred million",
+              "occurrence": 0
+            }
+          ],
+          "note": "The full numerical expression δισμυριάδες μυριάδων is two myriads of myriads, 2 × 10,000 × 10,000. Both words jointly anchor two hundred million; δισμυριάδες alone must not carry the whole product."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "I heard",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "number",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "their",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            5,
+            10
+          ],
+          "reason": "Greek article is not separately expressed in this English possessive, naming or noun construction."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "was",
+          "occurrence": 0,
+          "reason": "English copula supplied in the Greek nominal numerical statement; no separate Greek verb is written."
+        }
+      ]
+    }
+  }
+}

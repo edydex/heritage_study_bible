@@ -1,3 +1,8 @@
+import { calendarMcpEndpoints } from './endpoints/calendarMcp'
+import { WorkspaceActivity } from './collections/WorkspaceActivity'
+import { workspaceActivityEndpoints } from './endpoints/workspaceActivity'
+import { ServiceDocumentSaves } from './collections/ServiceDocumentSaves'
+import { serviceHistoryEndpoints } from './endpoints/serviceHistory'
 import { bookReadAlongEndpoints } from '@/endpoints/bookReadAlong'
 import { BibleTranslations } from './collections/BibleTranslations'
 import { bibleImportEndpoints } from './endpoints/bibleImports'
@@ -11,6 +16,9 @@ import { check } from 'drizzle-orm/pg-core'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildConfig } from 'payload'
+import { en } from '@payloadcms/translations/languages/en'
+import { ru } from '@payloadcms/translations/languages/ru'
+import { workspaceAccountEndpoints } from '@/endpoints/workspaceAccount'
 import sharp from 'sharp'
 import { Books } from '@/collections/Books'
 import { Commentaries } from '@/collections/Commentaries'
@@ -131,13 +139,16 @@ export const preserveSermonHistoryChecksum: NonNullable<
 }
 
 export default buildConfig({
+  i18n: { supportedLanguages: { en, ru }, fallbackLanguage: 'en' },
   admin: {
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
     components: {
       beforeLogin: ['@/components/WorkspaceSignInGuide'],
       Nav: '@/components/AdminNav',
+      providers: ['@/components/WorkspaceLocalization#WorkspaceLocalizationProvider', '@/components/WorkspaceActivityProvider'],
       views: {
+        people: { Component: '@/components/People', exact: true, meta: { title: 'People' }, path: '/people' },
         dashboard: {
           Component: '@/components/AdminDashboard',
           exact: true,
@@ -188,6 +199,7 @@ export default buildConfig({
   collections: [
     BibleTranslations,
     Users,
+    WorkspaceActivity,
     CommunitySessions,
     CommunityAuthChallenges,
     CommunityAuthRateLimits,
@@ -204,6 +216,7 @@ export default buildConfig({
     Sermons,
     ServicePlans,
     ServiceDocuments,
+    ServiceDocumentSaves,
     SyncShowServiceDocumentChanges,
     SyncShowSermonChanges,
     SyncShowSermonPublications,
@@ -246,9 +259,13 @@ export default buildConfig({
   endpoints: [
     ...bibleImportEndpoints,
     ...calendarEndpoints,
+    ...calendarMcpEndpoints,
     ...sermonPresentationEndpoints,
+    ...serviceHistoryEndpoints,
     ...authEndpoints,
     ...accountEndpoints,
+    ...workspaceAccountEndpoints,
+    ...workspaceActivityEndpoints,
     ...syncEndpoints,
     ...syncShowEndpoints,
     ...translationEndpoints,

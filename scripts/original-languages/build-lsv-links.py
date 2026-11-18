@@ -4,10 +4,14 @@
 Run after generateOriginalLanguages.py --all-nt-links. No synonym guesses or
 untrusted USFM Strong tags are used. Every entry pins both displayed texts.
 """
-import hashlib, json, re
+import argparse, hashlib, json, os, re, shutil, subprocess, sys, tempfile
 from pathlib import Path
+from shared_phrase_links import transfer_groups
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT/'public/data/original-languages'
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output',type=Path,default=DATA/'lsv-word-links')
+args=parser.parse_args()
 read = lambda path: json.loads(path.read_text())
 sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
 def write(path, value):
@@ -16,8 +20,6 @@ def visible(text):
     text = re.sub(r'^\s*¶\s*', '', text)
     text = re.sub(r'\s+¶\s+', '\n', text)
     return re.sub(r'</?b>', '', re.sub(r'\s*\|\|\s*', '\n', text))
-def words(text):
-    return [(m.group().lower().replace('’', "'"), m.start(), m.end()) for m in re.finditer(r"[^\W_]+(?:['’][^\W_]+)*", text)]
 def verses(corpus):
     return {b['name']: {f"{c['number']}:{v['number']}":visible(v['text']) for c in b['chapters'] for v in c['verses']} for b in corpus['books']}
 bsb = verses(read(ROOT/'public/data/translations/BSB.json'))
@@ -64,44 +66,53 @@ def reviewed(target, book, ref):
         groups.append({'id': token, 'source': [word.start(), end], 'target': [match.start(), match.end()]})
     return {'sourceText':source_text,'targetText':target_text,'groups':groups,
             'review': {'method':'Explicit phrase and occurrence mapping; no USFM tag transfer.', 'reference':REVIEW[(book, ref)]['reference']}}
-# BSB repair only modifies this verse, never weakens whole-verse edition checks.
-path = DATA/'bsb-word-links/philippians.json'; item = read(path)
+# Stage BSB repairs too: no canonical file changes until both translations pass.
+bsb_staging=tempfile.TemporaryDirectory(prefix='heritage-bsb-reviews-')
+bsb_folder=Path(bsb_staging.name)
+for original in (DATA/'bsb-word-links').glob('*.json'):shutil.copyfile(original,bsb_folder/original.name)
+path = bsb_folder/'philippians.json'; item = read(path)
 item['verses']['4:12'] = reviewed('BSB', 'Philippians', '4:12'); item['unavailable'].pop('4:12', None); write(path,item)
-index_path = DATA/'bsb-word-links/index.json'; index = read(index_path)
+index_path = bsb_folder/'index.json'; index = read(index_path)
 index['books']['Philippians'].update(sha256=sha(path),linkedVerses=len(item['verses']),unlinkedVerses=len(item['unavailable']),groups=sum(len(v['groups']) for v in item['verses'].values()))
 index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2)+'\n')
-STOP = set('a an the and or but for to of in on at by as with from into is are was were be been being am i me my we us our you your he him his she her it its they them their this that these those who whom which what when where how not no all any every both each have has had do does did so if than then also'.split())
-folder = DATA/'lsv-word-links'; folder.mkdir(exist_ok=True)
+subprocess.run([sys.executable,str(ROOT/'scripts/original-languages/compile-reviewed-links.py'),'--target','BSB','--reviews',str(ROOT/'scripts/original-languages/reviewed-bsb'),'--registry',str(ROOT/'scripts/original-languages/bsb-review-status.json'),'--input',str(bsb_folder),'--output',str(bsb_folder)],check=True)
+index=read(index_path)
+staging=tempfile.TemporaryDirectory(prefix='heritage-lsv-links-')
+folder=Path(staging.name)
 manifest = {}; provenance = {'url':'https://ebible.org/find/details.php?id=englsv','license':'CC BY-SA 4.0','licenseUrl':'https://creativecommons.org/licenses/by-sa/4.0/','attribution':'LSV © 2020 Covenant Press; alignment adaptation for Heritage Study Bible.', 'targetSha256':sha(lsv_path),'greekSha256':index['provenance']['greekSha256'],'bsbMappingManifestSha256':sha(index_path)}
 for name, meta in index['books'].items():
-    original = read(DATA/'bsb-word-links'/meta['file']); aligned = {}; unavailable = {}
+    original = read(bsb_folder/meta['file']); aligned = {}; unavailable = {}
     for ref, source_text in greek[name].items():
         target_text = lsv[name].get(ref, '')
         assert all(ord(c) <= 0xffff for c in source_text + target_text), 'Review UTF-16 offsets before mapping non-BMP text.'
         entry = original['verses'].get(ref)
         groups = []
         if entry and entry['sourceText'] == source_text and entry['targetText']==bsb[name].get(ref):
-            target_words = words(target_text); bsb_words = words(entry['targetText'])
-            for group in entry['groups']:
-                phrase = [w[0] for w in words(entry['targetText'][slice(*group['target'])])]
-                if not phrase or not any(w not in STOP for w in phrase): continue
-                # A repeated phrase cannot establish which occurrence it links.
-                if sum([w[0] for w in bsb_words[i:i+len(phrase)]]==phrase for i in range(len(bsb_words)))!=1: continue
-                starts = [i for i in range(len(target_words)) if [w[0] for w in target_words[i:i+len(phrase)]]==phrase]
-                if len(starts)!=1: continue
-                pos = starts[0]; target = [target_words[pos][1],target_words[pos+len(phrase)-1][2]]
-                groups.append({'id':group['id'],'source':group['source'],'target':target})
-            # Refuse overlap rather than choosing an arbitrary phrase assignment.
-            groups = [g for g in groups if not any(h is not g and h['target'][0]<g['target'][1] and h['target'][1]>g['target'][0] for h in groups)]
+            groups = transfer_groups(entry['groups'],entry['targetText'],target_text)
         if groups: aligned[ref]={'sourceText':source_text,'targetText':target_text,'groups':groups}
         else: unavailable[ref]=original['unavailable'].get(ref,'no-unambiguous-shared-phrase')
     for (book, ref), review in REVIEW.items():
         if book == name and 'LSV' in review['groups']:
             aligned[ref]=reviewed('LSV', book, ref); unavailable.pop(ref,None)
     value={'schemaVersion':1,'book':name,'sourceId':'N1904','targetId':'LSV','provenance':provenance,
-           'method':'Partial automatic links: identical whole-word BSB phrases occurring once in each displayed verse, transferred from pinned publisher Greek links. Function-only phrases, repeats, overlaps and Greek edition differences omitted. Philippians 4:12 and Romans 1:3, 1:12 use explicit reviewed mappings. No inferred synonyms or USFM Strong tags.',
+           'method':'Whole-verse identical English word sequences retain publisher source correspondences; otherwise only unique whole-word shared BSB phrases are transferred, omitting function-only phrases, repeats and overlaps. Independently reviewed chapter resources override these partial automatic links with explicit original-source anchors and per-word explanations, including moved clauses. No inferred synonyms or LSV USFM Strong tags.',
            'verses':aligned,'unavailable':unavailable}
     path=folder/meta['file'];write(path,value)
     manifest[name]={'file':path.name,'sha256':sha(path),'linkedVerses':len(aligned),'unlinkedVerses':len(unavailable),'groups':sum(len(v['groups']) for v in aligned.values())}
 write(folder/'index.json',{'schemaVersion':1,'sourceId':'N1904','targetId':'LSV','provenance':provenance,'books':manifest})
-print(json.dumps({'linkedVerses':sum(b['linkedVerses'] for b in manifest.values()),'groups':sum(b['groups'] for b in manifest.values())}))
+subprocess.run([sys.executable,str(ROOT/'scripts/original-languages/compile-reviewed-links.py'),'--registry',str(ROOT/'scripts/original-languages/lsv-review-status.json'),'--input',str(folder),'--output',str(folder)],check=True)
+# Canonical files are replaced only after every accepted chapter and moved-word
+# counterpart has passed validation. In-progress review drafts are excluded.
+def promote(source,destination):
+    destination.mkdir(parents=True,exist_ok=True)
+    for path in sorted(source.glob('*.json'),key=lambda p:p.name=='index.json'):
+        with tempfile.NamedTemporaryFile(dir=destination,prefix=path.name+'.',suffix='.tmp',delete=False) as target:
+            target.write(path.read_bytes());temporary=Path(target.name)
+        os.replace(temporary,destination/path.name)
+# A separate LSV review build must not mutate canonical BSB as a side effect.
+if args.output.resolve()==(DATA/'lsv-word-links').resolve():promote(bsb_folder,DATA/'bsb-word-links')
+promote(folder,args.output)
+staging.cleanup()
+bsb_staging.cleanup()
+final=read(args.output/'index.json')
+print(json.dumps({'linkedVerses':sum(b['linkedVerses'] for b in final['books'].values()),'groups':sum(b['groups'] for b in final['books'].values()),'reviewedVerses':final['reviewedVerseCount']}))

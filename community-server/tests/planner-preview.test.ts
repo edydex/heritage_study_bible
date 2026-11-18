@@ -33,7 +33,7 @@ test('singers keep all primary lines, not the condensed excerpt or audience stac
   assert.equal(singer.output.blocks[0].text, 'Первая\nВторая\nТретья\nЧетвёртая')
   assert.equal(singer.output.blocks.length, 1)
   assert.equal(singer.presetId, 'wotbc-song-lyrics')
-  assert.equal(plannerPreview(rows, slide, 'english').output.blocks[1].spans[0].fontScale, 0.96)
+  assert.equal(plannerPreview(rows, slide, 'english').output.blocks[1].spans[0].fontScale, 0.85)
   assert.deepEqual(singer.next, {state: 'blank', text: ''})
   const changed = JSON.parse(JSON.stringify(project))
   changed.items.song.songPresentation.primaryChannelId = 'english'
@@ -73,4 +73,13 @@ test('previewing every output leaves the draft unchanged and includes deliberate
   }
   assert.equal(JSON.stringify(project),before)
   assert.equal(rows.filter(row=>row.cue).length,3)
+})
+
+
+test('audience hints are opt-in, Stage hints default on, and intentional audience blanks stay blank', () => {
+  const rows = plannerSlides(fixture()), title = rows[0], blank = rows.at(-1)!
+  assert.equal(plannerPreview(rows, title, 'english', {hintScreenIds: ['media']}).singer, false)
+  assert.equal(plannerPreview(rows, title, 'english', {hintScreenIds: ['english', 'media']}).singer, true)
+  assert.equal(plannerPreview(rows, title, 'media', {hintScreenIds: []}).singer, false)
+  assert.equal(plannerPreview(rows, blank, 'english', {hintScreenIds: ['english']}).singer, false)
 })
