@@ -2,6 +2,21 @@
 import type { WorkspaceLanguage } from './workspaceLanguage'
 
 export const russianWorkspaceText: Readonly<Record<string, string>> = {
+  "Which screens will you use?": "Какие экраны будут использоваться?",
+  "Audience screen": "Экран для зала",
+  "Current slide + what’s next": "Текущий слайд и следующий",
+  "Show next slide": "Показывать следующий слайд",
+  "{count} screen(s) selected": "Выбрано экранов: {count}",
+  "Choose at least one screen": "Выберите хотя бы один экран",
+  "Presentation screens": "Экраны презентации",
+  "These choices apply to this presentation. Your saved venue setup stays unchanged.": "Эти настройки относятся к данной презентации. Сохранённая настройка зала не изменится.",
+  "Screens · {count}": "Экраны · {count}",
+  "Local presentation": "Локальная презентация",
+  "Save on this computer, then add to the presentation.": "Сохранить на этом компьютере и добавить в презентацию.",
+  "Saved on this computer. Blank lines separate slides.": "Сохраняется на этом компьютере. Пустая строка разделяет слайды.",
+  "Separate authors with a semicolon.": "Разделяйте авторов точкой с запятой.",
+  "Save song": "Сохранить песню",
+
   "Selected point unavailable · using Automatic": "Выбранный пункт недоступен · автоматический заголовок",
   "Heading on this slide": "Заголовок этого слайда",
   "Automatic · latest point or title": "Автоматически · последний пункт или тема",

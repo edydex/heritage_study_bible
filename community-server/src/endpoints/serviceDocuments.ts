@@ -264,7 +264,7 @@ export function managerWrite(data: RequestDoc, routeId: string | null = null) {
 }
 
 export function blankServiceDocument(data: RequestDoc) {
-  if (!exactKeys(data, ['schemaVersion', 'requestId', 'syncId', 'title', 'serviceDate'])) {
+  if (!exactKeys(data, ['schemaVersion', 'requestId', 'syncId', 'title', 'serviceDate', ...(data.presentation !== undefined ? ['presentation'] : [])])) {
     throw new ServiceDocumentEditorError('INVALID_SERVICE', 'New service details are incomplete.', 400)
   }
   const syncId = identifier(data.syncId, 'Service identity')
@@ -281,6 +281,7 @@ export function blankServiceDocument(data: RequestDoc) {
     id: syncId,
     title,
     serviceDate,
+    ...(data.presentation !== undefined ? {presentation: serviceCore.normalizePresentationScreens(data.presentation)} : {}),
     createdAt: now,
     updatedAt: now,
     revision: 1,

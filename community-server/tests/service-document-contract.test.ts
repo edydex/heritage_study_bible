@@ -340,7 +340,7 @@ test('Community dashboard routes service planning through the visual shared edit
   assert.match(planner, /onContextMenu/)
   assert.match(planner, /role="menuitem".*Delete/)
   assert.doesNotMatch(planner, /__row-actions|__filmstrip|__section-overview|__text-editor/)
-  assert.match(planner, /plannerPreview\(slideList.rows, activeSlide, previewChannel\)/)
+  assert.match(planner, /plannerPreview\(slideList.rows, activeSlide, previewChannel, draft\?\.presentation\)/)
   assert.doesNotMatch(planner, /Pinned song lyrics/)
   assert.doesNotMatch(planner, /Service item filmstrip/)
   assert.match(planner, /visibleBibleChapter/)
@@ -533,4 +533,44 @@ test('service-document change locks have their required Payload relation column'
   assert.match(migration, /payload_locked_documents_rels_service_document_changes_fk/)
   assert.match(migration, /ON DELETE cascade/)
   assert.match(registry, /20260902_053500_service_document_lock_relations/)
+})
+
+test('shared presentations preserve desktop screen choices through create, save and canonical serialization', () => {
+  const request = { schemaVersion: 1, requestId: '00000000-0000-4000-8000-000000000101',
+    syncId: 'screen-compat-test', title: 'Screen compatibility', serviceDate: '2026-10-19' }
+  for (const presentation of [
+    { screenIds: ['english'], hintScreenIds: [] },
+    { screenIds: ['english', 'russian', 'media'], hintScreenIds: ['english', 'media'] },
+  ]) {
+    const created = blankServiceDocument({ ...request, presentation })
+    const parsed = parseHeritageServiceDocumentSource(created.write.documentSource)
+    assert.deepEqual(parsed.project.presentation, presentation)
+    const saved = managerWrite({ schemaVersion: 1, requestId: request.requestId, syncId: request.syncId,
+      baseSyncVersion: 1, baseRevision: 'a'.repeat(64),
+      documentSource: created.write.documentSource, status: 'planning' })
+    assert.equal(saved.write.documentSource, created.write.documentSource)
+    assert.deepEqual(parseHeritageServiceDocumentSource(saved.write.documentSource).project.presentation, presentation)
+  }
+})
+
+test('legacy services keep their canonical format and invalid screen choices are rejected', () => {
+  const request = { schemaVersion: 1, requestId: '00000000-0000-4000-8000-000000000102',
+    syncId: 'legacy-screen-compat', title: 'Legacy service', serviceDate: '2026-10-19' }
+  const legacy = blankServiceDocument(request)
+  assert.equal(Object.hasOwn(parseHeritageServiceDocumentSource(legacy.write.documentSource).project, 'presentation'), false)
+  for (const presentation of [
+    { screenIds: [] },
+    { screenIds: ['english', 'english'] },
+    { screenIds: ['unknown'] },
+    { screenIds: ['english'], hintScreenIds: ['media'] },
+    { screenIds: ['english'], extra: true },
+  ]) assert.throws(() => blankServiceDocument({ ...request, presentation }))
+})
+
+test('new presentations retain selected screens and reject hints for an unselected screen', () => {
+  const request = {schemaVersion:1,requestId:'00000000-0000-4000-8000-000000000101',syncId:'small-service-test',title:'Homegroup',serviceDate:'2026-10-15',presentation:{screenIds:['english'],hintScreenIds:['english']}}
+  const created=blankServiceDocument(request)
+  const parsed=parseHeritageServiceDocumentSource(created.write.documentSource)
+  assert.deepEqual(parsed.project.presentation,request.presentation)
+  assert.throws(()=>blankServiceDocument({...request,presentation:{screenIds:['english'],hintScreenIds:['media']}}))
 })
