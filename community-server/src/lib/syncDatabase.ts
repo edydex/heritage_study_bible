@@ -20,6 +20,11 @@ function database(req: PayloadRequest) {
   return session.db
 }
 
+/** The database handle for the request's open transaction (or the pool). */
+export function transactionDatabase(req: PayloadRequest) {
+  return database(req)
+}
+
 export async function withSyncTransaction<T>(req: PayloadRequest, operation: () => Promise<T>) {
   const adapter = req.payload.db as unknown as TransactionAdapter
   const transactionId = await adapter.beginTransaction()
