@@ -6,7 +6,7 @@ Nestle 1904 Greek occurrences. The same occurrences connect Russian to BSB,
 LSV and KJV, with shared colors and textures. This is phrase correspondence,
 not a claim that every Russian word is a separate Greek word.
 
-The accepted word links cover **7,189 displayed verses and 24 complete books**.
+The accepted word links cover **7,361 displayed verses and 24 complete books**.
 Luke, Acts, and Revelation still have chapters awaiting review. The
 reader shows the review count for each chapter. Unreviewed words can open
 the original-word chooser.
