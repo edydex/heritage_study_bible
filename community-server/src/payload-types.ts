@@ -97,6 +97,7 @@ export interface Config {
     'plan-notes': PlanNote;
     events: Event;
     'event-rsvps': EventRsvp;
+    'event-registrations': EventRegistration;
     'encrypted-sync': EncryptedSync;
     'sync-devices': SyncDevice;
     'sync-records': SyncRecord;
@@ -139,6 +140,7 @@ export interface Config {
     'plan-notes': PlanNotesSelect<false> | PlanNotesSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
     'event-rsvps': EventRsvpsSelect<false> | EventRsvpsSelect<true>;
+    'event-registrations': EventRegistrationsSelect<false> | EventRegistrationsSelect<true>;
     'encrypted-sync': EncryptedSyncSelect<false> | EncryptedSyncSelect<true>;
     'sync-devices': SyncDevicesSelect<false> | SyncDevicesSelect<true>;
     'sync-records': SyncRecordsSelect<false> | SyncRecordsSelect<true>;
@@ -1311,6 +1313,15 @@ export interface Event {
   rsvpEnabled?: boolean | null;
   defaultReminderMinutes?: number | null;
   cancelled?: boolean | null;
+  registration?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1328,6 +1339,44 @@ export interface EventRsvp {
   response: 'going' | 'maybe' | 'not-going';
   guests?: number | null;
   note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * People who signed up on an event page. Mark payments here or from the event’s Sign-ups panel.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-registrations".
+ */
+export interface EventRegistration {
+  id: number;
+  community: number | Community;
+  event: number | Event;
+  status: 'confirmed' | 'waitlisted' | 'cancelled';
+  name: string;
+  email: string;
+  phone?: string | null;
+  partySize: number;
+  answers?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  amountDueCents?: number | null;
+  paid?: boolean | null;
+  /**
+   * For example: Zelle on Nov 20, or cash at the door.
+   */
+  paidNote?: string | null;
+  user?: (number | null) | User;
+  language?: string | null;
+  manageTokenHash?: string | null;
+  confirmationSentAt?: string | null;
+  cancelledAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1555,6 +1604,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'event-rsvps';
         value: number | EventRsvp;
+      } | null)
+    | ({
+        relationTo: 'event-registrations';
+        value: number | EventRegistration;
       } | null)
     | ({
         relationTo: 'encrypted-sync';
@@ -2294,6 +2347,7 @@ export interface EventsSelect<T extends boolean = true> {
   rsvpEnabled?: T;
   defaultReminderMinutes?: T;
   cancelled?: T;
+  registration?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2308,6 +2362,30 @@ export interface EventRsvpsSelect<T extends boolean = true> {
   response?: T;
   guests?: T;
   note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-registrations_select".
+ */
+export interface EventRegistrationsSelect<T extends boolean = true> {
+  community?: T;
+  event?: T;
+  status?: T;
+  name?: T;
+  email?: T;
+  phone?: T;
+  partySize?: T;
+  answers?: T;
+  amountDueCents?: T;
+  paid?: T;
+  paidNote?: T;
+  user?: T;
+  language?: T;
+  manageTokenHash?: T;
+  confirmationSentAt?: T;
+  cancelledAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

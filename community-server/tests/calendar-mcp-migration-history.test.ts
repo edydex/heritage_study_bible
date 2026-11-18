@@ -19,7 +19,8 @@ test('complete deployment migration history and full Payload calendar integratio
     await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public')
     const baselineNames = ['20261001_220000_people_language','20261001_230000_service_save_history','20261002_000000_retire_song_member_sharing','20261002_010000_workspace_activity']
     for (const name of baselineNames) assert.ok(migrations.some(migration=>migration.name === name),name)
-    assert.equal(migrations.at(-1)?.name,'20261005_120000_calendar_mcp')
+    assert.ok(migrations.some(migration=>migration.name === '20261005_120000_calendar_mcp'))
+    assert.equal(migrations.at(-1)?.name,'20261117_180000_event_registrations')
     for (const migration of migrations) {
       await migration.up({db} as never)
       process.stdout.write(`# applied ${migration.name}\n`)

@@ -8,6 +8,7 @@ import { BibleTranslations } from './collections/BibleTranslations'
 import { bibleImportEndpoints } from './endpoints/bibleImports'
 import { sermonPresentationEndpoints } from './endpoints/sermonPresentations'
 import { calendarEndpoints } from './endpoints/calendar'
+import { eventRegistrationEndpoints } from './endpoints/eventRegistration'
 import { postgresAdapter, type PostgresAdapterArgs } from '@payloadcms/db-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
@@ -29,6 +30,7 @@ import { CommunityAuthRateLimits } from '@/collections/CommunityAuthRateLimits'
 import { CommunitySessions } from '@/collections/CommunitySessions'
 import { EncryptedSync } from '@/collections/EncryptedSync'
 import { EventRsvps } from '@/collections/EventRsvps'
+import { EventRegistrations } from '@/collections/EventRegistrations'
 import { Events } from '@/collections/Events'
 import { Media } from '@/collections/Media'
 import { Memberships } from '@/collections/Memberships'
@@ -227,6 +229,7 @@ export default buildConfig({
     PlanNotes,
     Events,
     EventRsvps,
+    EventRegistrations,
     EncryptedSync,
     SyncDevices,
     SyncRecords,
@@ -259,6 +262,7 @@ export default buildConfig({
   endpoints: [
     ...bibleImportEndpoints,
     ...calendarEndpoints,
+    ...eventRegistrationEndpoints,
     ...calendarMcpEndpoints,
     ...sermonPresentationEndpoints,
     ...serviceHistoryEndpoints,

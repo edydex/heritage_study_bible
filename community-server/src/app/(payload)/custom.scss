@@ -2161,3 +2161,28 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .presentation-screens-dialog { position:fixed; inset:0; margin:auto; width:min(660px,calc(100vw - 32px)); max-height:90vh; overflow:auto; padding:24px; border:1px solid var(--theme-elevation-300); border-radius:14px; background:var(--theme-elevation-0); color:var(--theme-text); }
 .presentation-screens-dialog::backdrop { background:#0008; }
 .presentation-screens-dialog footer { display:flex; justify-content:flex-end; gap:10px; }
+
+/* Event sign-up settings and list (Payload admin) */
+.heritage-registration-settings, .heritage-registrations-panel { margin: 1.5rem 0; padding: 1rem 1.2rem; border: 1px solid var(--theme-elevation-150); border-radius: 8px; }
+.heritage-registration-settings h3, .heritage-registrations-panel h3 { margin: 0 0 .6rem; }
+.heritage-registration-settings h4 { margin: 1.4rem 0 .4rem; }
+.heritage-registration-settings__body { border: 0; padding: 0; margin: 0; display: grid; gap: .6rem; }
+.heritage-registration-settings__grid { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.heritage-registration-settings label { display: grid; gap: .3rem; }
+.heritage-registration-settings__inline, .heritage-registration-settings__toggle { display: flex !important; align-items: center; gap: .4rem; }
+.heritage-registration-settings__row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.heritage-registration-settings__row > input { flex: 1 1 14rem; }
+.heritage-registration-settings__question { display: grid; gap: .4rem; padding: .7rem; border: 1px solid var(--theme-elevation-100); border-radius: 6px; }
+.heritage-registration-settings input, .heritage-registration-settings select, .heritage-registration-settings textarea,
+.heritage-registrations-panel input:not([type=checkbox]), .heritage-registrations-panel select {
+  font: inherit; padding: .4rem .5rem; border: 1px solid var(--theme-elevation-200); border-radius: 4px; background: var(--theme-input-bg, transparent); color: inherit; }
+.heritage-registration-settings__hint { opacity: .75; margin: 0; }
+.heritage-registration-settings__error { color: var(--theme-error-500, #b42318); font-weight: 600; }
+.heritage-registrations-panel__table { overflow-x: auto; }
+.heritage-registrations-panel table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.heritage-registrations-panel th, .heritage-registrations-panel td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid var(--theme-elevation-100); vertical-align: top; }
+.heritage-registrations-panel tr.is-cancelled td { opacity: .5; }
+.heritage-registrations-panel__link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; }
+.heritage-registrations-panel__answers dl { display: grid; gap: .3rem; margin: 0 0 .4rem; }
+.heritage-registrations-panel__answers dt { font-weight: 600; }
+.heritage-registrations-panel__answers dd { margin: 0 0 .3rem; }

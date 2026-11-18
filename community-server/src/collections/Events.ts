@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { prepareCalendarEvent } from '@/lib/calendar'
+import { normalizeRegistrationSettings, validateRegistrationField } from '@/lib/eventRegistration'
 import { createCommunityContent, manageCommunityContent, readMemberCommunityContent, updateRelationAsSystemAdmin } from '@/access'
 
 export const Events: CollectionConfig = {
@@ -46,5 +47,14 @@ export const Events: CollectionConfig = {
     { name: 'rsvpEnabled', label: 'Let members RSVP', type: 'checkbox', defaultValue: true },
     { name: 'defaultReminderMinutes', label: 'Default reminder (minutes before)', type: 'number', min: 0, defaultValue: 60 },
     { name: 'cancelled', label: 'Event is cancelled', type: 'checkbox', defaultValue: false },
+    {
+      name: 'registration',
+      label: { en: 'Sign-up form', ru: 'Форма регистрации' },
+      type: 'json',
+      validate: (value: unknown, { data }: { data?: { recurrence?: unknown } }) => validateRegistrationField(value, data?.recurrence),
+      hooks: { beforeChange: [({ value }) => value == null ? null : normalizeRegistrationSettings(value)] },
+      admin: { components: { Field: '@/components/RegistrationSettingsField#default' } },
+    },
+    { name: 'registrationsPanel', type: 'ui', admin: { components: { Field: '@/components/EventRegistrationsPanel#default' } } },
   ],
 }
