@@ -63,6 +63,26 @@ test('BSB without opens the actual negative in its coordinated source phrase', a
   await expectStudyHead(page, '3361')
 })
 
+test('reviewed BSB Matthew keeps repeated pronouns distinct and links John to the written name', async ({ page }) => {
+  await compareWithOriginal(page, 'matthew', 4, 'BSB')
+  const english = words(page, 'BSB', 4, 11, /^Him$/)
+  const patient = words(page, 'ORIGINAL', 4, 11, /^αὐτὸν$/)
+  const recipient = words(page, 'ORIGINAL', 4, 11, /^αὐτῷ$/)
+  await expect(english).toHaveCount(2)
+  await english.first().click()
+  await expect(patient).toHaveClass(/bible-word-link-active/)
+  await expect(recipient).not.toHaveClass(/bible-word-link-active/)
+  await english.last().click()
+  await expect(recipient).toHaveClass(/bible-word-link-active/)
+  await expect(patient).not.toHaveClass(/bible-word-link-active/)
+
+  await expect(words(page, 'BSB', 4, 12, /^Jesus$/)).toHaveAttribute('data-word-paired', 'false')
+  await words(page, 'BSB', 4, 12, /^John$/).click()
+  await expect(words(page, 'ORIGINAL', 4, 12, /^Ἰωάνης$/)).toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expectStudyHead(page, '2491')
+})
+
 test('KJV neither opens its actual second prohibition rather than the conjunction', async ({ page }) => {
   await compareWithOriginal(page, '2-john', 1, 'KJV')
   const negatives = words(page, 'ORIGINAL', 1, 10, /^μὴ$/)
