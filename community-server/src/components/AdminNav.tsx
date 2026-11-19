@@ -1,6 +1,6 @@
 'use client'
 
-import { Logout, useNav, useTranslation, useAuth } from '@payloadcms/ui'
+import { Logout, useNav, useTranslation } from '@payloadcms/ui'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { churchWorkspaceLinks, isWorkspaceLinkActive } from '@/lib/churchWorkspaceLinks'
@@ -8,7 +8,6 @@ import { churchWorkspaceLinks, isWorkspaceLinkActive } from '@/lib/churchWorkspa
 export default function AdminNav() {
   const pathname = usePathname()
   const { i18n } = useTranslation()
-  const { user } = useAuth()
   const ru = i18n.language === 'ru'
   const labels: Record<string, string> = {
     'Workspace home': 'Главная', 'Plan a service': 'Подготовить богослужение', 'Live translation': 'Перевод в прямом эфире',
@@ -20,7 +19,7 @@ export default function AdminNav() {
     hydrated && 'nav--nav-hydrated', shouldAnimate && 'nav--nav-animate'].filter(Boolean).join(' ')
   const link = (href: string, label: string) => <Link key={href} href={href}
     aria-current={isWorkspaceLinkActive(pathname, href) || (href === '/admin/people'
-      && ['/admin/collections/users', '/admin/collections/memberships', '/admin/collections/community-invites'].some(path => pathname.startsWith(path))) ? 'page' : undefined}>{label}</Link>
+      && ['/admin/collections/users', '/admin/collections/memberships', '/admin/collections/community-invites', '/admin/collections/people', '/admin/collections/households'].some(path => pathname.startsWith(path))) ? 'page' : undefined}>{label}</Link>
 
   return <aside className={className} inert={!navOpen || undefined}>
     <div className="nav__scroll" ref={navRef}>
@@ -41,7 +40,7 @@ export default function AdminNav() {
         <div className="heritage-admin-nav__secondary">
           <p>{ru ? 'Управление церковью' : 'Church administration'}</p>
           {link('/admin/collections/events', ru ? 'События' : 'Events')}
-          {user?.systemRole === 'system-admin' && link('/admin/people', ru ? 'Люди' : 'People')}
+          {link('/admin/people', ru ? 'Люди' : 'People')}
           {link('/admin/collections/reading-plans', ru ? 'Планы чтения' : 'Reading plans')}
           {link('/admin/collections/books', ru ? 'Книги' : 'Books')}
         </div>

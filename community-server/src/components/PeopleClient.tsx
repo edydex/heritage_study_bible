@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { SetStepNav, useTranslation } from '@payloadcms/ui'
+import { useTranslation } from '@payloadcms/ui'
 import { useMemo, useState } from 'react'
 import type { PersonDirectoryRow } from '@/lib/peopleDirectory'
 
@@ -25,8 +25,7 @@ export default function PeopleClient({ rows, permitted, churchConfigured }: {
   if (!permitted) return <section className="heritage-people"><h1>{ru ? 'Люди' : 'People'}</h1>
     <p>{ru ? 'Управление людьми доступно администратору сервера. Попросите его отправить приглашение.' : 'A server administrator manages people. Ask them to send an invitation.'}</p></section>
   return <section className="heritage-people">
-    <SetStepNav nav={[{ label: ru ? 'Люди' : 'People' }]} />
-    <div className="heritage-people__heading"><div><h1>{ru ? 'Люди' : 'People'}</h1>
+    <div className="heritage-people__heading"><div><h2>{ru ? 'Учётные записи и приглашения' : 'Accounts & invitations'}</h2>
       <p>{ru ? 'Пригласите по электронной почте. Руководители сами создадут пароль для рабочей области.' : 'Invite by email. Church managers choose their own workspace password.'}</p></div>
       <Link className="heritage-people__invite" href="/admin/collections/community-invites/create">{ru ? 'Пригласить человека' : 'Invite person'}</Link></div>
     {!churchConfigured && <p role="alert">{ru ? 'Настройте церковь перед отправкой приглашений.' : 'Set up the church before inviting people.'}</p>}

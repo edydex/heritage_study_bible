@@ -1,6 +1,9 @@
 import { AccountLocalizationPreference as AccountLocalizationPreference_81c48168acfc5d9e94dce9766029d3eb } from '@/components/WorkspaceLocalization'
 import { PersonalPresentationPreference as PersonalPresentationPreference_227344e70bb0cdba6895362425f0e141 } from '@/components/PresentationAccessibility'
 import { default as default_0bef48e2ba46070d0450e759ffa990b3 } from '@/components/PeopleListRedirect'
+import { default as default_c9cefe429fe1e75c1a08d195c85500c3 } from '@/components/DateOnlyField'
+import { default as default_c7ccba580778778429853539c077fad6 } from '@/components/PersonAccountNotice'
+import { default as default_9253495b35311fc9723935fd72b9b1da } from '@/components/HouseholdsListRedirect'
 import { default as default_87ed5457306afb97c77d231d110fb89d } from '@/components/InvitationGuide'
 import { default as default_145c1c3129d7134cb5a8d152b65cb7d4 } from '@/components/SongPublicationCell'
 import { default as default_25b9636a1e769af9196ea72af4ecbc87 } from '@/components/SongPublicationField'
@@ -57,6 +60,9 @@ export const importMap = {
   "@/components/WorkspaceLocalization#AccountLocalizationPreference": AccountLocalizationPreference_81c48168acfc5d9e94dce9766029d3eb,
   "@/components/PresentationAccessibility#PersonalPresentationPreference": PersonalPresentationPreference_227344e70bb0cdba6895362425f0e141,
   "@/components/PeopleListRedirect#default": default_0bef48e2ba46070d0450e759ffa990b3,
+  "@/components/DateOnlyField#default": default_c9cefe429fe1e75c1a08d195c85500c3,
+  "@/components/PersonAccountNotice#default": default_c7ccba580778778429853539c077fad6,
+  "@/components/HouseholdsListRedirect#default": default_9253495b35311fc9723935fd72b9b1da,
   "@/components/InvitationGuide#default": default_87ed5457306afb97c77d231d110fb89d,
   "@/components/SongPublicationCell#default": default_145c1c3129d7134cb5a8d152b65cb7d4,
   "@/components/SongPublicationField#default": default_25b9636a1e769af9196ea72af4ecbc87,

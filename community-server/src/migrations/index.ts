@@ -1,5 +1,6 @@
 import * as calendarMcp from './20261005_120000_calendar_mcp'
 import * as eventRegistrations from './20261117_180000_event_registrations'
+import * as peopleHouseholds from './20261119_120000_people_households';
 import * as workspaceActivity from './20261002_010000_workspace_activity'
 import * as retireSongMemberSharing from './20261002_000000_retire_song_member_sharing'
 import * as peopleLanguage from './20261001_220000_people_language';
@@ -157,4 +158,5 @@ export const migrations = [
   {up:workspaceActivity.up,down:workspaceActivity.down,name:'20261002_010000_workspace_activity'},
   { name: '20261005_120000_calendar_mcp', up: calendarMcp.up, down: calendarMcp.down },
   { name: '20261117_180000_event_registrations', up: eventRegistrations.up, down: eventRegistrations.down },
+  { name: '20261119_120000_people_households', up: peopleHouseholds.up, down: peopleHouseholds.down },
 ];

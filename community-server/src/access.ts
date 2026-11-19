@@ -106,3 +106,47 @@ export const readBooksByVisibility: Access = async ({req}) => {
  const where:Where={or:[{and:[{status:{equals:'published'}},{or:[{visibility:{equals:'public'}},...(members.length?[{community:{in:members}}]:[])]}]},...(managers.length?[{community:{in:managers}}]:[])]}
  return where
 }
+
+// People and households hold private contact details (including children's).
+// Owners and church administrators manage them; leaders may look people up
+// (for example to schedule volunteers) but cannot change them or read notes.
+const PEOPLE_VIEW_ROLES = ['owner', 'admin', 'leader']
+const PEOPLE_EDIT_ROLES = ['owner', 'admin']
+
+/** Membership lookups repeat for every field and document; remember them for this request. */
+function requestCommunityIds(req: Parameters<Access>[0]['req'], roles: string[]) {
+  const context = (req.context ||= {}) as Record<string, unknown>
+  const key = `heritage:community-ids:${req.user?.id ?? 'anonymous'}:${roles.join(',')}`
+  if (!context[key]) context[key] = membershipCommunityIds(req, roles)
+  return context[key] as Promise<Array<number | string>>
+}
+
+export const readChurchPeople: Access = async ({ req }) => {
+  if (req.user?.systemRole === 'system-admin') return true
+  const communityIds = await requestCommunityIds(req, PEOPLE_VIEW_ROLES)
+  return communityIds.length ? { community: { in: communityIds } } : false
+}
+
+export const manageChurchPeople: Access = async ({ req }) => {
+  if (req.user?.systemRole === 'system-admin') return true
+  const communityIds = await requestCommunityIds(req, PEOPLE_EDIT_ROLES)
+  return communityIds.length ? { community: { in: communityIds } } : false
+}
+
+export const createChurchPeople: Access = async ({ req, data }) => {
+  if (req.user?.systemRole === 'system-admin') return true
+  const communityIds = await requestCommunityIds(req, PEOPLE_EDIT_ROLES)
+  const communityId = relationId(data?.community)
+  if (!communityId) return communityIds.length > 0
+  return communityIds.map(String).includes(communityId)
+}
+
+/** Private notes: only owners and church administrators of that church. */
+export const churchPeopleEditorField: FieldAccess = async ({ req, doc, data, siblingData }) => {
+  if (req.user?.systemRole === 'system-admin') return true
+  if (!req.user) return false
+  const communityIds = await requestCommunityIds(req, PEOPLE_EDIT_ROLES)
+  const communityId = relationId(doc?.community ?? data?.community ?? siblingData?.community)
+  if (!communityId) return communityIds.length > 0
+  return communityIds.map(String).includes(communityId)
+}
