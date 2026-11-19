@@ -75,6 +75,8 @@ export interface Config {
     'community-auth-rate-limits': CommunityAuthRateLimit;
     communities: Community;
     memberships: Membership;
+    people: Person;
+    households: Household;
     'community-invites': CommunityInvite;
     media: Media;
     'reading-plans': ReadingPlan;
@@ -108,7 +110,11 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    households: {
+      members: 'people';
+    };
+  };
   collectionsSelect: {
     'bible-translations': BibleTranslationsSelect<false> | BibleTranslationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -118,6 +124,8 @@ export interface Config {
     'community-auth-rate-limits': CommunityAuthRateLimitsSelect<false> | CommunityAuthRateLimitsSelect<true>;
     communities: CommunitiesSelect<false> | CommunitiesSelect<true>;
     memberships: MembershipsSelect<false> | MembershipsSelect<true>;
+    people: PeopleSelect<false> | PeopleSelect<true>;
+    households: HouseholdsSelect<false> | HouseholdsSelect<true>;
     'community-invites': CommunityInvitesSelect<false> | CommunityInvitesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'reading-plans': ReadingPlansSelect<false> | ReadingPlansSelect<true>;
@@ -433,6 +441,72 @@ export interface Membership {
   user: number | User;
   role: 'owner' | 'admin' | 'leader' | 'member';
   joinedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Everyone in the church directory, including children and visitors who never sign in.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "people".
+ */
+export interface Person {
+  id: number;
+  community: number | Community;
+  firstName: string;
+  lastName?: string | null;
+  /**
+   * Optional, for example "Sasha" for Alexander.
+   */
+  preferredName?: string | null;
+  fullName?: string | null;
+  status: 'member' | 'attender' | 'visitor' | 'inactive';
+  gender?: ('male' | 'female') | null;
+  /**
+   * Family members share one address and home phone. Use “+” to create a new household.
+   */
+  household?: (number | null) | Household;
+  householdRole?: ('head' | 'spouse' | 'child' | 'other') | null;
+  email?: string | null;
+  phone?: string | null;
+  birthDate?: string | null;
+  memberSince?: string | null;
+  baptismDate?: string | null;
+  user?: (number | null) | User;
+  /**
+   * Only church owners and administrators can see these notes. They are never exported.
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * A family or anyone living together. Add each person from the list below.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "households".
+ */
+export interface Household {
+  id: number;
+  community: number | Community;
+  /**
+   * For example: The Petrov family.
+   */
+  name: string;
+  phone?: string | null;
+  address?: {
+    street?: string | null;
+    unit?: string | null;
+    city?: string | null;
+    region?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+  };
+  members?: {
+    docs?: (number | Person)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -1518,6 +1592,14 @@ export interface PayloadLockedDocument {
         value: number | Membership;
       } | null)
     | ({
+        relationTo: 'people';
+        value: number | Person;
+      } | null)
+    | ({
+        relationTo: 'households';
+        value: number | Household;
+      } | null)
+    | ({
         relationTo: 'community-invites';
         value: number | CommunityInvite;
       } | null)
@@ -1811,6 +1893,52 @@ export interface MembershipsSelect<T extends boolean = true> {
   user?: T;
   role?: T;
   joinedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "people_select".
+ */
+export interface PeopleSelect<T extends boolean = true> {
+  community?: T;
+  firstName?: T;
+  lastName?: T;
+  preferredName?: T;
+  fullName?: T;
+  status?: T;
+  gender?: T;
+  household?: T;
+  householdRole?: T;
+  email?: T;
+  phone?: T;
+  birthDate?: T;
+  memberSince?: T;
+  baptismDate?: T;
+  user?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "households_select".
+ */
+export interface HouseholdsSelect<T extends boolean = true> {
+  community?: T;
+  name?: T;
+  phone?: T;
+  address?:
+    | T
+    | {
+        street?: T;
+        unit?: T;
+        city?: T;
+        region?: T;
+        postalCode?: T;
+        country?: T;
+      };
+  members?: T;
   updatedAt?: T;
   createdAt?: T;
 }

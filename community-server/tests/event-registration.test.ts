@@ -120,8 +120,8 @@ test('emails escape church-entered text and only ask confirmed people to pay', (
   assert.match(russian.subject, /Освободилось место/)
 })
 
-test('the migration is registered last and the collection is not writable through its API', () => {
-  assert.equal(migrations.at(-1)?.name, '20261117_180000_event_registrations')
+test('the migration is registered and the collection is not writable through its API', () => {
+  assert.ok(migrations.some(migration => migration.name === '20261117_180000_event_registrations'))
   const migration = readFileSync(new URL('../src/migrations/20261117_180000_event_registrations.ts', import.meta.url), 'utf8')
   assert.match(migration, /ADD COLUMN IF NOT EXISTS "registration" jsonb/)
   assert.match(migration, /"payload_locked_documents_rels" ADD COLUMN "event_registrations_id"/)

@@ -2,6 +2,8 @@
 // form and the server. Pure: no Node or database imports, so the browser can
 // validate with exactly the same rules the server enforces.
 
+import { csvFile } from './csv'
+
 export const QUESTION_TYPES = ['text', 'paragraph', 'choice', 'choices', 'checkbox', 'number'] as const
 export const PAYMENT_KINDS = ['zelle', 'cashapp', 'venmo', 'paypal', 'other'] as const
 export const PHONE_MODES = ['off', 'optional', 'required'] as const
@@ -342,13 +344,6 @@ export function answerText(value: AnswerValue | undefined | null) {
   return String(value)
 }
 
-function csvCell(value: unknown) {
-  let text = value === undefined || value === null ? '' : String(value)
-  // Spreadsheet apps run cells that start with these characters as formulas.
-  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`
-  return `"${text.replace(/"/g, '""')}"`
-}
-
 export type RegistrationRow = {
   id: number | string
   status: RegistrationStatus
@@ -374,17 +369,16 @@ export function registrationsCsv(settings: RegistrationSettings | null, rows: Re
     ...[...extra].map(([id, label]) => ({ id, label }))]
   const header = ['Reference', 'Status', 'Name', 'Email', 'Phone', 'People', 'Amount due', 'Paid', 'Payment note', 'Registered at',
     ...columns.map(column => column.label)]
-  const lines = [header.map(csvCell).join(',')]
+  const lines: unknown[][] = [header]
   for (const row of rows) {
     const answers = new Map((row.answers ?? []).map(answer => [answer.id, answer.value]))
     lines.push([
       registrationReference(row.id), row.status, row.name, row.email, row.phone || '', row.partySize,
       row.amountDueCents ? formatMoney(row.amountDueCents, currency) : '', row.paid ? 'Yes' : 'No', row.paidNote || '', row.createdAt,
       ...columns.map(column => answerText(answers.get(column.id))),
-    ].map(csvCell).join(','))
+    ])
   }
-  // A byte-order mark lets Excel open UTF-8 (for example Cyrillic names) correctly.
-  return `﻿${lines.join('\r\n')}\r\n`
+  return csvFile(lines)
 }
 
 export function emptyRegistrationSettings(): RegistrationSettings {

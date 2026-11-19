@@ -31,6 +31,8 @@ import { CommunitySessions } from '@/collections/CommunitySessions'
 import { EncryptedSync } from '@/collections/EncryptedSync'
 import { EventRsvps } from '@/collections/EventRsvps'
 import { EventRegistrations } from '@/collections/EventRegistrations'
+import { Households } from '@/collections/Households'
+import { People } from '@/collections/People'
 import { Events } from '@/collections/Events'
 import { Media } from '@/collections/Media'
 import { Memberships } from '@/collections/Memberships'
@@ -207,6 +209,8 @@ export default buildConfig({
     CommunityAuthRateLimits,
     Communities,
     Memberships,
+    People,
+    Households,
     CommunityInvites,
     Media,
     ReadingPlans,

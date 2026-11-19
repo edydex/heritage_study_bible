@@ -2005,13 +2005,38 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-people__status { border-radius: 1rem; padding: .3rem .6rem; background: var(--theme-elevation-100); white-space: nowrap; }
 .heritage-people__status--accepted { border: 1px solid var(--theme-success-500); }
 .heritage-people__status--pending, .heritage-people__status--not-sent { border: 1px solid var(--theme-warning-500); }
+/* Church directory: people and households. */
+.heritage-directory .heritage-people { padding: 0; }
+.heritage-directory__actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.heritage-directory__secondary { padding: .8rem 1.2rem; border-radius: .4rem; border: 1px solid var(--theme-elevation-300); background: transparent; color: var(--theme-text); text-decoration: none; white-space: nowrap; font: inherit; cursor: pointer; }
+.heritage-directory__secondary:disabled { opacity: .5; cursor: default; }
+.heritage-directory__tabs { display: flex; gap: .25rem; margin: 0 0 1.5rem; border-bottom: 1px solid var(--theme-elevation-150); }
+.heritage-directory__tabs button { border: 0; border-bottom: 3px solid transparent; background: none; color: var(--theme-elevation-700); padding: .75rem 1rem; font: inherit; cursor: pointer; }
+.heritage-directory__tabs button[aria-selected="true"] { border-bottom-color: var(--theme-text); color: var(--theme-text); font-weight: 600; }
+.heritage-directory .heritage-people__filters { margin-bottom: 1.5rem; }
+.heritage-directory .heritage-people__filters label { min-width: 12rem; }
+.heritage-directory .heritage-people__table td > a { display: block; }
+.heritage-directory .heritage-people__table td > span.heritage-people__status { display: inline-block; }
+.heritage-directory .heritage-people__filters label:first-child { min-width: 18rem; }
+.heritage-directory__status--member { border: 1px solid var(--theme-success-500); }
+.heritage-directory__status--visitor { border: 1px solid var(--theme-warning-500); }
+.heritage-directory__status--inactive { opacity: .7; }
+.heritage-directory__households { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 1rem; }
+.heritage-directory__households article { border: 1px solid var(--theme-elevation-150); border-radius: .5rem; padding: 1.25rem; }
+.heritage-directory__households h2 { font-size: 1.15rem; margin: 0 0 .5rem; }
+.heritage-directory__households p { margin: .2rem 0; color: var(--theme-elevation-700); }
+.heritage-directory__households ul { margin: .75rem 0 0; padding-left: 1.1rem; }
+.heritage-directory__households li { margin: .3rem 0; }
+.heritage-directory__households small, .heritage-directory__empty { color: var(--theme-elevation-600); }
+.heritage-person-account { margin: 0 0 var(--base); padding: .75rem 1rem; border-radius: .4rem; background: var(--theme-elevation-50); color: var(--theme-elevation-800); }
+.heritage-person-account--linked { border-left: 3px solid var(--theme-success-500); }
 .heritage-account-language { margin: 1.5rem 0; }
 // Account language is persisted above; Payload's cookie-only selector would show a second setting.
 .payload-settings__language { display: none; }
 .heritage-account-language label { display: block; margin-bottom: .5rem; }
 .heritage-account-language select { min-width: 16rem; }
 .heritage-invitation-guide { padding: 1rem; margin-bottom: 1.5rem; background: var(--theme-elevation-50); border-radius: .4rem; }
-@media (max-width: 700px) { .heritage-people__heading { align-items: flex-start; flex-direction: column; } .heritage-people__filters label { width: 100%; min-width: 0; } }
+@media (max-width: 700px) { .heritage-people__heading { align-items: flex-start; flex-direction: column; } .heritage-people__filters label, .heritage-directory .heritage-people__filters label { width: 100%; min-width: 0; } .heritage-directory__tabs { overflow-x: auto; } }
 
 /* Song authoring: words first, optional details below. */
 .heritage-song-title-row, .heritage-song-lyrics-row { align-items: flex-start; }
