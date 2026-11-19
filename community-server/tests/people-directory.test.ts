@@ -77,6 +77,8 @@ test('the migration is registered last, backfills members, and the notes field i
   const migration = readFileSync(new URL('../src/migrations/20261119_120000_people_households.ts', import.meta.url), 'utf8')
   assert.match(migration, /CREATE UNIQUE INDEX "people_community_user_idx"/)
   assert.match(migration, /"household_id" integer REFERENCES "households"\("id"\) ON DELETE SET NULL/)
+  // Test and maintenance cleanups remove a church after its memberships; its directory must not block that.
+  assert.equal(migration.match(/REFERENCES "communities"\("id"\) ON DELETE CASCADE/g)?.length, 2)
   assert.match(migration, /backfillPeopleFromMemberships\(db\)/)
   const collection = readFileSync(new URL('../src/collections/People.ts', import.meta.url), 'utf8')
   assert.match(collection, /name: 'notes'[\s\S]*access: \{ read: churchPeopleEditorField/)

@@ -3,6 +3,8 @@ import { backfillPeopleFromMemberships } from '../lib/peopleAccounts'
 
 // The church directory: people (with or without an account) and households.
 // Additive only. Existing members each receive a profile linked to their account.
+// The directory belongs to its church: removing a church (possible only after
+// its memberships are gone) removes its people and households too.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
     CREATE TYPE "enum_people_status" AS ENUM ('member','attender','visitor','inactive');
@@ -10,7 +12,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
     CREATE TYPE "enum_people_household_role" AS ENUM ('head','spouse','child','other');
     CREATE TABLE "households" (
       "id" serial PRIMARY KEY,
-      "community_id" integer NOT NULL REFERENCES "communities"("id") ON DELETE RESTRICT,
+      "community_id" integer NOT NULL REFERENCES "communities"("id") ON DELETE CASCADE,
       "name" varchar NOT NULL,
       "phone" varchar,
       "address_street" varchar,
@@ -27,7 +29,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
     CREATE INDEX "households_created_at_idx" ON "households" ("created_at");
     CREATE TABLE "people" (
       "id" serial PRIMARY KEY,
-      "community_id" integer NOT NULL REFERENCES "communities"("id") ON DELETE RESTRICT,
+      "community_id" integer NOT NULL REFERENCES "communities"("id") ON DELETE CASCADE,
       "first_name" varchar NOT NULL,
       "last_name" varchar,
       "preferred_name" varchar,

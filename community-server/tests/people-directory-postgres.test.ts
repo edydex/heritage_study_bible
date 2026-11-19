@@ -99,6 +99,17 @@ test('church directory: migration, automatic member profiles, households and rol
       await pool.query('DELETE FROM people WHERE user_id IS NOT NULL')
       assert.equal(await backfillPeopleFromMemberships(db as never), 3)
       assert.equal((await pool.query('SELECT count(*)::int AS n FROM people WHERE user_id IS NOT NULL')).rows[0].n, 3)
+
+      // A church whose members have all been removed can be deleted, and its directory goes with it.
+      const other = await payload.create({ collection: 'communities', overrideAccess: true, data: { name: 'Other church', slug: 'other-church',
+        timeZone: 'UTC', joinPolicy: 'invite', calendarDefaultVisibility: 'members' } })
+      const otherMembership = await payload.create({ collection: 'memberships', overrideAccess: true,
+        data: { community: other.id, user: owner.id, role: 'member', joinedAt: new Date().toISOString() } })
+      await payload.create({ collection: 'households', overrideAccess: true, data: { community: other.id, name: 'Other family' } })
+      assert.equal((await pool.query('SELECT count(*)::int AS n FROM people WHERE community_id = $1', [other.id])).rows[0].n, 1)
+      await payload.delete({ collection: 'memberships', id: otherMembership.id, overrideAccess: true })
+      await payload.delete({ collection: 'communities', id: other.id, overrideAccess: true })
+      assert.equal((await pool.query('SELECT (SELECT count(*) FROM people WHERE community_id = $1) + (SELECT count(*) FROM households WHERE community_id = $1) AS n', [other.id])).rows[0].n, '0')
     } finally {
       if (payload) await payload.destroy()
       await pool.end()
