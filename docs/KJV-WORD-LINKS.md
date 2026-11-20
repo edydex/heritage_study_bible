@@ -4,7 +4,7 @@ The installed KJV is retained. Exact English words are aligned by the same manda
 
 The manifests record current groups and linked references across all 27 NT books. Hash-pinned reviews correct publisher annotation errors, including swapped pronoun occurrences; the original publisher baseline is not semantic certification. The word-accounting audit includes **all** installed KJV NT references, including those without a same-numbered N1904 verse. It distinguishes mapped words, explicitly explained unpaired words and unresolved words. Missing same-numbered verses such as 3 John 1:15 and Revelation 12:18 require review of the actual neighboring English counterpart. They are not evidence that the words are absent from the translation. Genuine witness differences must remain explicitly unpaired.
 
-BSB Matthew 1–7 have complete author and separate assistant peer reviews against
+BSB Matthew 1–12 have complete author and separate assistant peer reviews against
 the displayed translation, the Berean publisher's complete verse allocations,
 and the actual Nestle 1904 text and morphology. The genealogy keeps repeated
 names in their child and parent roles. Matthew 4:11 keeps the two “Him” words at
@@ -16,6 +16,9 @@ particle and records the distinction between the interrogative and indefinite
 dictionary entries. In 6:15 and 6:33, BSB wording supported by a different
 Greek edition remains explicit and unpaired against N1904. In 7:7–8, the
 supplied door nouns stay unpaired while the opening verbs keep their links.
+In Matthew 8:3, touching and speaking keep distinct highlights. “Take” at
+10:10 points to the actual command in 10:9. In 11:8 and 12:15, the words added
+in the BSB’s Greek witness remain explicit gaps against Nestle 1904.
 
 The concordance applies three documented occurrence-specific annotation errata before positional matching. Its artifact hash and errata hash are pinned in KJV provenance in addition to the unchanged raw Greek source checksum. The accepted correction registry is `scripts/original-languages/kjv-review-status.json`; unreviewed drafts are excluded.
 

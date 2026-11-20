@@ -92,6 +92,27 @@ test('BSB Otherwise highlights both written particles and studies the negative f
   await expectStudyHead(page, '3361')
 })
 
+test('BSB Matthew 8 keeps the touching and speaking predicates separate', async ({ page }) => {
+  await compareWithOriginal(page, 'matthew', 8, 'BSB')
+  const touching = words(page, 'ORIGINAL', 8, 3, /^ἥψατο$/)
+  const speaking = words(page, 'ORIGINAL', 8, 3, /^λέγων$/)
+  await words(page, 'BSB', 8, 3, /^touched$/).click()
+  await expect(touching).toHaveClass(/bible-word-link-active/)
+  await expect(speaking).not.toHaveClass(/bible-word-link-active/)
+  await words(page, 'BSB', 8, 3, /^said$/).click()
+  await expect(speaking).toHaveClass(/bible-word-link-active/)
+  await expect(touching).not.toHaveClass(/bible-word-link-active/)
+})
+
+test('BSB Take keeps the written command in the preceding verse', async ({ page }) => {
+  await compareWithOriginal(page, 'matthew', 10, 'BSB')
+  await words(page, 'BSB', 10, 10, /^Take$/).click()
+  await expect(words(page, 'ORIGINAL', 10, 9, /^κτήσησθε$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 10, 10, /^μὴ$/)).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expectStudyHead(page, '2932')
+})
+
 test('KJV neither opens its actual second prohibition rather than the conjunction', async ({ page }) => {
   await compareWithOriginal(page, '2-john', 1, 'KJV')
   const negatives = words(page, 'ORIGINAL', 1, 10, /^μὴ$/)
