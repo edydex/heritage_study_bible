@@ -1,4 +1,4 @@
-import { bracketSynodalAdditions } from '../data/synodalTextAdditions'
+import { bracketTextualAdditions } from '../data/textualAdditions'
 import { useState, useEffect, useRef, useCallback, useLayoutEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import CompareModal from './CompareModal'
@@ -1074,7 +1074,7 @@ function CommentarySidebar({
             {/* Show full verse text on mobile */}
             {selectedVerseDisplayText && (
               <p className={`text-sm text-gray-700 dark:text-gray-300 leading-relaxed ${showGoToButton ? '' : 'lg:hidden'}`}>
-                {bracketSynodalAdditions(translationId, bookName, primaryVerse.chapter, primaryVerse.verse, selectedVerseDisplayText)}
+                {bracketTextualAdditions(translationId, bookName, primaryVerse.chapter, primaryVerse.verse, selectedVerseDisplayText)}
               </p>
             )}
             {isMultiSelection && (
