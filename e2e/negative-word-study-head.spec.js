@@ -113,6 +113,21 @@ test('BSB Take keeps the written command in the preceding verse', async ({ page 
   await expectStudyHead(page, '2932')
 })
 
+test('BSB Matthew 17 keeps the personal article and the reply separate', async ({ page }) => {
+  await compareWithOriginal(page, 'matthew', 17, 'BSB')
+  const speaker = words(page, 'ORIGINAL', 17, 20, /^ὁ$/)
+  const reply = words(page, 'ORIGINAL', 17, 20, /^λέγει$/)
+  await words(page, 'BSB', 17, 20, /^He$/).click()
+  await expect(speaker).toHaveClass(/bible-word-link-active/)
+  await expect(reply).not.toHaveClass(/bible-word-link-active/)
+
+  await words(page, 'BSB', 17, 20, /^answered$/).click()
+  await expect(reply).toHaveClass(/bible-word-link-active/)
+  await expect(speaker).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expectStudyHead(page, '3004')
+})
+
 test('KJV neither opens its actual second prohibition rather than the conjunction', async ({ page }) => {
   await compareWithOriginal(page, '2-john', 1, 'KJV')
   const negatives = words(page, 'ORIGINAL', 1, 10, /^μὴ$/)
