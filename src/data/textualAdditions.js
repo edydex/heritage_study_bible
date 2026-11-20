@@ -1,5 +1,6 @@
 import synodalAdditions from './synodalTextAdditions.json'
 import ukrainianAdditions from './ukrkTextAdditions.json'
+import { translationDisplayText } from '../utils/translationDisplay.js'
 
 const additionsByTranslation = { 'SYNO-W': synodalAdditions, UKRK: ukrainianAdditions }
 
@@ -16,12 +17,13 @@ export function textualAdditionRanges(translationId, book, chapter, verse, text)
 
 export function bracketTextualAdditions(translationId, book, chapter, verse, text) {
   const ranges = textualAdditionRanges(translationId, book, chapter, verse, text)
-  if (!ranges.length) return text
+  const display = translationDisplayText(translationId, text)
+  if (!ranges.length) return display
   let cursor = 0
   let result = ''
   for (const [start, end] of ranges) {
-    result += text.slice(cursor, start) + '[[' + text.slice(start, end) + ']]'
+    result += display.slice(cursor, start) + '[[' + display.slice(start, end) + ']]'
     cursor = end
   }
-  return result + text.slice(cursor)
+  return result + display.slice(cursor)
 }

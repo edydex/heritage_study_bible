@@ -2,6 +2,7 @@ import { RESOURCE_CATEGORIES } from '../data/resources'
 import { authors as commentaryAuthors } from '../data/authors'
 import { parseBookChapters } from './bookChapters'
 import { withPsalmSuperscriptionVerse } from './psalmSuperscriptions'
+import { translationDisplayText } from './translationDisplay'
 
 const bookChaptersCache = new Map()
 const commentaryWorkCache = new Map()
@@ -162,6 +163,7 @@ export function searchBibleVerses(bibleData, query, options = {}) {
   }
 
   const { maxResults = 200, hasCommentary, translationId } = options
+  const displayQuery = translationDisplayText(translationId, normalizedQuery)
   const items = []
   let capped = false
 
@@ -170,12 +172,14 @@ export function searchBibleVerses(bibleData, query, options = {}) {
     for (const chapter of book.chapters) {
       const searchableChapter = withPsalmSuperscriptionVerse(chapter, book.name, translationId)
       for (const verse of searchableChapter.verses) {
-        if (!verse.text?.toLowerCase().includes(normalizedQuery)) continue
+        const text = translationDisplayText(translationId, verse.text)
+        if (!text?.toLowerCase().includes(displayQuery) && !verse.text?.toLowerCase().includes(normalizedQuery)) continue
         items.push({
           book: book.name,
           chapter: chapter.number,
           verse: verse.number,
-          text: verse.text,
+          text,
+          ...(displayQuery !== normalizedQuery ? { highlightQuery: displayQuery } : {}),
           hasCommentary: typeof hasCommentary === 'function'
             ? hasCommentary(book.name, chapter.number, verse.number)
             : false,

@@ -1,11 +1,13 @@
 import { loadTranslation } from '../data/translations'
 import { hebrewOriginalBooks, visibleVerseText, verseWordLinks, loadGreekWordLinks, greekWordLinkTranslations } from '../data/originalLanguages'
 import { occurrenceWordAnchors } from './parallelWordAnchors'
+import { translationDisplayText } from '../utils/translationDisplay'
 
 export const wordTokens = text => [...visibleVerseText(text).matchAll(/[\p{L}\p{M}\p{N}]+(?:[’'][\p{L}\p{M}\p{N}]+)*/gu)]
 export function normalizeWord(text, translationId) {
   if (translationId === 'UKRK') {
-    return text.normalize('NFC').toLocaleLowerCase('uk').replace(/\u0301/g, '').replace(/['’ʼ]/g, 'ʼ')
+    const word = text.normalize('NFC').toLocaleLowerCase('uk').replace(/\u0301/g, '').replace(/['’ʼ]/g, 'ʼ')
+    return translationDisplayText(translationId, word)
   }
   return text.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase().replace(/ς/g, 'σ')
 }
@@ -21,7 +23,7 @@ export function interactiveWordRanges(text, pairs = [], context = {}) {
         && head.targetRanges.some(range => Array.isArray(range) && range[0] < endOffset && range[1] > startOffset))
       .flatMap(head => head.sourceAnchors)
     return { ...lookup, ...wordContext, ...(studyHeadAnchors.length ? { studyHeadAnchors } : {}), id: pair?.id || `${context.translationId}:${context.book}:${context.chapter}:${context.verse}:${startOffset}`,
-      pattern: pair?.pattern, startOffset, endOffset, word: match[0], paired: Boolean(pair), label: pair?.label || match[0],
+      pattern: pair?.pattern, startOffset, endOffset, word: match[0], paired: Boolean(pair), label: pair?.label || translationDisplayText(context.translationId, match[0]),
       unpairedReason: note?.reason || (!pair && lookup && context.translationId !== 'ORIGINAL' ? `${lookup.label}. No checked counterpart is available in the other column.` : undefined) }
   })
 }

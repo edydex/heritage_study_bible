@@ -1,6 +1,7 @@
 import { bibleBooks } from '../data/bible-books.js'
 import { resolveBookAliasPrefix } from './parseBibleReference.js'
 import { localizeBookName } from './localizedBookNames.js'
+import { translationDisplayAbbr, translationDisplayText } from './translationDisplay.js'
 import {
   getVerseTextWithPsalmSuperscription,
   hasPsalmSuperscription,
@@ -471,7 +472,7 @@ function buildLocalizedReferenceLine(entry, translationIds) {
       entry.endChapter,
       entry.endVerse
     )
-    return `${translationId}: ${localizedRef}`
+    return `${translationDisplayAbbr(translationId)}: ${localizedRef}`
   })
 
   return localized.join(' • ')
@@ -493,7 +494,7 @@ export function buildMassExportRows(entries, translationIds, translationDataById
           verseRef.verse,
           translationId
         )
-        return `(${verseRef.verse}) ${verseText || '[Verse unavailable]'}`
+        return `(${verseRef.verse}) ${translationDisplayText(translationId, verseText) || '[Verse unavailable]'}`
       })
       translationCells[translationId] = lines
     }
@@ -522,7 +523,7 @@ export function formatMassExportPlain(rows, translationIds) {
           row.endVerse
         )
         const verseLines = row.translationCells[translationId] || ['[Verse unavailable]']
-        sections.push(`${translationId}: ${localizedRef}`)
+        sections.push(`${translationDisplayAbbr(translationId)}: ${localizedRef}`)
         sections.push(verseLines.join('\n'))
       }
       return sections.join('\n')
@@ -533,7 +534,7 @@ export function formatMassExportPlain(rows, translationIds) {
 export function formatMassExportMarkdown(rows, translationIds) {
   if (!Array.isArray(rows) || rows.length === 0) return ''
 
-  const header = ['Reference', ...translationIds].join(' | ')
+  const header = ['Reference', ...translationIds.map(translationDisplayAbbr)].join(' | ')
   const separator = ['---', ...translationIds.map(() => '---')].join(' | ')
 
   const body = rows.map(row => {

@@ -76,7 +76,7 @@ function SearchResults({ results, query, onVerseClick, onCommentaryClick, onBook
                           )}
                         </div>
                         <p className="verse-text text-gray-700 dark:text-gray-300">
-                          {highlightText(result.text, query)}
+                          {highlightText(result.text, result.highlightQuery || query)}
                         </p>
                       </div>
                     ))}

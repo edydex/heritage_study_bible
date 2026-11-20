@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { translations, loadTranslation } from '../data/translations'
 import { bracketTextualAdditions } from '../data/textualAdditions'
+import { translationDisplayAbbr } from '../utils/translationDisplay'
 import { bibleBooks } from '../data/bible-books.js'
 import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptions'
 
@@ -185,7 +186,7 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
           <div className="rounded-lg bg-primary/5 dark:bg-blue-900/20 border border-primary/20 dark:border-blue-700/40 p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-primary dark:text-blue-400 uppercase tracking-wider">
-                {translationId} — Reading
+                {translationDisplayAbbr(translationId)} — Reading
               </span>
             </div>
             <p className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-line">{cleanText(readingText)}</p>
@@ -234,7 +235,7 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
                         onClick={() => addTranslation(t.id)}
                         className="w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
                       >
-                        <span className="font-bold text-sm text-gray-800 dark:text-gray-200 w-10">{t.abbr}</span>
+                        <span className="font-bold text-sm text-gray-800 dark:text-gray-200 shrink-0 w-14">{t.abbr}</span>
                         <div className="min-w-0">
                           <span className="text-sm text-gray-700 dark:text-gray-300">{t.name}</span>
                           <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">{t.description}</span>

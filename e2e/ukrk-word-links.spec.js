@@ -9,7 +9,7 @@ test('UKRK word study follows the written Greek across Philemon’s verse bounda
   await page.getByTitle('Enable parallel mode', { exact: true }).click()
   await page.getByRole('button', { name: 'Original languages', exact: true }).click()
   await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).click()
-  await expect(page.getByText('UKRK: 24 of 24 verses have reviewed word links.')).toBeVisible()
+  await expect(page.getByText('UKRK-R: 24 of 24 verses have reviewed word links.')).toBeVisible()
 
   const word = (translation, verse, text) => page
     .locator(`#verse-1-${verse} [data-translation="${translation}"] [data-word-link]:visible`)
@@ -28,7 +28,7 @@ test('UKRK word study follows the written Greek across Philemon’s verse bounda
   await expect(dialog.getByLabel('Verse wording')).toHaveValue('UKRK')
   const result = dialog.getByRole('button', { name: /^Philemon 1:24/ })
   await expect(result).toBeEnabled()
-  await expect(result.locator('[data-occurrence-translation="UKRK"]')).toContainText('UKRK 1:23')
+  await expect(result.locator('[data-occurrence-translation="UKRK"]')).toContainText('UKRK-R 1:23')
   await expect(result.locator('[data-occurrence-translation="UKRK"] mark')).toHaveText('Аристарх')
 })
 

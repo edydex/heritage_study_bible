@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loadTranslation, translations } from '../data/translations'
+import { translationDisplayAbbr } from '../utils/translationDisplay'
 import {
   buildMassExportRows,
   formatMassExportMarkdown,
@@ -350,7 +351,7 @@ function MassVerseExportViewer({ toolMeta }) {
                     <th className="text-left px-3 py-2 font-semibold text-gray-700 dark:text-gray-200 min-w-[220px]">Reference</th>
                     {selectedTranslationIds.map(translationId => (
                       <th key={translationId} className="text-left px-3 py-2 font-semibold text-gray-700 dark:text-gray-200 min-w-[260px]">
-                        {translationId}
+                        {translationDisplayAbbr(translationId)}
                       </th>
                     ))}
                   </tr>
@@ -388,7 +389,7 @@ function MassVerseExportViewer({ toolMeta }) {
                   <div className="mt-3 space-y-3">
                     {selectedTranslationIds.map(translationId => (
                       <div key={`${row.englishRef}-${translationId}-stack-${index}`}>
-                        <p className="text-xs font-semibold text-primary dark:text-blue-400 mb-1">{translationId}</p>
+                        <p className="text-xs font-semibold text-primary dark:text-blue-400 mb-1">{translationDisplayAbbr(translationId)}</p>
                         <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                           {(row.translationCells[translationId] || []).join('\n')}
                         </p>

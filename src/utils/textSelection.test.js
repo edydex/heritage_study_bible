@@ -2,6 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { captureBibleTextSelection, combineBibleTextSelections, resolveTextAnchor, textSelectionMatchesAnnotation } from './textSelection'
 
 describe('Bible text selection anchors', () => {
+  it('resolves both historical and revised Ukrainian spelling at the original offsets', () => {
+    const text = 'Слїпі бачять, мої брати.'
+    const selection = { translationId: 'UKRK', startOffset: 0, endOffset: 5 }
+    for (const selectedText of ['Слїпі', 'Сліпі']) {
+      const saved = { ...selection, selectedText }
+      expect(resolveTextAnchor(saved, text)).toBe(saved)
+    }
+  })
+
   it('captures translation-specific offsets across verses while ignoring markers', () => {
     document.body.innerHTML = `
       <main id="reader">

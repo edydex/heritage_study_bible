@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef } from 'react'
 import { splitParagraphText } from '../utils/verseLayout'
 import { getTextHighlightClasses } from '../utils/highlightColors'
 import { textualAdditionLabels } from '../data/textualAdditions'
+import { translationDisplayText } from '../utils/translationDisplay'
 
 function WordLink({ link, activeWordLink, onWordLink, onWordTap, children }) {
   const gesture = useRef(null), suppressClick = useRef(false)
@@ -117,15 +118,15 @@ function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks
   })
 }
 
-function ParagraphMarker() {
+function ParagraphMarker({ editorial = false }) {
   return (
     <>
-      <span className="sr-only" data-selection-ignore>Paragraph break. </span>
+      <span className="sr-only" data-selection-ignore>{editorial ? 'Editorial paragraph break. ' : 'Paragraph break. '}</span>
       <span
         data-selection-ignore
         aria-hidden="true"
         className="mr-1 select-none text-[0.72em] font-semibold text-amber-600/80 dark:text-amber-400/80"
-        title="Paragraph break in the source text"
+        title={editorial ? 'Editorial paragraph break' : 'Paragraph break in the source text'}
       >
         ¶
       </span>
@@ -134,13 +135,13 @@ function ParagraphMarker() {
 }
 
 export default function VerseText({ text, translationId, layout = null, highlights = [], additions = [], wordLinks = [], activeWordLink = null, onWordLink, onWordTap }) {
-  const { startsParagraph, segments } = splitParagraphText(text)
+  const { startsParagraph, segments } = splitParagraphText(translationDisplayText(translationId, text))
   const showLeadingMarker = startsParagraph || Boolean(layout?.breakBefore)
   let currentOffset = 0
 
   return (
     <>
-      {showLeadingMarker && <ParagraphMarker />}
+      {showLeadingMarker && <ParagraphMarker editorial={!startsParagraph && layout?.editorialBreak === true} />}
       {segments.map((segment, segmentIndex) => {
         const lines = segment.replace(/\s*\|\|\s*/g, '\n').split('\n')
         if (segmentIndex > 0) currentOffset += 1

@@ -43,12 +43,24 @@ If links are still loading, the reader keeps the tapped or held word and shows
 the loading state. Its match and requested study resolve when the links arrive.
 **Clear word match** also cancels a study requested during loading.
 
-UKRK uses the Ukrainian Kulish/Pulyui edition catalogued as 1905 by
-[eBible.org](https://ebible.org/find/details.php?id=ukr1871). Heritage keeps its
-spelling and verse numbering. Greek comparison is available in chapters with
+UKRK-R uses the Ukrainian edition credited to Kulish, Nechui-Levytsky and Pulyui
+and catalogued as 1905 by [eBible.org](https://ebible.org/find/details.php?id=ukr1871).
+Heritage displays selected historical uses of consonant-adjacent `ї` as `і`.
+The [Zhelekhivka spelling convention](https://esu.com.ua/article-18996) used this
+letter for the vowel `і` after soft consonants. The display keeps `ї` where it
+represents `йі`, including after vowels and apostrophes. The installed source,
+verse numbering, original word links and annotation offsets keep their `UKRK`
+identifiers and source text. Greek comparison is available in chapters with
 checked Ukrainian verse references. Select a word to follow an exact link across
 verse numbers. Word Study shows Ukrainian context where the source reference has
 a checked counterpart.
+
+The eBible Ukrainian USFM has paragraph markers at chapter starts only. The
+1912 Vienna printing begins each numbered verse on a new line in the sampled
+chapters. The reader's layout pilot marks checked editorial paragraph breaks in
+Matthew 5, John 3 and Romans 12. Berean Standard Bible layout supplied candidates,
+and the boundaries were checked against the Ukrainian passages. The paragraph
+markers identify these breaks as editorial.
 
 For verse-boundary differences, **Show Original / BSB / LSV / KJV / SYNO-W** identifies the
 actual matching reference rather than forcing a same-number pairing. Greek words use the source's

@@ -1,5 +1,6 @@
 import { visibleVerseText } from '../data/originalLanguages'
 import { assignWordLinkColors } from './wordLinkColors'
+import { translationDisplayAbbr, translationDisplayText } from '../utils/translationDisplay'
 
 const referenceKey = ({ chapter, verse }) => `${chapter}:${verse}`
 const parseReference = key => { const [chapter, verse] = key.split(':').map(Number); return { chapter, verse } }
@@ -218,12 +219,15 @@ export function chapterWordAnchors({ primaryData, secondaryData, primaryBook, se
     const crossReference = references.length > 1 || sourceAnchors.some(anchor => referenceKey(anchor) !== references[0])
     const uniqueTargets = side => [...new Map(component.filter(node => node.side === side).flatMap(node => node.targets.map(range => [`${node.ref}:${range}`, { ref: node.ref, range }]))).values()]
       .sort((a, b) => parseReference(a.ref).chapter - parseReference(b.ref).chapter || parseReference(a.ref).verse - parseReference(b.ref).verse || a.range[0] - b.range[0])
-    const phrases = side => uniqueTargets(side).map(({ ref, range }) => `${crossReference ? `${ref} ` : ''}${targetVerses[side].get(ref).slice(...range)}`).join(' … ')
+    const phrases = side => uniqueTargets(side).map(({ ref, range }) => {
+      const text = translationDisplayText(names[side], targetVerses[side].get(ref))
+      return `${crossReference ? `${ref} ` : ''}${text.slice(...range)}`
+    }).join(' … ')
     const sourceLabel = `${crossReference ? `Greek ${[...new Set(sourceAnchors.map(referenceKey))].join(', ')}: ` : ''}${words.map(word => word.text).join(' ')}`
     const translatedSides = ['primary', 'secondary'].filter(side => data[side])
     const label = translatedSides.length === 1
-      ? `${sourceLabel} ↔ ${crossReference ? `${names[translatedSides[0]]} ` : ''}${phrases(translatedSides[0])}`
-      : `${sourceLabel} ↔ ${translatedSides.map(side => `${names[side]}: ${phrases(side)}`).join(' ↔ ')}`
+      ? `${sourceLabel} ↔ ${crossReference ? `${translationDisplayAbbr(names[translatedSides[0]])} ` : ''}${phrases(translatedSides[0])}`
+      : `${sourceLabel} ↔ ${translatedSides.map(side => `${translationDisplayAbbr(names[side])}: ${phrases(side)}`).join(' ↔ ')}`
     const paired = component.some(node => node.side === 'primary') && component.some(node => node.side === 'secondary')
     const notes = [...new Set(component.flatMap(node => node.notes || []))]
     const counterparts = [...new Map(component.map(node => [`${node.side}:${node.ref}`, {

@@ -1,4 +1,5 @@
 import { originalLanguages, hebrewOriginalBooks } from './originalLanguages'
+import { UKRK_DISPLAY_ABBR } from '../utils/translationDisplay.js'
 
 /**
  * Available Bible translations.
@@ -52,13 +53,13 @@ export const translations = [
   },
   {
     id: 'UKRK',
-    abbr: 'UKRK',
-    name: 'Ukrainian Kulish/Pulyui',
-    description: 'Ukrainian Bible (ukr1871 source)',
+    abbr: UKRK_DISPLAY_ABBR,
+    name: 'Ukrainian Kulish/Pulyui (Revised)',
+    description: 'Historical Ukrainian translation with selected spelling updates',
     language: 'Ukrainian',
     versification: 'ukr1871',
     license: 'Public Domain',
-    attribution: 'Ukrainian ukr1871 text from eBible.org.',
+    attribution: 'Based on eBible.org’s ukr1871 edition, credited to Kulish, Nechui-Levytsky and Pulyui. Heritage modernizes selected uses of ї in the reader.',
   },
 ]
 

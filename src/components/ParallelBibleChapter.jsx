@@ -10,11 +10,12 @@ import { loadGreekWordLinks, greekWordLinkTranslations, originalSourceForBook, o
 import { chapterWordAnchors } from '../services/parallelWordAnchors'
 import { getVerseLayout } from '../utils/verseLayout'
 import { getParallelVerseHighlightClasses } from '../utils/highlightColors'
+import { UKRK_DISPLAY_ABBR, translationDisplayAbbr, translationDisplayText } from '../utils/translationDisplay'
 
 function MissingVerse({ translationId }) {
   return (
     <div className="text-sm text-gray-400 dark:text-gray-500 italic">
-      {translationId === 'ORIGINAL' ? 'No text in the installed source.' : `Verse not present in ${translationId}.`}
+      {translationId === 'ORIGINAL' ? 'No text in the installed source.' : `Verse not present in ${translationDisplayAbbr(translationId)}.`}
     </div>
   )
 }
@@ -147,9 +148,10 @@ function ParallelBibleChapter({
   const activeWord = useMemo(() => resolveSelection(activeSelection), [resolveSelection, activeSelection])
   const study = useMemo(() => resolveSelection(studySelection), [resolveSelection, studySelection])
   const linksLoading = canLink && !alignment && !linkError && !selectionMode
-  const heldMessage = !activeWord ? '' : linksLoading ? `Loading word links for “${activeWord.word}”…`
-    : linkError ? `Word links could not load for “${activeWord.word}”.`
-      : activeWord.paired ? activeWord.label : activeWord.unpairedReason || `No checked translation match is installed for “${activeWord.word}”.`
+  const displayedActiveWord = translationDisplayText(activeWord?.translationId, activeWord?.word)
+  const heldMessage = !activeWord ? '' : linksLoading ? `Loading word links for “${displayedActiveWord}”…`
+    : linkError ? `Word links could not load for “${displayedActiveWord}”.`
+      : activeWord.paired ? activeWord.label : activeWord.unpairedReason || `No checked translation match is installed for “${displayedActiveWord}”.`
 
   const verseNumbers = useMemo(() => {
     const keys = new Set([...primaryVerseMap.keys(), ...secondaryVerseMap.keys()])
@@ -236,26 +238,26 @@ function ParallelBibleChapter({
       {(original || canLink) && <div className="mb-4 rounded-lg border border-gray-200 p-3 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
         <div className="font-semibold text-gray-900 dark:text-gray-100">{original ? 'Original languages' : 'Word links'} · {hebrew ? 'Hebrew / Aramaic' : 'Greek New Testament'}</div>
         <p><a className="underline" href={source.url} target="_blank" rel="noreferrer">{source.title}</a>.</p>
-        {numberingUnsupported && (!canLink || alignment) && <p role="status" className="mt-2">A checked verse mapping for {primaryTranslationId} is not installed for this chapter. Choose a Western-numbered translation to view the original here.</p>}
+        {numberingUnsupported && (!canLink || alignment) && <p role="status" className="mt-2">A checked verse mapping for {translationDisplayAbbr(primaryTranslationId)} is not installed for this chapter. Choose a Western-numbered translation to view the original here.</p>}
         {hebrew && <details className="mt-2 text-xs"><summary>Source and verse numbering</summary><p className="mt-1">WLC 4.20 as maintained by OSHB. Written readings appear in the text; traditional read-aloud alternatives (qere) are listed separately. Hebrew and Aramaic labels follow source morphology. Original source references are retained where numbering differs. Nehemiah 7:68 is absent from this witness.</p><p className="mt-1">Original work of the Open Scriptures Hebrew Bible available at <a className="underline" href="https://github.com/openscriptures/morphhb">github.com/openscriptures/morphhb</a>. WLC text is public domain; metadata is <a className="underline" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Adapted for BSB verse numbering and separate reading notes.</p></details>}
         {hebrew && !numberingUnsupported && secondaryChapter?.superscription && <div className="mt-3 border-t pt-2"><p className="text-xs">Hebrew source heading · {secondaryChapter.superscription.sourceRefs.join(', ')}</p><p dir="rtl" lang="he" className="mt-1 text-lg">{secondaryChapter.superscription.text}</p></div>}
         {canLink && !numberingUnsupported ? <>
           <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={showWordLinks} onChange={event => setShowWordLinks(event.target.checked)} /> Word links</label>
           {!selectionMode && <p className="mt-2 text-xs">Tap a word to highlight its match in both columns. Hold it, or choose Study word, for occurrences.</p>}
           {russianChapter && alignment && <p className="mt-1 text-xs" data-russian-link-coverage="true">Russian Synodal: {reviewedVerseCount(russianChapter, russianLinks)} of {russianChapter.verses.length} verses in this chapter have reviewed word links.</p>}
-          {ukrainianChapter && alignment && <p className="mt-1 text-xs">UKRK: {reviewedUkrainianVerses} of {ukrainianChapter.verses.length} verses have reviewed word links.</p>}
+          {ukrainianChapter && alignment && <p className="mt-1 text-xs">{UKRK_DISPLAY_ABBR}: {reviewedUkrainianVerses} of {ukrainianChapter.verses.length} verses have reviewed word links.</p>}
           {original && ukrainianReferencesDiffer && <p className="mt-1 text-xs">Both editions keep their own verse numbers. Select a word to see its linked verse in the other column.</p>}
           {[['SYNO-W', russianChapter], ['UKRK', ukrainianChapter]].map(([id, chapter]) =>
             chapter?.verses.some(verse => textualAdditionRanges(id, bookName, chapter.number, verse.number, verse.text).length > 0)
               && <p key={id} lang={textualAdditionLabels[id].lang} className="mt-1 text-xs">[[…]] — {textualAdditionLabels[id].note}</p>
           )}
-          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Each checked match has a distinct color and pattern combination, shared across both columns. Nearby matches favor contrasting colors and textures; words translated together share one combination. B&W mode uses underline patterns. Uncertain matches and differing source readings remain uncolored. Hold a word, or press Shift+Enter, for word study.</p><p className="mt-1">BSB links use Berean’s published translation tables and checked repairs. LSV, KJV, Russian Synodal and UKRK use reviewed phrase correspondences; a phrase can include several words. Uncolored words can still be studied without implying an exact translation match.</p></details>}
+          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Each checked match has a distinct color and pattern combination, shared across both columns. Nearby matches favor contrasting colors and textures; words translated together share one combination. B&W mode uses underline patterns. Uncertain matches and differing source readings remain uncolored. Hold a word, or press Shift+Enter, for word study.</p><p className="mt-1">BSB links use Berean’s published translation tables and checked repairs. LSV, KJV, Russian Synodal and {UKRK_DISPLAY_ABBR} use reviewed phrase correspondences; a phrase can include several words. Uncolored words can still be studied without implying an exact translation match.</p></details>}
           {selectionMode && showWordLinks && <p className="mt-1 text-xs">Word links pause while selecting verses.</p>}
         </> : !numberingUnsupported && <p className="mt-1 text-xs">{hebrew ? 'Tap a Hebrew or Aramaic word, then choose Study word (or hold it), to find its source lemma throughout the Old Testament, including inflected forms. Strong’s identifiers follow OSHB. English phrase links are not installed.' : 'Word links are available in reviewed Greek New Testament passages. Tap a word, then choose Study word (or hold it), for occurrences.'}</p>}
         {linkError && <p role="status" className="mt-2">{linkError} <button className="underline" onClick={() => setLinkRetry(value => value + 1)}>Retry links</button></p>}
         {canLink && showWordLinks && !alignment && !linkError && <p role="status" className="mt-1 text-xs">Loading word links…</p>}
       </div>}
-      {heldMessage && <div role="region" aria-label="Selected word match" className="word-match-bar sticky top-16 z-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-3 mb-3 shadow-sm flex flex-wrap items-center justify-between gap-2"><span role="status">{heldMessage}</span>{activeWord?.notes?.length > 0 && <details className="w-full text-sm"><summary>Reading note</summary>{activeWord.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}<div className="flex flex-wrap items-center gap-2">{activeWord?.counterparts?.filter(ref => ref.chapter !== activeWord.chapter || ref.verse !== activeWord.verse).map(ref => <button key={`${ref.translationId}:${ref.chapter}:${ref.verse}`} className="rounded border px-3 py-2 text-sm" onClick={() => showCounterpart(ref)}>Show {ref.translationId === 'ORIGINAL' ? 'Original' : ref.translationId} {ref.chapter}:{ref.verse}</button>)}<button className="rounded border px-3 py-2 text-sm font-semibold" onClick={() => setStudy(activeWord)}>Study word</button><button className="rounded px-3 py-2" aria-label="Clear word match" onClick={() => { setActiveWord(null); setStudy(null) }}>✕</button></div></div>}
+      {heldMessage && <div role="region" aria-label="Selected word match" className="word-match-bar sticky top-16 z-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-3 mb-3 shadow-sm flex flex-wrap items-center justify-between gap-2"><span role="status">{heldMessage}</span>{activeWord?.notes?.length > 0 && <details className="w-full text-sm"><summary>Reading note</summary>{activeWord.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}<div className="flex flex-wrap items-center gap-2">{activeWord?.counterparts?.filter(ref => ref.chapter !== activeWord.chapter || ref.verse !== activeWord.verse).map(ref => <button key={`${ref.translationId}:${ref.chapter}:${ref.verse}`} className="rounded border px-3 py-2 text-sm" onClick={() => showCounterpart(ref)}>Show {ref.translationId === 'ORIGINAL' ? 'Original' : translationDisplayAbbr(ref.translationId)} {ref.chapter}:{ref.verse}</button>)}<button className="rounded border px-3 py-2 text-sm font-semibold" onClick={() => setStudy(activeWord)}>Study word</button><button className="rounded px-3 py-2" aria-label="Clear word match" onClick={() => { setActiveWord(null); setStudy(null) }}>✕</button></div></div>}
       {study && !linksLoading && <WordStudyDialog word={study} onClose={() => setStudy(null)} onNavigate={onOccurrenceNavigate} />}
       <div className="space-y-2">
         {verseNumbers.map((verseNumber) => {
@@ -354,7 +356,7 @@ function ParallelBibleChapter({
 
               <div className="md:hidden p-2 space-y-2">
                 <div className="rounded-md bg-white dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
-                  <div className="text-[11px] uppercase tracking-wide text-primary dark:text-blue-400 font-semibold mb-1">{primaryTranslationId}</div>
+                  <div className="text-[11px] uppercase tracking-wide text-primary dark:text-blue-400 font-semibold mb-1">{translationDisplayAbbr(primaryTranslationId)}</div>
                   <div className="flex items-start gap-2 group">
                     <VerseNumber number={verseNumber} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
                     <p
@@ -372,7 +374,7 @@ function ParallelBibleChapter({
                 </div>
 
                 <div className="rounded-md bg-white/70 dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-1">{original ? hebrew ? `${originalVerseLanguage(secondaryVerse)} · WLC / OSHB` : source.label : secondaryTranslationId}</div>
+                  <div className="text-[11px] uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-1">{original ? hebrew ? `${originalVerseLanguage(secondaryVerse)} · WLC / OSHB` : source.label : translationDisplayAbbr(secondaryTranslationId)}</div>
                   <div className="flex items-start gap-2">
                     <VerseNumber number={verseNumber} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
                     <p

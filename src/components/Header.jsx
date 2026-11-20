@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import ReaderSettings from './ReaderSettings'
 import ReaderTextSize from './ReaderTextSize'
 import { translations, parallelTranslations } from '../data/translations'
+import { translationDisplayAbbr } from '../utils/translationDisplay'
 import { isNativeAndroid, setNativeReaderChromeHidden } from '../services/androidControls'
 
 const NATIVE_VOLUME_NEXT_EVENT = 'heritage:native-volume-next'
@@ -293,7 +294,7 @@ function Header({
               }`}
               title="Change translation"
             >
-              <span className="text-xs sm:text-sm font-bold tracking-wide">{translationId}</span>
+              <span className="text-xs sm:text-sm font-bold tracking-wide">{translationDisplayAbbr(translationId)}</span>
             </button>
 
             {/* Translations Dropdown */}
@@ -313,7 +314,7 @@ function Header({
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >
-                    <span className={`font-bold text-sm w-10 ${translationId === t.id ? 'text-primary dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>{t.abbr}</span>
+                    <span className={`font-bold text-sm shrink-0 w-14 ${translationId === t.id ? 'text-primary dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>{t.abbr}</span>
                     <div className="flex-1 min-w-0">
                       <div className={`text-sm font-medium truncate ${translationId === t.id ? 'text-primary dark:text-blue-400' : 'dark:text-gray-200'}`}>{t.name}</div>
                       <div className="text-xs text-gray-400 dark:text-gray-500">{t.description}</div>
@@ -349,7 +350,7 @@ function Header({
             <span className="text-xs sm:text-sm font-bold tracking-wide">| |</span>
             {parallelMode && (
               <span className="hidden sm:inline text-[11px] font-semibold tracking-wide">
-                {parallelSecondaryId === 'ORIGINAL' ? 'Original' : parallelSecondaryId || 'ON'}
+                {parallelSecondaryId === 'ORIGINAL' ? 'Original' : translationDisplayAbbr(parallelSecondaryId) || 'ON'}
               </span>
             )}
           </button>

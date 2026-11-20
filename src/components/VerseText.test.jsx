@@ -103,3 +103,17 @@ it('marks a complete Ukrainian addition and leaves a verse-number difference unm
   const dismissal = ukrainianActs.chapters.find(chapter => chapter.number === 19).verses.find(verse => verse.number === 41).text
   expect(bracketTextualAdditions('UKRK', 'Acts', 19, 41, dismissal)).toBe(dismissal)
 })
+
+it('displays revised Ukrainian spelling over the checked raw word, highlight and bracket offsets', () => {
+  const text = 'Всї їли хлїб, мої дїти, ізїли й зʼїли.'
+  const startOffset = text.indexOf('хлїб')
+  const endOffset = startOffset + 'хлїб'.length
+  const { container } = render(<VerseText text={text} translationId="UKRK"
+    additions={[[startOffset, endOffset]]}
+    highlights={[{ startOffset, endOffset, color: 'yellow' }]}
+    wordLinks={[{ id: 'bread', startOffset, endOffset, label: 'хліб' }]} />)
+  expect(container.querySelector('[data-word-link="bread"] mark')).toHaveTextContent('хліб')
+  expect(container.querySelector('[data-textual-addition="start"]').nextSibling).toHaveTextContent('хліб')
+  expect(container).toHaveTextContent('Всі їли')
+  expect(container).toHaveTextContent('мої діти, ізїли й зʼїли.')
+})
