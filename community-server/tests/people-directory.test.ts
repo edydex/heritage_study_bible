@@ -72,8 +72,9 @@ test('the CSV export has no private notes, blocks spreadsheet formulas and opens
   assert.match(row, /"Tacoma"/)
 })
 
-test('the migration is registered last, backfills members, and the notes field is private', () => {
-  assert.equal(migrations.at(-1)?.name, '20261119_120000_people_households')
+test('the migration is registered after event sign-ups, backfills members, and the notes field is private', () => {
+  const names = migrations.map(migration => migration.name)
+  assert.ok(names.indexOf('20261119_120000_people_households') > names.indexOf('20261117_180000_event_registrations'))
   const migration = readFileSync(new URL('../src/migrations/20261119_120000_people_households.ts', import.meta.url), 'utf8')
   assert.match(migration, /CREATE UNIQUE INDEX "people_community_user_idx"/)
   assert.match(migration, /"household_id" integer REFERENCES "households"\("id"\) ON DELETE SET NULL/)

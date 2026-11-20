@@ -2211,3 +2211,75 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
 .heritage-registrations-panel__answers dl { display: grid; gap: .3rem; margin: 0 0 .4rem; }
 .heritage-registrations-panel__answers dt { font-weight: 600; }
 .heritage-registrations-panel__answers dd { margin: 0 0 .3rem; }
+
+/* Serving: teams, schedule and away dates. */
+.heritage-serving .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.heritage-serving__message { position: relative; margin: 0 0 1.25rem; padding: .85rem 2.75rem .85rem 1rem; border-radius: .5rem; border: 1px solid var(--theme-success-500); background: var(--theme-elevation-50); }
+.heritage-serving__message--error { border-color: var(--theme-error-500); }
+.heritage-serving__message p { margin: 0; }
+.heritage-serving__message ul { display: grid; gap: .4rem; margin: .75rem 0 0; padding: 0; list-style: none; }
+.heritage-serving__message li { display: flex; align-items: center; gap: .75rem; }
+.heritage-serving__message .heritage-directory__secondary { padding: .35rem .8rem; }
+.heritage-serving__dismiss { position: absolute; top: .4rem; right: .5rem; border: 0; background: none; color: var(--theme-elevation-700); font-size: 1.4rem; cursor: pointer; }
+.heritage-serving__layout { display: grid; grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.heritage-serving__dates { position: sticky; top: calc(var(--app-header-height, 56px) + 1rem); display: grid; gap: .5rem; }
+.heritage-serving__range { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-weight: 600; }
+.heritage-serving__range a { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border: 1px solid var(--theme-elevation-200); border-radius: 50%; color: var(--theme-text); text-decoration: none; }
+.heritage-serving__today { font-size: .9rem; }
+.heritage-serving__dates ul { display: grid; gap: .4rem; margin: 0; padding: 0; list-style: none; }
+.heritage-serving__dates li button { display: grid; gap: .1rem; width: 100%; padding: .65rem .8rem; border: 1px solid var(--theme-elevation-150); border-radius: .5rem; background: var(--theme-bg); color: var(--theme-text); font: inherit; text-align: left; cursor: pointer; }
+.heritage-serving__dates li button[aria-current="true"] { border-color: var(--theme-text); box-shadow: inset 3px 0 0 var(--theme-text); }
+.heritage-serving__dates li button.is-past { opacity: .65; }
+.heritage-serving__dates li button span { overflow: hidden; color: var(--theme-elevation-700); text-overflow: ellipsis; white-space: nowrap; }
+.heritage-serving__dates small { color: var(--theme-warning-750, var(--theme-elevation-700)); font-size: .8rem; }
+.heritage-serving__dates small.is-full { color: var(--theme-success-750, var(--theme-success-500)); }
+.heritage-serving__dates small.is-empty { color: var(--theme-elevation-500); }
+.heritage-serving__dates small em { color: var(--theme-error-600, var(--theme-error-500)); font-style: normal; }
+.heritage-serving__empty { padding: 1rem; border: 1px dashed var(--theme-elevation-250); border-radius: .5rem; color: var(--theme-elevation-700); }
+.heritage-serving__empty .heritage-people__invite { display: inline-block; margin-top: .5rem; }
+.heritage-serving__hint { color: var(--theme-elevation-650, var(--theme-elevation-600)); }
+.heritage-serving__service { display: grid; gap: 1rem; min-width: 0; }
+.heritage-serving__service-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.heritage-serving__service-heading h2 { margin: 0; }
+.heritage-serving__service-heading p { margin: .25rem 0 0; color: var(--theme-elevation-700); }
+.heritage-serving__service-heading button { border: 0; font: inherit; cursor: pointer; }
+.heritage-serving__service-heading button:disabled { opacity: .5; cursor: default; }
+.heritage-serving__team { border: 1px solid var(--theme-elevation-150); border-radius: .5rem; padding: 1rem 1.25rem; }
+.heritage-serving__team > header, .heritage-serving__card > header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.heritage-serving__team h3 { margin: 0 0 .5rem; font-size: 1.15rem; }
+.heritage-serving__positions { display: grid; gap: .9rem; margin: 0; padding: 0; list-style: none; }
+.heritage-serving__positions > li { display: grid; gap: .45rem; min-width: 0; padding-top: .8rem; border-top: 1px solid var(--theme-elevation-100); }
+.heritage-serving__team { min-width: 0; }
+.heritage-serving__position-name { display: flex; align-items: baseline; gap: .75rem; }
+.heritage-serving__position-name span { font-size: .85rem; color: var(--theme-warning-750, var(--theme-elevation-700)); }
+.heritage-serving__position-name span.is-full { color: var(--theme-success-750, var(--theme-success-500)); }
+.heritage-serving__people { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+.heritage-serving__person { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .75rem; padding: .45rem .6rem; border-radius: .4rem; background: var(--theme-elevation-50); border-left: 3px solid var(--theme-elevation-300); }
+.heritage-serving__person--accepted { border-left-color: var(--theme-success-500); }
+.heritage-serving__person--declined { border-left-color: var(--theme-error-500); }
+.heritage-serving__person--declined .heritage-serving__name { text-decoration: line-through; color: var(--theme-elevation-600); }
+.heritage-serving__person--waiting { border-left-color: var(--theme-warning-500); }
+.heritage-serving__name { font-weight: 600; }
+.heritage-serving__badge { padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--theme-elevation-200); font-size: .8rem; color: var(--theme-elevation-800); }
+.heritage-serving__note { flex-basis: 100%; color: var(--theme-elevation-700); font-size: .9rem; }
+.heritage-serving__controls { display: flex; align-items: center; gap: .4rem; margin-left: auto; }
+.heritage-serving__controls select, .heritage-serving__controls button { min-height: 2rem; white-space: nowrap; padding: .2rem .55rem; border: 1px solid var(--theme-elevation-200); border-radius: .35rem; background: var(--theme-bg); color: var(--theme-text); font: inherit; font-size: .85rem; cursor: pointer; }
+.heritage-serving__controls button:disabled, .heritage-serving__controls select:disabled { opacity: .5; cursor: default; }
+.heritage-serving__add { justify-self: start; width: min(100%, 26rem); text-overflow: ellipsis; min-height: 2.25rem; padding: .3rem .6rem; border: 1px dashed var(--theme-elevation-300); border-radius: .4rem; background: var(--theme-bg); color: var(--theme-text); font: inherit; cursor: pointer; }
+.heritage-serving__card h2 { margin: 0 0 .5rem; }
+.heritage-serving__position-list { font-weight: 600; color: var(--theme-text) !important; }
+.heritage-serving__members { display: grid; gap: .4rem; padding-left: 0 !important; list-style: none; }
+.heritage-serving__members li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem .75rem; }
+.heritage-serving__members li > span:first-child { display: grid; }
+.heritage-serving__away-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: .75rem; align-items: end; margin-bottom: 1rem; }
+.heritage-serving__away-form label { display: grid; gap: .35rem; font-size: .9rem; }
+.heritage-serving__away-form select, .heritage-serving__away-form input { min-height: 2.5rem; padding: .4rem .6rem; border: 1px solid var(--theme-elevation-250); border-radius: .35rem; background: var(--theme-input-bg, var(--theme-bg)); color: var(--theme-text); font: inherit; }
+.heritage-serving__away-form button { border: 0; font: inherit; cursor: pointer; }
+@media (max-width: 900px) {
+  .heritage-serving__layout { grid-template-columns: 1fr; }
+  .heritage-serving__dates { position: static; }
+  .heritage-serving__dates ul { display: flex; overflow-x: auto; padding-bottom: .4rem; }
+  .heritage-serving__dates li { flex: 0 0 11rem; }
+  .heritage-serving__away-form { grid-template-columns: 1fr; }
+  .heritage-serving__controls { margin-left: 0; flex-basis: 100%; }
+}

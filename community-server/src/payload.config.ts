@@ -32,6 +32,10 @@ import { EncryptedSync } from '@/collections/EncryptedSync'
 import { EventRsvps } from '@/collections/EventRsvps'
 import { EventRegistrations } from '@/collections/EventRegistrations'
 import { Households } from '@/collections/Households'
+import { Teams } from '@/collections/Teams'
+import { ServingAssignments } from '@/collections/ServingAssignments'
+import { ServingBlockouts } from '@/collections/ServingBlockouts'
+import { servingEndpoints } from '@/endpoints/serving'
 import { People } from '@/collections/People'
 import { Events } from '@/collections/Events'
 import { Media } from '@/collections/Media'
@@ -153,6 +157,7 @@ export default buildConfig({
       providers: ['@/components/WorkspaceLocalization#WorkspaceLocalizationProvider', '@/components/WorkspaceActivityProvider'],
       views: {
         people: { Component: '@/components/People', exact: true, meta: { title: 'People' }, path: '/people' },
+        serving: { Component: '@/components/Serving', exact: true, meta: { title: 'Serving' }, path: '/serving' },
         dashboard: {
           Component: '@/components/AdminDashboard',
           exact: true,
@@ -211,6 +216,9 @@ export default buildConfig({
     Memberships,
     People,
     Households,
+    Teams,
+    ServingAssignments,
+    ServingBlockouts,
     CommunityInvites,
     Media,
     ReadingPlans,
@@ -267,6 +275,7 @@ export default buildConfig({
     ...bibleImportEndpoints,
     ...calendarEndpoints,
     ...eventRegistrationEndpoints,
+    ...servingEndpoints,
     ...calendarMcpEndpoints,
     ...sermonPresentationEndpoints,
     ...serviceHistoryEndpoints,

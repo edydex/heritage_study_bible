@@ -46,7 +46,7 @@ jobs:
           npm run typecheck
           npm run test:syncshow
           npm run test:editor
-          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-provider-settings.test.ts tests/translation-plans.test.ts tests/calendar.test.ts tests/sermon-presentation.test.ts tests/planner-templates.test.ts tests/service-reference-layout.test.ts tests/service-flow.test.ts tests/book-readalong.test.ts tests/planner-presentation.test.ts tests/passage-shortcuts.test.ts tests/passage-editing.test.ts tests/online-bible-passage.test.ts tests/slide-typography.test.ts tests/song-layout-preference.test.ts tests/presentation-palette.test.ts tests/bible-import.test.ts tests/event-registration.test.ts tests/people-directory.test.ts
+          node --import tsx --test tests/songbook-publication.test.ts tests/songbook-search.test.ts tests/workspace-navigation.test.ts tests/translation-access.test.ts tests/translation-provider-settings.test.ts tests/translation-plans.test.ts tests/calendar.test.ts tests/sermon-presentation.test.ts tests/planner-templates.test.ts tests/service-reference-layout.test.ts tests/service-flow.test.ts tests/book-readalong.test.ts tests/planner-presentation.test.ts tests/passage-shortcuts.test.ts tests/passage-editing.test.ts tests/online-bible-passage.test.ts tests/slide-typography.test.ts tests/song-layout-preference.test.ts tests/presentation-palette.test.ts tests/bible-import.test.ts tests/event-registration.test.ts tests/people-directory.test.ts tests/serving.test.ts
           npm run build
 
       - name: Create isolated test configuration
@@ -608,3 +608,36 @@ jobs:
           cache-dependency-path: community-server/package-lock.json
       - run: npm ci --legacy-peer-deps
       - run: npm run test:people-directory-live
+
+  serving-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: community-server
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: heritage_ci
+          POSTGRES_PASSWORD: disposable-ci-database-password
+          POSTGRES_DB: heritage_serving_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U heritage_ci -d heritage_serving_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://heritage_ci:disposable-ci-database-password@127.0.0.1:5432/heritage_serving_test
+      SERVING_TEST_DATABASE_URL: postgresql://heritage_ci:disposable-ci-database-password@127.0.0.1:5432/heritage_serving_test
+      HERITAGE_DISPOSABLE_CI: heritage-serving-test-v1
+      PAYLOAD_SECRET: disposable-ci-payload-secret-at-least-thirty-two-characters
+      COMMUNITY_PUBLIC_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: community-server/package-lock.json
+      - run: npm ci --legacy-peer-deps
+      - run: npm run test:serving-live
