@@ -30,6 +30,7 @@
     "test:event-registration-live": "node --import tsx --test --test-force-exit tests/event-registration-postgres.test.ts",
     "test:people-directory-live": "node --import tsx --test --test-force-exit tests/people-directory-postgres.test.ts",
     "test:serving-live": "node --import tsx --test --test-force-exit tests/serving-postgres.test.ts",
+    "test:calendar-live": "node --import tsx --test --test-force-exit tests/calendar-postgres.test.ts",
     "test:song-pptx": "node --import tsx --test tests/song-pptx-import.test.ts",
     "test:calendar-mcp": "node --import tsx --test --test-force-exit tests/calendar-mcp*.test.ts"
   },

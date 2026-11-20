@@ -216,3 +216,9 @@ button, input, select, textarea { font: inherit; }
   .serving-page__away-form { grid-template-columns: 1fr; }
   .serving-page__actions .button { flex: 1 1 140px; }
 }
+
+/* Calendar subscription box on the public calendar page */
+.calendar-subscribe { margin-top: 48px; padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+.calendar-subscribe h2 { margin: 0 0 8px; font: 500 28px/1.2 Georgia, serif; }
+.calendar-subscribe p { color: var(--muted); line-height: 1.6; }
+.calendar-subscribe__note { margin-bottom: 0; font-size: 14px; }

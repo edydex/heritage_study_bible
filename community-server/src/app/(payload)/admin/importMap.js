@@ -1,6 +1,7 @@
 import { AccountLocalizationPreference as AccountLocalizationPreference_81c48168acfc5d9e94dce9766029d3eb } from '@/components/WorkspaceLocalization'
 import { PersonalPresentationPreference as PersonalPresentationPreference_227344e70bb0cdba6895362425f0e141 } from '@/components/PresentationAccessibility'
 import { default as default_0bef48e2ba46070d0450e759ffa990b3 } from '@/components/PeopleListRedirect'
+import { default as default_1179b5096c0d2f1819ea8a4e278c029d } from '@/components/TimeZoneField'
 import { default as default_c9cefe429fe1e75c1a08d195c85500c3 } from '@/components/DateOnlyField'
 import { default as default_c7ccba580778778429853539c077fad6 } from '@/components/PersonAccountNotice'
 import { default as default_9253495b35311fc9723935fd72b9b1da } from '@/components/HouseholdsListRedirect'
@@ -43,6 +44,10 @@ import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93
 import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { default as default_de37bb9e52771921313c67c491e1bc18 } from '@/components/EventTimeField'
+import { default as default_9b4df82efa844784af4566efb0681707 } from '@/components/TimeOfDayField'
+import { default as default_182e239a319c74795f85367a837bbe36 } from '@/components/EventExceptionRowLabel'
+import { default as default_c03da918e88e4a667a6b0a5791aa38fd } from '@/components/ReminderField'
 import { default as default_d390e27bb755b7e554e36db7be804442 } from '@/components/RegistrationSettingsField'
 import { default as default_c7295520b98a92860201eb6e333a5dad } from '@/components/EventRegistrationsPanel'
 import { default as default_11da70e19fc4e82f9e441f9ef3707d09 } from '@/components/EventsCalendar'
@@ -65,6 +70,7 @@ export const importMap = {
   "@/components/WorkspaceLocalization#AccountLocalizationPreference": AccountLocalizationPreference_81c48168acfc5d9e94dce9766029d3eb,
   "@/components/PresentationAccessibility#PersonalPresentationPreference": PersonalPresentationPreference_227344e70bb0cdba6895362425f0e141,
   "@/components/PeopleListRedirect#default": default_0bef48e2ba46070d0450e759ffa990b3,
+  "@/components/TimeZoneField#default": default_1179b5096c0d2f1819ea8a4e278c029d,
   "@/components/DateOnlyField#default": default_c9cefe429fe1e75c1a08d195c85500c3,
   "@/components/PersonAccountNotice#default": default_c7ccba580778778429853539c077fad6,
   "@/components/HouseholdsListRedirect#default": default_9253495b35311fc9723935fd72b9b1da,
@@ -107,6 +113,10 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#UnderlineFeatureClient": UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "@/components/EventTimeField#default": default_de37bb9e52771921313c67c491e1bc18,
+  "@/components/TimeOfDayField#default": default_9b4df82efa844784af4566efb0681707,
+  "@/components/EventExceptionRowLabel#default": default_182e239a319c74795f85367a837bbe36,
+  "@/components/ReminderField#default": default_c03da918e88e4a667a6b0a5791aa38fd,
   "@/components/RegistrationSettingsField#default": default_d390e27bb755b7e554e36db7be804442,
   "@/components/EventRegistrationsPanel#default": default_c7295520b98a92860201eb6e333a5dad,
   "@/components/EventsCalendar#default": default_11da70e19fc4e82f9e441f9ef3707d09,

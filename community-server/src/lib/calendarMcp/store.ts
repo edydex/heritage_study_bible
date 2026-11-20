@@ -79,7 +79,8 @@ export async function readEvents(req: PayloadRequest, authority: Authority, raw:
         showHiddenFields: true, req, sort: ['startsAt','id'], where: { community: { equals: authority.communityId } } })
       for (const doc of result.docs) {
         const event = eventProjection(doc)
-        const occurrences = eventOccurrences(event, input.from, input.to)
+        // Dates cancelled on their own are left out; changed dates report their own times.
+        const occurrences = eventOccurrences({ ...event, allDay: Boolean(doc.allDay), exceptions: doc.exceptions || [] }, input.from, input.to)
         if (occurrences.length) events.push({ ...event, occurrences: occurrences.map(occurrence => ({ startsAt: occurrence.startsAt, endsAt: occurrence.endsAt, date: occurrence.date })) })
       }
       if (events.length > 500 || JSON.stringify(events).length > 1024 * 1024) throw new CalendarMcpError('RESULT_TOO_LARGE', 'Choose a smaller calendar range.', 422)

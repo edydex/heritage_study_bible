@@ -249,9 +249,6 @@ export interface Community {
     | boolean
     | null;
   logo?: (number | null) | Media;
-  /**
-   * For example: America/Los_Angeles.
-   */
   timeZone: string;
   /**
    * Invite-only prevents strangers from creating member accounts on a public server.
@@ -261,6 +258,11 @@ export interface Community {
    * Events can inherit this setting or choose their own visibility.
    */
   calendarDefaultVisibility: 'members' | 'public';
+  calendarDefaultStartTime?: string | null;
+  calendarDefaultDurationMinutes?: number | null;
+  calendarDefaultReminderMinutes?: number | null;
+  calendarDefaultLocation?: string | null;
+  calendarFeedVersion?: number | null;
   allowDirectoryListing?: boolean | null;
   contentServerEnabled?: boolean | null;
   liveService?: {
@@ -572,30 +574,43 @@ export interface Event {
   calendarVersion?: string | null;
   community: number | Community;
   title: string;
-  description?: string | null;
+  allDay?: boolean | null;
   startsAt: string;
   endsAt?: string | null;
-  /**
-   * Use America/Los_Angeles for Pacific time, including daylight saving. PST and PDT are converted automatically.
-   */
   timeZone: string;
+  location?: string | null;
+  description?: string | null;
   /**
    * For a recurring event, this applies to the entire series.
    */
   visibility: 'inherit' | 'public' | 'members';
   recurrence?: ('none' | 'weekly' | 'monthly') | null;
   repeatInterval?: number | null;
-  /**
-   * Last date, inclusive, in YYYY-MM-DD format. Leave blank to keep repeating.
-   */
   repeatUntil?: string | null;
-  location?: string | null;
+  /**
+   * Cancel one date, or give one date a different time, title or place. Every other date stays the same.
+   */
+  exceptions?:
+    | {
+        date: string;
+        cancelled?: boolean | null;
+        startTime?: string | null;
+        endTime?: string | null;
+        title?: string | null;
+        location?: string | null;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  defaultReminderMinutes?: number | null;
   /**
    * An external website for registration or more information. Use a complete https:// address, or leave blank. The church event details page is created automatically.
    */
   url?: string | null;
   rsvpEnabled?: boolean | null;
-  defaultReminderMinutes?: number | null;
+  /**
+   * For a recurring event this cancels every date. To cancel one date, use Changes to single dates.
+   */
   cancelled?: boolean | null;
   registration?:
     | {
@@ -1948,6 +1963,11 @@ export interface CommunitiesSelect<T extends boolean = true> {
   timeZone?: T;
   joinPolicy?: T;
   calendarDefaultVisibility?: T;
+  calendarDefaultStartTime?: T;
+  calendarDefaultDurationMinutes?: T;
+  calendarDefaultReminderMinutes?: T;
+  calendarDefaultLocation?: T;
+  calendarFeedVersion?: T;
   allowDirectoryListing?: T;
   contentServerEnabled?: T;
   liveService?:
@@ -2592,18 +2612,31 @@ export interface EventsSelect<T extends boolean = true> {
   calendarVersion?: T;
   community?: T;
   title?: T;
-  description?: T;
+  allDay?: T;
   startsAt?: T;
   endsAt?: T;
   timeZone?: T;
+  location?: T;
+  description?: T;
   visibility?: T;
   recurrence?: T;
   repeatInterval?: T;
   repeatUntil?: T;
-  location?: T;
+  exceptions?:
+    | T
+    | {
+        date?: T;
+        cancelled?: T;
+        startTime?: T;
+        endTime?: T;
+        title?: T;
+        location?: T;
+        note?: T;
+        id?: T;
+      };
+  defaultReminderMinutes?: T;
   url?: T;
   rsvpEnabled?: T;
-  defaultReminderMinutes?: T;
   cancelled?: T;
   registration?: T;
   updatedAt?: T;
