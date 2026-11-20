@@ -83,6 +83,15 @@ test('reviewed BSB Matthew keeps repeated pronouns distinct and links John to th
   await expectStudyHead(page, '2491')
 })
 
+test('BSB Otherwise highlights both written particles and studies the negative first', async ({ page }) => {
+  await compareWithOriginal(page, 'matthew', 5, 'BSB')
+  await words(page, 'BSB', 5, 25, /^Otherwise$/).click()
+  await expect(words(page, 'ORIGINAL', 5, 25, /^μή$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 5, 25, /^ποτέ$/)).toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expectStudyHead(page, '3361')
+})
+
 test('KJV neither opens its actual second prohibition rather than the conjunction', async ({ page }) => {
   await compareWithOriginal(page, '2-john', 1, 'KJV')
   const negatives = words(page, 'ORIGINAL', 1, 10, /^μὴ$/)

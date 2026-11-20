@@ -4,12 +4,18 @@ The installed KJV is retained. Exact English words are aligned by the same manda
 
 The manifests record current groups and linked references across all 27 NT books. Hash-pinned reviews correct publisher annotation errors, including swapped pronoun occurrences; the original publisher baseline is not semantic certification. The word-accounting audit includes **all** installed KJV NT references, including those without a same-numbered N1904 verse. It distinguishes mapped words, explicitly explained unpaired words and unresolved words. Missing same-numbered verses such as 3 John 1:15 and Revelation 12:18 require review of the actual neighboring English counterpart. They are not evidence that the words are absent from the translation. Genuine witness differences must remain explicitly unpaired.
 
-BSB Matthew 1–4 have complete author and separate assistant peer reviews against
+BSB Matthew 1–7 have complete author and separate assistant peer reviews against
 the displayed translation, the Berean publisher's complete verse allocations,
 and the actual Nestle 1904 text and morphology. The genealogy keeps repeated
 names in their child and parent roles. Matthew 4:11 keeps the two “Him” words at
 their distinct Greek occurrences. Matthew 4:12 links “John” to the written name
 and leaves the supplied “Jesus” unpaired. Reader verification remains pending.
+At Matthew 5:25, “Otherwise” highlights both written particles and opens the
+negative in Word Study. The review retains the source annotation on the second
+particle and records the distinction between the interrogative and indefinite
+dictionary entries. In 6:15 and 6:33, BSB wording supported by a different
+Greek edition remains explicit and unpaired against N1904. In 7:7–8, the
+supplied door nouns stay unpaired while the opening verbs keep their links.
 
 The concordance applies three documented occurrence-specific annotation errata before positional matching. Its artifact hash and errata hash are pinned in KJV provenance in addition to the unchanged raw Greek source checksum. The accepted correction registry is `scripts/original-languages/kjv-review-status.json`; unreviewed drafts are excluded.
 
