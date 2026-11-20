@@ -86,8 +86,9 @@ test('request and decline emails are escaped and follow the reader’s language'
   assert.match(decline.html, /Away &lt;then&gt;/)
 })
 
-test('the migration is registered last and every schedule row goes with its church, service, team and person', () => {
-  assert.equal(migrations.at(-1)?.name, '20261120_120000_serving_teams')
+test('the migration is registered after the people directory and every schedule row goes with its church, service, team and person', () => {
+  const names = migrations.map(migration => migration.name)
+  assert.ok(names.indexOf('20261120_120000_serving_teams') > names.indexOf('20261119_120000_people_households'))
   const migration = readFileSync(new URL('../src/migrations/20261120_120000_serving_teams.ts', import.meta.url), 'utf8')
   for (const target of ['communities', 'events', 'teams', 'people']) {
     assert.match(migration, new RegExp(`REFERENCES "${target}"\\("id"\\) ON DELETE CASCADE`), target)

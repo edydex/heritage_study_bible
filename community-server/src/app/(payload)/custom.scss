@@ -2283,3 +2283,12 @@ body:has(.heritage-planner-frame) .template-default__nav-toggler-wrapper,
   .heritage-serving__away-form { grid-template-columns: 1fr; }
   .heritage-serving__controls { margin-left: 0; flex-basis: 100%; }
 }
+
+/* Event form: date and time in the event's own time zone. */
+.heritage-event-time__inputs { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.heritage-event-time__inputs input { min-height: 2.5rem; padding: .4rem .6rem; border: 1px solid var(--theme-elevation-250); border-radius: var(--style-radius-s, 4px); background: var(--theme-input-bg, var(--theme-bg)); color: var(--theme-text); font: inherit; }
+.heritage-event-time__inputs input[type="date"] { flex: 1 1 10rem; }
+.heritage-event-time__inputs input[type="time"] { flex: 0 1 8rem; }
+.heritage-event-time__clear { padding: .3rem .6rem; border: 0; background: none; color: var(--theme-elevation-700); text-decoration: underline; cursor: pointer; font: inherit; }
+.heritage-event-time__problem { margin: .4rem 0 0; color: var(--theme-error-500); }
+.heritage-time-zone select, .field-type select#field-defaultReminderMinutes { width: 100%; min-height: 2.5rem; padding: .4rem .6rem; border: 1px solid var(--theme-elevation-250); border-radius: var(--style-radius-s, 4px); background: var(--theme-input-bg, var(--theme-bg)); color: var(--theme-text); font: inherit; }

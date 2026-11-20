@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { validTimeZone } from '../../packages/calendar-core/index.js'
+import { validTimeOfDay, validTimeZone } from '../../packages/calendar-core/index.js'
 import { isSystemAdmin } from '@/access'
 import { youtubeChannel, youtubeVideoId, publicTranslationUrl } from '@/lib/liveServiceConfig'
 
@@ -34,7 +34,7 @@ export const Communities: CollectionConfig = {
     { name: 'website', label: 'Public server address', type: 'text', admin: { readOnly: true } },
     { name: 'presentationSlides', type: 'json', admin: { hidden: true }, access: { read: () => false, create: () => false, update: () => false } },
     { name: 'logo', label: 'Church logo', type: 'upload', relationTo: 'media' },
-    { name: 'timeZone', label: 'Default event time zone', validate: (value: unknown) => validTimeZone(value) || 'Choose a valid time zone such as America/Los_Angeles.', type: 'text', defaultValue: 'UTC', required: true, admin: { description: 'For example: America/Los_Angeles.' } },
+    { name: 'timeZone', label: 'Default event time zone', validate: (value: unknown) => validTimeZone(value) || 'Choose a valid time zone such as America/Los_Angeles.', type: 'text', defaultValue: 'America/Los_Angeles', required: true, admin: { components: { Field: '@/components/TimeZoneField#default' } } },
     {
       name: 'joinPolicy',
       label: 'Who may join?',
@@ -48,6 +48,14 @@ export const Communities: CollectionConfig = {
       admin: { description: 'Invite-only prevents strangers from creating member accounts on a public server.' },
     },
     { name: 'calendarDefaultVisibility', label: 'Default calendar visibility', type: 'select', required: true, defaultValue: 'members', options: [{label: 'Members only', value: 'members'}, {label: 'Public — everyone', value: 'public'}], admin: { description: 'Events can inherit this setting or choose their own visibility.' } },
+    // Calendar defaults for new events; church managers change them in Calendar settings on the Events page.
+    { name: 'calendarDefaultStartTime', type: 'text', defaultValue: '10:00', admin: { hidden: true },
+      validate: (value: unknown) => value == null || value === '' || validTimeOfDay(value) || 'Enter a time such as 10:30.' },
+    { name: 'calendarDefaultDurationMinutes', type: 'number', min: 5, max: 1440, defaultValue: 60, admin: { hidden: true } },
+    { name: 'calendarDefaultReminderMinutes', type: 'number', min: 0, max: 40320, defaultValue: 60, admin: { hidden: true } },
+    { name: 'calendarDefaultLocation', type: 'text', maxLength: 300, admin: { hidden: true } },
+    // Part of the members' calendar subscription link; raising it replaces the old link.
+    { name: 'calendarFeedVersion', type: 'number', defaultValue: 1, hidden: true, access: { create: () => false, update: () => false } },
     { name: 'allowDirectoryListing', label: 'Show a public member directory', type: 'checkbox', defaultValue: false },
     { name: 'contentServerEnabled', label: 'Publish church resources to Heritage', type: 'checkbox', defaultValue: true },
     {
