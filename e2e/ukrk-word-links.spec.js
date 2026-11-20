@@ -31,3 +31,28 @@ test('UKRK word study follows the written Greek across Philemon’s verse bounda
   await expect(result.locator('[data-occurrence-translation="UKRK"]')).toContainText('UKRK 1:23')
   await expect(result.locator('[data-occurrence-translation="UKRK"] mark')).toHaveText('Аристарх')
 })
+
+test('UKRK and BSB distinguish joy and grace through their actual Greek words', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('heritage-translation', 'UKRK')
+    localStorage.setItem('heritage-default-translation-v2', 'done')
+  })
+  await page.goto('/#/2-john/1')
+  await page.getByTitle('Enable parallel mode', { exact: true }).click()
+  await page.getByRole('button', { name: 'English', exact: true }).click()
+  await page.getByRole('button', { name: /Berean Standard Bible/ }).click()
+
+  const word = (translation, verse, text) => page
+    .locator(`#verse-1-${verse} [data-translation="${translation}"] [data-word-link]:visible`)
+    .filter({ hasText: text })
+  const grace = word('BSB', 3, /^Grace$/)
+  const joy = word('BSB', 12, /^joy$/)
+  await word('UKRK', 3, /^благодать$/).click()
+  await expect(grace).toHaveClass(/bible-word-link-active/)
+  await expect(joy).not.toHaveClass(/bible-word-link-active/)
+  await word('UKRK', 12, /^благодать$/).click()
+  await expect(joy).toHaveClass(/bible-word-link-active/)
+  await expect(grace).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('heading', { level: 3 }).first()).toContainText('G5479')
+})
