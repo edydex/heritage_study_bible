@@ -3,6 +3,7 @@ import { studyWord, sourceVerseWords, loadOccurrenceTranslations, occurrenceKey 
 import GreekWordForm from './GreekWordForm'
 import { TextualAdditionBracket } from './VerseText'
 import { synodalAdditionRanges } from '../data/synodalTextAdditions'
+import { greekWordLinkTranslations } from '../data/originalLanguages'
 import { NATIVE_READER_TARGET_CHANGE_EVENT } from '../services/androidControls'
 
 export function OccurrenceText({ text, ranges = [], additions = [] }) {
@@ -33,7 +34,7 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
   const [sourceWords, setSourceWords] = useState(null), [sourceError, setSourceError] = useState(false), [sourceLoading, setSourceLoading] = useState(false), [sourceWord, setSourceWord] = useState(null)
   const studyTarget = sourceWord || word
   const preferredTranslation = word.comparisonTranslationId || word.translationId
-  const defaultComparisonId = ['LSV', 'KJV', 'SYNO-W'].includes(preferredTranslation) ? preferredTranslation : 'BSB'
+  const defaultComparisonId = greekWordLinkTranslations.includes(preferredTranslation) ? preferredTranslation : 'BSB'
   const [comparisonTranslationId, setComparisonTranslationId] = useState(defaultComparisonId)
   const russian = preferredTranslation === 'SYNO-W'
   useEffect(() => { setSourceWords(null); setSourceError(false); setSourceLoading(false); setSourceWord(null); setComparisonTranslationId(defaultComparisonId) }, [word, defaultComparisonId])
@@ -51,6 +52,7 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
     return () => { live = false }
   }, [studyTarget, retry])
   const showTranslation = data?.sourceId === 'N1904' || data?.sourceId === 'WLC-OSHB'
+  const hasSourceVerse = word.translationId !== 'UKRK' || word.sourceReferences?.length > 0
   useEffect(() => {
     let live = true
     setComparison(null); setComparisonError(false)
@@ -68,7 +70,7 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
   return <dialog ref={dialog} data-word-study-scroll-region="true" onCancel={onClose} onClick={event => { if (event.target === dialog.current) onClose() }} className="word-study-dialog overflow-y-auto rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-5" aria-label={`Word study: ${word.word}`}>
     <header className="flex items-center justify-between gap-4"><h2 className="text-xl font-semibold">{studyTarget.word}</h2><button autoFocus onClick={onClose} aria-label="Close word study" className="p-2">✕</button></header>
     {word.notes?.length > 0 && <details className="mt-3 text-sm"><summary>Reading note</summary>{word.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}
-    {word.translationId !== 'ORIGINAL' && !word.sourceRange && <div className="mt-3 border rounded p-3">
+    {word.translationId !== 'ORIGINAL' && !word.sourceRange && hasSourceVerse && <div className="mt-3 border rounded p-3">
       <button className="underline" disabled={sourceLoading} onClick={openSourceVerse}>{russian ? (sourceLoading ? 'Загрузка оригинала…' : sourceWords ? 'Загрузить оригинал ещё раз' : 'Изучить слова оригинала в этом стихе') : (sourceLoading ? 'Loading original verse…' : sourceWords ? 'Reload original verse' : 'Study original words in this verse')}</button>
       {sourceError && <p role="status">The original verse could not load. Try again.</p>}
       {sourceWords?.length === 0 && <p className="mt-2 text-sm">No original verse is present in the installed source at this reference.</p>}
@@ -87,6 +89,7 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
       {showTranslation && <>
         <label className="block text-sm mt-3">Verse wording <select className="ml-2 rounded border bg-white dark:bg-gray-800 px-2 py-1" value={comparisonTranslationId} onChange={event => setComparisonTranslationId(event.target.value)}>
           <option value="BSB">BSB</option><option value="LSV">LSV</option><option value="KJV">KJV</option><option value="SYNO-W">Russian Synodal</option>
+          {data.sourceId === 'N1904' && <option value="UKRK">Ukrainian (UKRK)</option>}
         </select></label>
         <p className="text-sm mt-2">{comparisonTranslationId === 'SYNO-W' ? (data.sourceId === 'N1904' ? 'Выделены проверенные соответствия русских и греческих слов. Слова без точного соответствия остаются без выделения.' : 'Синодальный перевод показан для контекста. Точные связи русских слов с еврейским или арамейским оригиналом пока не установлены.') : <>{comparisonTranslationId} wording appears with each verse. {data.sourceId === 'WLC-OSHB' ? 'The Hebrew/Aramaic word is highlighted; an exact English word match is not available.' : <>Highlighted phrases use installed translation links; a phrase may include more than one English word.{comparisonTranslationId === 'LSV' && ' LSV phrase links are partial.'}</>}</>}</p>
       </>}
@@ -101,14 +104,15 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
           const translation = comparison?.[occurrenceKey(row)]
           const contexts = translation?.contexts?.length ? translation.contexts : translation ? [translation] : []
           const destination = translation?.contexts?.[0] || row
-          return <li key={occurrenceKey(row)}><button className="text-left w-full rounded border border-gray-200 dark:border-gray-700 p-3" onClick={() => { onClose(); onNavigate?.(row.book, destination.chapter, destination.verse || 1) }}>
+          const checkedUkrainianReference = comparisonTranslationId !== 'UKRK' || Boolean(translation?.contexts?.length)
+          return <li key={occurrenceKey(row)}><button disabled={!checkedUkrainianReference} className="text-left w-full rounded border border-gray-200 dark:border-gray-700 p-3" onClick={() => { onClose(); onNavigate?.(row.book, destination.chapter, destination.verse || 1) }}>
             <strong>{row.book} {row.chapter}{row.heading ? ' · source heading' : `:${row.verse}`}</strong>
             {translation && <div className="mt-2" data-occurrence-translation={comparisonTranslationId}>
               {contexts.map((context, index) => <div key={index} className={index ? 'mt-3' : ''}>
                 <p className="text-sm font-semibold">{comparisonTranslationId}{context.chapter && (context.chapter !== row.chapter || context.verse !== row.verse) ? ` ${context.chapter}:${context.verse}` : ''}{context.phrases.length ? ` · ${context.phrases.map(phrase => `“${phrase}”`).join(' / ')}` : ''}</p>
                 {context.text ? <p className="mt-1"><OccurrenceText text={context.text} ranges={context.ranges} additions={synodalAdditionRanges(
                   comparisonTranslationId, row.book, context.chapter ?? row.chapter, context.verse ?? row.verse, context.text
-                )} /></p> : <p className="text-sm italic">{row.heading ? 'Source heading shown below.' : `Verse not present in ${comparisonTranslationId}.`}</p>}
+                )} /></p> : <p className="text-sm italic">{translation.status === 'unreviewed-reference' ? 'The UKRK verse correspondence is still under review.' : row.heading ? 'Source heading shown below.' : `Verse not present in ${comparisonTranslationId}.`}</p>}
                 {context.notes?.map((note, noteIndex) => <p key={noteIndex} className="text-xs mt-1 text-gray-600 dark:text-gray-300">Reading note: {note}</p>)}
               </div>)}
               {translation.status === 'unmapped' && <p className="text-xs mt-1 text-gray-600 dark:text-gray-300">{comparisonTranslationId === 'SYNO-W' ? 'Точное соответствие слов пока не установлено; стих показан для контекста.' : 'Exact word mapping unavailable; the full verse is shown for context.'}</p>}

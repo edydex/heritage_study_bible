@@ -7,7 +7,7 @@ export const originalLanguages = {
 }
 
 const translationLinks = new Map()
-export const greekWordLinkTranslations = ['BSB', 'LSV', 'KJV', 'SYNO-W']
+export const greekWordLinkTranslations = ['BSB', 'LSV', 'KJV', 'SYNO-W', 'UKRK']
 export function loadGreekWordLinks(book, targetId = 'BSB') {
   if (!greekWordLinkTranslations.includes(targetId)) return Promise.reject(new Error('Word mappings are not installed for this translation.'))
   const key = `${targetId}:${book}`

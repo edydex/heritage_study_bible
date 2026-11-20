@@ -13,6 +13,18 @@ const entry = (targetText, sourceVerse) => ({
 const primaryData = { book: 'Example', targetId: 'LSV', verses: { '1:1': entry('second', 2), '1:2': entry('first', 1) } }
 const secondaryData = { book: 'Example', targetId: 'BSB', verses: { '1:1': entry('first', 1), '1:2': entry('second', 2) } }
 
+it('requires a reviewed reference before showing Ukrainian occurrence context', () => {
+  const original = book({ 1: 'λόγος', 2: 'λόγος', 3: 'λόγος' })
+  const ukrainian = book({ 1: 'слово', 2: 'вістка', 3: 'річ' })
+  const data = { book: 'Example', targetId: 'UKRK', verses: { '1:1': entry('слово', 2) } }
+  const row = { book: 'Example', chapter: 1, verse: 2, text: 'λόγος', count: 1, ranges: [[0, 5]] }
+  const options = { checkedReferencesOnly: true }
+  expect(occurrenceWordAnchors(row, data, ukrainian, original, options).contexts)
+    .toMatchObject([{ verse: 1, text: 'слово', phrases: ['слово'] }])
+  expect(occurrenceWordAnchors({ ...row, verse: 3 }, data, ukrainian, original, options))
+    .toMatchObject({ status: 'unreviewed-reference', text: '', contexts: [] })
+})
+
 // The last six N1904 Acts 19:40 words are numbered Acts 19:41 in LSV.
 // There is no N1904 19:41 text to use as a local range fallback.
 const absentBoundaryFixture = () => {

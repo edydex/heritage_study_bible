@@ -48,6 +48,12 @@ it('retains exact visible offsets and never invents an unpaired word match', () 
   expect(words.map(row => [row.word, row.startOffset, row.paired])).toEqual([['For', 0, false], ['God', 4, true], ['loved', 8, false]])
   expect(normalizeWord('θεοῦ')).toBe(normalizeWord('Θεοῦ'))
 })
+it('keeps Ukrainian letters distinct in word-form searches', () => {
+  expect(normalizeWord('Ї́Х', 'UKRK')).toBe('їх')
+  expect(normalizeWord('ІХ', 'UKRK')).toBe('іх')
+  expect(normalizeWord('Його', 'UKRK')).toBe('його')
+  expect(normalizeWord('п’ять', 'UKRK')).toBe('пʼять')
+})
 it('distinguishes Assos and the possessive his from lookalike adverbs at their exact occurrences', () => {
   const lemmaAt = (book, ref, token) => concordance.lemmas[concordance.books.find(row => row.name === book).verses[ref][token][2]]
   expect(lemmaAt('Acts', '20:13', 9).strongs).toContain('789')

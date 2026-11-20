@@ -3,7 +3,12 @@ import { hebrewOriginalBooks, visibleVerseText, verseWordLinks, loadGreekWordLin
 import { occurrenceWordAnchors } from './parallelWordAnchors'
 
 export const wordTokens = text => [...visibleVerseText(text).matchAll(/[\p{L}\p{M}\p{N}]+(?:[’'][\p{L}\p{M}\p{N}]+)*/gu)]
-export const normalizeWord = text => text.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase().replace(/ς/g, 'σ')
+export function normalizeWord(text, translationId) {
+  if (translationId === 'UKRK') {
+    return text.normalize('NFC').toLocaleLowerCase('uk').replace(/\u0301/g, '').replace(/['’ʼ]/g, 'ʼ')
+  }
+  return text.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase().replace(/ς/g, 'σ')
+}
 export function interactiveWordRanges(text, pairs = [], context = {}) {
   const { unpairedNotes = [], lookupLinks = [], ...wordContext } = context
   return wordTokens(text).map(match => {
@@ -119,7 +124,7 @@ export function hebrewOccurrences(data, lemmaId) {
 export async function sourceVerseWords(word) {
   const corpus = await loadTranslation('ORIGINAL', word.book)
   const book = corpus.books.find(book => book.name === word.book)
-  const references = word.sourceReferences || [{ chapter: word.chapter, verse: word.verse }]
+  const references = word.sourceReferences || (word.translationId === 'UKRK' ? [] : [{ chapter: word.chapter, verse: word.verse }])
   return references.flatMap(reference => {
     const verse = book?.chapters.find(chapter => chapter.number === reference.chapter)?.verses.find(verse => verse.number === reference.verse)
     return interactiveWordRanges(verse?.text || '', [], { book: word.book, ...reference, translationId: 'ORIGINAL', comparisonTranslationId: word.comparisonTranslationId || word.translationId })
@@ -141,8 +146,10 @@ export async function studyWord(word) {
   // Other translations expose exact normalized word forms, never guessed roots.
   const corpus = await loadTranslation(word.translationId, word.book)
   const results = []
+  const normalized = normalizeWord(word.word, word.translationId)
   for (const book of corpus.books) for (const chapter of book.chapters) for (const verse of chapter.verses) {
-    const ranges = wordTokens(verse.text).filter(match => normalizeWord(match[0]) === normalizeWord(word.word)).map(match => [match.index, match.index + match[0].length])
+    const ranges = wordTokens(verse.text).filter(match => normalizeWord(match[0], word.translationId) === normalized)
+      .map(match => [match.index, match.index + match[0].length])
     if (ranges.length) results.push({ book: book.name, chapter: chapter.number, verse: verse.number, text: visibleVerseText(verse.text), count: ranges.length, ranges })
   }
   return { kind: 'form', sourceId: word.translationId === 'ORIGINAL' ? 'WLC-OSHB' : word.translationId, scope: word.translationId === 'ORIGINAL' ? `${word.book} · WLC / OSHB` : word.translationId,
@@ -166,7 +173,8 @@ export function occurrenceTranslation(row, alignment, targetText) {
 // Enrich only the currently displayed page. Successful book mappings are cached;
 // a failed request is retryable and never removes the original occurrence list.
 export async function loadOccurrenceTranslations(rows, sourceId, translationId = 'BSB') {
-  const targetId = greekWordLinkTranslations.includes(translationId) ? translationId : 'BSB'
+  const ukrainian = translationId === 'UKRK'
+  const targetId = greekWordLinkTranslations.includes(translationId) && (!ukrainian || sourceId === 'N1904') ? translationId : 'BSB'
   const hasMappings = sourceId === 'N1904' && greekWordLinkTranslations.includes(targetId)
   const [corpus, original] = await Promise.all([loadTranslation(targetId), hasMappings ? loadTranslation('ORIGINAL') : null])
   const books = [...new Set(rows.map(row => row.book))]
@@ -178,8 +186,8 @@ export async function loadOccurrenceTranslations(rows, sourceId, translationId =
     const book = corpus.books.find(book => book.name === row.book)
     const verse = book?.chapters.find(chapter => chapter.number === row.chapter)?.verses.find(verse => verse.number === row.verse)
     const sourceBook = original?.books.find(book => book.name === row.book)
-    const value = mapping?.status === 'fulfilled' && sourceBook
-      ? occurrenceWordAnchors(row, mapping.value, book, sourceBook)
+    const value = targetId === 'UKRK' || mapping?.status === 'fulfilled' && sourceBook
+      ? occurrenceWordAnchors(row, mapping?.value, book, sourceBook, { checkedReferencesOnly: targetId === 'UKRK' })
       : occurrenceTranslation(row, null, verse?.text)
     if (mapping?.status === 'rejected') { value.status = 'load-error'; failed = true }
     results[occurrenceKey(row)] = value

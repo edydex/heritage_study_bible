@@ -25,7 +25,7 @@ npx vitest run src/data/hebrewOriginal.test.js
 
 ## Greek New Testament word links and occurrences
 
-With BSB, LSV, KJV or reviewed Russian Synodal passages compared with Original languages—or with each other—the Greek New Testament offers
+With BSB, LSV, KJV or reviewed Russian Synodal and Ukrainian Kulish/Pulyui passages compared with Original languages or with each other, the Greek New Testament offers
 **Word links**. Each distinct checked correspondence has its own tint within a
 verse, plus a shared background texture: diagonal strokes, dots, horizontal or
 vertical lines, crosshatching, grids or rings. Nearby matches favor different
@@ -42,6 +42,13 @@ new study dialog. A reading note explains documented witness or grammar differen
 If links are still loading, the reader keeps the tapped or held word and shows
 the loading state. Its match and requested study resolve when the links arrive.
 **Clear word match** also cancels a study requested during loading.
+
+UKRK uses the Ukrainian Kulish/Pulyui edition catalogued as 1905 by
+[eBible.org](https://ebible.org/find/details.php?id=ukr1871). Heritage keeps its
+spelling and verse numbering. Greek comparison is available in chapters with
+checked Ukrainian verse references. Select a word to follow an exact link across
+verse numbers. Word Study shows Ukrainian context where the source reference has
+a checked counterpart.
 
 For verse-boundary differences, **Show Original / BSB / LSV / KJV / SYNO-W** identifies the
 actual matching reference rather than forcing a same-number pairing. Greek words use the source's

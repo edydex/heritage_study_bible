@@ -19,6 +19,13 @@ function MissingVerse({ translationId }) {
   )
 }
 
+function reviewedVerseCount(chapter, data) {
+  return (chapter?.verses || []).filter(verse => {
+    const entry = data?.verses?.[`${chapter.number}:${verse.number}`]
+    return entry?.review?.completeAccounting && entry.targetText === visibleVerseText(verse.text)
+  }).length
+}
+
 function ParallelBibleChapter({
   primaryChapter,
   secondaryChapter,
@@ -57,9 +64,8 @@ function ParallelBibleChapter({
   const primaryOriginal = primaryTranslationId === 'ORIGINAL'
   const source = originalSourceForBook(bookName)
   const hebrew = original && source.id === 'WLC-OSHB'
-  const numberingUnsupported = original && getTranslationById(primaryTranslationId)?.versification !== 'western'
   const linkTranslations = [...greekWordLinkTranslations, 'ORIGINAL']
-  const canLink = !numberingUnsupported && source.id === 'N1904'
+  const canLink = source.id === 'N1904'
     && linkTranslations.includes(primaryTranslationId) && linkTranslations.includes(secondaryTranslationId)
   useEffect(() => {
     let cancelled = false
@@ -86,11 +92,21 @@ function ParallelBibleChapter({
 
   const russianChapter = primaryTranslationId === 'SYNO-W' ? primaryChapter : secondaryTranslationId === 'SYNO-W' ? secondaryChapter : null
   const russianLinks = primaryTranslationId === 'SYNO-W' ? alignment?.primary : secondaryTranslationId === 'SYNO-W' ? alignment?.secondary : null
-  const reviewedRussianVerses = (russianChapter?.verses || []).filter(verse => {
-    const entry = russianLinks?.verses?.[`${russianChapter.number}:${verse.number}`]
-    return entry?.review?.completeAccounting && entry.targetText === visibleVerseText(verse.text)
-  }).length
-
+  const isUkrainianPrimary = primaryTranslationId === 'UKRK'
+  const ukrainianChapter = isUkrainianPrimary ? primaryChapter : secondaryTranslationId === 'UKRK' ? secondaryChapter : null
+  const ukrainianLinks = isUkrainianPrimary ? alignment?.primary : alignment?.secondary
+  const reviewedUkrainianVerses = ukrainianLinks?.targetId === 'UKRK' && ukrainianLinks.book === bookName
+    ? reviewedVerseCount(ukrainianChapter, ukrainianLinks) : 0
+  const ukrainianChapterReviewed = reviewedUkrainianVerses > 0 && reviewedUkrainianVerses === ukrainianChapter.verses.length
+  const numberingUnsupported = original && getTranslationById(primaryTranslationId)?.versification !== 'western'
+    && !(isUkrainianPrimary && ukrainianChapterReviewed)
+  const ukrainianReferencesDiffer = ukrainianChapterReviewed && ukrainianChapter.verses.some(verse => {
+    const entry = ukrainianLinks.verses[`${ukrainianChapter.number}:${verse.number}`]
+    return entry.sourceAbsent || (entry.sourceReference && (entry.sourceReference.chapter !== ukrainianChapter.number
+      || entry.sourceReference.verse !== verse.number)) || entry.groups.some(group => group.sourceAnchors?.some(anchor =>
+      anchor.chapter !== ukrainianChapter.number || anchor.verse !== verse.number
+    ))
+  })
 
   const primaryVerseMap = useMemo(() => {
     return new Map((primaryChapter?.verses || []).map(verse => [verse.number, verse]))
@@ -220,21 +236,22 @@ function ParallelBibleChapter({
       {(original || canLink) && <div className="mb-4 rounded-lg border border-gray-200 p-3 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
         <div className="font-semibold text-gray-900 dark:text-gray-100">{original ? 'Original languages' : 'Word links'} · {hebrew ? 'Hebrew / Aramaic' : 'Greek New Testament'}</div>
         <p><a className="underline" href={source.url} target="_blank" rel="noreferrer">{source.title}</a>.</p>
-        {numberingUnsupported && <p role="status" className="mt-2">The original source uses Western verse numbering. A checked mapping for {primaryTranslationId} is not installed, so its source column is left empty. Choose BSB, SYNO-W or another Western-numbered primary translation to compare.</p>}
+        {numberingUnsupported && (!canLink || alignment) && <p role="status" className="mt-2">A checked verse mapping for {primaryTranslationId} is not installed for this chapter. Choose a Western-numbered translation to view the original here.</p>}
         {hebrew && <details className="mt-2 text-xs"><summary>Source and verse numbering</summary><p className="mt-1">WLC 4.20 as maintained by OSHB. Written readings appear in the text; traditional read-aloud alternatives (qere) are listed separately. Hebrew and Aramaic labels follow source morphology. Original source references are retained where numbering differs. Nehemiah 7:68 is absent from this witness.</p><p className="mt-1">Original work of the Open Scriptures Hebrew Bible available at <a className="underline" href="https://github.com/openscriptures/morphhb">github.com/openscriptures/morphhb</a>. WLC text is public domain; metadata is <a className="underline" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Adapted for BSB verse numbering and separate reading notes.</p></details>}
         {hebrew && !numberingUnsupported && secondaryChapter?.superscription && <div className="mt-3 border-t pt-2"><p className="text-xs">Hebrew source heading · {secondaryChapter.superscription.sourceRefs.join(', ')}</p><p dir="rtl" lang="he" className="mt-1 text-lg">{secondaryChapter.superscription.text}</p></div>}
-        {canLink ? <>
+        {canLink && !numberingUnsupported ? <>
           <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={showWordLinks} onChange={event => setShowWordLinks(event.target.checked)} /> Word links</label>
           {!selectionMode && <p className="mt-2 text-xs">Tap a word to highlight its match in both columns. Hold it, or choose Study word, for occurrences.</p>}
-          {russianChapter && alignment && <p className="mt-1 text-xs" data-russian-link-coverage="true">Russian Synodal: {reviewedRussianVerses} of {russianChapter.verses.length} verses in this chapter have reviewed word links.</p>}
+          {russianChapter && alignment && <p className="mt-1 text-xs" data-russian-link-coverage="true">Russian Synodal: {reviewedVerseCount(russianChapter, russianLinks)} of {russianChapter.verses.length} verses in this chapter have reviewed word links.</p>}
+          {ukrainianChapter && alignment && <p className="mt-1 text-xs">UKRK: {reviewedUkrainianVerses} of {ukrainianChapter.verses.length} verses have reviewed word links.</p>}
+          {original && ukrainianReferencesDiffer && <p className="mt-1 text-xs">Both editions keep their own verse numbers. Select a word to see its linked verse in the other column.</p>}
           {russianChapter?.verses.some(verse => synodalAdditionRanges('SYNO-W', bookName, russianChapter.number, verse.number, verse.text).length > 0)
             && <p lang="ru" className="mt-1 text-xs">[[…]] — {synodalAdditionNote}</p>}
-          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Each checked match has a distinct color and pattern combination, shared across both columns. Nearby matches favor contrasting colors and textures; words translated together share one combination. B&W mode uses underline patterns. Uncertain matches and differing source readings remain uncolored. Hold a word, or press Shift+Enter, for word study.</p><p className="mt-1">BSB links use Berean’s published translation tables and checked repairs. LSV, KJV and Russian Synodal use reviewed phrase correspondences; a phrase can include several words. Uncolored words can still be studied without implying an exact translation match.</p></details>}
+          {showWordLinks && <details className="mt-1 text-xs"><summary className="cursor-pointer">How word links work</summary><p className="mt-1">Each checked match has a distinct color and pattern combination, shared across both columns. Nearby matches favor contrasting colors and textures; words translated together share one combination. B&W mode uses underline patterns. Uncertain matches and differing source readings remain uncolored. Hold a word, or press Shift+Enter, for word study.</p><p className="mt-1">BSB links use Berean’s published translation tables and checked repairs. LSV, KJV, Russian Synodal and UKRK use reviewed phrase correspondences; a phrase can include several words. Uncolored words can still be studied without implying an exact translation match.</p></details>}
           {selectionMode && showWordLinks && <p className="mt-1 text-xs">Word links pause while selecting verses.</p>}
-          {linkError && <p role="status" className="mt-2">{linkError} <button className="underline" onClick={() => setLinkRetry(value => value + 1)}>Retry links</button></p>}
-          {showWordLinks && !alignment && !linkError && <p role="status" className="mt-1 text-xs">Loading word links…</p>}
-
-        </> : <p className="mt-1 text-xs">{hebrew ? 'Tap a Hebrew or Aramaic word, then choose Study word (or hold it), to find its source lemma throughout the Old Testament, including inflected forms. Strong’s identifiers follow OSHB. English phrase links are not installed.' : 'Word links are available for BSB, LSV, KJV and reviewed Russian Synodal passages in the Greek New Testament. Tap a word, then choose Study word (or hold it), for occurrences.'}</p>}
+        </> : !numberingUnsupported && <p className="mt-1 text-xs">{hebrew ? 'Tap a Hebrew or Aramaic word, then choose Study word (or hold it), to find its source lemma throughout the Old Testament, including inflected forms. Strong’s identifiers follow OSHB. English phrase links are not installed.' : 'Word links are available in reviewed Greek New Testament passages. Tap a word, then choose Study word (or hold it), for occurrences.'}</p>}
+        {linkError && <p role="status" className="mt-2">{linkError} <button className="underline" onClick={() => setLinkRetry(value => value + 1)}>Retry links</button></p>}
+        {canLink && showWordLinks && !alignment && !linkError && <p role="status" className="mt-1 text-xs">Loading word links…</p>}
       </div>}
       {heldMessage && <div role="region" aria-label="Selected word match" className="word-match-bar sticky top-16 z-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-3 mb-3 shadow-sm flex flex-wrap items-center justify-between gap-2"><span role="status">{heldMessage}</span>{activeWord?.notes?.length > 0 && <details className="w-full text-sm"><summary>Reading note</summary>{activeWord.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}<div className="flex flex-wrap items-center gap-2">{activeWord?.counterparts?.filter(ref => ref.chapter !== activeWord.chapter || ref.verse !== activeWord.verse).map(ref => <button key={`${ref.translationId}:${ref.chapter}:${ref.verse}`} className="rounded border px-3 py-2 text-sm" onClick={() => showCounterpart(ref)}>Show {ref.translationId === 'ORIGINAL' ? 'Original' : ref.translationId} {ref.chapter}:{ref.verse}</button>)}<button className="rounded border px-3 py-2 text-sm font-semibold" onClick={() => setStudy(activeWord)}>Study word</button><button className="rounded px-3 py-2" aria-label="Clear word match" onClick={() => { setActiveWord(null); setStudy(null) }}>✕</button></div></div>}
       {study && !linksLoading && <WordStudyDialog word={study} onClose={() => setStudy(null)} onNavigate={onOccurrenceNavigate} />}

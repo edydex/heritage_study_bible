@@ -85,10 +85,11 @@ const entryReferences = (ref, entry) => new Set([
 
 // Occurrence results use the original witness's reference. The corresponding
 // translated words may be in an adjacent (or transposed) translated verse.
-export function occurrenceWordAnchors(row, alignment, targetBook, sourceBook) {
+export function occurrenceWordAnchors(row, alignment, targetBook, sourceBook, { checkedReferencesOnly = false } = {}) {
   const sourceVerses = mapBook(sourceBook), targetVerses = mapBook(targetBook)
   const rawRef = `${row.chapter}:${row.verse}`
   const contexts = [], matchedSources = new Set(), reasons = new Set()
+  let checkedContext
   if (alignment?.book === row.book && sourceVerses.get(rawRef) === row.text) {
     for (const [ref, entry] of Object.entries(alignment.verses)) {
       if (!entryReferences(ref, entry).has(rawRef)) continue
@@ -96,6 +97,9 @@ export function occurrenceWordAnchors(row, alignment, targetBook, sourceBook) {
       if (text == null) continue
       const groups = checkedAnchorGroups(alignment, ref, sourceVerses, text)
       if (!groups) continue
+      if (checkedReferencesOnly && text && (!checkedContext || ref === rawRef)) {
+        checkedContext = { ...parseReference(ref), text, ranges: [], phrases: [] }
+      }
       const ranges = [], notes = new Set()
       for (const group of groups) {
         const indexes = row.ranges.flatMap((range, index) => group.anchors.some(anchor => referenceKey(anchor) === rawRef
@@ -117,11 +121,14 @@ export function occurrenceWordAnchors(row, alignment, targetBook, sourceBook) {
   }
   contexts.sort((a, b) => a.chapter - b.chapter || a.verse - b.verse)
   const first = contexts.find(context => context.chapter === row.chapter && context.verse === row.verse) || contexts[0]
+  const fallback = checkedReferencesOnly ? checkedContext?.text : targetVerses.get(rawRef)
+  const hasContext = checkedReferencesOnly ? Boolean(checkedContext) : targetVerses.has(rawRef)
+  const status = first ? 'matched' : hasContext ? 'unmapped' : checkedReferencesOnly ? 'unreviewed-reference' : 'missing-verse'
   return {
-    text: first?.text || targetVerses.get(rawRef) || '', ranges: first?.ranges || [],
+    text: first?.text || fallback || '', ranges: first?.ranges || [],
     phrases: [...new Set(contexts.flatMap(context => context.phrases))],
-    missingCount: row.count - matchedSources.size, status: contexts.length ? 'matched' : targetVerses.has(rawRef) ? 'unmapped' : 'missing-verse',
-    contexts, reasons: [...reasons],
+    missingCount: row.count - matchedSources.size, status,
+    contexts: first || !checkedContext ? contexts : [checkedContext], reasons: [...reasons],
   }
 }
 
