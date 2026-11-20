@@ -4,6 +4,10 @@ import { default as default_0bef48e2ba46070d0450e759ffa990b3 } from '@/component
 import { default as default_c9cefe429fe1e75c1a08d195c85500c3 } from '@/components/DateOnlyField'
 import { default as default_c7ccba580778778429853539c077fad6 } from '@/components/PersonAccountNotice'
 import { default as default_9253495b35311fc9723935fd72b9b1da } from '@/components/HouseholdsListRedirect'
+import { default as default_9066fc2371bec689dec36cda9515d848 } from '@/components/PositionRowLabel'
+import { TeamsListRedirect as TeamsListRedirect_6df26f71acad9ac40231ac494a738d38 } from '@/components/ServingListRedirect'
+import { default as default_6df26f71acad9ac40231ac494a738d38 } from '@/components/ServingListRedirect'
+import { AwayListRedirect as AwayListRedirect_6df26f71acad9ac40231ac494a738d38 } from '@/components/ServingListRedirect'
 import { default as default_87ed5457306afb97c77d231d110fb89d } from '@/components/InvitationGuide'
 import { default as default_145c1c3129d7134cb5a8d152b65cb7d4 } from '@/components/SongPublicationCell'
 import { default as default_25b9636a1e769af9196ea72af4ecbc87 } from '@/components/SongPublicationField'
@@ -47,6 +51,7 @@ import { default as default_fa4a20611f8e562519785c8b58bf013b } from '@/component
 import { WorkspaceLocalizationProvider as WorkspaceLocalizationProvider_81c48168acfc5d9e94dce9766029d3eb } from '@/components/WorkspaceLocalization'
 import { default as default_e0b48401a02b5ae04fb61f404a26aaaf } from '@/components/WorkspaceActivityProvider'
 import { default as default_628fe6ba015feadf63f9f21be796721b } from '@/components/People'
+import { default as default_87008e549ebe4179e05b74889afad30c } from '@/components/Serving'
 import { default as default_d2e5e8cdcf265e3c61c4d683161d9698 } from '@/components/AdminDashboard'
 import { default as default_e0426a678041ec284c3119b11a0f7516 } from '@/components/BibleTranslations'
 import { default as default_c47a6a2000b141a0bb5c4ccc6ddb6ea0 } from '@/components/LiveTranslation'
@@ -63,6 +68,10 @@ export const importMap = {
   "@/components/DateOnlyField#default": default_c9cefe429fe1e75c1a08d195c85500c3,
   "@/components/PersonAccountNotice#default": default_c7ccba580778778429853539c077fad6,
   "@/components/HouseholdsListRedirect#default": default_9253495b35311fc9723935fd72b9b1da,
+  "@/components/PositionRowLabel#default": default_9066fc2371bec689dec36cda9515d848,
+  "@/components/ServingListRedirect#TeamsListRedirect": TeamsListRedirect_6df26f71acad9ac40231ac494a738d38,
+  "@/components/ServingListRedirect#default": default_6df26f71acad9ac40231ac494a738d38,
+  "@/components/ServingListRedirect#AwayListRedirect": AwayListRedirect_6df26f71acad9ac40231ac494a738d38,
   "@/components/InvitationGuide#default": default_87ed5457306afb97c77d231d110fb89d,
   "@/components/SongPublicationCell#default": default_145c1c3129d7134cb5a8d152b65cb7d4,
   "@/components/SongPublicationField#default": default_25b9636a1e769af9196ea72af4ecbc87,
@@ -106,6 +115,7 @@ export const importMap = {
   "@/components/WorkspaceLocalization#WorkspaceLocalizationProvider": WorkspaceLocalizationProvider_81c48168acfc5d9e94dce9766029d3eb,
   "@/components/WorkspaceActivityProvider#default": default_e0b48401a02b5ae04fb61f404a26aaaf,
   "@/components/People#default": default_628fe6ba015feadf63f9f21be796721b,
+  "@/components/Serving#default": default_87008e549ebe4179e05b74889afad30c,
   "@/components/AdminDashboard#default": default_d2e5e8cdcf265e3c61c4d683161d9698,
   "@/components/BibleTranslations#default": default_e0426a678041ec284c3119b11a0f7516,
   "@/components/LiveTranslation#default": default_c47a6a2000b141a0bb5c4ccc6ddb6ea0,

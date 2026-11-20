@@ -77,6 +77,9 @@ export interface Config {
     memberships: Membership;
     people: Person;
     households: Household;
+    teams: Team;
+    'serving-assignments': ServingAssignment;
+    'serving-blockouts': ServingBlockout;
     'community-invites': CommunityInvite;
     media: Media;
     'reading-plans': ReadingPlan;
@@ -126,6 +129,9 @@ export interface Config {
     memberships: MembershipsSelect<false> | MembershipsSelect<true>;
     people: PeopleSelect<false> | PeopleSelect<true>;
     households: HouseholdsSelect<false> | HouseholdsSelect<true>;
+    teams: TeamsSelect<false> | TeamsSelect<true>;
+    'serving-assignments': ServingAssignmentsSelect<false> | ServingAssignmentsSelect<true>;
+    'serving-blockouts': ServingBlockoutsSelect<false> | ServingBlockoutsSelect<true>;
     'community-invites': CommunityInvitesSelect<false> | CommunityInvitesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'reading-plans': ReadingPlansSelect<false> | ReadingPlansSelect<true>;
@@ -477,6 +483,7 @@ export interface Person {
    * Only church owners and administrators can see these notes. They are never exported.
    */
   notes?: string | null;
+  servingLinkVersion?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -507,6 +514,112 @@ export interface Household {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Positions are the places to fill at each service, for example Vocals, Guitar or Sound. Team members are the people you can schedule.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams".
+ */
+export interface Team {
+  id: number;
+  community: number | Community;
+  name: string;
+  description?: string | null;
+  positions: {
+    name: string;
+    needed: number;
+    id?: string | null;
+  }[];
+  /**
+   * Add people from the church directory.
+   */
+  members?: (number | Person)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serving-assignments".
+ */
+export interface ServingAssignment {
+  id: number;
+  community: number | Community;
+  event: number | Event;
+  date: string;
+  team: number | Team;
+  positionId: string;
+  position: string;
+  person: number | Person;
+  status: 'pending' | 'accepted' | 'declined';
+  note?: string | null;
+  requestedAt?: string | null;
+  respondedAt?: string | null;
+  scheduledBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Click a calendar date to create an event. Set recurring services and choose who can see each event.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events".
+ */
+export interface Event {
+  id: number;
+  calendarVersion?: string | null;
+  community: number | Community;
+  title: string;
+  description?: string | null;
+  startsAt: string;
+  endsAt?: string | null;
+  /**
+   * Use America/Los_Angeles for Pacific time, including daylight saving. PST and PDT are converted automatically.
+   */
+  timeZone: string;
+  /**
+   * For a recurring event, this applies to the entire series.
+   */
+  visibility: 'inherit' | 'public' | 'members';
+  recurrence?: ('none' | 'weekly' | 'monthly') | null;
+  repeatInterval?: number | null;
+  /**
+   * Last date, inclusive, in YYYY-MM-DD format. Leave blank to keep repeating.
+   */
+  repeatUntil?: string | null;
+  location?: string | null;
+  /**
+   * An external website for registration or more information. Use a complete https:// address, or leave blank. The church event details page is created automatically.
+   */
+  url?: string | null;
+  rsvpEnabled?: boolean | null;
+  defaultReminderMinutes?: number | null;
+  cancelled?: boolean | null;
+  registration?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serving-blockouts".
+ */
+export interface ServingBlockout {
+  id: number;
+  community: number | Community;
+  person: number | Person;
+  startDate: string;
+  endDate: string;
+  reason?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1352,54 +1465,6 @@ export interface PlanNote {
   createdAt: string;
 }
 /**
- * Click a calendar date to create an event. Set recurring services and choose who can see each event.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "events".
- */
-export interface Event {
-  id: number;
-  calendarVersion?: string | null;
-  community: number | Community;
-  title: string;
-  description?: string | null;
-  startsAt: string;
-  endsAt?: string | null;
-  /**
-   * Use America/Los_Angeles for Pacific time, including daylight saving. PST and PDT are converted automatically.
-   */
-  timeZone: string;
-  /**
-   * For a recurring event, this applies to the entire series.
-   */
-  visibility: 'inherit' | 'public' | 'members';
-  recurrence?: ('none' | 'weekly' | 'monthly') | null;
-  repeatInterval?: number | null;
-  /**
-   * Last date, inclusive, in YYYY-MM-DD format. Leave blank to keep repeating.
-   */
-  repeatUntil?: string | null;
-  location?: string | null;
-  /**
-   * An external website for registration or more information. Use a complete https:// address, or leave blank. The church event details page is created automatically.
-   */
-  url?: string | null;
-  rsvpEnabled?: boolean | null;
-  defaultReminderMinutes?: number | null;
-  cancelled?: boolean | null;
-  registration?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * Member responses recorded from the Heritage app.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1598,6 +1663,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'households';
         value: number | Household;
+      } | null)
+    | ({
+        relationTo: 'teams';
+        value: number | Team;
+      } | null)
+    | ({
+        relationTo: 'serving-assignments';
+        value: number | ServingAssignment;
+      } | null)
+    | ({
+        relationTo: 'serving-blockouts';
+        value: number | ServingBlockout;
       } | null)
     | ({
         relationTo: 'community-invites';
@@ -1917,6 +1994,7 @@ export interface PeopleSelect<T extends boolean = true> {
   baptismDate?: T;
   user?: T;
   notes?: T;
+  servingLinkVersion?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1939,6 +2017,58 @@ export interface HouseholdsSelect<T extends boolean = true> {
         country?: T;
       };
   members?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams_select".
+ */
+export interface TeamsSelect<T extends boolean = true> {
+  community?: T;
+  name?: T;
+  description?: T;
+  positions?:
+    | T
+    | {
+        name?: T;
+        needed?: T;
+        id?: T;
+      };
+  members?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serving-assignments_select".
+ */
+export interface ServingAssignmentsSelect<T extends boolean = true> {
+  community?: T;
+  event?: T;
+  date?: T;
+  team?: T;
+  positionId?: T;
+  position?: T;
+  person?: T;
+  status?: T;
+  note?: T;
+  requestedAt?: T;
+  respondedAt?: T;
+  scheduledBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serving-blockouts_select".
+ */
+export interface ServingBlockoutsSelect<T extends boolean = true> {
+  community?: T;
+  person?: T;
+  startDate?: T;
+  endDate?: T;
+  reason?: T;
   updatedAt?: T;
   createdAt?: T;
 }

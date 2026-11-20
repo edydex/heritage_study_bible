@@ -17,9 +17,12 @@ export default function AdminNav() {
   const { hydrated, navOpen, navRef, setNavOpen, shouldAnimate } = useNav()
   const className = ['nav', 'heritage-admin-nav', navOpen && 'nav--nav-open',
     hydrated && 'nav--nav-hydrated', shouldAnimate && 'nav--nav-animate'].filter(Boolean).join(' ')
+  const related: Record<string, string[]> = {
+    '/admin/people': ['/admin/collections/users', '/admin/collections/memberships', '/admin/collections/community-invites', '/admin/collections/people', '/admin/collections/households'],
+    '/admin/serving': ['/admin/collections/teams', '/admin/collections/serving-assignments', '/admin/collections/serving-blockouts'],
+  }
   const link = (href: string, label: string) => <Link key={href} href={href}
-    aria-current={isWorkspaceLinkActive(pathname, href) || (href === '/admin/people'
-      && ['/admin/collections/users', '/admin/collections/memberships', '/admin/collections/community-invites', '/admin/collections/people', '/admin/collections/households'].some(path => pathname.startsWith(path))) ? 'page' : undefined}>{label}</Link>
+    aria-current={isWorkspaceLinkActive(pathname, href) || (related[href] || []).some(path => pathname.startsWith(path)) ? 'page' : undefined}>{label}</Link>
 
   return <aside className={className} inert={!navOpen || undefined}>
     <div className="nav__scroll" ref={navRef}>
@@ -41,6 +44,7 @@ export default function AdminNav() {
           <p>{ru ? 'Управление церковью' : 'Church administration'}</p>
           {link('/admin/collections/events', ru ? 'События' : 'Events')}
           {link('/admin/people', ru ? 'Люди' : 'People')}
+          {link('/admin/serving', ru ? 'Служение' : 'Serving')}
           {link('/admin/collections/reading-plans', ru ? 'Планы чтения' : 'Reading plans')}
           {link('/admin/collections/books', ru ? 'Книги' : 'Books')}
         </div>

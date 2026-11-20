@@ -108,5 +108,7 @@ export const People: CollectionConfig = {
       access: { read: churchPeopleEditorField, create: churchPeopleEditorField, update: churchPeopleEditorField },
       admin: { description: { en: 'Only church owners and administrators can see these notes. They are never exported.', ru: 'Эти заметки видят только владелец и администраторы церкви. Они не попадают в экспорт.' } },
     },
+    // Part of the person's private serving link; raising it replaces every older link.
+    { name: 'servingLinkVersion', type: 'number', defaultValue: 1, hidden: true, access: { create: () => false, update: () => false } },
   ],
 }

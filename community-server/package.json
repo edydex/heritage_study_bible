@@ -29,6 +29,7 @@
     "test:song-editor-live": "cross-env NODE_ENV=production node --import tsx --test --test-force-exit tests/song-editor-payload.test.ts",
     "test:event-registration-live": "node --import tsx --test --test-force-exit tests/event-registration-postgres.test.ts",
     "test:people-directory-live": "node --import tsx --test --test-force-exit tests/people-directory-postgres.test.ts",
+    "test:serving-live": "node --import tsx --test --test-force-exit tests/serving-postgres.test.ts",
     "test:song-pptx": "node --import tsx --test tests/song-pptx-import.test.ts",
     "test:calendar-mcp": "node --import tsx --test --test-force-exit tests/calendar-mcp*.test.ts"
   },
