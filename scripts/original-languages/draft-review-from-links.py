@@ -448,6 +448,12 @@ def cmd_register(args):
     reviews = SCRIPTS / f'reviewed-{target.lower()}'
     registry_path = SCRIPTS / f'{target.lower()}-review-status.json'
     path = reviews / args.file
+    if args.source:
+        # Finished reviews may be prepared outside the canonical folder so that
+        # in-progress edits never break the rebuild of accepted files.
+        source = Path(args.source)
+        if source.resolve() != path.resolve():
+            path.write_bytes(source.read_bytes())
     if cmd_check(argparse.Namespace(target=target, files=[path])):
         raise SystemExit('Fix the problems above before registering.')
     registry = read(registry_path)
@@ -465,6 +471,8 @@ def cmd_register(args):
     else:
         resources.append(entry)
     registry_path.write_text(json.dumps(registry, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    if args.no_build:
+        return 0
     published = DATA / f'{target.lower()}-word-links'
     subprocess.run([sys.executable, str(SCRIPTS / 'compile-reviewed-links.py'), '--target', target,
                     '--reviews', str(reviews), '--registry', str(registry_path),
@@ -487,6 +495,8 @@ def main():
     r.add_argument('file', help='File name inside reviewed-<target>/')
     r.add_argument('--author-note', required=True)
     r.add_argument('--peer-note', required=True)
+    r.add_argument('--no-build', action='store_true', help='Only update the registry (register several files, then build once)')
+    r.add_argument('--from', dest='source', help='Copy this finished review file into reviewed-<target>/ first')
     t = sub.add_parser('totext', help='Write a draft or review file as editable review text')
     t.add_argument('draft')
     t.add_argument('--output', required=True)
