@@ -134,10 +134,11 @@ function MassVerseExportViewer({ toolMeta }) {
     return () => window.clearTimeout(timer)
   }, [copyStatus])
 
-  const referenceBibleData = translationDataById[selectedTranslationIds[0]] || Object.values(translationDataById).find(Boolean) || null
+  const referenceTranslationId = selectedTranslationIds.find(id => translationDataById[id])
+  const referenceBibleData = translationDataById[referenceTranslationId] || null
   const parseResult = useMemo(
-    () => parseMassVerseInput(inputText, { bibleData: referenceBibleData }),
-    [inputText, referenceBibleData]
+    () => parseMassVerseInput(inputText, { bibleData: referenceBibleData, translationId: referenceTranslationId }),
+    [inputText, referenceBibleData, referenceTranslationId]
   )
   const rows = useMemo(
     () => buildMassExportRows(parseResult.entries, selectedTranslationIds, translationDataById),

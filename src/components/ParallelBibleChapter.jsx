@@ -11,12 +11,13 @@ import { chapterWordAnchors } from '../services/parallelWordAnchors'
 import { getVerseLayout } from '../utils/verseLayout'
 import { getParallelVerseHighlightClasses } from '../utils/highlightColors'
 import { UKRK_DISPLAY_ABBR, translationDisplayAbbr, translationDisplayText } from '../utils/translationDisplay'
+import { psalmComparisonVerseNumber } from '../utils/psalmSuperscriptions'
 
-function MissingVerse({ translationId }) {
+function MissingVerse({ translationId, joinedWith }) {
   return (
-    <div className="text-sm text-gray-400 dark:text-gray-500 italic">
-      {translationId === 'ORIGINAL' ? 'No text in the installed source.' : `Verse not present in ${translationDisplayAbbr(translationId)}.`}
-    </div>
+    <span className="text-sm text-gray-400 dark:text-gray-500 italic">
+      {joinedWith ? `Included with verse ${joinedWith}.` : translationId === 'ORIGINAL' ? 'No text in the installed source.' : `Verse not present in ${translationDisplayAbbr(translationId)}.`}
+    </span>
   )
 }
 
@@ -110,17 +111,19 @@ function ParallelBibleChapter({
   })
 
   const primaryVerseMap = useMemo(() => {
-    return new Map((primaryChapter?.verses || []).map(verse => [verse.number, verse]))
+    return new Map((primaryChapter?.verses || []).map(verse => [verse.parallelNumber ?? verse.number, verse]))
   }, [primaryChapter])
 
   const secondaryVerseMap = useMemo(() => {
-    return new Map((numberingUnsupported ? [] : secondaryChapter?.verses || []).map(verse => [verse.number, verse]))
+    return new Map((numberingUnsupported ? [] : secondaryChapter?.verses || []).map(verse => [verse.parallelNumber ?? verse.number, verse]))
   }, [secondaryChapter, numberingUnsupported])
 
-  const getWords = useCallback((side, verseNumber) => {
+  const getWords = useCallback((side, rowNumber) => {
     if (selectionMode) return []
     const primary = side === 'primary'
-    const verse = (primary ? primaryVerseMap : secondaryVerseMap).get(verseNumber)
+    const verse = (primary ? primaryVerseMap : secondaryVerseMap).get(rowNumber)
+    if (!verse) return []
+    const verseNumber = verse.number
     const ref = `${primaryChapter.number}:${verseNumber}`
     const pairs = chapterLinks?.[side].get(ref)
     return interactiveWordRanges(verse?.text || '', showWordLinks ? pairs : pairs?.map(({ pattern, ...pair }) => pair), {
@@ -142,7 +145,8 @@ function ParallelBibleChapter({
     if (!selection || selection.book !== bookName || selection.chapter !== primaryChapter.number) return null
     const side = selection.translationId === primaryTranslationId ? 'primary'
       : selection.translationId === secondaryTranslationId ? 'secondary' : null
-    return side ? getWords(side, selection.verse).find(word => word.startOffset === selection.startOffset
+    const rowNumber = psalmComparisonVerseNumber(bookName, selection.chapter, selection.verse, selection.translationId)
+    return side ? getWords(side, rowNumber).find(word => word.startOffset === selection.startOffset
       && word.endOffset === selection.endOffset && word.word === selection.word) || null : null
   }, [bookName, primaryChapter.number, primaryTranslationId, secondaryTranslationId, getWords])
   const activeWord = useMemo(() => resolveSelection(activeSelection), [resolveSelection, activeSelection])
@@ -184,11 +188,12 @@ function ParallelBibleChapter({
       const containerRect = containerRef.current.getBoundingClientRect()
       const scrollTop = window.scrollY || document.documentElement.scrollTop
 
-      verseNumbers.forEach(verseNumber => {
-        const rowEl = rowRefs.current[verseNumber]
+      verseNumbers.forEach(rowNumber => {
+        const rowEl = rowRefs.current[rowNumber]
         if (!rowEl) return
 
         const rect = rowEl.getBoundingClientRect()
+        const verseNumber = primaryVerseMap.get(rowNumber)?.number ?? rowNumber
         const verseKey = `${primaryChapter.number}-${verseNumber}`
         onVersePosition(verseKey, {
           top: rect.top + scrollTop - 80,
@@ -207,14 +212,15 @@ function ParallelBibleChapter({
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', updatePositions)
     }
-  }, [onVersePosition, primaryChapter.number, verseNumbers])
+  }, [onVersePosition, primaryChapter.number, primaryVerseMap, verseNumbers])
 
-  const handleVerseClick = (verseNumber) => {
-    const primary = primaryVerseMap.get(verseNumber)
-    const secondary = secondaryVerseMap.get(verseNumber)
+  const handleVerseClick = (rowNumber) => {
+    const primary = primaryVerseMap.get(rowNumber)
+    const secondary = secondaryVerseMap.get(rowNumber)
+    if (!primary && primaryVerseMap.get(rowNumber + 1)?.combinedWithPrevious) return
     const verseText = primary?.text || secondary?.text || ''
     if (!globalThis.window?.getSelection?.()?.isCollapsed) return
-    onVerseClick(primaryChapter.number, verseNumber, verseText)
+    onVerseClick(primaryChapter.number, primary?.number ?? rowNumber, verseText)
   }
 
   const handleSelectionKeyDown = (event, verseNumber) => {
@@ -260,9 +266,13 @@ function ParallelBibleChapter({
       {heldMessage && <div role="region" aria-label="Selected word match" className="word-match-bar sticky top-16 z-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-3 mb-3 shadow-sm flex flex-wrap items-center justify-between gap-2"><span role="status">{heldMessage}</span>{activeWord?.notes?.length > 0 && <details className="w-full text-sm"><summary>Reading note</summary>{activeWord.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}<div className="flex flex-wrap items-center gap-2">{activeWord?.counterparts?.filter(ref => ref.chapter !== activeWord.chapter || ref.verse !== activeWord.verse).map(ref => <button key={`${ref.translationId}:${ref.chapter}:${ref.verse}`} className="rounded border px-3 py-2 text-sm" onClick={() => showCounterpart(ref)}>Show {ref.translationId === 'ORIGINAL' ? 'Original' : translationDisplayAbbr(ref.translationId)} {ref.chapter}:{ref.verse}</button>)}<button className="rounded border px-3 py-2 text-sm font-semibold" onClick={() => setStudy(activeWord)}>Study word</button><button className="rounded px-3 py-2" aria-label="Clear word match" onClick={() => { setActiveWord(null); setStudy(null) }}>✕</button></div></div>}
       {study && !linksLoading && <WordStudyDialog word={study} onClose={() => setStudy(null)} onNavigate={onOccurrenceNavigate} />}
       <div className="space-y-2">
-        {verseNumbers.map((verseNumber) => {
-          const primaryVerse = primaryVerseMap.get(verseNumber)
-          const secondaryVerse = secondaryVerseMap.get(verseNumber)
+        {verseNumbers.map((rowNumber) => {
+          const primaryVerse = primaryVerseMap.get(rowNumber)
+          const secondaryVerse = secondaryVerseMap.get(rowNumber)
+          const verseNumber = primaryVerse?.number ?? rowNumber
+          const secondaryNumber = secondaryVerse?.number ?? rowNumber
+          const primaryJoinedWith = !primaryVerse && primaryVerseMap.get(rowNumber + 1)?.combinedWithPrevious ? rowNumber + 1 : null
+          const secondaryJoinedWith = !secondaryVerse && secondaryVerseMap.get(rowNumber + 1)?.combinedWithPrevious ? rowNumber + 1 : null
           const ref = `${primaryChapter.number}:${verseNumber}`
           const links = { primary: chapterLinks?.primary.get(ref), secondary: chapterLinks?.secondary.get(ref) }
           const isSuperscription = Boolean(primaryVerse?.isSuperscription || secondaryVerse?.isSuperscription)
@@ -272,15 +282,15 @@ function ParallelBibleChapter({
           const highlightColor = getVerseHighlightColor?.(primaryChapter.number, verseNumber)
             || (isVerseHighlighted?.(primaryChapter.number, verseNumber) ? 'yellow' : null)
           const primaryLayout = getVerseLayout(primaryVerseLayout, bookName, primaryChapter.number, verseNumber)
-          const secondaryLayout = getVerseLayout(secondaryVerseLayout, bookName, primaryChapter.number, verseNumber)
+          const secondaryLayout = getVerseLayout(secondaryVerseLayout, bookName, primaryChapter.number, secondaryNumber)
           const startsParagraph = primaryLayout?.breakBefore || secondaryLayout?.breakBefore
 
           const primaryAdditions = textualAdditionRanges(primaryTranslationId, bookName, primaryChapter.number, verseNumber, primaryVerse?.text)
-          const secondaryAdditions = textualAdditionRanges(secondaryTranslationId, bookName, primaryChapter.number, verseNumber, secondaryVerse?.text)
+          const secondaryAdditions = textualAdditionRanges(secondaryTranslationId, bookName, primaryChapter.number, secondaryNumber, secondaryVerse?.text)
           const primaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, primaryTranslationId, primaryVerse?.text || '') || []
-          const secondaryHighlights = getTextHighlights?.(primaryChapter.number, verseNumber, secondaryTranslationId, secondaryVerse?.text || '') || []
-          const primaryWords = getWords('primary', verseNumber)
-          const secondaryWords = getWords('secondary', verseNumber)
+          const secondaryHighlights = getTextHighlights?.(primaryChapter.number, secondaryNumber, secondaryTranslationId, secondaryVerse?.text || '') || []
+          const primaryWords = getWords('primary', rowNumber)
+          const secondaryWords = getWords('secondary', rowNumber)
           const rowClassName = `relative rounded-lg border transition-all ${selectionMode ? 'verse-selection-target cursor-pointer' : ''} ${startsParagraph ? 'mt-4' : ''} ${
             selected
               ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700'
@@ -297,15 +307,15 @@ function ParallelBibleChapter({
 
           return (
             <div
-              key={verseNumber}
+              key={rowNumber}
               id={`verse-${primaryChapter.number}-${verseNumber}`}
-              ref={(element) => setRowRef(verseNumber, element)}
-              role={selectionMode ? 'button' : undefined}
-              tabIndex={selectionMode ? 0 : undefined}
-              aria-pressed={selectionMode ? Boolean(selected) : undefined}
-              aria-label={selectionMode ? `${selected ? 'Remove' : 'Select'} ${bookName} ${primaryChapter.number}:${verseNumber}` : undefined}
-              onClick={selectionMode ? () => handleVerseClick(verseNumber) : undefined}
-              onKeyDown={event => handleSelectionKeyDown(event, verseNumber)}
+              ref={(element) => setRowRef(rowNumber, element)}
+              role={selectionMode && !primaryJoinedWith ? 'button' : undefined}
+              tabIndex={selectionMode && !primaryJoinedWith ? 0 : undefined}
+              aria-pressed={selectionMode && !primaryJoinedWith ? Boolean(selected) : undefined}
+              aria-label={selectionMode && !primaryJoinedWith ? `${selected ? 'Remove' : 'Select'} ${bookName} ${primaryChapter.number}:${verseNumber}` : undefined}
+              onClick={selectionMode ? () => handleVerseClick(rowNumber) : undefined}
+              onKeyDown={event => handleSelectionKeyDown(event, rowNumber)}
               className={rowClassName}
             >
               {selectionMode && (
@@ -321,8 +331,8 @@ function ParallelBibleChapter({
                 </span>
               )}
               <div className="hidden md:grid md:grid-cols-2 md:gap-3 md:p-2">
-                <div className="group flex items-start gap-2 rounded-md p-2 hover:bg-white/70 dark:hover:bg-gray-950 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
-                  <VerseNumber number={verseNumber} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
+                <div className="group flex items-start gap-2 rounded-md p-2 hover:bg-white/70 dark:hover:bg-gray-950 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(rowNumber)}>
+                  <VerseNumber number={verseNumber} label={primaryVerse?.numberLabel} bookmarked={bookmarked} selectionMode={selectionMode || Boolean(primaryJoinedWith)} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
                   <p
                     className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}
                     style={verseStyle}
@@ -332,33 +342,33 @@ function ParallelBibleChapter({
                     data-verse={verseNumber}
                     data-translation={primaryTranslationId}
                   >
-                    {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} additions={primaryAdditions} translationId={primaryTranslationId} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={primaryTranslationId} />}
+                    {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} additions={primaryAdditions} translationId={primaryTranslationId} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={primaryTranslationId} joinedWith={primaryJoinedWith} />}
                   </p>
                 </div>
 
-                <div className="flex items-start gap-2 rounded-md p-2 hover:bg-white/60 dark:hover:bg-gray-950 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
-                  <VerseNumber number={verseNumber} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
+                <div className="flex items-start gap-2 rounded-md p-2 hover:bg-white/60 dark:hover:bg-gray-950 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(rowNumber)}>
+                  <VerseNumber number={secondaryNumber} label={secondaryVerse?.numberLabel} bookmarked={bookmarked} selectionMode={selectionMode || Boolean(primaryJoinedWith)} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
                   <p
                     className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}
                     style={verseStyle}
                     data-verse-content={secondaryVerse ? '' : undefined}
                     data-book={bookName}
                     data-chapter={primaryChapter.number}
-                    data-verse={verseNumber}
+                    data-verse={secondaryNumber}
                     data-translation={secondaryTranslationId}
                     dir={original ? source.direction : undefined}
                     lang={hebrew ? secondaryVerse?.languages?.length === 1 ? secondaryVerse.languages[0] : 'he' : original ? 'grc' : undefined}
                   >
-                    {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} additions={secondaryAdditions} translationId={secondaryTranslationId} wordLinks={secondaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={secondaryTranslationId} />}
+                    {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} additions={secondaryAdditions} translationId={secondaryTranslationId} wordLinks={secondaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={secondaryTranslationId} joinedWith={secondaryJoinedWith} />}
                   </p>
                 </div>
               </div>
 
               <div className="md:hidden p-2 space-y-2">
-                <div className="rounded-md bg-white dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
+                <div className="rounded-md bg-white dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(rowNumber)}>
                   <div className="text-[11px] uppercase tracking-wide text-primary dark:text-blue-400 font-semibold mb-1">{translationDisplayAbbr(primaryTranslationId)}</div>
                   <div className="flex items-start gap-2 group">
-                    <VerseNumber number={verseNumber} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
+                    <VerseNumber number={verseNumber} label={primaryVerse?.numberLabel} bookmarked={bookmarked} selectionMode={selectionMode || Boolean(primaryJoinedWith)} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
                     <p
                       className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}
                       style={verseStyle}
@@ -368,27 +378,27 @@ function ParallelBibleChapter({
                       data-verse={verseNumber}
                       data-translation={primaryTranslationId}
                     >
-                      {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} additions={primaryAdditions} translationId={primaryTranslationId} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={primaryTranslationId} />}
+                      {primaryVerse ? <VerseText text={primaryVerse.text} layout={primaryLayout} highlights={primaryHighlights} additions={primaryAdditions} translationId={primaryTranslationId} wordLinks={primaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={primaryTranslationId} joinedWith={primaryJoinedWith} />}
                     </p>
                   </div>
                 </div>
 
-                <div className="rounded-md bg-white/70 dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(verseNumber)}>
+                <div className="rounded-md bg-white/70 dark:bg-black p-2 cursor-pointer" onClick={selectionMode ? undefined : () => handleVerseClick(rowNumber)}>
                   <div className="text-[11px] uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-1">{original ? hebrew ? `${originalVerseLanguage(secondaryVerse)} · WLC / OSHB` : source.label : translationDisplayAbbr(secondaryTranslationId)}</div>
                   <div className="flex items-start gap-2">
-                    <VerseNumber number={verseNumber} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
+                    <VerseNumber number={secondaryNumber} label={secondaryVerse?.numberLabel} bookmarked={bookmarked} selectionMode={selectionMode || Boolean(primaryJoinedWith)} textSize={textSize} onToggle={() => onBookmarkToggle(primaryChapter.number, verseNumber, primaryVerse?.text || secondaryVerse?.text || '')} />
                     <p
                       className={`verse-text flex-1 ${isSuperscription ? 'italic text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}
                       style={verseStyle}
                       data-verse-content={secondaryVerse ? '' : undefined}
                       data-book={bookName}
                       data-chapter={primaryChapter.number}
-                      data-verse={verseNumber}
+                      data-verse={secondaryNumber}
                       data-translation={secondaryTranslationId}
                       dir={original ? source.direction : undefined}
                       lang={hebrew ? secondaryVerse?.languages?.length === 1 ? secondaryVerse.languages[0] : 'he' : original ? 'grc' : undefined}
                     >
-                      {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} additions={secondaryAdditions} translationId={secondaryTranslationId} wordLinks={secondaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={secondaryTranslationId} />}
+                      {secondaryVerse ? <VerseText text={secondaryVerse.text} layout={secondaryLayout} highlights={secondaryHighlights} additions={secondaryAdditions} translationId={secondaryTranslationId} wordLinks={secondaryWords} activeWordLink={activeWord?.id} onWordLink={studyWord} onWordTap={selectWord} /> : <MissingVerse translationId={secondaryTranslationId} joinedWith={secondaryJoinedWith} />}
                     </p>
                   </div>
                 </div>

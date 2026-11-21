@@ -63,6 +63,19 @@ The layout generator transfers breaks at existing Ukrainian verse starts and
 uses reviewed reference windows where the numbering differs. The reader labels
 the resulting marks as editorial. [Berean publisher USFM](https://bereanbible.com/bsb_usfm.zip)
 
+The Psalm reader displays leading titles from the bundled Ukrainian and Russian
+sources in verse 0. The [Ukrainian Psalm 51](https://ebible.org/ukr1871/PSA051.htm)
+source has the title and prayer together in verse 1. The
+[Russian Synodal Psalm 50](https://ebible.org/russyn/PSA050.htm) source gives
+the title verses 1–2, which become verse 0 in Western Psalm 51. In Ukrainian
+Psalm 60 the two title rows also move to verse 0. Parallel comparison matches
+its body verses 3–14 with Western verses 1–12 and displays both editions'
+references. Russian Psalm 87 displays its combined first body row as 1–2.
+In Western Psalms 116 and 147, an internal “Аллилуия” remains where its native
+section begins. The imported text files retain the exact source wording and
+numbering. The exact title in the bundled edition determines whether it has a
+verse 0.
+
 For verse-boundary differences, **Show Original / BSB / LSV / KJV / SYNO-W** identifies the
 actual matching reference rather than forcing a same-number pairing. Greek words use the source's
 actual lemma metadata, including inflected forms throughout all 27 NT books.

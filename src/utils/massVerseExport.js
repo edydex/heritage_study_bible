@@ -4,7 +4,7 @@ import { localizeBookName } from './localizedBookNames.js'
 import { translationDisplayAbbr, translationDisplayText } from './translationDisplay.js'
 import {
   getVerseTextWithPsalmSuperscription,
-  hasPsalmSuperscription,
+  psalmComparisonVerseNumber,
   withPsalmSuperscriptionVerse,
 } from './psalmSuperscriptions.js'
 
@@ -27,12 +27,6 @@ function getBookData(bibleData, bookName) {
 function getChapterData(bibleData, bookName, chapter, translationId = null) {
   const chapterData = getBookData(bibleData, bookName)?.chapters?.find(row => row.number === chapter) || null
   return withPsalmSuperscriptionVerse(chapterData, bookName, translationId)
-}
-
-function getChapterVerseCount(bibleData, bookName, chapter) {
-  const chapterData = getChapterData(bibleData, bookName, chapter)
-  if (!Array.isArray(chapterData?.verses) || chapterData.verses.length === 0) return 0
-  return Math.max(...chapterData.verses.map(verse => verse.number))
 }
 
 function getVerseText(bibleData, bookName, chapter, verse, translationId = null) {
@@ -69,36 +63,17 @@ function expandVerses({
   endChapter,
   endVerse,
   bibleData,
+  translationId,
 }) {
   const verses = []
-
-  if (startVerse == null || endVerse == null) {
-    for (let chapter = startChapter; chapter <= endChapter; chapter += 1) {
-      const verseCount = getChapterVerseCount(bibleData, bookName, chapter)
-      for (let verse = 1; verse <= verseCount; verse += 1) {
-        verses.push({ book: bookName, chapter, verse })
-      }
-    }
-    return verses
-  }
-
-  if (startChapter === endChapter) {
-    for (let verse = startVerse; verse <= endVerse; verse += 1) {
-      verses.push({ book: bookName, chapter: startChapter, verse })
-    }
-    return verses
-  }
-
   for (let chapter = startChapter; chapter <= endChapter; chapter += 1) {
-    const verseCount = getChapterVerseCount(bibleData, bookName, chapter)
-    let fromVerse = 1
-    let toVerse = verseCount
-
-    if (chapter === startChapter) fromVerse = startVerse
-    if (chapter === endChapter) toVerse = endVerse
-
-    for (let verse = fromVerse; verse <= toVerse; verse += 1) {
-      verses.push({ book: bookName, chapter, verse })
+    const data = getChapterData(bibleData, bookName, chapter, translationId)
+    const fromVerse = chapter === startChapter ? startVerse ?? 1 : 1
+    const toVerse = chapter === endChapter ? endVerse ?? Infinity : Infinity
+    for (const verse of data?.verses || []) {
+      if (verse.number >= fromVerse && verse.number <= toVerse) {
+        verses.push({ book: bookName, chapter, verse: verse.number })
+      }
     }
   }
 
@@ -112,6 +87,7 @@ function validateRange({
   endChapter,
   endVerse,
   bibleData,
+  translationId,
 }) {
   const meta = getBookMeta(bookName)
   if (!meta) return `Unknown book "${bookName}".`
@@ -133,23 +109,15 @@ function validateRange({
 
   if (startVerse == null || endVerse == null) return null
 
-  const startChapterVerseCount = getChapterVerseCount(bibleData, bookName, startChapter)
-  const endChapterVerseCount = getChapterVerseCount(bibleData, bookName, endChapter)
-
-  if (startChapterVerseCount < 1 || endChapterVerseCount < 1) {
+  const first = getChapterData(bibleData, bookName, startChapter, translationId)
+  const last = startChapter === endChapter ? first : getChapterData(bibleData, bookName, endChapter, translationId)
+  if (!first?.verses?.length || !last?.verses?.length) {
     return `${bookName} has missing chapter data in selected translation.`
   }
 
-  const startVerseMinimum = hasPsalmSuperscription(bookName, startChapter) ? 0 : 1
-  const endVerseMinimum = hasPsalmSuperscription(bookName, endChapter) ? 0 : 1
-
   if (
-    !Number.isInteger(startVerse) ||
-    !Number.isInteger(endVerse) ||
-    startVerse < startVerseMinimum ||
-    endVerse < endVerseMinimum ||
-    startVerse > startChapterVerseCount ||
-    endVerse > endChapterVerseCount
+    !first.verses.some(verse => verse.number === startVerse) ||
+    !last.verses.some(verse => verse.number === endVerse)
   ) {
     return `${bookName} verse is out of bounds in ${startChapter === endChapter ? `chapter ${startChapter}` : `chapters ${startChapter}-${endChapter}`}.`
   }
@@ -166,7 +134,6 @@ function parseNumericPart({
   explicitBook,
   context,
   bookName,
-  bibleData,
 }) {
   const cleaned = String(numericPart || '')
     .replace(/^[.,\s]+|[.,\s]+$/g, '')
@@ -313,7 +280,7 @@ function parseNumericPart({
   return null
 }
 
-function parseReferenceChunk(chunk, context, bibleData) {
+function parseReferenceChunk(chunk, context, bibleData, translationId) {
   const normalized = String(chunk || '').trim().replace(/\s+/g, ' ')
   if (!normalized) return null
 
@@ -331,7 +298,6 @@ function parseReferenceChunk(chunk, context, bibleData) {
     explicitBook,
     context,
     bookName,
-    bibleData,
   })
 
   if (!parsed) {
@@ -345,6 +311,7 @@ function parseReferenceChunk(chunk, context, bibleData) {
     endChapter: parsed.endChapter,
     endVerse: parsed.endVerse,
     bibleData,
+    translationId,
   })
 
   if (validationError) {
@@ -358,6 +325,7 @@ function parseReferenceChunk(chunk, context, bibleData) {
     endChapter: parsed.endChapter,
     endVerse: parsed.endVerse,
     bibleData,
+    translationId,
   })
 
   if (verses.length === 0) {
@@ -367,6 +335,7 @@ function parseReferenceChunk(chunk, context, bibleData) {
   return {
     entry: {
       book: parsed.bookName,
+      translationId,
       startChapter: parsed.startChapter,
       startVerse: parsed.startVerse,
       endChapter: parsed.endChapter,
@@ -389,7 +358,7 @@ function parseReferenceChunk(chunk, context, bibleData) {
   }
 }
 
-function parseSegment(segment, context, bibleData) {
+function parseSegment(segment, context, bibleData, translationId) {
   const tokens = String(segment || '')
     .trim()
     .split(/\s+/)
@@ -405,7 +374,7 @@ function parseSegment(segment, context, bibleData) {
 
     for (let end = tokens.length; end > index; end -= 1) {
       const candidate = tokens.slice(index, end).join(' ')
-      const parsed = parseReferenceChunk(candidate, activeContext, bibleData)
+      const parsed = parseReferenceChunk(candidate, activeContext, bibleData, translationId)
       if (!parsed || (!parsed.entry && !parsed.warning)) continue
 
       if (parsed.entry) {
@@ -430,6 +399,7 @@ function parseSegment(segment, context, bibleData) {
 export function parseMassVerseInput(input, options = {}) {
   const {
     bibleData,
+    translationId = null,
     defaultBook = null,
     defaultChapter = null,
     defaultMode = 'chapter',
@@ -453,7 +423,7 @@ export function parseMassVerseInput(input, options = {}) {
   }
 
   for (const segment of segments) {
-    const parsed = parseSegment(segment, context, bibleData)
+    const parsed = parseSegment(segment, context, bibleData, translationId)
     entries.push(...parsed.entries)
     warnings.push(...parsed.warnings)
     context = parsed.context || context
@@ -462,20 +432,11 @@ export function parseMassVerseInput(input, options = {}) {
   return { entries, warnings }
 }
 
-function buildLocalizedReferenceLine(entry, translationIds) {
-  const localized = translationIds.map(translationId => {
-    const localizedBook = localizeBookName(entry.book, translationId)
-    const localizedRef = formatReference(
-      localizedBook,
-      entry.startChapter,
-      entry.startVerse,
-      entry.endChapter,
-      entry.endVerse
-    )
-    return `${translationDisplayAbbr(translationId)}: ${localizedRef}`
-  })
-
-  return localized.join(' • ')
+function localizedReference(entry, translationId) {
+  const localizedBook = localizeBookName(entry.book, translationId)
+  const start = psalmComparisonVerseNumber(entry.book, entry.startChapter, entry.startVerse, entry.translationId, translationId)
+  const end = psalmComparisonVerseNumber(entry.book, entry.endChapter, entry.endVerse, entry.translationId, translationId)
+  return `${translationDisplayAbbr(translationId)}: ${formatReference(localizedBook, entry.startChapter, start, entry.endChapter, end)}`
 }
 
 export function buildMassExportRows(entries, translationIds, translationDataById) {
@@ -487,21 +448,22 @@ export function buildMassExportRows(entries, translationIds, translationDataById
     for (const translationId of translationIds) {
       const bibleData = translationDataById?.[translationId] || null
       const lines = entry.verses.map(verseRef => {
+        const number = psalmComparisonVerseNumber(verseRef.book, verseRef.chapter, verseRef.verse, entry.translationId, translationId)
         const verseText = getVerseText(
           bibleData,
           verseRef.book,
           verseRef.chapter,
-          verseRef.verse,
+          number,
           translationId
         )
-        return `(${verseRef.verse}) ${translationDisplayText(translationId, verseText) || '[Verse unavailable]'}`
+        return `(${number}) ${translationDisplayText(translationId, verseText) || '[Verse unavailable]'}`
       })
       translationCells[translationId] = lines
     }
 
     return {
       ...entry,
-      localizedLine: buildLocalizedReferenceLine(entry, translationIds),
+      localizedLine: translationIds.map(id => localizedReference(entry, id)).join(' • '),
       translationCells,
     }
   })
@@ -514,16 +476,8 @@ export function formatMassExportPlain(rows, translationIds) {
     .map(row => {
       const sections = [`${row.englishRef}`, `${row.localizedLine}`]
       for (const translationId of translationIds) {
-        const localizedBook = localizeBookName(row.book, translationId)
-        const localizedRef = formatReference(
-          localizedBook,
-          row.startChapter,
-          row.startVerse,
-          row.endChapter,
-          row.endVerse
-        )
         const verseLines = row.translationCells[translationId] || ['[Verse unavailable]']
-        sections.push(`${translationDisplayAbbr(translationId)}: ${localizedRef}`)
+        sections.push(localizedReference(row, translationId))
         sections.push(verseLines.join('\n'))
       }
       return sections.join('\n')

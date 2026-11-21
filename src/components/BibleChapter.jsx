@@ -124,7 +124,7 @@ function BibleChapter({
                 }`}
               >
                 {/* Verse Number */}
-                <VerseNumber number={verse.number} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} testId={`verse-bookmark-${verse.number}`} onToggle={() => onBookmarkToggle(chapter.number, verse.number, verse.text)} />
+                <VerseNumber number={verse.number} label={verse.numberLabel} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} testId={`verse-bookmark-${verse.number}`} onToggle={() => onBookmarkToggle(chapter.number, verse.number, verse.text)} />
 
                 {selectionMode && (
                   <span
@@ -200,7 +200,7 @@ function BibleChapter({
                     : getVerseHighlightClasses(highlightColor)
                 }`}
               >
-                <VerseNumber number={verse.number} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} testId={`verse-bookmark-${verse.number}`} onToggle={() => onBookmarkToggle(chapter.number, verse.number, verse.text)} />
+                <VerseNumber number={verse.number} label={verse.numberLabel} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} testId={`verse-bookmark-${verse.number}`} onToggle={() => onBookmarkToggle(chapter.number, verse.number, verse.text)} />
                 {selectionMode && (
                   <span
                     className={`mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full border text-[10px] font-bold align-middle ${
