@@ -160,16 +160,17 @@ def cmd_draft(args):
             verses[ref] = existing[ref]
             counts['kept'] += 1
             continue
-        if ref not in greek[book] and not translated[book].get(ref, '').strip():
+        if not greek[book].get(ref, '').strip() and not translated[book].get(ref, '').strip():
             # Neither witness prints this verse (for example a TR-only verse
             # that the edition leaves blank): there is nothing to link.
             counts.setdefault('skippedEmpty', []).append(ref)
             continue
-        if ref not in greek[book] or ref not in translated[book]:
+        if not greek[book].get(ref) or not translated[book].get(ref):
             counts['absent'].append(ref)
             verses[ref] = {'_todo': {'notes': [
-                f'Reference {ref} is missing from the ' + ('Greek' if ref not in greek[book] else args.target)
-                + ' text. Decide: sourceAbsent/targetAbsent review, a moved-source link, or leave the verse out.']},
+                f'Reference {ref} is missing from the ' + ('Greek' if not greek[book].get(ref) else args.target)
+                + ' text. Use `x targetAbsent` (or `x sourceAbsent`) and explain every word of the other side,'
+                + ' or link moved words.']},
                 'sourceText': greek[book].get(ref, ''), 'targetText': translated[book].get(ref, '')}
             continue
         verse = draft_verse(published['verses'].get(ref), greek[book][ref], translated[book][ref])
