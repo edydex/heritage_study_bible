@@ -80,6 +80,9 @@ t This is = English supplies a presentational frame with no Greek counterpart.
    "This is", a proper name the Greek gives only as a pronoun or verb ending,
    or an added "one" or "that".
 8. **Names** are linked despite spelling differences (Ἰωάννης ↔ John).
+   **Vocatives:** an English "You" or "O you" before a vocative is linked
+   with that vocative word (ὑποκριταί → "You hypocrites"). Earlier
+   reviewed chapters do this in 8 verses and use `t` in only 3.
 9. **Different Greek reading.** When BSB follows a reading N1904 lacks, or
    leaves out N1904 words, say so in the `s` or `t` reason. Never invent a
    link for it.
