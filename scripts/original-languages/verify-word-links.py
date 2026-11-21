@@ -185,6 +185,15 @@ def check_consistency(failures, warnings, only):
         for name, entry in accepted.items():
             if sha(reviews_dir(t) / name) != entry.get('sha256'):
                 failures.append(f'{t}: {name} changed after it was accepted (registry hash differs)')
+            # Review notes committed to the repo must still match their recorded hash.
+            for field in ('authorReceipt', 'independentPeer'):
+                proof = entry.get(field)
+                if isinstance(proof, dict) and proof.get('file'):
+                    note = ROOT / proof['file']
+                    if not note.exists():
+                        failures.append(f'{t}: {name} {field} note is missing: {proof["file"]}')
+                    elif sha(note) != proof.get('sha256'):
+                        failures.append(f'{t}: {name} {field} note changed after acceptance: {proof["file"]}')
         # Every accepted verse must be published as reviewed from that exact
         # resource, and every published reviewed verse must come from one.
         expected = {}
