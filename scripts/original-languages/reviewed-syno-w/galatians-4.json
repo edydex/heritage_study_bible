@@ -1639,26 +1639,26 @@
             }
           ],
           "note": "Actual perfect active first-person singular becomes a Russian past with overt subject."
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             6
           ],
-          "reason": "Actual εἰς specifies the direction of the work toward the addressees. Russian locates the work among them with у."
+          "targetPhrases": [
+            {
+              "text": "у",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς \"for (you)\" is rendered \"у (вас)\" \"among you\"."
         }
       ],
+      "unmappedSource": [],
       "unmappedTarget": [
         {
           "text": "за",
           "occurrence": 0,
           "reason": "Russian uses за with the people concerning whom the speaker fears. The actual pronoun is a direct accusative."
-        },
-        {
-          "text": "у",
-          "occurrence": 0,
-          "reason": "Russian specifies location with у. Actual εἰς specifies direction toward the people."
         }
       ]
     },

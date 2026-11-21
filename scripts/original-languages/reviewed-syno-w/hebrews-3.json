@@ -1470,11 +1470,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual forty at N1904 3:10 corresponds to the close of Russian 3:9.",
           "sourceReference": {
             "chapter": 3,
             "verse": 10
-          }
+          },
+          "note": "Actual forty at N1904 3:10 corresponds to the close of Russian 3:9."
         },
         {
           "sourceTokens": [
@@ -1486,11 +1486,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual years at N1904 3:10 corresponds to the close of Russian 3:9.",
           "sourceReference": {
             "chapter": 3,
             "verse": 10
-          }
+          },
+          "note": "Actual years at N1904 3:10 corresponds to the close of Russian 3:9."
         }
       ],
       "unmappedSource": [
@@ -2902,15 +2902,21 @@
             }
           ],
           "note": "The one actual interrogative negative becomes two Russian words."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "согревших",
+              "occurrence": 0
+            }
+          ],
+          "note": "The Russian text misprints согрешивших \"those who sinned\" as согревших."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            7
-          ],
-          "reason": "Actual Greek has the aorist active participle of sinning. Installed, native, VPL and USFM Russian print согревших, literally those having warmed."
-        },
         {
           "tokens": [
             6,
@@ -2921,11 +2927,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "согревших",
-          "occurrence": 0,
-          "reason": "Exact Synodal wording is согревших. Actual Greek prints those who sinned; no correspondence to being warmed is asserted."
-        },
         {
           "text": "На",
           "occurrence": 0,

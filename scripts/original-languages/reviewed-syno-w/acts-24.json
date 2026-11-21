@@ -562,11 +562,11 @@
               "occurrence": 1
             }
           ],
-          "note": "Actual attaining participle and its causal complement become owing our peace to you. Preserve the written attaining lemma and its first-person plural context.",
           "sourceReference": {
             "chapter": 24,
             "verse": 2
-          }
+          },
+          "note": "Actual attaining participle and its causal complement become owing our peace to you. Preserve the written attaining lemma and its first-person plural context."
         },
         {
           "sourceTokens": [
@@ -579,6 +579,10 @@
               "occurrence": 0
             }
           ],
+          "sourceReference": {
+            "chapter": 24,
+            "verse": 2
+          },
           "note": "Actual through-you cause is rendered by a single Russian dative of attribution.",
           "studyHeads": [
             {
@@ -593,11 +597,7 @@
               ],
               "note": "The actual second-person pronoun is the referent of the Russian dative."
             }
-          ],
-          "sourceReference": {
-            "chapter": 24,
-            "verse": 2
-          }
+          ]
         },
         {
           "sourceTokens": [
@@ -609,11 +609,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual improvements or reforms noun occupies the corresponding nominal role. Preserve N1904 διόρθωμα alongside printed TR κατόρθωμα.",
           "sourceReference": {
             "chapter": 24,
             "verse": 2
-          }
+          },
+          "note": "Actual improvements or reforms noun occupies the corresponding nominal role. Preserve N1904 διόρθωμα alongside printed TR κατόρθωμα."
         },
         {
           "sourceTokens": [
@@ -627,6 +627,10 @@
               "occurrence": 0
             }
           ],
+          "sourceReference": {
+            "chapter": 24,
+            "verse": 2
+          },
           "note": "Actual through-your-forethought phrase is rendered with an attributive dative.",
           "studyHeads": [
             {
@@ -653,11 +657,7 @@
               ],
               "note": "The actual forethought noun supplies the care rendered in Russian."
             }
-          ],
-          "sourceReference": {
-            "chapter": 24,
-            "verse": 2
-          }
+          ]
         }
       ],
       "unmappedSource": [
@@ -2452,16 +2452,21 @@
             }
           ],
           "note": "The actual ancestral adjective is expressed by an explicit Russian possessive noun phrase with the same ancestral relation."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "действительно",
+              "occurrence": 0
+            }
+          ],
+          "note": "οὕτως \"so\" is rendered as the assertion \"действительно\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            11,
-            24
-          ],
-          "reason": "Actual manner thus is distinct from the Russian assertion действительно. Actual second preposition before prophets is not repeated in the Russian coordinated phrase."
-        },
         {
           "tokens": [
             6,
@@ -2472,6 +2477,12 @@
             25
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
+        },
+        {
+          "tokens": [
+            24
+          ],
+          "reason": "Actual second preposition before prophets is not repeated in the Russian coordinated phrase."
         }
       ],
       "unmappedTarget": [
@@ -2479,11 +2490,6 @@
           "text": "в",
           "occurrence": 0,
           "reason": "Russian supplies its preposition before the demonstrative acknowledgment object."
-        },
-        {
-          "text": "действительно",
-          "occurrence": 0,
-          "reason": "The Russian stance adverb adds an explicit assertion; actual οὕτως marks corresponding manner."
         }
       ]
     },
@@ -4154,15 +4160,21 @@
             }
           ],
           "note": "Actual negative indefinite no one supplies the Russian negative indefinite and its required verbal negative concord. This is distinct from the earlier не in not confining."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "но",
+              "occurrence": 0
+            }
+          ],
+          "note": "The connective τε is rendered contrastively \"но\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            6
-          ],
-          "reason": "Actual connective joins custody and freedom. Russian uses the adversative но between those ideas."
-        },
         {
           "tokens": [
             1,
@@ -4173,16 +4185,6 @@
       ],
       "unmappedTarget": [
         {
-          "text": "А",
-          "occurrence": 0,
-          "reason": "Russian adds a transition at the beginning of the custody order."
-        },
-        {
-          "text": "но",
-          "occurrence": 0,
-          "reason": "Russian expresses a contrast between keeping and granting freedom."
-        },
-        {
           "text": "из",
           "occurrence": 0,
           "reason": "Russian makes the partitive relation of close companions explicit using a preposition."
@@ -4191,6 +4193,11 @@
           "text": "или приходить к нему",
           "occurrence": 0,
           "reason": "Printed TR has the alternative visiting infinitive. Actual N1904 ends with serve him, to which the local actual dative belongs."
+        },
+        {
+          "text": "А",
+          "occurrence": 0,
+          "reason": "The Russian follows the Textus Receptus here; N1904 has no connective at the start."
         }
       ]
     },

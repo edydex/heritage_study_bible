@@ -676,6 +676,18 @@
             }
           ],
           "note": "Actual varieties noun becomes a Russian predicate adjective."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "а",
+              "occurrence": 0
+            }
+          ],
+          "note": "Additive καί is rendered contrastively."
         }
       ],
       "unmappedSource": [
@@ -687,24 +699,12 @@
         },
         {
           "tokens": [
-            4
-          ],
-          "reason": "Actual additive and introduces the same Lord. Russian has an adversative а."
-        },
-        {
-          "tokens": [
             5
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "а",
-          "occurrence": 0,
-          "reason": "Russian explicitly contrasts same Lord and diverse services; actual conjunction is additive."
-        }
-      ]
+      "unmappedTarget": []
     },
     "12:6": {
       "sourceText": "καὶ διαιρέσεις ἐνεργημάτων εἰσίν, ὁ δὲ αὐτὸς Θεός ὁ ἐνεργῶν τὰ πάντα ἐν πᾶσιν.",
@@ -2113,15 +2113,26 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "же",
+              "occurrence": 0
+            }
+          ],
+          "note": "Explanatory γάρ is rendered by the particle же."
         }
       ],
       "unmappedSource": [
         {
           "tokens": [
-            0,
-            1
+            0
           ],
-          "reason": "Actual and for accompanies the transition. Russian uses postpositive же."
+          "reason": "Ascensive καί (\"indeed\") with γάρ has no separate Russian word."
         },
         {
           "tokens": [
@@ -2137,11 +2148,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "же",
-          "occurrence": 0,
-          "reason": "Russian gives its transition with a postpositive particle."
-        },
         {
           "text": "из",
           "occurrence": 0,
@@ -3790,11 +3796,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual 23 final clause begins with and. The Russian puts this clause at the start of verse 24.",
           "sourceReference": {
             "chapter": 12,
             "verse": 23
-          }
+          },
+          "note": "Actual 23 final clause begins with and. The Russian puts this clause at the start of verse 24."
         },
         {
           "sourceTokens": [
@@ -3806,11 +3812,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Same physical unpresentable parts in prior actual verse.",
           "sourceReference": {
             "chapter": 12,
             "verse": 23
-          }
+          },
+          "note": "Same physical unpresentable parts in prior actual verse."
         },
         {
           "sourceTokens": [
@@ -3822,11 +3828,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Same first-person plural possessor physically in 23.",
           "sourceReference": {
             "chapter": 12,
             "verse": 23
-          }
+          },
+          "note": "Same first-person plural possessor physically in 23."
         },
         {
           "sourceTokens": [
@@ -3838,11 +3844,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Same decency noun becomes manner adverb in Russian, physically in 23.",
           "sourceReference": {
             "chapter": 12,
             "verse": 23
-          }
+          },
+          "note": "Same decency noun becomes manner adverb in Russian, physically in 23."
         },
         {
           "sourceTokens": [
@@ -3854,11 +3860,11 @@
               "occurrence": 0
             }
           ],
-          "note": "The second actual greater degree in 23 is carried to the Russian next verse.",
           "sourceReference": {
             "chapter": 12,
             "verse": 23
-          }
+          },
+          "note": "The second actual greater degree in 23 is carried to the Russian next verse."
         }
       ],
       "unmappedSource": [

@@ -7175,17 +7175,6 @@
         },
         {
           "sourceTokens": [
-            14
-          ],
-          "targetPhrases": [
-            {
-              "text": "не",
-              "occurrence": 1
-            }
-          ]
-        },
-        {
-          "sourceTokens": [
             15
           ],
           "targetPhrases": [
@@ -7202,17 +7191,6 @@
           "targetPhrases": [
             {
               "text": "пить",
-              "occurrence": 0
-            }
-          ]
-        },
-        {
-          "sourceTokens": [
-            17
-          ],
-          "targetPhrases": [
-            {
-              "text": "будет",
               "occurrence": 0
             }
           ]
@@ -7238,15 +7216,38 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            13,
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "чтобы",
+              "occurrence": 0
+            },
+            {
+              "text": "не",
+              "occurrence": 1
+            }
+          ],
+          "note": "ἐὰν μή \"unless\" is rendered \"чтобы ... не\" \"without (My drinking)\"."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "да будет",
+              "occurrence": 0
+            }
+          ],
+          "note": "The third-person imperative is rendered with да."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            13
-          ],
-          "reason": "Actual expresses unless. Russian expresses the consequent need using чтобы with the ensuing negative."
-        },
         {
           "tokens": [
             18
@@ -7266,17 +7267,7 @@
           "reason": "Printed TR specifies the person the cup would pass. Actual leave that object unstated."
         },
         {
-          "text": "чтобы",
-          "occurrence": 0,
-          "reason": "Russian renders this grammatical constituent explicitly. No separate actual Greek word corresponds."
-        },
-        {
           "text": "Мне",
-          "occurrence": 0,
-          "reason": "Russian renders this grammatical constituent explicitly. No separate actual Greek word corresponds."
-        },
-        {
-          "text": "да",
           "occurrence": 0,
           "reason": "Russian renders this grammatical constituent explicitly. No separate actual Greek word corresponds."
         }

@@ -1877,16 +1877,22 @@
             }
           ],
           "note": "Actual went-away compound is rendered went-back in Russian; source lemma and aorist are retained, without a separate Greek back adverb."
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             16,
             17
           ],
-          "reason": "Actual pros plus accusative reflexive follows going-away and precedes wondering; Russian explicitly places сам в себе with wondering. The Greek phrase can be attached or construed differently; no unique attachment is asserted."
-        },
+          "targetPhrases": [
+            {
+              "text": "сам в себе",
+              "occurrence": 0
+            }
+          ],
+          "note": "πρὸς αὑτόν is taken with \"wondering\": \"within himself\" (KJV \"in himself\")."
+        }
+      ],
+      "unmappedSource": [
         {
           "tokens": [
             0,
@@ -1898,11 +1904,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "сам в себе",
-          "occurrence": 0,
-          "reason": "Russian explicitly names interior wondering with сам в себе; actual pros-reflexive stands between departing and wondering and admits attachment ambiguity. These are conservatively unpaired rather than asserting a unique Greek interior or destination construction."
-        },
         {
           "text": "лежащие",
           "occurrence": 0,

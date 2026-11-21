@@ -1061,23 +1061,22 @@
             }
           ],
           "note": "Actual first-plural preparation subjunctive is expressed by Russian dative persons and infinitive; no standalone Greek us pronoun is printed."
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             5
           ],
-          "reason": "Actual asks where you want/will the preparation; Russian uses the command verb велишь. The particular desire versus ordering predicate is kept distinct."
+          "targetPhrases": [
+            {
+              "text": "велишь",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"Do you want\" is rendered \"велишь\" \"do you bid\"."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "велишь",
-          "occurrence": 0,
-          "reason": "Russian names ordering, while both written Greek witnesses have the willing/wanting verb thelo rather than a command lemma."
-        }
-      ]
+      "unmappedSource": [],
+      "unmappedTarget": []
     },
     "22:10": {
       "sourceText": "ὁ δὲ εἶπεν αὐτοῖς Ἰδοὺ εἰσελθόντων ὑμῶν εἰς τὴν πόλιν συναντήσει ὑμῖν ἄνθρωπος κεράμιον ὕδατος βαστάζων· ἀκολουθήσατε αὐτῷ εἰς τὴν οἰκίαν εἰς ἣν εἰσπορεύεται·",
@@ -3159,15 +3158,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "И",
+              "occurrence": 0
+            }
+          ],
+          "note": "πλήν \"but/yet\" is rendered \"и\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0
-          ],
-          "reason": "Actual except/however connective differs from Russian additive И; neither witness has a simple kai at this position."
-        },
         {
           "tokens": [
             2,
@@ -3177,13 +3182,7 @@
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "И",
-          "occurrence": 0,
-          "reason": "Russian adds with И where actual uses plen rather than an additive coordinator."
-        }
-      ]
+      "unmappedTarget": []
     },
     "22:22": {
       "sourceText": "ὅτι ὁ Υἱὸς μὲν τοῦ ἀνθρώπου κατὰ τὸ ὡρισμένον πορεύεται, πλὴν οὐαὶ τῷ ἀνθρώπῳ ἐκείνῳ δι’ οὗ παραδίδοται.",

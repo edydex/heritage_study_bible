@@ -1420,21 +1420,33 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "мы надеемся",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"We are persuaded\" is rendered \"we hope\"."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "держитесь",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐχόμενα \"(things) holding to (salvation)\" is rendered with the addressees as subject."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0
-          ],
-          "reason": "Actual first-person plural perfect passive of persuasion presents the speakers as convinced. Russian uses the distinct predicate надеемся."
-        },
-        {
-          "tokens": [
-            8
-          ],
-          "reason": "Actual nonactive neuter plural participle qualifies the better things as pertaining to salvation. Russian makes the addressees hold fast to salvation."
-        },
         {
           "tokens": [
             5
@@ -1443,16 +1455,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "мы",
-          "occurrence": 0,
-          "reason": "Russian states the first-person plural subject overtly with its different predicate."
-        },
-        {
-          "text": "надеемся",
-          "occurrence": 0,
-          "reason": "Russian uses a hoping verb where actual Greek has the perfect passive of persuasion."
-        },
         {
           "text": "что",
           "occurrence": 0,
@@ -1472,11 +1474,6 @@
           "text": "состоянии",
           "occurrence": 0,
           "reason": "Russian supplies the state noun modified by its better adjective."
-        },
-        {
-          "text": "держитесь",
-          "occurrence": 0,
-          "reason": "In Russian the addressees hold fast to salvation. The actual neuter plural participle describes the things pertaining to salvation."
         }
       ]
     },
@@ -1676,15 +1673,21 @@
             }
           ],
           "note": "Actual aorist middle second-person plural verb presents the showing of love. Russian explicitly states the subject."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "который",
+              "occurrence": 0
+            }
+          ],
+          "note": "The relative agrees with \"love\"; Russian который agrees with труд (TR κόπου)."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            12
-          ],
-          "reason": "Actual feminine genitive relative agrees with love. Russian has a masculine relative after the printed TR addition труд любви."
-        },
         {
           "tokens": [
             3,
@@ -1706,11 +1709,6 @@
           "text": "труд",
           "occurrence": 0,
           "reason": "Printed TR includes κόπου before love. Actual N1904 prints only the love noun in this conjunct."
-        },
-        {
-          "text": "который",
-          "occurrence": 0,
-          "reason": "Russian uses a masculine relative with труд. Actual N1904 lacks that noun and gives a feminine genitive relative with love."
         }
       ]
     },

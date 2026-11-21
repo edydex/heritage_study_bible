@@ -2095,6 +2095,18 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "стихотворец",
+              "occurrence": 0
+            }
+          ],
+          "note": "προφήτης \"prophet\" is rendered \"стихотворец\" \"poet\" (Epimenides)."
         }
       ],
       "unmappedSource": [
@@ -2103,12 +2115,6 @@
             5
           ],
           "reason": "The second actual their pronoun qualifies the prophet. Russian expresses the relation once in Из них самих."
-        },
-        {
-          "tokens": [
-            6
-          ],
-          "reason": "Actual N1904 and printed TR have the noun prophet. Russian identifies the speaker by the different description стихотворец."
         }
       ],
       "unmappedTarget": [
@@ -2116,11 +2122,6 @@
           "text": "же",
           "occurrence": 0,
           "reason": "Russian supplies a transition particle with no separately printed Greek conjunction at this point."
-        },
-        {
-          "text": "стихотворец",
-          "occurrence": 0,
-          "reason": "Russian describes the same speaker as a poet. Actual N1904 and printed TR use the distinct lexical description prophet."
         }
       ]
     },

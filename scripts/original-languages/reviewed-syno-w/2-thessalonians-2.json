@@ -914,16 +914,22 @@
             }
           ],
           "note": "Actual accusative is the subject of the sitting infinitive. Russian renders the same person as nominative subject of a finite verb."
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             20,
             21
           ],
-          "reason": "Actual Greek supplies a content clause that he is. Russian instead uses the complement за Бога."
-        },
+          "targetPhrases": [
+            {
+              "text": "за",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"(Showing himself) that he is (God)\" is rendered \"(выдавая себя) за (Бога)\"."
+        }
+      ],
+      "unmappedSource": [
         {
           "tokens": [
             0,
@@ -938,11 +944,6 @@
           "text": "как Бог",
           "occurrence": 0,
           "reason": "The printed TR adds this comparison before sitting. Actual N1904 does not print it."
-        },
-        {
-          "text": "за",
-          "occurrence": 0,
-          "reason": "Russian supplies a preposition in the showing-oneself expression. Greek uses a conjunction and copula."
         }
       ]
     },

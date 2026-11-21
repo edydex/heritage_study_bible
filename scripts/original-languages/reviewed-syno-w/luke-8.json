@@ -4732,6 +4732,30 @@
             }
           ],
           "note": "Actual plural nonactive gives their being filled. Russian expresses the same influx with an impersonal verb and an overt affected object."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "поднялся",
+              "occurrence": 0
+            }
+          ],
+          "note": "The storm \"came down\"; Russian says the wind rose."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "На",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς \"onto\" the lake is rendered as location."
         }
       ],
       "unmappedSource": [
@@ -4744,34 +4768,12 @@
         },
         {
           "tokens": [
-            5
-          ],
-          "reason": "Actual windstorm came down. Russian describes the wind rising."
-        },
-        {
-          "tokens": [
-            8
-          ],
-          "reason": "Actual movement of the windstorm is toward or onto the lake. Russian locates the rising wind on the lake."
-        },
-        {
-          "tokens": [
             9
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "поднялся",
-          "occurrence": 0,
-          "reason": "Russian describes the wind rising. Both compared Greek texts use a descending motion here."
-        },
-        {
-          "text": "На",
-          "occurrence": 0,
-          "reason": "Russian introduces the lake as the location of the wind arising. Actual gives the movement toward the lake."
-        },
         {
           "text": "волнами",
           "occurrence": 0,
@@ -5997,6 +5999,18 @@
             }
           ],
           "note": "Actual directional compound means falling down before the same person. Russian writes the fall and the directional relation with separate words."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "до",
+              "occurrence": 0
+            }
+          ],
+          "note": "In the idiom \"what to me and to you\", καί is rendered by до: \"что Тебе до меня\"."
         }
       ],
       "unmappedSource": [
@@ -6008,12 +6022,6 @@
         },
         {
           "tokens": [
-            13
-          ],
-          "reason": "Actual coordinates the two people in the idiomatic question. Russian describes a relation introduced with до."
-        },
-        {
-          "tokens": [
             2,
             17,
             19
@@ -6022,11 +6030,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "до",
-          "occurrence": 0,
-          "reason": "Russian uses a relational preposition in the question. Actual coordinates the dative participants."
-        },
         {
           "text": "Он",
           "occurrence": 0,

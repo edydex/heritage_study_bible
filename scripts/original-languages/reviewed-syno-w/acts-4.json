@@ -1915,11 +1915,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Greek begins the following verse with this conjunction.",
           "sourceReference": {
             "chapter": 4,
             "verse": 12
-          }
+          },
+          "note": "Greek begins the following verse with this conjunction."
         },
         {
           "sourceTokens": [
@@ -1932,6 +1932,10 @@
               "occurrence": 0
             }
           ],
+          "sourceReference": {
+            "chapter": 4,
+            "verse": 12
+          },
           "note": "Actual Greek begins its negative existence in 4:12.",
           "studyHeads": [
             {
@@ -1946,11 +1950,7 @@
               ],
               "note": "Actual written negative at 4:12."
             }
-          ],
-          "sourceReference": {
-            "chapter": 4,
-            "verse": 12
-          }
+          ]
         },
         {
           "sourceTokens": [
@@ -1962,11 +1962,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual word is in the beginning of physical 4:12.",
           "sourceReference": {
             "chapter": 4,
             "verse": 12
-          }
+          },
+          "note": "Actual word is in the beginning of physical 4:12."
         },
         {
           "sourceTokens": [
@@ -1978,11 +1978,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual word is in the beginning of physical 4:12.",
           "sourceReference": {
             "chapter": 4,
             "verse": 12
-          }
+          },
+          "note": "Actual word is in the beginning of physical 4:12."
         },
         {
           "sourceTokens": [
@@ -1998,11 +1998,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual no one is expressed with Russian negative concord. It begins actual 4:12.",
           "sourceReference": {
             "chapter": 4,
             "verse": 12
-          }
+          },
+          "note": "Actual no one is expressed with Russian negative concord. It begins actual 4:12."
         },
         {
           "sourceTokens": [
@@ -2014,11 +2014,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual word is in the beginning of physical 4:12.",
           "sourceReference": {
             "chapter": 4,
             "verse": 12
-          }
+          },
+          "note": "Actual word is in the beginning of physical 4:12."
         }
       ],
       "unmappedSource": [
@@ -4710,11 +4710,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual physically gives the overt personal pronoun at the preceding verse. Synodal gives it as subject of saying.",
           "sourceReference": {
             "chapter": 4,
             "verse": 24
-          }
+          },
+          "note": "Actual physically gives the overt personal pronoun at the preceding verse. Synodal gives it as subject of saying."
         }
       ],
       "unmappedSource": [
@@ -6429,15 +6429,21 @@
               "note": "Actual witness noun supplies the lexical event."
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "же",
+              "occurrence": 0
+            }
+          ],
+          "note": "Additive καί is rendered by the particle же."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0
-          ],
-          "reason": "Actual opens with an additive. Russian transitions with же."
-        },
         {
           "tokens": [
             4,
@@ -6453,11 +6459,6 @@
           "text": "Христа",
           "occurrence": 0,
           "reason": "Russian names Christ besides Jesus. Actual and retained printed TR write Lord Jesus at this point."
-        },
-        {
-          "text": "же",
-          "occurrence": 0,
-          "reason": "Russian expresses this grammatical constituent separately in the local construction. No separate Greek word corresponds."
         },
         {
           "text": "с",

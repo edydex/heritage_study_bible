@@ -604,6 +604,18 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "из",
+              "occurrence": 0
+            }
+          ],
+          "note": "διά \"through (the mouth)\" is rendered \"из (уст)\" \"from\"."
         }
       ],
       "unmappedSource": [
@@ -613,12 +625,6 @@
             13
           ],
           "reason": "Both actual instances of ἐπί express the basis of living. Russian expresses both bases with instrumental nouns."
-        },
-        {
-          "tokens": [
-            17
-          ],
-          "reason": "Actual διά names the mouth as the channel of the words. Russian marks the mouth as the origin with из."
         },
         {
           "tokens": [
@@ -632,11 +638,6 @@
           "text": "ему",
           "occurrence": 0,
           "reason": "Russian supplies the recipient of the response explicitly. Actual clause has no personal dative here."
-        },
-        {
-          "text": "из",
-          "occurrence": 0,
-          "reason": "Russian preposition names the mouth as origin. Actual uses through."
         }
       ]
     },
@@ -1028,17 +1029,6 @@
         },
         {
           "sourceTokens": [
-            25
-          ],
-          "targetPhrases": [
-            {
-              "text": "не",
-              "occurrence": 0
-            }
-          ]
-        },
-        {
-          "sourceTokens": [
             27
           ],
           "targetPhrases": [
@@ -1091,26 +1081,39 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Ты",
+              "occurrence": 0
+            }
+          ],
+          "note": "The copula is zero in Russian; its subject is expressed by Ты."
+        },
+        {
+          "sourceTokens": [
+            25,
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "да не",
+              "occurrence": 0
+            }
+          ],
+          "note": "μή ποτε \"lest\" is rendered \"да не\"."
         }
       ],
       "unmappedSource": [
         {
           "tokens": [
-            5
-          ],
-          "reason": "Actual present copula is unexpressed in this ordinary Russian nominal clause."
-        },
-        {
-          "tokens": [
             13
           ],
           "reason": "Actual quotation marker ὅτι is conveyed with Russian punctuation."
-        },
-        {
-          "tokens": [
-            26
-          ],
-          "reason": "Actual ποτέ marks the possibility paired with μή. Russian expresses the avoidance through да and не."
         },
         {
           "tokens": [
@@ -1121,18 +1124,7 @@
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "Ты",
-          "occurrence": 0,
-          "reason": "Russian explicitly states the second-person nominal subject."
-        },
-        {
-          "text": "да",
-          "occurrence": 0,
-          "reason": "Russian makes the averted consequence finite with its connective. Actual syntax uses μή and ποτέ."
-        }
-      ]
+      "unmappedTarget": []
     },
     "4:7": {
       "sourceText": "ἔφη αὐτῷ ὁ Ἰησοῦς Πάλιν γέγραπται Οὐκ ἐκπειράσεις Κύριον τὸν Θεόν σου.",

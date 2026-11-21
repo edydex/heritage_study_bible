@@ -2466,19 +2466,36 @@
             }
           ],
           "note": "The actual present active infinitive after say becomes the finite verb of the Russian content clause."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "ли",
+              "occurrence": 0
+            }
+          ],
+          "note": "Interrogative μή (expecting \"no\") is rendered by the question particle ли."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "эта",
+              "occurrence": 0
+            }
+          ],
+          "note": "The anaphoric article \"(that) faith\" is rendered by эта."
         }
       ],
       "unmappedSource": [
         {
           "tokens": [
-            14
-          ],
-          "reason": "Actual μή frames the question as expecting a negative response; the Russian neutral interrogative ли does not express the negation."
-        },
-        {
-          "tokens": [
-            1,
-            16
+            1
           ],
           "reason": "These printed articles have no separately expressed determiner in the corresponding Russian constructions."
         }
@@ -2488,16 +2505,6 @@
           "text": "что он",
           "occurrence": 0,
           "reason": "Russian introduces an overt finite content clause with its own conjunction and subject."
-        },
-        {
-          "text": "ли",
-          "occurrence": 0,
-          "reason": "Russian question particle, with no independent Greek question word."
-        },
-        {
-          "text": "эта",
-          "occurrence": 0,
-          "reason": "Russian supplies a pointing demonstrative; the Greek article does not print one."
         }
       ]
     },

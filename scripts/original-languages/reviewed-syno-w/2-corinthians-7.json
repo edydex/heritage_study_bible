@@ -711,21 +711,33 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "надеюсь",
+              "occurrence": 0
+            }
+          ],
+          "note": "The noun \"confidence\" is rendered by the verb \"rely/hope\"."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "на",
+              "occurrence": 0
+            }
+          ],
+          "note": "πρός \"toward (you)\" is rendered \"на (вас)\" after надеюсь."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            2
-          ],
-          "reason": "Actual παρρησία denotes boldness or frank confidence. Russian gives a finite predicate of hoping or relying."
-        },
-        {
-          "tokens": [
-            3
-          ],
-          "reason": "Actual πρός gives the direction of confidence toward these people. Russian на introduces the people relied on after надеюсь."
-        },
         {
           "tokens": [
             6
@@ -748,16 +760,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "надеюсь",
-          "occurrence": 0,
-          "reason": "Russian gives the finite predicate of hoping or relying. The actual clause has a noun of frank confidence."
-        },
-        {
-          "text": "на",
-          "occurrence": 0,
-          "reason": "Russian introduces the people relied on. The actual preposition marks direction toward the addressees."
-        },
         {
           "text": "я",
           "occurrence": 0,

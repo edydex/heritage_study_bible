@@ -1153,15 +1153,21 @@
               "note": "The actual binding predicate gives the lexical basis of this Russian noun."
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "за",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν \"in (which)\" is rendered \"за (которое)\" \"for which\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0
-          ],
-          "reason": "The actual opening preposition is ἐν in the relative phrase. Russian uses a different relation, за."
-        },
         {
           "tokens": [
             8,
@@ -1171,11 +1177,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "за",
-          "occurrence": 0,
-          "reason": "Russian gives the reason of suffering as for the gospel. Actual Greek has a relative with ἐν."
-        },
         {
           "text": "даже",
           "occurrence": 0,

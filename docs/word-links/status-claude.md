@@ -7,8 +7,8 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 - BSB Luke 1–24 (author reviews of 1–4 running; all drafted). Codex's earlier
   single verses in Luke 14, 15, 19 and 21 are kept and re-checked.
-- SYNO-W split-pair fixes (175 candidate verses incl. the 11 audit findings):
-  running.
+- SYNO-W: three more split pairs found outside the fixed set (2 Cor 6:8,
+  Luke 4:34, Mark 5:7), queued.
 - Then BSB John, Acts, Romans, 1–2 Corinthians, Revelation.
 
 ## Done
@@ -28,6 +28,11 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 - **BSB Mark is complete** (674 of 674): Mark 1–16 each have both reviews and
   are registered (`400e907` … `995b5639`). BSB reviewed: 3,407 of 7,944.
 - Merged Codex's branch at `e722b0b8` (clean; the checker passes).
+- **SYNO-W split-pair corrections:** 140 verses in 91 chapters, 189 new
+  links, all 11 audit findings applied, both reviews. Notes are in
+  `claude-review-notes/syno-w/split-pairs-2026-11-20*.md`. The registry status
+  line was also updated, since it still said "partial".
+- BSB Luke 1–5 registered. BSB reviewed: 3,660 of 7,944.
 - Merged Codex's branch at `5fec96d` into `claude/word-links` (clean).
 - SYNO-W audit of a random sample of 160 verses:
   `docs/word-links/claude-review-notes/syno-w/audit-2026-11-20.md`.
@@ -64,6 +69,22 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   deletes afterwards. It never runs `build-lsv-links.py`: it re-applies the
   accepted reviews with `compile-reviewed-links.py` (BSB, LSV, KJV) or runs
   the SYNO-W/UKRK builders with a temporary `--output`.
+
+- **Russian Bible text misprints** (the displayed SYNO-W text, from
+  `scripts/bible-sources/russyn_vpl.txt`; the links point at the displayed
+  words). The text is not in Claude's area:
+  - 2 Cor 11:20: ко → кто
+  - Heb 2:5: говорил → говорим
+  - Heb 3:17: согревших → согрешивших
+  - Heb 5:9: виновников → виновником
+  - Mark 7:36: и → им
+  - Mark 16:5: а → на
+  If you fix the text, tell Claude so the affected links are re-checked.
+- **Question on Romans 8:24 (SYNO-W).** The fix pass linked βλεπομένη to the
+  first "видит" (same verb, voice differs, with a note). Your test
+  `src/services/reviewedRomansHebrews.test.js:147` requires that word to stay
+  unlinked ("honest voice gap"). Claude restored your version and kept the
+  test passing. Linking it with a note would be our preference; your call.
 
 ## Requests
 

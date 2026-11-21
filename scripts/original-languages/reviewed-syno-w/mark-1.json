@@ -4048,6 +4048,18 @@
             }
           ],
           "note": "Actual second-person being supplies the person in the Russian zero-copula question."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "до",
+              "occurrence": 0
+            }
+          ],
+          "note": "In the idiom \"what to us and to you\", καί is rendered by до: \"что Тебе до нас\"."
         }
       ],
       "unmappedSource": [
@@ -4056,12 +4068,6 @@
             0
           ],
           "reason": "The Greek reporting participle is implicit after the preceding outcry in Russian."
-        },
-        {
-          "tokens": [
-            3
-          ],
-          "reason": "Actual Greek joins the two datives in the interpersonal idiom. Russian expresses the relation with до."
         },
         {
           "tokens": [
@@ -4076,11 +4082,6 @@
           "text": "оставь",
           "occurrence": 0,
           "reason": "The printed TR has the separate interjection ἔα; actual N1904 begins the speech directly with the question."
-        },
-        {
-          "text": "до",
-          "occurrence": 0,
-          "reason": "Russian expresses the idiom with до and genitive. Actual Greek has a conjunction and two datives."
         }
       ]
     },
@@ -6962,31 +6963,30 @@
               "occurrence": 0
             }
           ]
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             1
           ],
-          "reason": "Actual ἐμβριμησάμενος expresses a stern charge or warning. Russian «посмотрев … строго» expresses a stern look."
+          "targetPhrases": [
+            {
+              "text": "посмотрев",
+              "occurrence": 0
+            },
+            {
+              "text": "строго",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"Sternly charging (him)\" is rendered \"looking (at him) sternly\"."
         }
       ],
+      "unmappedSource": [],
       "unmappedTarget": [
-        {
-          "text": "посмотрев",
-          "occurrence": 0,
-          "reason": "Russian names looking as the action. Actual ἐμβριμάομαι conveys stern response or warning without a separate seeing predicate."
-        },
         {
           "text": "на",
           "occurrence": 0,
           "reason": "Russian gives the person with a preposition, where Greek has dative."
-        },
-        {
-          "text": "строго",
-          "occurrence": 0,
-          "reason": "Russian «строго» modifies «посмотрев». The Greek participle expresses a stern charge or warning, with the person in the dative."
         }
       ]
     },

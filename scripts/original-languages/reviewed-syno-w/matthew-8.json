@@ -1602,6 +1602,18 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "но",
+              "occurrence": 0
+            }
+          ],
+          "note": "καί is rendered by но, placed before the participle clause."
         }
       ],
       "unmappedSource": [
@@ -1613,24 +1625,12 @@
         },
         {
           "tokens": [
-            11
-          ],
-          "reason": "Actual adds saying as the subsequent finite predicate. Exact Russian subordinates having and uses но."
-        },
-        {
-          "tokens": [
             23
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "но",
-          "occurrence": 0,
-          "reason": "Russian supplies this local grammatical element. Actual Greek has no separate counterpart at this position."
-        }
-      ]
+      "unmappedTarget": []
     },
     "8:10": {
       "sourceText": "ἀκούσας δὲ ὁ Ἰησοῦς ἐθαύμασεν καὶ εἶπεν τοῖς ἀκολουθοῦσιν Ἀμὴν λέγω ὑμῖν, παρ’ οὐδενὶ τοσαύτην πίστιν ἐν τῷ Ἰσραὴλ εὗρον.",
@@ -5252,6 +5252,18 @@
               "occurrence": 1
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "до",
+              "occurrence": 0
+            }
+          ],
+          "note": "In the idiom \"what to us and to you\", καί is rendered by до: \"что Тебе до нас\"."
         }
       ],
       "unmappedSource": [
@@ -5263,12 +5275,6 @@
         },
         {
           "tokens": [
-            6
-          ],
-          "reason": "Actual connects its two dative parties by an and. Exact Russian uses its idiomatic до construction."
-        },
-        {
-          "tokens": [
             9
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
@@ -5277,11 +5283,6 @@
       "unmappedTarget": [
         {
           "text": "они",
-          "occurrence": 0,
-          "reason": "Russian supplies this local grammatical element. Actual Greek has no separate counterpart at this position."
-        },
-        {
-          "text": "до",
           "occurrence": 0,
           "reason": "Russian supplies this local grammatical element. Actual Greek has no separate counterpart at this position."
         },

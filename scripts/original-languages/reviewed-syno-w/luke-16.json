@@ -1688,6 +1688,18 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς \"with respect to (their generation)\" is rendered \"в (своем роде)\"."
         }
       ],
       "unmappedSource": [
@@ -1696,12 +1708,6 @@
             18
           ],
           "reason": "Actual marks the benchmark of comparison with a preposition. Russian gives a comparative adjective with a genitive."
-        },
-        {
-          "tokens": [
-            23
-          ],
-          "reason": "Actual marks scope with toward. Russian gives a locative construction with в."
         },
         {
           "tokens": [
@@ -1724,13 +1730,7 @@
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "в",
-          "occurrence": 0,
-          "reason": "Russian gives a locative scope. Actual marks relation with toward."
-        }
-      ]
+      "unmappedTarget": []
     },
     "16:9": {
       "sourceText": "Καὶ ἐγὼ ὑμῖν λέγω, ἑαυτοῖς ποιήσατε φίλους ἐκ τοῦ μαμωνᾶ τῆς ἀδικίας, ἵνα ὅταν ἐκλίπῃ δέξωνται ὑμᾶς εἰς τὰς αἰωνίους σκηνάς.",
@@ -3080,6 +3080,30 @@
             }
           ],
           "note": "Actual participle predicates justifying oneself before people. Russian expresses presenting oneself as righteous, with the same actor and direct reflexive separate."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "что",
+              "occurrence": 0
+            }
+          ],
+          "note": "The substantivizing article \"that which\" is rendered by что."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "у",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν \"among (people)\" is rendered \"у (людей)\"."
         }
       ],
       "unmappedSource": [
@@ -3097,17 +3121,10 @@
         },
         {
           "tokens": [
-            20
-          ],
-          "reason": "Actual marks the human setting with among. Russian expresses their estimation with у."
-        },
-        {
-          "tokens": [
             5,
             9,
             11,
             15,
-            19,
             25
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
@@ -3115,17 +3132,7 @@
       ],
       "unmappedTarget": [
         {
-          "text": "у",
-          "occurrence": 0,
-          "reason": "Russian gives the estimation among people with у. Actual marks the setting with in/among."
-        },
-        {
           "text": "Он",
-          "occurrence": 0,
-          "reason": "Russian gives this grammatical element explicitly in its local construction. No separate actual Greek word corresponds."
-        },
-        {
-          "text": "что",
           "occurrence": 0,
           "reason": "Russian gives this grammatical element explicitly in its local construction. No separate actual Greek word corresponds."
         },
@@ -3621,15 +3628,21 @@
               "occurrence": 1
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "с",
+              "occurrence": 1
+            }
+          ],
+          "note": "ἀπό \"from (a husband)\" is rendered \"с (мужем)\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            13
-          ],
-          "reason": "Actual gives the man from whom she is separated. Russian gives the same former marriage participant using с."
-        },
         {
           "tokens": [
             1,
@@ -3640,11 +3653,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "с",
-          "occurrence": 1,
-          "reason": "Russian marks the former spouse with с. Actual expresses separation from him."
-        },
         {
           "text": "всякий",
           "occurrence": 0,
@@ -5441,15 +5449,21 @@
               "note": "Actual negative conjunction."
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "сверх",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν πᾶσι τούτοις \"besides all this\" is rendered \"сверх всего того\"; TR reads ἐπί."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            1
-          ],
-          "reason": "Actual locates the further statement within all these things. Russian gives an addition with сверх."
-        },
         {
           "tokens": [
             12
@@ -5457,13 +5471,7 @@
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "сверх",
-          "occurrence": 0,
-          "reason": "Russian adds the next consideration with сверх. Actual has in all these things."
-        }
-      ]
+      "unmappedTarget": []
     },
     "16:27": {
       "sourceText": "εἶπεν δέ Ἐρωτῶ σε οὖν, πάτερ, ἵνα πέμψῃς αὐτὸν εἰς τὸν οἶκον τοῦ πατρός μου·",

@@ -3705,15 +3705,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "А",
+              "occurrence": 0
+            }
+          ],
+          "note": "Additive καί is rendered \"а\" at the topic shift."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0
-          ],
-          "reason": "Actual begins with additive καί. Russian marks the topic shift with adversative А."
-        },
         {
           "tokens": [
             4
@@ -3721,13 +3727,7 @@
           "reason": "These printed articles have no separately expressed determiner in the corresponding Russian constructions."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "А",
-          "occurrence": 0,
-          "reason": "Russian marks the topic shift with an adversative."
-        }
-      ]
+      "unmappedTarget": []
     },
     "1:25": {
       "sourceText": "καὶ ἠρώτησαν αὐτὸν καὶ εἶπαν αὐτῷ Τί οὖν βαπτίζεις εἰ σὺ οὐκ εἶ ὁ Χριστὸς οὐδὲ Ἡλείας οὐδὲ ὁ προφήτης;",

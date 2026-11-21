@@ -288,17 +288,21 @@
             }
           ],
           "note": "Actual third tetrarch participle names Lysanias’s government."
+        },
+        {
+          "sourceTokens": [
+            29
+          ],
+          "targetPhrases": [
+            {
+              "text": "а",
+              "occurrence": 0
+            }
+          ],
+          "note": "Additive καί before the last ruler is rendered \"а\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            13,
-            19,
-            29
-          ],
-          "reason": "Actual transition connectors mark the sequence of rulers. Russian uses punctuation and an explicit а at the last."
-        },
         {
           "tokens": [
             4,
@@ -309,6 +313,13 @@
             31
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
+        },
+        {
+          "tokens": [
+            13,
+            19
+          ],
+          "reason": "Actual transition connectors mark the sequence of rulers. Russian uses punctuation."
         }
       ],
       "unmappedTarget": [
@@ -341,11 +352,6 @@
           "text": "в",
           "occurrence": 3,
           "reason": "Russian expresses the territory governed by a preposition. Actual names it by genitive with the governing participle."
-        },
-        {
-          "text": "а",
-          "occurrence": 0,
-          "reason": "Russian chooses a contrasted final list entry; actual uses additive."
         }
       ]
     },
@@ -2156,17 +2162,6 @@
         },
         {
           "sourceTokens": [
-            14
-          ],
-          "targetPhrases": [
-            {
-              "text": "есть",
-              "occurrence": 0
-            }
-          ]
-        },
-        {
-          "sourceTokens": [
             15
           ],
           "targetPhrases": [
@@ -2224,6 +2219,34 @@
               "note": "Select the actual lack-of-possession head; the written negative remains linked."
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "у",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle \"having\" is rendered by the possessive \"у (кого)\"."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "у",
+              "occurrence": 1
+            },
+            {
+              "text": "есть",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle \"having\" is rendered \"у (кого) есть\"."
         }
       ],
       "unmappedSource": [
@@ -2232,12 +2255,6 @@
             1
           ],
           "reason": "Actual discourse transition is implicit."
-        },
-        {
-          "tokens": [
-            5
-          ],
-          "reason": "Actual first possession participle is implicit in Russian у кого plus the noun phrase."
         },
         {
           "tokens": [
@@ -2251,16 +2268,6 @@
           "text": "Он",
           "occurrence": 0,
           "reason": "Russian states the subject of saying overtly."
-        },
-        {
-          "text": "у",
-          "occurrence": 0,
-          "reason": "Russian adds a preposition for the first possessor."
-        },
-        {
-          "text": "у",
-          "occurrence": 1,
-          "reason": "Russian supplies the possession preposition before the second possessor."
         },
         {
           "text": "тот",
@@ -2729,30 +2736,36 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "а",
+              "occurrence": 0
+            }
+          ],
+          "note": "καί \"(we) too\" is rendered by \"а (нам)\" \"and what about us\"."
         }
       ],
       "unmappedSource": [
         {
           "tokens": [
-            1,
-            5,
-            8
-          ],
-          "reason": "Actual transition and saying participle are implicit. Actual additive with we gives the extended question; Russian introduces it with а."
-        },
-        {
-          "tokens": [
             19
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
+        },
+        {
+          "tokens": [
+            1,
+            5
+          ],
+          "reason": "Actual transition and saying participle are implicit."
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "а",
-          "occurrence": 0,
-          "reason": "Russian gives a contrast marker at the start of the question."
-        },
         {
           "text": "не",
           "occurrence": 0,

@@ -2430,6 +2430,18 @@
               "note": "Actual reciprocal participant, not the different reflexive written in TR."
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ],
+          "note": "Purpose ἵνα is rendered by coordinating и."
         }
       ],
       "unmappedSource": [
@@ -2441,12 +2453,6 @@
         },
         {
           "tokens": [
-            15
-          ],
-          "reason": "Actual purpose conjunction introduces becoming ours. Russian instead coordinates with и."
-        },
-        {
-          "tokens": [
             3,
             11,
             18
@@ -2455,11 +2461,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "и",
-          "occurrence": 0,
-          "reason": "Russian coordinates where actual has the purpose conjunction hina."
-        },
         {
           "text": "пойдем",
           "occurrence": 0,
@@ -4279,15 +4280,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "на нем",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"(Whose image) does it have\" is rendered \"(чье) на нем (изображение)\" \"is on it\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            4
-          ],
-          "reason": "Actual has the finite having predicate with the coin as subject; Russian expresses the image location as на нем without a separate having predicate."
-        },
         {
           "tokens": [
             9
@@ -4295,13 +4302,7 @@
           "reason": "Russian omits the narrative connective."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "на нем",
-          "occurrence": 0,
-          "reason": "Russian gives the coin as the image location rather than the actual finite having predicate. No Greek on preposition or coin pronoun is printed here."
-        }
-      ]
+      "unmappedTarget": []
     },
     "20:25": {
       "sourceText": "ὁ δὲ εἶπεν πρὸς αὐτούς Τοίνυν ἀπόδοτε τὰ Καίσαρος Καίσαρι καὶ τὰ τοῦ Θεοῦ τῷ Θεῷ.",
@@ -6549,29 +6550,35 @@
             }
           ],
           "note": "Actual second-singular saying verb supplies the explicit Russian subject."
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "На это",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle \"answering\" is rendered \"на это\" \"in reply to this\"."
         }
       ],
       "unmappedSource": [
         {
           "tokens": [
-            0,
-            1
-          ],
-          "reason": "Actual introduces an answering participle and narrative connective; Russian instead gives На это before the saying clause."
-        },
-        {
-          "tokens": [
             3
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
+        },
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "Russian omits the narrative connective."
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "На это",
-          "occurrence": 0,
-          "reason": "Russian supplies this local grammatical or discourse wording without a separately printed Greek counterpart."
-        },
         {
           "text": "из",
           "occurrence": 0,
@@ -6652,11 +6659,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual first saying verb of source20:41 is placed at the end of displayed20:40, including its encoded third-singular subject.",
           "sourceReference": {
             "chapter": 20,
             "verse": 41
-          }
+          },
+          "note": "Actual first saying verb of source20:41 is placed at the end of displayed20:40, including its encoded third-singular subject."
         },
         {
           "sourceTokens": [
@@ -6668,11 +6675,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual narrative connective of source20:41 appears with that saying clause at the end of Russian20:40.",
           "sourceReference": {
             "chapter": 20,
             "verse": 41
-          }
+          },
+          "note": "Actual narrative connective of source20:41 appears with that saying clause at the end of Russian20:40."
         },
         {
           "sourceTokens": [
@@ -6684,11 +6691,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual accusative recipient in the source20:41 toward-them phrase becomes the Russian dative recipient in20:40.",
           "sourceReference": {
             "chapter": 20,
             "verse": 41
-          }
+          },
+          "note": "Actual accusative recipient in the source20:41 toward-them phrase becomes the Russian dative recipient in20:40."
         }
       ],
       "unmappedSource": [

@@ -3498,11 +3498,11 @@
               "occurrence": 0
             }
           ],
-          "note": "The actual adultery noun stands at the first position in N1904 verse 22 and at this position in Russian.",
           "sourceReference": {
             "chapter": 7,
             "verse": 22
-          }
+          },
+          "note": "The actual adultery noun stands at the first position in N1904 verse 22 and at this position in Russian."
         }
       ],
       "unmappedSource": [
@@ -3643,11 +3643,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual stealing is last but one in the written verse 21 list and occurs here in Russian.",
           "sourceReference": {
             "chapter": 7,
             "verse": 21
-          }
+          },
+          "note": "Actual stealing is last but one in the written verse 21 list and occurs here in Russian."
         }
       ],
       "unmappedSource": [],
@@ -6137,15 +6137,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ],
+          "note": "The displayed и is a misprint for им \"them\", the addressees of the order."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            2
-          ],
-          "reason": "The first actual αὐτοῖς gives an order addressee. The installed Russian has the written connective «и» at that point."
-        },
         {
           "tokens": [
             3
@@ -6154,11 +6160,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "и",
-          "occurrence": 0,
-          "reason": "The installed Russian has a connective after «повелел». Both Greek witnesses give a dative addressee after the order."
-        },
         {
           "text": "Он",
           "occurrence": 0,

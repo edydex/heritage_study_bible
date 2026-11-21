@@ -1077,23 +1077,22 @@
               "occurrence": 0
             }
           ]
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             7
           ],
-          "reason": "The second actual explanatory gar has no separately expressed Russian causal connective in the exceptive wording разве."
+          "targetPhrases": [
+            {
+              "text": "разве",
+              "occurrence": 0
+            }
+          ],
+          "note": "Explanatory γάρ is rendered by the qualifying разве \"unless perhaps\"."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "разве",
-          "occurrence": 0,
-          "reason": "Russian supplies an exceptive/qualifying clause frame; the actual second Greek explanatory gar is not an ei-me except construction."
-        }
-      ]
+      "unmappedSource": [],
+      "unmappedTarget": []
     },
     "5:8": {
       "sourceText": "συνίστησιν δὲ τὴν ἑαυτοῦ ἀγάπην εἰς ἡμᾶς ὁ Θεὸς ὅτι ἔτι ἁμαρτωλῶν ὄντων ἡμῶν Χριστὸς ὑπὲρ ἡμῶν ἀπέθανεν.",
@@ -1325,14 +1324,14 @@
           "note": "Actual dative degree adjective plus comparative adverb is rendered the Russian degree expression, not two independent Greek adverbs.",
           "studyHeads": [
             {
+              "sourceTokens": [
+                2
+              ],
               "targetPhrases": [
                 {
                   "text": "более",
                   "occurrence": 0
                 }
-              ],
-              "sourceTokens": [
-                2
               ],
               "note": "Prefer the actual comparative mallon adverb for Russian более within the unchanged much-more degree phrase; retain the real dative degree adjective and all alternatives."
             }
@@ -1567,14 +1566,14 @@
           ],
           "studyHeads": [
             {
+              "sourceTokens": [
+                14
+              ],
               "targetPhrases": [
                 {
                   "text": "более",
                   "occurrence": 0
                 }
-              ],
-              "sourceTokens": [
-                14
               ],
               "note": "Prefer the actual comparative mallon adverb for Russian более within the unchanged much-more degree phrase; retain the real dative degree adjective and all alternatives."
             }
@@ -1674,26 +1673,26 @@
           "note": "Actual ou+monon not-only expression is rendered Russian не довольно; actual negative and only-adverb remain, not a Greek enough adjective.",
           "studyHeads": [
             {
+              "sourceTokens": [
+                0
+              ],
               "targetPhrases": [
                 {
                   "text": "не",
                   "occurrence": 0
                 }
               ],
-              "sourceTokens": [
-                0
-              ],
               "note": "Retain the actual negative as the preferred source head for Russian не."
             },
             {
+              "sourceTokens": [
+                1
+              ],
               "targetPhrases": [
                 {
                   "text": "довольно",
                   "occurrence": 0
                 }
-              ],
-              "sourceTokens": [
-                1
               ],
               "note": "Prefer the real only-adverb inside this Russian realization of the not-only expression, retaining the actual negative alternative."
             }
@@ -2280,14 +2279,14 @@
           "note": "Actual negative me plus present ACTIVE genitive being participle is rendered Russian finite negative existence with когда; no separate Greek when-conjunction or finite source eimi is printed.",
           "studyHeads": [
             {
+              "sourceTokens": [
+                12
+              ],
               "targetPhrases": [
                 {
                   "text": "нет",
                   "occurrence": 0
                 }
-              ],
-              "sourceTokens": [
-                12
               ],
               "note": "Prefer the actual being/existing participle for Russian negative existence, with the real negative retained as an alternative."
             }
@@ -2432,14 +2431,14 @@
           "note": "Actual article+negative+ACTIVE aorist participle is the negative personal designation, rendered one Russian participle; no source negative adjective is substituted.",
           "studyHeads": [
             {
+              "sourceTokens": [
+                12
+              ],
               "targetPhrases": [
                 {
                   "text": "несогрешившими",
                   "occurrence": 0
                 }
-              ],
-              "sourceTokens": [
-                12
               ],
               "note": "Prefer the actual sinning participle for this negative participial designation while preserving article/negative alternatives."
             }
@@ -2682,14 +2681,14 @@
           ],
           "studyHeads": [
             {
+              "sourceTokens": [
+                19
+              ],
               "targetPhrases": [
                 {
                   "text": "более",
                   "occurrence": 0
                 }
-              ],
-              "sourceTokens": [
-                19
               ],
               "note": "Prefer the actual comparative mallon adverb for Russian более within the unchanged much-more degree phrase; retain the real dative degree adjective and all alternatives."
             }
@@ -3227,14 +3226,14 @@
           ],
           "studyHeads": [
             {
+              "sourceTokens": [
+                13
+              ],
               "targetPhrases": [
                 {
                   "text": "более",
                   "occurrence": 0
                 }
-              ],
-              "sourceTokens": [
-                13
               ],
               "note": "Prefer the actual comparative mallon adverb for Russian более within the unchanged much-more degree phrase; retain the real dative degree adjective and all alternatives."
             }

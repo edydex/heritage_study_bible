@@ -1952,6 +1952,30 @@
             }
           ],
           "note": "Actual copula denies the preceding claim, resumed by this Russian anaphoric predicate."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "твои",
+              "occurrence": 0
+            }
+          ],
+          "note": "σου \"your\" attaches in Russian to дела, the TR noun τὰ ἔργα."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "ты",
+              "occurrence": 0
+            }
+          ],
+          "note": "The copula is zero in Russian; its subject is expressed by ты."
         }
       ],
       "unmappedSource": [
@@ -1960,18 +1984,6 @@
             17
           ],
           "reason": "Actual has the infinitive of being in the claimed identity. Russian states that identity with a zero copula."
-        },
-        {
-          "tokens": [
-            9
-          ],
-          "reason": "Actual has a second-person copula with rich. Russian gives the adjective and separately supplies ты."
-        },
-        {
-          "tokens": [
-            1
-          ],
-          "reason": "Actual genitive possessor is with the distress and poverty expression. In Russian, твои modifies the works separately printed in TR."
         },
         {
           "tokens": [
@@ -1984,21 +1996,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "твои дела",
-          "occurrence": 0,
-          "reason": "Printed TR supplies works with the possessor. Actual writes distress and poverty, with no separate works noun."
-        },
-        {
-          "text": "и",
-          "occurrence": 0,
-          "reason": "Russian adds this grammatical element in the local construction without a separately written actual word."
-        },
-        {
-          "text": "ты",
-          "occurrence": 0,
-          "reason": "Russian adds this grammatical element in the local construction without a separately written actual word."
-        },
         {
           "text": "о",
           "occurrence": 0,
@@ -2018,6 +2015,16 @@
           "text": "они",
           "occurrence": 1,
           "reason": "Russian adds this grammatical element in the local construction without a separately written actual word."
+        },
+        {
+          "text": "дела",
+          "occurrence": 0,
+          "reason": "Printed TR has τὰ ἔργα \"works\"; N1904 has no works noun."
+        },
+        {
+          "text": "и",
+          "occurrence": 0,
+          "reason": "Printed TR has καί after τὰ ἔργα; N1904 lacks it."
         }
       ]
     },

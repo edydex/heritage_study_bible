@@ -1061,17 +1061,6 @@
         },
         {
           "sourceTokens": [
-            12
-          ],
-          "targetPhrases": [
-            {
-              "text": "не",
-              "occurrence": 1
-            }
-          ]
-        },
-        {
-          "sourceTokens": [
             13
           ],
           "targetPhrases": [
@@ -1179,53 +1168,66 @@
               "occurrence": 0
             }
           ]
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             1
           ],
-          "reason": "Actual supplies an explanatory conjunction before the first condition. Russian opens with a transition."
+          "targetPhrases": [
+            {
+              "text": "Впрочем",
+              "occurrence": 0
+            }
+          ],
+          "note": "Explanatory γάρ is rendered as the transition \"впрочем\"."
         },
         {
-          "tokens": [
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "чтобы",
+              "occurrence": 0
+            },
+            {
+              "text": "не",
+              "occurrence": 1
+            }
+          ],
+          "note": "μή \"lest\" is rendered \"чтобы ... не\"."
+        },
+        {
+          "sourceTokens": [
             14
           ],
-          "reason": "Actual directed toward me follows the verb of considering. Russian gives the topic by о."
+          "targetPhrases": [
+            {
+              "text": "о",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς \"(credit) to me\" is rendered \"(think) about me\"."
         },
         {
-          "tokens": [
+          "sourceTokens": [
             20
           ],
-          "reason": "Actual makes the speaker the person seen as a direct object. Russian gives his characteristics as seen in him."
+          "targetPhrases": [
+            {
+              "text": "во мне",
+              "occurrence": 0
+            }
+          ],
+          "note": "The object \"(sees) me\" is rendered \"(sees) in me\"."
         }
       ],
+      "unmappedSource": [],
       "unmappedTarget": [
-        {
-          "text": "Впрочем",
-          "occurrence": 0,
-          "reason": "Russian begins with its transition. Actual gives a reason connector."
-        },
         {
           "text": "я",
           "occurrence": 0,
           "reason": "Russian states the first-person subject of refraining overtly."
-        },
-        {
-          "text": "чтобы",
-          "occurrence": 0,
-          "reason": "Russian makes the prevention of an increased estimate a subordinate purpose clause."
-        },
-        {
-          "text": "о",
-          "occurrence": 0,
-          "reason": "Russian gives a topical relation to the person estimated. Actual gives the relation by εἰς."
-        },
-        {
-          "text": "во мне",
-          "occurrence": 0,
-          "reason": "Russian marks a sphere in which traits are seen. Actual gives me as what is seen."
         }
       ]
     },
@@ -2723,6 +2725,18 @@
             }
           ],
           "note": "Actual genitive identifies the addressees affected by being a burden. Russian expresses the same affected people as a dative."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "перед",
+              "occurrence": 0
+            }
+          ],
+          "note": "Comparative ὑπέρ \"beyond\" is rendered \"перед\" \"compared with\"."
         }
       ],
       "unmappedSource": [
@@ -2740,12 +2754,6 @@
         },
         {
           "tokens": [
-            5
-          ],
-          "reason": "Actual introduces others as standard of comparison. Russian uses перед with the comparison."
-        },
-        {
-          "tokens": [
             6,
             19
           ],
@@ -2757,11 +2765,6 @@
           "text": "у вас",
           "occurrence": 0,
           "reason": "Russian makes the addressees the explicit possessors of the lack. Actual makes them subject of the finite disadvantaged verb."
-        },
-        {
-          "text": "перед",
-          "occurrence": 0,
-          "reason": "Russian marks comparison by its own preposition."
         },
         {
           "text": "того",
@@ -4419,17 +4422,6 @@
       "groups": [
         {
           "sourceTokens": [
-            0
-          ],
-          "targetPhrases": [
-            {
-              "text": "не",
-              "occurrence": 0
-            }
-          ]
-        },
-        {
-          "sourceTokens": [
             1
           ],
           "targetPhrases": [
@@ -4652,6 +4644,58 @@
             }
           ],
           "note": "Actual single perfect active compound identifies those who sinned beforehand. Russian writes the previous timing separately."
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "чтобы",
+              "occurrence": 0
+            },
+            {
+              "text": "не",
+              "occurrence": 0
+            }
+          ],
+          "note": "μή \"lest\" after the fear of 12:20 is rendered \"чтобы ... не\"."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "у",
+              "occurrence": 0
+            }
+          ],
+          "note": "πρός \"before (you)\" is rendered \"у (вас)\"."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "которые",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article of the participles is rendered by the relative pronoun."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐπί \"over\" is rendered by в after покаяться."
         }
       ],
       "unmappedSource": [
@@ -4663,18 +4707,6 @@
         },
         {
           "tokens": [
-            9
-          ],
-          "reason": "Actual marks that the lowering occurs toward or with the addressees. Russian places it among them with у."
-        },
-        {
-          "tokens": [
-            19
-          ],
-          "reason": "Actual marks the matters over which there was no repentance. Russian gives its distinct case and preposition."
-        },
-        {
-          "tokens": [
             22
           ],
           "reason": "Actual conjunction joins the impurity and sexual misconduct nouns. Russian lists them with punctuation only."
@@ -4682,7 +4714,6 @@
         {
           "tokens": [
             6,
-            14,
             20
           ],
           "reason": "These printed articles have no separately expressed determiner in the corresponding Russian constructions."
@@ -4690,19 +4721,9 @@
       ],
       "unmappedTarget": [
         {
-          "text": "чтобы",
-          "occurrence": 0,
-          "reason": "Russian extends the previous fear with an explicit purpose-like connector."
-        },
-        {
           "text": "когда",
           "occurrence": 0,
           "reason": "Russian makes the temporal relation of the coming explicit. Actual gives the participle in a genitive absolute."
-        },
-        {
-          "text": "у",
-          "occurrence": 0,
-          "reason": "Russian introduces the location with the addressees by its own preposition."
         },
         {
           "text": "чтобы",
@@ -4718,16 +4739,6 @@
           "text": "мне",
           "occurrence": 0,
           "reason": "Russian states the first-person person of lamenting as a dative. Actual marks person by inflection."
-        },
-        {
-          "text": "которые",
-          "occurrence": 0,
-          "reason": "Russian uses a relative subject with the verbs of sinning and repenting. Actual gives the articular participial group."
-        },
-        {
-          "text": "в",
-          "occurrence": 0,
-          "reason": "Russian takes the matters of repentance with its own preposition. Actual gives ἐπί."
         }
       ]
     }

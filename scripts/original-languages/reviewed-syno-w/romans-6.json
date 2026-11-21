@@ -120,21 +120,21 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual source6:2 me+genoito negative aorist nonactive OPTATIVE idiom is printed at the end of Russian6:1. These true foreign identities are exclusively moved, not local6:1 words or shared copies.",
           "sourceReference": {
             "chapter": 6,
             "verse": 2
           },
+          "note": "Actual source6:2 me+genoito negative aorist nonactive OPTATIVE idiom is printed at the end of Russian6:1. These true foreign identities are exclusively moved, not local6:1 words or shared copies.",
           "studyHeads": [
             {
+              "sourceTokens": [
+                0
+              ],
               "targetPhrases": [
                 {
                   "text": "Никак",
                   "occurrence": 0
                 }
-              ],
-              "sourceTokens": [
-                0
               ],
               "note": "Prefer the actual negative of the real repudiation formula; retain the actual optative becoming verb as an alternative."
             }
@@ -812,15 +812,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "то",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἀλλά introducing the apodosis (\"then surely\") is rendered by то."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            9
-          ],
-          "reason": "Actual alla marks the transition to the parallel future clause; Russian instead supplies its conditional consequent frame то."
-        },
         {
           "tokens": [
             6,
@@ -834,11 +840,6 @@
           "text": "с Ним",
           "occurrence": 0,
           "reason": "Russian supplies an explicit with-Him participant phrase after united. The printed N/TR construction has the united adjective and dative likeness noun without a separate local with-preposition/personal pronoun here; the actual later autou remains with смерти Его."
-        },
-        {
-          "text": "то",
-          "occurrence": 0,
-          "reason": "Russian supplies the conditional consequent marker rather than a separately printed Greek then-word."
         },
         {
           "text": "должны",
@@ -2442,14 +2443,14 @@
           "note": "Actual negative+nonactive aorist OPTATIVE becoming formula is idiomatic repudiation; no Greek adverb nikak is fabricated.",
           "studyHeads": [
             {
+              "sourceTokens": [
+                11
+              ],
               "targetPhrases": [
                 {
                   "text": "Никак",
                   "occurrence": 0
                 }
-              ],
-              "sourceTokens": [
-                11
               ],
               "note": "Prefer the actual negative in this real repudiation formula, preserving the optative verb alternative."
             }
@@ -2871,6 +2872,18 @@
             }
           ],
           "note": "Actual accusative relative in the into-which entrusting construction becomes Russian dative recipient-relative; the actual R-ASM remains."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "предали себя",
+              "occurrence": 0
+            }
+          ],
+          "note": "The passive \"you were handed over\" is rendered actively \"you handed yourselves over\"."
         }
       ],
       "unmappedSource": [
@@ -2885,12 +2898,6 @@
             10
           ],
           "reason": "The second actual de connective is not separately expressed by a Russian word."
-        },
-        {
-          "tokens": [
-            15
-          ],
-          "reason": "Actual paredothete is AORIST PASSIVE second plural, the addressed people as entrusted patients. Russian instead explicitly has active self-entrusting предали себя. N/TR have the same passive form and no local reflexive pronoun or expressed self-agent; that unlike agency/reflexive frame remains explained rather than retagged."
         },
         {
           "tokens": [
@@ -2910,11 +2917,6 @@
           "text": "тому",
           "occurrence": 0,
           "reason": "Russian supplies an overt demonstrative before the pattern noun; no Greek houtos/ekeinos head is printed at that position."
-        },
-        {
-          "text": "предали себя",
-          "occurrence": 0,
-          "reason": "Russian explicitly uses active self-entrusting with a reflexive object, whereas the same printed N/TR paredothete is passive second plural. The actual source form does not independently print a reflexive agent/object construction. No textual variant is claimed."
         }
       ]
     },

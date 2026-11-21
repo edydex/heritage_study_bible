@@ -826,15 +826,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "говорил",
+              "occurrence": 0
+            }
+          ],
+          "note": "The displayed говорил is a misprint for говорим \"we speak\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            10
-          ],
-          "reason": "Actual λαλοῦμεν is present active first-person plural, we speak. Russian говорил is masculine singular past with a different speaking perspective."
-        },
         {
           "tokens": [
             4,
@@ -844,11 +850,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "говорил",
-          "occurrence": 0,
-          "reason": "Russian presents a singular speaker speaking in the past. Actual Greek has first-person plural present speak."
-        },
         {
           "text": "Бог",
           "occurrence": 0,
@@ -2215,11 +2216,11 @@
               "occurrence": 0
             }
           ],
-          "note": "The actual active saying participle is printed at N1904 2:12; Synodal places it at the end of 2:11.",
           "sourceReference": {
             "chapter": 2,
             "verse": 12
-          }
+          },
+          "note": "The actual active saying participle is printed at N1904 2:12; Synodal places it at the end of 2:11."
         }
       ],
       "unmappedSource": [

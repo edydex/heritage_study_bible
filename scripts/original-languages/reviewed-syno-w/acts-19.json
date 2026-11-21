@@ -1942,16 +1942,22 @@
               "note": "Actual hand noun supplies the means."
             }
           ]
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             2,
             4
           ],
-          "reason": "Actual not-the-ordinary/chance miracles qualifier describes unusual character, not a written not-few quantity word. Russian instead gives quantity, немало."
-        },
+          "targetPhrases": [
+            {
+              "text": "немало",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"Not the ordinary\" (extraordinary) is rendered \"немало\" \"not a few\"."
+        }
+      ],
+      "unmappedSource": [
         {
           "tokens": [
             3,
@@ -1961,13 +1967,7 @@
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "немало",
-          "occurrence": 0,
-          "reason": "Russian explicitly gives not-few quantity. Actual has the distinct not-ordinary/chance description, with no little/few adjective."
-        }
-      ]
+      "unmappedTarget": []
     },
     "19:12": {
       "sourceText": "ὥστε καὶ ἐπὶ τοὺς ἀσθενοῦντας ἀποφέρεσθαι ἀπὸ τοῦ χρωτὸς αὐτοῦ σουδάρια ἢ σιμικίνθια καὶ ἀπαλλάσσεσθαι ἀπ’ αὐτῶν τὰς νόσους, τά τε πνεύματα τὰ πονηρὰ ἐκπορεύεσθαι.",
@@ -8046,11 +8046,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual third-singular releasing verb carries the explicit Russian subject in the neighboring displayed verse.",
           "sourceReference": {
             "chapter": 19,
             "verse": 40
-          }
+          },
+          "note": "Actual third-singular releasing verb carries the explicit Russian subject in the neighboring displayed verse."
         },
         {
           "sourceTokens": [

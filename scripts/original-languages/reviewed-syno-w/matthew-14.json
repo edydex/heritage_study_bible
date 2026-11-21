@@ -3779,15 +3779,21 @@
               "note": "Actual evening noun supplies the primary local time."
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ],
+          "note": "δέ is rendered \"и\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            12
-          ],
-          "reason": "Actual transition δέ opens the evening clause. Russian gives coordinating и."
-        },
         {
           "tokens": [
             2,
@@ -3799,11 +3805,6 @@
       "unmappedTarget": [
         {
           "text": "Он",
-          "occurrence": 0,
-          "reason": "Exact Russian expresses this local element independently. The installed Greek construction has no separate equivalent word."
-        },
-        {
-          "text": "и",
           "occurrence": 0,
           "reason": "Exact Russian expresses this local element independently. The installed Greek construction has no separate equivalent word."
         }

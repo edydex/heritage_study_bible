@@ -3189,22 +3189,6 @@
         },
         {
           "sourceTokens": [
-            2
-          ],
-          "targetPhrases": [
-            {
-              "text": "вы",
-              "occurrence": 0
-            },
-            {
-              "text": "вы",
-              "occurrence": 1
-            }
-          ],
-          "note": "The one actual explicit second-plural subject is repeated in Russian in the same addressees’ purported-intention clause. Both actual and Russian refer to these same addressees; no new physical Greek pronoun."
-        },
-        {
-          "sourceTokens": [
             10
           ],
           "targetPhrases": [
@@ -3218,18 +3202,6 @@
             }
           ],
           "note": "Actual third-singular bringing-down predicate supplies Russian explicit subject and lead-out wording; actual katagō compound remains."
-        },
-        {
-          "sourceTokens": [
-            15
-          ],
-          "targetPhrases": [
-            {
-              "text": "хотите",
-              "occurrence": 0
-            }
-          ],
-          "note": "Actual prospective/intending accusative plural participle is rendered Russian want in this same declared intention; preserve actual mellō, not thelō, and actual nonfinite form."
         },
         {
           "sourceTokens": [
@@ -3255,6 +3227,45 @@
             }
           ],
           "note": "Actual accusative subject of approaching infinitive becomes Russian finite-clause nominative subject, retaining the same approaching person."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "вы",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "вы",
+              "occurrence": 1
+            },
+            {
+              "text": "хотите",
+              "occurrence": 0
+            }
+          ],
+          "note": "Accusative plural μέλλοντας (agreeing with ὑμᾶς) supplies the subject of хотите."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "дело",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article of τὰ περὶ αὐτοῦ \"the things about him\" is rendered \"дело\"."
         }
       ],
       "unmappedSource": [
@@ -3268,7 +3279,6 @@
           "tokens": [
             4,
             7,
-            18,
             29
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
@@ -3284,11 +3294,6 @@
           "text": "завтра",
           "occurrence": 0,
           "reason": "Printed TR adds tomorrow here; actual N1904 has no tomorrow in this verse. The distinct actual tomorrow at20 stays there."
-        },
-        {
-          "text": "дело",
-          "occurrence": 0,
-          "reason": "Russian names a case/matter for the actual nominal concerning-him phrase, without a separate pragma noun."
         }
       ]
     },
@@ -6934,11 +6939,11 @@
               "occurrence": 0
             }
           ],
-          "note": "The actual following verse’s ephē reporting predicate is printed before its direct speech in Russian; only that real occurrence is transferred.",
           "sourceReference": {
             "chapter": 23,
             "verse": 35
-          }
+          },
+          "note": "The actual following verse’s ephē reporting predicate is printed before its direct speech in Russian; only that real occurrence is transferred."
         }
       ],
       "unmappedSource": [

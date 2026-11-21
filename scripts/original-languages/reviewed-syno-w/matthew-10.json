@@ -2414,21 +2414,33 @@
               "occurrence": 1
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "А",
+              "occurrence": 0
+            }
+          ],
+          "note": "Additive καί is rendered \"а\"."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "если",
+              "occurrence": 0
+            }
+          ],
+          "note": "The indefinite ἄν (\"whoever\") is rendered conditionally \"если (кто)\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0
-          ],
-          "reason": "Actual opens with additive καί. Russian uses an adversative opening."
-        },
-        {
-          "tokens": [
-            2
-          ],
-          "reason": "Actual modal particle accompanies the indefinite person. Russian expresses this relationship with если."
-        },
         {
           "tokens": [
             8,
@@ -2441,16 +2453,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "А",
-          "occurrence": 0,
-          "reason": "Russian supplies this local constituent in its grammatical construction. Actual Greek has no separate local counterpart."
-        },
-        {
-          "text": "если",
-          "occurrence": 0,
-          "reason": "Russian supplies this local constituent in its grammatical construction. Actual Greek has no separate local counterpart."
-        },
         {
           "text": "то",
           "occurrence": 0,

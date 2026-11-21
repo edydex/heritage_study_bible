@@ -822,23 +822,22 @@
               "occurrence": 1
             }
           ]
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             12
           ],
-          "reason": "Actual as indeed introduces comparison or confirmation. Russian states a reason with так как."
+          "targetPhrases": [
+            {
+              "text": "так как",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὥσπερ \"just as\" is rendered causally \"since\"."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "так как",
-          "occurrence": 0,
-          "reason": "Russian gives an explicitly causal connector rather than the actual comparative."
-        }
-      ]
+      "unmappedSource": [],
+      "unmappedTarget": []
     },
     "8:6": {
       "sourceText": "ἀλλ’ ἡμῖν εἷς Θεὸς ὁ Πατήρ, ἐξ οὗ τὰ πάντα καὶ ἡμεῖς εἰς αὐτόν, καὶ εἷς Κύριος Ἰησοῦς Χριστός, δι’ οὗ τὰ πάντα καὶ ἡμεῖς δι’ αὐτοῦ.",
@@ -2028,6 +2027,18 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "от",
+              "occurrence": 0
+            }
+          ],
+          "note": "Instrumental ἐν (\"by\") is rendered causally; TR reads ἐπί \"because of\"."
         }
       ],
       "unmappedSource": [
@@ -2036,12 +2047,6 @@
             1
           ],
           "reason": "Actual explanatory γάρ differs from Russian and. Printed TR has καί."
-        },
-        {
-          "tokens": [
-            4
-          ],
-          "reason": "Actual ἐν locates the ruin in the knowledge phrase. Russian names its source with от."
         },
         {
           "tokens": [
@@ -2057,11 +2062,6 @@
           "text": "И",
           "occurrence": 0,
           "reason": "Russian agrees with the printed TR additive connector. Actual N1904 has explanatory γάρ."
-        },
-        {
-          "text": "от",
-          "occurrence": 0,
-          "reason": "Russian uses a causal-source preposition. Actual has ἐν."
         }
       ]
     },

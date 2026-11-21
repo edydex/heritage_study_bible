@@ -393,21 +393,33 @@
             }
           ],
           "note": "Actual perfect passive predicates the person being thrown. Russian uses an unspecified plural active agent with the same person affected."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "повесили",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"(A millstone) lay around (his neck)\" is rendered \"they hung (it)\"."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "на",
+              "occurrence": 0
+            }
+          ],
+          "note": "περί \"around (the neck)\" is rendered \"на (шею)\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            5
-          ],
-          "reason": "Actual states the millstone lying around the neck. Russian names putting or hanging it there with an unspecified active agent."
-        },
-        {
-          "tokens": [
-            6
-          ],
-          "reason": "Actual writes around the neck. Russian uses the destination phrase на шею."
-        },
         {
           "tokens": [
             7,
@@ -418,16 +430,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "повесили",
-          "occurrence": 0,
-          "reason": "Russian predicates hanging the stone there. Actual states its position around the neck."
-        },
-        {
-          "text": "на",
-          "occurrence": 0,
-          "reason": "Russian expresses placement onto the neck. Actual states the surrounding position with περι."
-        },
         {
           "text": "бы",
           "occurrence": 1,
@@ -6200,31 +6202,36 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "На это",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle \"answering\" is rendered \"на это\" \"in reply to this\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0,
-            1
-          ],
-          "reason": "Actual opens with and replying. Russian introduces the response with На это and keeps the actual main saying predicate separately paired."
-        },
         {
           "tokens": [
             11,
             15
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
+        },
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "The opening connective has no separate Russian word."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "На это",
-          "occurrence": 0,
-          "reason": "Russian supplies the matter to which the reply is made. Actual uses the replying participle without an independently written demonstrative object."
-        }
-      ]
+      "unmappedTarget": []
     }
   }
 }

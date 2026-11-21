@@ -2176,21 +2176,49 @@
               "note": "First actual one supplies the distributive count."
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "из",
+              "occurrence": 0
+            }
+          ],
+          "note": "The partitive \"(each) of them\" is rendered \"из (четырех животных)\"."
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "ни",
+              "occurrence": 0
+            },
+            {
+              "text": "ни",
+              "occurrence": 1
+            }
+          ],
+          "note": "Under the negation \"day and night\" is rendered \"ни днем, ни ночью\"."
+        },
+        {
+          "sourceTokens": [
+            33
+          ],
+          "targetPhrases": [
+            {
+              "text": "Который",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article of ὁ ἦν \"the one who was\" is rendered by the relative Который."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            7
-          ],
-          "reason": "Actual identifies the creatures by pronoun in the distribution. Russian supplies the same genitive relationship without a separate pronoun."
-        },
-        {
-          "tokens": [
-            22
-          ],
-          "reason": "Actual connects day and night. Russian uses paired ни under the same negative predicate."
-        },
         {
           "tokens": [
             35
@@ -2202,7 +2230,6 @@
             1,
             29,
             31,
-            33,
             36,
             39
           ],
@@ -2211,27 +2238,7 @@
       ],
       "unmappedTarget": [
         {
-          "text": "из",
-          "occurrence": 0,
-          "reason": "Russian renders this grammatical constituent separately. No separate actual Greek word corresponds."
-        },
-        {
           "text": "они",
-          "occurrence": 0,
-          "reason": "Russian renders this grammatical constituent separately. No separate actual Greek word corresponds."
-        },
-        {
-          "text": "ни",
-          "occurrence": 0,
-          "reason": "Russian renders this grammatical constituent separately. No separate actual Greek word corresponds."
-        },
-        {
-          "text": "ни",
-          "occurrence": 1,
-          "reason": "Russian renders this grammatical constituent separately. No separate actual Greek word corresponds."
-        },
-        {
-          "text": "Который",
           "occurrence": 0,
           "reason": "Russian renders this grammatical constituent separately. No separate actual Greek word corresponds."
         }

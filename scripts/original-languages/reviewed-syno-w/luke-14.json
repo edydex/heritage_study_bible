@@ -420,16 +420,21 @@
             }
           ],
           "note": "Actual speaking verb introduces the direct question to the named addressees. Russian characterizes that speech as asking."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "По сему случаю",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle \"answering\" (responding to the situation) is rendered \"on this occasion\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0,
-            1
-          ],
-          "reason": "Actual opens with the connective and a replying participle. Russian instead specifies the occasion."
-        },
         {
           "tokens": [
             5
@@ -456,14 +461,15 @@
             12
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
+        },
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "The opening connective has no separate Russian word."
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "По сему случаю",
-          "occurrence": 0,
-          "reason": "Russian names the occasion of addressing the listeners. Actual writes the reply participle instead."
-        },
         {
           "text": "ли",
           "occurrence": 0,
@@ -3990,15 +3996,21 @@
             }
           ],
           "note": "Actual aorist nonactive participle denotes coming or arriving. Russian specifies the same servant’s return in this report."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "по",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς \"into (the streets)\" is rendered \"по (улицам)\" \"along\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            19
-          ],
-          "reason": "Actual introduces the streets and lanes as the destinations. Russian has по with a route through those places."
-        },
         {
           "tokens": [
             29,
@@ -4024,11 +4036,6 @@
           "text": "тот",
           "occurrence": 0,
           "reason": "Printed TR adds a demonstrative after the servant. Actual has the article in the local noun phrase."
-        },
-        {
-          "text": "по",
-          "occurrence": 0,
-          "reason": "Russian gives the route along streets and lanes. Actual expresses direction into the streets and lanes."
         },
         {
           "text": "о",
@@ -4337,6 +4344,18 @@
             }
           ],
           "note": "Actual active imperative has a range including compelling and urging. The exact usage supports urging people to enter, expressed through persuasion in Russian."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "по",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς \"into (the roads)\" is rendered \"по (дорогам)\" \"along\"."
         }
       ],
       "unmappedSource": [
@@ -4354,12 +4373,6 @@
         },
         {
           "tokens": [
-            8
-          ],
-          "reason": "Actual states direction out to the roads and hedges. Russian gives the route with по."
-        },
-        {
-          "tokens": [
             2,
             5,
             9,
@@ -4368,13 +4381,7 @@
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "по",
-          "occurrence": 0,
-          "reason": "Russian states the route along the roads and hedges. Actual gives direction to them."
-        }
-      ]
+      "unmappedTarget": []
     },
     "14:24": {
       "sourceText": "λέγω γὰρ ὑμῖν ὅτι οὐδεὶς τῶν ἀνδρῶν ἐκείνων τῶν κεκλημένων γεύσεταί μου τοῦ δείπνου.",
@@ -5972,21 +5979,33 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "против",
+              "occurrence": 0
+            }
+          ],
+          "note": "συμβαλεῖν \"to engage (another king)\" is rendered \"против (другого царя)\"."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "он",
+              "occurrence": 0
+            }
+          ],
+          "note": "The copula is zero in Russian; its subject is expressed by он."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            6
-          ],
-          "reason": "Actual separately states the engagement with the other king. Russian expresses the confrontation relation with против rather than a separate engagement infinitive."
-        },
-        {
-          "tokens": [
-            15
-          ],
-          "reason": "Actual expresses the copula, which is zero in the Russian ability question."
-        },
         {
           "tokens": [
             20
@@ -5996,22 +6015,12 @@
       ],
       "unmappedTarget": [
         {
-          "text": "против",
-          "occurrence": 0,
-          "reason": "Russian gives this grammatical element explicitly in the local construction. No separate actual Greek word corresponds."
-        },
-        {
           "text": "не",
           "occurrence": 0,
           "reason": "Russian gives this grammatical element explicitly in the local construction. No separate actual Greek word corresponds."
         },
         {
           "text": "и",
-          "occurrence": 0,
-          "reason": "Russian gives this grammatical element explicitly in the local construction. No separate actual Greek word corresponds."
-        },
-        {
-          "text": "он",
           "occurrence": 0,
           "reason": "Russian gives this grammatical element explicitly in the local construction. No separate actual Greek word corresponds."
         }
@@ -6125,6 +6134,18 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "о",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"(The terms) for (peace)\" is rendered \"о (мире)\"."
         }
       ],
       "unmappedSource": [
@@ -6136,23 +6157,12 @@
         },
         {
           "tokens": [
-            11
-          ],
-          "reason": "Actual has a toward relation in a substantive phrase about matters conducive to peace. Russian names the subject of the request using о."
-        },
-        {
-          "tokens": [
             10
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "о",
-          "occurrence": 0,
-          "reason": "Russian makes peace the topic of the request. Actual marks the direction or purpose of the peace matters."
-        },
         {
           "text": "пока",
           "occurrence": 0,

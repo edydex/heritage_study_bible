@@ -660,32 +660,50 @@
             }
           ],
           "note": "Actual aorist nonactive participle of coming to be qualifies the works. Russian uses a finite passive completion predicate."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "А",
+              "occurrence": 0
+            }
+          ],
+          "note": "Explanatory γάρ is rendered \"а\"."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "так как",
+              "occurrence": 0
+            }
+          ],
+          "note": "καθώς \"as\" is rendered causally \"since\"."
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "в",
+              "occurrence": 3
+            }
+          ],
+          "note": "ἀπό \"from (the foundation)\" is rendered \"в (начале)\" \"at (the beginning)\"."
         }
       ],
       "unmappedSource": [
         {
           "tokens": [
-            1
-          ],
-          "reason": "Actual explanation marker γάρ differs from the Russian connective А."
-        },
-        {
-          "tokens": [
-            7
-          ],
-          "reason": "Actual καθώς marks accordance with the following statement. Russian uses an explicitly causal connector."
-        },
-        {
-          "tokens": [
             9
           ],
           "reason": "Actual ὡς introduces the oath quotation and has no separate Russian marker."
-        },
-        {
-          "tokens": [
-            24
-          ],
-          "reason": "Actual ἀπό sets the starting point from foundation, while Russian locates the works at the beginning."
         },
         {
           "tokens": [
@@ -699,16 +717,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "А",
-          "occurrence": 0,
-          "reason": "Russian opens with А, while actual γάρ explicitly gives an explanation."
-        },
-        {
-          "text": "так как",
-          "occurrence": 0,
-          "reason": "Russian uses a causal connector where actual καθώς marks accordance."
-        },
         {
           "text": "Он",
           "occurrence": 0,
@@ -728,11 +736,6 @@
           "text": "еще",
           "occurrence": 0,
           "reason": "Russian emphasizes the early time with an extra adverb."
-        },
-        {
-          "text": "в",
-          "occurrence": 3,
-          "reason": "Russian explicitly locates the works at the beginning. Actual ἀπό sets the starting point."
         }
       ]
     },
@@ -2137,15 +2140,21 @@
             }
           ],
           "note": "Actual genitive qualifies the example. Russian makes the same disobedience noun the directional complement of falling."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "по",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν \"in (the same example)\" is rendered \"по (тому же примеру)\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            9
-          ],
-          "reason": "Actual ἐν locates the falling in the same example. Russian expresses following the example with по."
-        },
         {
           "tokens": [
             5,
@@ -2156,11 +2165,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "по",
-          "occurrence": 0,
-          "reason": "Russian frames the example as a pattern followed. Actual ἐν marks the frame in which the fall occurs."
-        },
         {
           "text": "в",
           "occurrence": 1,

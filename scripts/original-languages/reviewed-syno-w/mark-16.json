@@ -584,15 +584,21 @@
             }
           ],
           "note": "Actual ἀνακεκύλισται and printed TR ἀποκεκύλισται are differently prefixed rolling predicates describing the same stone’s displacement. Retain the actual form and its installed lexical record."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "а",
+              "occurrence": 0
+            }
+          ],
+          "note": "Explanatory γάρ is rendered \"а\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            8
-          ],
-          "reason": "Actual connective gives a reason. Russian marks a separate clause with а."
-        },
         {
           "tokens": [
             5
@@ -601,11 +607,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "а",
-          "occurrence": 0,
-          "reason": "Russian connects the size statement with an adversative or parallel conjunction. Actual has γάρ."
-        },
         {
           "text": "он",
           "occurrence": 0,
@@ -760,15 +761,21 @@
             }
           ],
           "note": "Actual nominalized adjective gives the side. Russian explicitly states the side noun with the right adjective."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "а",
+              "occurrence": 0
+            }
+          ],
+          "note": "The displayed а is a misprint for на \"on\"; ἐν \"at (the right side)\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            8
-          ],
-          "reason": "Actual Greek has the locative ἐν. The exact installed Russian text at this point instead prints «а» before «правой стороне»."
-        },
         {
           "tokens": [
             3,
@@ -778,11 +785,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "а",
-          "occurrence": 0,
-          "reason": "The installed Russian prints «а правой стороне». It is retained exactly. The actual Greek locative preposition has no exact written prepositional counterpart here."
-        },
         {
           "text": "в",
           "occurrence": 0,

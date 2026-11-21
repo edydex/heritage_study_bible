@@ -1590,11 +1590,11 @@
               "occurrence": 0
             }
           ],
-          "note": "The actual first imperative is printed at N1904 4:8.",
           "sourceReference": {
             "chapter": 4,
             "verse": 8
-          }
+          },
+          "note": "The actual first imperative is printed at N1904 4:8."
         },
         {
           "sourceTokens": [
@@ -1606,11 +1606,11 @@
               "occurrence": 0
             }
           ],
-          "note": "The actual second imperative is printed at N1904 4:8.",
           "sourceReference": {
             "chapter": 4,
             "verse": 8
-          }
+          },
+          "note": "The actual second imperative is printed at N1904 4:8."
         },
         {
           "sourceTokens": [
@@ -1622,11 +1622,11 @@
               "occurrence": 0
             }
           ],
-          "note": "The second actual connective in the wailing sequence is printed at N1904 4:8.",
           "sourceReference": {
             "chapter": 4,
             "verse": 8
-          }
+          },
+          "note": "The second actual connective in the wailing sequence is printed at N1904 4:8."
         },
         {
           "sourceTokens": [
@@ -1638,11 +1638,11 @@
               "occurrence": 0
             }
           ],
-          "note": "The actual third imperative is printed at N1904 4:8.",
           "sourceReference": {
             "chapter": 4,
             "verse": 8
-          }
+          },
+          "note": "The actual third imperative is printed at N1904 4:8."
         },
         {
           "sourceTokens": [
@@ -1987,24 +1987,69 @@
             }
           ],
           "note": "The actual additive connector still joins these two local predicates under the differing Russian argument relation."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "злословит",
+              "occurrence": 1
+            }
+          ],
+          "note": "Russian reverses the roles: \"того злословит закон\", the law speaks against him."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "закон",
+              "occurrence": 0
+            }
+          ],
+          "note": "Object \"the law\" in Greek; subject in Russian."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "судит",
+              "occurrence": 1
+            }
+          ],
+          "note": "Same reversed roles as злословит."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "закон",
+              "occurrence": 1
+            }
+          ],
+          "note": "Object \"the law\" in Greek; subject in Russian."
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "ты",
+              "occurrence": 1
+            }
+          ],
+          "note": "The copula is zero in Russian; its subject is expressed by ты."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            12,
-            13,
-            15,
-            16
-          ],
-          "reason": "Actual predicate pair has the person speaking against and judging the law, with the law as both objects. In Russian the intervening того makes the law the subject of speaking against and leaves the roles in the parallel judging wording unclear."
-        },
-        {
-          "tokens": [
-            22
-          ],
-          "reason": "The actual second-person copula is unexpressed in Russian."
-        },
         {
           "tokens": [
             9
@@ -2019,26 +2064,6 @@
           "reason": "Russian supplies a referring pronoun as object in the changed argument framing."
         },
         {
-          "text": "злословит",
-          "occurrence": 1,
-          "reason": "Russian has the law speaking against the person. The actual source has the reverse participant roles."
-        },
-        {
-          "text": "закон",
-          "occurrence": 0,
-          "reason": "Russian presents law as the subject of speaking against; the actual law is the object."
-        },
-        {
-          "text": "судит",
-          "occurrence": 1,
-          "reason": "Russian continues the judging wording under the changed participant frame."
-        },
-        {
-          "text": "закон",
-          "occurrence": 1,
-          "reason": "Russian repeats law within the changed judging frame; the actual law is again object."
-        },
-        {
           "text": "ты",
           "occurrence": 0,
           "reason": "Russian uses an overt addressee subject of судишь."
@@ -2047,11 +2072,6 @@
           "text": "то",
           "occurrence": 0,
           "reason": "Russian supplies a consequent correlate."
-        },
-        {
-          "text": "ты",
-          "occurrence": 1,
-          "reason": "Russian uses an overt addressee in the nominal consequent."
         }
       ]
     },

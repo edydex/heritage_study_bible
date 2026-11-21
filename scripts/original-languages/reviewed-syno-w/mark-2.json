@@ -3800,15 +3800,33 @@
               "note": "Open the actual time noun."
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "ли",
+              "occurrence": 0
+            }
+          ],
+          "note": "Interrogative μή (expecting \"no\") is rendered by the question particle ли."
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "жених",
+              "occurrence": 1
+            }
+          ],
+          "note": "The object of \"they have\" is rendered as subject: \"с ними жених\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            5
-          ],
-          "reason": "The Greek interrogative negative sets the expectation for the question. Russian signals its question through ли."
-        },
         {
           "tokens": [
             17
@@ -3823,12 +3841,6 @@
         },
         {
           "tokens": [
-            23
-          ],
-          "reason": "Actual bridegroom here is the object of having. Russian makes the bridegroom the subject of the recast nominal clause."
-        },
-        {
-          "tokens": [
             3,
             7,
             9,
@@ -3838,18 +3850,7 @@
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "ли",
-          "occurrence": 0,
-          "reason": "Russian uses its interrogative particle in the first question."
-        },
-        {
-          "text": "жених",
-          "occurrence": 1,
-          "reason": "Russian makes bridegroom the subject of its second nominal location clause. The actual Greek bridegroom is the object of the separate possessive predicate."
-        }
-      ]
+      "unmappedTarget": []
     },
     "2:20": {
       "sourceText": "ἐλεύσονται δὲ ἡμέραι ὅταν ἀπαρθῇ ἀπ’ αὐτῶν ὁ νυμφίος, καὶ τότε νηστεύσουσιν ἐν ἐκείνῃ τῇ ἡμέρᾳ.",

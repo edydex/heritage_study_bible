@@ -1969,16 +1969,21 @@
               "note": "Select the actual negator."
             }
           ]
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             10
           ],
-          "reason": "Actual ἐν locates some among you. Russian expresses a partitive relation."
+          "targetPhrases": [
+            {
+              "text": "из",
+              "occurrence": 1
+            }
+          ],
+          "note": "ἐν \"among\" is rendered partitively."
         }
       ],
+      "unmappedSource": [],
       "unmappedTarget": [
         {
           "text": "о",
@@ -1994,11 +1999,6 @@
           "text": "то",
           "occurrence": 0,
           "reason": "Russian supplies a consequence correlate."
-        },
-        {
-          "text": "из",
-          "occurrence": 1,
-          "reason": "Russian supplies a partitive preposition for some."
         }
       ]
     },
@@ -3032,15 +3032,21 @@
               "occurrence": 1
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "на",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν with the object of hope is rendered by на."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            5
-          ],
-          "reason": "Actual ἐν frames hope in Christ. Russian uses надеемся на."
-        },
         {
           "tokens": [
             2
@@ -3053,11 +3059,6 @@
           "text": "И",
           "occurrence": 0,
           "reason": "Russian supplies an introductory additive."
-        },
-        {
-          "text": "на",
-          "occurrence": 0,
-          "reason": "Russian gives the complement of hoping with на. Actual ἐν expresses a different construction."
         },
         {
           "text": "то",
@@ -3272,22 +3273,22 @@
               "occurrence": 0
             }
           ]
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             0
           ],
-          "reason": "Actual since establishes the first reason clause. Russian introduces a comparison with как."
+          "targetPhrases": [
+            {
+              "text": "как",
+              "occurrence": 0
+            }
+          ],
+          "note": "Causal ἐπειδή \"since\" is rendered as the comparison \"как ... так\"."
         }
       ],
+      "unmappedSource": [],
       "unmappedTarget": [
-        {
-          "text": "как",
-          "occurrence": 0,
-          "reason": "Russian makes the first comparison overt."
-        },
         {
           "text": "так",
           "occurrence": 0,
@@ -5534,15 +5535,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "И",
+              "occurrence": 0
+            }
+          ],
+          "note": "Transitional δέ is rendered \"и\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            8
-          ],
-          "reason": "Actual δέ is transitional. Russian begins the question with additive И."
-        },
         {
           "tokens": [
             5
@@ -5551,11 +5558,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "И",
-          "occurrence": 0,
-          "reason": "Russian introduces its second question with and."
-        },
         {
           "text": "в",
           "occurrence": 0,
@@ -6558,6 +6560,18 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ],
+          "note": "Explanatory γάρ is rendered by coordinating и."
         }
       ],
       "unmappedSource": [
@@ -6573,20 +6587,9 @@
             9
           ],
           "reason": "Actual repeats glory with the stars. Russian omits that nominal repetition."
-        },
-        {
-          "tokens": [
-            12
-          ],
-          "reason": "Actual explanatory γάρ is replaced by a coordinating и."
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "и",
-          "occurrence": 0,
-          "reason": "Russian adds positive coordination introducing the final contrast."
-        },
         {
           "text": "от",
           "occurrence": 0,

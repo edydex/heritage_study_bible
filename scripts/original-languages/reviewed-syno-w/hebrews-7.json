@@ -2030,6 +2030,66 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "достигалось",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"(Perfection) was (through)\" is rendered \"was attained (through)\"."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "и",
+              "occurrence": 0
+            }
+          ],
+          "note": "Explanatory γάρ is rendered by и."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "с",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐπί \"on the basis of (it)\" is rendered \"с (ним)\"."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "сопряжен закон",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"(The people) received the law\" is rendered \"the law is joined (with it)\"."
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "а",
+              "occurrence": 0
+            }
+          ],
+          "note": "Additive καί is rendered contrastively."
         }
       ],
       "unmappedSource": [
@@ -2038,36 +2098,6 @@
             1
           ],
           "reason": "Actual μέν qualifies the conditional opening and has no separate expression."
-        },
-        {
-          "tokens": [
-            8
-          ],
-          "reason": "Actual imperfect being verb supports the existence of perfection in the condition. Russian uses a predicate of attainment."
-        },
-        {
-          "tokens": [
-            11
-          ],
-          "reason": "Actual γάρ marks the law clause as explanation. Russian introduces that clause additively."
-        },
-        {
-          "tokens": [
-            12
-          ],
-          "reason": "Actual ἐπί relates receiving legislation to the priesthood. Russian instead describes the law as joined with it."
-        },
-        {
-          "tokens": [
-            14
-          ],
-          "reason": "Actual perfect passive of legislating has the people as patient. Russian assigns the law as subject of being joined."
-        },
-        {
-          "tokens": [
-            25
-          ],
-          "reason": "Actual καί connects the negated comparison. Russian has a contrastive а."
         },
         {
           "tokens": [
@@ -2080,26 +2110,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "достигалось",
-          "occurrence": 0,
-          "reason": "Russian describes perfection as attainable where actual Greek has an existence verb."
-        },
-        {
-          "text": "и",
-          "occurrence": 0,
-          "reason": "Russian starts the parenthesis additively. Actual γάρ marks explanation."
-        },
-        {
-          "text": "с",
-          "occurrence": 0,
-          "reason": "Russian introduces the thing to which law is joined. Actual ἐπί is part of the different legislation construction."
-        },
-        {
-          "text": "сопряжен закон",
-          "occurrence": 0,
-          "reason": "Russian makes the law the subject of being joined. Actual Greek uses the people as patient of legislating."
-        },
         {
           "text": "то",
           "occurrence": 0,
@@ -2114,11 +2124,6 @@
           "text": "была",
           "occurrence": 0,
           "reason": "Russian supplies a copula with the need. Actual Greek uses a nominal question."
-        },
-        {
-          "text": "а",
-          "occurrence": 0,
-          "reason": "Russian uses a contrast conjunction with the second order. Actual Greek has καί followed by negation."
         }
       ]
     },
@@ -2573,21 +2578,33 @@
             }
           ],
           "note": "Actual negative indefinite object is expressed with Russian negative concord."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "о",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς \"concerning (which)\" is rendered \"о (котором)\"."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "колена",
+              "occurrence": 0
+            }
+          ],
+          "note": "The noun \"tribe\" of the relative phrase is placed earlier: \"из колена Иудина\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            9
-          ],
-          "reason": "Actual εἰς relates the second tribe occurrence to the saying. Russian expresses this relation with о."
-        },
-        {
-          "tokens": [
-            11
-          ],
-          "reason": "Actual tribe noun is repeated in the relative phrase. Russian uses the relative alone and places the one explicit колено with Judah."
-        },
         {
           "tokens": [
             13
@@ -2602,16 +2619,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "колена",
-          "occurrence": 0,
-          "reason": "Russian supplies the tribe noun with Judah. Actual Greek there has the Judah name alone."
-        },
-        {
-          "text": "о",
-          "occurrence": 0,
-          "reason": "Russian relates the saying to the tribe via о. Actual construction has εἰς and repeats the tribe noun."
-        },
         {
           "text": "священства",
           "occurrence": 0,
@@ -3150,16 +3157,22 @@
             }
           ],
           "note": "Actual present participle of going before modifies commandment. Russian expresses its precedence with a past participle and adverb."
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             1,
             2
           ],
-          "reason": "Actual μέν γάρ opens the contrast and explanation. Russian uses postpositive же in this construction."
-        },
+          "targetPhrases": [
+            {
+              "text": "же",
+              "occurrence": 0
+            }
+          ],
+          "note": "μὲν γάρ \"for on the one hand\" is rendered by the particle же."
+        }
+      ],
+      "unmappedSource": [
         {
           "tokens": [
             7
@@ -3167,13 +3180,7 @@
           "reason": "These printed articles have no separately expressed determiner in the corresponding Russian constructions."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "же",
-          "occurrence": 0,
-          "reason": "Russian marks a transition. Actual Greek uses the different μέν γάρ construction."
-        }
-      ]
+      "unmappedTarget": []
     },
     "7:19": {
       "sourceText": "οὐδὲν γὰρ ἐτελείωσεν ὁ νόμος, ἐπεισαγωγὴ δὲ κρείττονος ἐλπίδος, δι’ ἧς ἐγγίζομεν τῷ Θεῷ.",
@@ -3450,11 +3457,11 @@
               "occurrence": 0
             }
           ],
-          "note": "The actual personal article contrasts the prior priest class with the following individual. Russian expresses the class with a personal demonstrative.",
           "sourceReference": {
             "chapter": 7,
             "verse": 20
-          }
+          },
+          "note": "The actual personal article contrasts the prior priest class with the following individual. Russian expresses the class with a personal demonstrative."
         },
         {
           "sourceTokens": [
@@ -3674,6 +3681,10 @@
               "occurrence": 0
             }
           ],
+          "sourceReference": {
+            "chapter": 7,
+            "verse": 20
+          },
           "note": "Actual plural copula and having-become participle describe people having become priests. Russian uses a single plural past copula.",
           "studyHeads": [
             {
@@ -3688,11 +3699,7 @@
               ],
               "note": "Actual independent being verb supplies the overt past copula counterpart."
             }
-          ],
-          "sourceReference": {
-            "chapter": 7,
-            "verse": 20
-          }
+          ]
         },
         {
           "sourceTokens": [

@@ -930,29 +930,51 @@
               "occurrence": 1
             }
           ]
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "но",
+              "occurrence": 0
+            }
+          ],
+          "note": "The particle γε (\"yet\") is rendered \"но\"."
+        },
+        {
+          "sourceTokens": [
             3,
             5
           ],
-          "reason": "Actual positively predicates providing trouble. Russian instead predicates not giving peace; neither the positive giving word nor trouble noun is identified with a separate Russian negation or peace noun."
-        },
-        {
-          "tokens": [
-            1
+          "targetPhrases": [
+            {
+              "text": "не дает",
+              "occurrence": 0
+            },
+            {
+              "text": "покоя",
+              "occurrence": 0
+            }
           ],
-          "reason": "Actual emphatic particle qualifies the stated reason; Russian begins with an adversative, not a separate counterpart of this emphatic particle."
+          "note": "\"Causes (me) trouble\" is rendered by the idiom \"не дает (мне) покоя\" \"gives no peace\"."
         },
         {
-          "tokens": [
+          "sourceTokens": [
             13,
             14
           ],
-          "reason": "Actual has an unto-end expression accompanying repeated coming; Russian uses больше. The distinct qualification is not converted into an independent Greek more word."
-        },
+          "targetPhrases": [
+            {
+              "text": "больше",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς τέλος \"continually/in the end\" is rendered \"больше\" \"any more\"."
+        }
+      ],
+      "unmappedSource": [
         {
           "tokens": [
             2,
@@ -962,26 +984,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "не дает",
-          "occurrence": 0,
-          "reason": "Russian uses negative giving-peace wording in place of actual positive providing-trouble wording."
-        },
-        {
-          "text": "покоя",
-          "occurrence": 0,
-          "reason": "Russian names peace/rest within its negative idiom; actual names trouble, not a peace noun."
-        },
-        {
-          "text": "но",
-          "occurrence": 0,
-          "reason": "Russian supplies this adversative transition; actual has an emphatic causal construction."
-        },
-        {
-          "text": "больше",
-          "occurrence": 0,
-          "reason": "Russian says more/any longer; actual writes an unto-end expression rather than a comparative adverb."
-        },
         {
           "text": "она",
           "occurrence": 0,
@@ -6125,6 +6127,18 @@
             }
           ],
           "note": "Actual genitive personal complement follows from; Russian uses the same people under для. The actual personal form remains genitive and the unlike prepositions stay separate gaps."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "для",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἀπό \"(hidden) from (them)\" is rendered \"для (них)\" \"to them\"."
         }
       ],
       "unmappedSource": [
@@ -6136,12 +6150,6 @@
         },
         {
           "tokens": [
-            11
-          ],
-          "reason": "Actual says hidden from them, while Russian uses для. The two prepositions are not equated."
-        },
-        {
-          "tokens": [
             7,
             16
           ],
@@ -6149,11 +6157,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "для",
-          "occurrence": 0,
-          "reason": "Russian gives the affected people with для; actual uses from with the same personal complement."
-        },
         {
           "text": "они",
           "occurrence": 1,

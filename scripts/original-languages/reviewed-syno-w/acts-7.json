@@ -6698,6 +6698,19 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            19,
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "итак",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"And now\" is rendered inferentially \"итак\", as in Acts 22:16."
         }
       ],
       "unmappedSource": [
@@ -6706,13 +6719,6 @@
             0
           ],
           "reason": "Actual repeats seeing as a participle before the finite verb. Russian uses one finite verb."
-        },
-        {
-          "tokens": [
-            19,
-            20
-          ],
-          "reason": "Actual connects the command with and now. Russian recasts the introduction as inferential итак."
         },
         {
           "tokens": [
@@ -6725,11 +6731,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "итак",
-          "occurrence": 0,
-          "reason": "Russian makes the introduction inferential. Actual explicitly writes and now."
-        },
         {
           "text": "Я",
           "occurrence": 0,
@@ -8164,6 +8165,18 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "с",
+              "occurrence": 0
+            }
+          ],
+          "note": "The resumptive dative \"(happened) to him\" is rendered \"с (Моисеем)\"."
         }
       ],
       "unmappedSource": [
@@ -8175,25 +8188,13 @@
         },
         {
           "tokens": [
-            23
-          ],
-          "reason": "Actual resumes Moses by a dative after happened. Russian gives the same person earlier as с Моисеем."
-        },
-        {
-          "tokens": [
             1,
             9
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "с",
-          "occurrence": 0,
-          "reason": "Russian gives this grammatical element explicitly without a separately written actual Greek word here."
-        }
-      ]
+      "unmappedTarget": []
     },
     "7:41": {
       "sourceText": "καὶ ἐμοσχοποίησαν ἐν ταῖς ἡμέραις ἐκείναις καὶ ἀνήγαγον θυσίαν τῷ εἰδώλῳ, καὶ εὐφραίνοντο ἐν τοῖς ἔργοις τῶν χειρῶν αὐτῶν.",

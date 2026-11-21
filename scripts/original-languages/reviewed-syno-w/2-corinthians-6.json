@@ -1438,30 +1438,75 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "но",
+              "occurrence": 0
+            }
+          ],
+          "note": "καί joining the contrasted pair is rendered \"но\"."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "почитают",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὡς \"as (dying)\" is rendered \"(we are) regarded (as dead)\"."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "но",
+              "occurrence": 1
+            }
+          ],
+          "note": "καί joining the contrasted pair is rendered \"но\"."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "но",
+              "occurrence": 2
+            }
+          ],
+          "note": "καί joining the contrasted pair is rendered \"но\"."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "умираем",
+              "occurrence": 0
+            }
+          ],
+          "note": "The passive \"being put to death\" is rendered \"dying\"."
         }
       ],
       "unmappedSource": [
         {
           "tokens": [
             0,
-            4,
             9
           ],
           "reason": "Actual repeated as marks each side of the apparent contrasts. Russian recasts the list as finite clauses."
-        },
-        {
-          "tokens": [
-            2,
-            6,
-            11
-          ],
-          "reason": "Actual positive conjunctions link the contrasted clauses. Russian uses но."
-        },
-        {
-          "tokens": [
-            13
-          ],
-          "reason": "Actual passive participle is being put to death. Russian uses the intransitive dying predicate."
         }
       ],
       "unmappedTarget": [
@@ -1481,19 +1526,9 @@
           "reason": "Russian gives the final subject of dying expressly."
         },
         {
-          "text": "но",
-          "occurrence": 0,
-          "reason": "Russian uses contrastive coordination for the actual additive contrast."
-        },
-        {
           "text": "нас",
           "occurrence": 0,
           "reason": "Russian gives the affected group explicitly. Actual participle encodes the participant without a personal pronoun."
-        },
-        {
-          "text": "но",
-          "occurrence": 1,
-          "reason": "Russian uses contrastive coordination for the actual additive contrast."
         },
         {
           "text": "нас",
@@ -1501,24 +1536,9 @@
           "reason": "Russian gives the affected group explicitly. Actual participle encodes the participant without a personal pronoun."
         },
         {
-          "text": "но",
-          "occurrence": 2,
-          "reason": "Russian uses contrastive coordination for the actual additive contrast."
-        },
-        {
           "text": "нас",
           "occurrence": 2,
           "reason": "Russian gives the affected group explicitly. Actual participle encodes the participant without a personal pronoun."
-        },
-        {
-          "text": "почитают",
-          "occurrence": 0,
-          "reason": "Russian states a predicate of considering. Actual gives a present active participle of dying under as."
-        },
-        {
-          "text": "умираем",
-          "occurrence": 0,
-          "reason": "Russian gives dying. Actual has the passive of causing death."
         }
       ]
     },
@@ -1659,6 +1679,18 @@
             }
           ],
           "note": "Actual negative adjective is realized by Russian negative concord."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "но",
+              "occurrence": 1
+            }
+          ],
+          "note": "καί joining the contrasted pair is rendered \"но\"."
         }
       ],
       "unmappedSource": [
@@ -1669,12 +1701,6 @@
             10
           ],
           "reason": "Actual repeated as frames each first predicate. Russian uses finite or nominal clauses."
-        },
-        {
-          "tokens": [
-            13
-          ],
-          "reason": "Actual additive coordinator joins having nothing and possessing all. Russian uses adversative но."
         }
       ],
       "unmappedTarget": [
@@ -1682,11 +1708,6 @@
           "text": "нас",
           "occurrence": 0,
           "reason": "Russian makes the affected group explicit in the active upset clause."
-        },
-        {
-          "text": "но",
-          "occurrence": 1,
-          "reason": "Russian makes the final contrast explicit."
         },
         {
           "text": "мы",

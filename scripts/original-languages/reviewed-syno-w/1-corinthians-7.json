@@ -2668,15 +2668,33 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "к",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν \"in\" peace is rendered directionally \"to\" peace."
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "Господь",
+              "occurrence": 0
+            }
+          ],
+          "note": "Both Greek texts have Θεός \"God\"; Russian names the caller \"Lord\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            16
-          ],
-          "reason": "Actual ἐν locates the calling in peace. Russian expresses a directional relation with к."
-        },
         {
           "tokens": [
             17
@@ -2688,12 +2706,6 @@
             20
           ],
           "reason": "Actual second-person plural you corresponds to a different person from Russian us."
-        },
-        {
-          "tokens": [
-            22
-          ],
-          "reason": "Actual Greek prints God, as does printed TR. Russian uses Lord."
         },
         {
           "tokens": [
@@ -2713,19 +2725,9 @@
           "reason": "Russian explicitly expresses desire. Actual first verb states separation."
         },
         {
-          "text": "к",
-          "occurrence": 0,
-          "reason": "Russian describes calling toward peace; actual Greek uses ἐν."
-        },
-        {
           "text": "нас",
           "occurrence": 0,
           "reason": "Russian follows the printed TR first-person plural. Actual has you."
-        },
-        {
-          "text": "Господь",
-          "occurrence": 0,
-          "reason": "Russian uses Lord. Both Greek witnesses print God."
         }
       ]
     },

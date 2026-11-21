@@ -5617,15 +5617,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "если",
+              "occurrence": 0
+            }
+          ],
+          "note": "The indefinite ἄν (\"whoever\") is rendered conditionally \"если (кто)\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            3
-          ],
-          "reason": "Actual relative clause has an indefinite modal particle. The Russian conditional is reformulated with если."
-        },
         {
           "tokens": [
             5
@@ -5638,11 +5644,6 @@
           "text": "что",
           "occurrence": 0,
           "reason": "Printed TR has the introductory content conjunction ὅτι. Actual N1904 has no such conjunction."
-        },
-        {
-          "text": "если",
-          "occurrence": 0,
-          "reason": "Russian makes this element of the construction overt. Actual Greek does not write a separate corresponding word at this point."
         },
         {
           "text": "с",

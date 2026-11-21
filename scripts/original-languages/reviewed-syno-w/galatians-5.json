@@ -1324,15 +1324,21 @@
             }
           ],
           "note": "Actual indefinite conditional marker is expressed by two Russian particles."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "о",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς \"(confident) toward (you)\" is rendered \"о (вас)\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            2
-          ],
-          "reason": "Actual εἰς directs the confidence toward the addressees. Russian makes them the matter of confidence with о."
-        },
         {
           "tokens": [
             10,
@@ -1342,11 +1348,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "о",
-          "occurrence": 0,
-          "reason": "Russian supplies о before the confidence complement. Actual preposition gives direction toward the addressees."
-        },
         {
           "text": "он",
           "occurrence": 0,
@@ -2980,15 +2981,21 @@
             }
           ],
           "note": "Actual aorist verb of having said beforehand is expressed using a Russian verb and adverb."
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "ненависть",
+              "occurrence": 0
+            }
+          ],
+          "note": "φθόνοι \"envyings\" is rendered \"hatred\"; убийства follows TR φόνοι."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0
-          ],
-          "reason": "Actual φθόνοι denotes envies or spite. Russian uses a separate property noun ненависть, hatred."
-        },
         {
           "tokens": [
             7
@@ -3005,11 +3012,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "ненависть",
-          "occurrence": 0,
-          "reason": "Russian uses the hatred noun. Actual prior list head φθόνοι denotes envies or spite."
-        },
         {
           "text": "убийства",
           "occurrence": 0,

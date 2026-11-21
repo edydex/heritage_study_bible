@@ -1639,15 +1639,21 @@
             }
           ],
           "note": "Actual aorist passive participle of being brought to completion is rendered by a Russian reflexive converbal form."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "виновников",
+              "occurrence": 0
+            }
+          ],
+          "note": "αἴτιος \"source\" is rendered виновник; the displayed виновников is a misprint for виновником."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            7
-          ],
-          "reason": "Actual nominative singular αἴτιος describes the subject as the cause or source of salvation. The exact Russian plural-like виновников follows the recipients and does not preserve the same predicate role."
-        },
         {
           "tokens": [
             4
@@ -1656,11 +1662,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "виновников",
-          "occurrence": 0,
-          "reason": "This exact Russian form follows the recipient phrase; actual αἴτιος is a singular predicate of the subject. The physical Russian token is retained without transferring the source role."
-        },
         {
           "text": "для",
           "occurrence": 0,
@@ -2327,6 +2328,18 @@
             }
           ],
           "note": "Actual active participle of partaking has the same milk consumer as Russian passive питаемый."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "он",
+              "occurrence": 0
+            }
+          ],
+          "note": "The copula is zero in Russian; its subject is expressed by он."
         }
       ],
       "unmappedSource": [
@@ -2335,12 +2348,6 @@
             1
           ],
           "reason": "The first actual γάρ is unexpressed before Russian Всякий."
-        },
-        {
-          "tokens": [
-            10
-          ],
-          "reason": "Actual third-person copula is unexpressed in the Russian он младенец nominal clause."
         },
         {
           "tokens": [
@@ -2354,11 +2361,6 @@
           "text": "в",
           "occurrence": 0,
           "reason": "Russian introduces the content of inexperience with в. Actual word noun is genitive."
-        },
-        {
-          "text": "он",
-          "occurrence": 0,
-          "reason": "Russian supplies an overt subject in the infant clause."
         }
       ]
     },

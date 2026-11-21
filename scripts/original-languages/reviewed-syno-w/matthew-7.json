@@ -380,15 +380,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "И",
+              "occurrence": 0
+            }
+          ],
+          "note": "δέ is rendered \"и\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            1
-          ],
-          "reason": "Actual δέ gives a discourse transition. Russian uses its introductory И."
-        },
         {
           "tokens": [
             3,
@@ -402,11 +408,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "И",
-          "occurrence": 0,
-          "reason": "Russian supplies this local constituent in its own grammatical construction. Actual Greek has no distinct word here."
-        },
         {
           "text": "ты",
           "occurrence": 0,
@@ -4756,15 +4757,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "А",
+              "occurrence": 0
+            }
+          ],
+          "note": "Additive καί is rendered contrastively."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0
-          ],
-          "reason": "Actual positive continuation uses καί. Russian introduces the contrast with А."
-        },
         {
           "tokens": [
             5,
@@ -4774,13 +4781,7 @@
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "А",
-          "occurrence": 0,
-          "reason": "Russian supplies this local constituent in its own grammatical construction. Actual Greek has no distinct word here."
-        }
-      ]
+      "unmappedTarget": []
     },
     "7:27": {
       "sourceText": "καὶ κατέβη ἡ βροχὴ καὶ ἦλθον οἱ ποταμοὶ καὶ ἔπνευσαν οἱ ἄνεμοι καὶ προσέκοψαν τῇ οἰκίᾳ ἐκείνῃ, καὶ ἔπεσεν, καὶ ἦν ἡ πτῶσις αὐτῆς μεγάλη.",

@@ -559,21 +559,33 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "из",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν τούτῳ \"by this\" is rendered \"из того\"."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "что",
+              "occurrence": 1
+            }
+          ],
+          "note": "The ἐάν clause explaining \"this\" is rendered as a что-clause."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            1
-          ],
-          "reason": "The source uses in this. Russian instead phrases the evidential relation as from this."
-        },
-        {
-          "tokens": [
-            7
-          ],
-          "reason": "The actual condition marker introduces keeping the commandments. Russian states a content clause with что here."
-        },
         {
           "tokens": [
             8
@@ -582,16 +594,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "из",
-          "occurrence": 0,
-          "reason": "Russian uses from in the evidence expression. Greek prints in."
-        },
-        {
-          "text": "что",
-          "occurrence": 1,
-          "reason": "Russian introduces the evidence as a content clause. Greek writes a condition."
-        },
         {
           "text": "мы",
           "occurrence": 0,
@@ -2593,11 +2595,11 @@
               "occurrence": 2
             }
           ],
-          "note": "The third address appears in physical N1904 2:14. Russian prints it at the end of 2:13.",
           "sourceReference": {
             "chapter": 2,
             "verse": 14
-          }
+          },
+          "note": "The third address appears in physical N1904 2:14. Russian prints it at the end of 2:13."
         },
         {
           "sourceTokens": [
@@ -2609,11 +2611,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Use the actual children address in physical N1904 2:14.",
           "sourceReference": {
             "chapter": 2,
             "verse": 14
-          }
+          },
+          "note": "Use the actual children address in physical N1904 2:14."
         },
         {
           "sourceTokens": [
@@ -2625,11 +2627,11 @@
               "occurrence": 2
             }
           ],
-          "note": "The connective belongs to the moved children address in physical N1904 2:14.",
           "sourceReference": {
             "chapter": 2,
             "verse": 14
-          }
+          },
+          "note": "The connective belongs to the moved children address in physical N1904 2:14."
         },
         {
           "sourceTokens": [
@@ -2641,11 +2643,11 @@
               "occurrence": 1
             }
           ],
-          "note": "Use the actual knowing verb in the children address in physical N1904 2:14.",
           "sourceReference": {
             "chapter": 2,
             "verse": 14
-          }
+          },
+          "note": "Use the actual knowing verb in the children address in physical N1904 2:14."
         },
         {
           "sourceTokens": [
@@ -2657,11 +2659,11 @@
               "occurrence": 0
             }
           ],
-          "note": "The actual father noun belongs to the children address in physical N1904 2:14.",
           "sourceReference": {
             "chapter": 2,
             "verse": 14
-          }
+          },
+          "note": "The actual father noun belongs to the children address in physical N1904 2:14."
         }
       ],
       "unmappedSource": [

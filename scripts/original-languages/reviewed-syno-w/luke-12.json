@@ -1096,17 +1096,6 @@
       "groups": [
         {
           "sourceTokens": [
-            0
-          ],
-          "targetPhrases": [
-            {
-              "text": "Не",
-              "occurrence": 0
-            }
-          ]
-        },
-        {
-          "sourceTokens": [
             1
           ],
           "targetPhrases": [
@@ -1241,6 +1230,34 @@
             }
           ],
           "note": "Actual negation of one being forgotten gives both Russian concord words."
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Не",
+              "occurrence": 0
+            },
+            {
+              "text": "ли",
+              "occurrence": 0
+            }
+          ],
+          "note": "The interrogative negative οὐχί is rendered \"не ... ли\"."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "у",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐνώπιον \"before (God)\" is rendered \"у (Бога)\"."
         }
       ],
       "unmappedSource": [
@@ -1252,12 +1269,6 @@
         },
         {
           "tokens": [
-            13
-          ],
-          "reason": "Actual specifies being before God. Russian gives the relation with у."
-        },
-        {
-          "tokens": [
             14
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
@@ -1265,17 +1276,7 @@
       ],
       "unmappedTarget": [
         {
-          "text": "ли",
-          "occurrence": 0,
-          "reason": "Exact Russian states this grammatical element overtly without a separately written actual Greek word."
-        },
-        {
           "text": "за",
-          "occurrence": 0,
-          "reason": "Exact Russian states this grammatical element overtly without a separately written actual Greek word."
-        },
-        {
-          "text": "у",
           "occurrence": 0,
           "reason": "Exact Russian states this grammatical element overtly without a separately written actual Greek word."
         }
@@ -3591,15 +3592,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "у тебя",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"You have\" is rendered by the possessive \"у тебя\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            6
-          ],
-          "reason": "Actual directly says you have. Russian recasts the possession through у тебя while the physical laying participle separately supplies lies."
-        },
         {
           "tokens": [
             2
@@ -3607,13 +3614,7 @@
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "у тебя",
-          "occurrence": 0,
-          "reason": "Russian gives the person as possessor in a prepositional phrase. Actual conveys possession with the second-person having verb."
-        }
-      ]
+      "unmappedTarget": []
     },
     "12:20": {
       "sourceText": "εἶπεν δὲ αὐτῷ ὁ Θεός Ἄφρων, ταύτῃ τῇ νυκτὶ τὴν ψυχήν σου ἀπαιτοῦσιν ἀπὸ σοῦ· ἃ δὲ ἡτοίμασας, τίνι ἔσται;",

@@ -5937,6 +5937,30 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "а",
+              "occurrence": 0
+            }
+          ],
+          "note": "Additive καί is rendered contrastively."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "к",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν \"in (him)\" is rendered by к after благоволить."
         }
       ],
       "unmappedSource": [
@@ -5960,18 +5984,6 @@
         },
         {
           "tokens": [
-            7
-          ],
-          "reason": "Actual additive introduces the condition; Russian uses contrastive а."
-        },
-        {
-          "tokens": [
-            15
-          ],
-          "reason": "Actual ἐν specifies the personal target of favor. Russian uses к in the verbal complement."
-        },
-        {
-          "tokens": [
             0,
             12
           ],
@@ -5980,19 +5992,9 @@
       ],
       "unmappedTarget": [
         {
-          "text": "а",
-          "occurrence": 0,
-          "reason": "Russian uses a contrastive connector. Actual Greek has positive καί."
-        },
-        {
           "text": "кто",
           "occurrence": 0,
           "reason": "Russian names an indefinite third-person subject overtly."
-        },
-        {
-          "text": "к",
-          "occurrence": 0,
-          "reason": "Russian marks the personal target of favor with к. Actual Greek has ἐν."
         }
       ]
     },

@@ -5298,21 +5298,33 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "И",
+              "occurrence": 0
+            }
+          ],
+          "note": "Transitional δέ is rendered \"и\"."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "а",
+              "occurrence": 0
+            }
+          ],
+          "note": "Additive καί is rendered contrastively."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            1
-          ],
-          "reason": "Actual δέ gives transition. Russian uses additive И."
-        },
-        {
-          "tokens": [
-            6
-          ],
-          "reason": "Actual additive coordinator links the next role. Russian uses contrastive а."
-        },
         {
           "tokens": [
             7
@@ -5320,18 +5332,7 @@
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "И",
-          "occurrence": 0,
-          "reason": "Russian supplies additive coordination at the start."
-        },
-        {
-          "text": "а",
-          "occurrence": 0,
-          "reason": "Russian supplies contrastive coordination for the others."
-        }
-      ]
+      "unmappedTarget": []
     },
     "14:30": {
       "sourceText": "ἐὰν δὲ ἄλλῳ ἀποκαλυφθῇ καθημένῳ, ὁ πρῶτος σιγάτω.",

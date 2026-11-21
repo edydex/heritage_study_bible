@@ -2501,15 +2501,21 @@
               "note": "Actual adjective contributes freedom from trouble."
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "до",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐπί \"before (the governor)\" is rendered \"(дойдет) до (правителя)\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            4
-          ],
-          "reason": "Actual expresses before the governor. Russian gives the endpoint of the report with до."
-        },
         {
           "tokens": [
             5
@@ -2525,11 +2531,6 @@
         },
         {
           "text": "об",
-          "occurrence": 0,
-          "reason": "Russian renders this grammatical constituent explicitly. No separate actual Greek word corresponds."
-        },
-        {
-          "text": "до",
           "occurrence": 0,
           "reason": "Russian renders this grammatical constituent explicitly. No separate actual Greek word corresponds."
         }

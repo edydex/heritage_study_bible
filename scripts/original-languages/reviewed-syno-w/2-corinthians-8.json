@@ -1861,6 +1861,18 @@
             }
           ],
           "note": "The actual temporal adverb last year becomes a Russian two-word nominal expression."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "на",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν \"in (this matter)\" is rendered \"на (это)\"."
         }
       ],
       "unmappedSource": [
@@ -1872,12 +1884,6 @@
         },
         {
           "tokens": [
-            2
-          ],
-          "reason": "The Greek preposition marks the situation in which advice is given. Russian uses на before the demonstrative as the matter addressed."
-        },
-        {
-          "tokens": [
             12,
             16
           ],
@@ -1885,11 +1891,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "на",
-          "occurrence": 0,
-          "reason": "Russian marks the matter addressed by the advice. Greek gives the situation in which it is given."
-        },
         {
           "text": "сие",
           "occurrence": 0,

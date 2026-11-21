@@ -3829,21 +3829,33 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "по",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν τούτῳ \"by this\" is rendered \"по чему\"."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "мы",
+              "occurrence": 0
+            }
+          ],
+          "note": "The copula is zero in Russian; its person is expressed by мы."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            0
-          ],
-          "reason": "Actual Greek has a location-like in-this expression. Russian uses the evidential preposition по."
-        },
-        {
-          "tokens": [
-            7
-          ],
-          "reason": "The present first-person copula is implicit in the Russian origin predicate."
-        },
         {
           "tokens": [
             5,
@@ -3857,16 +3869,6 @@
           "text": "И вот",
           "occurrence": 0,
           "reason": "Russian gives an introductory connective and attention marker. Printed TR has a separate opening additive; N1904 begins directly with in this."
-        },
-        {
-          "text": "по",
-          "occurrence": 0,
-          "reason": "Russian expresses the evidence by its own preposition. The actual preposition is in."
-        },
-        {
-          "text": "мы",
-          "occurrence": 0,
-          "reason": "Russian explicitly states the subject encoded in the actual first-person copula."
         }
       ]
     },
@@ -4851,27 +4853,39 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "А",
+              "occurrence": 0
+            }
+          ],
+          "note": "Additive καί is rendered \"а\"."
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "по",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐκ \"from (the Spirit)\" is rendered evidentially \"по\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            13
-          ],
-          "reason": "Actual Greek opens the knowledge clause additively where Russian uses an adversative transition."
-        },
         {
           "tokens": [
             14,
             15
           ],
           "reason": "Actual in-this refers demonstratively to the evidence. Russian omits a separate demonstrative and introduces the evidence with по."
-        },
-        {
-          "tokens": [
-            21
-          ],
-          "reason": "Actual ἐκ marks the source. Russian emphasizes the evidential relation with по."
         },
         {
           "tokens": [
@@ -4888,19 +4902,9 @@
           "reason": "Russian supplies a correlative for the opening relative clause."
         },
         {
-          "text": "А",
-          "occurrence": 0,
-          "reason": "Russian starts with an adversative. Actual Greek links the statements additively."
-        },
-        {
           "text": "Он",
           "occurrence": 1,
           "reason": "Russian supplies a subject for the third-person abiding verb."
-        },
-        {
-          "text": "по",
-          "occurrence": 0,
-          "reason": "Russian marks the evidence with по rather than actual ἐκ."
         },
         {
           "text": "Он",

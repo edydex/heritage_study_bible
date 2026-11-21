@@ -1682,15 +1682,21 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "тогда",
+              "occurrence": 0
+            }
+          ],
+          "note": "Narrative δέ is rendered \"then\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            1
-          ],
-          "reason": "Actual discourse connector is expressed by a temporal sequencing adverb in Russian."
-        },
         {
           "tokens": [
             8,
@@ -1700,11 +1706,6 @@
         }
       ],
       "unmappedTarget": [
-        {
-          "text": "тогда",
-          "occurrence": 0,
-          "reason": "Russian makes the time transition explicit."
-        },
         {
           "text": "сторону",
           "occurrence": 0,
@@ -11896,11 +11897,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual serving verb is physically in Greek 1:74.",
           "sourceReference": {
             "chapter": 1,
             "verse": 74
-          }
+          },
+          "note": "Actual serving verb is physically in Greek 1:74."
         },
         {
           "sourceTokens": [
@@ -11912,11 +11913,11 @@
               "occurrence": 0
             }
           ],
-          "note": "Actual serving recipient is physically in Greek 1:74.",
           "sourceReference": {
             "chapter": 1,
             "verse": 74
-          }
+          },
+          "note": "Actual serving recipient is physically in Greek 1:74."
         }
       ],
       "unmappedSource": [

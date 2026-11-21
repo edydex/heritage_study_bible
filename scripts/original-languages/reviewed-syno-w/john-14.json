@@ -4303,15 +4303,21 @@
             }
           ],
           "note": "Actual second-person μέλλω means be about to or intend. Russian expresses intention in the same person with хочешь."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "это",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"What has happened (that)\" is rendered \"что это (что)\" \"how is it\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            9
-          ],
-          "reason": "Actual asks what has happened. Russian uses что это instead of a separately stated happening predicate."
-        },
         {
           "tokens": [
             7
@@ -4326,13 +4332,7 @@
           "reason": "These printed articles have no separately expressed determiner in the corresponding Russian constructions."
         }
       ],
-      "unmappedTarget": [
-        {
-          "text": "это",
-          "occurrence": 0,
-          "reason": "Russian expresses this grammatical constituent separately in the local construction."
-        }
-      ]
+      "unmappedTarget": []
     },
     "14:23": {
       "sourceText": "ἀπεκρίθη Ἰησοῦς καὶ εἶπεν αὐτῷ Ἐάν τις ἀγαπᾷ, με τὸν λόγον μου τηρήσει, καὶ ὁ Πατήρ μου ἀγαπήσει αὐτόν, καὶ πρὸς αὐτὸν ἐλευσόμεθα καὶ μονὴν παρ’ αὐτῷ ποιησόμεθα.",
@@ -5844,22 +5844,22 @@
               "occurrence": 0
             }
           ]
-        }
-      ],
-      "unmappedSource": [
+        },
         {
-          "tokens": [
+          "sourceTokens": [
             1
           ],
-          "reason": "Actual writes a now adverb. Exact Russian introduces the statement with a deictic вот."
+          "targetPhrases": [
+            {
+              "text": "вот",
+              "occurrence": 0
+            }
+          ],
+          "note": "\"Now\" is rendered by the presentative вот."
         }
       ],
+      "unmappedSource": [],
       "unmappedTarget": [
-        {
-          "text": "вот",
-          "occurrence": 0,
-          "reason": "Russian directs attention to the statement. Both Greek witnesses have a time adverb now at this position."
-        },
         {
           "text": "о том",
           "occurrence": 0,

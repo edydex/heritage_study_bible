@@ -4544,6 +4544,18 @@
               "occurrence": 0
             }
           ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "для",
+              "occurrence": 0
+            }
+          ],
+          "note": "Purpose ἵνα with the subjunctive is rendered by для with the verbal noun получения."
         }
       ],
       "unmappedSource": [
@@ -4557,12 +4569,6 @@
         },
         {
           "tokens": [
-            9
-          ],
-          "reason": "Actual introduces the purpose with a conjunction. Russian uses a preposition and noun."
-        },
-        {
-          "tokens": [
             2
           ],
           "reason": "These printed Greek articles are unexpressed in the local Russian noun, modifier or infinitive phrases."
@@ -4571,11 +4577,6 @@
       "unmappedTarget": [
         {
           "text": "от",
-          "occurrence": 0,
-          "reason": "Russian provides a preposition for its corresponding nominal complement."
-        },
-        {
-          "text": "для",
           "occurrence": 0,
           "reason": "Russian provides a preposition for its corresponding nominal complement."
         }

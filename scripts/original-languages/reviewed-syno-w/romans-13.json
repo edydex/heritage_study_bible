@@ -1825,17 +1825,22 @@
             }
           ],
           "note": "The single actual reflexive pronoun is realized as the Russian emphatic reflexive phrase."
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "все",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἴ τις \"if any (other)\" is rendered \"все (другие)\" \"all (others)\"."
         }
       ],
       "unmappedSource": [
-        {
-          "tokens": [
-            11,
-            12,
-            14
-          ],
-          "reason": "The actual conditional, indefinite, and singular command noun belong to the other-command clause. Russian contracts it to все другие, with no separate condition, indefinite, or repeated command noun."
-        },
         {
           "tokens": [
             20
@@ -1850,6 +1855,12 @@
             23
           ],
           "reason": "The actual Greek articles have no separately written Russian article in these local expressions."
+        },
+        {
+          "tokens": [
+            14
+          ],
+          "reason": "The repeated command noun of the other-command clause is not repeated in Russian все другие."
         }
       ],
       "unmappedTarget": [
@@ -1867,11 +1878,6 @@
           "text": "чужого",
           "occurrence": 0,
           "reason": "Russian adds an object qualifier to the wanting command without a separately printed Greek object."
-        },
-        {
-          "text": "все",
-          "occurrence": 0,
-          "reason": "Russian generalizes the other-command phrase with an explicit totalizer. The Greek conditional indefinite has no separately printed pas."
         }
       ]
     },
