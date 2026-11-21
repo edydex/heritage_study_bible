@@ -1970,13 +1970,13 @@ function BibleStudyApp({ onReaderReady, verseStacking }) {
   }
 
   // Store the destination with the route, so the chapter reset cannot race it.
-  const navigateToVerse = (book, chapter, verse) => {
+  const navigateToVerse = (book, chapter, verse, column) => {
     const targetBook = book || currentBook
     setSearchResults(null)
     setShowBookmarkManager(false)
     setShowGoToPassageButton(false)
     navigate(`/${bookToSlug(targetBook)}/${chapter}`, {
-      replace: true, state: { scrollToVerse: { book: targetBook, chapter: Number(chapter), verse: Number(verse) } },
+      replace: true, state: { scrollToVerse: { book: targetBook, chapter: Number(chapter), verse: Number(verse), column } },
     })
   }
 
@@ -1984,7 +1984,11 @@ function BibleStudyApp({ onReaderReady, verseStacking }) {
     const target = location.state?.scrollToVerse
     if (location.state?.audioTranslation && location.state.audioTranslation !== translationId) return
     if (!target || target.book !== currentBook || target.chapter !== currentChapter || !bibleData || translationLoading) return
-    const element = bibleContainerRef.current?.querySelector(`#verse-${target.chapter}-${target.verse}`)
+    const container = bibleContainerRef.current
+    const element = target.column === 'ORIGINAL'
+      ? [...(container?.querySelectorAll(`[data-verse-content][data-translation="ORIGINAL"][data-chapter="${target.chapter}"][data-verse="${target.verse}"]`) || [])]
+        .find(node => node.getClientRects().length > 0)
+      : container?.querySelector(`#verse-${target.chapter}-${target.verse}`)
     if (!element) return
     let highlightTimer
     const frame = requestAnimationFrame(() => {
@@ -1993,7 +1997,7 @@ function BibleStudyApp({ onReaderReady, verseStacking }) {
       highlightTimer = setTimeout(() => element.classList.remove('bg-yellow-100'), 2000)
     })
     return () => { cancelAnimationFrame(frame); clearTimeout(highlightTimer); element.classList.remove('bg-yellow-100') }
-  }, [location.key, location.state, currentBook, currentChapter, bibleData, translationLoading, translationId, parallelMode, showBookmarkManager])
+  }, [location.key, location.state, currentBook, currentChapter, bibleData, translationLoading, translationId, parallelMode, parallelLoading, parallelBibleData, showBookmarkManager])
 
   // Navigate to book and chapter
   const handleNavigate = (bookName, chapter) => {
