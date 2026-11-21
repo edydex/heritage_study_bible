@@ -47,7 +47,7 @@ OWNERS = {
     'scripts/original-languages/syno-w-review-status.json': 'claude',
     'scripts/original-languages/build-synodal-links.py': 'claude',
     'public/data/original-languages/syno-w-word-links/': 'claude',
-    'src/data/synodalTextAdditions.js': 'claude',
+    'src/data/synodalTextAdditions.json': 'claude',
     'docs/SYNO-W-WORD-LINKS.md': 'claude',
     'docs/word-links/AGREEMENT.md': 'claude',
     'docs/word-links/status-claude.md': 'claude',

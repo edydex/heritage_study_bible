@@ -14,10 +14,10 @@ matching prefix wins.
 |---|---|---|
 | BSB links | Claude | `scripts/original-languages/reviewed-bsb/`, `bsb-review-status.json`, `public/data/original-languages/bsb-word-links/`, `romans-bsb-links.json`, `docs/KJV-WORD-LINKS.md` |
 | LSV links (finished; maintenance only) | Claude | `reviewed-lsv/`, `lsv-review-status.json`, `build-lsv-links.py`, `lsv-word-links/`. `build-lsv-links.py` also rewrites `bsb-word-links/`, so only the BSB owner runs it. |
-| SYNO-W links (finished; audit and corrections) | Claude | `reviewed-syno-w/`, `syno-w-review-status.json`, `build-synodal-links.py`, `syno-w-word-links/`, `src/data/synodalTextAdditions.js`, `docs/SYNO-W-WORD-LINKS.md` |
+| SYNO-W links (finished; audit and corrections) | Claude | `reviewed-syno-w/`, `syno-w-review-status.json`, `build-synodal-links.py`, `syno-w-word-links/`, `src/data/synodalTextAdditions.json`, `docs/SYNO-W-WORD-LINKS.md` |
 | Checker and Claude's notes | Claude | `scripts/original-languages/verify-word-links.py`, `draft-review-from-links.py`, `docs/word-links/status-claude.md`, `docs/word-links/claude-review-notes/` |
 | UKRK links | Codex | `reviewed-ukrk/`, `ukrk-review-status.json`, `build-ukrk-links.py`, `ukrk-word-links/`, `src/data/ukrkTextAdditions.json`, `public/data/verse-layout/UKRK.json` |
-| App code, Word Study screen, deploys | Codex | `src/` (except `synodalTextAdditions.js`), `e2e/`, `tests/`, `android/`, `package*.json`, `docs/ORIGINAL-LANGUAGES.md`, `docs/word-links/status-codex.md`; heritage.faith deploys |
+| App code, Word Study screen, deploys | Codex | `src/` (except `synodalTextAdditions.json`), `e2e/`, `tests/`, `android/`, `package*.json`, `docs/ORIGINAL-LANGUAGES.md`, `docs/word-links/status-codex.md`; heritage.faith deploys |
 | Shared engine | Both, by request | `compile-reviewed-links.py`, `reviewed_link_resources.py`, `shared_phrase_links.py`, `audit-nt-word-links.py`, `greek-nt-n1904.json`, `greek-concordance.json`, `greek-nt-metadata-errata.json`. Changing these changes every translation's output: post a request in your status file and wait for the owner's OK. |
 | KJV links | Parked | `reviewed-kjv/`, `kjv-review-status.json`, `build-kjv-links.py`, `kjv-word-links/`. Nobody edits until the owner assigns it. |
 | Old Testament word links, grammar beyond Romans/Colossians | On hold | Waits for the owner's spot-check of the NT. |
