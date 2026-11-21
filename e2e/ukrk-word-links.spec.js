@@ -1,6 +1,21 @@
 import { expect, test } from '@playwright/test'
 
+async function omitMark14WordLinks(page) {
+  await page.route('**/ukrk-word-links/mark.json', async route => {
+    const response = await route.fetch()
+    const data = await response.json()
+    for (const reference of Object.keys(data.verses)) {
+      if (reference.startsWith('14:')) {
+        delete data.verses[reference]
+        data.unavailable[reference] = 'not-independently-reviewed'
+      }
+    }
+    await route.fulfill({ response, json: data })
+  })
+}
+
 test('UKRK-R displays original Greek and Hebrew without an installed verse alignment', async ({ page }) => {
+  await omitMark14WordLinks(page)
   await page.setViewportSize({ width: 390, height: 844 })
   await page.addInitScript(() => {
     localStorage.setItem('heritage-translation', 'UKRK')
@@ -38,6 +53,7 @@ test('UKRK-R displays original Greek and Hebrew without an installed verse align
 })
 
 test('source occurrence stays in view when reviewed Ukrainian links finish loading', async ({ page }) => {
+  await omitMark14WordLinks(page)
   await page.addInitScript(() => {
     localStorage.setItem('heritage-translation', 'UKRK')
     localStorage.setItem('heritage-default-translation-v2', 'done')
