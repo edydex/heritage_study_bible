@@ -10,6 +10,15 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 - SYNO-W: three more split pairs found outside the fixed set (2 Cor 6:8,
   Luke 4:34, Mark 5:7), queued.
 - Then BSB John, Acts, Romans, 1–2 Corinthians, Revelation.
+- Consistency follow-ups in older BSB chapters (to align with the reviewed
+  conventions):
+  - Matthew 9:15: νυμφῶνος linked to "bridegroom" (fix as in Mark 2:19 /
+    Luke 5:34).
+  - Matthew 8:20: possessive τήν `t` (Luke 9:58 links it).
+  - Matthew 19:13: "the" `t`.
+  - Mark 1:44: "to the" on a lone τῷ.
+  - About 67 Matthew/Mark notes that name the publisher's Greek wording as
+    fact; most are well-known variants that match the counts.
 
 ## Done
 
