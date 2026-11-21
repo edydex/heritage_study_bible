@@ -114,7 +114,7 @@ function BibleChapter({
                 onClick={selectionMode ? () => handleVerseActivation(verse) : undefined}
                 onKeyDown={event => handleSelectionKeyDown(event, verse)}
                 className={`group flex flex-wrap items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 ${selectionMode ? 'verse-selection-target cursor-pointer' : ''} ${layout?.breakBefore ? 'mt-3 sm:mt-4' : ''} ${
-                  verse.isSuperscription ? 'mb-2 border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic' : ''
+                  verse.isSuperscription ? 'mb-3 sm:mb-4 border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic' : ''
                 } ${
                   hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50' : ''
                 } ${
@@ -166,6 +166,7 @@ function BibleChapter({
       ) : (
         <div className="verse-text px-0 sm:px-2" style={verseStyle}>
           {chapter.verses.map((verse, verseIndex) => {
+            const previousVerse = chapter.verses[verseIndex - 1]
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
             const selected = isVerseSelected?.(chapter.number, verse.number)
@@ -180,7 +181,8 @@ function BibleChapter({
 
             return (
               <Fragment key={verse.number}>
-                {layout?.breakBefore && verseIndex > 0 && <span className="block h-3 sm:h-4" aria-hidden="true" />}
+                {previousVerse && (previousVerse.isSuperscription || layout?.breakBefore)
+                  && <span className="block h-3 sm:h-4" aria-hidden="true" />}
                 <span
                   id={`verse-${chapter.number}-${verse.number}`}
                   ref={(el) => setVerseRef(verse.number, el)}

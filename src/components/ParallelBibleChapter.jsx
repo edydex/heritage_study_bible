@@ -161,6 +161,7 @@ function ParallelBibleChapter({
     const keys = new Set([...primaryVerseMap.keys(), ...secondaryVerseMap.keys()])
     return [...keys].sort((a, b) => a - b)
   }, [primaryVerseMap, secondaryVerseMap])
+  const hasPsalmHeading = primaryVerseMap.get(0)?.isSuperscription || secondaryVerseMap.get(0)?.isSuperscription
 
   const verseStyle = { fontSize: `${textSize}px`, lineHeight: 1.6 }
 
@@ -266,7 +267,7 @@ function ParallelBibleChapter({
       {heldMessage && <div role="region" aria-label="Selected word match" className="word-match-bar sticky top-16 z-20 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 p-3 mb-3 shadow-sm flex flex-wrap items-center justify-between gap-2"><span role="status">{heldMessage}</span>{activeWord?.notes?.length > 0 && <details className="w-full text-sm"><summary>Reading note</summary>{activeWord.notes.map((note, index) => <p key={index} className="mt-1">{note}</p>)}</details>}<div className="flex flex-wrap items-center gap-2">{activeWord?.counterparts?.filter(ref => ref.chapter !== activeWord.chapter || ref.verse !== activeWord.verse).map(ref => <button key={`${ref.translationId}:${ref.chapter}:${ref.verse}`} className="rounded border px-3 py-2 text-sm" onClick={() => showCounterpart(ref)}>Show {ref.translationId === 'ORIGINAL' ? 'Original' : translationDisplayAbbr(ref.translationId)} {ref.chapter}:{ref.verse}</button>)}<button className="rounded border px-3 py-2 text-sm font-semibold" onClick={() => setStudy(activeWord)}>Study word</button><button className="rounded px-3 py-2" aria-label="Clear word match" onClick={() => { setActiveWord(null); setStudy(null) }}>✕</button></div></div>}
       {study && !linksLoading && <WordStudyDialog word={study} onClose={() => setStudy(null)} onNavigate={onOccurrenceNavigate} />}
       <div className="space-y-2">
-        {verseNumbers.map((rowNumber) => {
+        {verseNumbers.map((rowNumber, rowIndex) => {
           const primaryVerse = primaryVerseMap.get(rowNumber)
           const secondaryVerse = secondaryVerseMap.get(rowNumber)
           const verseNumber = primaryVerse?.number ?? rowNumber
@@ -283,7 +284,7 @@ function ParallelBibleChapter({
             || (isVerseHighlighted?.(primaryChapter.number, verseNumber) ? 'yellow' : null)
           const primaryLayout = getVerseLayout(primaryVerseLayout, bookName, primaryChapter.number, verseNumber)
           const secondaryLayout = getVerseLayout(secondaryVerseLayout, bookName, primaryChapter.number, secondaryNumber)
-          const startsParagraph = primaryLayout?.breakBefore || secondaryLayout?.breakBefore
+          const startsParagraph = primaryLayout?.breakBefore || secondaryLayout?.breakBefore || (hasPsalmHeading && rowIndex === 1)
 
           const primaryAdditions = textualAdditionRanges(primaryTranslationId, bookName, primaryChapter.number, verseNumber, primaryVerse?.text)
           const secondaryAdditions = textualAdditionRanges(secondaryTranslationId, bookName, primaryChapter.number, secondaryNumber, secondaryVerse?.text)
