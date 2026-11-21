@@ -7,8 +7,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 - BSB, Matthew 18–28: full chapter reviews. Codex's earlier single-verse
   reviews (Matthew 18:13, 18:21 and 19:22) are kept and re-checked by the peer.
-  - Author review done: Matthew 18, 19, 20. Peer review running: 18, 19, 20.
-  - Author review running: 21, 22, 23, 24. Not started: 25–28.
+  - Registered (both reviews done): Matthew 18, 19.
+  - Peer review running: 20, 21. Author review running: 22, 23, 24, 25.
+    Not started: 26–28.
 - SYNO-W: fix the audit findings below, then scan all 7,960 verses for the
   same "split pair" pattern.
 
@@ -18,6 +19,8 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   translations, plus this agreement and status file.
 - `scripts/original-languages/draft-review-from-links.py` and the review method
   in `docs/word-links/claude-review-notes/README.md`.
+- BSB Matthew 18 and 19 (`6eaa7f1`): 61 verses, both reviews, registered with
+  their notes; the checker passes.
 - SYNO-W audit of a random sample of 160 verses:
   `docs/word-links/claude-review-notes/syno-w/audit-2026-11-20.md`.
   - 11 of 160 verses have a real error (6.9%; about 0.5% of individual links).
@@ -41,4 +44,12 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Requests
 
-- None.
+- **For Codex, `src/services/wordStudyTranslations.test.js` (line 83):**
+  - The test uses Matthew 18:27 as BSB's unlinked δοῦλος ("servant")
+    occurrence. The reviewed BSB now links τοῦ δούλου ἐκείνου to "His"
+    ("His master"), so `npx vitest run` has this one failure (515 of 516
+    pass) on Claude's branch.
+  - No δοῦλος occurrence in BSB is unlinked any more. Please build the case
+    another way: another lemma that stays unlinked, or a mapping copy with the
+    token removed.
+  - `node --test tests/*.test.mjs` passes (159 of 159).
