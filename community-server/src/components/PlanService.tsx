@@ -1,6 +1,6 @@
 import { DefaultTemplate } from '@payloadcms/next/templates'
 import type { AdminViewServerProps } from 'payload'
-import PlanServiceClient from './PlanServiceClient'
+import PlanServicePayloadClient from './PlanServicePayloadClient'
 
 export default function PlanService(props: AdminViewServerProps) {
   const { initPageResult } = props
@@ -21,7 +21,7 @@ export default function PlanService(props: AdminViewServerProps) {
       viewType="plan-service"
       visibleEntities={initPageResult.visibleEntities}
     >
-      <PlanServiceClient />
+      <PlanServicePayloadClient />
     </DefaultTemplate>
   )
 }

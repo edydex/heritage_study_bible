@@ -69,11 +69,17 @@ export interface Config {
   collections: {
     'bible-translations': BibleTranslation;
     users: User;
+    'workspace-activity': WorkspaceActivity;
     'community-sessions': CommunitySession;
     'community-auth-challenges': CommunityAuthChallenge;
     'community-auth-rate-limits': CommunityAuthRateLimit;
     communities: Community;
     memberships: Membership;
+    people: Person;
+    households: Household;
+    teams: Team;
+    'serving-assignments': ServingAssignment;
+    'serving-blockouts': ServingBlockout;
     'community-invites': CommunityInvite;
     media: Media;
     'reading-plans': ReadingPlan;
@@ -85,6 +91,7 @@ export interface Config {
     sermons: Sermon;
     'service-plans': ServicePlan;
     'service-documents': ServiceDocument;
+    'service-document-saves': ServiceDocumentSave;
     'syncshow-service-document-changes': SyncshowServiceDocumentChange;
     'syncshow-sermon-changes': SyncshowSermonChange;
     'syncshow-sermon-publications': SyncshowSermonPublication;
@@ -95,6 +102,7 @@ export interface Config {
     'plan-notes': PlanNote;
     events: Event;
     'event-rsvps': EventRsvp;
+    'event-registrations': EventRegistration;
     'encrypted-sync': EncryptedSync;
     'sync-devices': SyncDevice;
     'sync-records': SyncRecord;
@@ -105,15 +113,25 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    households: {
+      members: 'people';
+    };
+  };
   collectionsSelect: {
     'bible-translations': BibleTranslationsSelect<false> | BibleTranslationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'workspace-activity': WorkspaceActivitySelect<false> | WorkspaceActivitySelect<true>;
     'community-sessions': CommunitySessionsSelect<false> | CommunitySessionsSelect<true>;
     'community-auth-challenges': CommunityAuthChallengesSelect<false> | CommunityAuthChallengesSelect<true>;
     'community-auth-rate-limits': CommunityAuthRateLimitsSelect<false> | CommunityAuthRateLimitsSelect<true>;
     communities: CommunitiesSelect<false> | CommunitiesSelect<true>;
     memberships: MembershipsSelect<false> | MembershipsSelect<true>;
+    people: PeopleSelect<false> | PeopleSelect<true>;
+    households: HouseholdsSelect<false> | HouseholdsSelect<true>;
+    teams: TeamsSelect<false> | TeamsSelect<true>;
+    'serving-assignments': ServingAssignmentsSelect<false> | ServingAssignmentsSelect<true>;
+    'serving-blockouts': ServingBlockoutsSelect<false> | ServingBlockoutsSelect<true>;
     'community-invites': CommunityInvitesSelect<false> | CommunityInvitesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'reading-plans': ReadingPlansSelect<false> | ReadingPlansSelect<true>;
@@ -125,6 +143,7 @@ export interface Config {
     sermons: SermonsSelect<false> | SermonsSelect<true>;
     'service-plans': ServicePlansSelect<false> | ServicePlansSelect<true>;
     'service-documents': ServiceDocumentsSelect<false> | ServiceDocumentsSelect<true>;
+    'service-document-saves': ServiceDocumentSavesSelect<false> | ServiceDocumentSavesSelect<true>;
     'syncshow-service-document-changes': SyncshowServiceDocumentChangesSelect<false> | SyncshowServiceDocumentChangesSelect<true>;
     'syncshow-sermon-changes': SyncshowSermonChangesSelect<false> | SyncshowSermonChangesSelect<true>;
     'syncshow-sermon-publications': SyncshowSermonPublicationsSelect<false> | SyncshowSermonPublicationsSelect<true>;
@@ -135,6 +154,7 @@ export interface Config {
     'plan-notes': PlanNotesSelect<false> | PlanNotesSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
     'event-rsvps': EventRsvpsSelect<false> | EventRsvpsSelect<true>;
+    'event-registrations': EventRegistrationsSelect<false> | EventRegistrationsSelect<true>;
     'encrypted-sync': EncryptedSyncSelect<false> | EncryptedSyncSelect<true>;
     'sync-devices': SyncDevicesSelect<false> | SyncDevicesSelect<true>;
     'sync-records': SyncRecordsSelect<false> | SyncRecordsSelect<true>;
@@ -229,9 +249,6 @@ export interface Community {
     | boolean
     | null;
   logo?: (number | null) | Media;
-  /**
-   * For example: America/Los_Angeles.
-   */
   timeZone: string;
   /**
    * Invite-only prevents strangers from creating member accounts on a public server.
@@ -241,6 +258,11 @@ export interface Community {
    * Events can inherit this setting or choose their own visibility.
    */
   calendarDefaultVisibility: 'members' | 'public';
+  calendarDefaultStartTime?: string | null;
+  calendarDefaultDurationMinutes?: number | null;
+  calendarDefaultReminderMinutes?: number | null;
+  calendarDefaultLocation?: string | null;
+  calendarFeedVersion?: number | null;
   allowDirectoryListing?: boolean | null;
   contentServerEnabled?: boolean | null;
   liveService?: {
@@ -289,16 +311,17 @@ export interface Media {
   focalY?: number | null;
 }
 /**
- * Accounts for readers and church managers. Use Invitations to email workspace access or a reader join link; use Memberships to change church roles.
+ * Add people from People → Invite person. They receive a link and choose their own password. These account details are for existing accounts.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
+  preferredLanguage?: ('en' | 'ru') | null;
   displayName: string;
   /**
-   * Most people should be Members. Church roles are managed separately under Memberships.
+   * Most people should be Members. Change church roles from People.
    */
   systemRole: 'system-admin' | 'member';
   magicLinkTokenHash?: string | null;
@@ -334,6 +357,32 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workspace-activity".
+ */
+export interface WorkspaceActivity {
+  id: number;
+  community: number | Community;
+  user: number | User;
+  screen:
+    | 'home'
+    | 'planner'
+    | 'sermon'
+    | 'publication'
+    | 'songs'
+    | 'people'
+    | 'translation'
+    | 'media'
+    | 'scripture'
+    | 'library'
+    | 'account';
+  lastNavigationAt: string;
+  lastActiveAt: string;
+  navigationCount: number;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -404,7 +453,193 @@ export interface Membership {
   createdAt: string;
 }
 /**
- * Invite a member to Heritage, or invite a leader/administrator to the church workspace. Save to send the email; no separate account creation is needed.
+ * Everyone in the church directory, including children and visitors who never sign in.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "people".
+ */
+export interface Person {
+  id: number;
+  community: number | Community;
+  firstName: string;
+  lastName?: string | null;
+  /**
+   * Optional, for example "Sasha" for Alexander.
+   */
+  preferredName?: string | null;
+  fullName?: string | null;
+  status: 'member' | 'attender' | 'visitor' | 'inactive';
+  gender?: ('male' | 'female') | null;
+  /**
+   * Family members share one address and home phone. Use “+” to create a new household.
+   */
+  household?: (number | null) | Household;
+  householdRole?: ('head' | 'spouse' | 'child' | 'other') | null;
+  email?: string | null;
+  phone?: string | null;
+  birthDate?: string | null;
+  memberSince?: string | null;
+  baptismDate?: string | null;
+  user?: (number | null) | User;
+  /**
+   * Only church owners and administrators can see these notes. They are never exported.
+   */
+  notes?: string | null;
+  servingLinkVersion?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * A family or anyone living together. Add each person from the list below.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "households".
+ */
+export interface Household {
+  id: number;
+  community: number | Community;
+  /**
+   * For example: The Petrov family.
+   */
+  name: string;
+  phone?: string | null;
+  address?: {
+    street?: string | null;
+    unit?: string | null;
+    city?: string | null;
+    region?: string | null;
+    postalCode?: string | null;
+    country?: string | null;
+  };
+  members?: {
+    docs?: (number | Person)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Positions are the places to fill at each service, for example Vocals, Guitar or Sound. Team members are the people you can schedule.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams".
+ */
+export interface Team {
+  id: number;
+  community: number | Community;
+  name: string;
+  description?: string | null;
+  positions: {
+    name: string;
+    needed: number;
+    id?: string | null;
+  }[];
+  /**
+   * Add people from the church directory.
+   */
+  members?: (number | Person)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serving-assignments".
+ */
+export interface ServingAssignment {
+  id: number;
+  community: number | Community;
+  event: number | Event;
+  date: string;
+  team: number | Team;
+  positionId: string;
+  position: string;
+  person: number | Person;
+  status: 'pending' | 'accepted' | 'declined';
+  note?: string | null;
+  requestedAt?: string | null;
+  respondedAt?: string | null;
+  scheduledBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Click a calendar date to create an event. Set recurring services and choose who can see each event.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events".
+ */
+export interface Event {
+  id: number;
+  calendarVersion?: string | null;
+  community: number | Community;
+  title: string;
+  allDay?: boolean | null;
+  startsAt: string;
+  endsAt?: string | null;
+  timeZone: string;
+  location?: string | null;
+  description?: string | null;
+  /**
+   * For a recurring event, this applies to the entire series.
+   */
+  visibility: 'inherit' | 'public' | 'members';
+  recurrence?: ('none' | 'weekly' | 'monthly') | null;
+  repeatInterval?: number | null;
+  repeatUntil?: string | null;
+  /**
+   * Cancel one date, or give one date a different time, title or place. Every other date stays the same.
+   */
+  exceptions?:
+    | {
+        date: string;
+        cancelled?: boolean | null;
+        startTime?: string | null;
+        endTime?: string | null;
+        title?: string | null;
+        location?: string | null;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  defaultReminderMinutes?: number | null;
+  /**
+   * An external website for registration or more information. Use a complete https:// address, or leave blank. The church event details page is created automatically.
+   */
+  url?: string | null;
+  rsvpEnabled?: boolean | null;
+  /**
+   * For a recurring event this cancels every date. To cancel one date, use Changes to single dates.
+   */
+  cancelled?: boolean | null;
+  registration?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serving-blockouts".
+ */
+export interface ServingBlockout {
+  id: number;
+  community: number | Community;
+  person: number | Person;
+  startDate: string;
+  endDate: string;
+  reason?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Choose a church role and language, then save to send an invitation. Workspace invitations let leaders and church administrators choose their own password.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "community-invites".
@@ -424,6 +659,10 @@ export interface CommunityInvite {
    * Members receive a Heritage join link. Leaders and church administrators receive a workspace password-setup link for service planning, songs and sermons. This does not grant server-wide administration or reduce an existing role.
    */
   role: 'member' | 'leader' | 'admin';
+  /**
+   * The email, password setup and menus use this language. The recipient can change it in My account. Existing accounts keep their current language.
+   */
+  preferredLanguage?: ('en' | 'ru') | null;
   active: boolean;
   /**
    * Save to send. Select again and save to resend. Member join links last 15 minutes; workspace password-setup links last 24 hours. For an accepted invitation, reactivate it to send again.
@@ -522,7 +761,7 @@ export interface ReadingPlanNote {
   blockType: 'planNote';
 }
 /**
- * Bilingual song listings, lyrics, chords, files, and a plain-language rights record.
+ * Start with the titles, lyrics and authors. Chords and other details are optional.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "songs".
@@ -541,19 +780,6 @@ export interface Song {
     | number
     | boolean
     | null;
-  /**
-   * The primary (top) language when adding this song to a service. You can change it per service.
-   */
-  defaultSongLanguage: 'ru' | 'en';
-  community: number | Community;
-  /**
-   * Filled automatically from the title when left blank. Change it only if the public link needs a different short name.
-   */
-  slug: string;
-  /**
-   * Choose one or more uses. Sort this column to group songs, with titles alphabetized within each group.
-   */
-  tags?: ('solo' | 'choir' | 'communal')[] | null;
   tagSortKey?: string | null;
   /**
    * Published: church website and Heritage Songs. Unlisted: direct link only. Private: church workspace only.
@@ -568,21 +794,14 @@ export interface Song {
     | number
     | boolean
     | null;
+  community: number | Community;
   /**
-   * Archiving removes this song from public pages and active libraries.
+   * Filled automatically from the title when left blank. Change it only if the public link needs a different short name.
    */
+  slug: string;
   status: 'draft' | 'published' | 'archived';
-  /**
-   * Stable identity shared with SyncShow. It does not change when a title changes.
-   */
   syncId: string;
-  /**
-   * Managed by SyncShow’s member-sharing action. Use Songbook publication above for the public website and Heritage Songs.
-   */
   visibility: 'private' | 'public' | 'scheduled-public';
-  /**
-   * Required for scheduled visibility.
-   */
   publishAt?: string | null;
   syncVersion: number;
   syncDocuments:
@@ -608,30 +827,32 @@ export interface Song {
   memberShareConfirmedAt?: string | null;
   memberShareRequestRevision?: string | null;
   memberShareReceiptRevision?: string | null;
-  title: string;
-  description?: string | null;
   russianTitle?: string | null;
+  title: string;
   /**
-   * Optional. Add one alternate title per row.
+   * Blank lines separate slides. Write Припев above its words; repeat it later with Припев on its own.
    */
-  alternateTitles?: string[] | null;
-  authors?: string[] | null;
-  lyrics?: string | null;
-  /**
-   * Optional ChordPro-compatible guitar chords.
-   */
-  chordSheet?: string | null;
   russianLyrics?: string | null;
   /**
-   * Optional ChordPro-compatible guitar chords.
+   * Blank lines separate slides. Write Chorus above its words; repeat it later with Chorus on its own.
    */
+  lyrics?: string | null;
+  authors?: string[] | null;
   russianChordSheet?: string | null;
+  chordSheet?: string | null;
+  description?: string | null;
+  alternateTitles?: string[] | null;
+  /**
+   * The primary language when adding this song to a service. You can change it per service.
+   */
+  defaultSongLanguage: 'ru' | 'en';
+  tags?: ('solo' | 'choir' | 'communal')[] | null;
   key?: string | null;
   tempo?: number | null;
   choirScores?: (number | Media)[] | null;
   recordings?: (number | Media)[] | null;
   /**
-   * Informational only. Choosing an option does not block or unlock publishing.
+   * Optional context for your church. These notes do not block publication.
    */
   rightsStatus:
     | 'needs-review'
@@ -641,15 +862,9 @@ export interface Song {
     | 'permission-granted'
     | 'community-translation'
     | 'mixed';
-  /**
-   * The song’s CCLI ID, not your church’s CCLI license number. The church license number is configured once during server setup.
-   */
   ccliNumber?: string | null;
   license?: string | null;
   copyright?: string | null;
-  /**
-   * For example: who translated it, where the church received it, or why it is believed to be public domain.
-   */
   rightsNotes?: string | null;
   sourceUrl?: string | null;
   permissionUrl?: string | null;
@@ -1024,6 +1239,24 @@ export interface ServiceDocument {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-document-saves".
+ */
+export interface ServiceDocumentSave {
+  id: number;
+  community: number | Community;
+  serviceDocument: number | ServiceDocument;
+  requestId: string;
+  requestHash: string;
+  syncVersion: number;
+  revision: string;
+  saveKind: 'automatic' | 'manual' | 'restore';
+  savedBy: string;
+  savedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "syncshow-service-document-changes".
  */
 export interface SyncshowServiceDocumentChange {
@@ -1247,44 +1480,6 @@ export interface PlanNote {
   createdAt: string;
 }
 /**
- * Click a calendar date to create an event. Set recurring services and choose who can see each event.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "events".
- */
-export interface Event {
-  id: number;
-  community: number | Community;
-  title: string;
-  description?: string | null;
-  startsAt: string;
-  endsAt?: string | null;
-  /**
-   * Use America/Los_Angeles for Pacific time, including daylight saving. PST and PDT are converted automatically.
-   */
-  timeZone: string;
-  /**
-   * For a recurring event, this applies to the entire series.
-   */
-  visibility: 'inherit' | 'public' | 'members';
-  recurrence?: ('none' | 'weekly' | 'monthly') | null;
-  repeatInterval?: number | null;
-  /**
-   * Last date, inclusive, in YYYY-MM-DD format. Leave blank to keep repeating.
-   */
-  repeatUntil?: string | null;
-  location?: string | null;
-  /**
-   * An external website for registration or more information. Use a complete https:// address, or leave blank. The church event details page is created automatically.
-   */
-  url?: string | null;
-  rsvpEnabled?: boolean | null;
-  defaultReminderMinutes?: number | null;
-  cancelled?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * Member responses recorded from the Heritage app.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1298,6 +1493,44 @@ export interface EventRsvp {
   response: 'going' | 'maybe' | 'not-going';
   guests?: number | null;
   note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * People who signed up on an event page. Mark payments here or from the event’s Sign-ups panel.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-registrations".
+ */
+export interface EventRegistration {
+  id: number;
+  community: number | Community;
+  event: number | Event;
+  status: 'confirmed' | 'waitlisted' | 'cancelled';
+  name: string;
+  email: string;
+  phone?: string | null;
+  partySize: number;
+  answers?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  amountDueCents?: number | null;
+  paid?: boolean | null;
+  /**
+   * For example: Zelle on Nov 20, or cash at the door.
+   */
+  paidNote?: string | null;
+  user?: (number | null) | User;
+  language?: string | null;
+  manageTokenHash?: string | null;
+  confirmationSentAt?: string | null;
+  cancelledAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1423,6 +1656,10 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'workspace-activity';
+        value: number | WorkspaceActivity;
+      } | null)
+    | ({
         relationTo: 'community-sessions';
         value: number | CommunitySession;
       } | null)
@@ -1433,6 +1670,26 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'memberships';
         value: number | Membership;
+      } | null)
+    | ({
+        relationTo: 'people';
+        value: number | Person;
+      } | null)
+    | ({
+        relationTo: 'households';
+        value: number | Household;
+      } | null)
+    | ({
+        relationTo: 'teams';
+        value: number | Team;
+      } | null)
+    | ({
+        relationTo: 'serving-assignments';
+        value: number | ServingAssignment;
+      } | null)
+    | ({
+        relationTo: 'serving-blockouts';
+        value: number | ServingBlockout;
       } | null)
     | ({
         relationTo: 'community-invites';
@@ -1479,6 +1736,10 @@ export interface PayloadLockedDocument {
         value: number | ServiceDocument;
       } | null)
     | ({
+        relationTo: 'service-document-saves';
+        value: number | ServiceDocumentSave;
+      } | null)
+    | ({
         relationTo: 'syncshow-service-document-changes';
         value: number | SyncshowServiceDocumentChange;
       } | null)
@@ -1517,6 +1778,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'event-rsvps';
         value: number | EventRsvp;
+      } | null)
+    | ({
+        relationTo: 'event-registrations';
+        value: number | EventRegistration;
       } | null)
     | ({
         relationTo: 'encrypted-sync';
@@ -1593,6 +1858,7 @@ export interface BibleTranslationsSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  preferredLanguage?: T;
   displayName?: T;
   systemRole?: T;
   magicLinkTokenHash?: T;
@@ -1618,6 +1884,20 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workspace-activity_select".
+ */
+export interface WorkspaceActivitySelect<T extends boolean = true> {
+  community?: T;
+  user?: T;
+  screen?: T;
+  lastNavigationAt?: T;
+  lastActiveAt?: T;
+  navigationCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1683,6 +1963,11 @@ export interface CommunitiesSelect<T extends boolean = true> {
   timeZone?: T;
   joinPolicy?: T;
   calendarDefaultVisibility?: T;
+  calendarDefaultStartTime?: T;
+  calendarDefaultDurationMinutes?: T;
+  calendarDefaultReminderMinutes?: T;
+  calendarDefaultLocation?: T;
+  calendarFeedVersion?: T;
   allowDirectoryListing?: T;
   contentServerEnabled?: T;
   liveService?:
@@ -1710,6 +1995,105 @@ export interface MembershipsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "people_select".
+ */
+export interface PeopleSelect<T extends boolean = true> {
+  community?: T;
+  firstName?: T;
+  lastName?: T;
+  preferredName?: T;
+  fullName?: T;
+  status?: T;
+  gender?: T;
+  household?: T;
+  householdRole?: T;
+  email?: T;
+  phone?: T;
+  birthDate?: T;
+  memberSince?: T;
+  baptismDate?: T;
+  user?: T;
+  notes?: T;
+  servingLinkVersion?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "households_select".
+ */
+export interface HouseholdsSelect<T extends boolean = true> {
+  community?: T;
+  name?: T;
+  phone?: T;
+  address?:
+    | T
+    | {
+        street?: T;
+        unit?: T;
+        city?: T;
+        region?: T;
+        postalCode?: T;
+        country?: T;
+      };
+  members?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams_select".
+ */
+export interface TeamsSelect<T extends boolean = true> {
+  community?: T;
+  name?: T;
+  description?: T;
+  positions?:
+    | T
+    | {
+        name?: T;
+        needed?: T;
+        id?: T;
+      };
+  members?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serving-assignments_select".
+ */
+export interface ServingAssignmentsSelect<T extends boolean = true> {
+  community?: T;
+  event?: T;
+  date?: T;
+  team?: T;
+  positionId?: T;
+  position?: T;
+  person?: T;
+  status?: T;
+  note?: T;
+  requestedAt?: T;
+  respondedAt?: T;
+  scheduledBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serving-blockouts_select".
+ */
+export interface ServingBlockoutsSelect<T extends boolean = true> {
+  community?: T;
+  person?: T;
+  startDate?: T;
+  endDate?: T;
+  reason?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "community-invites_select".
  */
 export interface CommunityInvitesSelect<T extends boolean = true> {
@@ -1717,6 +2101,7 @@ export interface CommunityInvitesSelect<T extends boolean = true> {
   email?: T;
   displayName?: T;
   role?: T;
+  preferredLanguage?: T;
   active?: T;
   sendEmailNow?: T;
   emailSentAt?: T;
@@ -1808,13 +2193,11 @@ export interface ReadingPlanNoteSelect<T extends boolean = true> {
  */
 export interface SongsSelect<T extends boolean = true> {
   projectionStyle?: T;
-  defaultSongLanguage?: T;
-  community?: T;
-  slug?: T;
-  tags?: T;
   tagSortKey?: T;
   songbookVisibility?: T;
   songbookContent?: T;
+  community?: T;
+  slug?: T;
   status?: T;
   syncId?: T;
   visibility?: T;
@@ -1835,15 +2218,17 @@ export interface SongsSelect<T extends boolean = true> {
   memberShareConfirmedAt?: T;
   memberShareRequestRevision?: T;
   memberShareReceiptRevision?: T;
-  title?: T;
-  description?: T;
   russianTitle?: T;
-  alternateTitles?: T;
-  authors?: T;
-  lyrics?: T;
-  chordSheet?: T;
+  title?: T;
   russianLyrics?: T;
+  lyrics?: T;
+  authors?: T;
   russianChordSheet?: T;
+  chordSheet?: T;
+  description?: T;
+  alternateTitles?: T;
+  defaultSongLanguage?: T;
+  tags?: T;
   key?: T;
   tempo?: T;
   choirScores?: T;
@@ -2058,6 +2443,23 @@ export interface ServiceDocumentsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-document-saves_select".
+ */
+export interface ServiceDocumentSavesSelect<T extends boolean = true> {
+  community?: T;
+  serviceDocument?: T;
+  requestId?: T;
+  requestHash?: T;
+  syncVersion?: T;
+  revision?: T;
+  saveKind?: T;
+  savedBy?: T;
+  savedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "syncshow-service-document-changes_select".
  */
 export interface SyncshowServiceDocumentChangesSelect<T extends boolean = true> {
@@ -2207,21 +2609,36 @@ export interface PlanNotesSelect<T extends boolean = true> {
  * via the `definition` "events_select".
  */
 export interface EventsSelect<T extends boolean = true> {
+  calendarVersion?: T;
   community?: T;
   title?: T;
-  description?: T;
+  allDay?: T;
   startsAt?: T;
   endsAt?: T;
   timeZone?: T;
+  location?: T;
+  description?: T;
   visibility?: T;
   recurrence?: T;
   repeatInterval?: T;
   repeatUntil?: T;
-  location?: T;
+  exceptions?:
+    | T
+    | {
+        date?: T;
+        cancelled?: T;
+        startTime?: T;
+        endTime?: T;
+        title?: T;
+        location?: T;
+        note?: T;
+        id?: T;
+      };
+  defaultReminderMinutes?: T;
   url?: T;
   rsvpEnabled?: T;
-  defaultReminderMinutes?: T;
   cancelled?: T;
+  registration?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2236,6 +2653,30 @@ export interface EventRsvpsSelect<T extends boolean = true> {
   response?: T;
   guests?: T;
   note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-registrations_select".
+ */
+export interface EventRegistrationsSelect<T extends boolean = true> {
+  community?: T;
+  event?: T;
+  status?: T;
+  name?: T;
+  email?: T;
+  phone?: T;
+  partySize?: T;
+  answers?: T;
+  amountDueCents?: T;
+  paid?: T;
+  paidNote?: T;
+  user?: T;
+  language?: T;
+  manageTokenHash?: T;
+  confirmationSentAt?: T;
+  cancelledAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

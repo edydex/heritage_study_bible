@@ -8,13 +8,13 @@ Media can save a single slide for reuse. Mark it “Start every new service with
 
 ## Automatic translation
 
-1. Open the service’s Translation settings. Choose language, recognition provider, quality, optional sermon notes, and translated phone audio. Save. Economy note sharing is an explicit choice for that service and those selected notes.
-2. Right-click a numbered slide in the left outline and add a Start Translate cue. After a Start, the action offers Stop Translate. Cue badges identify both; the menu can remove them. Cue-only edits retain reviewed translation settings; changing service content requires review again.
-3. Load the saved service in SyncShow Preview 33 or later. Once per venue/Community connection, open Translation controls and select a named mixer, USB, line-in or virtual audio input. A missing saved input produces an error and never falls back to the system default.
-4. Configure each SyncShow output’s existing ticker, full-screen/paragraph, lower-third or hidden translation mode. Phone audio follows the saved service setting.
-5. Start Show. The slide immediately before Start prepares the audio input and processor connection without submitting audio. Start begins transmission; Stop stops the owned session. Jumping ahead or backward derives the required state from the destination slide. Ending Show stops translation. Closing SyncShow waits briefly for a server Stop acknowledgement and reports an unconfirmed stop.
+1. Right-click a slide and choose Start Translate. The dialog saves the speaker language, optional translated voice, screen language and caption style. Right-click an existing cue to edit its settings. Subsequent slides offer Stop Translate. An active caption band is visible while planning the affected slides.
+2. Captions occupy a full-width band at the bottom: 12% for a ticker or 29% for sentence captions. Slide content keeps its full width and uses the remaining height. Text keeps its preferred size when it fits, and reduces only as needed. Place images and objects inside the remaining area. Stage-facing content keeps its full layout.
+3. Save the service and load that exact revision in SyncShow. Before Show, open Translation setup to choose a named mixer, USB, line-in, virtual audio device, or Computer audio. Input selection is scoped to the venue and Community connection. Computer audio captures all apps, including Safari; close or mute unrelated audio. Only audio is sent to the processor.
+4. Grant any macOS audio recording permission and restart SyncShow if requested. Connect the input once to check its signal. A missing saved input produces an error and never falls back to the system-default microphone.
+5. During Show, the slide before Start prepares the local input and processor without submitting audio. The Start slide begins transmission; Stop ends the owned session. Jumping ahead or backward derives the intended state from the destination slide. Ending Show stops translation. Closing SyncShow waits briefly for the server Stop acknowledgement and reports an unconfirmed stop.
 
-The server, network, selected input and provider credentials must be available for translation. Ordinary prepared slides retain offline operation. An external mixer/cable has not been physically tested by automated checks. Translation settings and cues do not start a show by themselves.
+The server, network, selected input and provider credentials must be available for translation. Prepared slides retain offline operation. Physical mixer routing remains a venue acceptance check. Saving settings or adding cues does not start translation.
 
 ## Community read-along books
 

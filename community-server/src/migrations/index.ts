@@ -1,3 +1,12 @@
+import * as calendarMcp from './20261005_120000_calendar_mcp'
+import * as eventRegistrations from './20261117_180000_event_registrations'
+import * as peopleHouseholds from './20261119_120000_people_households';
+import * as servingTeams from './20261120_120000_serving_teams';
+import * as calendarOverhaul from './20261121_120000_calendar_overhaul';
+import * as workspaceActivity from './20261002_010000_workspace_activity'
+import * as retireSongMemberSharing from './20261002_000000_retire_song_member_sharing'
+import * as peopleLanguage from './20261001_220000_people_language';
+import * as serviceSaveHistory from './20261001_230000_service_save_history'
 import * as songProjectionStyle from './20260922_140000_song_projection_style'
 import * as serviceSlidesBooks from './20260921_230000_service_slides_member_books'
 import * as songDefaultLanguage from './20260921_190000_song_default_language'
@@ -145,4 +154,13 @@ export const migrations = [
   { up: songDefaultLanguage.up, down: songDefaultLanguage.down, name: '20260921_190000_song_default_language' },
   {up:serviceSlidesBooks.up,down:serviceSlidesBooks.down,name:'20260921_230000_service_slides_member_books'},
   {up:songProjectionStyle.up,down:songProjectionStyle.down,name:'20260922_140000_song_projection_style'},
+  { up: peopleLanguage.up, down: peopleLanguage.down, name: '20261001_220000_people_language' },
+  {up:serviceSaveHistory.up,down:serviceSaveHistory.down,name:'20261001_230000_service_save_history'},
+  {up:retireSongMemberSharing.up,down:retireSongMemberSharing.down,name:'20261002_000000_retire_song_member_sharing'},
+  {up:workspaceActivity.up,down:workspaceActivity.down,name:'20261002_010000_workspace_activity'},
+  { name: '20261005_120000_calendar_mcp', up: calendarMcp.up, down: calendarMcp.down },
+  { name: '20261117_180000_event_registrations', up: eventRegistrations.up, down: eventRegistrations.down },
+  { name: '20261119_120000_people_households', up: peopleHouseholds.up, down: peopleHouseholds.down },
+  { name: '20261120_120000_serving_teams', up: servingTeams.up, down: servingTeams.down },
+  { name: '20261121_120000_calendar_overhaul', up: calendarOverhaul.up, down: calendarOverhaul.down },
 ];

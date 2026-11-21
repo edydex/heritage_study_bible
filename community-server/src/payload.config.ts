@@ -1,8 +1,14 @@
+import { calendarMcpEndpoints } from './endpoints/calendarMcp'
+import { WorkspaceActivity } from './collections/WorkspaceActivity'
+import { workspaceActivityEndpoints } from './endpoints/workspaceActivity'
+import { ServiceDocumentSaves } from './collections/ServiceDocumentSaves'
+import { serviceHistoryEndpoints } from './endpoints/serviceHistory'
 import { bookReadAlongEndpoints } from '@/endpoints/bookReadAlong'
 import { BibleTranslations } from './collections/BibleTranslations'
 import { bibleImportEndpoints } from './endpoints/bibleImports'
 import { sermonPresentationEndpoints } from './endpoints/sermonPresentations'
 import { calendarEndpoints } from './endpoints/calendar'
+import { eventRegistrationEndpoints } from './endpoints/eventRegistration'
 import { postgresAdapter, type PostgresAdapterArgs } from '@payloadcms/db-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
@@ -11,6 +17,9 @@ import { check } from 'drizzle-orm/pg-core'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildConfig } from 'payload'
+import { en } from '@payloadcms/translations/languages/en'
+import { ru } from '@payloadcms/translations/languages/ru'
+import { workspaceAccountEndpoints } from '@/endpoints/workspaceAccount'
 import sharp from 'sharp'
 import { Books } from '@/collections/Books'
 import { Commentaries } from '@/collections/Commentaries'
@@ -21,6 +30,13 @@ import { CommunityAuthRateLimits } from '@/collections/CommunityAuthRateLimits'
 import { CommunitySessions } from '@/collections/CommunitySessions'
 import { EncryptedSync } from '@/collections/EncryptedSync'
 import { EventRsvps } from '@/collections/EventRsvps'
+import { EventRegistrations } from '@/collections/EventRegistrations'
+import { Households } from '@/collections/Households'
+import { Teams } from '@/collections/Teams'
+import { ServingAssignments } from '@/collections/ServingAssignments'
+import { ServingBlockouts } from '@/collections/ServingBlockouts'
+import { servingEndpoints } from '@/endpoints/serving'
+import { People } from '@/collections/People'
 import { Events } from '@/collections/Events'
 import { Media } from '@/collections/Media'
 import { Memberships } from '@/collections/Memberships'
@@ -131,13 +147,17 @@ export const preserveSermonHistoryChecksum: NonNullable<
 }
 
 export default buildConfig({
+  i18n: { supportedLanguages: { en, ru }, fallbackLanguage: 'en' },
   admin: {
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
     components: {
       beforeLogin: ['@/components/WorkspaceSignInGuide'],
       Nav: '@/components/AdminNav',
+      providers: ['@/components/WorkspaceLocalization#WorkspaceLocalizationProvider', '@/components/WorkspaceActivityProvider'],
       views: {
+        people: { Component: '@/components/People', exact: true, meta: { title: 'People' }, path: '/people' },
+        serving: { Component: '@/components/Serving', exact: true, meta: { title: 'Serving' }, path: '/serving' },
         dashboard: {
           Component: '@/components/AdminDashboard',
           exact: true,
@@ -188,11 +208,17 @@ export default buildConfig({
   collections: [
     BibleTranslations,
     Users,
+    WorkspaceActivity,
     CommunitySessions,
     CommunityAuthChallenges,
     CommunityAuthRateLimits,
     Communities,
     Memberships,
+    People,
+    Households,
+    Teams,
+    ServingAssignments,
+    ServingBlockouts,
     CommunityInvites,
     Media,
     ReadingPlans,
@@ -204,6 +230,7 @@ export default buildConfig({
     Sermons,
     ServicePlans,
     ServiceDocuments,
+    ServiceDocumentSaves,
     SyncShowServiceDocumentChanges,
     SyncShowSermonChanges,
     SyncShowSermonPublications,
@@ -214,6 +241,7 @@ export default buildConfig({
     PlanNotes,
     Events,
     EventRsvps,
+    EventRegistrations,
     EncryptedSync,
     SyncDevices,
     SyncRecords,
@@ -246,9 +274,15 @@ export default buildConfig({
   endpoints: [
     ...bibleImportEndpoints,
     ...calendarEndpoints,
+    ...eventRegistrationEndpoints,
+    ...servingEndpoints,
+    ...calendarMcpEndpoints,
     ...sermonPresentationEndpoints,
+    ...serviceHistoryEndpoints,
     ...authEndpoints,
     ...accountEndpoints,
+    ...workspaceAccountEndpoints,
+    ...workspaceActivityEndpoints,
     ...syncEndpoints,
     ...syncShowEndpoints,
     ...translationEndpoints,
