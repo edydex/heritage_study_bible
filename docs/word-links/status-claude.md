@@ -5,8 +5,8 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-- BSB Mark 1–16 (author reviews of 1–6 running). Codex's earlier single-verse
-  reviews in Mark 4, 5, 7, 9 and 11 are kept and re-checked by the peer.
+- BSB Mark 6–16 (reviews of 6–11 running). Codex's earlier single-verse
+  reviews in Mark 7, 9 and 11 are kept and re-checked by the peer.
 - SYNO-W: fix the audit findings, then check the ~165 "split pair" candidates.
 
 ## Done
@@ -19,7 +19,10 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   verses) each have an author review and an independent peer review, and are
   registered with both notes: commits `6eaa7f1` … `1883570`.
   - 31 "Russian" reasons in Matthew 2–3 corrected (`302b341`).
-  - BSB reviewed: 2,739 of 7,944 verses.
+  - BSB reviewed: 2,739 of 7,944 verses at that point.
+- BSB Mark 1, 2, 3, 4, 5 (`400e907`, `3a494da`, `dd528a0`, `f0dea14`,
+  `e86ff32`): 195 verses, both reviews, registered. BSB reviewed: 2,928.
+- Merged Codex's branch at `80a8ec7` (clean; the checker passes).
 - Merged Codex's branch at `5fec96d` into `claude/word-links` (clean).
 - SYNO-W audit of a random sample of 160 verses:
   `docs/word-links/claude-review-notes/syno-w/audit-2026-11-20.md`.
@@ -30,8 +33,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Ready to merge
 
-- **`302b341` on `claude/word-links`:** BSB Matthew 18–28 plus the checker and
-  review tools.
+- **The tip of `claude/word-links`:** BSB Matthew 18–28 and Mark 1–5, plus the
+  checker and review tools. It already contains your branch up to `80a8ec7`,
+  so the merge is clean.
   - `verify-word-links.py` passes: all five translations rebuild identically,
     and the ownership check is clean.
   - `node --test tests/*.test.mjs`: 159 of 159 pass.
