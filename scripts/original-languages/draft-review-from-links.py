@@ -69,6 +69,19 @@ def occurrence_of(text, start, end):
     return None
 
 
+def publisher_evidence(entry):
+    """What the publisher's own Greek says about textual differences in this verse."""
+    if not entry:
+        return 'No publisher row for this verse: say nothing about the publisher Greek.'
+    partial = entry.get('partial')
+    if not partial:
+        return ('Publisher Greek = N1904 word for word here. Do not claim a different reading; '
+                'unlinked words are translation choices.')
+    n1904, matched, publisher = partial['sourceWords'], partial['matchedSourceWords'], partial['publisherGreekWords']
+    return (f'Publisher Greek differs: {n1904 - matched} N1904 word(s) unmatched, '
+            f'{publisher - matched} publisher word(s) not in N1904. Only these can be a different reading.')
+
+
 def draft_verse(entry, source_text, target_text):
     tokens = list(re.finditer(r'\S+', source_text))
     groups, notes = [], []
@@ -127,6 +140,7 @@ def draft_verse(entry, source_text, target_text):
         todo['notes'] = todo.get('notes', []) + ['No published links for this verse: review from scratch.']
     if todo:
         verse['_todo'] = todo
+    verse['_evidence'] = publisher_evidence(entry)
     verse['_tokens'] = [f'{i}:{t.group()}' for i, t in enumerate(tokens)]
     return verse
 
@@ -211,7 +225,8 @@ def cmd_check(args):
 
 TEXT_HELP = """# Review text format (one verse per "@ chapter:verse" block). Informational lines:
 #   GR:  Greek verse; TOK: numbered Greek tokens; EN: translation, with each repeated
-#   word numbered (you#0, you#1); TODO: what the draft could not resolve.
+#   word numbered (you#0, you#1); TODO: what the draft could not resolve;
+#   EVIDENCE: whether the publisher's own Greek differs from N1904 in this verse.
 # Decision lines (every Greek token and every EN word must be covered exactly once):
 #   g 3 4 = phrase + other phrase // optional note     link Greek tokens 3,4 to phrase(s)
 #   h 3 = phrase // note                               study head for the group above (optional)
@@ -302,6 +317,8 @@ def cmd_totext(args):
         lines.append(f'GR: {source}')
         lines.append('TOK: ' + ' '.join(f'{i}:{t.group()}' for i, t in enumerate(tokens_of(source))))
         lines.append(f'EN: {numbered_english(target)}')
+        if verse.get('_evidence'):
+            lines.append(f"EVIDENCE: {verse['_evidence']}")
         todo = verse.get('_todo', {})
         bits = []
         if todo.get('sourceTokens'):
@@ -352,7 +369,7 @@ def cmd_fromtext(args):
     current, ref = None, None
     for number, raw in enumerate(Path(args.text).read_text(encoding='utf-8').splitlines(), 1):
         line = raw.strip()
-        if not line or line.startswith('#') or re.match(r'^(GR|TOK|EN|TODO):', line):
+        if not line or line.startswith('#') or re.match(r'^(GR|TOK|EN|TODO|EVIDENCE):', line):
             continue
         try:
             if line.startswith('@'):
