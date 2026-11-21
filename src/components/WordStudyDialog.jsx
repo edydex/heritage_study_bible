@@ -30,7 +30,7 @@ export function OccurrenceText({ text, translationId, ranges = [], additions = [
   })}</span>
 }
 
-export default function WordStudyDialog({ word, onClose, onNavigate }) {
+export default function WordStudyDialog({ word, onClose, onNavigate, navigateToOriginal = false }) {
   const [data, setData] = useState(null), [error, setError] = useState(''), [selected, setSelected] = useState(0), [limit, setLimit] = useState(40), [retry, setRetry] = useState(0)
   const [comparison, setComparison] = useState(null), [comparisonError, setComparisonError] = useState(false), [comparisonRetry, setComparisonRetry] = useState(0)
   const [sourceWords, setSourceWords] = useState(null), [sourceError, setSourceError] = useState(false), [sourceLoading, setSourceLoading] = useState(false), [sourceWord, setSourceWord] = useState(null)
@@ -108,9 +108,13 @@ export default function WordStudyDialog({ word, onClose, onNavigate }) {
         <ul className="mt-3 space-y-3">{group.results.slice(0, limit).map(row => {
           const translation = comparison?.[occurrenceKey(row)]
           const contexts = translation?.contexts?.length ? translation.contexts : translation ? [translation] : []
-          const destination = translation?.contexts?.[0] || row
+          const destination = navigateToOriginal ? row : translation?.contexts?.[0] || row
           const checkedUkrainianReference = comparisonTranslationId !== 'UKRK' || Boolean(translation?.contexts?.length)
-          return <li key={occurrenceKey(row)}><button disabled={!checkedUkrainianReference} className="text-left w-full rounded border border-gray-200 dark:border-gray-700 p-3" onClick={() => { onClose(); onNavigate?.(row.book, destination.chapter, destination.verse || 1) }}>
+          return <li key={occurrenceKey(row)}><button disabled={!navigateToOriginal && !checkedUkrainianReference} className="text-left w-full rounded border border-gray-200 dark:border-gray-700 p-3" onClick={() => {
+            onClose()
+            if (navigateToOriginal) onNavigate?.(row.book, destination.chapter, destination.verse ?? 1, 'ORIGINAL')
+            else onNavigate?.(row.book, destination.chapter, destination.verse || 1)
+          }}>
             <strong>{row.book} {row.chapter}{row.heading ? ' · source heading' : `:${row.verse}`}</strong>
             {translation && <div className="mt-2" data-occurrence-translation={comparisonTranslationId}>
               {contexts.map((context, index) => <div key={index} className={index ? 'mt-3' : ''}>

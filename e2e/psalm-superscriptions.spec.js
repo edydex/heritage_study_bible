@@ -18,6 +18,25 @@ function verse(page, translation, number) {
   return page.locator(`[data-verse-content][data-translation="${translation}"][data-verse="${number}"]:visible`)
 }
 
+async function expectGapAfterHeading(page, chapter) {
+  const heading = page.locator(`#verse-${chapter}-0`)
+  const body = page.locator(`#verse-${chapter}-1`)
+  await expect(heading).toBeVisible()
+  await expect(body).toBeVisible()
+  const titleBox = await heading.boundingBox()
+  const bodyBox = await body.boundingBox()
+  expect(bodyBox.y - (titleBox.y + titleBox.height)).toBeGreaterThanOrEqual(8)
+}
+
+for (const stacking of [true, false]) {
+  test(`Psalm 51 has a paragraph gap after the title with verse stacking ${stacking}`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.addInitScript(value => { localStorage.setItem('heritage-verse-stacking', String(value)) }, stacking)
+    await openPsalm(page, 51, 'UKRK')
+    await expectGapAfterHeading(page, 51)
+  })
+}
+
 test('Ukrainian and Russian Psalm 51 show their own heading before the aligned prayer', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await openPsalm(page, 51, 'UKRK', 'SYNO-W')
@@ -28,6 +47,7 @@ test('Ukrainian and Russian Psalm 51 show their own heading before the aligned p
   await expect(verse(page, 'SYNO-W', 1)).toHaveText(/^Помилуй меня, Боже/)
   await expect(verse(page, 'UKRK', 0)).toHaveCount(1)
   await expect(verse(page, 'SYNO-W', 0)).toHaveCount(1)
+  await expectGapAfterHeading(page, 51)
 })
 
 test('Parallel Psalm 60 lines up Ukrainian and Western body text at their printed references', async ({ page }) => {
