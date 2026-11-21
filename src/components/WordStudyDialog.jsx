@@ -112,7 +112,7 @@ export default function WordStudyDialog({ word, onClose, onNavigate, navigateToO
           const checkedUkrainianReference = comparisonTranslationId !== 'UKRK' || Boolean(translation?.contexts?.length)
           return <li key={occurrenceKey(row)}><button disabled={!navigateToOriginal && !checkedUkrainianReference} className="text-left w-full rounded border border-gray-200 dark:border-gray-700 p-3" onClick={() => {
             onClose()
-            if (navigateToOriginal) onNavigate?.(row.book, destination.chapter, destination.verse || 1, 'ORIGINAL')
+            if (navigateToOriginal) onNavigate?.(row.book, destination.chapter, destination.verse ?? 1, 'ORIGINAL')
             else onNavigate?.(row.book, destination.chapter, destination.verse || 1)
           }}>
             <strong>{row.book} {row.chapter}{row.heading ? ' · source heading' : `:${row.verse}`}</strong>

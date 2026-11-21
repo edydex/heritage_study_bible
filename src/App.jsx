@@ -1983,12 +1983,8 @@ function BibleStudyApp({ onReaderReady, verseStacking }) {
   useLayoutEffect(() => {
     const target = location.state?.scrollToVerse
     if (location.state?.audioTranslation && location.state.audioTranslation !== translationId) return
-    if (!target || target.book !== currentBook || target.chapter !== currentChapter || !bibleData || translationLoading) return
-    const container = bibleContainerRef.current
-    const element = target.column === 'ORIGINAL'
-      ? [...(container?.querySelectorAll(`[data-verse-content][data-translation="ORIGINAL"][data-chapter="${target.chapter}"][data-verse="${target.verse}"]`) || [])]
-        .find(node => node.getClientRects().length > 0)
-      : container?.querySelector(`#verse-${target.chapter}-${target.verse}`)
+    if (!target || target.column === 'ORIGINAL' || target.book !== currentBook || target.chapter !== currentChapter || !bibleData || translationLoading) return
+    const element = bibleContainerRef.current?.querySelector(`#verse-${target.chapter}-${target.verse}`)
     if (!element) return
     let highlightTimer
     const frame = requestAnimationFrame(() => {
@@ -1997,7 +1993,7 @@ function BibleStudyApp({ onReaderReady, verseStacking }) {
       highlightTimer = setTimeout(() => element.classList.remove('bg-yellow-100'), 2000)
     })
     return () => { cancelAnimationFrame(frame); clearTimeout(highlightTimer); element.classList.remove('bg-yellow-100') }
-  }, [location.key, location.state, currentBook, currentChapter, bibleData, translationLoading, translationId, parallelMode, parallelLoading, parallelBibleData, showBookmarkManager])
+  }, [location.key, location.state, currentBook, currentChapter, bibleData, translationLoading, translationId, parallelMode, showBookmarkManager])
 
   // Navigate to book and chapter
   const handleNavigate = (bookName, chapter) => {
@@ -2163,6 +2159,7 @@ function BibleStudyApp({ onReaderReady, verseStacking }) {
                         bookName={currentBook}
                         primaryChapter={currentChapterData}
                         onOccurrenceNavigate={navigateToVerse}
+                        originalScrollTarget={location.state?.scrollToVerse?.column === 'ORIGINAL' ? location.state.scrollToVerse : null}
                         secondaryChapter={secondaryChapterData}
                         primaryTranslationId={translationId}
                         secondaryTranslationId={parallelTranslationId}

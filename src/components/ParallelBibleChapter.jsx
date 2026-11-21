@@ -2,7 +2,7 @@ import { useHeritageAudio } from './audio/AudioProvider'
 import { interactiveWordRanges } from '../services/wordStudy'
 import WordStudyDialog from './WordStudyDialog'
 import { getTranslationById, loadTranslation } from '../data/translations'
-import { useEffect, useMemo, useRef, useCallback, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useCallback, useState } from 'react'
 import VerseText from './VerseText'
 import BibleChapter from './BibleChapter'
 import { textualAdditionLabels, textualAdditionRanges } from '../data/textualAdditions'
@@ -22,9 +22,13 @@ function MissingVerse({ translationId, joinedWith }) {
   )
 }
 
-function HebrewHeading({ heading }) {
+function HebrewHeading({ heading, chapter, bookName }) {
   if (!heading) return null
-  return <div className="mb-3 border-b pb-2"><p className="text-xs">Hebrew source heading · {heading.sourceRefs.join(', ')}</p><p dir="rtl" lang="he" className="mt-1 text-lg">{heading.text}</p></div>
+  return <div className="mb-3 border-b pb-2">
+    <p className="text-xs">Hebrew source heading · {heading.sourceRefs.join(', ')}</p>
+    <p dir="rtl" lang="he" className="mt-1 text-lg" data-verse-content data-book={bookName}
+      data-chapter={chapter} data-verse={0} data-translation="ORIGINAL">{heading.text}</p>
+  </div>
 }
 
 function HebrewVerseNotes({ verse }) {
@@ -51,6 +55,7 @@ function ParallelBibleChapter({
   hasCommentary,
   onVerseClick,
   onOccurrenceNavigate,
+  originalScrollTarget,
   isBookmarked,
   isVerseHighlighted,
   getVerseHighlightColor,
@@ -179,6 +184,27 @@ function ParallelBibleChapter({
   }, [primaryVerseMap, secondaryVerseMap])
   const hasPsalmHeading = primaryVerseMap.get(0)?.isSuperscription || secondaryVerseMap.get(0)?.isSuperscription
 
+  useLayoutEffect(() => {
+    if (!originalScrollTarget || originalScrollTarget.book !== bookName || originalScrollTarget.chapter !== secondaryChapter?.number) return
+    const matches = containerRef.current?.querySelectorAll(
+      `[data-verse-content][data-translation="ORIGINAL"][data-verse="${originalScrollTarget.verse}"]`
+    )
+    const element = [...(matches || [])].find(node => node.getClientRects().length > 0)
+    if (!element) return
+
+    let highlightTimer
+    const frame = requestAnimationFrame(() => {
+      element.scrollIntoView({ behavior: 'instant', block: 'center' })
+      element.classList.add('bg-yellow-100')
+      highlightTimer = setTimeout(() => element.classList.remove('bg-yellow-100'), 2000)
+    })
+    return () => {
+      cancelAnimationFrame(frame)
+      clearTimeout(highlightTimer)
+      element.classList.remove('bg-yellow-100')
+    }
+  }, [bookName, originalScrollTarget, secondaryChapter, separateOriginal])
+
   const verseStyle = { fontSize: `${textSize}px`, lineHeight: 1.6 }
 
   const setRowRef = useCallback((verseNumber, element) => {
@@ -263,7 +289,7 @@ function ParallelBibleChapter({
         <p><a className="underline" href={source.url} target="_blank" rel="noreferrer">{source.title}</a>.</p>
         {separateOriginal && <p className="mt-2">This chapter uses separate columns because the verse numbers have no checked alignment yet. Tap or hold an original word to study it.</p>}
         {hebrew && <details className="mt-2 text-xs"><summary>Source and verse numbering</summary><p className="mt-1">WLC 4.20 as maintained by OSHB. Written readings appear in the text; traditional read-aloud alternatives (qere) are listed separately. Hebrew and Aramaic labels follow source morphology. Original source references are retained where numbering differs. Nehemiah 7:68 is absent from this witness.</p><p className="mt-1">Original work of the Open Scriptures Hebrew Bible available at <a className="underline" href="https://github.com/openscriptures/morphhb">github.com/openscriptures/morphhb</a>. WLC text is public domain; metadata is <a className="underline" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Adapted for BSB verse numbering and separate reading notes.</p></details>}
-        {hebrew && !separateOriginal && <HebrewHeading heading={secondaryChapter?.superscription} />}
+        {hebrew && !separateOriginal && <HebrewHeading heading={secondaryChapter?.superscription} chapter={secondaryChapter?.number} bookName={bookName} />}
         {canLink && !separateOriginal ? <>
           <label className="mt-2 flex items-center gap-2"><input type="checkbox" checked={showWordLinks} onChange={event => setShowWordLinks(event.target.checked)} /> Word links</label>
           {!selectionMode && <p className="mt-2 text-xs">Tap a word to highlight its match in both columns. Hold it, or choose Study word, for occurrences.</p>}
@@ -295,7 +321,7 @@ function ParallelBibleChapter({
         </section>
         <section aria-label="Original chapter text" className="min-w-0 rounded-lg border border-gray-200 dark:border-gray-700 px-2 [overflow-wrap:anywhere]">
           <h3 className="my-2 font-semibold">{hebrew ? 'Original Hebrew / Aramaic' : 'Original Greek'}</h3>
-          {hebrew && <HebrewHeading heading={secondaryChapter?.superscription} />}
+          {hebrew && <HebrewHeading heading={secondaryChapter?.superscription} chapter={secondaryChapter?.number} bookName={bookName} />}
           {secondaryChapter?.verses?.length ? secondaryChapter.verses.map(verse => (
             <div key={verse.number} className="mb-2 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-baseline gap-1.5">

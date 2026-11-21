@@ -28,6 +28,43 @@ test('UKRK-R displays original Greek and Hebrew without an installed verse align
   await expect(beginning).toHaveAttribute('dir', 'rtl')
   await expect(beginning).toContainText('בְּרֵאשִׁ֖ית')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
+
+  await page.evaluate(() => { location.hash = '/habakkuk/3' })
+  await original.getByRole('button', { name: 'שִׁגְיֹנֽוֹת', exact: true }).click()
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await dialog.getByRole('button', { name: /^Psalms 7 · source heading/ }).click()
+  await expect(page).toHaveURL(/#\/psalms\/7$/)
+  await expect(original.locator('[data-verse="0"]')).toHaveClass(/bg-yellow-100/)
+})
+
+test('source occurrence stays in view when reviewed Ukrainian links finish loading', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('heritage-translation', 'UKRK')
+    localStorage.setItem('heritage-default-translation-v2', 'done')
+  })
+  await page.goto('/#/mark/14')
+  await page.getByTitle('Enable parallel mode', { exact: true }).click()
+  await page.getByRole('button', { name: 'Original languages', exact: true }).click()
+  await page.getByRole('button', { name: /^Original (Selected )?Original languages/ }).click()
+  let releaseLinks
+  const postponedLinks = new Promise(resolve => { releaseLinks = resolve })
+  await page.route('**/ukrk-word-links/matthew.json', async route => {
+    await postponedLinks
+    await route.continue()
+  })
+  try {
+    const original = page.getByRole('region', { name: 'Original chapter text' })
+    await original.locator('[data-verse="6"]').getByRole('button', { name: 'Ἰησοῦς', exact: true }).click()
+    await page.getByRole('button', { name: 'Study word', exact: true }).click()
+    await page.getByRole('dialog').getByRole('button', { name: /^Matthew 1:16\b/ }).click()
+    await expect(original.locator('[data-verse="16"]')).toHaveClass(/bg-yellow-100/)
+    releaseLinks()
+    const alignedSource = page.locator('#verse-1-16 [data-translation="ORIGINAL"]:visible')
+    await expect(alignedSource).toHaveClass(/bg-yellow-100/)
+    await expect(alignedSource).toBeInViewport()
+  } finally {
+    releaseLinks()
+  }
 })
 
 test('UKRK word study follows the written Greek across Philemon’s verse boundary', async ({ page }) => {
