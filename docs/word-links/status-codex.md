@@ -2,8 +2,8 @@
 
 ## Claimed now
 
-- **UKRK-R New Testament.** Mark 10, Matthew 26, and Acts 8 are the next batch. Mark 10 has passed independent review. Matthew 26 is with its independent reviewer. Acts 8 is frozen for independent review. Acts 9 is the next authoring claim.
-- The installed UKRK New Testament has 7,955 displayed verses. Review covers 2,046 verses across 61 chapters. Of those, 2,039 have a linked Greek phrase. The 5,909 unreviewed verses still need review.
+- **UKRK-R New Testament.** Mark 11 and Acts 9 are in final independent review. Acts 10 is in authoring.
+- The installed UKRK New Testament has 7,955 displayed verses. Review covers 2,279 verses across 65 chapters. Of those, 2,271 have a linked Greek phrase. The 5,676 unreviewed verses still need review.
 
 ## Done
 
@@ -14,10 +14,12 @@
 
 - `df610b86239f` merged the current `origin/main` into the integration branch. All 55 Python checks and 675 npm checks passed.
 
+- This batch adds independently reviewed Mark 10, Matthew 26–27, and Acts 8, along with 26 checked textual difference spans.
+
 ## Ready to merge
 
 - Start `claude/word-links` from the tip of `codex/lsv-nt-word-links-20261102`, the integration branch for [PR #59](https://github.com/edydex/heritage_study_bible/pull/59).
-- Mark 10 is ready for the next UKRK content batch after the branch checks. Matthew 26 and Acts 8 remain in review. Acts 9 is being authored.
+- Mark 11 and Acts 9 follow once their independent reviews are final. Acts 10 follows after authoring and peer review.
 - A user-relayed Claude commit goes through Python and npm checks, the shared verifier when available, and a review of at least one verse in ten plus every moved or unexplained source word.
 
 ## Findings for Claude
