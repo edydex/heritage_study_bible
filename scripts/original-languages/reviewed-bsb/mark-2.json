@@ -1,0 +1,5540 @@
+{
+  "schemaVersion": 1,
+  "targetId": "BSB",
+  "sourceId": "N1904",
+  "book": "Mark",
+  "chapter": 2,
+  "review": {
+    "source": "Actual written N1904 and the publisher rows, reviewed against the displayed BSB by Claude (Anthropic); independent peer review recorded in the registry."
+  },
+  "verses": {
+    "2:1": {
+      "sourceText": "Καὶ εἰσελθὼν πάλιν εἰς Καφαρναοὺμ δι’ ἡμερῶν ἠκούσθη ὅτι ἐν οἴκῳ ἐστίν.",
+      "targetText": "A few days later Jesus went back to Capernaum. And when the people heard that He was home,",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "went",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle εἰσελθών (having entered) is rendered as the finite went."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "back",
+              "occurrence": 0
+            }
+          ],
+          "note": "πάλιν (again) is rendered back: He returned to Capernaum."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Capernaum",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "later",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "A few days",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "heard",
+              "occurrence": 0
+            }
+          ],
+          "note": "The passive ἠκούσθη (it was heard) is rendered with an active verb."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "home",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν οἴκῳ (at home) is rendered home."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "He was",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the verse-opening connective καί untranslated."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Jesus",
+          "occurrence": 0,
+          "reason": "English names the subject; the Greek participle εἰσελθών has no name."
+        },
+        {
+          "text": "And",
+          "occurrence": 0,
+          "reason": "English joins the participle clause, made its own sentence, to the main verb ἠκούσθη."
+        },
+        {
+          "text": "when the people",
+          "occurrence": 0,
+          "reason": "English turns the passive ἠκούσθη into a when-clause with a supplied subject."
+        }
+      ]
+    },
+    "2:2": {
+      "sourceText": "καὶ συνήχθησαν πολλοὶ, ὥστε μηκέτι χωρεῖν μηδὲ τὰ πρὸς τὴν θύραν, καὶ ἐλάλει αὐτοῖς τὸν λόγον.",
+      "targetText": "they gathered in such large numbers that there was no more room, not even outside the door, as Jesus spoke the word to them.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "they gathered",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "in such large numbers",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "no more",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "there was",
+              "occurrence": 0
+            },
+            {
+              "text": "room",
+              "occurrence": 0
+            }
+          ],
+          "note": "The infinitive χωρεῖν (to have room) is rendered there was … room."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "not even",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "outside",
+              "occurrence": 0
+            }
+          ],
+          "note": "τὰ πρὸς τὴν θύραν (the area at the door) is rendered outside the door."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "door",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "as",
+              "occurrence": 0
+            }
+          ],
+          "note": "The καί before the imperfect ἐλάλει is rendered as, making a circumstantial clause."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "spoke",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "to them",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "word",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the connective καί untranslated; the sentence continues the when-clause of 2:1."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Jesus",
+          "occurrence": 0,
+          "reason": "English names the subject; ἐλάλει gives it only in the verb ending."
+        }
+      ]
+    },
+    "2:3": {
+      "sourceText": "καὶ ἔρχονται φέροντες πρὸς αὐτὸν παραλυτικὸν αἰρόμενον ὑπὸ τεσσάρων.",
+      "targetText": "Then a paralytic was brought to Him, carried by four men.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Then",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "was brought",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἔρχονται φέροντες (they come bringing) is rendered by the passive was brought."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "a paralytic",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "carried",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "four men",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "2:4": {
+      "sourceText": "καὶ μὴ δυνάμενοι προσενέγκαι αὐτῷ διὰ τὸν ὄχλον ἀπεστέγασαν τὴν στέγην ὅπου ἦν, καὶ ἐξορύξαντες χαλῶσι τὸν κράβαττον ὅπου ὁ παραλυτικὸς κατέκειτο.",
+      "targetText": "Since they were unable to get to Jesus through the crowd, they uncovered the roof above Him, made an opening, and lowered the paralytic on his mat.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Since they were unable",
+              "occurrence": 0
+            }
+          ],
+          "note": "μὴ δυνάμενοι (not being able) is rendered as a causal clause; unable carries the negative μή."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "to get to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ],
+          "note": "The pronoun αὐτῷ (him) is rendered by the name."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "crowd",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "they uncovered",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "roof",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "above Him",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὅπου ἦν (where He was) is rendered above Him."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ],
+          "note": "This καί joins the main verbs ἀπεστέγασαν and χαλῶσι; English places the and before the last verb of the series."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "made an opening",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "lowered",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "his",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "mat",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18,
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "on",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὅπου … κατέκειτο (where … was lying) is condensed to on."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "paralytic",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the verse-opening connective καί untranslated."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:5": {
+      "sourceText": "καὶ ἰδὼν ὁ Ἰησοῦς τὴν πίστιν αὐτῶν λέγει τῷ παραλυτικῷ· Τέκνον, ἀφίενταί σου αἱ ἁμαρτίαι.",
+      "targetText": "When Jesus saw their faith, He said to the paralytic, “Son, your sins are forgiven.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "When",
+              "occurrence": 0
+            },
+            {
+              "text": "saw",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle ἰδών (having seen) is rendered as a When-clause."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "faith",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "their",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "He said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "to the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "paralytic",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Son",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "are forgiven",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "sins",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the connective καί untranslated."
+        },
+        {
+          "tokens": [
+            2,
+            4,
+            13
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:6": {
+      "sourceText": "ἦσαν δέ τινες τῶν γραμματέων ἐκεῖ καθήμενοι καὶ διαλογιζόμενοι ἐν ταῖς καρδίαις αὐτῶν",
+      "targetText": "But some of the scribes were sitting there and thinking in their hearts,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "were",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "some",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "of the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "scribes",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "there",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "sitting",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "thinking",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "hearts",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "their",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:7": {
+      "sourceText": "Τί οὗτος οὕτως λαλεῖ; βλασφημεῖ· τίς δύναται ἀφιέναι ἁμαρτίας εἰ μὴ εἷς ὁ Θεός;",
+      "targetText": "“Why does this man speak like this? He is blaspheming! Who can forgive sins but God alone?”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Why",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "this man",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "like this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "does",
+              "occurrence": 0
+            },
+            {
+              "text": "speak",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "He is blaspheming",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "can",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "forgive",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "sins",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰ μή (if not, except) is rendered but."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "alone",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            12
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:8": {
+      "sourceText": "καὶ εὐθὺς ἐπιγνοὺς ὁ Ἰησοῦς τῷ πνεύματι αὐτοῦ ὅτι οὕτως διαλογίζονται ἐν ἑαυτοῖς, λέγει αὐτοῖς Τί ταῦτα διαλογίζεσθε ἐν ταῖς καρδίαις ὑμῶν;",
+      "targetText": "At once Jesus knew in His spirit that they were thinking this way within themselves. “Why are you thinking these things in your hearts?” He asked.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "At once",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "knew",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            },
+            {
+              "text": "spirit",
+              "occurrence": 0
+            }
+          ],
+          "note": "The dative πνεύματι supplies in; the article τῷ is not the preposition."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "this way",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "they were thinking",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "within",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "themselves",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "He asked",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "Why",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "these things",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "are you thinking",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "hearts",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the connective καί untranslated."
+        },
+        {
+          "tokens": [
+            3,
+            5,
+            19
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            14
+          ],
+          "reason": "BSB does not render the addressee αὐτοῖς (to them)."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:9": {
+      "sourceText": "τί ἐστιν εὐκοπώτερον, εἰπεῖν τῷ παραλυτικῷ Ἀφίενταί σου αἱ ἁμαρτίαι, ἢ εἰπεῖν Ἔγειρε καὶ ἆρον τὸν κράβαττόν σου καὶ περιπάτει;",
+      "targetText": "“Which is easier: to say to a paralytic, ‘Your sins are forgiven,’ or to say, ‘Get up, pick up your mat, and walk’?",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Which",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "easier",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "to say",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "to a paralytic",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "are forgiven",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "sins",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "or",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "to say",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Get up",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "pick up",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "mat",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "walk",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4,
+            8,
+            15
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            13
+          ],
+          "reason": "The καί between Get up and pick up is represented by a comma in BSB."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:10": {
+      "sourceText": "ἵνα δὲ εἰδῆτε ὅτι ἐξουσίαν ἔχει ὁ Υἱὸς τοῦ ἀνθρώπου ἀφιέναι ἁμαρτίας ἐπὶ τῆς γῆς,— λέγει τῷ παραλυτικῷ",
+      "targetText": "But so that you may know that the Son of Man has authority on earth to forgive sins...” He said to the paralytic,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "so that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "you may know",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "authority",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "has",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Son",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Man",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "to forgive",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "sins",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "on",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "earth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "He said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "to the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "paralytic",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            8,
+            13
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:11": {
+      "sourceText": "Σοὶ λέγω, ἔγειρε ἆρον τὸν κράβαττόν σου καὶ ὕπαγε εἰς τὸν οἶκόν σου.",
+      "targetText": "“I tell you, get up, pick up your mat, and go home.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "I tell",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "get up",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "pick up",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "mat",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "go",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "home",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς τὸν οἶκόν σου (to your house) is rendered home."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4,
+            10
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:12": {
+      "sourceText": "καὶ ἠγέρθη καὶ εὐθὺς ἄρας τὸν κράβαττον ἐξῆλθεν ἔμπροσθεν πάντων, ὥστε ἐξίστασθαι πάντας καὶ δοξάζειν τὸν Θεὸν λέγοντας ὅτι Οὕτως οὐδέποτε εἴδαμεν.",
+      "targetText": "And immediately the man got up, picked up his mat, and walked out in front of them all. As a result, they were all astounded and glorified God, saying, “We have never seen anything like this!”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "got up",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ],
+          "note": "This καί joins the main verbs ἠγέρθη and ἐξῆλθεν; English places the and before the last verb of the series."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "immediately",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "picked up",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "his",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "mat",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "walked out",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "in front of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "them all",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "As a result",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "were",
+              "occurrence": 0
+            },
+            {
+              "text": "astounded",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "they",
+              "occurrence": 0
+            },
+            {
+              "text": "all",
+              "occurrence": 1
+            }
+          ],
+          "note": "πάντας (all), the subject of the infinitive, is rendered they … all."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "glorified",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "saying",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "like this",
+              "occurrence": 0
+            }
+          ],
+          "note": "The adverb οὕτως (thus) is rendered like this."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "never",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "We have",
+              "occurrence": 0
+            },
+            {
+              "text": "seen",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            15
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            18
+          ],
+          "reason": "ὅτι introduces the direct quotation and is represented by the quotation marks."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "the man",
+          "occurrence": 0,
+          "reason": "English supplies a subject; ἠγέρθη gives it only in the verb ending."
+        },
+        {
+          "text": "anything",
+          "occurrence": 0,
+          "reason": "English supplies an object for seen; the Greek has the adverb οὕτως only."
+        }
+      ]
+    },
+    "2:13": {
+      "sourceText": "Καὶ ἐξῆλθεν πάλιν παρὰ τὴν θάλασσαν· καὶ πᾶς ὁ ὄχλος ἤρχετο πρὸς αὐτόν, καὶ ἐδίδασκεν αὐτούς.",
+      "targetText": "Once again Jesus went out beside the sea. All the people came to Him, and He taught them there.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "went out",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Once again",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "beside",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "sea",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "All",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "people",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "came",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "He taught",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "them",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the verse-opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "BSB starts a new sentence without rendering this καί."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Jesus",
+          "occurrence": 0,
+          "reason": "English names the subject; ἐξῆλθεν gives it only in the verb ending."
+        },
+        {
+          "text": "there",
+          "occurrence": 0,
+          "reason": "English adds a location; ἐδίδασκεν αὐτούς has none."
+        }
+      ]
+    },
+    "2:14": {
+      "sourceText": "καὶ παράγων εἶδεν Λευεὶν τὸν τοῦ Ἀλφαίου καθήμενον ἐπὶ τὸ τελώνιον, καὶ λέγει αὐτῷ Ἀκολούθει μοι. καὶ ἀναστὰς ἠκολούθησεν αὐτῷ.",
+      "targetText": "As He was walking along, He saw Levi son of Alphaeus sitting at the tax booth. “Follow Me,” He told him, and Levi got up and followed Him.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "As He was walking along",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "He saw",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Levi",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "son",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article in τὸν τοῦ Ἀλφαίου (the one of Alphaeus) stands for son."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Alphaeus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "sitting",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "at",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "tax booth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "He told",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Follow",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "Me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "got up",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "followed",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the verse-opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            5
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "BSB puts the quotation first and does not render this καί."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Levi",
+          "occurrence": 1,
+          "reason": "English repeats the name; ἀναστάς gives no subject."
+        },
+        {
+          "text": "and",
+          "occurrence": 1,
+          "reason": "English joins the participle ἀναστάς to the main verb ἠκολούθησεν."
+        }
+      ]
+    },
+    "2:15": {
+      "sourceText": "Καὶ γίνεται κατακεῖσθαι αὐτὸν ἐν τῇ οἰκίᾳ αὐτοῦ, καὶ πολλοὶ τελῶναι καὶ ἁμαρτωλοὶ συνανέκειντο τῷ Ἰησοῦ καὶ τοῖς μαθηταῖς αὐτοῦ, ἦσαν γὰρ πολλοὶ καὶ ἠκολούθουν αὐτῷ.",
+      "targetText": "While Jesus was dining at Levi’s house, many tax collectors and sinners were eating with Him and His disciples—for there were many who followed Him.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "While",
+              "occurrence": 0
+            }
+          ],
+          "note": "The narrative frame καὶ γίνεται (and it happens) with an infinitive is rendered While."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "was dining",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ],
+          "note": "The pronoun αὐτόν (him) is rendered by the name."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "at",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "house",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Levi’s",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB takes the pronoun αὐτοῦ (his) as Levi and gives the name."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "many",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "tax collectors",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "sinners",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "were eating with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB renders the name Ἰησοῦ with a pronoun, having named Jesus earlier in the verse."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "disciples",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "there were",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "many",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "who followed",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            5,
+            14,
+            17
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "BSB makes the first clause a While-clause and leaves this καί untranslated."
+        },
+        {
+          "tokens": [
+            23
+          ],
+          "reason": "BSB turns καὶ ἠκολούθουν (and they followed) into the relative clause who followed."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:16": {
+      "sourceText": "καὶ οἱ γραμματεῖς τῶν Φαρισαίων ἰδόντες ὅτι ἐσθίει μετὰ τῶν ἁμαρτωλῶν καὶ τελωνῶν, ἔλεγον τοῖς μαθηταῖς αὐτοῦ Ὅτι μετὰ τῶν τελωνῶν καὶ ἁμαρτωλῶν ἐσθίει;",
+      "targetText": "When the scribes who were Pharisees saw Jesus eating with these people, they asked His disciples, “Why does He eat with tax collectors and sinners?”",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "scribes",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "who were Pharisees",
+              "occurrence": 0
+            }
+          ],
+          "note": "The genitive τῶν Φαρισαίων (of the Pharisees) is rendered who were Pharisees."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "When",
+              "occurrence": 0
+            },
+            {
+              "text": "saw",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle ἰδόντες (having seen) is rendered as a When-clause."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "eating",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "these people",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB condenses τῶν ἁμαρτωλῶν καὶ τελωνῶν (the sinners and tax collectors) to these people."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "they asked",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "disciples",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "Why",
+              "occurrence": 0
+            }
+          ],
+          "note": "Ὅτι is interrogative here (why), as elsewhere in Mark."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "tax collectors",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "sinners",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "does He eat",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the verse-opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            3,
+            14,
+            19
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "BSB recasts \"saw that He eats\" as \"saw Jesus eating\"; ὅτι has no counterpart."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Jesus",
+          "occurrence": 0,
+          "reason": "English names the subject of eating; ἐσθίει gives it only in the verb ending."
+        }
+      ]
+    },
+    "2:17": {
+      "sourceText": "καὶ ἀκούσας ὁ Ἰησοῦς λέγει αὐτοῖς Οὐ χρείαν ἔχουσιν οἱ ἰσχύοντες ἰατροῦ ἀλλ’ οἱ κακῶς ἔχοντες· οὐκ ἦλθον καλέσαι δικαίους ἀλλὰ ἁμαρτωλούς.",
+      "targetText": "On hearing this, Jesus told them, “It is not the healthy who need a doctor, but the sick. I have not come to call the righteous, but sinners.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "On hearing",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "told",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "them",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "who need",
+              "occurrence": 0
+            }
+          ],
+          "note": "χρείαν ἔχουσιν (have need) is rendered need; who supplies its subject in the English cleft."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "healthy",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "a doctor",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "sick",
+              "occurrence": 0
+            }
+          ],
+          "note": "κακῶς ἔχοντες (those who are badly off) is rendered sick."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "I have",
+              "occurrence": 0
+            },
+            {
+              "text": "come",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "to call",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "the righteous",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "sinners",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the verse-opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "this",
+          "occurrence": 0,
+          "reason": "English supplies an object for hearing; ἀκούσας has none."
+        },
+        {
+          "text": "It is",
+          "occurrence": 0,
+          "reason": "English cleft frame; the Greek has no copula here."
+        }
+      ]
+    },
+    "2:18": {
+      "sourceText": "Καὶ ἦσαν οἱ μαθηταὶ Ἰωάνου καὶ οἱ Φαρισαῖοι νηστεύοντες. καὶ ἔρχονται καὶ λέγουσιν αὐτῷ Διὰ τί οἱ μαθηταὶ Ἰωάνου καὶ οἱ μαθηταὶ τῶν Φαρισαίων νηστεύουσιν, οἱ δὲ σοὶ μαθηταὶ οὐ νηστεύουσιν;",
+      "targetText": "Now John’s disciples and the Pharisees were often fasting. So people came to Jesus and asked, “Why don’t Your disciples fast like John’s disciples and those of the Pharisees?”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Now",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "were",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "disciples",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "John’s",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Pharisees",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "fasting",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "So",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "came",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "asked",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "to Jesus",
+              "occurrence": 0
+            }
+          ],
+          "note": "The pronoun αὐτῷ (to him) is rendered by the name."
+        },
+        {
+          "sourceTokens": [
+            14,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "Why",
+              "occurrence": 0
+            }
+          ],
+          "note": "Διὰ τί (for what reason) is rendered Why."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "disciples",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "John’s",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20,
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "those",
+              "occurrence": 0
+            }
+          ],
+          "note": "οἱ μαθηταί (the disciples) is rendered those."
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "of the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "Pharisees",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24,
+            30
+          ],
+          "targetPhrases": [
+            {
+              "text": "fast",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB turns \"they fast, but Yours do not fast\" into one question, so one fast renders both verbs."
+        },
+        {
+          "sourceTokens": [
+            27
+          ],
+          "targetPhrases": [
+            {
+              "text": "Your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            28
+          ],
+          "targetPhrases": [
+            {
+              "text": "disciples",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            29
+          ],
+          "targetPhrases": [
+            {
+              "text": "don’t",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2,
+            16,
+            25
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            26
+          ],
+          "reason": "The contrast δέ (but) is not rendered; BSB merges the two clauses into one question."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "often",
+          "occurrence": 0,
+          "reason": "English reads the periphrastic ἦσαν … νηστεύοντες (were fasting) as habitual; there is no Greek adverb."
+        },
+        {
+          "text": "people",
+          "occurrence": 0,
+          "reason": "English supplies a subject; ἔρχονται gives it only in the verb ending."
+        },
+        {
+          "text": "like",
+          "occurrence": 0,
+          "reason": "English supplies the comparison; the Greek sets the two groups in contrasting clauses."
+        }
+      ]
+    },
+    "2:19": {
+      "sourceText": "καὶ εἶπεν αὐτοῖς ὁ Ἰησοῦς Μὴ δύνανται οἱ υἱοὶ τοῦ νυμφῶνος ἐν ᾧ ὁ νυμφίος μετ’ αὐτῶν ἐστιν νηστεύειν; ὅσον χρόνον ἔχουσιν τὸν νυμφίον μετ’ αὐτῶν, οὐ δύνανται νηστεύειν.",
+      "targetText": "Jesus replied, “How can the guests of the bridegroom fast while He is with them? As long as He is with them, they cannot fast.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "replied",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5,
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "How can",
+              "occurrence": 0
+            }
+          ],
+          "note": "Μή expects the answer no; BSB renders the question as How can."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9,
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "guests of the bridegroom",
+              "occurrence": 0
+            }
+          ],
+          "note": "οἱ υἱοὶ τοῦ νυμφῶνος (sons of the bridal chamber) is an idiom for wedding guests."
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "while",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν ᾧ (in the time when) is rendered while."
+        },
+        {
+          "sourceTokens": [
+            13,
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "He",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὁ νυμφίος (the bridegroom) is rendered He."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "them",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "fast",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19,
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "As long as",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὅσον χρόνον (for as much time as) is rendered As long as."
+        },
+        {
+          "sourceTokens": [
+            21,
+            22,
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "He is",
+              "occurrence": 1
+            }
+          ],
+          "note": "ἔχουσιν τὸν νυμφίον (they have the bridegroom) is recast as He is (with them)."
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "them",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            26,
+            27
+          ],
+          "targetPhrases": [
+            {
+              "text": "they cannot",
+              "occurrence": 0
+            }
+          ],
+          "note": "cannot carries both the negative οὐ and δύνανται."
+        },
+        {
+          "sourceTokens": [
+            28
+          ],
+          "targetPhrases": [
+            {
+              "text": "fast",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the verse-opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "BSB does not render the addressee αὐτοῖς (to them)."
+        },
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:20": {
+      "sourceText": "ἐλεύσονται δὲ ἡμέραι ὅταν ἀπαρθῇ ἀπ’ αὐτῶν ὁ νυμφίος, καὶ τότε νηστεύσουσιν ἐν ἐκείνῃ τῇ ἡμέρᾳ.",
+      "targetText": "But the time will come when the bridegroom will be taken from them; then they will fast.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "will come",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "the time",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "when",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "will be taken",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "them",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "bridegroom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "then",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "they will fast",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "BSB leaves the connective καί before τότε untranslated."
+        },
+        {
+          "tokens": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "reason": "BSB leaves ἐν ἐκείνῃ τῇ ἡμέρᾳ (on that day) untranslated; then gives the time."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:21": {
+      "sourceText": "Οὐδεὶς ἐπίβλημα ῥάκους ἀγνάφου ἐπιράπτει ἐπὶ ἱμάτιον παλαιόν· εἰ δὲ μή, αἴρει τὸ πλήρωμα ἀπ’ αὐτοῦ τὸ καινὸν τοῦ παλαιοῦ, καὶ χεῖρον σχίσμα γίνεται.",
+      "targetText": "No one sews a patch of unshrunk cloth on an old garment. If he does, the new piece will pull away from the old, and a worse tear will result.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "No one",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "a patch",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "cloth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "unshrunk",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "sews",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "on",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "garment",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "an old",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9,
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "If he does",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰ δὲ μή (otherwise, literally but if not) is rendered If he does."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "will pull away",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "piece",
+              "occurrence": 0
+            }
+          ],
+          "note": "πλήρωμα (the filling, the patch) is rendered piece."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "new",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "old",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "a worse",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "tear",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "will result",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            15
+          ],
+          "reason": "BSB renders only the appositional τοῦ παλαιοῦ (the old), not αὐτοῦ (it)."
+        },
+        {
+          "tokens": [
+            16
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:22": {
+      "sourceText": "καὶ οὐδεὶς βάλλει οἶνον νέον εἰς ἀσκοὺς παλαιούς· εἰ δὲ μή, ῥήξει ὁ οἶνος τοὺς ἀσκούς, καὶ ὁ οἶνος ἀπόλλυται καὶ οἱ ἀσκοί. ἀλλὰ οἶνον νέον εἰς ἀσκοὺς καινούς.",
+      "targetText": "And no one pours new wine into old wineskins. If he does, the wine will burst the skins, and both the wine and the wineskins will be ruined. Instead, new wine is poured into new wineskins.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "no one",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "pours",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "wine",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "new",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "into",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "wineskins",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "old",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9,
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "If he does",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰ δὲ μή (otherwise, literally but if not) is rendered If he does."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "will burst",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "wine",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "skins",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "and both",
+              "occurrence": 0
+            }
+          ],
+          "note": "This καί joins the clauses and, with the later καί, gives both … and."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "wine",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "will be ruined",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "wineskins",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "Instead",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "wine",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "new",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "into",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            27
+          ],
+          "targetPhrases": [
+            {
+              "text": "wineskins",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            28
+          ],
+          "targetPhrases": [
+            {
+              "text": "new",
+              "occurrence": 2
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "is poured",
+          "occurrence": 0,
+          "reason": "English supplies the verb; the Greek clause after ἀλλά has none."
+        }
+      ]
+    },
+    "2:23": {
+      "sourceText": "Καὶ ἐγένετο αὐτὸν ἐν τοῖς σάββασιν παραπορεύεσθαι διὰ τῶν σπορίμων, καὶ οἱ μαθηταὶ αὐτοῦ ἤρξαντο ὁδὸν ποιεῖν τίλλοντες τοὺς στάχυας.",
+      "targetText": "One Sabbath Jesus was passing through the grainfields, and His disciples began to pick the heads of grain as they walked along.",
+      "groups": [
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ],
+          "note": "The pronoun αὐτόν (him) is rendered by the name."
+        },
+        {
+          "sourceTokens": [
+            3,
+            4,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "One Sabbath",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν τοῖς σάββασιν (on the Sabbath) is rendered One Sabbath."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "was passing",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "grainfields",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "disciples",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "began",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15,
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "as they walked along",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὁδὸν ποιεῖν (to make their way) is rendered as they walked along; BSB makes the picking the object of began."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "to pick",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "heads of grain",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0,
+            1
+          ],
+          "reason": "BSB leaves the narrative frame καὶ ἐγένετο (and it came about) untranslated."
+        },
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "2:24": {
+      "sourceText": "καὶ οἱ Φαρισαῖοι ἔλεγον αὐτῷ Ἴδε τί ποιοῦσιν τοῖς σάββασιν ὃ οὐκ ἔξεστιν;",
+      "targetText": "So the Pharisees said to Him, “Look, why are they doing what is unlawful on the Sabbath?”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "So",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Pharisees",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "to Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Look",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "why",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "are they doing",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "on the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Sabbath",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "what",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "is unlawful",
+              "occurrence": 0
+            }
+          ],
+          "note": "οὐκ ἔξεστιν (is not lawful) is rendered is unlawful."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "2:25": {
+      "sourceText": "καὶ λέγει αὐτοῖς· Οὐδέποτε ἀνέγνωτε τί ἐποίησεν Δαυείδ, ὅτε χρείαν ἔσχεν καὶ ἐπείνασεν αὐτὸς καὶ οἱ μετ’ αὐτοῦ;",
+      "targetText": "Jesus replied, “Have you never read what David did when he and his companions were hungry and in need?",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "replied",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "never",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Have you",
+              "occurrence": 0
+            },
+            {
+              "text": "read",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "what",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "did",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "David",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "when",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "in need",
+              "occurrence": 0
+            }
+          ],
+          "note": "χρείαν ἔσχεν (had need) is rendered were … in need, sharing were with hungry."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "were hungry",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "he",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15,
+            16,
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "his companions",
+              "occurrence": 0
+            }
+          ],
+          "note": "οἱ μετ’ αὐτοῦ (those with him) is rendered his companions."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the verse-opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "BSB does not render the addressee αὐτοῖς (to them)."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Jesus",
+          "occurrence": 0,
+          "reason": "English names the subject; λέγει gives it only in the verb ending."
+        }
+      ]
+    },
+    "2:26": {
+      "sourceText": "πῶς εἰσῆλθεν εἰς τὸν οἶκον τοῦ Θεοῦ ἐπὶ Ἀβιαθὰρ ἀρχιερέως καὶ τοὺς ἄρτους τῆς προθέσεως ἔφαγεν, οὓς οὐκ ἔξεστιν φαγεῖν εἰ μὴ τοὺς ἱερεῖς, καὶ ἔδωκεν καὶ τοῖς σὺν αὐτῷ οὖσιν;",
+      "targetText": "During the high priesthood of Abiathar, he entered the house of God and ate the consecrated bread, which was lawful only for the priests. And he gave some to his companions as well.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "he entered",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰσῆλθεν εἰς (went into) is rendered entered."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "house",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "During",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Abiathar",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the high priesthood",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἀρχιερέως (high priest) is rendered the high priesthood, the time when Abiathar was high priest."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "bread",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "consecrated",
+              "occurrence": 0
+            }
+          ],
+          "note": "προθέσεως (of the presentation) is rendered consecrated."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "ate",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "which",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17,
+            20,
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "only",
+              "occurrence": 0
+            }
+          ],
+          "note": "οὐκ … εἰ μή (not … except) is rendered positively as only."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "was lawful",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "for the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "priests",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "he gave",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "as well",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            27,
+            28,
+            29,
+            30
+          ],
+          "targetPhrases": [
+            {
+              "text": "to his companions",
+              "occurrence": 0
+            }
+          ],
+          "note": "τοῖς σὺν αὐτῷ οὖσιν (to those who were with him) is rendered to his companions."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves πῶς (how) untranslated and states the events directly."
+        },
+        {
+          "tokens": [
+            5,
+            13
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            19
+          ],
+          "reason": "BSB leaves the infinitive φαγεῖν (to eat) untranslated; ate precedes."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "some",
+          "occurrence": 0,
+          "reason": "English supplies an object for gave; ἔδωκεν has none."
+        }
+      ]
+    },
+    "2:27": {
+      "sourceText": "καὶ ἔλεγεν αὐτοῖς Τὸ σάββατον διὰ τὸν ἄνθρωπον ἐγένετο, καὶ οὐχ ὁ ἄνθρωπος διὰ τὸ σάββατον·",
+      "targetText": "Then Jesus declared, “The Sabbath was made for man, not man for the Sabbath.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Then",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "declared",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "The",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Sabbath",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "man",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "was made",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "man",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "Sabbath",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "BSB does not render the addressee αὐτοῖς (to them)."
+        },
+        {
+          "tokens": [
+            6,
+            11
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "BSB leaves the connective καί before οὐχ untranslated."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Jesus",
+          "occurrence": 0,
+          "reason": "English names the subject; ἔλεγεν gives it only in the verb ending."
+        }
+      ]
+    },
+    "2:28": {
+      "sourceText": "ὥστε κύριός ἐστιν ὁ Υἱὸς τοῦ ἀνθρώπου καὶ τοῦ σαββάτου.",
+      "targetText": "Therefore, the Son of Man is Lord even of the Sabbath.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Therefore",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Son",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Man",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "even",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "of the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Sabbath",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            5
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    }
+  }
+}
