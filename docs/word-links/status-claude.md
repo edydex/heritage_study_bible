@@ -5,15 +5,13 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-**Paused 2026-11-20 at the owner's request until the 10:20 PM usage reset.**
-Where each unfinished piece stands:
+Resumed after the 10:20 PM usage reset (paused earlier at the owner's request).
+Now running:
 
-- BSB Mark 14, 15, 16: author reviews done (notes committed later with the
-  chapter). Peer reviews were stopped mid-way and restart from the beginning.
-- BSB Luke 1, 2: author reviews stopped mid-way and restart. Luke 1–24 are
-  drafted. Codex's earlier single verses in Luke 14, 15, 19 and 21 are kept.
+- BSB Mark 14, 15, 16: author reviews done; peer reviews running.
+- BSB Luke 1, 2: author reviews running. Luke 1–24 are drafted. Codex's earlier single verses in Luke 14, 15, 19 and 21 are kept.
 - SYNO-W split-pair fixes (175 candidate verses, including the 11 audit
-  findings): stopped before any edit and restart.
+  findings): running.
 - Not started: BSB John, Acts, Romans, 1–2 Corinthians, Revelation.
 
 ## Done
