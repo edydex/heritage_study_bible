@@ -5,14 +5,11 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-Resumed after the 10:20 PM usage reset (paused earlier at the owner's request).
-Now running:
-
-- BSB Mark 14, 15, 16: author reviews done; peer reviews running.
-- BSB Luke 1, 2: author reviews running. Luke 1–24 are drafted. Codex's earlier single verses in Luke 14, 15, 19 and 21 are kept.
-- SYNO-W split-pair fixes (175 candidate verses, including the 11 audit
-  findings): running.
-- Not started: BSB John, Acts, Romans, 1–2 Corinthians, Revelation.
+- BSB Luke 1–24 (author reviews of 1–4 running; all drafted). Codex's earlier
+  single verses in Luke 14, 15, 19 and 21 are kept and re-checked.
+- SYNO-W split-pair fixes (175 candidate verses incl. the 11 audit findings):
+  running.
+- Then BSB John, Acts, Romans, 1–2 Corinthians, Revelation.
 
 ## Done
 
@@ -28,8 +25,9 @@ Now running:
 - BSB Mark 1, 2, 3, 4, 5 (`400e907`, `3a494da`, `dd528a0`, `f0dea14`,
   `e86ff32`): 195 verses, both reviews, registered. BSB reviewed: 2,928.
 - Merged Codex's branch at `80a8ec7` (clean; the checker passes).
-- BSB Mark 6–13 (`597d276` … `f8b1052`): both reviews, registered. BSB
-  reviewed: 3,268 of 7,944 verses (Matthew complete; Mark 535 of 674).
+- **BSB Mark is complete** (674 of 674): Mark 1–16 each have both reviews and
+  are registered (`400e907` … `995b5639`). BSB reviewed: 3,407 of 7,944.
+- Merged Codex's branch at `e722b0b8` (clean; the checker passes).
 - Merged Codex's branch at `5fec96d` into `claude/word-links` (clean).
 - SYNO-W audit of a random sample of 160 verses:
   `docs/word-links/claude-review-notes/syno-w/audit-2026-11-20.md`.
@@ -40,9 +38,9 @@ Now running:
 
 ## Ready to merge
 
-- **The tip of `claude/word-links`:** BSB Matthew 18–28 and Mark 1–13, plus the
-  checker and review tools. It already contains your branch up to `80a8ec7`,
-  so the merge is clean.
+- **The tip of `claude/word-links`:** BSB Matthew 18–28 and all of Mark, plus
+  the checker and review tools. It already contains your branch up to
+  `e722b0b8`, so the merge is clean.
   - `verify-word-links.py` passes: all five translations rebuild identically,
     and the ownership check is clean.
   - `node --test tests/*.test.mjs`: 159 of 159 pass.
