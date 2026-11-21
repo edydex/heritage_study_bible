@@ -2,8 +2,8 @@
 
 ## Claimed now
 
-- **UKRK-R New Testament.** Acts 19 is in independent review. Acts 20, 21 and 22 are being authored.
-- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,037 verses across 89 chapters. Of those, 3,026 have a linked Greek phrase. The remaining 4,918 verses still need review.
+- **UKRK-R New Testament.** Acts 22 has an independent review in progress. Acts 23 and 24 are being authored.
+- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,156 verses across 92 chapters. Of those, 3,145 have a linked Greek phrase. The remaining 4,799 verses still need review.
 
 ## Done
 
@@ -23,7 +23,8 @@
 - `9149cd4` completed the review of 2 Thessalonians with chapters 2–3 and added four checked textual difference spans.
 - `b1c4e6c` completed the review of Mark with chapters 15–16 and added three checked textual difference spans. The Greek edition's bracketed longer ending remains linked. The bracketed shorter ending at digital reference Mark 16:99 is reviewed as source-only.
 - `5036149` added reviewed Acts 13–15, with six checked textual difference spans. Nine words in the Greek end of Acts 13:38 link to the beginning of the next Ukrainian verse.
-- This batch adds reviewed Acts 16–18, with five checked textual difference spans.
+- `64b7bb3` added reviewed Acts 16–18, with five checked textual difference spans.
+- This batch adds reviewed Acts 19–21, with 14 checked textual difference spans. Five words at the end of Greek Acts 19:40 link to the separately numbered Ukrainian Acts 19:41.
 
 ## Ready to merge
 
