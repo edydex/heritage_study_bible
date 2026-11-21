@@ -57,10 +57,11 @@ a checked counterpart.
 
 The eBible Ukrainian USFM has paragraph markers at chapter starts only. The
 1912 Vienna printing begins each numbered verse on a new line in the sampled
-chapters. The reader's layout pilot marks checked editorial paragraph breaks in
-Matthew 5, John 3 and Romans 12. Berean Standard Bible layout supplied candidates,
-and the boundaries were checked against the Ukrainian passages. The paragraph
-markers identify these breaks as editorial.
+chapters. UKRK-R uses editorial reading breaks from the published Berean
+Standard Bible paragraph, section, and stanza layout across all 66 books.
+The layout generator transfers breaks at existing Ukrainian verse starts and
+uses reviewed reference windows where the numbering differs. The reader labels
+the resulting marks as editorial. [Berean publisher USFM](https://bereanbible.com/bsb_usfm.zip)
 
 For verse-boundary differences, **Show Original / BSB / LSV / KJV / SYNO-W** identifies the
 actual matching reference rather than forcing a same-number pairing. Greek words use the source's
