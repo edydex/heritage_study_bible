@@ -492,6 +492,11 @@ def cmd_register(args):
     if args.no_build:
         return 0
     published = DATA / f'{target.lower()}-word-links'
+    if target == 'SYNO-W':
+        # SYNO-W has its own builder (full rebuild from accepted resources).
+        subprocess.run([sys.executable, str(SCRIPTS / 'build-synodal-links.py'), '--output', str(published),
+                        '--reviews', str(reviews), '--registry', str(registry_path)], check=True)
+        return 0
     subprocess.run([sys.executable, str(SCRIPTS / 'compile-reviewed-links.py'), '--target', target,
                     '--reviews', str(reviews), '--registry', str(registry_path),
                     '--input', str(published), '--output', str(published)], check=True)
