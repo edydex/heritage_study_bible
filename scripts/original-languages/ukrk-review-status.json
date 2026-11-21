@@ -782,6 +782,47 @@
       "independentPeer": {
         "sha256": "2007c4d4868a5c39dbe327d627fc091404e683dde06bc0b29cf952ce22af68be"
       }
+    },
+    {
+      "file": "mark-13.json",
+      "status": "accepted",
+      "sha256": "f416e0408d9e2a095f817b9d471809c48d8b1efc788855f7d749867d983fedcd",
+      "authorReceipt": {
+        "sha256": "c2a3d30f29dfebb51749d9f41e712d083ccd8e7748962c413bdddd756ee5a17b"
+      },
+      "independentPeer": {
+        "sha256": "1934c811cf6d89ba7b614faddc41ddb956ca09be1b93ad93ecdc68bb82a8d587"
+      }
+    },
+    {
+      "file": "acts-11.json",
+      "status": "accepted",
+      "sha256": "42b34ef6980177c18248673e15e84675df573bb3588a9d20cc5b29b7f4bbc6a4",
+      "authorReceipt": {
+        "sha256": "5bab4bab654cd5ad7e76df52be76de1e9e928d71a2c6f5b2c27517f4189866f5"
+      },
+      "independentPeer": {
+        "sha256": "c8a509c7f146fce868e90ae237bad997b6e0b2ec076fd4721e6ec7b447088cc7"
+      }
+    },
+    {
+      "file": "1-thessalonians-3.json",
+      "status": "accepted",
+      "sha256": "b0a6958ff2182e6350c0bd51104121fa1f89eed9d46859601cb88349bed1f4de",
+      "authorReceipt": {
+        "sha256": "8bf282961b75bc4dc6c2271e457243c3459eb53bd949ca9b9274caba577d90df"
+      },
+      "independentPeer": {
+        "sha256": "a8d35172aab4d401aed5705c733ece63d3c7de14a7b61b4b6b5832a3379dbda7"
+      }
     }
-  ]
+  ],
+  "crossReferenceShared": {
+    "Acts": {
+      "11:25:5": [
+        "11:25",
+        "11:26"
+      ]
+    }
+  }
 }
