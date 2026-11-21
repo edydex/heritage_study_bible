@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useRef } from 'react'
 import { splitParagraphText } from '../utils/verseLayout'
 import { getTextHighlightClasses } from '../utils/highlightColors'
-import { synodalAdditionNote } from '../data/synodalTextAdditions'
+import { textualAdditionLabels } from '../data/textualAdditions'
+import { translationDisplayText } from '../utils/translationDisplay'
 
 function WordLink({ link, activeWordLink, onWordLink, onWordTap, children }) {
   const gesture = useRef(null), suppressClick = useRef(false)
@@ -46,14 +47,15 @@ function WordLink({ link, activeWordLink, onWordLink, onWordTap, children }) {
   >{children}</span>
 }
 
-export function TextualAdditionBracket({ opening }) {
-  return <span data-selection-ignore data-textual-addition={opening ? 'start' : 'end'} title={synodalAdditionNote} className="select-none text-amber-800 dark:text-amber-300">
-    {opening && <span lang="ru" data-textual-addition-explanation className="sr-only">{synodalAdditionNote} </span>}
+export function TextualAdditionBracket({ opening, translationId }) {
+  const label = textualAdditionLabels[translationId]
+  return <span data-selection-ignore data-textual-addition={opening ? 'start' : 'end'} title={label?.note} lang={label?.lang} className="select-none text-amber-800 dark:text-amber-300">
+    {opening && label && <span data-textual-addition-explanation className="sr-only">{label.note} </span>}
     <span aria-hidden="true">{opening ? '[[' : ']]'}</span>
   </span>
 }
 
-function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLinks, activeWordLink, onWordLink, onWordTap, additions) {
+function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLinks, activeWordLink, onWordLink, onWordTap, additions, translationId) {
   const boundaries = new Set([0, text.length])
   const annotations = [...highlights, ...wordLinks]
   annotations.forEach(highlight => {
@@ -95,19 +97,19 @@ function renderHighlightedText(text, startOffset, highlights, keyPrefix, wordLin
       ? <WordLink key={`${keyPrefix}-w${index}`} link={link} activeWordLink={activeWordLink} onWordLink={onWordLink} onWordTap={onWordTap}>{rendered}</WordLink>
       : rendered
     return <Fragment key={`${keyPrefix}-${index}`}>
-      {additions.some(([opening]) => opening === startOffset + start) && <TextualAdditionBracket opening />}
+      {additions.some(([opening]) => opening === startOffset + start) && <TextualAdditionBracket opening translationId={translationId} />}
       {renderedWord}
-      {additions.some(([, closing]) => closing === startOffset + end) && <TextualAdditionBracket />}
+      {additions.some(([, closing]) => closing === startOffset + end) && <TextualAdditionBracket translationId={translationId} />}
     </Fragment>
   })
 }
 
-function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap, additions) {
+function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap, additions, translationId) {
   let cursor = startOffset
   return line.split(/(<b>.*?<\/b>)/g).map((part, index) => {
     const match = part.match(/^<b>(.*?)<\/b>$/)
     const value = match ? match[1] : part
-    const rendered = renderHighlightedText(value, cursor, highlights, `${keyPrefix}-${index}`, wordLinks, activeWordLink, onWordLink, onWordTap, additions)
+    const rendered = renderHighlightedText(value, cursor, highlights, `${keyPrefix}-${index}`, wordLinks, activeWordLink, onWordLink, onWordTap, additions, translationId)
     cursor += value.length
     if (match) {
       return <strong key={`${keyPrefix}-b${index}`} className="font-bold">{rendered}</strong>
@@ -116,15 +118,15 @@ function renderFormattedLine(line, keyPrefix, startOffset, highlights, wordLinks
   })
 }
 
-function ParagraphMarker() {
+function ParagraphMarker({ editorial = false }) {
   return (
     <>
-      <span className="sr-only" data-selection-ignore>Paragraph break. </span>
+      <span className="sr-only" data-selection-ignore>{editorial ? 'Editorial paragraph break. ' : 'Paragraph break. '}</span>
       <span
         data-selection-ignore
         aria-hidden="true"
         className="mr-1 select-none text-[0.72em] font-semibold text-amber-600/80 dark:text-amber-400/80"
-        title="Paragraph break in the source text"
+        title={editorial ? 'Editorial paragraph break' : 'Paragraph break in the source text'}
       >
         ¶
       </span>
@@ -132,14 +134,14 @@ function ParagraphMarker() {
   )
 }
 
-export default function VerseText({ text, layout = null, highlights = [], additions = [], wordLinks = [], activeWordLink = null, onWordLink, onWordTap }) {
-  const { startsParagraph, segments } = splitParagraphText(text)
+export default function VerseText({ text, translationId, layout = null, highlights = [], additions = [], wordLinks = [], activeWordLink = null, onWordLink, onWordTap }) {
+  const { startsParagraph, segments } = splitParagraphText(translationDisplayText(translationId, text))
   const showLeadingMarker = startsParagraph || Boolean(layout?.breakBefore)
   let currentOffset = 0
 
   return (
     <>
-      {showLeadingMarker && <ParagraphMarker />}
+      {showLeadingMarker && <ParagraphMarker editorial={!startsParagraph && layout?.editorialBreak === true} />}
       {segments.map((segment, segmentIndex) => {
         const lines = segment.replace(/\s*\|\|\s*/g, '\n').split('\n')
         if (segmentIndex > 0) currentOffset += 1
@@ -160,7 +162,7 @@ export default function VerseText({ text, layout = null, highlights = [], additi
                 return (
                   <span key={`line-${lineIndex}`}>
                     {lineIndex > 0 && <><br /><span data-selection-ignore className="inline-block w-4" /></>}
-                    {renderFormattedLine(line, `${segmentIndex}-${lineIndex}`, lineOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap, additions)}
+                    {renderFormattedLine(line, `${segmentIndex}-${lineIndex}`, lineOffset, highlights, wordLinks, activeWordLink, onWordLink, onWordTap, additions, translationId)}
                   </span>
                 )
               })()

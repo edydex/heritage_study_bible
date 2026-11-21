@@ -106,6 +106,12 @@ test('Matthew keeps the speakers’ words linked to their physical Greek verse',
 })
 
 test('an unreviewed Russian numeric word stays studyable without a guessed Greek link', async ({ page }) => {
+  await page.route('**/data/original-languages/syno-w-word-links/john.json', async route => {
+    const response = await route.fetch()
+    const links = await response.json()
+    links.verses = Object.fromEntries(Object.entries(links.verses).filter(([ref]) => !ref.startsWith('21:')))
+    await route.fulfill({ response, json: links })
+  })
   await compare(page, 'SYNO-W', 'john/21')
   await expect(page.locator('[data-russian-link-coverage]')).toContainText('0 of 25')
   const number = token(page, '21-11', 'SYNO-W', /^153$/)

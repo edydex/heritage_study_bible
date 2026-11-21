@@ -1970,20 +1970,20 @@ function BibleStudyApp({ onReaderReady, verseStacking }) {
   }
 
   // Store the destination with the route, so the chapter reset cannot race it.
-  const navigateToVerse = (book, chapter, verse) => {
+  const navigateToVerse = (book, chapter, verse, column) => {
     const targetBook = book || currentBook
     setSearchResults(null)
     setShowBookmarkManager(false)
     setShowGoToPassageButton(false)
     navigate(`/${bookToSlug(targetBook)}/${chapter}`, {
-      replace: true, state: { scrollToVerse: { book: targetBook, chapter: Number(chapter), verse: Number(verse) } },
+      replace: true, state: { scrollToVerse: { book: targetBook, chapter: Number(chapter), verse: Number(verse), column } },
     })
   }
 
   useLayoutEffect(() => {
     const target = location.state?.scrollToVerse
     if (location.state?.audioTranslation && location.state.audioTranslation !== translationId) return
-    if (!target || target.book !== currentBook || target.chapter !== currentChapter || !bibleData || translationLoading) return
+    if (!target || target.column === 'ORIGINAL' || target.book !== currentBook || target.chapter !== currentChapter || !bibleData || translationLoading) return
     const element = bibleContainerRef.current?.querySelector(`#verse-${target.chapter}-${target.verse}`)
     if (!element) return
     let highlightTimer
@@ -2159,6 +2159,7 @@ function BibleStudyApp({ onReaderReady, verseStacking }) {
                         bookName={currentBook}
                         primaryChapter={currentChapterData}
                         onOccurrenceNavigate={navigateToVerse}
+                        originalScrollTarget={location.state?.scrollToVerse?.column === 'ORIGINAL' ? location.state.scrollToVerse : null}
                         secondaryChapter={secondaryChapterData}
                         primaryTranslationId={translationId}
                         secondaryTranslationId={parallelTranslationId}

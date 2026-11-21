@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useCallback } from 'react'
 import VerseText from './VerseText'
-import { synodalAdditionRanges } from '../data/synodalTextAdditions'
+import { textualAdditionRanges } from '../data/textualAdditions'
 import VerseNumber from './VerseNumber'
 import { getVerseLayout } from '../utils/verseLayout'
 import InlineVerseNotes, { getInlineNotesAfterVerse } from './InlineVerseNotes'
@@ -96,7 +96,7 @@ function BibleChapter({
             const highlightColor = getVerseHighlightColor?.(chapter.number, verse.number)
               || (isVerseHighlighted?.(chapter.number, verse.number) ? 'yellow' : null)
             const layout = getVerseLayout(verseLayout, bookName, chapter.number, verse.number)
-            const additions = synodalAdditionRanges(translationId, bookName, chapter.number, verse.number, verse.text)
+            const additions = textualAdditionRanges(translationId, bookName, chapter.number, verse.number, verse.text)
             const textHighlights = getTextHighlights?.(chapter.number, verse.number, translationId, verse.text) || []
             const inlineNotes = selectionMode ? [] : getInlineNotesAfterVerse(
               notes, bookName, chapter.number, verse.number, translationId
@@ -114,7 +114,7 @@ function BibleChapter({
                 onClick={selectionMode ? () => handleVerseActivation(verse) : undefined}
                 onKeyDown={event => handleSelectionKeyDown(event, verse)}
                 className={`group flex flex-wrap items-start gap-0.5 sm:gap-2 py-0.5 sm:py-1 px-0 sm:px-2 rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 ${selectionMode ? 'verse-selection-target cursor-pointer' : ''} ${layout?.breakBefore ? 'mt-3 sm:mt-4' : ''} ${
-                  verse.isSuperscription ? 'mb-2 border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic' : ''
+                  verse.isSuperscription ? 'mb-3 sm:mb-4 border-l-2 border-gray-200 dark:border-gray-700 pl-2 italic' : ''
                 } ${
                   hasComment ? 'hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100 dark:active:bg-amber-900/50' : ''
                 } ${
@@ -124,7 +124,7 @@ function BibleChapter({
                 }`}
               >
                 {/* Verse Number */}
-                <VerseNumber number={verse.number} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} testId={`verse-bookmark-${verse.number}`} onToggle={() => onBookmarkToggle(chapter.number, verse.number, verse.text)} />
+                <VerseNumber number={verse.number} label={verse.numberLabel} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} testId={`verse-bookmark-${verse.number}`} onToggle={() => onBookmarkToggle(chapter.number, verse.number, verse.text)} />
 
                 {selectionMode && (
                   <span
@@ -154,7 +154,7 @@ function BibleChapter({
                   data-verse={verse.number}
                   data-translation={translationId}
                 >
-                  <VerseText text={verse.text} layout={layout} highlights={textHighlights} additions={additions} />
+                  <VerseText text={verse.text} layout={layout} highlights={textHighlights} additions={additions} translationId={translationId} />
                 </p>
 
                 {/* Bookmark Button */}
@@ -166,13 +166,14 @@ function BibleChapter({
       ) : (
         <div className="verse-text px-0 sm:px-2" style={verseStyle}>
           {chapter.verses.map((verse, verseIndex) => {
+            const previousVerse = chapter.verses[verseIndex - 1]
             const hasComment = hasCommentary(chapter.number, verse.number)
             const bookmarked = isBookmarked(verse.number)
             const selected = isVerseSelected?.(chapter.number, verse.number)
             const highlightColor = getVerseHighlightColor?.(chapter.number, verse.number)
               || (isVerseHighlighted?.(chapter.number, verse.number) ? 'yellow' : null)
             const layout = getVerseLayout(verseLayout, bookName, chapter.number, verse.number)
-            const additions = synodalAdditionRanges(translationId, bookName, chapter.number, verse.number, verse.text)
+            const additions = textualAdditionRanges(translationId, bookName, chapter.number, verse.number, verse.text)
             const textHighlights = getTextHighlights?.(chapter.number, verse.number, translationId, verse.text) || []
             const inlineNotes = selectionMode ? [] : getInlineNotesAfterVerse(
               notes, bookName, chapter.number, verse.number, translationId
@@ -180,7 +181,8 @@ function BibleChapter({
 
             return (
               <Fragment key={verse.number}>
-                {layout?.breakBefore && verseIndex > 0 && <span className="block h-3 sm:h-4" aria-hidden="true" />}
+                {previousVerse && (previousVerse.isSuperscription || layout?.breakBefore)
+                  && <span className="block h-3 sm:h-4" aria-hidden="true" />}
                 <span
                   id={`verse-${chapter.number}-${verse.number}`}
                   ref={(el) => setVerseRef(verse.number, el)}
@@ -200,7 +202,7 @@ function BibleChapter({
                     : getVerseHighlightClasses(highlightColor)
                 }`}
               >
-                <VerseNumber number={verse.number} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} testId={`verse-bookmark-${verse.number}`} onToggle={() => onBookmarkToggle(chapter.number, verse.number, verse.text)} />
+                <VerseNumber number={verse.number} label={verse.numberLabel} bookmarked={bookmarked} selectionMode={selectionMode} textSize={textSize} testId={`verse-bookmark-${verse.number}`} onToggle={() => onBookmarkToggle(chapter.number, verse.number, verse.text)} />
                 {selectionMode && (
                   <span
                     className={`mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full border text-[10px] font-bold align-middle ${
@@ -226,7 +228,7 @@ function BibleChapter({
                   data-verse={verse.number}
                   data-translation={translationId}
                 >
-                  <VerseText text={verse.text} layout={layout} highlights={textHighlights} additions={additions} />
+                  <VerseText text={verse.text} layout={layout} highlights={textHighlights} additions={additions} translationId={translationId} />
                 </span>
                   {verseIndex < chapter.verses.length - 1 && ' '}
                 </span>

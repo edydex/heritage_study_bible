@@ -63,6 +63,71 @@ test('BSB without opens the actual negative in its coordinated source phrase', a
   await expectStudyHead(page, '3361')
 })
 
+test('reviewed BSB Matthew keeps repeated pronouns distinct and links John to the written name', async ({ page }) => {
+  await compareWithOriginal(page, 'matthew', 4, 'BSB')
+  const english = words(page, 'BSB', 4, 11, /^Him$/)
+  const patient = words(page, 'ORIGINAL', 4, 11, /^αὐτὸν$/)
+  const recipient = words(page, 'ORIGINAL', 4, 11, /^αὐτῷ$/)
+  await expect(english).toHaveCount(2)
+  await english.first().click()
+  await expect(patient).toHaveClass(/bible-word-link-active/)
+  await expect(recipient).not.toHaveClass(/bible-word-link-active/)
+  await english.last().click()
+  await expect(recipient).toHaveClass(/bible-word-link-active/)
+  await expect(patient).not.toHaveClass(/bible-word-link-active/)
+
+  await expect(words(page, 'BSB', 4, 12, /^Jesus$/)).toHaveAttribute('data-word-paired', 'false')
+  await words(page, 'BSB', 4, 12, /^John$/).click()
+  await expect(words(page, 'ORIGINAL', 4, 12, /^Ἰωάνης$/)).toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expectStudyHead(page, '2491')
+})
+
+test('BSB Otherwise highlights both written particles and studies the negative first', async ({ page }) => {
+  await compareWithOriginal(page, 'matthew', 5, 'BSB')
+  await words(page, 'BSB', 5, 25, /^Otherwise$/).click()
+  await expect(words(page, 'ORIGINAL', 5, 25, /^μή$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 5, 25, /^ποτέ$/)).toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expectStudyHead(page, '3361')
+})
+
+test('BSB Matthew 8 keeps the touching and speaking predicates separate', async ({ page }) => {
+  await compareWithOriginal(page, 'matthew', 8, 'BSB')
+  const touching = words(page, 'ORIGINAL', 8, 3, /^ἥψατο$/)
+  const speaking = words(page, 'ORIGINAL', 8, 3, /^λέγων$/)
+  await words(page, 'BSB', 8, 3, /^touched$/).click()
+  await expect(touching).toHaveClass(/bible-word-link-active/)
+  await expect(speaking).not.toHaveClass(/bible-word-link-active/)
+  await words(page, 'BSB', 8, 3, /^said$/).click()
+  await expect(speaking).toHaveClass(/bible-word-link-active/)
+  await expect(touching).not.toHaveClass(/bible-word-link-active/)
+})
+
+test('BSB Take keeps the written command in the preceding verse', async ({ page }) => {
+  await compareWithOriginal(page, 'matthew', 10, 'BSB')
+  await words(page, 'BSB', 10, 10, /^Take$/).click()
+  await expect(words(page, 'ORIGINAL', 10, 9, /^κτήσησθε$/)).toHaveClass(/bible-word-link-active/)
+  await expect(words(page, 'ORIGINAL', 10, 10, /^μὴ$/)).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expectStudyHead(page, '2932')
+})
+
+test('BSB Matthew 17 keeps the personal article and the reply separate', async ({ page }) => {
+  await compareWithOriginal(page, 'matthew', 17, 'BSB')
+  const speaker = words(page, 'ORIGINAL', 17, 20, /^ὁ$/)
+  const reply = words(page, 'ORIGINAL', 17, 20, /^λέγει$/)
+  await words(page, 'BSB', 17, 20, /^He$/).click()
+  await expect(speaker).toHaveClass(/bible-word-link-active/)
+  await expect(reply).not.toHaveClass(/bible-word-link-active/)
+
+  await words(page, 'BSB', 17, 20, /^answered$/).click()
+  await expect(reply).toHaveClass(/bible-word-link-active/)
+  await expect(speaker).not.toHaveClass(/bible-word-link-active/)
+  await page.getByRole('button', { name: 'Study word', exact: true }).click()
+  await expectStudyHead(page, '3004')
+})
+
 test('KJV neither opens its actual second prohibition rather than the conjunction', async ({ page }) => {
   await compareWithOriginal(page, '2-john', 1, 'KJV')
   const negatives = words(page, 'ORIGINAL', 1, 10, /^μὴ$/)
