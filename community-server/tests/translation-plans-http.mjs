@@ -56,8 +56,16 @@ const authenticatedPage = await fetch(`${origin}/admin/live-translation?service=
 })
 assert.equal(authenticatedPage.status, 200)
 assert.ok((await authenticatedPage.text()).includes('Opening live translation'))
-const loginPage = await fetch(`${origin}/admin/login`)
-assert.ok((await loginPage.text()).includes('Heritage reading sync has a separate sign-in'))
+for (const language of ['en', 'ru']) {
+  const loginPage = await fetch(`${origin}/admin/login?language=${language}`, { redirect: 'manual' })
+  assert.equal(loginPage.status, 200)
+  const html = await loginPage.text()
+  assert.equal(htmlRedirectLocation(html), null, `Workspace sign-in was redirected: ${language}`)
+  // Payload defers the localized guide until anonymous auth/i18n providers
+  // hydrate. Check HTTP entry here; verify-workspace-login.mjs checks the actual
+  // rendered English/Russian invitation, password and reader-sync guidance.
+  assert.ok(html.includes('__next_f.push'), `Missing sign-in client bootstrap: ${language}`)
+}
 assert.equal((await request(path, { authenticated: false })).status, 401)
 // Payload correctly rejects origin-less cookie clients without browser provenance.
 assert.equal((await request(path, { requestOrigin: null, browserSite: null })).status, 401)

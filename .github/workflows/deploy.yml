@@ -3,6 +3,13 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: ['main']
+    # Server-only and docs-only merges must not redeploy the reader: the
+    # reader is also deployed by hand from its content branch, and a main
+    # build would replace that newer reader with an older one.
+    paths-ignore:
+      - 'community-server/**'
+      - 'docs/**'
+      - '.github/workflows/community-server.yml'
   workflow_dispatch:
 
 permissions:

@@ -1,1 +1,44 @@
-.heritage-events{margin:0 var(--gutter-h,24px) 32px;padding:24px;border:1px solid var(--theme-elevation-150,#ddd);border-radius:12px}.heritage-events button{cursor:pointer}.heritage-events__form{display:grid;gap:16px;padding:16px 0}.heritage-events__form label{display:grid;gap:6px}.heritage-events__form input,.heritage-events__form select,.heritage-events__form textarea{font:inherit;color:inherit;background:var(--theme-input-bg,#fff);border:1px solid var(--theme-elevation-200,#aaa);border-radius:6px;padding:10px;width:100%;box-sizing:border-box}.heritage-events__form input[type=checkbox]{width:auto}.heritage-events__form button{padding:10px 18px;min-height:44px;font:inherit}.heritage-events__form p{margin:0}.heritage-events__row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.heritage-events__backdrop{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;background:#0009}.heritage-events__dialog{background:var(--theme-bg,#fff);color:var(--theme-text,#171717);width:min(640px,100%);max-height:90dvh;overflow:auto;padding:24px;border-radius:12px}.heritage-events [role=alert]{color:#e5484d}.church-calendar__details article{padding:18px 0;border-bottom:1px solid #8884}.church-calendar__details h3{font-size:1.15rem}.church-calendar__details p{margin:8px 0}@media(max-width:560px){.heritage-events{padding:10px;margin:0 12px 24px}.heritage-events__row{grid-template-columns:1fr}.heritage-events__dialog{padding:16px}}
+.heritage-events { margin: 0 var(--gutter-h, 24px) 32px; padding: 24px; border: 1px solid var(--theme-elevation-150, #ddd); border-radius: 12px; }
+.heritage-events button, .heritage-events a.heritage-events__primary { cursor: pointer; }
+.heritage-events > .church-calendar__toolbar { flex-wrap: wrap; }
+.heritage-events > .church-calendar__toolbar h2 { flex: 1; margin: 0; }
+.heritage-events > .church-calendar__toolbar button { min-height: 2.75rem; padding: .4rem .9rem; border: 1px solid var(--theme-elevation-250, #aaa); border-radius: 6px; background: transparent; color: inherit; font: inherit; }
+.heritage-events .heritage-events__primary { background: var(--theme-text, #171717) !important; color: var(--theme-bg, #fff) !important; border-color: var(--theme-text, #171717) !important; }
+.heritage-events__hint { margin: .25rem 0 1rem; color: var(--theme-elevation-650, #666); font-size: .95rem; }
+.heritage-events__notice { padding: .7rem 1rem; border-left: 3px solid var(--theme-success-500, #3a8); background: var(--theme-elevation-50, #f6f6f6); }
+.heritage-events__panel { margin: 0 0 1.5rem; padding: 1.25rem; border: 1px solid var(--theme-elevation-150, #ddd); border-radius: 10px; background: var(--theme-elevation-50, #fafafa); }
+.heritage-events__panel h3 { margin: 0; }
+.heritage-events__panel.heritage-events__form { padding: 1.25rem; }
+.heritage-events__subscribe { display: grid; gap: 1rem; }
+.heritage-events__subscribe article { padding: 1rem; border: 1px solid var(--theme-elevation-150, #ddd); border-radius: 8px; background: var(--theme-bg, #fff); }
+.heritage-events__subscribe h4 { margin: 0 0 .35rem; }
+.heritage-events__subscribe p { margin: 0 0 .75rem; }
+.heritage-events__form { display: grid; gap: 16px; padding: 16px 0; }
+.heritage-events__form label { display: grid; gap: 6px; align-content: start; }
+.heritage-events__form label small { color: var(--theme-elevation-600, #777); }
+.heritage-events__form input, .heritage-events__form select, .heritage-events__form textarea { font: inherit; color: inherit; background: var(--theme-input-bg, #fff); border: 1px solid var(--theme-elevation-200, #aaa); border-radius: 6px; padding: 10px; width: 100%; box-sizing: border-box; min-width: 0; }
+.heritage-events__form input[type=checkbox] { width: auto; }
+.heritage-events__form p { margin: 0; }
+.heritage-events__check { display: flex !important; align-items: center; gap: .55rem; }
+.heritage-events__check input { width: 1.1rem !important; height: 1.1rem; }
+.heritage-events__row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-width: 0; }
+.heritage-events__actions, .heritage-events__choices { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.heritage-events__actions button, .heritage-events__actions a, .heritage-events__choices button { min-height: 44px; padding: 10px 18px; border: 1px solid var(--theme-elevation-250, #aaa); border-radius: 6px; background: transparent; color: inherit; font: inherit; text-decoration: none; display: inline-flex; align-items: center; }
+.heritage-events__choices { flex-direction: column; align-items: stretch; }
+.heritage-events__link { justify-self: start; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+.heritage-events__backdrop { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: #0009; }
+.heritage-events__dialog { background: var(--theme-bg, #fff); color: var(--theme-text, #171717); width: min(680px, 100%); max-height: 92dvh; overflow: auto; padding: 24px; border-radius: 12px; }
+.heritage-events__dialog .church-calendar__toolbar h2 { flex: 1; margin: 0; }
+.heritage-events__dialog .church-calendar__toolbar button { min-height: 2.5rem; padding: .3rem .8rem; border: 1px solid var(--theme-elevation-250, #aaa); border-radius: 6px; background: transparent; color: inherit; font: inherit; }
+.heritage-events details summary { cursor: pointer; padding: .3rem 0; }
+.heritage-events details[open] { display: grid; gap: 16px; }
+.heritage-events [role=alert] { color: #e5484d; }
+.church-calendar__details article { padding: 18px 0; border-bottom: 1px solid #8884; }
+.church-calendar__details h3 { font-size: 1.15rem; }
+.church-calendar__details p { margin: 8px 0; }
+@media (max-width: 560px) {
+  .heritage-events { padding: 10px; margin: 0 12px 24px; }
+  .heritage-events__row { grid-template-columns: 1fr; }
+  .heritage-events__row .heritage-events__row { grid-template-columns: 1fr 1fr; }
+  .heritage-events__dialog { padding: 16px; }
+}

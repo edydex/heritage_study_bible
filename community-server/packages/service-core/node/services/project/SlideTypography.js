@@ -1,10 +1,11 @@
 'use strict';
 
-const metrics = require('./NotoSansMetrics.json');
+const metrics = require('./ArialCompatibleMetrics.json');
 const { resolveNativeTextPreset } = require('./NativePresetCatalog');
 const { scriptureDisplay, scriptureCredit } = require('./SlideFormatting');
 
-// These advances come from the bundled Noto Sans font at each displayed weight.
+// These advances come from the bundled Arial-compatible Liberation Sans faces.
+// Arial and Liberation Sans use the same advances; 400/500 are regular, 600/700 bold.
 // A small shaping allowance covers kerning and browser/Pango rounding. It is
 // independent of viewport size, so all renderers receive the same saved size.
 const advanceCache = new Map();
@@ -13,7 +14,7 @@ function textWidth(text, size, weight = '500') {
   const key = weight + ':' + text;
   let advance = advanceCache.get(key);
   if (advance === undefined) {
-    advance = Array.from(text).reduce((width, character) => width + (table[character.codePointAt(0)] ?? .65), 0);
+    advance = Array.from(text).reduce((width, character) => width + (character === '\u2060' ? 0 : table[character.codePointAt(0)] ?? .65), 0);
     if (advanceCache.size >= 4096) advanceCache.clear();
     advanceCache.set(key, advance);
   }
@@ -22,7 +23,7 @@ function textWidth(text, size, weight = '500') {
 function wrappedLines(text, size, width, weight = '500') {
   return String(text).split('\n').reduce((total, paragraph) => {
     let lines = 1, used = 0;
-    for (const word of paragraph.split(/\s+/u).filter(Boolean)) {
+    for (const word of paragraph.split(/[ \t]+/u).filter(Boolean)) {
       const length = textWidth(word, size, weight), gap = used ? textWidth(' ', size, weight) : 0;
       if (used && used + gap + length > width) { lines++; used = 0; }
       used += (used ? gap : 0) + length;
@@ -58,14 +59,41 @@ function cueBodies(cue) {
       .map(block => block.text).join(cue.presetId === 'wotbc-song-stacked' ? '\n' : '\n\n');
   }).filter(Boolean);
 }
-function groupFontSize(cues, maximum, minimum) {
+// A live caption band (ticker or lower third) takes this share of the audience
+// screen's height away from slide content. Keep in sync with the renderer.
+const CAPTION_RESERVATIONS = Object.freeze({ticker: .12, lowerThird: .29});
+function groupFontSize(cues, maximum, minimum, {singer = false, reservation = 0} = {}) {
+  // The renderer lays audience text out inside the content height that remains
+  // above a caption band, so every height budget below scales with it.
+  const contentHeight = 1080 * (1 - reservation);
   for (let size = maximum; size >= minimum; size--) {
     if (cues.every(cue => {
       const preset = textPreset(cue.presetId);
-      const width = 1920 * (preset.bodyWidthPercent || 98) / 100;
-      let height = Math.min(preset.bodyHeight, 1080 * (1 - (preset.bodyTopPercent || 2) / 100) - 24);
+      const width = singer ? 1920 * .976 * .96 : 1920 * (preset.bodyWidthPercent || 98) / 100;
+      let height = Math.min(preset.bodyHeight, contentHeight * (1 - (preset.bodyTopPercent || 2) / 100) - 24 * contentHeight / 1080);
+      if (cue.kind === 'song') height = singer ? 1080 * .7674 * .94
+        : Math.min(height, contentHeight * (Math.min(90, Math.round(preset.bodyHeight / 1080 * 100)) - 2) / 100);
       if (Object.values(cue.channels).some(channel => channel.blocks.some(block => block.type === 'bible' && scriptureCredit(block)))) {
-        height = Math.min(height, 1080 * (.84 - (preset.bodyTopPercent || 2) / 100));
+        height = Math.min(height, contentHeight * (.84 - (preset.bodyTopPercent || 2) / 100));
+      }
+      if (cue.kind === 'song') {
+        return Object.values(cue.channels).filter(channel => !['hide', 'condensed', 'current-next'].includes(channel.mode)).every(channel => {
+          const blocks = channel.blocks.filter(block => block.type === 'text' && block.role === 'lyrics' && block.text.trim());
+          let usedHeight = 0;
+          for (const block of blocks) {
+            const uniform = block.spans?.find(span => span.start === 0 && span.end === block.text.length);
+            const blockSize = size * (uniform?.fontScale || 1);
+            usedHeight += wrappedLines(block.text, blockSize, width, uniform?.weight || preset.bodyWeight)
+              * blockSize * (1 + (preset.lineSpacingPercent ?? 8) / 100);
+            if (size !== minimum && block.text.split('\n').some(line => textWidth(line, blockSize, uniform?.weight || preset.bodyWeight) > width)) return false;
+          }
+          if (cue.presetId === 'wotbc-song-stacked' && blocks.length > 1) usedHeight += size * .22;
+          // Tight leading still includes the font's ascent/descent outside its
+          // line boxes. Budget that ink at the ends of the group, including the
+          // secondary-language span, so a fixed size also fits Chromium/Pango.
+          usedHeight += size * .25;
+          return usedHeight <= height;
+        });
       }
       return cueBodies(cue).every(body => {
         const lines = wrappedLines(body, size, width, preset.bodyWeight);
@@ -78,6 +106,38 @@ function groupFontSize(cues, maximum, minimum) {
 }
 
 const fittedCache = new Map();
+function cachedGroupFontSize(key, entries, maximum, minimum, options) {
+  const cacheKey = JSON.stringify([options.reservation || 0, maximum, minimum]) + key;
+  let size = fittedCache.get(cacheKey);
+  if (!size) {
+    size = groupFontSize(entries, maximum, minimum, options);
+    if (fittedCache.size >= 256) fittedCache.delete(fittedCache.keys().next().value);
+    fittedCache.set(cacheKey, size);
+  }
+  return size;
+}
+// Captions shrink the audience text area. Fit the whole group once more for
+// each caption band, so slides keep one shared size while captions are shown
+// instead of each slide shrinking on its own. Only sizes smaller than the
+// group size are recorded; a group that still fits keeps its normal size.
+function captionTextSizes(key, entries, size) {
+  const sizes = {};
+  for (const [name, reservation] of Object.entries(CAPTION_RESERVATIONS)) {
+    const fitted = cachedGroupFontSize(key, entries, size, Math.min(size, 32), {reservation});
+    if (fitted < size) sizes[name] = fitted;
+  }
+  return Object.keys(sizes).length ? sizes : null;
+}
+function normalizeCaptionTextSizes(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new TypeError('Invalid caption text sizes.');
+  const value = {};
+  for (const key of Object.keys(raw)) {
+    if (!Object.hasOwn(CAPTION_RESERVATIONS, key)) throw new TypeError(`Unknown caption text size: ${key}`);
+    if (!Number.isInteger(raw[key]) || raw[key] < 14 || raw[key] > 240) throw new TypeError('Caption font size must be between 14 and 240.');
+    value[key] = raw[key];
+  }
+  return value;
+}
 function applyTimelineTypography(project, cues, index) {
   const groups = new Map();
   for (const cue of Object.values(cues)) {
@@ -96,15 +156,27 @@ function applyTimelineTypography(project, cues, index) {
   }
   for (const entries of groups.values()) {
     const maximum = Math.min(...entries.map(cue => cue.textStyle?.bodySize || textPreset(cue.presetId).bodySize));
-    const minimum = entries[0].kind === 'song' ? Math.max(32, Math.ceil(maximum * .75)) : Math.min(maximum, 42);
-    const key = JSON.stringify([maximum, minimum, entries.map(cue => [cue.presetId,cueBodies(cue),Object.values(cue.channels).some(channel => channel.blocks.some(block => block.type === 'bible' && scriptureCredit(block)))])]);
-    let size = fittedCache.get(key);
-    if (!size) {
-      size = groupFontSize(entries, maximum, minimum);
-      if (fittedCache.size >= 128) fittedCache.delete(fittedCache.keys().next().value);
-      fittedCache.set(key, size);
+    const minimum = entries[0].kind === 'song' ? 32 : Math.min(maximum, 42);
+    const key = JSON.stringify(entries.map(cue => [cue.presetId,cueBodies(cue),Object.values(cue.channels).map(channel => [channel.mode,channel.blocks.map(block => [block.role,block.spans])]),Object.values(cue.channels).some(channel => channel.blocks.some(block => block.type === 'bible' && scriptureCredit(block)))]));
+    const size = cachedGroupFontSize(key, entries, maximum, minimum, {});
+    const captionSizes = captionTextSizes(key, entries, size);
+    // The singer has its own current-text region and unstacked source lyrics.
+    // Fit the whole song there too, without making audience stacking determine
+    // the stage size or letting a short verse grow independently.
+    const singerCues = entries[0].kind === 'song' ? entries.flatMap(cue =>
+      Object.values(cue.channels).filter(channel => channel.mode === 'condensed' && channel.sourceChannelId)
+        .map(channel => {
+          const source = require('./SingerPresentation').singerSourceCue(cue, channel.sourceChannelId);
+          return {...source, channels:{source:source.channels[channel.sourceChannelId]}};
+        })) : [];
+    const singerMaximum = project.items[entries[0].itemId]?.textStyle?.bodySize || 160;
+    const singerSize = singerCues.length ? groupFontSize(singerCues, singerMaximum, 32, {singer:true}) : null;
+    for (const cue of entries) {
+      cue.textStyle = {...cue.textStyle, bodySize: size};
+      if (singerSize) cue.singerTextStyle = {...cue.textStyle, bodySize:singerSize};
+      if (captionSizes) cue.captionTextSizes = {...captionSizes};
+      else delete cue.captionTextSizes;
     }
-    for (const cue of entries) cue.textStyle = {...cue.textStyle, bodySize: size};
   }
 }
-module.exports = {textWidth, wrappedLines, normalizeTextStyle, textPreset, groupFontSize, applyTimelineTypography};
+module.exports = {textWidth, wrappedLines, normalizeTextStyle, normalizeCaptionTextSizes, textPreset, groupFontSize, applyTimelineTypography, CAPTION_RESERVATIONS};

@@ -9,7 +9,7 @@ async function defaultLoad(path) {
   if (!response.ok) throw new Error(result.error || 'Could not load the calendar.')
   return result
 }
-export default function CalendarBrowser({ load = defaultLoad, eventHref = eventPagePath }) {
+export default function CalendarBrowser({ load = defaultLoad, eventHref = eventPagePath, showTimes = false }) {
   const [month, setMonth] = useState(() => localDate(Date.now()).slice(0, 7))
   const [result, setResult] = useState({ events: [], timeZone: 'UTC' })
   const [busy, setBusy] = useState(true)
@@ -30,7 +30,7 @@ export default function CalendarBrowser({ load = defaultLoad, eventHref = eventP
   const events = selected ? result.events.filter(event => (event.recurring ? filters.recurring : filters.events)).filter(event => event.instanceId === selected || eventIncludesDate(event, selected, result.timeZone)) : []
   return <div className="church-calendar-browser">
     <div className="church-calendar__toolbar"><h2>Calendar</h2><button type="button" disabled={busy} onClick={() => setRefresh(value => value + 1)}>Refresh</button></div>
-    <CalendarGrid month={month} onMonthChange={setMonth} events={result.events} timeZone={result.timeZone} busy={busy} showEmpty={!error} onFilterChange={setFilters} selectedDate={selected} onDateSelect={setSelected} eventHref={eventHref} />
+    <CalendarGrid month={month} onMonthChange={setMonth} events={result.events} timeZone={result.timeZone} busy={busy} showEmpty={!error} onFilterChange={setFilters} selectedDate={selected} onDateSelect={setSelected} eventHref={eventHref} showTimes={showTimes} />
     {error && <p role="alert">{error}</p>}
     {!busy && !error && !result.authenticated && <p className="church-calendar__empty">Public events are shown. Church members can sign in through Heritage to see member events.</p>}
     {selected && <div className="church-calendar__details" aria-live="polite">

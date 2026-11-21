@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { canonicalTimeZone, formatEventTime, safeEventUrl } from '../calendar-core/index.js'
+import { canonicalTimeZone, formatEventDate, formatEventTime, localDate, safeEventUrl } from '../calendar-core/index.js'
 import './calendar.css'
 
 async function defaultLoad(path) {
@@ -9,6 +9,13 @@ async function defaultLoad(path) {
   if (!response.ok) throw new Error(result.error || 'Could not load this event.')
   return result
 }
+/** The last day of a multi-day all-day event (its stored end is the midnight after it), or null. */
+function lastDay(event) {
+  if (!event.endsAt) return null
+  const last = Date.parse(event.endsAt) - 1
+  return localDate(last, event.timeZone) > localDate(event.startsAt, event.timeZone) ? new Date(last).toISOString() : null
+}
+
 export default function EventDetails({ eventId, date, load = defaultLoad, backHref = '/calendar', renderActions }) {
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
@@ -27,12 +34,19 @@ export default function EventDetails({ eventId, date, load = defaultLoad, backHr
     {!event && !error && <p role="status">Loading event…</p>}
     {error && <div role="alert"><h1>Event unavailable</h1><p>{error}</p><p>Church members can open Heritage Community to check their sign-in.</p></div>}
     {event && <article>
-      <p className="church-event__eyebrow">{event.recurring ? 'Recurring church event' : 'Church event'}</p>
+      <p className="church-event__eyebrow">{event.cancelled ? 'Cancelled' : event.recurring ? 'Recurring church event' : 'Church event'}</p>
       <h1>{event.title}</h1>
+      {event.cancelled && <p className="church-event__notice" role="status">This date is cancelled.{event.note ? ` ${event.note}` : ''}</p>}
+      {!event.cancelled && event.note && <p className="church-event__notice">{event.note}</p>}
       <dl>
-        <div><dt>Starts</dt><dd>{formatEventTime(event.startsAt, event.timeZone)}</dd></div>
-        {event.endsAt && <div><dt>Ends</dt><dd>{formatEventTime(event.endsAt, event.timeZone)}</dd></div>}
-        <div><dt>Time zone</dt><dd>{(canonicalTimeZone(event.timeZone) || 'UTC').replaceAll('_', ' ')}</dd></div>
+        {event.allDay ? <>
+          <div><dt>{lastDay(event) ? 'From' : 'Date'}</dt><dd>{formatEventDate(event.startsAt, event.timeZone)}</dd></div>
+          {lastDay(event) && <div><dt>Until</dt><dd>{formatEventDate(lastDay(event), event.timeZone)}</dd></div>}
+        </> : <>
+          <div><dt>Starts</dt><dd>{formatEventTime(event.startsAt, event.timeZone)}</dd></div>
+          {event.endsAt && <div><dt>Ends</dt><dd>{formatEventTime(event.endsAt, event.timeZone)}</dd></div>}
+          <div><dt>Time zone</dt><dd>{(canonicalTimeZone(event.timeZone) || 'UTC').replaceAll('_', ' ')}</dd></div>
+        </>}
         {event.location && <div><dt>Location</dt><dd>{event.location}</dd></div>}
       </dl>
       {event.description && <p className="church-event__description">{event.description}</p>}

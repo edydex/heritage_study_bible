@@ -1,5 +1,6 @@
 'use client'
 
+import { useWorkspaceText } from './useWorkspaceText'
 import { useMemo, useState, type FormEvent } from 'react'
 import PassageReferenceInput from './PassageReferenceInput'
 import {
@@ -278,6 +279,7 @@ async function submitPreparation(
 }
 
 export default function PrepareSermonClient() {
+  const t = useWorkspaceText()
   const [draft, setDraft] = useState<PreparationDraft>(emptyDraft)
   const [requestId, setRequestId] = useState(freshRequestId)
   const [busy, setBusy] = useState(false)
@@ -406,28 +408,24 @@ export default function PrepareSermonClient() {
   return (
     <section className="heritage-sermon-preparation">
       <header className="heritage-sermon-preparation__heading">
-        <p className="heritage-admin-eyebrow">Planning</p>
-        <h1>Prepare a sermon</h1>
+        <p className="heritage-admin-eyebrow">{t("Planning")}</p>
+        <h1>{t("Prepare a sermon")}</h1>
         <p>
-          Turn the pastor&apos;s reviewed manuscript or slide notes into one exact
-          private sermon that can be selected in a service plan and read by
-          SyncShow.
+          {t("Turn the pastor's reviewed manuscript or slide notes into one exact private sermon that can be selected in a service plan and read by SyncShow.")}
         </p>
       </header>
 
       <div className="heritage-sermon-preparation__boundary" role="note">
-        <strong>This does not publish anything.</strong>
+        <strong>{t("This does not publish anything.")}</strong>
         <span>
-          The pasted text and confirmed passage become a private Ready canonical
-          record. This form does not upload or retain the original DOCX or PPTX
-          file; keep that original in the church&apos;s normal records.
+          {t("The pasted text and confirmed passage become a private Ready canonical record. This form does not upload or retain the original DOCX or PPTX file; keep that original in the church's normal records.")}
         </span>
       </div>
 
       {result && (
         <section className="heritage-sermon-preparation__success" aria-live="polite">
           <p className="heritage-admin-eyebrow">
-            {result.created ? 'Sermon prepared' : 'Existing result recovered'}
+            {result.created ? t("Sermon prepared") : t("Existing result recovered")}
           </p>
           <h2>{result.sermon.title}</h2>
           <p>
@@ -435,7 +433,7 @@ export default function PrepareSermonClient() {
             {result.sermon.passageLabel}
           </p>
           <p>
-            Private {result.sermon.publicationStatus} record ·{' '}
+            {t("Private")}{result.sermon.publicationStatus}  {t("record ·")}{' '}
             {result.sermon.bodyEntryCount}{' '}
             {result.sermon.bodyEntryCount === 1 ? 'written section' : 'written sections'}
             {' · '}
@@ -446,17 +444,14 @@ export default function PrepareSermonClient() {
           </p>
           <div className="heritage-sermon-preparation__actions">
             <a className="btn btn--style-primary" href="/admin/collections/service-plans/create">
-              Add it to a service plan
-            </a>
+              {t("Add it to a service plan")}</a>
             <a className="btn" href="/admin/sermon-publications">
-              Open publication review
-            </a>
+              {t("Open publication review")}</a>
             <button className="btn" type="button" onClick={startAnother}>
-              Prepare another sermon
-            </button>
+              {t("Prepare another sermon")}</button>
           </div>
           <details>
-            <summary>Technical identity</summary>
+            <summary>{t("Technical identity")}</summary>
             <code>{result.sermon.currentRevision}</code>
           </details>
         </section>
@@ -465,30 +460,30 @@ export default function PrepareSermonClient() {
       {!result && (
         <form onSubmit={submit} className="heritage-sermon-preparation__form">
           <fieldset disabled={busy}>
-            <legend>Service and speaker</legend>
+            <legend>{t("Service and speaker")}</legend>
             <div className="heritage-sermon-preparation__grid">
               <label>
-                <span>Sermon title</span>
+                <span>{t("Sermon title")}</span>
                 <input
                   required
                   maxLength={300}
                   value={draft.title}
                   onChange={event => updateField('title', event.target.value)}
-                  placeholder="Faithful Prayer"
+                  placeholder={t("Faithful Prayer")}
                 />
               </label>
               <label>
-                <span>Speaker</span>
+                <span>{t("Speaker")}</span>
                 <input
                   required
                   maxLength={200}
                   value={draft.speaker}
                   onChange={event => updateField('speaker', event.target.value)}
-                  placeholder="Pastor name"
+                  placeholder={t("Pastor name")}
                 />
               </label>
               <div className="heritage-sermon-preparation__date-field">
-                <label htmlFor="sermon-service-date">Service date</label>
+                <label htmlFor="sermon-service-date">{t("Service date")}</label>
                 <div className="heritage-sermon-preparation__date-control">
                   <input
                     id="sermon-service-date"
@@ -502,12 +497,11 @@ export default function PrepareSermonClient() {
                     type="button"
                     onClick={() => updateField('serviceDate', localToday())}
                   >
-                    Use today
-                  </button>
+                    {t("Use today")}</button>
                 </div>
               </div>
               <label>
-                <span>Content language</span>
+                <span>{t("Content language")}</span>
                 <input
                   required
                   maxLength={35}
@@ -516,23 +510,21 @@ export default function PrepareSermonClient() {
                   placeholder="en"
                   aria-describedby="sermon-language-help"
                 />
-                <small id="sermon-language-help">Use a language tag such as en or ru.</small>
+                <small id="sermon-language-help">{t("Use a language tag such as en or ru.")}</small>
               </label>
             </div>
           </fieldset>
 
           <fieldset disabled={busy}>
-            <legend>Confirmed primary passage</legend>
+            <legend>{t("Confirmed primary passage")}</legend>
             <p className="heritage-sermon-preparation__help">
-              Use the passage the congregation reads before this sermon. Exact
-              verses let the Study Bible link the sermon back to this text.
-            </p>
-            <PassageReferenceInput books={CANONICAL_BIBLE_BOOKS} label="Primary passage shortcut" onResolve={passage => {
+              {t("Use the passage the congregation reads before this sermon. Exact verses let the Study Bible link the sermon back to this text.")}</p>
+            <PassageReferenceInput books={CANONICAL_BIBLE_BOOKS} label={t("Primary passage shortcut")} onResolve={passage => {
               setDraft(current => ({ ...current, primaryPassage: { bookId:passage.bookId, startChapter:String(passage.startChapter), startVerse:String(passage.startVerse), endChapter:String(passage.endChapter), endVerse:String(passage.endVerse) }, reviewConfirmed:false })); invalidatePriorAttempt()
             }} />
             <div className="heritage-sermon-preparation__passage">
               <label>
-                <span>Book</span>
+                <span>{t("Book")}</span>
                 <select
                   value={draft.primaryPassage.bookId}
                   onChange={event => updatePassage('bookId', event.target.value)}
@@ -543,7 +535,7 @@ export default function PrepareSermonClient() {
                 </select>
               </label>
               <label>
-                <span>Start chapter</span>
+                <span>{t("Start chapter")}</span>
                 <input
                   required
                   type="number"
@@ -554,7 +546,7 @@ export default function PrepareSermonClient() {
                 />
               </label>
               <label>
-                <span>Start verse</span>
+                <span>{t("Start verse")}</span>
                 <input
                   required
                   type="number"
@@ -565,7 +557,7 @@ export default function PrepareSermonClient() {
                 />
               </label>
               <label>
-                <span>End chapter</span>
+                <span>{t("End chapter")}</span>
                 <input
                   required
                   type="number"
@@ -576,7 +568,7 @@ export default function PrepareSermonClient() {
                 />
               </label>
               <label>
-                <span>End verse</span>
+                <span>{t("End verse")}</span>
                 <input
                   required
                   type="number"
@@ -590,17 +582,13 @@ export default function PrepareSermonClient() {
           </fieldset>
 
           <fieldset disabled={busy}>
-            <legend>Other passages used in this sermon</legend>
+            <legend>{t("Other passages used in this sermon")}</legend>
             <p className="heritage-sermon-preparation__help">
-              Optional. Add only passages the sermon actually cites or explains.
-              Once reviewed and published, each one powers the Study Bible&apos;s
-              small “Appears in sermons” link for those verses. Exact duplicates,
-              including the primary passage, are safely collapsed.
+              {t("Optional. Add only passages the sermon actually cites or explains. Once reviewed and published, each one powers the Study Bible's small “Appears in sermons” link for those verses. Exact duplicates, including the primary passage, are safely collapsed.")}
             </p>
             {draft.mentionedPassages.length === 0 && (
               <p className="heritage-sermon-preparation__empty">
-                No other passages have been added.
-              </p>
+                {t("No other passages have been added.")}</p>
             )}
             <div className="heritage-sermon-preparation__mentioned-list">
               {draft.mentionedPassages.map((passage, index) => {
@@ -629,15 +617,14 @@ export default function PrepareSermonClient() {
                         type="button"
                         onClick={() => removeMentionedPassage(passage.clientId)}
                       >
-                        Remove
-                      </button>
+                        {t("Remove")}</button>
                     </div>
                     <PassageReferenceInput books={CANONICAL_BIBLE_BOOKS} label={`${labelPrefix} shortcut`} onResolve={reference => {
                       setDraft(current => ({...current, mentionedPassages:current.mentionedPassages.map(value => value.clientId === passage.clientId ? {...value,bookId:reference.bookId,startChapter:String(reference.startChapter),startVerse:String(reference.startVerse),endChapter:String(reference.endChapter),endVerse:String(reference.endVerse)} : value),reviewConfirmed:false})); invalidatePriorAttempt()
                     }} />
                     <div className="heritage-sermon-preparation__passage">
                       <label>
-                        <span>Book</span>
+                        <span>{t("Book")}</span>
                         <select
                           value={passage.bookId}
                           onChange={event => updateMentionedPassage(
@@ -654,7 +641,7 @@ export default function PrepareSermonClient() {
                         </select>
                       </label>
                       <label>
-                        <span>Start chapter</span>
+                        <span>{t("Start chapter")}</span>
                         <input
                           required
                           type="number"
@@ -669,7 +656,7 @@ export default function PrepareSermonClient() {
                         />
                       </label>
                       <label>
-                        <span>Start verse</span>
+                        <span>{t("Start verse")}</span>
                         <input
                           required
                           type="number"
@@ -684,7 +671,7 @@ export default function PrepareSermonClient() {
                         />
                       </label>
                       <label>
-                        <span>End chapter</span>
+                        <span>{t("End chapter")}</span>
                         <input
                           required
                           type="number"
@@ -699,7 +686,7 @@ export default function PrepareSermonClient() {
                         />
                       </label>
                       <label>
-                        <span>End verse</span>
+                        <span>{t("End verse")}</span>
                         <input
                           required
                           type="number"
@@ -725,36 +712,33 @@ export default function PrepareSermonClient() {
                 disabled={draft.mentionedPassages.length >= MAX_MENTIONED_PASSAGES}
                 onClick={addMentionedPassage}
               >
-                Add another passage
-              </button>
+                {t("Add another passage")}</button>
               <span aria-live="polite">
-                {draft.mentionedPassages.length} of {MAX_MENTIONED_PASSAGES} added
+                {t('{count} of {maximum} added', { count: draft.mentionedPassages.length, maximum: MAX_MENTIONED_PASSAGES })}
               </span>
             </div>
           </fieldset>
 
           <fieldset disabled={busy}>
-            <legend>Reviewed sermon text</legend>
+            <legend>{t("Reviewed sermon text")}</legend>
             <p className="heritage-sermon-preparation__help">
-              Paste at least one source. Line breaks are preserved; nothing is
-              summarized or rewritten.
-            </p>
+              {t("Paste at least one source. Line breaks are preserved; nothing is summarized or rewritten.")}</p>
             <label>
-              <span>Pastor&apos;s manuscript</span>
+              <span>{t("Pastor's manuscript")}</span>
               <textarea
                 rows={16}
                 value={draft.manuscript}
                 onChange={event => updateField('manuscript', event.target.value)}
-                placeholder="Paste the pastor's sermon writeup here."
+                placeholder={t("Paste the pastor's sermon writeup here.")}
               />
             </label>
             <label>
-              <span>Slide notes</span>
+              <span>{t("Slide notes")}</span>
               <textarea
                 rows={10}
                 value={draft.slideNotes}
                 onChange={event => updateField('slideNotes', event.target.value)}
-                placeholder="Paste the text intended for sermon slides here."
+                placeholder={t("Paste the text intended for sermon slides here.")}
               />
             </label>
           </fieldset>
@@ -767,13 +751,11 @@ export default function PrepareSermonClient() {
               onChange={event => updateField('reviewConfirmed', event.target.checked)}
             />
             <span>
-              I reviewed the title, speaker, date, primary passage, every other
-              passage listed above, and the pasted text. Create one private Ready
-              sermon for service planning.
+              {t("I reviewed the title, speaker, date, primary passage, every other passage listed above, and the pasted text. Create one private Ready sermon for service planning.")}
             </span>
           </label>
 
-          {error && <p className="heritage-sermon-preparation__error" role="alert">{error}</p>}
+          {error && <p className="heritage-sermon-preparation__error" role="alert">{t(error)}</p>}
 
           <div className="heritage-sermon-preparation__actions">
             <button
@@ -781,12 +763,12 @@ export default function PrepareSermonClient() {
               type="submit"
               disabled={busy || !draft.reviewConfirmed}
             >
-              {busy ? 'Preparing sermon…' : 'Create private Ready sermon'}
+              {busy ? t("Preparing sermon…") : t("Create private Ready sermon")}
             </button>
             {busy ? (
-              <span className="btn" aria-disabled="true">Cancel</span>
+              <span className="btn" aria-disabled="true">{t("Cancel")}</span>
             ) : (
-              <a className="btn" href="/admin">Cancel</a>
+              <a className="btn" href="/admin">{t("Cancel")}</a>
             )}
           </div>
         </form>

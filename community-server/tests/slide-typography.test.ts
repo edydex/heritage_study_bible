@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import core from '../packages/service-core/index.js'
 import typography from '../packages/service-core/node/services/project/SlideTypography.js'
+import formatting from '../packages/service-core/node/services/project/SlideFormatting.js'
+import {plannerPreview} from '../src/components/plannerPreview.ts'
 import {createTemplateDraft,editTemplateField} from '../src/components/plannerTemplates.ts'
 import {addReadingTitle,preparePlannerPresentation} from '../src/components/plannerPresentation.ts'
 import {typographyItemIds} from '../src/components/plannerTypography.ts'
@@ -10,13 +12,33 @@ import {setReadingTemplate} from '../src/components/readingTemplates.ts'
 const project=()=>core.createServiceProject({id:'typography',title:'Sunday',serviceDate:'2026-09-22',preferredProfileId:'main-sanctuary',presetPack:{id:'main-sanctuary',version:1,sha256:null},channels:[{id:'english',label:'English',language:'en'},{id:'russian',label:'Russian',language:'ru'}]})
 const reopen=(p:any)=>core.parseHeritageServiceDocumentSource(core.serializeHeritageServiceDocument(core.createHeritageServiceDocument({...p,revision:1}))).project
 
-test('one minimal line-fitting size is used across the entire bilingual song',()=>{
+test('saved Scripture keeps emphasis offsets while its verse-number gap disappears',()=>{
+ const text='¹⁶\u00a0First verse. ¹⁷\u00a0Второй стих.'
+ const spans=[{start:3,end:8,weight:'700'}]
+ const display=formatting.scriptureDisplay({displayText:text,displaySpans:spans},'wotbc-reading')
+ assert.equal(display.text,'¹⁶\u2060First verse. ¹⁷\u2060Второй стих.')
+ assert.equal(display.text.length,text.length);assert.deepEqual(display.spans,spans)
+ assert.equal(display.text.slice(spans[0].start,spans[0].end),'First')
+})
+
+test('singer preview receives the independent song-wide size and keeps the next hint',()=>{
+ const lyric=(id:string,text:string)=>({id,itemId:'song',kind:'song',presetId:'wotbc-song-lyrics',channels:{english:{mode:'content',blocks:[{type:'text',role:'lyrics',text}]},media:{mode:'condensed',sourceChannelId:'english',sourceBlocks:[{type:'text',role:'lyrics',text}],blocks:[]}}})
+ const cues={one:lyric('one',Array(6).fill('We sing Your praise together').join('\n')),two:lyric('two','Praise')}
+ typography.applyTimelineTypography({items:{song:{id:'song'}}},cues,{groupPathByItemId:{}})
+ const rows=Object.values(cues).map(cue=>({id:cue.id,cue})) as any
+ const first=plannerPreview(rows,rows[0],'media'),second=plannerPreview(rows,rows[1],'media')
+ assert.equal(first.textStyle.bodySize,second.textStyle.bodySize)
+ assert.equal(first.textStyle.bodySize,(cues.one as any).singerTextStyle.bodySize)
+ assert.equal(first.next.text,'Praise');assert.equal(second.next.state,'end')
+})
+
+test('all song slides retain the largest shared font through save and reload',()=>{
   let line='Мы славим Тебя'
   while(typography.textWidth(line,106,'600')<2390)line+=' и'
   const make=(id:string,text:string)=>core.parseSongDocument(`---\nid: ${id}\ntitle: Praise\nlanguage: en\n---\n^1\n${text}\n\n^2\nShort line`,{fileName:`${id}.md`})
   let p=project();const pinned=core.addSongResource(p,make('praise',line));p=core.addProjectItem(pinned.project,{id:'song',kind:'song',title:'Praise',lyricsPresetId:'wotbc-song-lyrics',primaryChannelId:'english',variants:{english:{mode:'content',resourceId:pinned.resourceId},russian:{mode:'inherit',from:'english'}},arrangement:[{id:'one',sectionId:'verse-1'},{id:'two',sectionId:'verse-2'}]})
   const timeline=core.compileServiceProject(reopen(p));const cues=Object.values(timeline.cues).filter((c:any)=>c.presetId==='wotbc-song-lyrics') as any[]
-  assert.equal(cues.length,2);assert.equal(new Set(cues.map(c=>c.textStyle.bodySize)).size,1)
+  assert.equal(cues.length,2);assert.equal(cues[1].textStyle.bodySize,cues[0].textStyle.bodySize)
   const size=cues[0].textStyle.bodySize,width=1920*typography.textPreset(cues[0].presetId).bodyWidthPercent/100
   assert.ok(size<106 && size>=80);assert.ok(typography.textWidth(line,size,'600')<=width)
   assert.ok(typography.textWidth(line,size+1,'600')>width,'No unnecessary reduction')
@@ -58,10 +80,14 @@ test('text preferences reject arbitrary properties and invalid values',()=>{
   assert.throws(()=>typography.normalizeTextStyle({bodySize:NaN}));assert.throws(()=>typography.normalizeTextStyle({bodyAlign:'justify'}));assert.throws(()=>typography.normalizeTextStyle({backgroundUrl:'https://example.test'}))
 })
 
- test('reading typography targets matching pages in its group only',()=>{
- const p={items:{group:{kind:'group',childIds:['one','two','sermon','song']},one:{kind:'bible',presetId:'wotbc-reading'},two:{kind:'bible',presetId:'wotbc-reading'},sermon:{kind:'bible',presetId:'wotbc-sermon-scripture'},song:{kind:'song'}}}
+test('reading typography targets the same paginated passage only',()=>{
+ const range=(start:number,end:number)=>({bookId:'Eph',start:{chapter:4,verse:start},end:{chapter:4,verse:end}})
+ const p={items:{group:{kind:'group',groupKind:'section',childIds:['one','two']},one:{kind:'bible',presetId:'wotbc-reading',range:range(1,3)},two:{kind:'bible',presetId:'wotbc-reading',range:range(4,6)},sermon:{kind:'bible',presetId:'wotbc-sermon-scripture',range:range(7,8)},song:{kind:'song'}}}
  assert.deepEqual(typographyItemIds(p,'one'),['one','two'])
  assert.deepEqual(typographyItemIds(p,'song'),['song'])
+ // An ordinary section with unrelated slides is not a pagination scope.
+ p.items.group.childIds=['one','two','sermon','song']
+ assert.deepEqual(typographyItemIds(p,'one'),['one'])
  })
 
 test('minimum song font remains valid when a long authored line must wrap',()=>{

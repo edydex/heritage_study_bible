@@ -29,6 +29,9 @@
 @media(max-width:520px){ .church-calendar__week{min-height:5.3rem}.church-calendar__day{padding:.1rem}.church-calendar__event{font-size:.7rem!important;padding:.2rem}.church-calendar__toolbar h3{font-size:1rem}.church-calendar__filters{gap:.4rem 1rem} }
 
 .church-calendar__event { text-decoration: none; }
+.church-calendar__time { font-weight: 700; }
+.church-calendar__event[data-cancelled] { text-decoration: line-through; opacity: .55; background: transparent; border-style: dashed; }
+.church-calendar__event[data-changed]:not([data-cancelled]) { border-color: var(--cal-accent); }
 .church-event { max-width: 46rem; margin: 0 auto; }
 .church-event__back { display: inline-block; margin-bottom: 1.8rem; text-decoration: underline; }
 .church-event article { border: 1px solid #8884; border-radius: 1rem; padding: clamp(1rem,4vw,2.5rem); }
@@ -39,3 +42,33 @@
 .church-event dd { margin: .3rem 0 0; }
 .church-event__description { white-space: pre-wrap; margin: 2rem 0; }
 .church-event__website { display: inline-block; text-decoration: underline; margin: 1.5rem 0; }
+.church-event__notice { padding: .75rem 1rem; border-radius: .6rem; background: #b88a4222; margin: 0 0 1.5rem; }
+.church-event__add { display: inline-block; margin: 1rem 1rem 0 0; padding: .6rem 1.1rem; border: 1px solid currentColor; border-radius: 999px; text-decoration: none; font-weight: 600; }
+
+/* Event sign-up form (website only) */
+.church-signup { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid #8884; }
+.church-signup h2 { font-size: 1.4rem; margin: 0 0 .8rem; }
+.church-signup form { display: grid; gap: 1.1rem; margin-top: 1.2rem; }
+.church-signup label, .church-signup fieldset { display: grid; gap: .35rem; font-weight: 600; }
+.church-signup fieldset { border: 0; padding: 0; margin: 0; }
+.church-signup legend { padding: 0; margin-bottom: .35rem; }
+.church-signup small { font-weight: 400; opacity: .75; }
+.church-signup input:not([type=checkbox]):not([type=radio]), .church-signup textarea {
+  font: inherit; font-weight: 400; padding: .65rem .75rem; border: 1px solid #8888; border-radius: .5rem; background: transparent; color: inherit; width: 100%; box-sizing: border-box; }
+.church-signup__check { display: flex !important; align-items: flex-start; gap: .55rem; font-weight: 400 !important; }
+.church-signup__check input { margin-top: .3rem; width: 1.05rem; height: 1.05rem; flex: none; }
+.church-signup button[type=submit], .church-signup article > button { justify-self: start; font: inherit; font-weight: 600; padding: .7rem 1.4rem;
+  border: 0; border-radius: .6rem; background: var(--green, #315c49); color: #fff; cursor: pointer; }
+.church-signup button:disabled { opacity: .6; cursor: progress; }
+.church-signup__notice { padding: .8rem 1rem; border-radius: .6rem; background: #b88a4222; }
+.church-signup__price, .church-signup__amount { font-weight: 700; }
+.church-signup__payment { margin: 1.2rem 0; padding: 1rem 1.2rem; border: 1px solid #8884; border-radius: .8rem; }
+.church-signup__payment ul { padding-left: 1.1rem; display: grid; gap: .4rem; }
+.church-signup__payment a { word-break: break-all; }
+.church-signup__instructions { white-space: pre-wrap; }
+.church-signup__field-error { color: #b42318; font-weight: 600; }
+.church-signup__languages { display: flex; gap: .5rem; justify-content: flex-end; margin: 0 0 .5rem; }
+.church-signup__languages button { font: inherit; font-size: .85rem; background: none; border: 1px solid #8886; border-radius: 999px; padding: .2rem .7rem; color: inherit; cursor: pointer; }
+.church-signup__languages button[aria-pressed=true] { border-color: currentColor; font-weight: 700; }
+.church-signup__trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+@media (prefers-color-scheme: dark) { .church-signup__field-error { color: #ff8a80; } }
