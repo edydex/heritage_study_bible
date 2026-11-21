@@ -86,6 +86,14 @@ t This is = English supplies a presentational frame with no Greek counterpart.
 9. **Different Greek reading.** When BSB follows a reading N1904 lacks, or
    leaves out N1904 words, say so in the `s` or `t` reason. Never invent a
    link for it.
+   - If BSB's Greek has a different word but the English still correctly
+     renders the N1904 word (same meaning, e.g. a change of voice or a
+     synonym), link it and note the difference (Mark 6:39, Mark 13:22
+     "perform").
+   - If the meaning differs, don't link: "hundredfold" for πολλαπλασίονα
+     (Matthew 19:29), "wash" for ῥαντίσωνται (Mark 7:4).
+   - Only claim a reading where the verse's EVIDENCE line shows the
+     publisher's Greek differs.
 10. **Change publisher rows only when they are wrong or over-claim**, not for
     style.
 11. **Notes are one factual sentence**, only where the link isn't obvious.
