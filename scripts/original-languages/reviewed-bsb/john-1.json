@@ -1,0 +1,9004 @@
+{
+  "schemaVersion": 1,
+  "targetId": "BSB",
+  "sourceId": "N1904",
+  "book": "John",
+  "chapter": 1,
+  "review": {
+    "source": "Actual written N1904 and the publisher rows, reviewed against the displayed BSB by Claude (Anthropic); independent peer review recorded in the registry."
+  },
+  "verses": {
+    "1:1": {
+      "sourceText": "Ἐν ἀρχῇ ἦν ὁ Λόγος, καὶ ὁ Λόγος ἦν πρὸς τὸν Θεόν, καὶ Θεὸς ἦν ὁ Λόγος.",
+      "targetText": "In the beginning was the Word, and the Word was with God, and the Word was God.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "In",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the beginning",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Word",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Word",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 1
+            }
+          ],
+          "note": "Θεός stands first, without the article, as the predicate; ὁ Λόγος is the subject."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "Word",
+              "occurrence": 2
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:2": {
+      "sourceText": "Οὗτος ἦν ἐν ἀρχῇ πρὸς τὸν Θεόν.",
+      "targetText": "He was with God in the beginning.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "He",
+              "occurrence": 0
+            }
+          ],
+          "note": "The demonstrative οὗτος (\"this one\") is rendered He."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the beginning",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            5
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:3": {
+      "sourceText": "πάντα δι’ αὐτοῦ ἐγένετο, καὶ χωρὶς αὐτοῦ ἐγένετο οὐδὲ ἕν ὃ γέγονεν.",
+      "targetText": "Through Him all things were made, and without Him nothing was made that has been made.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "all things",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Through",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "were made",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "without",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "was made",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "nothing",
+              "occurrence": 0
+            }
+          ],
+          "note": "οὐδὲ ἕν (\"not even one thing\") is rendered nothing."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "has been made",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "1:4": {
+      "sourceText": "ἐν αὐτῷ ζωὴ ἦν, καὶ ἡ ζωὴ ἦν τὸ φῶς τῶν ἀνθρώπων.",
+      "targetText": "In Him was life, and that life was the light of men.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "In",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "life",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article pointing back to the life just named is rendered that."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "life",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "light",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "of men",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:5": {
+      "sourceText": "καὶ τὸ φῶς ἐν τῇ σκοτίᾳ φαίνει, καὶ ἡ σκοτία αὐτὸ οὐ κατέλαβεν.",
+      "targetText": "The Light shines in the darkness, and the darkness has not overcome it.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "The",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Light",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "darkness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "shines",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "darkness",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "it",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "has",
+              "occurrence": 0
+            },
+            {
+              "text": "overcome",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the opening connective καί untranslated."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:6": {
+      "sourceText": "Ἐγένετο ἄνθρωπος, ἀπεσταλμένος παρὰ Θεοῦ, ὄνομα αὐτῷ Ἰωάνης·",
+      "targetText": "There came a man who was sent from God. His name was John.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "There came",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "a man",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "who was sent",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "name",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "John",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same name, spelled differently in BSB's Greek text."
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "was",
+          "occurrence": 1,
+          "reason": "English supplies the copula; ὄνομα αὐτῷ Ἰωάνης has no verb."
+        }
+      ]
+    },
+    "1:7": {
+      "sourceText": "οὗτος ἦλθεν εἰς μαρτυρίαν, ἵνα μαρτυρήσῃ περὶ τοῦ φωτός, ἵνα πάντες πιστεύσωσιν δι’ αὐτοῦ.",
+      "targetText": "He came as a witness to testify about the Light, so that through him everyone might believe.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "He",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "came",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "as",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "a witness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "testify",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "about",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Light",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "so that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "everyone",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "might believe",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "1:8": {
+      "sourceText": "οὐκ ἦν ἐκεῖνος τὸ φῶς, ἀλλ’ ἵνα μαρτυρήσῃ περὶ τοῦ φωτός.",
+      "targetText": "He himself was not the Light, but he came to testify about the Light.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "He himself",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Light",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "testify",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "about",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Light",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "he came",
+          "occurrence": 0,
+          "reason": "English supplies the verb understood from verse 7; ἀλλ’ ἵνα has no verb of its own."
+        }
+      ]
+    },
+    "1:9": {
+      "sourceText": "Ἦν τὸ φῶς τὸ ἀληθινὸν, ὃ φωτίζει πάντα ἄνθρωπον, ἐρχόμενον εἰς τὸν κόσμον.",
+      "targetText": "The true Light who gives light to every man was coming into the world.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "The",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Light",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "true",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "gives light to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "every",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "man",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "coming",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB takes this participle with the verse's opening ἦν as was coming."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "into",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "world",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:10": {
+      "sourceText": "ἐν τῷ κόσμῳ ἦν, καὶ ὁ κόσμος δι’ αὐτοῦ ἐγένετο, καὶ ὁ κόσμος αὐτὸν οὐκ ἔγνω.",
+      "targetText": "He was in the world, and though the world was made through Him, the world did not recognize Him.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "world",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "He was",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "world",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "was made",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "though",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB subordinates the clause before this καί, so the καί joining the last two clauses is rendered by though."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "world",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "did",
+              "occurrence": 0
+            },
+            {
+              "text": "recognize",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "1:11": {
+      "sourceText": "εἰς τὰ ἴδια ἦλθεν, καὶ οἱ ἴδιοι αὐτὸν οὐ παρέλαβον.",
+      "targetText": "He came to His own, and His own did not receive Him.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "own",
+              "occurrence": 0
+            }
+          ],
+          "note": "Neuter plural τὰ ἴδια: his own things or home."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "He came",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "own",
+              "occurrence": 1
+            }
+          ],
+          "note": "Masculine plural οἱ ἴδιοι: his own people."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "did",
+              "occurrence": 0
+            },
+            {
+              "text": "receive",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "1:12": {
+      "sourceText": "ὅσοι δὲ ἔλαβον αὐτόν, ἔδωκεν αὐτοῖς ἐξουσίαν τέκνα Θεοῦ γενέσθαι, τοῖς πιστεύουσιν εἰς τὸ ὄνομα αὐτοῦ,",
+      "targetText": "But to all who did receive Him, to those who believed in His name, He gave the right to become children of God—",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "all who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "did receive",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "He gave",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ],
+          "note": "The resumptive αὐτοῖς (\"to them\") gives the to of to all who."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the right",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "children",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "to become",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "to those who believed",
+              "occurrence": 0
+            }
+          ],
+          "note": "Article and participle: \"to those believing\"."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "name",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            13
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:13": {
+      "sourceText": "οἳ οὐκ ἐξ αἱμάτων οὐδὲ ἐκ θελήματος σαρκὸς οὐδὲ ἐκ θελήματος ἀνδρὸς ἀλλ’ ἐκ Θεοῦ ἐγεννήθησαν.",
+      "targetText": "children born not of blood, nor of the desire or will of man, but born of God.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "children",
+              "occurrence": 0
+            }
+          ],
+          "note": "The relative οἵ (\"who\"), referring back to those who received and believed in verse 12, is rendered children."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "blood",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "nor",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the desire",
+              "occurrence": 0
+            }
+          ],
+          "note": "θελήματος σαρκός (\"will of the flesh\") is rendered the desire."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "or",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "will",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "of man",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "born",
+              "occurrence": 0
+            },
+            {
+              "text": "born",
+              "occurrence": 1
+            }
+          ],
+          "note": "The one verb ἐγεννήθησαν (\"were born\") is rendered at both places where BSB says born."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "BSB puts desire and will under one of, so this repeated ἐκ has no English word."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:14": {
+      "sourceText": "Καὶ ὁ Λόγος σὰρξ ἐγένετο καὶ ἐσκήνωσεν ἐν ἡμῖν, καὶ ἐθεασάμεθα τὴν δόξαν αὐτοῦ, δόξαν ὡς μονογενοῦς παρὰ Πατρός, πλήρης χάριτος καὶ ἀληθείας.",
+      "targetText": "The Word became flesh and made His dwelling among us. We have seen His glory, the glory of the one and only Son from the Father, full of grace and truth.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "The",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Word",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "flesh",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "became",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "made His dwelling",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "among",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "us",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "We have seen",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "glory",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the glory",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "of the one and only Son",
+              "occurrence": 0
+            }
+          ],
+          "note": "The adjective μονογενοῦς (\"one and only\"), used as a noun, is rendered the one and only Son; the Greek has no separate word for Son."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "the Father",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "full",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "of grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "truth",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "BSB starts a new sentence here instead of rendering καί."
+        },
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            15
+          ],
+          "reason": "BSB leaves ὡς (\"as\") untranslated."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:15": {
+      "sourceText": "Ἰωάνης μαρτυρεῖ περὶ αὐτοῦ καὶ κέκραγεν λέγων Οὗτος ἦν ὃν εἶπον Ὁ ὀπίσω μου ἐρχόμενος ἔμπροσθέν μου γέγονεν, ὅτι πρῶτός μου ἦν.",
+      "targetText": "John testified concerning Him. He cried out, saying, “This is He of whom I said, ‘He who comes after me has surpassed me because He was before me.’”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "John",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same name, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "testified",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "concerning",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "He cried out",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "saying",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "This",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ],
+          "note": "The imperfect ἦν (\"was\") is rendered is."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "of whom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "I said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "He who comes",
+              "occurrence": 0
+            }
+          ],
+          "note": "Article and participle: \"the one coming\"."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "after",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15,
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "has surpassed",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἔμπροσθέν … γέγονεν (\"has come to be ahead of\") is rendered has surpassed."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "because",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "before",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "He was",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "BSB starts a new sentence here instead of rendering καί."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "He",
+          "occurrence": 1,
+          "reason": "English supplies He as the antecedent of the relative whom."
+        }
+      ]
+    },
+    "1:16": {
+      "sourceText": "ὅτι ἐκ τοῦ πληρώματος αὐτοῦ ἡμεῖς πάντες ἐλάβομεν, καὶ χάριν ἀντὶ χάριτος·",
+      "targetText": "From His fullness we have all received grace upon grace.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "From",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "fullness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "we",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "have",
+              "occurrence": 0
+            },
+            {
+              "text": "received",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "upon",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves ὅτι (\"for\") untranslated."
+        },
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "BSB leaves this καί (\"even\") untranslated."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:17": {
+      "sourceText": "ὅτι ὁ νόμος διὰ Μωϋσέως ἐδόθη, ἡ χάρις καὶ ἡ ἀλήθεια διὰ Ἰησοῦ Χριστοῦ ἐγένετο.",
+      "targetText": "For the law was given through Moses; grace and truth came through Jesus Christ.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "law",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Moses",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "was given",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "truth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "came",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6,
+            9
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:18": {
+      "sourceText": "Θεὸν οὐδεὶς ἑώρακεν πώποτε· μονογενὴς Θεὸς ὁ ὢν εἰς τὸν κόλπον τοῦ Πατρὸς, ἐκεῖνος ἐξηγήσατο.",
+      "targetText": "No one has ever seen God, but the one and only Son, who is Himself God and is at the Father’s side, has made Him known.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "No one",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "has",
+              "occurrence": 0
+            },
+            {
+              "text": "seen",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "ever",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the one and only",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB takes the adjective μονογενής (\"one and only\") as a noun."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 1
+            }
+          ],
+          "note": "BSB takes Θεός in apposition to μονογενής: who is Himself God."
+        },
+        {
+          "sourceTokens": [
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 1
+            }
+          ],
+          "note": "Article and participle ὁ ὤν (\"the one who is\") is rendered as a second relative clause."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "at",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "side",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Father’s",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "has made",
+              "occurrence": 0
+            },
+            {
+              "text": "known",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            13
+          ],
+          "reason": "The resumptive ἐκεῖνος (\"that one\") repeats the subject, which English states once."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "but",
+          "occurrence": 0,
+          "reason": "English supplies a contrast; the Greek has no connective here."
+        },
+        {
+          "text": "Son",
+          "occurrence": 0,
+          "reason": "English supplies Son; the Greek here reads μονογενὴς Θεός and has no word for Son."
+        },
+        {
+          "text": "who is Himself",
+          "occurrence": 0,
+          "reason": "English turns the apposition μονογενὴς Θεός into a relative clause."
+        },
+        {
+          "text": "and",
+          "occurrence": 1,
+          "reason": "English joins the two descriptions of the Son with and."
+        },
+        {
+          "text": "Him",
+          "occurrence": 0,
+          "reason": "English supplies the object; ἐξηγήσατο has none."
+        }
+      ]
+    },
+    "1:19": {
+      "sourceText": "Καὶ αὕτη ἐστὶν ἡ μαρτυρία τοῦ Ἰωάνου ὅτε ἀπέστειλαν πρὸς αὐτὸν οἱ Ἰουδαῖοι ἐξ Ἱεροσολύμων ἱερεῖς καὶ Λευείτας ἵνα ἐρωτήσωσιν αὐτόν Σὺ τίς εἶ;",
+      "targetText": "And this was John’s testimony when the Jews of Jerusalem sent priests and Levites to ask him, “Who are you?”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 0
+            }
+          ],
+          "note": "The present ἐστίν (\"is\") is rendered was."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "testimony",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "John’s",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same name, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "when",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "sent",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jews",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jerusalem",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "priests",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "Levites",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same word, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "ask",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "Who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "are",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            5
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            9,
+            10
+          ],
+          "reason": "BSB leaves πρὸς αὐτόν (\"to him\") unexpressed; to ask him makes the destination clear."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:20": {
+      "sourceText": "καὶ ὡμολόγησεν καὶ οὐκ ἠρνήσατο, καὶ ὡμολόγησεν ὅτι Ἐγὼ οὐκ εἰμὶ ὁ Χριστός.",
+      "targetText": "He did not refuse to confess, but openly declared, “I am not the Christ.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "to confess",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB folds the first ὡμολόγησεν (\"he confessed\") into did not refuse to confess."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "He did",
+              "occurrence": 0
+            },
+            {
+              "text": "refuse",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἠρνήσατο (\"denied\") is rendered refuse."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "openly declared",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "am",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "BSB merges \"confessed and did not deny\" into one clause, so this καί has no English word."
+        },
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "ὅτι introduces the direct quotation and has no English word."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:21": {
+      "sourceText": "καὶ ἠρώτησαν αὐτόν Τί οὖν; σὺ Ἡλείας εἶ; καὶ λέγει Οὐκ εἰμί. Ὁ προφήτης εἶ σύ; καὶ ἀπεκρίθη Οὔ.",
+      "targetText": "“Then who are you?” they inquired. “Are you Elijah?”  He said, “I am not.”  “Are you the Prophet?”  He answered, “No.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "they inquired",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "Τί (\"what?\") is rendered who."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Then",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Elijah",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same name, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Are",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "He said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "I am",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Prophet",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Are",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "He answered",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "No",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "BSB leaves the object αὐτόν (\"him\") unexpressed."
+        },
+        {
+          "tokens": [
+            8,
+            16
+          ],
+          "reason": "BSB starts each reply as a new sentence instead of rendering καί."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "are you",
+          "occurrence": 0,
+          "reason": "English supplies a verb and subject; Τί οὖν (\"What then?\") has neither."
+        }
+      ]
+    },
+    "1:22": {
+      "sourceText": "εἶπαν οὖν αὐτῷ Τίς εἶ; ἵνα ἀπόκρισιν δῶμεν τοῖς πέμψασιν ἡμᾶς· τί λέγεις περὶ σεαυτοῦ;",
+      "targetText": "So they said to him, “Who are you? We need an answer for those who sent us. What do you say about yourself?”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "they said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "So",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "are you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "We need",
+              "occurrence": 0
+            }
+          ],
+          "note": "The purpose clause ἵνα … δῶμεν (\"so that we may give\") is recast as We need."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "an answer",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "for those who sent",
+              "occurrence": 0
+            }
+          ],
+          "note": "Article and participle: \"those who sent\"."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "us",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "What",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "do you say",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "about",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "yourself",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "1:23": {
+      "sourceText": "ἔφη Ἐγὼ φωνὴ βοῶντος ἐν τῇ ἐρήμῳ Εὐθύνατε τὴν ὁδὸν Κυρίου, καθὼς εἶπεν Ἡσαΐας ὁ προφήτης.",
+      "targetText": "John replied in the words of Isaiah the prophet:  “I am a voice of one calling in the wilderness, ‘Make straight the way for the Lord.’”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "replied",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "a voice",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "of one calling",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "wilderness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Make straight",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "way",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "for the Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "in the words of",
+              "occurrence": 0
+            }
+          ],
+          "note": "καθὼς εἶπεν (\"as … said\") is rendered in the words of."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Isaiah",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "prophet",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "John",
+          "occurrence": 0,
+          "reason": "English names the speaker; the Greek gives him only in the verb ending of ἔφη."
+        },
+        {
+          "text": "am",
+          "occurrence": 0,
+          "reason": "English supplies the copula; Ἐγὼ φωνή has no verb."
+        }
+      ]
+    },
+    "1:24": {
+      "sourceText": "Καὶ ἀπεσταλμένοι ἦσαν ἐκ τῶν Φαρισαίων.",
+      "targetText": "Then the Pharisees who had been sent",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Then",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "who had been sent",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἀπεσταλμένοι ἦσαν (\"had been sent\") is rendered as a relative clause."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Pharisees",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "BSB makes the Pharisees themselves the subject, so ἐκ (\"from\") has no English word."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:25": {
+      "sourceText": "καὶ ἠρώτησαν αὐτὸν καὶ εἶπαν αὐτῷ Τί οὖν βαπτίζεις εἰ σὺ οὐκ εἶ ὁ Χριστὸς οὐδὲ Ἡλείας οὐδὲ ὁ προφήτης;",
+      "targetText": "asked him, “Why then do you baptize, if you are not the Christ, nor Elijah, nor the Prophet?”",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "asked",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Why",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "then",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "do you baptize",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "if",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "are",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "nor",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "Elijah",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same name, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "nor",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "Prophet",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB runs verses 24 and 25 together as one sentence, so this καί has no English word."
+        },
+        {
+          "tokens": [
+            3,
+            4,
+            5
+          ],
+          "reason": "BSB leaves the second verb of speaking, καὶ εἶπαν αὐτῷ (\"and said to him\"), untranslated."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:26": {
+      "sourceText": "ἀπεκρίθη αὐτοῖς ὁ Ἰωάνης λέγων Ἐγὼ βαπτίζω ἐν ὕδατι· μέσος ὑμῶν στήκει ὃν ὑμεῖς οὐκ οἴδατε,",
+      "targetText": "“I baptize with water,” John replied, “but among you stands One you do not know.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "replied",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "John",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same name, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "baptize",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "water",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "among",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "stands",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same meaning; BSB's Greek text has a different form of this verb."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "One",
+              "occurrence": 0
+            }
+          ],
+          "note": "The relative ὅν (\"whom\") is rendered One, with whom left unexpressed."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "do",
+              "occurrence": 0
+            },
+            {
+              "text": "know",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves αὐτοῖς (\"to them\") unexpressed."
+        },
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "The participle λέγων (\"saying\") is represented only by the quotation marks."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "but",
+          "occurrence": 0,
+          "reason": "English supplies a contrast; the Greek has no connective here."
+        }
+      ]
+    },
+    "1:27": {
+      "sourceText": "ὁ ὀπίσω μου ἐρχόμενος, οὗ οὐκ εἰμὶ ἐγὼ ἄξιος ἵνα λύσω αὐτοῦ τὸν ἱμάντα τοῦ ὑποδήματος.",
+      "targetText": "He is the One who comes after me, the straps of whose sandals I am not worthy to untie.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the One who comes",
+              "occurrence": 0
+            }
+          ],
+          "note": "Article and participle: \"the one coming\"."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "after",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "whose",
+              "occurrence": 0
+            }
+          ],
+          "note": "The resumptive αὐτοῦ (\"his\") repeats the relative οὗ; English expresses both with whose."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "am",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "worthy",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "untie",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "straps",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "sandals",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            14
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "He is",
+          "occurrence": 0,
+          "reason": "English supplies a subject and verb; the Greek continues verse 26 with ὁ … ἐρχόμενος."
+        }
+      ]
+    },
+    "1:28": {
+      "sourceText": "Ταῦτα ἐν Βηθανίᾳ ἐγένετο πέραν τοῦ Ἰορδάνου, ὅπου ἦν ὁ Ἰωάνης βαπτίζων.",
+      "targetText": "All this happened at Bethany beyond the Jordan, where John was baptizing.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "All this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "at",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Bethany",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "happened",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "beyond",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jordan",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "where",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "was baptizing",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "John",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same name, spelled differently in BSB's Greek text."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:29": {
+      "sourceText": "Τῇ ἐπαύριον βλέπει τὸν Ἰησοῦν ἐρχόμενον πρὸς αὐτόν, καὶ λέγει Ἴδε ὁ Ἀμνὸς τοῦ Θεοῦ ὁ αἴρων τὴν ἁμαρτίαν τοῦ κόσμου.",
+      "targetText": "The next day John saw Jesus coming toward him and said, “Look, the Lamb of God, who takes away the sin of the world!",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "The",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "next day",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "saw",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "coming",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "toward",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Look",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Lamb",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15,
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "who takes away",
+              "occurrence": 0
+            }
+          ],
+          "note": "Article and participle: \"the one taking away\"."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "sin",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            },
+            {
+              "text": "world",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            13
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "John",
+          "occurrence": 0,
+          "reason": "English names the subject; the Greek gives it only in the verb ending of βλέπει."
+        }
+      ]
+    },
+    "1:30": {
+      "sourceText": "οὗτός ἐστιν ὑπὲρ οὗ ἐγὼ εἶπον Ὀπίσω μου ἔρχεται ἀνὴρ ὃς ἔμπροσθέν μου γέγονεν, ὅτι πρῶτός μου ἦν.",
+      "targetText": "This is He of whom I said, ‘A man who comes after me has surpassed me because He was before me.’",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "This",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "whom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "after",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "comes",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "A man",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB makes \"comes after me\" the relative clause, so the relative ὅς gives who there."
+        },
+        {
+          "sourceTokens": [
+            11,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "has surpassed",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἔμπροσθέν … γέγονεν (\"has come to be ahead of\") is rendered has surpassed."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "because",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "before",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "He was",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "He",
+          "occurrence": 0,
+          "reason": "English supplies He as the antecedent of the relative whom."
+        }
+      ]
+    },
+    "1:31": {
+      "sourceText": "κἀγὼ οὐκ ᾔδειν αὐτόν, ἀλλ’ ἵνα φανερωθῇ τῷ Ἰσραὴλ, διὰ τοῦτο ἦλθον ἐγὼ ἐν ὕδατι βαπτίζων.",
+      "targetText": "I myself did not know Him, but the reason I came baptizing with water was that He might be revealed to Israel.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I myself",
+              "occurrence": 0
+            }
+          ],
+          "note": "κἀγώ (καί + ἐγώ, \"I too\") is rendered I myself."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "did",
+              "occurrence": 0
+            },
+            {
+              "text": "know",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "He might be revealed",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ],
+          "note": "With the indeclinable name Ἰσραήλ, the article shows the dative."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Israel",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9,
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "the reason",
+              "occurrence": 0
+            }
+          ],
+          "note": "διὰ τοῦτο (\"for this reason\") with the ἵνα clause is recast as the reason … was that."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "came",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "water",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "baptizing",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "was",
+          "occurrence": 0,
+          "reason": "English recasts the sentence with a copula; the Greek has none here."
+        }
+      ]
+    },
+    "1:32": {
+      "sourceText": "Καὶ ἐμαρτύρησεν Ἰωάνης λέγων ὅτι Τεθέαμαι τὸ Πνεῦμα καταβαῖνον ὡς περιστερὰν ἐξ οὐρανοῦ, καὶ ἔμεινεν ἐπ’ αὐτόν.",
+      "targetText": "Then John testified, “I saw the Spirit descending from heaven like a dove and resting on Him.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Then",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "testified",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "John",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same name, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "I saw",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Spirit",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "descending",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "like",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "a dove",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "heaven",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "resting",
+              "occurrence": 0
+            }
+          ],
+          "note": "The finite ἔμεινεν (\"remained\") is rendered as the participle resting."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "on",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The participle λέγων (\"saying\") is represented only by the quotation marks."
+        },
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "ὅτι introduces the direct quotation and has no English word."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:33": {
+      "sourceText": "κἀγὼ οὐκ ᾔδειν αὐτόν, ἀλλ’ ὁ πέμψας με βαπτίζειν ἐν ὕδατι ἐκεῖνός μοι εἶπεν Ἐφ’ ὃν ἂν ἴδῃς τὸ Πνεῦμα καταβαῖνον καὶ μένον ἐπ’ αὐτόν, οὗτός ἐστιν ὁ βαπτίζων ἐν Πνεύματι Ἁγίῳ.",
+      "targetText": "I myself did not know Him, but the One who sent me to baptize with water told me, ‘The man on whom you see the Spirit descend and rest is He who will baptize with the Holy Spirit.’",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I myself",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "did",
+              "occurrence": 0
+            },
+            {
+              "text": "know",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5,
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the One who sent",
+              "occurrence": 0
+            }
+          ],
+          "note": "Article and participle: \"the one who sent\"."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "to baptize",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "water",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "told",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "on",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15,
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "whom",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὃν ἄν (\"whomever\") is rendered whom."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "you see",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "Spirit",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "descend",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "rest",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "The man",
+              "occurrence": 0
+            }
+          ],
+          "note": "The demonstrative οὗτος (\"this one\"), subject of ἐστιν, is rendered by the subject The man at the head of the sentence."
+        },
+        {
+          "sourceTokens": [
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            27,
+            28
+          ],
+          "targetPhrases": [
+            {
+              "text": "He who will baptize",
+              "occurrence": 0
+            }
+          ],
+          "note": "Article and present participle ὁ βαπτίζων (\"the one baptizing\") is rendered He who will baptize."
+        },
+        {
+          "sourceTokens": [
+            29
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            30
+          ],
+          "targetPhrases": [
+            {
+              "text": "Spirit",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            31
+          ],
+          "targetPhrases": [
+            {
+              "text": "the Holy",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "The resumptive ἐκεῖνος (\"that one\") repeats the subject, which English states once."
+        },
+        {
+          "tokens": [
+            23,
+            24
+          ],
+          "reason": "BSB does not repeat ἐπ’ αὐτόν (\"on him\"), already expressed by on whom."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:34": {
+      "sourceText": "κἀγὼ ἑώρακα, καὶ μεμαρτύρηκα ὅτι οὗτός ἐστιν ὁ Υἱὸς τοῦ Θεοῦ.",
+      "targetText": "I have seen and testified that this is the Son of God.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "have seen",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "testified",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Son",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:35": {
+      "sourceText": "Τῇ ἐπαύριον πάλιν εἱστήκει ὁ Ἰωάνης καὶ ἐκ τῶν μαθητῶν αὐτοῦ δύο,",
+      "targetText": "The next day John was there again with two of his disciples.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "The",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "next day",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "again",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "was there",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "John",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same name, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "disciples",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "his",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "two",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4,
+            8
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:36": {
+      "sourceText": "καὶ ἐμβλέψας τῷ Ἰησοῦ περιπατοῦντι λέγει Ἴδε ὁ Ἀμνὸς τοῦ Θεοῦ.",
+      "targetText": "When he saw Jesus walking by, he said, “Look, the Lamb of God!”",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "When he saw",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "walking by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "he said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Look",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Lamb",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            2,
+            9
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:37": {
+      "sourceText": "καὶ ἤκουσαν οἱ δύο μαθηταὶ αὐτοῦ λαλοῦντος καὶ ἠκολούθησαν τῷ Ἰησοῦ.",
+      "targetText": "And when the two disciples heard him say this, they followed Jesus.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "heard",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "two",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "disciples",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "say",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "when",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB subordinates the first clause, so the καί joining the two clauses is rendered by when."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "they followed",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "this",
+          "occurrence": 0,
+          "reason": "English supplies an object for say; λαλοῦντος has none."
+        }
+      ]
+    },
+    "1:38": {
+      "sourceText": "στραφεὶς δὲ ὁ Ἰησοῦς καὶ θεασάμενος αὐτοὺς ἀκολουθοῦντας λέγει αὐτοῖς Τί ζητεῖτε; οἱ δὲ εἶπαν αὐτῷ Ῥαββεί, (ὃ λέγεται μεθερμηνευόμενον Διδάσκαλε,) ποῦ μένεις;",
+      "targetText": "Jesus turned and saw them following. “What do you want?” He asked.  They said to Him, “Rabbi” (which means Teacher), “where are You staying?”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "turned",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "saw",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "them",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "following",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "He asked",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "What",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "do you want",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "They",
+              "occurrence": 0
+            }
+          ],
+          "note": "In οἱ δέ the article serves as the pronoun they."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "to Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "Rabbi",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same word, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "which",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18,
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "means",
+              "occurrence": 0
+            }
+          ],
+          "note": "λέγεται μεθερμηνευόμενον (\"is called, when translated\") is rendered means."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "Teacher",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "where",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "are You staying",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1,
+            13
+          ],
+          "reason": "BSB leaves δέ untranslated."
+        },
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "BSB leaves αὐτοῖς (\"to them\") unexpressed."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:39": {
+      "sourceText": "λέγει αὐτοῖς Ἔρχεσθε καὶ ὄψεσθε. ἦλθαν οὖν καὶ εἶδαν ποῦ μένει, καὶ παρ’ αὐτῷ ἔμειναν τὴν ἡμέραν ἐκείνην· ὥρα ἦν ὡς δεκάτη.",
+      "targetText": "“Come and see,” He replied. So they went and saw where He was staying, and spent that day with Him. It was about the tenth hour.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "He replied",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Come",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "see",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "they went",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "So",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "saw",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "where",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "He was staying",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "spent",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "day",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "hour",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "It was",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "about",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "the tenth",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves αὐτοῖς (\"to them\") unexpressed."
+        },
+        {
+          "tokens": [
+            15
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:40": {
+      "sourceText": "Ἦν Ἀνδρέας ὁ ἀδελφὸς Σίμωνος Πέτρου εἷς ἐκ τῶν δύο τῶν ἀκουσάντων παρὰ Ἰωάνου καὶ ἀκολουθησάντων αὐτῷ·",
+      "targetText": "Andrew, Simon Peter’s brother, was one of the two who heard John’s testimony and followed Jesus.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Andrew",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "brother",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Simon",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Peter’s",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "one",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "two",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "who heard",
+              "occurrence": 0
+            }
+          ],
+          "note": "Article and participle: \"those who heard\"."
+        },
+        {
+          "sourceTokens": [
+            12,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "John’s",
+              "occurrence": 0
+            }
+          ],
+          "note": "παρὰ Ἰωάνου (\"from John\", the name spelled differently in BSB's Greek text) is rendered John’s."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "followed",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ],
+          "note": "The pronoun αὐτῷ (\"him\") is rendered Jesus."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "testimony",
+          "occurrence": 0,
+          "reason": "English supplies what was heard; the Greek says only that they heard from John."
+        }
+      ]
+    },
+    "1:41": {
+      "sourceText": "εὑρίσκει οὗτος πρῶτον τὸν ἀδελφὸν τὸν ἴδιον Σίμωνα καὶ λέγει αὐτῷ Εὑρήκαμεν τὸν Μεσσίαν (ὅ ἐστιν μεθερμηνευόμενον Χριστός).",
+      "targetText": "He first found his brother Simon and told him, “We have found the Messiah” (which is translated as Christ).",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "found",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "He",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "first",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "brother",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "his",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἴδιον (\"his own\") is rendered his."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Simon",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "told",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "We have found",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Messiah",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "which",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "translated as",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            5
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:42": {
+      "sourceText": "ἤγαγεν αὐτὸν πρὸς τὸν Ἰησοῦν. ἐμβλέψας αὐτῷ ὁ Ἰησοῦς εἶπεν Σὺ εἶ Σίμων ὁ υἱὸς Ἰωάνου, σὺ κληθήσῃ Κηφᾶς (ὃ ἑρμηνεύεται Πέτρος).",
+      "targetText": "Andrew brought him to Jesus, who looked at him and said, “You are Simon son of John. You will be called Cephas” (which is translated as Peter).",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "brought",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "looked at",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB has already named Jesus, so this second Ἰησοῦς is rendered by the relative who."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "You",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "are",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Simon",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "son",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "of John",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same name, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "You",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "will be called",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "Cephas",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "which",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "is translated as",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "Peter",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            7,
+            13
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Andrew",
+          "occurrence": 0,
+          "reason": "English names the subject; the Greek gives it only in the verb ending of ἤγαγεν."
+        },
+        {
+          "text": "and",
+          "occurrence": 0,
+          "reason": "English joins the participle clause to the main verb."
+        }
+      ]
+    },
+    "1:43": {
+      "sourceText": "Τῇ ἐπαύριον ἠθέλησεν ἐξελθεῖν εἰς τὴν Γαλιλαίαν. καὶ εὑρίσκει Φίλιππον. καὶ λέγει αὐτῷ ὁ Ἰησοῦς Ἀκολούθει μοι.",
+      "targetText": "The next day Jesus decided to set out for Galilee. Finding Philip, He told him, “Follow Me.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "The",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "next day",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "decided",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "to set out",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Galilee",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Finding",
+              "occurrence": 0
+            }
+          ],
+          "note": "The finite εὑρίσκει (\"he finds\") is rendered as the participle Finding."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Philip",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "told",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "He",
+              "occurrence": 0
+            }
+          ],
+          "note": "The subject Ἰησοῦς of λέγει is rendered He, since BSB already names Jesus in the first sentence."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "Follow",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "Me",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            5,
+            13
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            7,
+            10
+          ],
+          "reason": "BSB recasts the clauses with Finding, so these καί have no English word."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "Jesus",
+          "occurrence": 0,
+          "reason": "English names the subject; the Greek gives it only in the verb ending of ἠθέλησεν."
+        }
+      ]
+    },
+    "1:44": {
+      "sourceText": "ἦν δὲ ὁ Φίλιππος ἀπὸ Βηθσαϊδά, ἐκ τῆς πόλεως Ἀνδρέου καὶ Πέτρου.",
+      "targetText": "Now Philip was from Bethsaida, the same town as Andrew and Peter.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "was",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Now",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Philip",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Bethsaida",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "town",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "as Andrew",
+              "occurrence": 0
+            }
+          ],
+          "note": "The genitive \"of Andrew\" is rendered as Andrew after same."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Peter",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "BSB does not repeat from (ἐκ) before the town, which stands in apposition to Bethsaida."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "same",
+          "occurrence": 0,
+          "reason": "English adds same; the Greek says \"the town of Andrew and Peter\"."
+        }
+      ]
+    },
+    "1:45": {
+      "sourceText": "εὑρίσκει Φίλιππος τὸν Ναθαναὴλ καὶ λέγει αὐτῷ Ὃν ἔγραψεν Μωϋσῆς ἐν τῷ νόμῳ καὶ οἱ προφῆται εὑρήκαμεν, Ἰησοῦν υἱὸν τοῦ Ἰωσὴφ τὸν ἀπὸ Ναζαρέτ.",
+      "targetText": "Philip found Nathanael and told him, “We have found the One Moses wrote about in the Law, the One the prophets foretold—Jesus of Nazareth, the son of Joseph.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "found",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Philip",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Nathanael",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "told",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the One",
+              "occurrence": 0
+            },
+            {
+              "text": "the One",
+              "occurrence": 1
+            }
+          ],
+          "note": "The relative Ὅν (\"whom\") serves both Moses and the prophets; BSB repeats the One."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "wrote about",
+              "occurrence": 0
+            },
+            {
+              "text": "foretold",
+              "occurrence": 0
+            }
+          ],
+          "note": "The one verb ἔγραψεν (\"wrote\") serves both subjects; with the prophets BSB renders it foretold."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Moses",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Law",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "prophets",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "We have found",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "the son",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            }
+          ],
+          "note": "With the indeclinable name Ἰωσήφ, the article shows the genitive."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "Joseph",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "Nazareth",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            13
+          ],
+          "reason": "BSB repeats the One instead of rendering καί."
+        },
+        {
+          "tokens": [
+            21
+          ],
+          "reason": "The article τόν (\"the one\") has no distinct counterpart in Jesus of Nazareth."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:46": {
+      "sourceText": "καὶ εἶπεν αὐτῷ Ναθαναήλ Ἐκ Ναζαρὲτ δύναταί τι ἀγαθὸν εἶναι; λέγει αὐτῷ ὁ Φίλιππος Ἔρχου καὶ ἴδε.",
+      "targetText": "“Can anything good come from Nazareth?” Nathanael asked.  “Come and see,” said Philip.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "asked",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Nathanael",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Nazareth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Can",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "anything good",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "come",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἶναι (\"to be\") is rendered come."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Philip",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Come",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "see",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves the opening connective καί untranslated."
+        },
+        {
+          "tokens": [
+            2,
+            11
+          ],
+          "reason": "BSB leaves αὐτῷ (\"to him\") unexpressed."
+        },
+        {
+          "tokens": [
+            12
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:47": {
+      "sourceText": "εἶδεν Ἰησοῦς τὸν Ναθαναὴλ ἐρχόμενον πρὸς αὐτὸν καὶ λέγει περὶ αὐτοῦ Ἴδε ἀληθῶς Ἰσραηλείτης, ἐν ᾧ δόλος οὐκ ἔστιν.",
+      "targetText": "When Jesus saw Nathanael approaching, He said of him, “Here is a true Israelite, in whom there is no deceit.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "saw",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Nathanael",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "approaching",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐρχόμενον πρός (\"coming toward\") is rendered approaching."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "When",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB subordinates the first clause, so the καί joining the two clauses is rendered by When."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "He said",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Here is",
+              "occurrence": 0
+            }
+          ],
+          "note": "Ἴδε (\"look\") is rendered Here is."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "true",
+              "occurrence": 0
+            }
+          ],
+          "note": "The adverb ἀληθῶς (\"truly\") is rendered as the adjective true."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "a",
+              "occurrence": 0
+            },
+            {
+              "text": "Israelite",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same word, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "whom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "deceit",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "no",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "there is",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "BSB leaves αὐτόν (\"him\") unexpressed; approaching already implies it."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:48": {
+      "sourceText": "λέγει αὐτῷ Ναθαναήλ Πόθεν με γινώσκεις; ἀπεκρίθη Ἰησοῦς καὶ εἶπεν αὐτῷ Πρὸ τοῦ σε Φίλιππον φωνῆσαι ὄντα ὑπὸ τὴν συκῆν εἶδόν σε.",
+      "targetText": "“How do You know me?” Nathanael asked.  Jesus replied, “Before Philip called you, I saw you under the fig tree.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "asked",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Nathanael",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "How",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "do You know",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "replied",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἀπεκρίθη … καὶ εἶπεν (\"answered and said\") is rendered replied."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Before",
+              "occurrence": 0
+            }
+          ],
+          "note": "πρὸ τοῦ with the infinitive φωνῆσαι is rendered Before."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Philip",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "called",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "under",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "fig tree",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "I saw",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1,
+            10
+          ],
+          "reason": "BSB leaves αὐτῷ (\"to him\") unexpressed."
+        },
+        {
+          "tokens": [
+            16
+          ],
+          "reason": "BSB leaves the participle ὄντα (\"being\", while you were) unexpressed."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:49": {
+      "sourceText": "ἀπεκρίθη αὐτῷ Ναθαναήλ Ῥαββεί, σὺ εἶ ὁ Υἱὸς τοῦ Θεοῦ, σὺ Βασιλεὺς εἶ τοῦ Ἰσραήλ.",
+      "targetText": "“Rabbi,” Nathanael answered, “You are the Son of God! You are the King of Israel!”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "answered",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Nathanael",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Rabbi",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same word, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "You",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "are",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Son",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "You",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the King",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "are",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            }
+          ],
+          "note": "With the indeclinable name Ἰσραήλ, the article shows the genitive."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Israel",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves αὐτῷ (\"to him\") unexpressed."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:50": {
+      "sourceText": "ἀπεκρίθη Ἰησοῦς καὶ εἶπεν αὐτῷ Ὅτι εἶπόν σοι ὅτι εἶδόν σε ὑποκάτω τῆς συκῆς, πιστεύεις; μείζω τούτων ὄψῃ.",
+      "targetText": "Jesus said to him, “Do you believe just because I told you I saw you under the fig tree? You will see greater things than these.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            2,
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "said",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἀπεκρίθη … καὶ εἶπεν (\"answered and said\") is rendered said."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "to him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "just because",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "I told",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "I saw",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "under",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "fig tree",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Do you believe",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "greater things",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "than these",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "You will see",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "BSB leaves ὅτι (\"that\") unexpressed after told you."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:51": {
+      "sourceText": "καὶ λέγει αὐτῷ Ἀμὴν ἀμὴν λέγω ὑμῖν, ὄψεσθε τὸν οὐρανὸν ἀνεῳγότα καὶ τοὺς ἀγγέλους τοῦ Θεοῦ ἀναβαίνοντας καὶ καταβαίνοντας ἐπὶ τὸν Υἱὸν τοῦ ἀνθρώπου.",
+      "targetText": "Then He declared, “Truly, truly, I tell you, you will all see heaven open and the angels of God ascending and descending on the Son of Man.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Then",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "He declared",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Truly",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "truly",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "I tell",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "you will",
+              "occurrence": 0
+            },
+            {
+              "text": "see",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "heaven",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "open",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "angels",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "ascending",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "descending",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "on",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "Son",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Man",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "BSB leaves αὐτῷ (\"to him\") unexpressed."
+        },
+        {
+          "tokens": [
+            8,
+            14,
+            22
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "all",
+          "occurrence": 0,
+          "reason": "English marks that the you of ὄψεσθε is plural."
+        }
+      ]
+    }
+  }
+}
