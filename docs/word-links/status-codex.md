@@ -2,8 +2,8 @@
 
 ## Claimed now
 
-- **UKRK-R New Testament.** Colossians 1 is in independent review. Colossians 2 and 3 are being authored.
-- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,382 verses across 99 chapters. Of those, 3,369 have a linked Greek phrase. The remaining 4,573 verses still need review.
+- **UKRK-R New Testament.** 1 John 1 is in independent review. 1 John 2–4 are being authored.
+- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,477 verses across 103 chapters. Of those, 3,464 have a linked Greek phrase. The remaining 4,478 verses still need review.
 
 ## Done
 
@@ -26,7 +26,8 @@
 - `64b7bb3` added reviewed Acts 16–18, with five checked textual difference spans.
 - `e722b0b` added reviewed Acts 19–21, with 14 checked textual difference spans. Five words at the end of Greek Acts 19:40 link to the separately numbered Ukrainian Acts 19:41.
 - `ffe4da4` added reviewed Acts 22–24 with 17 new textual difference spans, preserving the existing whole-verse marker at Acts 24:7. Greek speech words at 22:2 and the Greek people and place words at 24:19 link across the neighbouring Ukrainian verse boundaries.
-- This batch completes the review of Acts with chapters 25–28 and six new textual difference spans. The existing whole-verse marker at Acts 28:29 is preserved.
+- `f3864a5` completed the review of Acts with chapters 25–28 and six new textual difference spans. The existing whole-verse marker at Acts 28:29 is preserved. Android 1.1.62 includes this revision.
+- This batch completes the review of Colossians and adds nine checked textual difference spans. The first three words of Greek 1:22 link to the end of Ukrainian 1:21.
 
 ## Ready to merge
 
