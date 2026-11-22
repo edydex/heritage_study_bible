@@ -2,8 +2,8 @@
 
 ## Claimed now
 
-- **UKRK-R New Testament.** Acts 22 has an independent review in progress. Acts 23 and 24 are being authored.
-- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,156 verses across 92 chapters. Of those, 3,145 have a linked Greek phrase. The remaining 4,799 verses still need review.
+- **UKRK-R New Testament.** James 1–2 are in independent review. James 3–4 are being authored.
+- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,582 verses across 108 chapters. Of those, 3,569 have a linked Greek phrase. The remaining 4,373 verses still need review.
 
 ## Done
 
@@ -24,7 +24,11 @@
 - `b1c4e6c` completed the review of Mark with chapters 15–16 and added three checked textual difference spans. The Greek edition's bracketed longer ending remains linked. The bracketed shorter ending at digital reference Mark 16:99 is reviewed as source-only.
 - `5036149` added reviewed Acts 13–15, with six checked textual difference spans. Nine words in the Greek end of Acts 13:38 link to the beginning of the next Ukrainian verse.
 - `64b7bb3` added reviewed Acts 16–18, with five checked textual difference spans.
-- This batch adds reviewed Acts 19–21, with 14 checked textual difference spans. Five words at the end of Greek Acts 19:40 link to the separately numbered Ukrainian Acts 19:41.
+- `e722b0b` added reviewed Acts 19–21, with 14 checked textual difference spans. Five words at the end of Greek Acts 19:40 link to the separately numbered Ukrainian Acts 19:41.
+- `ffe4da4` added reviewed Acts 22–24 with 17 new textual difference spans, preserving the existing whole-verse marker at Acts 24:7. Greek speech words at 22:2 and the Greek people and place words at 24:19 link across the neighbouring Ukrainian verse boundaries.
+- `f3864a5` completed the review of Acts with chapters 25–28 and six new textual difference spans. The existing whole-verse marker at Acts 28:29 is preserved. Android 1.1.62 includes this revision.
+- `2fb8517` completed the review of Colossians and added nine checked textual difference spans. The first three words of Greek 1:22 link to the end of Ukrainian 1:21.
+- This batch completes 1 John and adds six checked textual difference spans. Greek 2:14 and 5:20 link across Ukrainian verse boundaries, and the existing brackets at 5:7–8 are preserved.
 
 ## Ready to merge
 
