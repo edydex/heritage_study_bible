@@ -2,8 +2,8 @@
 
 ## Claimed now
 
-- **UKRK-R New Testament.** James 1–2 are in independent review. James 3–4 are being authored.
-- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,582 verses across 108 chapters. Of those, 3,569 have a linked Greek phrase. The remaining 4,373 verses still need review.
+- **UKRK-R New Testament.** 1 Peter 1–3 are in independent review.
+- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,690 verses across 113 chapters. Of those, 3,677 have a linked Greek phrase. The remaining 4,265 verses still need review.
 
 ## Done
 
@@ -28,7 +28,9 @@
 - `ffe4da4` added reviewed Acts 22–24 with 17 new textual difference spans, preserving the existing whole-verse marker at Acts 24:7. Greek speech words at 22:2 and the Greek people and place words at 24:19 link across the neighbouring Ukrainian verse boundaries.
 - `f3864a5` completed the review of Acts with chapters 25–28 and six new textual difference spans. The existing whole-verse marker at Acts 28:29 is preserved. Android 1.1.62 includes this revision.
 - `2fb8517` completed the review of Colossians and added nine checked textual difference spans. The first three words of Greek 1:22 link to the end of Ukrainian 1:21.
-- This batch completes 1 John and adds six checked textual difference spans. Greek 2:14 and 5:20 link across Ukrainian verse boundaries, and the existing brackets at 5:7–8 are preserved.
+- `cda4f11` completed 1 John and added six checked textual difference spans. Greek 2:14 and 5:20 link across Ukrainian verse boundaries, and the existing brackets at 5:7–8 are preserved.
+
+- This batch completes James and adds three checked textual difference spans. Four words at the end of Greek James 4:8 link to the beginning of Ukrainian James 4:9. The last-days clause in Greek James 5:3 stays visible in Original.
 
 ## Ready to merge
 
