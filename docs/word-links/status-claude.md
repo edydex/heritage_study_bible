@@ -17,6 +17,10 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   - Matthew 8:20: possessive τήν `t` (Luke 9:58 links it).
   - Matthew 19:13: "the" `t`.
   - Mark 1:44: "to the" on a lone τῷ.
+  - "of the" / "to the" on a lone article (e.g. τῶν Ἰουδαίων in Matthew 27
+    and Mark 15): Luke now puts "of"/"to" on the noun; align Matthew and Mark.
+  - "a mustard seed": Matthew 13:31 and 17:20 put "a" on σινάπεως; Mark and
+    Luke put it on the noun.
   - About 67 Matthew/Mark notes that name the publisher's Greek wording as
     fact; most are well-known variants that match the counts.
 
