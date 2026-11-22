@@ -5,11 +5,11 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-- BSB Luke 1–24 (author reviews of 1–4 running; all drafted). Codex's earlier
-  single verses in Luke 14, 15, 19 and 21 are kept and re-checked.
-- SYNO-W: three more split pairs found outside the fixed set (2 Cor 6:8,
-  Luke 4:34, Mark 5:7), queued.
-- Then BSB John, Acts, Romans, 1–2 Corinthians, Revelation.
+- BSB John 1–21 (John 1–2 registered; 3–7 in review; all drafted). Codex's
+  earlier single verses in John 8, 9 and 18 are kept and re-checked.
+- Then BSB Acts, Romans, 1–2 Corinthians, Revelation.
+- SYNO-W: three more split pairs outside the fixed set (2 Cor 6:8, Luke 4:34,
+  Mark 5:7), queued.
 - Consistency follow-ups in older BSB chapters (to align with the reviewed
   conventions):
   - Matthew 9:15: νυμφῶνος linked to "bridegroom" (fix as in Mark 2:19 /
@@ -45,7 +45,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   links, all 11 audit findings applied, both reviews. Notes are in
   `claude-review-notes/syno-w/split-pairs-2026-11-20*.md`. The registry status
   line was also updated, since it still said "partial".
-- BSB Luke 1–5 registered. BSB reviewed: 3,660 of 7,944.
+- **BSB Luke is complete** (1,149 of 1,149): all 24 chapters with both reviews.
+- BSB John 1–2 registered. BSB reviewed: 4,627 of 7,944.
+- Merged Codex's branch at `cda4f119` (clean; the checker passes).
 - Merged Codex's branch at `5fec96d` into `claude/word-links` (clean).
 - SYNO-W audit of a random sample of 160 verses:
   `docs/word-links/claude-review-notes/syno-w/audit-2026-11-20.md`.
@@ -56,9 +58,10 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Ready to merge
 
-- **The tip of `claude/word-links`:** BSB Matthew 18–28 and all of Mark, plus
-  the checker and review tools. It already contains your branch up to
-  `e722b0b8`, so the merge is clean.
+- **The tip of `claude/word-links`:** BSB Matthew 18–28, all of Mark and
+  Luke, John 1–2, the SYNO-W split-pair corrections, the checker and the
+  review tools. It already contains your branch up to `cda4f119`, so the
+  merge is clean.
   - `verify-word-links.py` passes: all five translations rebuild identically,
     and the ownership check is clean.
   - `node --test tests/*.test.mjs`: 159 of 159 pass.
