@@ -78,7 +78,11 @@ t This is = English supplies a presentational frame with no Greek counterpart.
    (and, but, for, then, so). Otherwise explain briefly with `s`.
 7. **English-only words** get `t` with a reason. Examples: a supplied "is",
    "This is", a proper name the Greek gives only as a pronoun or verb ending,
-   or an added "one" or "that".
+   or an added "one" or "that". A supplied copula stays `t` even when an
+   εἰμί stands in the next clause (John 14:10, 15:5).
+   **Words understood again:** when the Greek states a content word once and
+   BSB repeats it in a parallel clause, the repeat links to that word (John
+   12:13, 15:2, 15:4). English that adds a tense the Greek lacks stays `t`.
 8. **Names** are linked despite spelling differences (Ἰωάννης ↔ John).
    **Vocatives:** an English "You" or "O you" before a vocative is linked
    with that vocative word (ὑποκριταί → "You hypocrites"). Earlier
