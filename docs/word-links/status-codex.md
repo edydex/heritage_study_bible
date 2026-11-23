@@ -2,8 +2,8 @@
 
 ## Claimed now
 
-- **UKRK-R New Testament.** 2 Peter is in independent review.
-- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,795 verses across 118 chapters. Of those, 3,782 have a linked Greek phrase. The remaining 4,160 verses still need review.
+- **UKRK-R New Testament.** Titus and Matthew 28 are in independent review.
+- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,856 verses across 121 chapters. Of those, 3,843 have a linked Greek phrase. The remaining 4,099 verses still need review.
 
 ## Done
 
@@ -32,7 +32,9 @@
 
 - `6144c2a` completed James and added three checked textual difference spans. Four words at the end of Greek James 4:8 link to the beginning of Ukrainian James 4:9. The last-days clause in Greek James 5:3 stays visible in Original.
 
-- This batch completes 1 Peter and adds 14 checked textual difference spans. The second stone phrase in Ukrainian 2:7 links to Greek 2:8, and the gentleness phrase in Ukrainian 3:15 links to Greek 3:16.
+- `502fdd2` completed 1 Peter and added 14 checked textual difference spans. The second stone phrase in Ukrainian 2:7 links to Greek 2:8, and the gentleness phrase in Ukrainian 3:15 links to Greek 3:16.
+
+- This batch completes 2 Peter and adds four checked textual difference spans. In 2 Peter 3:10, “в ночі” is bracketed and the Greek and Ukrainian closing verbs remain distinct. Android 1.1.63 includes this revision.
 
 ## Ready to merge
 
