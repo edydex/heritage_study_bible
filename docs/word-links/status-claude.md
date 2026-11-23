@@ -28,6 +28,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
     is garbled. Note wording only.
   - Acts 2:42 (Codex's earlier verse, kept unchanged): the lone article τῇ
     carries "to the" twice; later chapters put "to" on the noun.
+  - Acts 7:55 (Codex's earlier verse, kept unchanged): "Stephen + full" sits
+    on ὑπάρχων πλήρης although its own note says "Stephen" is supplied;
+    by our convention "Stephen" is `t` and the participle phrase = "full".
 
 ## Done
 
