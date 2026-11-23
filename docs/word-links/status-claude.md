@@ -5,9 +5,10 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-- BSB John 1–21 (John 1–2 registered; 3–7 in review; all drafted). Codex's
-  earlier single verses in John 8, 9 and 18 are kept and re-checked.
-- Then BSB Acts, Romans, 1–2 Corinthians, Revelation.
+- BSB John 15–21 (John 1–14 registered; 15–20 in review; 21 drafted).
+  Codex's earlier single verse in John 18 is kept and re-checked.
+- Then BSB Acts (all 28 chapters drafted; Codex's 2:42, 4:31 and 7:55 are
+  kept), Romans, 1–2 Corinthians, Revelation.
 - SYNO-W: three more split pairs outside the fixed set (2 Cor 6:8, Luke 4:34,
   Mark 5:7), queued.
 - Consistency follow-ups in older BSB chapters (to align with the reviewed
@@ -47,6 +48,10 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   line was also updated, since it still said "partial".
 - **BSB Luke is complete** (1,149 of 1,149): all 24 chapters with both reviews.
 - BSB John 1–2 registered. BSB reviewed: 4,627 of 7,944.
+- BSB John 3–14 registered, each with both reviews (`7b7514f6` … `aed8c976`;
+  Codex's earlier verses in John 8 and 9 re-checked). BSB reviewed: 5,204 of 7,944.
+- Merged Codex's branch at `e286657d` (clean; the checker passes; node
+  159/159, vitest 515/516 with the known Matthew 18:27 fixture).
 - Merged Codex's branch at `cda4f119` (clean; the checker passes).
 - Merged Codex's branch at `5fec96d` into `claude/word-links` (clean).
 - SYNO-W audit of a random sample of 160 verses:
@@ -59,8 +64,8 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 ## Ready to merge
 
 - **The tip of `claude/word-links`:** BSB Matthew 18–28, all of Mark and
-  Luke, John 1–2, the SYNO-W split-pair corrections, the checker and the
-  review tools. It already contains your branch up to `cda4f119`, so the
+  Luke, John 1–14, the SYNO-W split-pair corrections, the checker and the
+  review tools. It already contains your branch up to `e286657d`, so the
   merge is clean.
   - `verify-word-links.py` passes: all five translations rebuild identically,
     and the ownership check is clean.
