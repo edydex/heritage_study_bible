@@ -2,8 +2,8 @@
 
 ## Claimed now
 
-- **UKRK-R New Testament.** James 1–2 are in independent review. James 3–4 are being authored.
-- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,582 verses across 108 chapters. Of those, 3,569 have a linked Greek phrase. The remaining 4,373 verses still need review.
+- **UKRK-R New Testament.** Titus and Matthew 28 are in independent review.
+- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,856 verses across 121 chapters. Of those, 3,843 have a linked Greek phrase. The remaining 4,099 verses still need review.
 
 ## Done
 
@@ -28,7 +28,13 @@
 - `ffe4da4` added reviewed Acts 22–24 with 17 new textual difference spans, preserving the existing whole-verse marker at Acts 24:7. Greek speech words at 22:2 and the Greek people and place words at 24:19 link across the neighbouring Ukrainian verse boundaries.
 - `f3864a5` completed the review of Acts with chapters 25–28 and six new textual difference spans. The existing whole-verse marker at Acts 28:29 is preserved. Android 1.1.62 includes this revision.
 - `2fb8517` completed the review of Colossians and added nine checked textual difference spans. The first three words of Greek 1:22 link to the end of Ukrainian 1:21.
-- This batch completes 1 John and adds six checked textual difference spans. Greek 2:14 and 5:20 link across Ukrainian verse boundaries, and the existing brackets at 5:7–8 are preserved.
+- `cda4f11` completed 1 John and added six checked textual difference spans. Greek 2:14 and 5:20 link across Ukrainian verse boundaries, and the existing brackets at 5:7–8 are preserved.
+
+- `6144c2a` completed James and added three checked textual difference spans. Four words at the end of Greek James 4:8 link to the beginning of Ukrainian James 4:9. The last-days clause in Greek James 5:3 stays visible in Original.
+
+- `502fdd2` completed 1 Peter and added 14 checked textual difference spans. The second stone phrase in Ukrainian 2:7 links to Greek 2:8, and the gentleness phrase in Ukrainian 3:15 links to Greek 3:16.
+
+- This batch completes 2 Peter and adds four checked textual difference spans. In 2 Peter 3:10, “в ночі” is bracketed and the Greek and Ukrainian closing verbs remain distinct. Android 1.1.63 includes this revision.
 
 ## Ready to merge
 
