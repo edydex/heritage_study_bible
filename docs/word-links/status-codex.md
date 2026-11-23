@@ -2,8 +2,8 @@
 
 ## Claimed now
 
-- **UKRK-R New Testament.** 1 Peter 1–3 are in independent review.
-- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,690 verses across 113 chapters. Of those, 3,677 have a linked Greek phrase. The remaining 4,265 verses still need review.
+- **UKRK-R New Testament.** 2 Peter is in independent review.
+- The installed UKRK New Testament has 7,955 displayed verses. Review covers 3,795 verses across 118 chapters. Of those, 3,782 have a linked Greek phrase. The remaining 4,160 verses still need review.
 
 ## Done
 
@@ -30,7 +30,9 @@
 - `2fb8517` completed the review of Colossians and added nine checked textual difference spans. The first three words of Greek 1:22 link to the end of Ukrainian 1:21.
 - `cda4f11` completed 1 John and added six checked textual difference spans. Greek 2:14 and 5:20 link across Ukrainian verse boundaries, and the existing brackets at 5:7–8 are preserved.
 
-- This batch completes James and adds three checked textual difference spans. Four words at the end of Greek James 4:8 link to the beginning of Ukrainian James 4:9. The last-days clause in Greek James 5:3 stays visible in Original.
+- `6144c2a` completed James and added three checked textual difference spans. Four words at the end of Greek James 4:8 link to the beginning of Ukrainian James 4:9. The last-days clause in Greek James 5:3 stays visible in Original.
+
+- This batch completes 1 Peter and adds 14 checked textual difference spans. The second stone phrase in Ukrainian 2:7 links to Greek 2:8, and the gentleness phrase in Ukrainian 3:15 links to Greek 3:16.
 
 ## Ready to merge
 
