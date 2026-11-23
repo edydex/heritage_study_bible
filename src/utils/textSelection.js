@@ -1,5 +1,6 @@
 import { buildGroupedAnnotation } from './verseAnnotations'
 import { splitParagraphText } from './verseLayout'
+import { translationDisplayText } from './translationDisplay'
 
 export function getSelectableVerseText(text) {
   const { segments } = splitParagraphText(text)
@@ -13,11 +14,16 @@ export function resolveTextAnchor(segment, currentVerseText) {
   const selected = String(segment?.selectedText || '')
   if (!selected) return null
   if (text.slice(segment.startOffset, segment.endOffset) === selected) return segment
+  // New selections contain display text. Check it at the same offsets before
+  // trying to re-anchor a selection made against the historical spelling.
+  const display = translationDisplayText(segment.translationId, text)
+  if (display.slice(segment.startOffset, segment.endOffset) === selected) return segment
 
   const matches = []
+  const searchText = display.includes(selected) ? display : text
   let cursor = 0
-  while (cursor <= text.length - selected.length) {
-    const index = text.indexOf(selected, cursor)
+  while (cursor <= searchText.length - selected.length) {
+    const index = searchText.indexOf(selected, cursor)
     if (index < 0) break
     matches.push(index)
     cursor = index + 1
@@ -28,9 +34,9 @@ export function resolveTextAnchor(segment, currentVerseText) {
   const suffix = String(segment.suffix || '')
   const scored = matches.map(index => {
     let score = 0
-    if (prefix && text.slice(Math.max(0, index - prefix.length), index) === prefix) score += 2
-    if (suffix && text.slice(index + selected.length, index + selected.length + suffix.length) === suffix) score += 2
-    score -= Math.abs(index - Number(segment.startOffset || 0)) / Math.max(1, text.length)
+    if (prefix && searchText.slice(Math.max(0, index - prefix.length), index) === prefix) score += 2
+    if (suffix && searchText.slice(index + selected.length, index + selected.length + suffix.length) === suffix) score += 2
+    score -= Math.abs(index - Number(segment.startOffset || 0)) / Math.max(1, searchText.length)
     return { index, score }
   }).sort((left, right) => right.score - left.score)
   const startOffset = scored[0].index

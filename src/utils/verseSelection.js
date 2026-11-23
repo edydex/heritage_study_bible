@@ -1,4 +1,5 @@
 import { localizeBookName } from './localizedBookNames.js'
+import { translationDisplayAbbr, translationDisplayText } from './translationDisplay.js'
 
 export function isSameVerse(left, right) {
   if (!left || !right) return false
@@ -89,9 +90,9 @@ export function formatVersesForCopy({
           item.verse,
           primaryTranslationId
         )
-        return `(${item.verse}) ${text || '[Verse unavailable]'}`
+        return `(${item.verse}) ${translationDisplayText(primaryTranslationId, text) || '[Verse unavailable]'}`
       })
-      sections.push(`${primaryReference} (${primaryTranslationId}) - ${primaryLines.join('\n')}`)
+      sections.push(`${primaryReference} (${translationDisplayAbbr(primaryTranslationId)}) - ${primaryLines.join('\n')}`)
 
       if (includeParallel && secondaryTranslationId && secondaryBibleData) {
         const secondaryBookName = localizeBookName(book, secondaryTranslationId)
@@ -107,9 +108,9 @@ export function formatVersesForCopy({
             item.verse,
             secondaryTranslationId
           )
-          return `(${item.verse}) ${text || '[Verse unavailable]'}`
+          return `(${item.verse}) ${translationDisplayText(secondaryTranslationId, text) || '[Verse unavailable]'}`
         })
-        sections.push(`${secondaryReference} (${secondaryTranslationId}) - ${secondaryLines.join('\n')}`)
+        sections.push(`${secondaryReference} (${translationDisplayAbbr(secondaryTranslationId)}) - ${secondaryLines.join('\n')}`)
       }
     }
   }

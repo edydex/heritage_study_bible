@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { translations, loadTranslation } from '../data/translations'
-import { bracketSynodalAdditions } from '../data/synodalTextAdditions'
+import { bracketTextualAdditions } from '../data/textualAdditions'
+import { translationDisplayAbbr } from '../utils/translationDisplay'
 import { bibleBooks } from '../data/bible-books.js'
-import { getVerseTextWithPsalmSuperscription } from '../utils/psalmSuperscriptions'
+import { getVerseTextWithPsalmSuperscription, psalmComparisonVerseNumber } from '../utils/psalmSuperscriptions'
 
 // BibleHub book slug map — matches BibleHub URL patterns
 const BIBLEHUB_SLUGS = {
@@ -92,14 +93,15 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
       const data = await loadTranslation(tId)
       const combinedText = selectedPassages
         .map(item => {
+          const verseNumber = psalmComparisonVerseNumber(bookName, item.chapter, item.verse, translationId, tId)
           const text = getVerseTextWithPsalmSuperscription(
             data,
             bookName,
             item.chapter,
-            item.verse,
+            verseNumber,
             tId
           )
-          return `${bookName} ${item.chapter}:${item.verse} ${bracketSynodalAdditions(tId, bookName, item.chapter, item.verse, text) || '(verse not found)'}`
+          return `${bookName} ${item.chapter}:${verseNumber} ${bracketTextualAdditions(tId, bookName, item.chapter, verseNumber, text) || '(verse not found)'}`
         })
         .join('\n\n')
       setLoadedTexts(prev => ({ ...prev, [tId]: combinedText }))
@@ -112,7 +114,7 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
         return next
       })
     }
-  }, [bookName, loadedTexts, selectedPassages])
+  }, [bookName, loadedTexts, selectedPassages, translationId])
 
   // Load all comparison translations on mount / when compareIds change
   useEffect(() => {
@@ -145,7 +147,7 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
   )
 
   const originalLang = getOriginalLanguage(bookName)
-  const bibleHubUrl = getBibleHubUrl(bookName, chapter, verse)
+  const bibleHubUrl = getBibleHubUrl(bookName, chapter, psalmComparisonVerseNumber(bookName, chapter, verse, translationId))
   const selectionLabel = selectedPassages.length === 1
     ? `${bookName} ${chapter}:${verse}`
     : `${bookName} (${selectedPassages.length} verses selected)`
@@ -156,7 +158,7 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
     return text.replace(/ \|\| /g, ' ')
   }
   const readingText = selectedPassages
-    .map(item => `${bookName} ${item.chapter}:${item.verse} ${bracketSynodalAdditions(translationId, bookName, item.chapter, item.verse, item.text) || '(verse not found)'}`)
+    .map(item => `${bookName} ${item.chapter}:${item.verse} ${bracketTextualAdditions(translationId, bookName, item.chapter, item.verse, item.text) || '(verse not found)'}`)
     .join('\n\n')
 
   return (
@@ -185,7 +187,7 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
           <div className="rounded-lg bg-primary/5 dark:bg-blue-900/20 border border-primary/20 dark:border-blue-700/40 p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-primary dark:text-blue-400 uppercase tracking-wider">
-                {translationId} — Reading
+                {translationDisplayAbbr(translationId)} — Reading
               </span>
             </div>
             <p className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-line">{cleanText(readingText)}</p>
@@ -193,14 +195,13 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
 
           {/* Comparison translations */}
           {compareIds.map(tId => {
-            const tInfo = translations.find(t => t.id === tId)
             const text = loadedTexts[tId]
             const isLoading = loadingIds.has(tId)
             return (
               <div key={tId} className="rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    {tInfo?.abbr || tId}
+                    {translationDisplayAbbr(tId)}
                   </span>
                   <button
                     onClick={() => removeTranslation(tId)}
@@ -234,7 +235,7 @@ function CompareModal({ bookName, chapter, verse, verseText, verses = [], transl
                         onClick={() => addTranslation(t.id)}
                         className="w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
                       >
-                        <span className="font-bold text-sm text-gray-800 dark:text-gray-200 w-10">{t.abbr}</span>
+                        <span className="font-bold text-sm text-gray-800 dark:text-gray-200 shrink-0 w-14">{t.abbr}</span>
                         <div className="min-w-0">
                           <span className="text-sm text-gray-700 dark:text-gray-300">{t.name}</span>
                           <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">{t.description}</span>

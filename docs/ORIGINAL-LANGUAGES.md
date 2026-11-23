@@ -12,7 +12,7 @@ The generator validates the pinned, unmodified source and records every source-f
 
 OSHB's VerseMap supplies full WLC-to-KJV mappings; BSB's different partial boundaries are explicitly handled rather than assuming KJV numbering is identical. Full merge cases are 1 Samuel 20:42, 1 Kings 22:43, 1 Chronicles 12:4 and Numbers 26:1. BSB keeps WLC's full boundaries at 1 Kings 18:33–34, 20:2–3 and 22:21–22. Isaiah 63:19 / 64:1 splits before source word `23sJ1` (לוּא); Psalm 13:5–6 splits before אָשִׁירָה. Source references remain visible. Hebrew title verses in 63 Psalms are displayed separately, not folded into English verse 1. Where a title and body share one source verse, the witness's complete verse is preserved.
 
-**Nehemiah 7:68 is absent from this WLC witness.** The parallel shows that absence; it does not copy Hebrew from Ezra or invent a replacement. Other source verses are checked against the app's BSB chapter/verse reference set. This reference mapping supports comparison, not word-level Hebrew-to-English equivalence. Primary editions marked with Western numbering (including SYNO-W) use the same mapped references. With a different numbering system such as UKRK, the primary text remains visible but the source column is left empty with an explanation; no unverified mapping is implied.
+**Nehemiah 7:68 is absent from this WLC witness.** The parallel shows that absence; it does not copy Hebrew from Ezra or invent a replacement. Other source verses are checked against the app's BSB chapter/verse reference set. This reference mapping supports comparison, not word-level Hebrew-to-English equivalence. Primary editions marked with Western numbering (including SYNO-W) use the same mapped references. UKRK-R and the original text use independent columns in chapters with unchecked numbering. The reader shows both sets of references and lets you study Greek, Hebrew, and Aramaic words directly. Checked UKRK-R chapters keep their existing parallel word links.
 
 OT books load individually when opened, so enabling Genesis does not fetch the entire Hebrew Bible. Failed source loading leaves the primary text readable and does not substitute Greek. The APK bundles the static source files for offline use.
 
@@ -25,7 +25,7 @@ npx vitest run src/data/hebrewOriginal.test.js
 
 ## Greek New Testament word links and occurrences
 
-With BSB, LSV, KJV or reviewed Russian Synodal passages compared with Original languages—or with each other—the Greek New Testament offers
+With BSB, LSV, KJV or reviewed Russian Synodal and Ukrainian Kulish/Pulyui passages compared with Original languages or with each other, the Greek New Testament offers
 **Word links**. Each distinct checked correspondence has its own tint within a
 verse, plus a shared background texture: diagonal strokes, dots, horizontal or
 vertical lines, crosshatching, grids or rings. Nearby matches favor different
@@ -42,6 +42,39 @@ new study dialog. A reading note explains documented witness or grammar differen
 If links are still loading, the reader keeps the tapped or held word and shows
 the loading state. Its match and requested study resolve when the links arrive.
 **Clear word match** also cancels a study requested during loading.
+
+UKRK-R uses the Ukrainian edition credited to Kulish, Nechui-Levytsky and Pulyui
+and catalogued as 1905 by [eBible.org](https://ebible.org/find/details.php?id=ukr1871).
+Heritage displays selected historical uses of consonant-adjacent `ї` as `і`.
+The [Zhelekhivka spelling convention](https://esu.com.ua/article-18996) used this
+letter for the vowel `і` after soft consonants. The display keeps `ї` where it
+represents `йі`, including after vowels and apostrophes. The installed source,
+verse numbering, original word links and annotation offsets keep their `UKRK`
+identifiers and source text. Greek comparison is available in chapters with
+checked Ukrainian verse references. Select a word to follow an exact link across
+verse numbers. Word Study shows Ukrainian context where the source reference has
+a checked counterpart.
+
+The eBible Ukrainian USFM has paragraph markers at chapter starts only. The
+1912 Vienna printing begins each numbered verse on a new line in the sampled
+chapters. UKRK-R uses editorial reading breaks from the published Berean
+Standard Bible paragraph, section, and stanza layout across all 66 books.
+The layout generator transfers breaks at existing Ukrainian verse starts and
+uses reviewed reference windows where the numbering differs. The reader labels
+the resulting marks as editorial. [Berean publisher USFM](https://bereanbible.com/bsb_usfm.zip)
+
+The Psalm reader displays leading titles from the bundled Ukrainian and Russian
+sources in verse 0. The [Ukrainian Psalm 51](https://ebible.org/ukr1871/PSA051.htm)
+source has the title and prayer together in verse 1. The
+[Russian Synodal Psalm 50](https://ebible.org/russyn/PSA050.htm) source gives
+the title verses 1–2, which become verse 0 in Western Psalm 51. In Ukrainian
+Psalm 60 the two title rows also move to verse 0. Parallel comparison matches
+its body verses 3–14 with Western verses 1–12 and displays both editions'
+references. Russian Psalm 87 displays its combined first body row as 1–2.
+In Western Psalms 116 and 147, an internal “Аллилуия” remains where its native
+section begins. The imported text files retain the exact source wording and
+numbering. The exact title in the bundled edition determines whether it has a
+verse 0.
 
 For verse-boundary differences, **Show Original / BSB / LSV / KJV / SYNO-W** identifies the
 actual matching reference rather than forcing a same-number pairing. Greek words use the source's

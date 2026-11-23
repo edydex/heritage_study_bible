@@ -102,9 +102,16 @@ describe('parallel word links', () => {
 })
 
 
-it('keeps the primary text but refuses an unverified original-language verse mapping', () => {
+it('shows original words independently when verse numbering has no checked alignment', async () => {
   const { container } = render(<ParallelBibleChapter {...props} primaryTranslationId="UKRK" />)
-  expect(screen.getByRole('status')).toHaveTextContent('checked mapping for UKRK is not installed')
-  expect(container.querySelector('[data-translation="UKRK"]').textContent).toContain(first.targetText)
-  expect(container.querySelector('[data-translation="ORIGINAL"][data-verse-content]')).toBeNull()
+  expect(screen.getByText(/verse numbers have no checked alignment/)).toBeInTheDocument()
+  expect(screen.getByRole('region', { name: 'UKRK-R chapter text' })).toHaveTextContent(first.targetText)
+  const originalColumn = screen.getByRole('region', { name: 'Original chapter text' })
+  expect(originalColumn).toHaveTextContent(first.sourceText)
+  const originalWord = container.querySelector('[data-translation="ORIGINAL"] [data-word-link]')
+  expect(originalWord).toHaveAttribute('data-word-paired', 'false')
+  fireEvent.click(originalWord)
+  fireEvent.click(screen.getByRole('button', { name: 'Study word' }))
+  expect(screen.getByRole('dialog', { name: 'Word study: Παῦλος' })).toBeInTheDocument()
+  await waitFor(() => expect(originalColumn).toHaveTextContent(first.sourceText))
 })

@@ -1,5 +1,6 @@
 import { visibleVerseText } from '../data/originalLanguages'
 import { assignWordLinkColors } from './wordLinkColors'
+import { translationDisplayAbbr, translationDisplayText } from '../utils/translationDisplay'
 
 const referenceKey = ({ chapter, verse }) => `${chapter}:${verse}`
 const parseReference = key => { const [chapter, verse] = key.split(':').map(Number); return { chapter, verse } }
@@ -85,10 +86,11 @@ const entryReferences = (ref, entry) => new Set([
 
 // Occurrence results use the original witness's reference. The corresponding
 // translated words may be in an adjacent (or transposed) translated verse.
-export function occurrenceWordAnchors(row, alignment, targetBook, sourceBook) {
+export function occurrenceWordAnchors(row, alignment, targetBook, sourceBook, { checkedReferencesOnly = false } = {}) {
   const sourceVerses = mapBook(sourceBook), targetVerses = mapBook(targetBook)
   const rawRef = `${row.chapter}:${row.verse}`
   const contexts = [], matchedSources = new Set(), reasons = new Set()
+  let checkedContext
   if (alignment?.book === row.book && sourceVerses.get(rawRef) === row.text) {
     for (const [ref, entry] of Object.entries(alignment.verses)) {
       if (!entryReferences(ref, entry).has(rawRef)) continue
@@ -96,6 +98,9 @@ export function occurrenceWordAnchors(row, alignment, targetBook, sourceBook) {
       if (text == null) continue
       const groups = checkedAnchorGroups(alignment, ref, sourceVerses, text)
       if (!groups) continue
+      if (checkedReferencesOnly && text && (!checkedContext || ref === rawRef)) {
+        checkedContext = { ...parseReference(ref), text, ranges: [], phrases: [] }
+      }
       const ranges = [], notes = new Set()
       for (const group of groups) {
         const indexes = row.ranges.flatMap((range, index) => group.anchors.some(anchor => referenceKey(anchor) === rawRef
@@ -117,11 +122,14 @@ export function occurrenceWordAnchors(row, alignment, targetBook, sourceBook) {
   }
   contexts.sort((a, b) => a.chapter - b.chapter || a.verse - b.verse)
   const first = contexts.find(context => context.chapter === row.chapter && context.verse === row.verse) || contexts[0]
+  const fallback = checkedReferencesOnly ? checkedContext?.text : targetVerses.get(rawRef)
+  const hasContext = checkedReferencesOnly ? Boolean(checkedContext) : targetVerses.has(rawRef)
+  const status = first ? 'matched' : hasContext ? 'unmapped' : checkedReferencesOnly ? 'unreviewed-reference' : 'missing-verse'
   return {
-    text: first?.text || targetVerses.get(rawRef) || '', ranges: first?.ranges || [],
+    text: first?.text || fallback || '', ranges: first?.ranges || [],
     phrases: [...new Set(contexts.flatMap(context => context.phrases))],
-    missingCount: row.count - matchedSources.size, status: contexts.length ? 'matched' : targetVerses.has(rawRef) ? 'unmapped' : 'missing-verse',
-    contexts, reasons: [...reasons],
+    missingCount: row.count - matchedSources.size, status,
+    contexts: first || !checkedContext ? contexts : [checkedContext], reasons: [...reasons],
   }
 }
 
@@ -211,12 +219,15 @@ export function chapterWordAnchors({ primaryData, secondaryData, primaryBook, se
     const crossReference = references.length > 1 || sourceAnchors.some(anchor => referenceKey(anchor) !== references[0])
     const uniqueTargets = side => [...new Map(component.filter(node => node.side === side).flatMap(node => node.targets.map(range => [`${node.ref}:${range}`, { ref: node.ref, range }]))).values()]
       .sort((a, b) => parseReference(a.ref).chapter - parseReference(b.ref).chapter || parseReference(a.ref).verse - parseReference(b.ref).verse || a.range[0] - b.range[0])
-    const phrases = side => uniqueTargets(side).map(({ ref, range }) => `${crossReference ? `${ref} ` : ''}${targetVerses[side].get(ref).slice(...range)}`).join(' … ')
+    const phrases = side => uniqueTargets(side).map(({ ref, range }) => {
+      const text = translationDisplayText(names[side], targetVerses[side].get(ref))
+      return `${crossReference ? `${ref} ` : ''}${text.slice(...range)}`
+    }).join(' … ')
     const sourceLabel = `${crossReference ? `Greek ${[...new Set(sourceAnchors.map(referenceKey))].join(', ')}: ` : ''}${words.map(word => word.text).join(' ')}`
     const translatedSides = ['primary', 'secondary'].filter(side => data[side])
     const label = translatedSides.length === 1
-      ? `${sourceLabel} ↔ ${crossReference ? `${names[translatedSides[0]]} ` : ''}${phrases(translatedSides[0])}`
-      : `${sourceLabel} ↔ ${translatedSides.map(side => `${names[side]}: ${phrases(side)}`).join(' ↔ ')}`
+      ? `${sourceLabel} ↔ ${crossReference ? `${translationDisplayAbbr(names[translatedSides[0]])} ` : ''}${phrases(translatedSides[0])}`
+      : `${sourceLabel} ↔ ${translatedSides.map(side => `${translationDisplayAbbr(names[side])}: ${phrases(side)}`).join(' ↔ ')}`
     const paired = component.some(node => node.side === 'primary') && component.some(node => node.side === 'secondary')
     const notes = [...new Set(component.flatMap(node => node.notes || []))]
     const counterparts = [...new Map(component.map(node => [`${node.side}:${node.ref}`, {
