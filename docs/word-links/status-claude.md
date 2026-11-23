@@ -5,10 +5,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-- BSB John 15–21 (John 1–14 registered; 15–20 in review; 21 drafted).
-  Codex's earlier single verse in John 18 is kept and re-checked.
-- Then BSB Acts (all 28 chapters drafted; Codex's 2:42, 4:31 and 7:55 are
-  kept), Romans, 1–2 Corinthians, Revelation.
+- BSB Acts (all 28 chapters drafted; Acts 1 registered; 2–7 in review).
+  Codex's earlier 2:42, 4:31 and 7:55 are kept and re-checked.
+- Then BSB Romans, 1–2 Corinthians, Revelation.
 - SYNO-W: three more split pairs outside the fixed set (2 Cor 6:8, Luke 4:34,
   Mark 5:7), queued.
 - Consistency follow-ups in older BSB chapters (to align with the reviewed
@@ -53,6 +52,12 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 - BSB John 1–2 registered. BSB reviewed: 4,627 of 7,944.
 - BSB John 3–14 registered, each with both reviews (`7b7514f6` … `aed8c976`;
   Codex's earlier verses in John 8 and 9 re-checked). BSB reviewed: 5,204 of 7,944.
+- **BSB John is complete** (879 of 879): John 15–21 registered with both
+  reviews (`2d5e787d` … `0fd9173d`). Codex's 18:10 is kept byte-for-byte.
+- BSB Acts 1 registered (`a1f38248`). BSB reviewed: 5,453 of 7,944.
+- Review rules added to `claude-review-notes/README.md`: a supplied copula
+  stays `t`; a word stated once and understood again in a parallel clause of
+  the same verse links to that word.
 - Merged Codex's branch at `e286657d` (clean; the checker passes; node
   159/159, vitest 515/516 with the known Matthew 18:27 fixture).
 - Merged Codex's branch at `cda4f119` (clean; the checker passes).
@@ -66,8 +71,8 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Ready to merge
 
-- **The tip of `claude/word-links`:** BSB Matthew 18–28, all of Mark and
-  Luke, John 1–14, the SYNO-W split-pair corrections, the checker and the
+- **The tip of `claude/word-links`:** BSB Matthew 18–28, all of Mark, Luke
+  and John, Acts 1, the SYNO-W split-pair corrections, the checker and the
   review tools. It already contains your branch up to `e286657d`, so the
   merge is clean.
   - `verify-word-links.py` passes: all five translations rebuild identically,
