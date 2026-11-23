@@ -24,6 +24,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
     Luke put it on the noun.
   - About 67 Matthew/Mark notes that name the publisher's Greek wording as
     fact; most are well-known variants that match the counts.
+  - John 18:10 (Codex's earlier verse, kept unchanged): the links are right;
+    two notes write "The servants" for "The servant’s" and one `s` reason
+    is garbled. Note wording only.
 
 ## Done
 
