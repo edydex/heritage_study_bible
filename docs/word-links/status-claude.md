@@ -26,6 +26,8 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   - John 18:10 (Codex's earlier verse, kept unchanged): the links are right;
     two notes write "The servants" for "The servant’s" and one `s` reason
     is garbled. Note wording only.
+  - Acts 2:42 (Codex's earlier verse, kept unchanged): the lone article τῇ
+    carries "to the" twice; later chapters put "to" on the noun.
 
 ## Done
 
