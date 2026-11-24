@@ -97,3 +97,9 @@ claims (10:1, 10:19, 10:24, 10:37, 10:39).
 - 10:48 "he ordered that" keeps "that" on the verb, as several reviewed rows
   do ("ordered that", "directed that"). In 10:28 and 10:43 "that" is `t`.
   Both patterns have reviewed precedent.
+
+## Coordinator adjustment (consistency pass, 2026-11-24)
+
+- 10:29: the first-person "I" that BSB supplies for a participle clause
+  is now `t`; a participle has no person, and the finite verb keeps its own
+  "I". This aligns with Acts 22:20 and 23:27–30.

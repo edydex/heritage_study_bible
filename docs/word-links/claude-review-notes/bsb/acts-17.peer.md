@@ -151,3 +151,9 @@ Mark chapters put in `t`.
   (ἐπεγέγραπτο), 17:26 "one man" (ἑνός), 17:7 "there is" (εἶναι), and 17:18
   "Some of them" on τινες (as Acts 7:24 and Mark 14:65, though Luke 24:18
   and Mark 3:14 use `t`).
+
+## Coordinator adjustment (consistency pass, 2026-11-24)
+
+- 17:23: the first-person "I" that BSB supplies for a participle clause
+  is now `t`; a participle has no person, and the finite verb keeps its own
+  "I". This aligns with Acts 22:20 and 23:27–30.

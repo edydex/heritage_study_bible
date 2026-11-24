@@ -121,3 +121,9 @@ publisher rows.
 - 22:12 κατά = observer of (the publisher's split) and 22:19 ἐπίστανται =
   know very well were kept. "very well" may partly reflect the emphatic
   αὐτοί.
+
+## Coordinator adjustment (consistency pass, 2026-11-24)
+
+- 22:5: the first-person "I" that BSB supplies for a participle clause
+  is now `t`; a participle has no person, and the finite verb keeps its own
+  "I". This aligns with Acts 22:20 and 23:27–30.

@@ -5078,7 +5078,11 @@
           ],
           "targetPhrases": [
             {
-              "text": "when I was invited",
+              "text": "when",
+              "occurrence": 0
+            },
+            {
+              "text": "was invited",
               "occurrence": 0
             }
           ]
@@ -5149,7 +5153,13 @@
           "reason": "BSB leaves the adverbial καί (\"also\") untranslated."
         }
       ],
-      "unmappedTarget": []
+      "unmappedTarget": [
+        {
+          "text": "I",
+          "occurrence": 0,
+          "reason": "A participle has no person; English supplies I (the finite verb ἦλθον carries the next I)."
+        }
+      ]
     },
     "10:30": {
       "sourceText": "Καὶ ὁ Κορνήλιος ἔφη Ἀπὸ τετάρτης ἡμέρας μέχρι ταύτης τῆς ὥρας ἤμην τὴν ἐνάτην προσευχόμενος ἐν τῷ οἴκῳ μου, καὶ ἰδοὺ ἀνὴρ ἔστη ἐνώπιόν μου ἐν ἐσθῆτι λαμπρᾷ,",
