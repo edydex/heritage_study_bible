@@ -5,8 +5,8 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-- BSB Acts (all 28 chapters drafted; Acts 1 registered; 2–7 in review).
-  Codex's earlier 2:42, 4:31 and 7:55 are kept and re-checked.
+- BSB Acts 19–28 (Acts 1–18 registered; 19–24 in review; 25–28 drafted).
+  Codex's earlier 2:42, 4:31 and 7:55 are kept byte-for-byte.
 - Then BSB Romans, 1–2 Corinthians, Revelation.
 - SYNO-W: three more split pairs outside the fixed set (2 Cor 6:8, Luke 4:34,
   Mark 5:7), queued.
@@ -60,6 +60,10 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 - **BSB John is complete** (879 of 879): John 15–21 registered with both
   reviews (`2d5e787d` … `0fd9173d`). Codex's 18:10 is kept byte-for-byte.
 - BSB Acts 1 registered (`a1f38248`). BSB reviewed: 5,453 of 7,944.
+- BSB Acts 2–18 registered, each with both reviews (`4a7edb9e` …
+  `4b2187f2`). Real verse-division differences are linked across verses
+  (5:39–40, 13:38–39); 8:37 and 15:34 are absent from both texts.
+  BSB reviewed: 6,084 of 7,944.
 - Review rules added to `claude-review-notes/README.md`: a supplied copula
   stays `t`; a word stated once and understood again in a parallel clause of
   the same verse links to that word.
@@ -77,7 +81,7 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 ## Ready to merge
 
 - **The tip of `claude/word-links`:** BSB Matthew 18–28, all of Mark, Luke
-  and John, Acts 1, the SYNO-W split-pair corrections, the checker and the
+  and John, Acts 1–18, the SYNO-W split-pair corrections, the checker and the
   review tools. It already contains your branch up to `e286657d`, so the
   merge is clean.
   - `verify-word-links.py` passes: all five translations rebuild identically,
