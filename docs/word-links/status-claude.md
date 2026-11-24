@@ -5,9 +5,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-- BSB Acts 19–28 (Acts 1–18 registered; 19–24 in review; 25–28 drafted).
-  Codex's earlier 2:42, 4:31 and 7:55 are kept byte-for-byte.
-- Then BSB Romans, 1–2 Corinthians, Revelation.
+- BSB Romans (all 16 chapters drafted; Romans 1 registered; 2–7 in review).
+  Codex's earlier 2:1, 2:25 and 15:27 are kept byte-for-byte.
+- Then BSB 1–2 Corinthians, Revelation.
 - SYNO-W: three more split pairs outside the fixed set (2 Cor 6:8, Luke 4:34,
   Mark 5:7), queued.
 - Consistency follow-ups in older BSB chapters (to align with the reviewed
@@ -64,6 +64,13 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   `4b2187f2`). Real verse-division differences are linked across verses
   (5:39–40, 13:38–39); 8:37 and 15:34 are absent from both texts.
   BSB reviewed: 6,084 of 7,944.
+- **BSB Acts is complete** (1,003 of 1,003): Acts 19–28 registered with both
+  reviews (`b0e5fd98` … `79a71bc1`). BSB's 19:41 links into Greek 19:40, and
+  the start of Greek 24:19 into BSB's 24:18; 24:7 and 28:29 are absent from
+  both texts.
+- Consistency pass (`0492a6a6`): a first-person "I" that BSB supplies for a
+  participle clause is now `t` in Acts 10:29, 17:23 and 22:5.
+- BSB Romans 1 registered (`a906a842`). BSB reviewed: 6,459 of 7,944.
 - Review rules added to `claude-review-notes/README.md`: a supplied copula
   stays `t`; a word stated once and understood again in a parallel clause of
   the same verse links to that word.
@@ -81,7 +88,7 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 ## Ready to merge
 
 - **The tip of `claude/word-links`:** BSB Matthew 18–28, all of Mark, Luke
-  and John, Acts 1–18, the SYNO-W split-pair corrections, the checker and the
+  John and Acts, Romans 1, the SYNO-W split-pair corrections, the checker and the
   review tools. It already contains your branch up to `e286657d`, so the
   merge is clean.
   - `verify-word-links.py` passes: all five translations rebuild identically,
