@@ -1,0 +1,5494 @@
+{
+  "schemaVersion": 1,
+  "targetId": "BSB",
+  "sourceId": "N1904",
+  "book": "1 Corinthians",
+  "chapter": 1,
+  "review": {
+    "source": "Actual written N1904 and the publisher rows, reviewed against the displayed BSB by Claude (Anthropic); independent peer review recorded in the registry."
+  },
+  "verses": {
+    "1:1": {
+      "sourceText": "Παῦλος κλητὸς ἀπόστολος Χριστοῦ Ἰησοῦ διὰ θελήματος Θεοῦ καὶ Σωσθένης ὁ ἀδελφὸς",
+      "targetText": "Paul, called to be an apostle of Christ Jesus by the will of God, and our brother Sosthenes,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Paul",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "called",
+              "occurrence": 0
+            }
+          ],
+          "note": "κλητός (\"called\") is an adjective: \"a called apostle\"."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "an apostle",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the will",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Sosthenes",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article ὁ is used as a possessive and rendered our."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "brother",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "to be",
+          "occurrence": 0,
+          "reason": "English supplies an infinitive copula after called."
+        }
+      ]
+    },
+    "1:2": {
+      "sourceText": "τῇ ἐκκλησίᾳ τοῦ Θεοῦ τῇ οὔσῃ ἐν Κορίνθῳ, ἡγιασμένοις ἐν Χριστῷ Ἰησοῦ, κλητοῖς ἁγίοις, σὺν πᾶσιν τοῖς ἐπικαλουμένοις τὸ ὄνομα τοῦ Κυρίου ἡμῶν Ἰησοῦ Χριστοῦ ἐν παντὶ τόπῳ, αὐτῶν καὶ ἡμῶν·",
+      "targetText": "To the church of God in Corinth, to those sanctified in Christ Jesus and called to be holy, together with all those everywhere who call on the name of our Lord Jesus Christ, their Lord and ours:",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "To",
+              "occurrence": 0
+            },
+            {
+              "text": "church",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Corinth",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "to those sanctified",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "called",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "holy",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "together with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16,
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "those",
+              "occurrence": 1
+            },
+            {
+              "text": "who call on",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article with the participle ἐπικαλουμένοις (\"calling on\") is rendered those who call on."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "name",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            },
+            {
+              "text": "Lord",
+              "occurrence": 0
+            },
+            {
+              "text": "Lord",
+              "occurrence": 1
+            }
+          ],
+          "note": "BSB repeats Lord for the closing \"their … and ours\"."
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25,
+            26,
+            27
+          ],
+          "targetPhrases": [
+            {
+              "text": "everywhere",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐν παντὶ τόπῳ (\"in every place\") is rendered everywhere."
+        },
+        {
+          "sourceTokens": [
+            28
+          ],
+          "targetPhrases": [
+            {
+              "text": "their",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            29
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            30
+          ],
+          "targetPhrases": [
+            {
+              "text": "ours",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2,
+            20
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            4,
+            5
+          ],
+          "reason": "BSB leaves τῇ οὔσῃ (\"which is\") untranslated."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "and",
+          "occurrence": 0,
+          "reason": "English joins the two descriptions with and; the Greek has no καί here."
+        },
+        {
+          "text": "to be",
+          "occurrence": 0,
+          "reason": "English supplies an infinitive copula after called."
+        }
+      ]
+    },
+    "1:3": {
+      "sourceText": "χάρις ὑμῖν καὶ εἰρήνη ἀπὸ Θεοῦ Πατρὸς ἡμῶν καὶ Κυρίου Ἰησοῦ Χριστοῦ.",
+      "targetText": "Grace and peace to you from God our Father and the Lord Jesus Christ.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "to you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "peace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Father",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "1:4": {
+      "sourceText": "Εὐχαριστῶ τῷ Θεῷ πάντοτε περὶ ὑμῶν ἐπὶ τῇ χάριτι τοῦ Θεοῦ τῇ δοθείσῃ ὑμῖν ἐν Χριστῷ Ἰησοῦ,",
+      "targetText": "I always thank my God for you because of the grace He has given you in Christ Jesus.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            },
+            {
+              "text": "thank",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "always",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "because of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "He",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB makes τοῦ Θεοῦ (\"of God\") the subject He."
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "has given",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article with the participle δοθείσῃ (\"given\") is rendered has given."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1,
+            9
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "my",
+          "occurrence": 0,
+          "reason": "BSB follows a reading with an extra word here; N1904 has no \"my\"."
+        }
+      ]
+    },
+    "1:5": {
+      "sourceText": "ὅτι ἐν παντὶ ἐπλουτίσθητε ἐν αὐτῷ, ἐν παντὶ λόγῳ καὶ πάσῃ γνώσει,",
+      "targetText": "For in Him you have been enriched in every way, in all speech and all knowledge,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "every way",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "you have been enriched",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "speech",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "knowledge",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "1:6": {
+      "sourceText": "καθὼς τὸ μαρτύριον τοῦ Χριστοῦ ἐβεβαιώθη ἐν ὑμῖν,",
+      "targetText": "because our testimony about Christ was confirmed in you.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "because",
+              "occurrence": 0
+            }
+          ],
+          "note": "καθώς (\"just as\") is rendered because."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article τό is used as a possessive and rendered our."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "testimony",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "about Christ",
+              "occurrence": 0
+            }
+          ],
+          "note": "The genitive Χριστοῦ (\"of Christ\") is rendered about Christ."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "was confirmed",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:7": {
+      "sourceText": "ὥστε ὑμᾶς μὴ ὑστερεῖσθαι ἐν μηδενὶ χαρίσματι, ἀπεκδεχομένους τὴν ἀποκάλυψιν τοῦ Κυρίου ἡμῶν Ἰησοῦ Χριστοῦ·",
+      "targetText": "Therefore you do not lack any spiritual gift as you eagerly await the revelation of our Lord Jesus Christ.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Therefore",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            },
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ],
+          "note": "ὑμᾶς is the subject of both the infinitive and the participle ἀπεκδεχομένους; BSB repeats you."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "do",
+              "occurrence": 0
+            },
+            {
+              "text": "lack",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "any",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "spiritual gift",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "as",
+              "occurrence": 0
+            },
+            {
+              "text": "eagerly await",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "revelation",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "BSB renders ἐν μηδενὶ χαρίσματι (\"in no gift\") as a direct object, so ἐν has no English word."
+        },
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:8": {
+      "sourceText": "ὃς καὶ βεβαιώσει ὑμᾶς ἕως τέλους ἀνεγκλήτους ἐν τῇ ἡμέρᾳ τοῦ Κυρίου ἡμῶν Ἰησοῦ Χριστοῦ.",
+      "targetText": "He will sustain you to the end, so that you will be blameless on the day of our Lord Jesus Christ.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "He",
+              "occurrence": 0
+            }
+          ],
+          "note": "The relative ὅς (\"who\") is rendered He."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "will sustain",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the end",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "blameless",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "on",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "day",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves καί (\"also\") untranslated."
+        },
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "so that",
+          "occurrence": 0,
+          "reason": "English supplies a result frame; ἀνεγκλήτους (\"blameless\") describes ὑμᾶς directly."
+        },
+        {
+          "text": "you",
+          "occurrence": 1,
+          "reason": "English supplies a subject for the result clause; ὑμᾶς is the object of sustain."
+        },
+        {
+          "text": "will be",
+          "occurrence": 0,
+          "reason": "English supplies a future copula."
+        }
+      ]
+    },
+    "1:9": {
+      "sourceText": "πιστὸς ὁ Θεὸς, δι’ οὗ ἐκλήθητε εἰς κοινωνίαν τοῦ Υἱοῦ αὐτοῦ Ἰησοῦ Χριστοῦ τοῦ Κυρίου ἡμῶν.",
+      "targetText": "God, who has called you into fellowship with His Son Jesus Christ our Lord, is faithful.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "faithful",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "δι’ οὗ (\"through whom\") is rendered who, as BSB makes the passive verb active."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "has called you",
+              "occurrence": 0
+            }
+          ],
+          "note": "The passive ἐκλήθητε (\"you were called\") is rendered has called you."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "into",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "fellowship",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            },
+            {
+              "text": "Son",
+              "occurrence": 0
+            }
+          ],
+          "note": "The genitive τοῦ Υἱοῦ (\"of the Son\") is rendered with … Son."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1,
+            8,
+            13
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies a copula."
+        }
+      ]
+    },
+    "1:10": {
+      "sourceText": "Παρακαλῶ δὲ ὑμᾶς, ἀδελφοί, διὰ τοῦ ὀνόματος τοῦ Κυρίου ἡμῶν Ἰησοῦ Χριστοῦ, ἵνα τὸ αὐτὸ λέγητε πάντες, καὶ μὴ ᾖ ἐν ὑμῖν σχίσματα, ἦτε δὲ κατηρτισμένοι ἐν τῷ αὐτῷ νοῒ καὶ ἐν τῇ αὐτῇ γνώμῃ.",
+      "targetText": "I appeal to you, brothers, in the name of our Lord Jesus Christ, that all of you agree together, so that there may be no divisions among you and that you may be united in mind and conviction.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I appeal",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "to you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "brothers",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ],
+          "note": "διά (\"through\") is rendered in."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "name",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            },
+            {
+              "text": "that",
+              "occurrence": 2
+            }
+          ],
+          "note": "English repeats that for the last clause under the same ἵνα."
+        },
+        {
+          "sourceTokens": [
+            13,
+            14,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "you agree together",
+              "occurrence": 0
+            }
+          ],
+          "note": "τὸ αὐτὸ λέγητε (\"you say the same thing\") is rendered you agree together."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "all of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "so that",
+              "occurrence": 0
+            }
+          ],
+          "note": "καί (\"and\") is rendered so that."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "no",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "there may be",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "among",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "divisions",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "you may be",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "united",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            29
+          ],
+          "targetPhrases": [
+            {
+              "text": "mind",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            30
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            34
+          ],
+          "targetPhrases": [
+            {
+              "text": "conviction",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves the connective δέ untranslated."
+        },
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            27,
+            28
+          ],
+          "reason": "BSB does not render τῷ αὐτῷ (\"the same\") separately."
+        },
+        {
+          "tokens": [
+            31
+          ],
+          "reason": "BSB does not repeat in before conviction."
+        },
+        {
+          "tokens": [
+            32,
+            33
+          ],
+          "reason": "BSB does not render τῇ αὐτῇ (\"the same\") separately."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:11": {
+      "sourceText": "ἐδηλώθη γάρ μοι περὶ ὑμῶν, ἀδελφοί μου, ὑπὸ τῶν Χλόης, ὅτι ἔριδες ἐν ὑμῖν εἰσιν.",
+      "targetText": "My brothers, some from Chloe’s household have informed me that there are quarrels among you.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "have informed",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB makes the passive ἐδηλώθη (\"it was made known\") active: have informed."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "brothers",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "My",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "some from",
+              "occurrence": 0
+            },
+            {
+              "text": "household",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article τῶν (\"those of\") is rendered some from … household."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Chloe’s",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "quarrels",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "among",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "there are",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves the connective γάρ untranslated."
+        },
+        {
+          "tokens": [
+            3,
+            4
+          ],
+          "reason": "BSB leaves περὶ ὑμῶν (\"about you\") untranslated; its you renders ἐν ὑμῖν."
+        },
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "BSB makes ὑπὸ τῶν Χλόης (\"by those of Chloe\") the subject, so ὑπό has no English word."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:12": {
+      "sourceText": "λέγω δὲ τοῦτο, ὅτι ἕκαστος ὑμῶν λέγει Ἐγὼ μέν εἰμι Παύλου, Ἐγὼ δὲ Ἀπολλῶ, Ἐγὼ δὲ Κηφᾶ, Ἐγὼ δὲ Χριστοῦ.",
+      "targetText": "What I mean is this: Individuals among you are saying, “I follow Paul,” “I follow Apollos,” “I follow Cephas,” or “I follow Christ.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I mean",
+              "occurrence": 0
+            }
+          ],
+          "note": "λέγω (\"I say\") is rendered I mean."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Individuals",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "among you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "are saying",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "follow",
+              "occurrence": 0
+            },
+            {
+              "text": "follow",
+              "occurrence": 1
+            },
+            {
+              "text": "follow",
+              "occurrence": 2
+            },
+            {
+              "text": "follow",
+              "occurrence": 3
+            }
+          ],
+          "note": "εἰμι with the genitive (\"I am of Paul\") is rendered I follow; BSB repeats follow where the Greek leaves the verb understood."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Paul",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Apollos",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "Cephas",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 4
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "or",
+              "occurrence": 0
+            }
+          ],
+          "note": "δέ is rendered or."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1,
+            12,
+            15
+          ],
+          "reason": "BSB leaves the connective δέ untranslated."
+        },
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "BSB marks ὅτι (\"that\") with a colon."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "BSB leaves the particle μέν untranslated."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "What",
+          "occurrence": 0,
+          "reason": "English supplies What to introduce the explanation."
+        },
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies a copula."
+        }
+      ]
+    },
+    "1:13": {
+      "sourceText": "μεμέρισται ὁ Χριστός; μὴ Παῦλος ἐσταυρώθη ὑπὲρ ὑμῶν, ἢ εἰς τὸ ὄνομα Παύλου ἐβαπτίσθητε;",
+      "targetText": "Is Christ divided? Was Paul crucified for you? Were you baptized into the name of Paul?",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Is",
+              "occurrence": 0
+            },
+            {
+              "text": "divided",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Paul",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Was",
+              "occurrence": 0
+            },
+            {
+              "text": "crucified",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "into",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "name",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Paul",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "Were you baptized",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "μή marks a question expecting the answer no; BSB has no separate word for it."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "BSB starts a new question in place of ἤ (\"or\")."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:14": {
+      "sourceText": "εὐχαριστῶ ὅτι οὐδένα ὑμῶν ἐβάπτισα εἰ μὴ Κρίσπον καὶ Γάϊον·",
+      "targetText": "I thank God that I did not baptize any of you except Crispus and Gaius,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I thank",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            },
+            {
+              "text": "any",
+              "occurrence": 0
+            }
+          ],
+          "note": "οὐδένα (\"no one\") is rendered not … any."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "of you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "I did",
+              "occurrence": 0
+            },
+            {
+              "text": "baptize",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5,
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "except",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Crispus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "Gaius",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "God",
+          "occurrence": 0,
+          "reason": "BSB follows a reading with extra words here; N1904 has no \"God\"."
+        }
+      ]
+    },
+    "1:15": {
+      "sourceText": "ἵνα μή τις εἴπῃ ὅτι εἰς τὸ ἐμὸν ὄνομα ἐβαπτίσθητε.",
+      "targetText": "so no one can say that you were baptized into my name.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "so",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "no",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "one",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "can say",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "into",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "name",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "you were baptized",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:16": {
+      "sourceText": "ἐβάπτισα δὲ καὶ τὸν Στεφανᾶ οἶκον· λοιπὸν οὐκ οἶδα εἴ τινα ἄλλον ἐβάπτισα.",
+      "targetText": "Yes, I also baptized the household of Stephanas; beyond that I do not remember if I baptized anyone else.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "I",
+              "occurrence": 0
+            },
+            {
+              "text": "baptized",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Yes",
+              "occurrence": 0
+            }
+          ],
+          "note": "δέ is rendered Yes."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "also",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Stephanas",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "household",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "beyond that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "I do",
+              "occurrence": 0
+            },
+            {
+              "text": "remember",
+              "occurrence": 0
+            }
+          ],
+          "note": "οἶδα (\"I know\") is rendered remember."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "if",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "anyone",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "else",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "I baptized",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    },
+    "1:17": {
+      "sourceText": "οὐ γὰρ ἀπέστειλέν με Χριστὸς βαπτίζειν ἀλλὰ εὐαγγελίζεσθαι, οὐκ ἐν σοφίᾳ λόγου, ἵνα μὴ κενωθῇ ὁ σταυρὸς τοῦ Χριστοῦ.",
+      "targetText": "For Christ did not send me to baptize, but to preach the gospel, not with words of wisdom, lest the cross of Christ be emptied of its power.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "did",
+              "occurrence": 0
+            },
+            {
+              "text": "send",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "me",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "to baptize",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "to preach the gospel",
+              "occurrence": 0
+            }
+          ],
+          "note": "εὐαγγελίζεσθαι (\"to proclaim good news\") is rendered to preach the gospel."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "wisdom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "words of",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB reverses σοφίᾳ λόγου (\"wisdom of word\") into words of wisdom."
+        },
+        {
+          "sourceTokens": [
+            12,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "lest",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "be emptied of its power",
+              "occurrence": 0
+            }
+          ],
+          "note": "κενωθῇ (\"be emptied\") is rendered be emptied of its power."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "cross",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            17
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:18": {
+      "sourceText": "Ὁ λόγος γὰρ ὁ τοῦ σταυροῦ τοῖς μὲν ἀπολλυμένοις μωρία ἐστίν, τοῖς δὲ σῳζομένοις ἡμῖν δύναμις Θεοῦ ἐστιν.",
+      "targetText": "For the message of the cross is foolishness to those who are perishing, but to us who are being saved it is the power of God.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "message",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "cross",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "to those who are perishing",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article with the participle ἀπολλυμένοις (\"perishing\") is rendered those who are perishing."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "foolishness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "who are being saved",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article with the participle σῳζομένοις (\"being saved\") is rendered who are being saved."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "to us",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "the power",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "it is",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "BSB leaves the particle μέν untranslated."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:19": {
+      "sourceText": "γέγραπται γάρ Ἀπολῶ τὴν σοφίαν τῶν σοφῶν, καὶ τὴν σύνεσιν τῶν συνετῶν ἀθετήσω.",
+      "targetText": "For it is written:  “I will destroy the wisdom of the wise; the intelligence of the intelligent I will frustrate.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "it is written",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "I will destroy",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "wisdom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "wise",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "intelligence",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            },
+            {
+              "text": "intelligent",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "I will frustrate",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "BSB joins the two lines with a semicolon in place of καί."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:20": {
+      "sourceText": "ποῦ σοφός; ποῦ γραμματεύς; ποῦ συνζητητὴς τοῦ αἰῶνος τούτου; οὐχὶ ἐμώρανεν ὁ Θεὸς τὴν σοφίαν τοῦ κόσμου;",
+      "targetText": "Where is the wise man? Where is the scribe? Where is the philosopher of this age? Has not God made foolish the wisdom of the world?",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Where",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the wise man",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Where",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the scribe",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Where",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the philosopher",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same word (\"debater\"), spelled differently in BSB's Greek text; BSB renders it philosopher."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "age",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "Has",
+              "occurrence": 0
+            },
+            {
+              "text": "made foolish",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "wisdom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 4
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            },
+            {
+              "text": "world",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6,
+            11
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies a copula."
+        },
+        {
+          "text": "is",
+          "occurrence": 1,
+          "reason": "English supplies a copula."
+        },
+        {
+          "text": "is",
+          "occurrence": 2,
+          "reason": "English supplies a copula."
+        }
+      ]
+    },
+    "1:21": {
+      "sourceText": "ἐπειδὴ γὰρ ἐν τῇ σοφίᾳ τοῦ Θεοῦ οὐκ ἔγνω ὁ κόσμος διὰ τῆς σοφίας τὸν Θεόν, εὐδόκησεν ὁ Θεὸς διὰ τῆς μωρίας τοῦ κηρύγματος σῶσαι τοὺς πιστεύοντας.",
+      "targetText": "For since in the wisdom of God the world through its wisdom did not know Him, God was pleased through the foolishness of what was preached to save those who believe.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "since",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "wisdom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "did",
+              "occurrence": 0
+            },
+            {
+              "text": "know",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "world",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "its",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article τῆς is used as a possessive and rendered its."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "wisdom",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB renders τὸν Θεόν (\"God\") as Him."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "was pleased",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "foolishness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "of what was preached",
+              "occurrence": 0
+            }
+          ],
+          "note": "κηρύγματος (\"of the proclamation\") is rendered of what was preached."
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "to save",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25,
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "those who believe",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            5,
+            14,
+            17,
+            22
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:22": {
+      "sourceText": "ἐπειδὴ καὶ Ἰουδαῖοι σημεῖα αἰτοῦσιν καὶ Ἕλληνες σοφίαν ζητοῦσιν,",
+      "targetText": "Jews demand signs and Greeks search for wisdom,",
+      "groups": [
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jews",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "signs",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "demand",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Greeks",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "wisdom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "search for",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB leaves ἐπειδή (\"since\") untranslated."
+        },
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB has no \"both\" for the first καί of the pair."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:23": {
+      "sourceText": "ἡμεῖς δὲ κηρύσσομεν Χριστὸν ἐσταυρωμένον, Ἰουδαίοις μὲν σκάνδαλον, ἔθνεσιν δὲ μωρίαν,",
+      "targetText": "but we preach Christ crucified, a stumbling block to Jews and foolishness to Gentiles,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "we",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "preach",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "crucified",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "to Jews",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "a stumbling block",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "to Gentiles",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "foolishness",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "BSB leaves the particle μέν untranslated."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:24": {
+      "sourceText": "αὐτοῖς δὲ τοῖς κλητοῖς, Ἰουδαίοις τε καὶ Ἕλλησιν, Χριστὸν Θεοῦ δύναμιν καὶ Θεοῦ σοφίαν.",
+      "targetText": "but to those who are called, both Jews and Greeks, Christ the power of God and the wisdom of God.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "to those",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article τοῖς with κλητοῖς (\"called\") is rendered who."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "called",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jews",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "both",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Greeks",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "the power",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "the wisdom",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "are",
+          "occurrence": 0,
+          "reason": "English supplies a copula."
+        }
+      ]
+    },
+    "1:25": {
+      "sourceText": "ὅτι τὸ μωρὸν τοῦ Θεοῦ σοφώτερον τῶν ἀνθρώπων ἐστίν, καὶ τὸ ἀσθενὲς τοῦ Θεοῦ ἰσχυρότερον τῶν ἀνθρώπων.",
+      "targetText": "For the foolishness of God is wiser than man’s wisdom, and the weakness of God is stronger than man’s strength.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "foolishness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "wiser",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "than man’s",
+              "occurrence": 0
+            }
+          ],
+          "note": "The genitive τῶν ἀνθρώπων (\"than men\") is rendered than man's."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "is",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "weakness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "stronger",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "than man’s",
+              "occurrence": 1
+            }
+          ],
+          "note": "The genitive τῶν ἀνθρώπων (\"than men\") is rendered than man's."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            6,
+            12,
+            15
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "wisdom",
+          "occurrence": 0,
+          "reason": "English supplies wisdom to complete the comparison; the Greek says only \"than men\"."
+        },
+        {
+          "text": "is",
+          "occurrence": 1,
+          "reason": "English supplies a copula."
+        },
+        {
+          "text": "strength",
+          "occurrence": 0,
+          "reason": "English supplies strength to complete the comparison; the Greek says only \"than men\"."
+        }
+      ]
+    },
+    "1:26": {
+      "sourceText": "Βλέπετε γὰρ τὴν κλῆσιν ὑμῶν, ἀδελφοί, ὅτι οὐ πολλοὶ σοφοὶ κατὰ σάρκα, οὐ πολλοὶ δυνατοί, οὐ πολλοὶ εὐγενεῖς·",
+      "targetText": "Brothers, consider the time of your calling: Not many of you were wise by human standards; not many were powerful; not many were of noble birth.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "consider",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "calling",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "Brothers",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "many",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "wise",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "by human standards",
+              "occurrence": 0
+            }
+          ],
+          "note": "κατὰ σάρκα (\"according to the flesh\") is rendered by human standards."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "many",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "powerful",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "many",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "of noble birth",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves the connective γάρ untranslated."
+        },
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "BSB marks ὅτι (\"that\") with a colon."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "the time of",
+          "occurrence": 0,
+          "reason": "English adds the time of; the Greek says only \"your calling\"."
+        },
+        {
+          "text": "of you",
+          "occurrence": 0,
+          "reason": "English adds of you; the Greek has only πολλοί (\"many\")."
+        },
+        {
+          "text": "were",
+          "occurrence": 0,
+          "reason": "English supplies a copula."
+        },
+        {
+          "text": "were",
+          "occurrence": 1,
+          "reason": "English supplies a copula."
+        },
+        {
+          "text": "were",
+          "occurrence": 2,
+          "reason": "English supplies a copula."
+        }
+      ]
+    },
+    "1:27": {
+      "sourceText": "ἀλλὰ τὰ μωρὰ τοῦ κόσμου ἐξελέξατο ὁ Θεός ἵνα καταισχύνῃ τοὺς σοφούς, καὶ τὰ ἀσθενῆ τοῦ κόσμου ἐξελέξατο ὁ Θεός ἵνα καταισχύνῃ τὰ ἰσχυρά,",
+      "targetText": "But God chose the foolish things of the world to shame the wise; God chose the weak things of the world to shame the strong.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "foolish things",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "world",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "chose",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "shame",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "wise",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "weak things",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 4
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            },
+            {
+              "text": "world",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "chose",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "shame",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 5
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "strong",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6,
+            18
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            12
+          ],
+          "reason": "BSB joins the two clauses with a semicolon in place of καί."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:28": {
+      "sourceText": "καὶ τὰ ἀγενῆ τοῦ κόσμου καὶ τὰ ἐξουθενημένα ἐξελέξατο ὁ Θεός, τὰ μὴ ὄντα, ἵνα τὰ ὄντα καταργήσῃ,",
+      "targetText": "He chose the lowly and despised things of the world, and the things that are not, to nullify the things that are,",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "lowly",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "world",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6,
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "despised things",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article with the participle ἐξουθενημένα (\"despised\") is rendered despised things."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "chose",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "He",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB renders ὁ Θεός (\"God\") as He."
+        },
+        {
+          "sourceTokens": [
+            11,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "the things that are",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15,
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "the things that are",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "nullify",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB begins a new sentence and leaves the opening καί untranslated."
+        },
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "and",
+          "occurrence": 1,
+          "reason": "BSB follows a reading with an extra word here."
+        }
+      ]
+    },
+    "1:29": {
+      "sourceText": "ὅπως μὴ καυχήσηται πᾶσα σὰρξ ἐνώπιον τοῦ Θεοῦ.",
+      "targetText": "so that no one may boast in His presence.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "so that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "no",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "may boast",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "one",
+              "occurrence": 0
+            }
+          ],
+          "note": "πᾶσα σάρξ (\"all flesh\") with μή is rendered no one."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            },
+            {
+              "text": "presence",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐνώπιον (\"before\") is rendered in … presence."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB renders τοῦ Θεοῦ (\"God\") as His."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "1:30": {
+      "sourceText": "ἐξ αὐτοῦ δὲ ὑμεῖς ἐστε ἐν Χριστῷ Ἰησοῦ, ὃς ἐγενήθη σοφία ἡμῖν ἀπὸ Θεοῦ, δικαιοσύνη τε καὶ ἁγιασμὸς καὶ ἀπολύτρωσις,",
+      "targetText": "It is because of Him that you are in Christ Jesus, who has become for us wisdom from God: our righteousness, holiness, and redemption.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "because of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Him",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "are",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "has become",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "wisdom",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "for us",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "from",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "righteousness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "holiness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "redemption",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "BSB leaves the connective δέ untranslated."
+        },
+        {
+          "tokens": [
+            15
+          ],
+          "reason": "BSB has no \"both\" here, so τε has no English word."
+        },
+        {
+          "tokens": [
+            16
+          ],
+          "reason": "BSB lists the items with a comma in place of the first καί."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "It is",
+          "occurrence": 0,
+          "reason": "English uses the frame It is … that for emphasis."
+        },
+        {
+          "text": "that",
+          "occurrence": 0,
+          "reason": "English uses the frame It is … that for emphasis."
+        },
+        {
+          "text": "our",
+          "occurrence": 0,
+          "reason": "English supplies the possessive; the Greek has no pronoun here."
+        }
+      ]
+    },
+    "1:31": {
+      "sourceText": "ἵνα καθὼς γέγραπται Ὁ καυχώμενος ἐν Κυρίῳ καυχάσθω.",
+      "targetText": "Therefore, as it is written: “Let him who boasts boast in the Lord.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Therefore",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἵνα (\"so that\") is rendered Therefore."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "as",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "it is written",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "him who boasts",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article with the participle καυχώμενος (\"boasting\") is rendered him who boasts."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Let",
+              "occurrence": 0
+            },
+            {
+              "text": "boast",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": []
+    }
+  }
+}
