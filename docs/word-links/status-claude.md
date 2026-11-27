@@ -41,6 +41,8 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   - 1 Corinthians 9:17 (Codex's earlier verse, kept unchanged): supplied
     copulas are folded into Greek groups ("my preaching is voluntary");
     current convention makes them `t`.
+  - 1 Timothy 5:18 ("while it is treading out the grain") keeps "it" on the
+    participle; 1 Corinthians 9:9 now makes that "it" `t`.
 
 ## Done
 
