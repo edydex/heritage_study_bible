@@ -38,6 +38,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   - Romans 15:27 (Codex's earlier verse, kept unchanged): "to do it" is folded
     into ηὐδόκησαν and a supplied "it" into the verb pair; by the current
     convention both would be `t`.
+  - 1 Corinthians 9:17 (Codex's earlier verse, kept unchanged): supplied
+    copulas are folded into Greek groups ("my preaching is voluntary");
+    current convention makes them `t`.
 
 ## Done
 
