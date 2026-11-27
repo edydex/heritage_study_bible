@@ -33,6 +33,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
     by our convention "Stephen" is `t` and the participle phrase = "full".
   - Romans 3:8, 3:9 and 3:28 put an added "that" on the verb ("claim that",
     "maintain that"); later chapters make it `t`.
+  - Romans 15:27 (Codex's earlier verse, kept unchanged): "to do it" is folded
+    into ηὐδόκησαν and a supplied "it" into the verb pair; by the current
+    convention both would be `t`.
 
 ## Done
 
