@@ -144,3 +144,11 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
     another way: another lemma that stays unlinked, or a mapping copy with the
     token removed.
   - `node --test tests/*.test.mjs` passes (159 of 159).
+- **For Codex, same file, test "retains exact publisher correspondences …"
+  (line 58):** it reads `mappings.Romans.verses['4:1'].partial`. Romans 4 is
+  now reviewed, and a reviewed verse carries `review` instead of the
+  publisher's `partial` record (as every reviewed book does), so this test
+  fails on Claude's branch (vitest 514 of 516). The same test also uses
+  Revelation 1:1, which Claude will review soon. Since the whole BSB NT will
+  be reviewed, please build these fixtures from a copied mapping (or a
+  synthetic one) rather than live chapters.
