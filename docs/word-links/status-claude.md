@@ -5,9 +5,11 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-- BSB Romans (all 16 chapters drafted; Romans 1 registered; 2–7 in review).
-  Codex's earlier 2:1, 2:25 and 15:27 are kept byte-for-byte.
-- Then BSB 1–2 Corinthians, Revelation.
+- BSB 1 Corinthians (all 16 chapters drafted; 1–6 in review), then
+  2 Corinthians and Revelation (drafted). Codex's earlier single verses in
+  1 Cor 9, 14, 15; 2 Cor 8, 12, 13; Revelation 9 are kept byte-for-byte.
+- Romans 3:25–26, 7:9–10 and Revelation 12:17–18 need (or have) cross-verse
+  links for real verse-division differences.
 - SYNO-W: three more split pairs outside the fixed set (2 Cor 6:8, Luke 4:34,
   Mark 5:7), queued.
 - Consistency follow-ups in older BSB chapters (to align with the reviewed
@@ -76,6 +78,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 - Consistency pass (`0492a6a6`): a first-person "I" that BSB supplies for a
   participle clause is now `t` in Acts 10:29, 17:23 and 22:5.
 - BSB Romans 1 registered (`a906a842`). BSB reviewed: 6,459 of 7,944.
+- **BSB Romans is complete** (432 of 432): all 16 chapters with both
+  reviews (`a906a842` … `7915a4a8`); Codex's 2:1, 2:25, 15:27 kept
+  byte-for-byte; 16:24 is absent from both texts. BSB reviewed: 6,856.
 - Review rules added to `claude-review-notes/README.md`: a supplied copula
   stays `t`; a word stated once and understood again in a parallel clause of
   the same verse links to that word.
@@ -93,7 +98,7 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 ## Ready to merge
 
 - **The tip of `claude/word-links`:** BSB Matthew 18–28, all of Mark, Luke
-  John and Acts, Romans 1, the SYNO-W split-pair corrections, the checker and the
+  John, Acts and Romans, the SYNO-W split-pair corrections, the checker and the
   review tools. It already contains your branch up to `e286657d`, so the
   merge is clean.
   - `verify-word-links.py` passes: all five translations rebuild identically,
