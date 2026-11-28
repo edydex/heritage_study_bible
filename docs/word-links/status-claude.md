@@ -50,6 +50,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
     an adjective: Ephesians 6:22, Colossians 4:8, Romans 13:6 and Galatians
     6:15 differ from the later 2 Corinthians 5 practice ("purpose" `t`,
     "a/an" on the noun).
+  - 2 Corinthians 8:17 (Codex's earlier verse, kept unchanged): "not" sits
+    on μέν … δέ (BSB's "not only … but" recast), τήν is `s` with "our" `t`,
+    and its notes are multi-sentence. Links are defensible.
 
 ## Done
 

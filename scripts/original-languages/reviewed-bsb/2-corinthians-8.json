@@ -1,8 +1,2992 @@
 {
   "schemaVersion": 1,
+  "targetId": "BSB",
+  "sourceId": "N1904",
   "book": "2 Corinthians",
   "chapter": 8,
+  "review": {
+    "source": "Actual written N1904 and the publisher rows, reviewed against the displayed BSB by Claude (Anthropic); independent peer review recorded in the registry."
+  },
   "verses": {
+    "8:1": {
+      "sourceText": "Γνωρίζομεν δὲ ὑμῖν, ἀδελφοί, τὴν χάριν τοῦ Θεοῦ τὴν δεδομένην ἐν ταῖς ἐκκλησίαις τῆς Μακεδονίας,",
+      "targetText": "Now, brothers, we want you to know about the grace that God has given the churches of Macedonia.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "we want",
+              "occurrence": 0
+            },
+            {
+              "text": "to know about",
+              "occurrence": 0
+            }
+          ],
+          "note": "Γνωρίζομεν (\"we make known\") is rendered we want … to know about."
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "Now",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "brothers",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "God",
+              "occurrence": 0
+            }
+          ],
+          "note": "The genitive τοῦ Θεοῦ (\"of God\") is rendered as the giver, God has given."
+        },
+        {
+          "sourceTokens": [
+            8,
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            },
+            {
+              "text": "has given",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article with the participle δεδομένην (\"given\") is rendered that … has given."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "churches",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Macedonia",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6,
+            13
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            10
+          ],
+          "reason": "BSB makes the churches the indirect object of has given, so ἐν (\"in\") has no English word."
+        }
+      ],
+      "unmappedTarget": []
+    },
+    "8:2": {
+      "sourceText": "ὅτι ἐν πολλῇ δοκιμῇ θλίψεως ἡ περισσεία τῆς χαρᾶς αὐτῶν καὶ ἡ κατὰ βάθους πτωχεία αὐτῶν ἐπερίσσευσεν εἰς τὸ πλοῦτος τῆς ἁπλότητος αὐτῶν·",
+      "targetText": "In the terrible ordeal they suffered, their abundant joy and deep poverty overflowed into rich generosity.",
+      "groups": [
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "In",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "the terrible",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "ordeal",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "suffered",
+              "occurrence": 0
+            }
+          ],
+          "note": "The noun θλίψεως (\"of affliction\") is rendered they suffered."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "abundant",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "joy",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "their",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "deep",
+              "occurrence": 0
+            }
+          ],
+          "note": "κατὰ βάθους (\"down to the depth\") is rendered deep."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "poverty",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "overflowed",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "into",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "rich",
+              "occurrence": 0
+            }
+          ],
+          "note": "The noun πλοῦτος (\"wealth\") is rendered rich."
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "generosity",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            0
+          ],
+          "reason": "BSB starts a new sentence and leaves ὅτι (\"that\") untranslated."
+        },
+        {
+          "tokens": [
+            5,
+            7,
+            11,
+            18,
+            20
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            15,
+            22
+          ],
+          "reason": "BSB does not repeat their with these nouns."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "they",
+          "occurrence": 0,
+          "reason": "English supplies a subject for the noun θλίψεως rendered as a verb."
+        }
+      ]
+    },
+    "8:3": {
+      "sourceText": "ὅτι κατὰ δύναμιν, μαρτυρῶ, καὶ παρὰ δύναμιν, αὐθαίρετοι",
+      "targetText": "For I testify that they gave according to their ability and even beyond it. Of their own accord,",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "according to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "ability",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "I testify",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "beyond",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "it",
+              "occurrence": 0
+            }
+          ],
+          "note": "δύναμιν (\"ability\") is repeated in Greek; BSB uses it."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Of their own accord",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "they gave",
+          "occurrence": 0,
+          "reason": "English supplies a verb; the Greek clause has none here."
+        },
+        {
+          "text": "their",
+          "occurrence": 0,
+          "reason": "English supplies a possessive."
+        },
+        {
+          "text": "that",
+          "occurrence": 0,
+          "reason": "English adds that after testify."
+        },
+        {
+          "text": "even",
+          "occurrence": 0,
+          "reason": "English adds even for emphasis."
+        }
+      ]
+    },
+    "8:4": {
+      "sourceText": "μετὰ πολλῆς παρακλήσεως δεόμενοι ἡμῶν, τὴν χάριν καὶ τὴν κοινωνίαν τῆς διακονίας τῆς εἰς τοὺς ἁγίους,",
+      "targetText": "they earnestly pleaded with us for the privilege of sharing in this service to the saints.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "earnestly",
+              "occurrence": 0
+            }
+          ],
+          "note": "μετὰ πολλῆς παρακλήσεως (\"with much urging\") is rendered earnestly."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "pleaded",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "with us",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            },
+            {
+              "text": "privilege",
+              "occurrence": 0
+            }
+          ],
+          "note": "The accusative χάριν, the thing asked for, is rendered for … privilege."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "of sharing",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article τῆς is rendered this."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            },
+            {
+              "text": "service",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "saints",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "BSB joins the two nouns as privilege of sharing, so καί has no English word."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            12
+          ],
+          "reason": "The article joining to the saints to service has no separate English word."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "they",
+          "occurrence": 0,
+          "reason": "A participle has no person; English supplies the subject."
+        }
+      ]
+    },
+    "8:5": {
+      "sourceText": "καὶ οὐ καθὼς ἠλπίσαμεν, ἀλλὰ ἑαυτοὺς ἔδωκαν πρῶτον τῷ Κυρίῳ καὶ ἡμῖν διὰ θελήματος Θεοῦ,",
+      "targetText": "And not only did they do as we expected, but they gave themselves first to the Lord and then to us, because it was the will of God.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "as",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "we expected",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ],
+          "note": "Same word, spelled differently in BSB's Greek text."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "themselves",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "they gave",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "first",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            },
+            {
+              "text": "Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "to us",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "because",
+              "occurrence": 0
+            }
+          ],
+          "note": "διά (\"through\") is rendered because it was."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "the will",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "of God",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "only",
+          "occurrence": 0,
+          "reason": "English adds only; the Greek has not as."
+        },
+        {
+          "text": "did they do",
+          "occurrence": 0,
+          "reason": "English supplies a verb; the first Greek clause has none."
+        },
+        {
+          "text": "then",
+          "occurrence": 0,
+          "reason": "English adds then after first."
+        },
+        {
+          "text": "it was",
+          "occurrence": 0,
+          "reason": "English supplies a subject and copula."
+        }
+      ]
+    },
+    "8:6": {
+      "sourceText": "εἰς τὸ παρακαλέσαι ἡμᾶς Τίτον, ἵνα καθὼς προενήρξατο οὕτως καὶ ἐπιτελέσῃ εἰς ὑμᾶς καὶ τὴν χάριν ταύτην.",
+      "targetText": "So we urged Titus to help complete your act of grace, just as he had started it.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "So",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς τό with the infinitive is rendered So."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "urged",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "we",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "Titus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἵνα (\"that\") is rendered to with complete."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "just as",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "he had started",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "complete",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς ὑμᾶς (\"toward you\") is rendered your."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            8,
+            9
+          ],
+          "reason": "οὕτως καί (\"so also\") is not separately expressed in this English wording."
+        },
+        {
+          "tokens": [
+            13
+          ],
+          "reason": "BSB has no word for καί (\"also\") here."
+        },
+        {
+          "tokens": [
+            14
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            16
+          ],
+          "reason": "BSB leaves ταύτην (\"this\") untranslated."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "help",
+          "occurrence": 0,
+          "reason": "English adds help; the Greek verb means complete."
+        },
+        {
+          "text": "act of",
+          "occurrence": 0,
+          "reason": "English adds act of to grace."
+        },
+        {
+          "text": "it",
+          "occurrence": 0,
+          "reason": "English supplies an object for started."
+        }
+      ]
+    },
+    "8:7": {
+      "sourceText": "ἀλλ’ ὥσπερ ἐν παντὶ περισσεύετε, πίστει καὶ λόγῳ καὶ γνώσει καὶ πάσῃ σπουδῇ καὶ τῇ ἐξ ἡμῶν ἐν ὑμῖν ἀγάπῃ, ἵνα καὶ ἐν ταύτῃ τῇ χάριτι περισσεύητε.",
+      "targetText": "But just as you excel in everything—in faith, in speech, in knowledge, in complete earnestness, and in the love we inspired in you—see that you also excel in this grace of giving.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "just as",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "everything",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "you excel",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "in faith",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "in speech",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "in knowledge",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "complete",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 4
+            },
+            {
+              "text": "earnestness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "inspired",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐξ ἡμῶν (\"from us\") is rendered we inspired."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "we",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 6
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 5
+            },
+            {
+              "text": "love",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "see that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "also",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 7
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 2
+            },
+            {
+              "text": "excel",
+              "occurrence": 1
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6,
+            8,
+            10
+          ],
+          "reason": "BSB lists these with commas and leaves καί untranslated."
+        },
+        {
+          "tokens": [
+            24
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "of giving",
+          "occurrence": 0,
+          "reason": "English adds of giving; the Greek has this grace."
+        }
+      ]
+    },
+    "8:8": {
+      "sourceText": "Οὐ κατ’ ἐπιταγὴν λέγω ἀλλὰ διὰ τῆς ἑτέρων σπουδῆς καὶ τὸ τῆς ὑμετέρας ἀγάπης γνήσιον δοκιμάζων·",
+      "targetText": "I am not making a demand, but I am testing the sincerity of your love in comparison to the earnestness of others.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1,
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "a demand",
+              "occurrence": 0
+            }
+          ],
+          "note": "κατ’ ἐπιταγήν (\"by way of command\") is rendered a demand."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "I am",
+              "occurrence": 0
+            },
+            {
+              "text": "making",
+              "occurrence": 0
+            }
+          ],
+          "note": "λέγω (\"I speak\") is rendered I am … making."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "in comparison to",
+              "occurrence": 0
+            }
+          ],
+          "note": "διά (\"through\") is rendered in comparison to."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "of others",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "earnestness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "love",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "sincerity",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "am testing",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            9
+          ],
+          "reason": "BSB has no word for καί (\"also\") here."
+        },
+        {
+          "tokens": [
+            11
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "I",
+          "occurrence": 1,
+          "reason": "A participle has no person; English supplies the subject."
+        }
+      ]
+    },
+    "8:9": {
+      "sourceText": "γινώσκετε γὰρ τὴν χάριν τοῦ Κυρίου ἡμῶν Ἰησοῦ Χριστοῦ, ὅτι δι’ ὑμᾶς ἐπτώχευσεν πλούσιος ὤν, ἵνα ὑμεῖς τῇ ἐκείνου πτωχείᾳ πλουτήσητε.",
+      "targetText": "For you know the grace of our Lord Jesus Christ, that though He was rich, yet for your sakes He became poor, so that you through His poverty might become rich.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "you know",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "grace",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "Jesus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "Christ",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "for your sakes",
+              "occurrence": 0
+            }
+          ],
+          "note": "δι’ ὑμᾶς (\"because of you\") is rendered for your sakes."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "He became poor",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "rich",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "though",
+              "occurrence": 0
+            },
+            {
+              "text": "was",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle ὤν (\"being\") is rendered though … was."
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "so that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "His",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "through",
+              "occurrence": 0
+            },
+            {
+              "text": "poverty",
+              "occurrence": 0
+            }
+          ],
+          "note": "The dative τῇ πτωχείᾳ is rendered through … poverty."
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "might become rich",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4,
+            17
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "He",
+          "occurrence": 0,
+          "reason": "A participle has no person; English supplies the subject."
+        },
+        {
+          "text": "yet",
+          "occurrence": 0,
+          "reason": "English adds yet to mark the contrast."
+        }
+      ]
+    },
+    "8:10": {
+      "sourceText": "καὶ γνώμην ἐν τούτῳ δίδωμι· τοῦτο γὰρ ὑμῖν συμφέρει, οἵτινες οὐ μόνον τὸ ποιῆσαι ἀλλὰ καὶ τὸ θέλειν προενήρξασθε ἀπὸ πέρυσι·",
+      "targetText": "And this is my opinion about what is helpful for you in this matter: Last year you were the first not only to give, but even to have such a desire.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "opinion",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "this matter",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "is my",
+              "occurrence": 0
+            }
+          ],
+          "note": "δίδωμι (\"I give\") with γνώμην is rendered is my opinion."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "for you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "is helpful",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 1
+            }
+          ],
+          "note": "The relative οἵτινες (\"who\") is rendered you in a new sentence."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "only",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "to give",
+              "occurrence": 0
+            }
+          ],
+          "note": "τὸ ποιῆσαι (\"the doing\") is rendered to give."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "even",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16,
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "to have",
+              "occurrence": 0
+            },
+            {
+              "text": "a desire",
+              "occurrence": 0
+            }
+          ],
+          "note": "τὸ θέλειν (\"the wanting\") is rendered to have a desire."
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "were the first",
+              "occurrence": 0
+            }
+          ],
+          "note": "προενήρξασθε (\"you began beforehand\") is rendered you were the first."
+        },
+        {
+          "sourceTokens": [
+            19,
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "Last year",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἀπὸ πέρυσι (\"since last year\") is rendered Last year."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            6
+          ],
+          "reason": "BSB leaves γάρ (\"for\") untranslated and joins the clause with about."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "about",
+          "occurrence": 0,
+          "reason": "English adds about to join the clause to opinion."
+        },
+        {
+          "text": "what",
+          "occurrence": 0,
+          "reason": "English supplies a subject for is helpful."
+        },
+        {
+          "text": "such",
+          "occurrence": 0,
+          "reason": "English adds such, pointing back to giving."
+        }
+      ]
+    },
+    "8:11": {
+      "sourceText": "νυνὶ δὲ καὶ τὸ ποιῆσαι ἐπιτελέσατε, ὅπως καθάπερ ἡ προθυμία τοῦ θέλειν, οὕτως καὶ τὸ ἐπιτελέσαι ἐκ τοῦ ἔχειν.",
+      "targetText": "Now finish the work, so that you may complete it just as eagerly as you began, according to your means.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "Now",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the work",
+              "occurrence": 0
+            }
+          ],
+          "note": "τὸ ποιῆσαι (\"the doing\") is rendered the work."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "finish",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "so that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "just as",
+              "occurrence": 0
+            },
+            {
+              "text": "as",
+              "occurrence": 1
+            }
+          ],
+          "note": "The correlatives καθάπερ … οὕτως (\"just as … so\") are rendered just as … as."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "eagerly",
+              "occurrence": 0
+            }
+          ],
+          "note": "The noun προθυμία (\"eagerness\") is rendered eagerly."
+        },
+        {
+          "sourceTokens": [
+            14,
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "complete",
+              "occurrence": 0
+            }
+          ],
+          "note": "τὸ ἐπιτελέσαι (\"the completing\") is rendered complete."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "according to",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17,
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "your means",
+              "occurrence": 0
+            }
+          ],
+          "note": "τοῦ ἔχειν (\"the having\") is rendered your means."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves the connective δέ untranslated."
+        },
+        {
+          "tokens": [
+            2,
+            13
+          ],
+          "reason": "BSB has no word for καί (\"also\") here."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        },
+        {
+          "tokens": [
+            10,
+            11
+          ],
+          "reason": "BSB does not render τοῦ θέλειν (\"of the wanting\"); it says you began instead."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "you may",
+          "occurrence": 0,
+          "reason": "The Greek clause has no finite verb; English supplies a subject and may."
+        },
+        {
+          "text": "it",
+          "occurrence": 0,
+          "reason": "English supplies an object for complete."
+        },
+        {
+          "text": "you began",
+          "occurrence": 0,
+          "reason": "English supplies a verb for the comparison; the Greek has no word for began."
+        }
+      ]
+    },
+    "8:12": {
+      "sourceText": "εἰ γὰρ ἡ προθυμία πρόκειται, καθὸ ἐὰν ἔχῃ εὐπρόσδεκτος, οὐ καθὸ οὐκ ἔχει.",
+      "targetText": "For if the eagerness is there, the gift is acceptable according to what one has, not according to what he does not have.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "if",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "eagerness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "is there",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5,
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "according to what",
+              "occurrence": 0
+            }
+          ],
+          "note": "καθὸ ἐάν (\"according to whatever\") is rendered according to what."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "one has",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "acceptable",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "according to what",
+              "occurrence": 1
+            }
+          ],
+          "note": "καθό (\"according to what\") is rendered according to what."
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "he does",
+              "occurrence": 0
+            },
+            {
+              "text": "have",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "the gift is",
+          "occurrence": 0,
+          "reason": "English supplies a subject and copula; the Greek has neither."
+        }
+      ]
+    },
+    "8:13": {
+      "sourceText": "οὐ γὰρ ἵνα ἄλλοις ἄνεσις, ὑμῖν θλῖψις· ἀλλ’ ἐξ ἰσότητος",
+      "targetText": "It is not our intention that others may be relieved while you are burdened, but that there may be equality.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "others",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "be relieved",
+              "occurrence": 0
+            }
+          ],
+          "note": "The noun ἄνεσις (\"relief\") is rendered be relieved."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "are burdened",
+              "occurrence": 0
+            }
+          ],
+          "note": "The noun θλῖψις (\"affliction\") is rendered are burdened."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "equality",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves the connective γάρ untranslated."
+        },
+        {
+          "tokens": [
+            8
+          ],
+          "reason": "BSB recasts ἐξ ἰσότητος (\"from equality\") as that there may be equality, so ἐξ has no English word."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "It is",
+          "occurrence": 0,
+          "reason": "English supplies a subject and copula; the Greek has no verb."
+        },
+        {
+          "text": "our intention",
+          "occurrence": 0,
+          "reason": "English supplies a noun for the purpose clause."
+        },
+        {
+          "text": "may",
+          "occurrence": 0,
+          "reason": "The Greek has no verb here; English supplies may."
+        },
+        {
+          "text": "while",
+          "occurrence": 0,
+          "reason": "English adds while to join the contrasted phrases."
+        },
+        {
+          "text": "that there may be",
+          "occurrence": 0,
+          "reason": "English supplies a purpose clause; the Greek has no verb here."
+        }
+      ]
+    },
+    "8:14": {
+      "sourceText": "ἐν τῷ νῦν καιρῷ τὸ ὑμῶν περίσσευμα εἰς τὸ ἐκείνων ὑστέρημα, ἵνα καὶ τὸ ἐκείνων περίσσευμα γένηται εἰς τὸ ὑμῶν ὑστέρημα, ὅπως γένηται ἰσότης,",
+      "targetText": "At the present time, your surplus will meet their need, so that in turn their surplus will meet your need. Then there will be equality.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "At",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "present",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "time",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "surplus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "meet",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς (\"toward\") with the need is rendered meet."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "their",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "need",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "so that",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "in turn",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "their",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "surplus",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "will",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "meet",
+              "occurrence": 1
+            }
+          ],
+          "note": "εἰς (\"toward\") with γένηται is rendered will meet."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "need",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "Then",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὅπως (\"so that\") is rendered Then in a new sentence."
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "there will be",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "equality",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            4,
+            8,
+            13,
+            18
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "will",
+          "occurrence": 0,
+          "reason": "The Greek phrase has no verb; English supplies will."
+        }
+      ]
+    },
+    "8:15": {
+      "sourceText": "καθὼς γέγραπται Ὁ τὸ πολὺ οὐκ ἐπλεόνασεν, καὶ ὁ τὸ ὀλίγον οὐκ ἠλαττόνησεν.",
+      "targetText": "As it is written:  “He who gathered much had no excess, and he who gathered little had no shortfall.”",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "As",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "it is written",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "He who",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article Ὁ is used as a pronoun, he who."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "much",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "no",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "had",
+              "occurrence": 0
+            },
+            {
+              "text": "excess",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "he who",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article ὁ is used as a pronoun, he who."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "little",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "no",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "had",
+              "occurrence": 1
+            },
+            {
+              "text": "shortfall",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            9
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "gathered",
+          "occurrence": 0,
+          "reason": "English supplies a verb; the Greek has none."
+        },
+        {
+          "text": "gathered",
+          "occurrence": 1,
+          "reason": "English supplies a verb; the Greek has none."
+        }
+      ]
+    },
+    "8:16": {
+      "sourceText": "Χάρις δὲ τῷ Θεῷ τῷ διδόντι τὴν αὐτὴν σπουδὴν ὑπὲρ ὑμῶν ἐν τῇ καρδίᾳ Τίτου,",
+      "targetText": "But thanks be to God, who put into the heart of Titus the same devotion I have for you.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "thanks",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "But",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "to God",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4,
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "who put",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article with the participle διδόντι (\"giving\") is rendered who put."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "same",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "devotion",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "into",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "heart",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Titus",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "be",
+          "occurrence": 0,
+          "reason": "English supplies a copula; the Greek has no verb."
+        },
+        {
+          "text": "I have",
+          "occurrence": 0,
+          "reason": "English supplies whose devotion it is; the Greek has no verb."
+        }
+      ]
+    },
     "8:17": {
       "sourceText": "ὅτι τὴν μὲν παράκλησιν ἐδέξατο, σπουδαιότερος δὲ ὑπάρχων αὐθαίρετος ἐξῆλθεν πρὸς ὑμᾶς.",
       "targetText": "For not only did he welcome our appeal, but he is eagerly coming to you of his own volition.",
@@ -118,6 +3102,1411 @@
           "text": "our",
           "occurrence": 0,
           "reason": "BSB supplies our with the definite appeal; no first-person possessive pronoun is written in this N1904 phrase."
+        }
+      ]
+    },
+    "8:18": {
+      "sourceText": "συνεπέμψαμεν δὲ μετ’ αὐτοῦ τὸν ἀδελφὸν οὗ ὁ ἔπαινος ἐν τῷ εὐαγγελίῳ διὰ πασῶν τῶν ἐκκλησιῶν,",
+      "targetText": "Along with Titus we are sending the brother who is praised by all the churches for his work in the gospel.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "we are sending",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Along with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "Titus",
+              "occurrence": 0
+            }
+          ],
+          "note": "αὐτοῦ (\"him\") is rendered Titus."
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "brother",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "who",
+              "occurrence": 0
+            }
+          ],
+          "note": "The relative οὗ (\"whose\") is rendered who."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "is praised",
+              "occurrence": 0
+            }
+          ],
+          "note": "The noun ἔπαινος (\"praise\") is rendered is praised."
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "gospel",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "all",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "churches",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves the connective δέ untranslated."
+        },
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "for his work",
+          "occurrence": 0,
+          "reason": "English supplies what he is praised for."
+        }
+      ]
+    },
+    "8:19": {
+      "sourceText": "οὐ μόνον δὲ ἀλλὰ καὶ χειροτονηθεὶς ὑπὸ τῶν ἐκκλησιῶν συνέκδημος ἡμῶν ἐν τῇ χάριτι ταύτῃ τῇ διακονουμένῃ ὑφ’ ἡμῶν πρὸς τὴν αὐτοῦ τοῦ Κυρίου δόξαν καὶ προθυμίαν ἡμῶν,",
+      "targetText": "More than that, this brother was chosen by the churches to accompany us with the offering—the gracious gift we administer to honor the Lord Himself and to show our eagerness to help.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1,
+            3,
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "More than",
+              "occurrence": 0
+            }
+          ],
+          "note": "οὐ μόνον … ἀλλὰ καί (\"not only … but also\") is rendered More than that."
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "was chosen",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "churches",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "to accompany",
+              "occurrence": 0
+            }
+          ],
+          "note": "The noun συνέκδημος (\"travel companion\") is rendered to accompany."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "us",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "with",
+              "occurrence": 0
+            }
+          ],
+          "note": "BSB's Greek has a different preposition here with much the same sense."
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "offering",
+              "occurrence": 0
+            },
+            {
+              "text": "gracious gift",
+              "occurrence": 0
+            }
+          ],
+          "note": "χάρις (\"grace, gift\") is rendered offering and again, in apposition, gracious gift."
+        },
+        {
+          "sourceTokens": [
+            15,
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 2
+            },
+            {
+              "text": "administer",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article with the participle διακονουμένῃ (\"being administered\") is rendered the … administer."
+        },
+        {
+          "sourceTokens": [
+            17,
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "we",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὑφ’ ἡμῶν (\"by us\") with the passive participle is rendered we administer."
+        },
+        {
+          "sourceTokens": [
+            19
+          ],
+          "targetPhrases": [
+            {
+              "text": "to",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "Himself",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            22
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 3
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            23
+          ],
+          "targetPhrases": [
+            {
+              "text": "Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            24
+          ],
+          "targetPhrases": [
+            {
+              "text": "honor",
+              "occurrence": 0
+            }
+          ],
+          "note": "δόξαν (\"glory\") is rendered as the verb honor."
+        },
+        {
+          "sourceTokens": [
+            25
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            26
+          ],
+          "targetPhrases": [
+            {
+              "text": "eagerness",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            27
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "BSB leaves the connective δέ untranslated."
+        },
+        {
+          "tokens": [
+            14
+          ],
+          "reason": "BSB says the offering, not this offering, so ταύτῃ has no English word."
+        },
+        {
+          "tokens": [
+            20
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "that",
+          "occurrence": 0,
+          "reason": "English supplies a demonstrative after More than."
+        },
+        {
+          "text": "this brother",
+          "occurrence": 0,
+          "reason": "A participle has no person; English supplies the subject."
+        },
+        {
+          "text": "to show",
+          "occurrence": 0,
+          "reason": "English supplies a second verb for the purpose phrase."
+        },
+        {
+          "text": "to help",
+          "occurrence": 0,
+          "reason": "English supplies what the eagerness is for."
+        }
+      ]
+    },
+    "8:20": {
+      "sourceText": "στελλόμενοι τοῦτο, μή τις ἡμᾶς μωμήσηται ἐν τῇ ἁδρότητι ταύτῃ τῇ διακονουμένῃ ὑφ’ ἡμῶν·",
+      "targetText": "We hope to avoid any criticism of the way we administer this generous gift.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "to avoid",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle στελλόμενοι (\"avoiding\") is rendered to avoid."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "any",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "criticism",
+              "occurrence": 0
+            }
+          ],
+          "note": "μωμήσηται (\"may blame\") is rendered criticism."
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "generous gift",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "this",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10,
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "administer",
+              "occurrence": 0
+            }
+          ],
+          "note": "The article with the participle διακονουμένῃ (\"being administered\") is rendered administer."
+        },
+        {
+          "sourceTokens": [
+            12,
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "we",
+              "occurrence": 0
+            }
+          ],
+          "note": "ὑφ’ ἡμῶν (\"by us\") with the passive participle is rendered we administer."
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            1
+          ],
+          "reason": "BSB leaves τοῦτο (\"this\") untranslated."
+        },
+        {
+          "tokens": [
+            2
+          ],
+          "reason": "BSB folds μή (\"lest\") into avoid."
+        },
+        {
+          "tokens": [
+            4
+          ],
+          "reason": "BSB leaves ἡμᾶς (\"us\"), the object of blame, untranslated."
+        },
+        {
+          "tokens": [
+            7
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "We hope",
+          "occurrence": 0,
+          "reason": "A participle has no person; English supplies a subject and hope."
+        },
+        {
+          "text": "the way",
+          "occurrence": 0,
+          "reason": "English supplies the way."
+        }
+      ]
+    },
+    "8:21": {
+      "sourceText": "προνοοῦμεν γὰρ καλὰ οὐ μόνον ἐνώπιον Κυρίου ἀλλὰ καὶ ἐνώπιον ἀνθρώπων.",
+      "targetText": "For we are taking great care to do what is right, not only in the eyes of the Lord, but also in the eyes of men.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "we are taking great care",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "For",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "what",
+              "occurrence": 0
+            },
+            {
+              "text": "right",
+              "occurrence": 0
+            }
+          ],
+          "note": "καλά (\"good things\") is rendered what … right."
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "not",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "only",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "in the eyes",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "of the Lord",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "but",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "also",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "in the eyes",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "of men",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "to do",
+          "occurrence": 0,
+          "reason": "English supplies a verb for the object."
+        },
+        {
+          "text": "is",
+          "occurrence": 0,
+          "reason": "English supplies a copula in the phrase what is right."
+        }
+      ]
+    },
+    "8:22": {
+      "sourceText": "συνεπέμψαμεν δὲ αὐτοῖς τὸν ἀδελφὸν ἡμῶν, ὃν ἐδοκιμάσαμεν ἐν πολλοῖς πολλάκις σπουδαῖον ὄντα, νυνὶ δὲ πολὺ σπουδαιότερον πεποιθήσει πολλῇ τῇ εἰς ὑμᾶς.",
+      "targetText": "And we are sending along with them our brother whose earnestness has been proven many times and in many ways, and now even more so by his great confidence in you.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "we are sending along with",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "And",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "them",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "brother",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "whose",
+              "occurrence": 0
+            }
+          ],
+          "note": "The relative ὅν (\"whom\") is rendered whose."
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "has been proven",
+              "occurrence": 0
+            }
+          ],
+          "note": "ἐδοκιμάσαμεν (\"we tested\") is rendered has been proven."
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "many ways",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "many times",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "earnestness",
+              "occurrence": 0
+            }
+          ],
+          "note": "σπουδαῖον ὄντα (\"being earnest\") is rendered earnestness."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "now",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "even",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "more so",
+              "occurrence": 0
+            }
+          ],
+          "note": "σπουδαιότερον (\"more earnest\") is rendered more so."
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "by",
+              "occurrence": 0
+            },
+            {
+              "text": "confidence",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            18
+          ],
+          "targetPhrases": [
+            {
+              "text": "great",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            20
+          ],
+          "targetPhrases": [
+            {
+              "text": "in",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            21
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3,
+            19
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "and",
+          "occurrence": 0,
+          "reason": "English adds and between the two phrases."
+        },
+        {
+          "text": "his",
+          "occurrence": 0,
+          "reason": "English supplies a possessive."
+        }
+      ]
+    },
+    "8:23": {
+      "sourceText": "εἴτε ὑπὲρ Τίτου, κοινωνὸς ἐμὸς καὶ εἰς ὑμᾶς συνεργός· εἴτε ἀδελφοὶ ἡμῶν, ἀπόστολοι ἐκκλησιῶν, δόξα Χριστοῦ.",
+      "targetText": "As for Titus, he is my partner and fellow worker among you. As for our brothers, they are messengers of the churches, to the glory of Christ.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0,
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "As for",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἴτε ὑπέρ (\"whether concerning\") is rendered As for."
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "Titus",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            3
+          ],
+          "targetPhrases": [
+            {
+              "text": "partner",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "my",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "among",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "fellow worker",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "As for",
+              "occurrence": 1
+            }
+          ],
+          "note": "εἴτε (\"or\") with the nominative ἀδελφοί is rendered As for, matching the first clause."
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "brothers",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "messengers",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "of the churches",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "the glory",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "of Christ",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [],
+      "unmappedTarget": [
+        {
+          "text": "he is",
+          "occurrence": 0,
+          "reason": "English supplies a subject and copula; the Greek has no verb."
+        },
+        {
+          "text": "they are",
+          "occurrence": 0,
+          "reason": "English supplies a subject and copula; the Greek has no verb."
+        },
+        {
+          "text": "to",
+          "occurrence": 0,
+          "reason": "English adds to; the Greek has glory in apposition."
+        }
+      ]
+    },
+    "8:24": {
+      "sourceText": "τὴν οὖν ἔνδειξιν τῆς ἀγάπης ὑμῶν καὶ ἡμῶν καυχήσεως ὑπὲρ ὑμῶν εἰς αὐτοὺς ἐνδεικνύμενοι εἰς πρόσωπον τῶν ἐκκλησιῶν.",
+      "targetText": "In full view of the churches, then, show these men the proof of your love and the reason for our boasting about you.",
+      "groups": [
+        {
+          "sourceTokens": [
+            0
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 1
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            1
+          ],
+          "targetPhrases": [
+            {
+              "text": "then",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            2
+          ],
+          "targetPhrases": [
+            {
+              "text": "proof",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            4
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 1
+            },
+            {
+              "text": "love",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            5
+          ],
+          "targetPhrases": [
+            {
+              "text": "your",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            6
+          ],
+          "targetPhrases": [
+            {
+              "text": "and",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            7
+          ],
+          "targetPhrases": [
+            {
+              "text": "our",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            8
+          ],
+          "targetPhrases": [
+            {
+              "text": "for",
+              "occurrence": 0
+            },
+            {
+              "text": "boasting",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            9
+          ],
+          "targetPhrases": [
+            {
+              "text": "about",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            10
+          ],
+          "targetPhrases": [
+            {
+              "text": "you",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            11,
+            12
+          ],
+          "targetPhrases": [
+            {
+              "text": "these men",
+              "occurrence": 0
+            }
+          ],
+          "note": "εἰς αὐτούς (\"toward them\") is rendered these men."
+        },
+        {
+          "sourceTokens": [
+            13
+          ],
+          "targetPhrases": [
+            {
+              "text": "show",
+              "occurrence": 0
+            }
+          ],
+          "note": "The participle ἐνδεικνύμενοι (\"showing\") is rendered as the command show."
+        },
+        {
+          "sourceTokens": [
+            14
+          ],
+          "targetPhrases": [
+            {
+              "text": "In",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            15
+          ],
+          "targetPhrases": [
+            {
+              "text": "full view",
+              "occurrence": 0
+            }
+          ],
+          "note": "πρόσωπον (\"face\") is rendered full view."
+        },
+        {
+          "sourceTokens": [
+            16
+          ],
+          "targetPhrases": [
+            {
+              "text": "the",
+              "occurrence": 0
+            }
+          ]
+        },
+        {
+          "sourceTokens": [
+            17
+          ],
+          "targetPhrases": [
+            {
+              "text": "of",
+              "occurrence": 0
+            },
+            {
+              "text": "churches",
+              "occurrence": 0
+            }
+          ]
+        }
+      ],
+      "unmappedSource": [
+        {
+          "tokens": [
+            3
+          ],
+          "reason": "The actual article has no distinct counterpart in this English wording."
+        }
+      ],
+      "unmappedTarget": [
+        {
+          "text": "the reason",
+          "occurrence": 0,
+          "reason": "English supplies a second head noun for boasting."
         }
       ]
     }
