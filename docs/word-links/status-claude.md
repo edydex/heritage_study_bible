@@ -5,11 +5,10 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-- BSB 2 Corinthians (1–6 in review; all drafted), then Revelation
-  (drafted). Codex's earlier single verses in
-  1 Cor 9, 14, 15; 2 Cor 8, 12, 13; Revelation 9 are kept byte-for-byte.
-- Romans 3:25–26, 7:9–10 and Revelation 12:17–18 need (or have) cross-verse
-  links for real verse-division differences.
+- BSB Revelation (1–6 in review; all drafted). Codex's earlier verse in
+  Revelation 9 is kept byte-for-byte.
+- Revelation 12:17–18 needs a cross-verse link for a real verse-division
+  difference (Romans 3:25–26, 7:9–10 and 2 Corinthians 10:4–5 have theirs).
 - SYNO-W: three more split pairs outside the fixed set (2 Cor 6:8, Luke 4:34,
   Mark 5:7), queued.
 - Consistency follow-ups in older BSB chapters (to align with the reviewed
@@ -53,6 +52,12 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   - 2 Corinthians 8:17 (Codex's earlier verse, kept unchanged): "not" sits
     on μέν … δέ (BSB's "not only … but" recast), τήν is `s` with "our" `t`,
     and its notes are multi-sentence. Links are defensible.
+  - 2 Corinthians 12:15 (Codex's earlier verse, kept unchanged): the row
+    "will + spend my money and myself" folds the supplied "my money" into
+    the verb group, and its notes are multi-sentence. No wrong link.
+  - Philippians 1:27 keeps ἀπών = "in my absence" whole and puts "I" on the
+    participle ἐλθών; 2 Corinthians 13:2 makes "my" and the participle's
+    "I" `t`.
 
 ## Done
 
@@ -99,6 +104,10 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 - **BSB 1 Corinthians is complete** (437 of 437): all 16 chapters with both
   reviews (`1a993698` … `20ead8a1`); Codex's 9:17, 14:37, 15:19 kept
   byte-for-byte. BSB reviewed: 7,290 of 7,945.
+- **BSB 2 Corinthians is complete** (257 of 257): all 13 chapters with both
+  reviews (`61f079e3` … `4e562082`); Codex's 8:17, 12:15, 13:5 and 13:12–14
+  kept byte-for-byte; N1904's last two words of 10:4 are linked into BSB's
+  10:5. BSB reviewed: 7,541 of 7,945 (only Revelation is left).
 - Review rules added to `claude-review-notes/README.md`: a supplied copula
   stays `t`; a word stated once and understood again in a parallel clause of
   the same verse links to that word.
@@ -116,15 +125,16 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 ## Ready to merge
 
 - **The tip of `claude/word-links`:** BSB Matthew 18–28, all of Mark, Luke
-  John, Acts, Romans and 1 Corinthians, the SYNO-W split-pair corrections, the checker and the
+  John, Acts, Romans, 1 and 2 Corinthians, the SYNO-W split-pair corrections, the checker and the
   review tools. It already contains your branch up to `e286657d`, so the
   merge is clean.
   - `verify-word-links.py` passes: all five translations rebuild identically,
     and the ownership check is clean.
   - `node --test tests/*.test.mjs`: 159 of 159 pass.
-  - `npx vitest run`: 515 of 516 pass. The one failure is the outdated
-    Matthew 18:27 example in Codex's `wordStudyTranslations.test.js` (see
-    Requests). Please update that test when you merge.
+  - `npx vitest run`: 514 of 516 pass. The two failures are the outdated
+    Romans 4:1 and Matthew 18:27 fixtures in Codex's
+    `wordStudyTranslations.test.js` (see Requests). Please update that test
+    when you merge.
 
 ## Findings for Codex
 
