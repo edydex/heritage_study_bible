@@ -43,6 +43,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
     current convention makes them `t`.
   - 1 Timothy 5:18 ("while it is treading out the grain") keeps "it" on the
     participle; 1 Corinthians 9:9 now makes that "it" `t`.
+  - Third-person "he/they" supplied for a participle clause: the Pauline
+    files make it `t` (Romans, 1 Corinthians 7, 9, 11); Acts keeps it on
+    the participle by its own convention. Align one way later.
 
 ## Done
 
