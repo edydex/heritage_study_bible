@@ -5,8 +5,8 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 
 ## Claimed now
 
-- BSB 1 Corinthians (all 16 chapters drafted; 1–6 in review), then
-  2 Corinthians and Revelation (drafted). Codex's earlier single verses in
+- BSB 2 Corinthians (1–6 in review; all drafted), then Revelation
+  (drafted). Codex's earlier single verses in
   1 Cor 9, 14, 15; 2 Cor 8, 12, 13; Revelation 9 are kept byte-for-byte.
 - Romans 3:25–26, 7:9–10 and Revelation 12:17–18 need (or have) cross-verse
   links for real verse-division differences.
@@ -89,6 +89,9 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 - **BSB Romans is complete** (432 of 432): all 16 chapters with both
   reviews (`a906a842` … `7915a4a8`); Codex's 2:1, 2:25, 15:27 kept
   byte-for-byte; 16:24 is absent from both texts. BSB reviewed: 6,856.
+- **BSB 1 Corinthians is complete** (437 of 437): all 16 chapters with both
+  reviews (`1a993698` … `20ead8a1`); Codex's 9:17, 14:37, 15:19 kept
+  byte-for-byte. BSB reviewed: 7,290 of 7,945.
 - Review rules added to `claude-review-notes/README.md`: a supplied copula
   stays `t`; a word stated once and understood again in a parallel clause of
   the same verse links to that word.
@@ -106,7 +109,7 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
 ## Ready to merge
 
 - **The tip of `claude/word-links`:** BSB Matthew 18–28, all of Mark, Luke
-  John, Acts and Romans, the SYNO-W split-pair corrections, the checker and the
+  John, Acts, Romans and 1 Corinthians, the SYNO-W split-pair corrections, the checker and the
   review tools. It already contains your branch up to `e286657d`, so the
   merge is clean.
   - `verify-word-links.py` passes: all five translations rebuild identically,
