@@ -46,6 +46,10 @@ Only Claude edits this file. Branch: `claude/word-links`. Rules:
   - Third-person "he/they" supplied for a participle clause: the Pauline
     files make it `t` (Romans, 1 Corinthians 7, 9, 11); Acts keeps it on
     the participle by its own convention. Align one way later.
+  - A supplied "purpose" after αὐτὸ τοῦτο / εἰς τοῦτο and "a/an" placed on
+    an adjective: Ephesians 6:22, Colossians 4:8, Romans 13:6 and Galatians
+    6:15 differ from the later 2 Corinthians 5 practice ("purpose" `t`,
+    "a/an" on the noun).
 
 ## Done
 
